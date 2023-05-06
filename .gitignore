@@ -1,0 +1,11 @@
+/build*/
+/data/
+/.idea/
+/cmake-*/
+/.xmake/
+.gdbinit
+*.exe
+resources/nsp_forwarder.nsp
+settings.json
+ffmpeg-*
+mpv-*

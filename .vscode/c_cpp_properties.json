@@ -1,0 +1,41 @@
+{
+    "configurations": [
+        {
+            "name": "Switch",
+            "includePath": [
+                "${workspaceFolder}/app/include",
+                "${workspaceFolder}/library/**",
+                "${workspaceFolder}/build_switch/**",
+                "${DEVKITPRO}/libnx/include",
+                "${DEVKITPRO}/devkitA64/aarch64-none-elf/include/**",
+                "${DEVKITPRO}/portlibs/switch/include/**"
+            ],
+            "defines": [
+                "__SWITCH__",
+                "BRLS_RESOURCES=\"resources\""
+            ],
+            "compilerPath": "${DEVKITPRO}/devkitA64/bin/aarch64-none-elf-g++",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-arm64"
+        },
+        {
+            "name": "MinGW64",
+            "includePath": [
+              "${workspaceFolder}/app/include",
+              "${workspaceFolder}/library/**",
+              "${workspaceFolder}/build_pc/**"
+            ],
+            "defines": [
+                "UNICODE",
+                "BOREALIS_USE_OPENGL",
+                "BRLS_RESOURCES=\"resources\""
+            ],
+            "compilerPath": "C:\\MinGW64\\bin\\gcc.exe",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "windows-gcc-x64"
+        }
+    ],
+    "version": 4
+}

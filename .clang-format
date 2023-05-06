@@ -1,0 +1,14 @@
+---
+BasedOnStyle: Google
+ColumnLimit: 100
+AccessModifierOffset: -4
+AlignAfterOpenBracket: false
+IndentWidth: 4
+BreakBeforeBraces: Attach
+CommentPragmas: '^[^ ]'
+IncludeBlocks: Regroup
+PointerAlignment: Left
+SortIncludes: Never
+IndentCaseLabels : false
+Standard: Cpp11
+...

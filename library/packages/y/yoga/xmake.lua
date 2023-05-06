@@ -1,0 +1,23 @@
+package("yoga")
+    set_homepage("https://yogalayout.com")
+    set_description("Yoga is a cross-platform layout engine which implements Flexbox.")
+    set_license("MIT")
+    set_urls("https://github.com/facebook/yoga/archive/$(version).zip")
+    add_versions("220d2582c94517b59d1c36f1c2faf5e3f88306f1", "a4477216404e803ba91adfdf672339e2e0ca803ec104a0b31354fed066e5ed46")
+    on_install(function (package)
+        io.writefile("xmake.lua", [[
+            target("yoga")
+                set_kind("$(kind)")
+                set_languages("c++17")
+                add_includedirs(".")
+                add_headerfiles("yoga/*.h", { prefixdir = "yoga" })
+                add_headerfiles("yoga/event/*.h", { prefixdir = "yoga/event" })
+                add_files("yoga/**.cpp")
+        ]])
+        local configs = {}
+        import("package.tools.xmake").install(package, configs)
+    end)
+
+    on_test(function (package)
+        assert(package:has_cfuncs("YGNodeNew", {includes = {"yoga/Yoga.h"}}))
+    end)

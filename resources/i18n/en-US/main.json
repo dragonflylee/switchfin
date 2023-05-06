@@ -1,0 +1,12 @@
+{
+  "title": "Switch Jellyfin",
+  "tabs": {
+    "home": "Home",
+    "setting": "Setting",
+    "about": "About Jellyfin"
+  },
+  "welcome": "Welcome to the Jellyfin.",
+  "about": {
+    "description": "A hardware accelerated, controller and TV oriented video player for PC and Nintendo Switch (libnx)."
+  }
+}

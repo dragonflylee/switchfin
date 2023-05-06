@@ -1,0 +1,6 @@
+[submodule "library/borealis"]
+	path = library/borealis
+	url = https://github.com/xfangfang/borealis
+[submodule "library/lunasvg"]
+	path = library/lunasvg
+	url = https://github.com/sammycage/lunasvg
