@@ -1,12 +1,48 @@
 {
   "title": "Switch Jellyfin",
+  "github": "https://github.com/jellyfin",
   "tabs": {
     "home": "首页",
-    "setting": "设置",
-    "about": "关于 Jellyfin"
+    "setting": "设置"
   },
   "welcome": "欢迎使用 Jellyfin",
   "about": {
     "description": "专为手柄设计的第三方跨平台 Jellyfin 客户端."
+  },
+  "setting": {
+    "quit_hint": "即将退出应用, 设置内容将在下次启动后生效",
+    "about": {
+      "header": "关于软件",
+      "brief": "专为手柄控制设计的第三方跨平台Jellyfin客户端\n满足日常使用, 目前可以运行在PC全平台和 Nintendo Switch 上",
+      "repo_header": "开源地址"
+    },
+    "playback": {
+      "header": "播放设置",
+      "hwdec": "硬件解码",
+      "video_codec": "视频编码"
+    },
+    "others": {
+      "header": "其他",
+      "fullscreen": "全屏显示",
+      "theme": {
+        "header": "主题配色 (需要重启)",
+        "1": "跟随系统",
+        "2": "浅色",
+        "3": "深色"
+      },
+      "language": {
+        "header": "语言 (需要重启)",
+        "auto": "跟随系统",
+        "chinese_s": "简体中文",
+        "chinese_t": "繁体中文",
+        "english": "英语"
+      },
+      "keymap": {
+        "header": "键位图标",
+        "xbox": "Xbox",
+        "ps": "PlayStation",
+        "keyboard": "键盘"
+      }
+    }
   }
 }

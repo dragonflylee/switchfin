@@ -12,37 +12,5 @@
             <SettingTab />
         </brls:Tab>
 
-        <brls:Tab label="@i18n/main/tabs/about">
-            <brls:Box
-                width="auto"
-                height="auto"
-                axis="column"
-                paddingTop="@style/about/padding_top_bottom"
-                paddingBottom="@style/about/padding_top_bottom"
-                paddingLeft="@style/about/padding_sides"
-                paddingRight="@style/about/padding_sides">
-
-                <brls:Box
-                    width="auto"
-                    height="auto"
-                    axis="row"
-                    marginBottom="@style/about/description_margin">
-
-                    <SVGImage
-                        width="20%"
-                        height="auto"
-                        svg="@res/icon/icon.svg" />
-
-                    <brls:Label
-                        width="auto"
-                        height="auto"
-                        text="@i18n/main/about/description"
-                        marginLeft="@style/about/description_margin" />
-
-                </brls:Box>
-
-            </brls:Box>
-        </brls:Tab>
-
     </brls:TabFrame>
 </brls:AppletFrame>

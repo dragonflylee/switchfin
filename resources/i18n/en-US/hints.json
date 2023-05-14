@@ -7,5 +7,6 @@
   "delete": "Delete",
   "save": "Save",
   "input": "Please input...",
-  "submit": "Submit"
+  "submit": "Submit",
+  "quit": "Exiting app..."
 }

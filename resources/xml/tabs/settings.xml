@@ -18,6 +18,53 @@
             paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
             paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
 
+            <brls:Header
+                width="auto"
+                height="auto"
+                title="@i18n/main/setting/playback/header"
+                marginBottom="0px" />
+            <brls:Box
+                width="100%"
+                height="auto"
+                axis="column"
+                marginBottom="30px">
+
+                <brls:BooleanCell
+                    id="setting/video/hwdec" />
+
+                <brls:SelectorCell
+                    id="setting/video/codec" />
+
+            </brls:Box>
+
+            <brls:Header
+                width="auto"
+                height="auto"
+                title="@i18n/main/setting/others/header"
+                marginBottom="0px" />
+            <brls:Box
+                width="100%"
+                height="auto"
+                axis="column"
+                marginBottom="30px">
+
+                <brls:BooleanCell
+                    id="setting/fullscreen" />
+
+                <brls:SelectorCell
+                    id="setting/keymap" />
+
+                <brls:SelectorCell
+                    id="setting/ui/theme" />
+
+                <brls:SelectorCell
+                    id="setting/language" />
+
+                <brls:DetailCell
+                    title="@i18n/main/setting/about/header"
+                    id="setting/about" />
+
+            </brls:Box>
 
         </brls:Box>
 

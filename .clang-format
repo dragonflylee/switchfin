@@ -1,6 +1,6 @@
 ---
 BasedOnStyle: Google
-ColumnLimit: 100
+ColumnLimit: 120
 AccessModifierOffset: -4
 AlignAfterOpenBracket: false
 IndentWidth: 4

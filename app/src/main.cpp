@@ -48,6 +48,10 @@ int main(int argc, char* argv[]) {
     brls::getStyle().addMetric("about/padding_sides", 75);
     brls::getStyle().addMetric("about/description_margin", 50);
 
+    // 深浅配色通用的灰色字体颜色
+    brls::Theme::getLightTheme().addColor("font/grey", nvgRGB(148, 153, 160));
+    brls::Theme::getDarkTheme().addColor("font/grey", nvgRGB(148, 153, 160));
+
     // Create and push the main activity to the stack
     brls::Application::pushActivity(new MainActivity());
 

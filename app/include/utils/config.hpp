@@ -16,6 +16,16 @@ public:
 
 class AppConfig : public brls::Singleton<AppConfig> {
 public:
+    enum SettingItem {
+        FULLSCREEN,
+        APP_THEME,
+        APP_LANG,
+        KEYMAP,
+        VIDEO_CODEC,
+        PLAYER_HWDEC,
+        TEXTURE_CACHE_NUM,
+    };
+
     AppConfig();
 
     void init();
@@ -23,22 +33,35 @@ public:
     std::string configDir();
 
     template <typename T>
-    T getItem(const std::string& key, T defaultValue) {
+    T getItem(const SettingItem item, T defaultValue) {
+        auto& o = settingMap[item];
         try {
-            if (!setting.contains(key)) return defaultValue;
-            return this->setting.at(key).get<T>();
+            if (!setting.contains(o.key)) return defaultValue;
+            return this->setting.at(o.key).get<T>();
         } catch (const std::exception& e) {
-            brls::Logger::error("Damaged config found: {}/{}", key, e.what());
+            brls::Logger::error("Damaged config found: {}/{}", o.key, e.what());
             return defaultValue;
         }
     }
 
     template <typename T>
-    void setItem(const std::string& key, T data) {
-        this->setting[key] = data;
+    void setItem(const SettingItem item, T data) {
+        auto& o = settingMap[item];
+        this->setting[o.key] = data;
         this->save();
     }
 
+    struct OptionItem {
+        std::string key;
+        std::vector<std::string> options;
+        size_t defaultOption;
+    };
+
+    int getOptionIndex(const SettingItem item);
+    inline OptionItem getOptions(const SettingItem item) { return settingMap[item]; }
+
 private:
+    static std::unordered_map<SettingItem, OptionItem> settingMap;
+
     nlohmann::json setting;
 };

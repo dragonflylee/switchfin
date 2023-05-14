@@ -1,0 +1,45 @@
+<brls:Box
+    grow="1.0"
+    width="auto"
+    height="auto"
+    axis="column"
+    wireframe="false"
+    paddingLeft="60"
+    paddingRight="60"
+    paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
+    paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
+
+    <brls:Box
+        justifyContent="center"
+        alignItems="flexEnd"
+        marginBottom="20px">
+        <brls:Label
+            fontSize="50"
+            marginRight="10"
+            lineHeight="1"
+            text="@i18n/main/title" />
+        <brls:Label
+            id="setting/about/version"
+            marginRight="20"
+            lineHeight="1"
+            textColor="@theme/font/grey" />
+    </brls:Box>
+
+    <brls:Header
+        title="@i18n/main/setting/about/header"
+        marginBottom="20" />
+    <brls:Label
+        marginLeft="20"
+        marginBottom="20"
+        text="@i18n/main/setting/about/brief" />
+
+    <brls:Header
+        title="@i18n/main/setting/about/repo_header"
+        marginBottom="20" />
+    <brls:Label
+        textColor="#6693B6"
+        marginLeft="20"
+        marginBottom="20"
+        text="@i18n/main/github" />
+
+</brls:Box>
