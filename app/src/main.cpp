@@ -4,11 +4,14 @@
 #endif
 
 #include <borealis.hpp>
+#include <cstdlib>
+#include <string>
 
 #include "utils/config.hpp"
 
 #include "activity/main_activity.hpp"
 #include "view/svg_image.hpp"
+#include "view/auto_tab_frame.hpp"
 #include "tab/home_tab.hpp"
 #include "tab/setting_tab.hpp"
 
@@ -42,6 +45,15 @@ int main(int argc, char* argv[]) {
     brls::Application::registerXMLView("SVGImage", SVGImage::create);
     brls::Application::registerXMLView("HomeTab", HomeTab::create);
     brls::Application::registerXMLView("SettingTab", SettingTab::create);
+    brls::Application::registerXMLView("AutoTabFrame", AutoTabFrame::create);
+
+    brls::Theme::getLightTheme().addColor("color/grey_1", nvgRGB(245, 246, 247));
+    brls::Theme::getDarkTheme().addColor("color/grey_1", nvgRGB(51, 52, 53));
+    brls::Theme::getLightTheme().addColor("color/jellyfin", nvgRGB(2, 176, 183));
+    brls::Theme::getDarkTheme().addColor("color/jellyfin", nvgRGB(51, 186, 227));
+    // 用于骨架屏背景色
+    brls::Theme::getLightTheme().addColor("color/grey_3", nvgRGBA(200, 200, 200, 16));
+    brls::Theme::getDarkTheme().addColor("color/grey_3", nvgRGBA(160, 160, 160, 160));
 
     // Add custom values to the style
     brls::getStyle().addMetric("about/padding_top_bottom", 50);

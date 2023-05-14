@@ -1,16 +1,33 @@
 <brls:AppletFrame
     iconInterpolation="linear"
+    headerHidden="true"
     footerHidden="false">
-    <brls:TabFrame
-        title="@i18n/main/title">
+    <brls:Box
+        axis="column"
+        width="100%"
+        height="100%">
+        <AutoTabFrame
+            id="main/tabFrame"
+            grow="1"
+            tabBackgroundColor="@theme/color/grey_1"
+            tabItemActiveTextColor="@theme/color/jellyfin"
+            defaultTab="0"
+            sidebarPosition="left">
 
-        <brls:Tab label="@i18n/main/tabs/home">
-            <HomeTab />
-        </brls:Tab>
+            <Tab label=""
+                fontSize="18"
+                icon="@res/icon/ico-home.svg"
+                iconActivate="@res/icon/ico-home-activate.svg">
+                <HomeTab />
+            </Tab>
 
-        <brls:Tab label="@i18n/main/tabs/setting">
-            <SettingTab />
-        </brls:Tab>
+            <Tab label=""
+                fontSize="18"
+                icon="@res/icon/ico-setting.svg"
+                iconActivate="@res/icon/ico-setting-activate.svg">
+                <SettingTab />
+            </Tab>
 
-    </brls:TabFrame>
+        </AutoTabFrame>
+    </brls:Box>
 </brls:AppletFrame>
