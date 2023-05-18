@@ -13,15 +13,15 @@ if is_plat("windows") then
     set_languages("c++20")
     if is_mode("release") then
         set_optimize("faster")
-        set_runtimes("MD")
     end
 else
     set_languages("c++17")
 end
 
-add_repositories("extern library")
+add_repositories("local-repo library")
 add_requires("borealis")
 add_requires("lunasvg")
+add_requires("libcurl")
 
 target("switchfin")
     add_includedirs("app/include")
@@ -41,7 +41,7 @@ target("switchfin")
     else
         add_defines("__GLFW__=1")
     end
-    add_packages("borealis", "lunasvg")
+    add_packages("borealis", "lunasvg", "libcurl")
     if is_plat("windows", "mingw") then
         add_files("app/app_win32.rc")
         after_build(function (target)

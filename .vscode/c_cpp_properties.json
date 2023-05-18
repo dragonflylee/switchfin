@@ -12,6 +12,8 @@
             ],
             "defines": [
                 "__SWITCH__",
+                "YG_ENABLE_EVENTS",
+                "BOREALIS_USE_OPENGL",
                 "BRLS_RESOURCES=\"resources\""
             ],
             "compilerPath": "${DEVKITPRO}/devkitA64/bin/aarch64-none-elf-g++",
@@ -24,11 +26,13 @@
             "includePath": [
               "${workspaceFolder}/app/include",
               "${workspaceFolder}/library/**",
-              "${workspaceFolder}/build_pc/**"
+              "${workspaceFolder}/build-pc/library/lunasvg/include",
+              "C:\\MinGW64\\include"
             ],
             "defines": [
                 "UNICODE",
                 "BOREALIS_USE_OPENGL",
+                "YG_ENABLE_EVENTS",
                 "BRLS_RESOURCES=\"resources\""
             ],
             "compilerPath": "C:\\MinGW64\\bin\\gcc.exe",

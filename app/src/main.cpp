@@ -4,8 +4,6 @@
 #endif
 
 #include <borealis.hpp>
-#include <cstdlib>
-#include <string>
 
 #include "utils/config.hpp"
 
@@ -67,6 +65,7 @@ int main(int argc, char* argv[]) {
     // Create and push the main activity to the stack
     brls::Application::pushActivity(new MainActivity());
 
+    AppVersion::instance().checkUpdate();
     // Run the app
     while (brls::Application::mainLoop())
         ;

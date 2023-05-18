@@ -10,16 +10,16 @@
       "args": [
         "-DPLATFORM_DESKTOP=ON",
         "-DCMAKE_BUILD_TYPE=Release",
-        "-B", "build_pc",
+        "-B", "build-pc",
         "-G", "MinGW Makefiles"
       ],
     },
     {
       "label": "build",
       "type": "shell",
-      "command": "mingw32-make",
+      "command": "make",
       "args": [
-        "-C", "build_pc"
+        "-C", "build-pc"
       ],
     }
   ]

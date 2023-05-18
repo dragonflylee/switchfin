@@ -56,10 +56,17 @@ add_subdirectory(library)
 file(GLOB_RECURSE MAIN_SRC app/src/*.cpp)
 
 set(PLATFORM_OPTION)
-if (PLATFORM_SWITCH)
+if (PLATFORM_DESKTOP)
+    find_package(CURL REQUIRED)
+    set(PLATFORM_LIBS
+            CURL::libcurl
+            )
+elseif (PLATFORM_SWITCH)
     set(PLATFORM_LIBS
             # needed by borealis
             glfw3 EGL glapi drm_nouveau
+            # needed by curl
+            curl z
             # base lib
             nx m
             )

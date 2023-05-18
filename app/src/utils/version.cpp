@@ -1,4 +1,7 @@
 #include "utils/config.hpp"
+#include "utils/dialog.hpp"
+#include "api/http.hpp"
+#include <nlohmann/json.hpp>
 
 #define STR_IMPL(x) #x
 #define STR(x) STR_IMPL(x)
@@ -18,13 +21,18 @@ std::string AppVersion::getPlatform() {
 #elif __SWITCH__
     return "NX";
 #else
-    #error "unsupport platform"
+#error "unsupport platform"
 #endif
 }
 
-bool AppVersion::needUpdate(std::string latestVersion) {
-    return false;
-}
+bool AppVersion::needUpdate(std::string latestVersion) { return false; }
 
 void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
+    std::string url = "https://api.github.com/repos/jellyfin/jellyfin/releases/latest";
+    HTTP::get_async(
+        [](const std::string& resp) {
+            auto j = nlohmann::json::parse(resp);
+            brls::Logger::info("checkUpdate {}", j.at("name").get<std::string>());
+        },
+        url, HTTP::Header{"x-requested-with: XMLHttpRequest"});
 }
