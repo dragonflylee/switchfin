@@ -23,6 +23,13 @@
 
             <Tab label=""
                 fontSize="18"
+                icon="@res/icon/ico-media.svg"
+                iconActivate="@res/icon/ico-media-activate.svg">
+                <MediaFolders />
+            </Tab>
+
+            <Tab label=""
+                fontSize="18"
                 icon="@res/icon/ico-setting.svg"
                 iconActivate="@res/icon/ico-setting-activate.svg">
                 <SettingTab />

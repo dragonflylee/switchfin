@@ -1,0 +1,17 @@
+<brls:Box
+    axis="row"
+    width="auto"
+    height="auto"
+    paddingLeft="@style/brls/tab_frame/content_padding_sides"
+    paddingRight="@style/brls/tab_frame/content_padding_sides"
+    paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
+    paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
+
+    <RecyclingGrid
+        grow="1"
+        wireframe="false"
+        spanCount="3"
+        itemHeight="180"
+        id="media/folders" />
+
+</brls:Box>

@@ -22,13 +22,28 @@ struct PublicSystemInfo {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PublicSystemInfo, Id, ServerName, Version, OperatingSystem);
 
+
+struct UserPolicy {
+    bool IsAdministrator;
+    std::vector<std::string> EnabledFolders;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(UserPolicy, IsAdministrator, EnabledFolders);
+
+struct UserConfiguration {
+    bool PlayDefaultAudioTrack;
+    std::string SubtitleLanguagePreference;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(UserConfiguration, PlayDefaultAudioTrack, SubtitleLanguagePreference);
+
 struct UserResult {
     std::string Id;
     std::string Name;
     std::string ServerId;
     bool HasPassword;
+    UserPolicy Policy;
+    UserConfiguration Configuration;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(UserResult, Id, Name, ServerId, HasPassword);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(UserResult, Id, Name, ServerId, HasPassword, Policy, Configuration);
 
 struct SessionResult {
     std::string Id;

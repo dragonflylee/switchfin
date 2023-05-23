@@ -15,7 +15,6 @@ class HTTP {
 public:
     using Header = std::vector<std::string>;
     using Form = std::unordered_map<std::string, std::string>;
-    using OnError = std::function<void(const std::string&)>;
     // For cancellable requests
     using Cancel = std::shared_ptr<std::atomic_bool>;
 
@@ -49,14 +48,14 @@ public:
         return s.get(url);
     }
 
-    template <typename Then, typename... Ts>
-    static void get_async(Then then, const OnError& error, Ts... ts) {
+    template <typename Then, typename Error, typename... Ts>
+    static void get_async(Then then, Error error, Ts... ts) {
         brls::async(std::bind(
-            [](Then then_inner, OnError error_inner, Ts... ts_inner) {
+            [](Then then_inner, Error error_inner, Ts... ts_inner) {
                 try {
                     then_inner(HTTP::get(std::move(ts_inner)...));
                 } catch (const std::exception& ex) {
-                    if (error_inner) error_inner(ex.what());
+                    error_inner(ex.what());
                 }
             },
             std::move(then), std::move(error), std::move(ts)...));
@@ -77,14 +76,14 @@ public:
         return s.post(url, s.encode_form(form));
     }
 
-    template <typename Then, typename... Ts>
-    static void post_async(Then then, const OnError& error, Ts... ts) {
+    template <typename Then, typename Error, typename... Ts>
+    static void post_async(Then then, Error error, Ts... ts) {
         brls::async(std::bind(
-            [](Then then_inner, OnError error_inner, Ts... ts_inner) {
+            [](Then then_inner, Error error_inner, Ts... ts_inner) {
                 try {
                     then_inner(HTTP::post(std::move(ts_inner)...));
                 } catch (const std::exception& ex) {
-                    if (error_inner) error_inner(ex.what());
+                    error_inner(ex.what());
                 }
             },
             std::move(then), std::move(error), std::move(ts)...));

@@ -14,6 +14,7 @@
 #include "activity/server_list.hpp"
 #include "tab/server_add.hpp"
 #include "tab/home_tab.hpp"
+#include "tab/media_folder.hpp"
 #include "tab/setting_tab.hpp"
 
 using namespace brls::literals;  // for _i18n
@@ -47,6 +48,7 @@ int main(int argc, char* argv[]) {
     brls::Application::registerXMLView("AutoTabFrame", AutoTabFrame::create);
     brls::Application::registerXMLView("RecyclingGrid", RecyclingGrid::create);
     brls::Application::registerXMLView("HomeTab", HomeTab::create);
+    brls::Application::registerXMLView("MediaFolders", MediaFolders::create);
     brls::Application::registerXMLView("SettingTab", SettingTab::create);
 
     brls::Theme::getLightTheme().addColor("color/app", nvgRGB(2, 176, 183));

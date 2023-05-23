@@ -49,5 +49,5 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
             nlohmann::json j = nlohmann::json::parse(resp);
             brls::Logger::info("checkUpdate {}", j.at("name").get<std::string>());
         },
-        nullptr, url, HTTP::Timeout{1000});
+        [](...) {}, url, HTTP::Timeout{1000});
 }

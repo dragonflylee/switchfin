@@ -84,6 +84,7 @@ public:
     bool addServer(const AppServer& s);
     bool addUser(const AppUser& u);
     const std::string& getAccessToken() const { return this->user.access_token; }
+    const std::string& getUserId() const { return this->user.id; }
     const std::string& getUsername() const { return this->user.name; }
     const std::string& getServerUrl() const { return this->server_url; }
     const std::vector<AppServer>& getServers() const { return this->servers; }

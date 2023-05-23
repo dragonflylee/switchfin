@@ -16,5 +16,6 @@
   "failed": "Failed",
   "exit_hint": "Are you going to exit the application?",
   "loading": "Loading",
+  "refresh": "Refresh",
   "quit": "Exiting app..."
 }

@@ -28,27 +28,23 @@ bool ServerLogin::onSignin() {
     this->btnSignin->setTextColor(brls::Application::getTheme().getColor("font/grey"));
 
     ASYNC_RETAIN
-    jellyfin::post(
+    jellyfin::postJSON(
         jellyfin::apiAuthByName,
         {
             {"Username", this->inputUser->getValue()},
             {"Pw", this->inputPass->getValue()},
         },
         [ASYNC_TOKEN](const jellyfin::AuthResult& r) {
+            ASYNC_RELEASE
             AppUser u = {r.User.Id, r.User.Name, r.AccessToken, r.ServerId};
-            brls::sync([u, ASYNC_TOKEN]() {
-                ASYNC_RELEASE
-                AppConfig::instance().addUser(u);
-                brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
-            });
+            AppConfig::instance().addUser(u);
+            brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
         },
         [ASYNC_TOKEN](const std::string& ex) {
-            brls::sync([ex, ASYNC_TOKEN]() {
-                ASYNC_RELEASE
-                this->btnSignin->setActionsAvailable(true);
-                this->btnSignin->setTextColor(brls::Application::getTheme().getColor("brls/text"));
-                Dialog::show(ex);
-            });
+            ASYNC_RELEASE
+            this->btnSignin->setActionsAvailable(true);
+            this->btnSignin->setTextColor(brls::Application::getTheme().getColor("brls/text"));
+            Dialog::show(ex);
         });
     return false;
 }
