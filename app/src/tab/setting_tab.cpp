@@ -32,6 +32,9 @@ SettingTab::SettingTab() {
 
     auto& conf = AppConfig::instance();
 
+    btnServer->setDetailText(conf.getServerUrl());
+    btnUser->setDetailText(conf.getUsername());
+
 /// Hardware decode
 #ifdef __SWITCH__
     btnHWDEC->setVisibility(brls::Visibility::GONE);

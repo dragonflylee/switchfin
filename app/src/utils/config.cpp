@@ -9,21 +9,15 @@
 #include <borealis.hpp>
 #include <borealis/core/cache_helper.hpp>
 #include "utils/config.hpp"
-#include "api/jellyfin.hpp"
 
 constexpr uint32_t MINIMUM_WINDOW_WIDTH = 640;
 constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
 
-const std::string ACCESS_TOKEN = "access_token";
-const std::string SERVER_URL = "server_url";
-
-std::unordered_map<AppConfig::SettingItem, AppConfig::OptionItem> AppConfig::settingMap = {
+std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {APP_THEME, {"app_theme", {"auto", "light", "dark"}}},
     {APP_LANG, {"app_lang", {brls::LOCALE_AUTO, brls::LOCALE_EN_US, brls::LOCALE_ZH_HANS, brls::LOCALE_ZH_HANT}}},
     {KEYMAP, {"keymap", {"xbox", "ps", "keyboard"}}},
     {VIDEO_CODEC, {"video_codec", {"AVC/H.264", "HEVC/H.265", "AV1"}}},
-    {SERVERS, {"servers"}},
-    {USERS, {"users"}},
     {FULLSCREEN, {"fullscreen"}},
     {PLAYER_HWDEC, {"player_hwdec"}},
     {TEXTURE_CACHE_NUM, {"texture_cache_num"}},
@@ -32,13 +26,13 @@ std::unordered_map<AppConfig::SettingItem, AppConfig::OptionItem> AppConfig::set
 AppConfig::AppConfig() = default;
 
 void AppConfig::init() {
-    brls::Logger::info("Switchfin {}-{}", AppVersion::instance().git_tag, AppVersion::instance().git_commit);
+    brls::Logger::info("() init {}", AppVersion::getPlatform(), AppVersion::getVersion());
 
     const std::string path = this->configDir() + "/config.json";
     std::ifstream readFile(path);
     if (readFile.is_open()) {
         try {
-            this->setting = nlohmann::json::parse(readFile);
+            nlohmann::json::parse(readFile).get_to(*this);
             brls::Logger::info("Load config from: {}", path);
         } catch (const std::exception& e) {
             brls::Logger::error("AppConfig::load: {}", e.what());
@@ -98,9 +92,12 @@ void AppConfig::init() {
         }
     }
 
-    if (setting.contains(SERVER_URL)) this->server_url = setting.at(SERVER_URL);
-    if (setting.contains(ACCESS_TOKEN)) this->access_token = setting.at(ACCESS_TOKEN);
-
+    for (auto& u : this->users) {
+        if (u.id == this->user_id) {
+            this->user = u;
+            break;
+        }
+    }
     brls::Logger::debug("init finish");
 }
 
@@ -109,7 +106,9 @@ void AppConfig::save() {
     std::filesystem::create_directories(this->configDir());
     std::ofstream f(path);
     if (f.is_open()) {
-        f << this->setting.dump(2);
+        nlohmann::json j;
+        to_json(j, *this);
+        f << j.dump(2);
         f.close();
     }
 }
@@ -127,7 +126,7 @@ std::string AppConfig::configDir() {
 #endif
 }
 
-int AppConfig::getOptionIndex(const SettingItem item) {
+int AppConfig::getOptionIndex(const Item item) {
     auto& o = settingMap[item];
     if (setting.contains(o.key)) {
         try {
@@ -143,8 +142,7 @@ int AppConfig::getOptionIndex(const SettingItem item) {
 
 bool AppConfig::addServer(const AppServer& s) {
     bool found = false;
-    Servers srvs = this->getItem(SERVERS, Servers{});
-    for (auto& o : srvs) {
+    for (auto& o : this->servers) {
         if (s.id == o.id) {
             o.name = s.name;
             o.version = s.version;
@@ -154,19 +152,17 @@ bool AppConfig::addServer(const AppServer& s) {
             break;
         }
     }
-    if (!found) srvs.push_back(s);
+    if (!found) this->servers.push_back(s);
 
     this->server_url = s.urls.back();
-    this->setting[SERVER_URL] = this->server_url;
-    this->setItem(SERVERS, srvs);
+    this->save();
     return found;
 }
 
 bool AppConfig::addUser(const AppUser& u) {
     bool found = false;
-    Users users = this->getItem(USERS, Users{});
-    for (auto& o : users) {
-        if (o.id == o.id) {
+    for (auto& o : this->users) {
+        if (o.id == u.id) {
             o.name = u.name;
             o.access_token = u.access_token;
             o.server_id = u.server_id;
@@ -174,10 +170,10 @@ bool AppConfig::addUser(const AppUser& u) {
             break;
         }
     }
-    if (!found) users.push_back(u);
+    if (!found) this->users.push_back(u);
 
-    this->access_token = u.access_token;
-    this->setting[ACCESS_TOKEN] = u.access_token;
-    this->setItem(USERS, users);
+    this->user_id = u.id;
+    this->user = u;
+    this->save();
     return found;
 }

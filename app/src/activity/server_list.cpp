@@ -13,19 +13,19 @@ class ServerUserDataSource : public RecyclingGridDataSource {
 public:
     void clearData() override {}
 
-    ServerUserDataSource(const AppConfig::Users& users) : list(std::move(users)) {}
+    ServerUserDataSource(const std::vector<AppUser>& users) : list(std::move(users)) {}
 
     size_t getItemCount() override { return this->list.size(); }
 
 private:
-    AppConfig::Users list;
+    std::vector<AppUser> list;
 };
 
 class ServerListDataSource : public RecyclingGridDataSource {
 public:
     using Event = std::function<void(const AppServer&)>;
 
-    ServerListDataSource(const AppConfig::Servers& s) : list(std::move(s)) {}
+    ServerListDataSource(const std::vector<AppServer>& s) : list(std::move(s)) {}
 
     size_t getItemCount() override { return this->list.size(); }
 
@@ -45,7 +45,7 @@ public:
     void clearData() override { this->list.clear(); }
 
 private:
-    AppConfig::Servers list;
+    std::vector<AppServer> list;
     Event onSelect;
 };
 
@@ -58,7 +58,7 @@ ServerList::ServerList() { brls::Logger::debug("ServerList: create"); }
 ServerList::~ServerList() { brls::Logger::debug("ServerList Activity: delete"); }
 
 void ServerList::onContentAvailable() {
-    AppConfig::Servers svrs = AppConfig::instance().getItem(AppConfig::SERVERS, AppConfig::Servers{});
+    auto svrs = AppConfig::instance().getServers();
     auto dataSrc = new ServerListDataSource(svrs);
     this->recyclerServers->registerCell("Cell", &ServerCell::create);
     this->recyclerServers->setDataSource(dataSrc);

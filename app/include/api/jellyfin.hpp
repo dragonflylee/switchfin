@@ -11,7 +11,7 @@
 
 namespace jellyfin {
 
-extern std::string defaultAuthHeader;
+std::string defaultAuthHeader();
 
 template <typename Then>
 void get(const std::string& path, Then then, HTTP::OnError error = nullptr) {
@@ -19,7 +19,7 @@ void get(const std::string& path, Then then, HTTP::OnError error = nullptr) {
     std::string token = AppConfig::instance().getAccessToken();
     std::string url = AppConfig::instance().getServerUrl();
     if (token.empty())
-        header.push_back(defaultAuthHeader);
+        header.push_back(defaultAuthHeader());
     else
         header.push_back("X-Emby-Token: " + token);
     HTTP::get_async([then](const std::string& resp) { then(nlohmann::json::parse(resp)); }, error, url + path, header,
@@ -32,7 +32,7 @@ void post(const std::string& path, const nlohmann::json& data, Then then, HTTP::
     std::string token = AppConfig::instance().getAccessToken();
     std::string url = AppConfig::instance().getServerUrl();
     if (token.empty())
-        header.push_back(defaultAuthHeader);
+        header.push_back(defaultAuthHeader());
     else
         header.push_back("X-Emby-Token: " + token);
     HTTP::post_async([then](const std::string& resp) { then(nlohmann::json::parse(resp)); }, error, url + path,

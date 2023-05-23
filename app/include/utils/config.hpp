@@ -4,14 +4,17 @@
 #include <borealis/core/logger.hpp>
 #include <nlohmann/json.hpp>
 
-class AppVersion : public brls::Singleton<AppVersion> {
+class AppVersion{
 public:
-    std::string git_commit, git_tag;
-    AppVersion();
+    static std::string getVersion();
+    static std::string getPlatform();
+    static std::string getDeviceName();
+    static bool needUpdate(std::string latestVersion);
+    static void checkUpdate(int delay = 2000, bool showUpToDateDialog = false);
 
-    std::string getPlatform();
-    bool needUpdate(std::string latestVersion);
-    void checkUpdate(int delay = 2000, bool showUpToDateDialog = false);
+private:
+    static std::string git_commit;
+    static std::string git_tag;
 };
 
 struct AppUser {
@@ -34,9 +37,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AppServer, id, name, version, os, urls);
 
 class AppConfig : public brls::Singleton<AppConfig> {
 public:
-    enum SettingItem {
-        SERVERS,
-        USERS,
+    enum Item {
         FULLSCREEN,
         APP_THEME,
         APP_LANG,
@@ -46,9 +47,6 @@ public:
         TEXTURE_CACHE_NUM,
     };
 
-    using Servers = std::vector<AppServer>;
-    using Users = std::vector<AppUser>;
-
     AppConfig();
 
     void init();
@@ -56,7 +54,7 @@ public:
     std::string configDir();
 
     template <typename T>
-    T getItem(const SettingItem item, T defaultValue) {
+    T getItem(const Item item, T defaultValue) {
         auto& o = settingMap[item];
         try {
             if (!setting.contains(o.key)) return defaultValue;
@@ -68,30 +66,38 @@ public:
     }
 
     template <typename T>
-    void setItem(const SettingItem item, T data) {
+    void setItem(const Item item, T data) {
         auto& o = settingMap[item];
         this->setting[o.key] = data;
         this->save();
     }
 
-    struct OptionItem {
+    struct Option {
         std::string key;
         std::vector<std::string> options;
         size_t defaultOption;
     };
 
-    int getOptionIndex(const SettingItem item);
-    inline OptionItem getOptions(const SettingItem item) { return settingMap[item]; }
+    int getOptionIndex(const Item item);
+    inline Option getOptions(const Item item) { return settingMap[item]; }
 
     bool addServer(const AppServer& s);
     bool addUser(const AppUser& u);
-    std::string getAccessToken() const { return this->access_token; }
-    std::string getServerUrl() const { return this->server_url; }
+    const std::string& getAccessToken() const { return this->user.access_token; }
+    const std::string& getUsername() const { return this->user.name; }
+    const std::string& getServerUrl() const { return this->server_url; }
+    const std::vector<AppServer>& getServers() const { return this->servers; }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(AppConfig, user_id, server_url, device, users, servers, setting);
 
 private:
-    static std::unordered_map<SettingItem, OptionItem> settingMap;
+    static std::unordered_map<Item, Option> settingMap;
 
-    std::string access_token;
+    AppUser user;
+    std::string user_id;
     std::string server_url;
+    std::string device;
+    std::vector<AppUser> users;
+    std::vector<AppServer> servers;
     nlohmann::json setting;
 };

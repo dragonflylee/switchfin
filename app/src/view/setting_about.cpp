@@ -3,8 +3,7 @@
 
 SettingAbout::SettingAbout() {
     this->inflateFromXMLRes("xml/view/setting_about.xml");
-    auto& v = AppVersion::instance();
-    labelVersion->setText(v.git_tag.empty() ?  "dev-" + v.git_commit : v.git_tag);
+    labelVersion->setText(AppVersion::getVersion());
     brls::Logger::debug("dialog SettingAbout: create");
 }
 

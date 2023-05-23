@@ -15,13 +15,8 @@
 #include "tab/server_add.hpp"
 #include "tab/home_tab.hpp"
 #include "tab/setting_tab.hpp"
-#include "api/jellyfin.hpp"
 
 using namespace brls::literals;  // for _i18n
-
-std::string jellyfin::defaultAuthHeader;
-
-const std::string appName = "Jellyfin";
 
 int main(int argc, char* argv[]) {
     // Enable recording for Twitter memes
@@ -42,11 +37,7 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    jellyfin::defaultAuthHeader =
-        fmt::format("X-Emby-Authorization: MediaBrowser Client=\"{}\", Device=\"{}\", DeviceId=\"{}\", Version=\"{}\"",
-            appName, brls::Application::getPlatform()->getName(), "abc", AppVersion::instance().git_commit);
-
-    brls::Application::createWindow(appName);
+    brls::Application::createWindow(AppVersion::getPlatform());
 
     // Have the application register an action on every activity that will quit when you press BUTTON_START
     brls::Application::setGlobalQuit(false);
@@ -79,7 +70,7 @@ int main(int argc, char* argv[]) {
         brls::Application::pushActivity(new MainActivity());
     }
 
-    AppVersion::instance().checkUpdate();
+    AppVersion::checkUpdate();
     // Run the app
     while (brls::Application::mainLoop())
         ;

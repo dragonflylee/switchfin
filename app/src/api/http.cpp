@@ -17,7 +17,7 @@ HTTP::HTTP() : chunk(nullptr) {
         }
     } global;
 
-    static std::string user_agent = "Switchfin/" + AppVersion::instance().git_tag;
+    static std::string user_agent = "Jellyfin/" + AppVersion::getVersion();
     this->easy = curl_easy_init();
 
     curl_easy_setopt(this->easy, CURLOPT_USERAGENT, user_agent.c_str());
