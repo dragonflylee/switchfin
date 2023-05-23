@@ -1,12 +1,20 @@
 {
   "ok": "确定",
   "back": "返回",
+  "cancel": "取消",
   "exit": "退出",
   "on": "开",
   "off": "关",
   "delete": "删除",
   "save": "保存",
-  "input": "请输入...",
   "submit": "提交",
+  "input": "请输入...",
+  "preset": "预设",
+  "default": "默认",
+  "current": "当前",
+  "success": "成功",
+  "failed": "失败",
+  "exit_hint": "退出应用？",
+  "loading": "加载中",
   "quit": "正在退出应用..."
 }

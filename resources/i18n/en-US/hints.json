@@ -1,12 +1,20 @@
 {
   "ok": "OK",
   "back": "Back",
+  "cancel": "Cancel",
   "exit": "Exit",
   "on": "On",
   "off": "Off",
   "delete": "Delete",
   "save": "Save",
-  "input": "Please input...",
   "submit": "Submit",
+  "input": "Please input...",
+  "preset": "Preset",
+  "default": "Default",
+  "current": "Current",
+  "success": "Success",
+  "failed": "Failed",
+  "exit_hint": "Are you going to exit the application?",
+  "loading": "Loading",
   "quit": "Exiting app..."
 }

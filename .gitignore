@@ -9,3 +9,4 @@ resources/nsp_forwarder.nsp
 settings.json
 ffmpeg-*
 mpv-*
+/*.json

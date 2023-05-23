@@ -15,3 +15,7 @@
 */
 
 #include "activity/main_activity.hpp"
+
+MainActivity::~MainActivity() { brls::Logger::debug("delete MainActivity"); }
+
+void MainActivity::onContentAvailable() {}

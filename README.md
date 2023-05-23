@@ -27,7 +27,8 @@ mingw32-make -C build-pc -j$(nproc)
 ## Lanuch Jellyfin Server
 
 ```bash
-docker run --restart always --name jf1 --tmpfs /cache -v /media:/media \
+docker run --restart always --name jf1 --tmpfs /cache -v jf1:/config \
+  -v /media:/media --add-host api.themoviedb.org:18.65.168.121 \
   --device /dev/dri/renderD128:/dev/dri/renderD128 --device /dev/dri/card0:/dev/dri/card0 \
   -l 'traefik.http.routers.jf1.rule=Host(`jf1.domain.com`)' \
   -l 'traefik.http.services.jf1.loadbalancer.server.port=8096' \
