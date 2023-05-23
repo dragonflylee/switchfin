@@ -1,0 +1,35 @@
+<brls:Box
+    borderColor="@theme/color/grey_1"
+    alignItems="center"
+    focusable="true">
+
+    <SVGImage
+        width="80"
+        height="auto"
+        svg="@res/icon/ico-server.svg" />
+
+    <brls:Box
+        axis="column"
+        marginLeft="10px">
+
+        <brls:Label
+            id="server/name"
+            marginTop="10px"
+            marginBottom="10px"
+            fontSize="25" />
+
+        <brls:Label
+            id="server/url"
+            marginLeft="4"
+            fontSize="15"
+            singleLine="true"
+            textColor="@theme/font/grey" />
+
+        <brls:Label
+            id="server/users"
+            marginTop="10px"
+            marginBottom="10px"
+            fontSize="20" />
+    </brls:Box>
+
+</brls:Box>

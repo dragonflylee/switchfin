@@ -31,8 +31,7 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
     std::string url = "https://api.github.com/repos/jellyfin/jellyfin/releases/latest";
     HTTP::get_async(
         [](const std::string& resp) {
-            auto j = nlohmann::json::parse(resp);
+            nlohmann::json j = nlohmann::json::parse(resp);
             brls::Logger::info("checkUpdate {}", j.at("name").get<std::string>());
-        },
-        url, HTTP::Header{"x-requested-with: XMLHttpRequest"});
+        }, nullptr, url, HTTP::Timeout{1000});
 }

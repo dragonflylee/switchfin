@@ -1,0 +1,114 @@
+<brls:AppletFrame
+    id="server/frame"
+    iconInterpolation="linear"
+    headerHidden="true"
+    footerHidden="false">
+
+    <brls:Box
+        axis="row"
+        width="auto"
+        height="auto">
+
+        <brls:Box
+            wireframe="false"
+            width="40%"
+            axis="column"
+            paddingTop="@style/brls/sidebar/padding_top"
+            paddingRight="@style/brls/sidebar/padding_right"
+            paddingBottom="@style/brls/sidebar/padding_bottom"
+            paddingLeft="@style/brls/sidebar/padding_left">
+
+            <brls:Header
+                width="auto"
+                height="auto"
+                title="@i18n/main/setting/server/header"
+                marginBottom="0px" />
+
+            <brls:Box
+                width="100%"
+                height="auto"
+                paddingRight="20"
+                marginBottom="20"
+                marginTop="20">
+
+                <brls:Button
+                    id="server/add"
+                    style="primary"
+                    grow="1.0"
+                    text="@i18n/main/setting/server/connect_new"
+                />
+            </brls:Box>
+
+            <RecyclingGrid
+                id="server/recycler"
+                grow="1"
+                spanCount="1"
+                wireframe="false"
+                itemHeight="100"
+                lineColor="@theme/color/line"
+                lineRight="1"
+            />
+        </brls:Box>
+
+        <brls:Box
+            wireframe="false"
+            axis="column"
+            paddingLeft="@style/brls/tab_frame/content_padding_sides"
+            paddingRight="@style/brls/tab_frame/content_padding_sides"
+            paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
+            paddingBottom="@style/brls/tab_frame/content_padding_top_bottom"
+            grow="1">
+
+            <brls:Header
+                width="auto"
+                height="auto"
+                title="@i18n/main/setting/server/detail"
+                marginBottom="0px" />
+            <brls:Box
+                width="100%"
+                height="auto"
+                axis="column"
+                marginBottom="30px">
+
+                <brls:SelectorCell
+                    title="@i18n/main/setting/url"
+                    id="server/urls" />
+
+                <brls:DetailCell
+                    title="@i18n/main/setting/version"
+                    focusable="false"
+                    id="server/version" />
+
+                <brls:DetailCell
+                    title="@i18n/main/setting/os"
+                    focusable="false"
+                    id="server/os" />
+
+            </brls:Box>
+
+            <brls:Box
+                width="100%"
+                height="auto">
+
+                <brls:Button
+                    id="server/signin"
+                    style="primary"
+                    grow="1.0"
+                    text="@i18n/main/setting/server/signin"
+                />
+            </brls:Box>
+
+            <RecyclingGrid
+                paddingLeft="20"
+                paddingRight="20"
+                itemHeight="200"
+                grow="1"
+                preFetchLine="2"
+                spanCount="3"
+                wireframe="false"
+                id="user/recycler" />
+
+        </brls:Box>
+
+    </brls:Box>
+</brls:AppletFrame>

@@ -1,0 +1,41 @@
+<brls:Box
+    width="auto"
+    height="auto"
+    alignItems="center"
+    justifyContent="center">
+
+    <brls:Box
+        width="60%"
+        height="auto"
+        axis="column"
+        alignItems="stretch"
+        paddingTop="50px"
+        paddingBottom="50px"
+        paddingLeft="75px"
+        paddingRight="75px">
+
+        <brls:Header
+            width="auto"
+            height="auto"
+            id="server/sigin_to"
+            marginBottom="0px" />
+        <brls:Box
+            width="100%"
+            height="auto"
+            axis="column"
+            marginBottom="30px">
+
+            <brls:InputCell
+                id="server/user" />
+
+            <brls:InputCell
+                id="server/pass" />
+
+            <brls:DetailCell
+                title="@i18n/main/setting/server/signin"
+                id="server/signin" />
+
+        </brls:Box>
+
+    </brls:Box>
+</brls:Box>

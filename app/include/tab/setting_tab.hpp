@@ -25,6 +25,8 @@ public:
     static brls::View* create();
 
 private:
+    BRLS_BIND(brls::DetailCell, btnUser, "setting/user");
+    BRLS_BIND(brls::DetailCell, btnServer, "setting/server");
     BRLS_BIND(brls::BooleanCell, btnHWDEC, "setting/video/hwdec");
     BRLS_BIND(brls::SelectorCell, selectorCodec, "setting/video/codec");
     BRLS_BIND(brls::BooleanCell, btnFullscreen, "setting/fullscreen");
@@ -32,6 +34,4 @@ private:
     BRLS_BIND(brls::SelectorCell, selectorLang, "setting/language");
     BRLS_BIND(brls::SelectorCell, selectorTheme, "setting/ui/theme");
     BRLS_BIND(brls::DetailCell, btnAbout, "setting/about");
-
-    bool showAbout(brls::View* view);
 };

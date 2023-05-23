@@ -77,7 +77,7 @@ SettingTab::SettingTab() {
 #endif
 
     // App language
-    int langIndex = 0;
+    int langIndex = conf.getOptionIndex(AppConfig::APP_LANG);
     selectorLang->init("main/setting/others/language/header"_i18n,
         {
 #ifdef __SWITCH__
@@ -87,7 +87,13 @@ SettingTab::SettingTab() {
             "main/setting/others/language/chinese_t"_i18n,
             "main/setting/others/language/chinese_s"_i18n,
         },
-        langIndex, [langIndex](int data) { return false; });
+        langIndex, [&conf, langIndex](int selected) {
+            if (langIndex == selected) return false;
+            auto langOptions = conf.getOptions(AppConfig::APP_LANG);
+            conf.setItem(AppConfig::APP_LANG, langOptions.options[selected]);
+            Dialog::quitApp();
+            return true;
+        });
 
     // App theme
     int themeIndex = conf.getOptionIndex(AppConfig::APP_THEME);
@@ -105,14 +111,13 @@ SettingTab::SettingTab() {
             return true;
         });
 
-    btnAbout->registerClickAction(std::bind(&SettingTab::showAbout, this, std::placeholders::_1));
+    btnAbout->setDetailText(">");
+    btnAbout->registerClickAction([](...) {
+        brls::Dialog* dialog = new brls::Dialog(new SettingAbout());
+        dialog->addButton("hints/ok"_i18n, []() {});
+        dialog->open();
+        return true;
+    });
 }
 
 brls::View* SettingTab::create() { return new SettingTab(); }
-
-bool SettingTab::showAbout(brls::View* view) {
-    brls::Dialog* dialog = new brls::Dialog(new SettingAbout());
-    dialog->addButton("hints/ok"_i18n, []() {});
-    dialog->open();
-    return true;
-}

@@ -7,14 +7,21 @@
 
 #include "utils/config.hpp"
 
-#include "activity/main_activity.hpp"
 #include "view/svg_image.hpp"
 #include "view/auto_tab_frame.hpp"
 #include "view/recycling_grid.hpp"
+#include "activity/main_activity.hpp"
+#include "activity/server_list.hpp"
+#include "tab/server_add.hpp"
 #include "tab/home_tab.hpp"
 #include "tab/setting_tab.hpp"
+#include "api/jellyfin.hpp"
 
 using namespace brls::literals;  // for _i18n
+
+std::string jellyfin::defaultAuthHeader;
+
+const std::string appName = "Jellyfin";
 
 int main(int argc, char* argv[]) {
     // Enable recording for Twitter memes
@@ -35,7 +42,11 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    brls::Application::createWindow("Jellyfin");
+    jellyfin::defaultAuthHeader =
+        fmt::format("X-Emby-Authorization: MediaBrowser Client=\"{}\", Device=\"{}\", DeviceId=\"{}\", Version=\"{}\"",
+            appName, brls::Application::getPlatform()->getName(), "abc", AppVersion::instance().git_commit);
+
+    brls::Application::createWindow(appName);
 
     // Have the application register an action on every activity that will quit when you press BUTTON_START
     brls::Application::setGlobalQuit(false);
@@ -61,8 +72,12 @@ int main(int argc, char* argv[]) {
     brls::Theme::getLightTheme().addColor("font/grey", nvgRGB(148, 153, 160));
     brls::Theme::getDarkTheme().addColor("font/grey", nvgRGB(148, 153, 160));
 
-    // Create and push the main activity to the stack
-    brls::Application::pushActivity(new MainActivity());
+    if (AppConfig::instance().getAccessToken().empty()) {
+        brls::Application::pushActivity(new ServerList());
+    } else {
+        // Create and push the main activity to the stack
+        brls::Application::pushActivity(new MainActivity());
+    }
 
     AppVersion::instance().checkUpdate();
     // Run the app

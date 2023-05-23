@@ -1,4 +1,5 @@
 <brls:AppletFrame
+    id="main/frame"
     iconInterpolation="linear"
     headerHidden="true"
     footerHidden="false">
@@ -7,7 +8,6 @@
         width="100%"
         height="100%">
         <AutoTabFrame
-            id="main/tabFrame"
             grow="1"
             tabBackgroundColor="@theme/color/grey_1"
             tabItemActiveTextColor="@theme/color/app"

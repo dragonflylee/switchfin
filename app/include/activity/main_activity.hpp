@@ -30,5 +30,5 @@ public:
     ~MainActivity();
 
 private:
-    BRLS_BIND(brls::AppletFrame, appletFrame, "main/tabFrame");
+    BRLS_BIND(brls::AppletFrame, appletFrame, "main/frame");
 };

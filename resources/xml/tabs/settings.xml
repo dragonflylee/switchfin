@@ -18,6 +18,22 @@
             paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
             paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
 
+            <brls:Box
+                width="100%"
+                height="auto"
+                axis="column"
+                marginBottom="30px">
+
+                <brls:DetailCell
+                    title="@i18n/main/setting/user"
+                    focusable="false"
+                    id="setting/user" />
+
+                <brls:DetailCell
+                    title="@i18n/main/setting/server/header"
+                    id="setting/server" />
+            </brls:Box>
+
             <brls:Header
                 width="auto"
                 height="auto"

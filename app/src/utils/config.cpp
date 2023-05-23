@@ -9,15 +9,21 @@
 #include <borealis.hpp>
 #include <borealis/core/cache_helper.hpp>
 #include "utils/config.hpp"
+#include "api/jellyfin.hpp"
 
 constexpr uint32_t MINIMUM_WINDOW_WIDTH = 640;
 constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
+
+const std::string ACCESS_TOKEN = "access_token";
+const std::string SERVER_URL = "server_url";
 
 std::unordered_map<AppConfig::SettingItem, AppConfig::OptionItem> AppConfig::settingMap = {
     {APP_THEME, {"app_theme", {"auto", "light", "dark"}}},
     {APP_LANG, {"app_lang", {brls::LOCALE_AUTO, brls::LOCALE_EN_US, brls::LOCALE_ZH_HANS, brls::LOCALE_ZH_HANT}}},
     {KEYMAP, {"keymap", {"xbox", "ps", "keyboard"}}},
     {VIDEO_CODEC, {"video_codec", {"AVC/H.264", "HEVC/H.265", "AV1"}}},
+    {SERVERS, {"servers"}},
+    {USERS, {"users"}},
     {FULLSCREEN, {"fullscreen"}},
     {PLAYER_HWDEC, {"player_hwdec"}},
     {TEXTURE_CACHE_NUM, {"texture_cache_num"}},
@@ -81,8 +87,6 @@ void AppConfig::init() {
     brls::FontLoader::USER_FONT_PATH = configDir() + "/font.ttf";
     brls::FontLoader::USER_ICON_PATH = configDir() + "/icon.ttf";
     if (access(brls::FontLoader::USER_ICON_PATH.c_str(), F_OK) == -1) {
-        brls::FontLoader::USER_ICON_PATH = BRLS_ASSET("font/keymap_keyboard.ttf");
-
         // 自定义字体不存在，使用内置字体
         std::string icon = getItem(KEYMAP, std::string("xbox"));
         if (icon == "xbox") {
@@ -93,14 +97,20 @@ void AppConfig::init() {
             brls::FontLoader::USER_ICON_PATH = BRLS_ASSET("font/keymap_keyboard.ttf");
         }
     }
+
+    if (setting.contains(SERVER_URL)) this->server_url = setting.at(SERVER_URL);
+    if (setting.contains(ACCESS_TOKEN)) this->access_token = setting.at(ACCESS_TOKEN);
+
+    brls::Logger::debug("init finish");
 }
 
 void AppConfig::save() {
     const std::string path = this->configDir() + "/config.json";
     std::filesystem::create_directories(this->configDir());
-    std::ofstream writeFile(path);
-    if (writeFile.is_open()) {
-        writeFile << this->setting;
+    std::ofstream f(path);
+    if (f.is_open()) {
+        f << this->setting.dump(2);
+        f.close();
     }
 }
 
@@ -121,7 +131,7 @@ int AppConfig::getOptionIndex(const SettingItem item) {
     auto& o = settingMap[item];
     if (setting.contains(o.key)) {
         try {
-            std::string value = this->setting.at(o.key).get<std::string>();
+            std::string value = this->setting.at(o.key);
             for (size_t i = 0; i < o.options.size(); ++i)
                 if (o.options[i] == value) return i;
         } catch (const std::exception& e) {
@@ -129,4 +139,45 @@ int AppConfig::getOptionIndex(const SettingItem item) {
         }
     }
     return o.defaultOption;
+}
+
+bool AppConfig::addServer(const AppServer& s) {
+    bool found = false;
+    Servers srvs = this->getItem(SERVERS, Servers{});
+    for (auto& o : srvs) {
+        if (s.id == o.id) {
+            o.name = s.name;
+            o.version = s.version;
+            o.os = s.os;
+            o.urls.push_back(s.urls.back());
+            found = true;
+            break;
+        }
+    }
+    if (!found) srvs.push_back(s);
+
+    this->server_url = s.urls.back();
+    this->setting[SERVER_URL] = this->server_url;
+    this->setItem(SERVERS, srvs);
+    return found;
+}
+
+bool AppConfig::addUser(const AppUser& u) {
+    bool found = false;
+    Users users = this->getItem(USERS, Users{});
+    for (auto& o : users) {
+        if (o.id == o.id) {
+            o.name = u.name;
+            o.access_token = u.access_token;
+            o.server_id = u.server_id;
+            found = true;
+            break;
+        }
+    }
+    if (!found) users.push_back(u);
+
+    this->access_token = u.access_token;
+    this->setting[ACCESS_TOKEN] = u.access_token;
+    this->setItem(USERS, users);
+    return found;
 }
