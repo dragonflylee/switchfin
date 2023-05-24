@@ -27,8 +27,6 @@ HTTP::HTTP() : chunk(nullptr) {
     curl_easy_setopt(this->easy, CURLOPT_SSL_VERIFYHOST, 0L);
     curl_easy_setopt(this->easy, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(this->easy, CURLOPT_NOPROGRESS, 1L);
-
-    curl_easy_setopt(this->easy, CURLOPT_COOKIEJAR, "");
 }
 
 HTTP::~HTTP() {

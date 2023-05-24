@@ -106,8 +106,7 @@ void AppConfig::save() {
     std::filesystem::create_directories(this->configDir());
     std::ofstream f(path);
     if (f.is_open()) {
-        nlohmann::json j;
-        to_json(j, *this);
+        nlohmann::json j(*this);
         f << j.dump(2);
         f.close();
     }

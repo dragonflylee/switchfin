@@ -5,7 +5,8 @@
 #pragma once
 
 #include <borealis.hpp>
-#include "view/recycling_grid.hpp"
+
+class RecyclingGrid;
 
 class MediaFolders : public brls::Box {
 public:
@@ -16,5 +17,5 @@ public:
 private:
     BRLS_BIND(RecyclingGrid, recyclerFolders, "media/folders");
 
-    void onRequest();
+    void doRequest();
 };

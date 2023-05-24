@@ -19,8 +19,8 @@ template <typename Then>
 void getJSON(
     const std::string& path, Then then, OnError error = [](...) {}) {
     HTTP::Header header;
-    auto token = AppConfig::instance().getAccessToken();
-    auto url = AppConfig::instance().getServerUrl();
+    const std::string& token = AppConfig::instance().getAccessToken();
+    const std::string& url = AppConfig::instance().getServerUrl();
     if (token.empty())
         header.push_back(defaultAuthHeader());
     else
@@ -32,15 +32,16 @@ void getJSON(
         },
         [error](const std::string& ex) {
             brls::sync(std::bind(std::move(error), std::move(ex)));
-        }, url + path, header, HTTP::Timeout{1000});
+        }, url + path, header,
+        HTTP::Timeout{1000});
 }
 
 template <typename Then>
 void postJSON(
     const std::string& path, const nlohmann::json& data, Then then, OnError error = [](...) {}) {
     HTTP::Header header = {"Content-Type: application/json"};
-    auto token = AppConfig::instance().getAccessToken();
-    auto url = AppConfig::instance().getServerUrl();
+    const std::string& token = AppConfig::instance().getAccessToken();
+    const std::string& url = AppConfig::instance().getServerUrl();
     if (token.empty())
         header.push_back(defaultAuthHeader());
     else
@@ -52,7 +53,8 @@ void postJSON(
         },
         [error](const std::string& ex) {
             brls::sync(std::bind(std::move(error), std::move(ex)));
-        }, url + path, data.dump(), header, HTTP::Timeout{1000});
+        }, url + path,
+        data.dump(), header, HTTP::Timeout{1000});
 }
 
 };  // namespace jellyfin
