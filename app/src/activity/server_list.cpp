@@ -3,11 +3,22 @@
 */
 
 #include "activity/server_list.hpp"
+#include "view/recycling_grid.hpp"
 #include "tab/server_add.hpp"
 #include "tab/server_login.hpp"
 #include "api/jellyfin.hpp"
 
 using namespace brls::literals;  // for _i18n
+
+class ServerCell : public RecyclingGridItem {
+public:
+    ServerCell() { this->inflateFromXMLRes("xml/view/server_item.xml"); }
+
+    BRLS_BIND(brls::Rectangle, accent, "brls/sidebar/item_accent");
+    BRLS_BIND(brls::Label, labelName, "server/name");
+    BRLS_BIND(brls::Label, labelUrl, "server/url");
+    BRLS_BIND(brls::Label, labelUsers, "server/users");
+};
 
 class ServerUserDataSource : public RecyclingGridDataSource {
 public:
@@ -49,10 +60,6 @@ private:
     Event onSelect;
 };
 
-ServerCell::ServerCell() { this->inflateFromXMLRes("xml/cell/server.xml"); }
-
-ServerCell* ServerCell::create() { return new ServerCell(); }
-
 ServerList::ServerList() { brls::Logger::debug("ServerList: create"); }
 
 ServerList::~ServerList() { brls::Logger::debug("ServerList Activity: delete"); }
@@ -60,13 +67,13 @@ ServerList::~ServerList() { brls::Logger::debug("ServerList Activity: delete"); 
 void ServerList::onContentAvailable() {
     auto svrs = AppConfig::instance().getServers();
     auto dataSrc = new ServerListDataSource(svrs);
-    this->recyclerServers->registerCell("Cell", &ServerCell::create);
+    this->recyclerServers->registerCell("Cell", []() { return new ServerCell(); });
     this->recyclerServers->setDataSource(dataSrc);
     dataSrc->setEvent([this](const AppServer& s) { this->onSelect(s); });
     if (svrs.size() > 0) {
         this->onSelect(svrs[this->recyclerServers->getDefaultFocusedIndex()]);
     } else {
-        brls::AppletFrame *view = new brls::AppletFrame(new ServerAdd());
+        brls::AppletFrame* view = new brls::AppletFrame(new ServerAdd());
         view->setHeaderVisibility(brls::Visibility::GONE);
         this->setContentView(view);
     }

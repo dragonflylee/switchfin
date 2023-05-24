@@ -5,20 +5,9 @@
 #pragma once
 
 #include <borealis.hpp>
-#include "view/recycling_grid.hpp"
 #include "utils/config.hpp"
 
-class ServerCell : public RecyclingGridItem {
-public:
-    ServerCell();
-
-    BRLS_BIND(brls::Rectangle, accent, "brls/sidebar/item_accent");
-    BRLS_BIND(brls::Label, labelName, "server/name");
-    BRLS_BIND(brls::Label, labelUrl, "server/url");
-    BRLS_BIND(brls::Label, labelUsers, "server/users");
-
-    static ServerCell* create();
-};
+class RecyclingGrid;
 
 class ServerList : public brls::Activity {
 public:

@@ -35,6 +35,11 @@ public:
     std::string get(const std::string& url);
     std::string post(const std::string& url, const std::string& data);
 
+    static std::string encode_query(const Form& form) {
+        HTTP s;
+        return s.encode_form(form);
+    }
+
     template <typename... Ts>
     static void set_option(HTTP& s, Ts&&... ts) {
         s.set_option_internal<Ts...>(std::forward<Ts>(ts)...);

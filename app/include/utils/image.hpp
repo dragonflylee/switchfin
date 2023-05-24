@@ -4,7 +4,8 @@
 #include "api/http.hpp"
 
 class Image {
-    using ImageRef = std::shared_ptr<Image>;
+    using Ref = std::shared_ptr<Image>;
+    using Pool = std::unordered_map<brls::Image*, Ref>;
 
 public:
     Image(brls::Image* view);
@@ -21,13 +22,11 @@ public:
 private:
     void doRequest();
 
-    void clear();
-
 private:
     std::string url;
     brls::Image* image;
     HTTP::Cancel isCancel;
 
     /// 对象池
-    static std::unordered_map<brls::Image*, ImageRef> requests;
+    static Pool requests;
 };

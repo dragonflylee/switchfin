@@ -17,7 +17,7 @@ std::string defaultAuthHeader();
 
 template <typename Then>
 void getJSON(
-    const std::string& path, Then then, OnError error = [](...) {}) {
+    const std::string& path, Then then, OnError error = nullptr) {
     HTTP::Header header;
     const std::string& token = AppConfig::instance().getAccessToken();
     const std::string& url = AppConfig::instance().getServerUrl();
@@ -31,14 +31,14 @@ void getJSON(
             brls::sync(std::bind(std::move(then), std::move(j)));
         },
         [error](const std::string& ex) {
-            brls::sync(std::bind(std::move(error), std::move(ex)));
+           if (error) brls::sync(std::bind(std::move(error), std::move(ex)));
         }, url + path, header,
         HTTP::Timeout{1000});
 }
 
 template <typename Then>
 void postJSON(
-    const std::string& path, const nlohmann::json& data, Then then, OnError error = [](...) {}) {
+    const std::string& path, const nlohmann::json& data, Then then, OnError error = nullptr) {
     HTTP::Header header = {"Content-Type: application/json"};
     const std::string& token = AppConfig::instance().getAccessToken();
     const std::string& url = AppConfig::instance().getServerUrl();
@@ -52,7 +52,7 @@ void postJSON(
             brls::sync(std::bind(std::move(then), std::move(j)));
         },
         [error](const std::string& ex) {
-            brls::sync(std::bind(std::move(error), std::move(ex)));
+            if (error) brls::sync(std::bind(std::move(error), std::move(ex)));
         }, url + path,
         data.dump(), header, HTTP::Timeout{1000});
 }

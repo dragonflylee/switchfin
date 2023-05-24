@@ -9,8 +9,8 @@
     <RecyclingGrid
         grow="1"
         wireframe="false"
-        spanCount="3"
-        itemHeight="180"
-        id="media/folders" />
+        spanCount="6"
+        itemHeight="300"
+        id="media/items" />
 
 </brls:Box>

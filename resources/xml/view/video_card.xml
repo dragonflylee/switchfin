@@ -1,0 +1,36 @@
+<brls:Box
+    highlightCornerRadius="8"
+    axis="column"
+    width="auto"
+    height="auto">
+    <brls:Box
+        id="video/card/pic_box"
+        axis="row"
+        width="100%"
+        height="84%">
+        <brls:Image
+            id="video/card/picture"
+            backgroundColor="@theme/color/grey_1"
+            scalingType="fill"
+            width="100%"
+            height="100%"
+            image="@res/img/video-card-bg.png"
+            cornerRadius="4" />
+    </brls:Box>
+
+    <brls:Box
+        margin="10"
+        axis="column"
+        alignItems="center">
+        <brls:Label
+            wireframe="false"
+            id="video/card/label/title"
+            fontSize="20"/>
+        <brls:Label
+            wireframe="false"
+            id="video/card/label/year"
+            fontSize="15"
+            textColor="@theme/font/grey"/>
+    </brls:Box>
+
+</brls:Box>
