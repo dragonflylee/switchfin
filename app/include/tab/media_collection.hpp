@@ -8,12 +8,12 @@
 
 class RecyclingGrid;
 
-class LibraryView : public brls::Box {
+class MediaCollection : public brls::Box {
 public:
-    LibraryView(const std::string& id);
+    MediaCollection(const std::string& id);
 
 private:
-    BRLS_BIND(RecyclingGrid, recyclerSeries, "media/items");
+    BRLS_BIND(RecyclingGrid, recyclerSeries, "media/series");
 
     void doRequest();
 

@@ -3,8 +3,9 @@
 */
 
 #include "tab/media_folder.hpp"
-#include "tab/library_view.hpp"
+#include "tab/media_collection.hpp"
 #include "view/recycling_grid.hpp"
+#include "view/auto_tab_frame.hpp"
 #include "api/jellyfin.hpp"
 #include "utils/image.hpp"
 
@@ -48,7 +49,7 @@ public:
     }
 
     void onItemSelected(RecyclingGrid* recycler, size_t index) override {
-        recycler->present(new LibraryView(this->list[index].Id));
+        recycler->present(new MediaCollection(this->list[index].Id));
     }
 
     void clearData() override { this->list.clear(); }
@@ -73,15 +74,33 @@ MediaFolders::MediaFolders() {
     this->doRequest();
 }
 
+MediaFolders::~MediaFolders() { brls::Logger::debug("MediaFolders: deleted"); }
+
 brls::View* MediaFolders::create() { return new MediaFolders(); }
+
+AutoTabFrame* MediaFolders::getTabFrame() {
+    brls::View* view = this->getParent();
+    while (view) {
+        AutoTabFrame* tabframe = dynamic_cast<AutoTabFrame*>(view);
+        if (tabframe) return tabframe;
+        view = view->getParent();
+    }
+    return nullptr;
+}
 
 void MediaFolders::doRequest() {
     ASYNC_RETAIN
-    jellyfin::getJSON(fmt::format(jellyfin::apiUserViews, AppConfig::instance().getUserId()),
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<>& r) {
+    jellyfin::getJSON(
+        fmt::format(jellyfin::apiUserViews, AppConfig::instance().getUserId()),
+        [ASYNC_TOKEN](const jellyfin::MediaQueryResult& r) {
             ASYNC_RELEASE
 
             this->recyclerFolders->setDataSource(new MediaFolderDataSource(r.Items));
-            brls::Application::giveFocus(this->recyclerFolders);
+
+            if (this->getTabFrame()->getActiveTab() == this) brls::Application::giveFocus(this->recyclerFolders);
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            this->recyclerFolders->setError(ex);
         });
 }

@@ -1,0 +1,16 @@
+<brls:Box
+    width="auto"
+    height="auto"
+    paddingLeft="@style/brls/tab_frame/content_padding_sides"
+    paddingRight="@style/brls/tab_frame/content_padding_sides"
+    paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
+    paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
+
+    <RecyclingGrid
+        grow="1"
+        wireframe="false"
+        spanCount="6"
+        itemHeight="300"
+        id="media/season" />
+
+</brls:Box>

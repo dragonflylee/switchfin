@@ -2,36 +2,19 @@
     Copyright 2023 dragonflylee
 */
 
-#include "tab/library_view.hpp"
-#include "view/recycling_grid.hpp"
+#include "tab/media_collection.hpp"
+#include "tab/media_series.hpp"
 #include "api/jellyfin.hpp"
-#include "utils/image.hpp"
+#include "view/video_card.hpp"
 
 using namespace brls::literals;  // for _i18n
 
-class VideoCardCell : public RecyclingGridItem {
+class CollectionDataSource : public RecyclingGridDataSource {
 public:
-    VideoCardCell() { this->inflateFromXMLRes("xml/view/video_card.xml"); }
+    using MediaList = std::vector<jellyfin::MediaItem>;
 
-    ~VideoCardCell() { Image::cancel(this->picture); }
-
-    void prepareForReuse() override { this->picture->setImageFromRes("img/video-card-bg.png"); }
-
-    void cacheForReuse() override { Image::cancel(this->picture); }
-
-    static VideoCardCell* create() { return new VideoCardCell(); }
-
-    BRLS_BIND(brls::Image, picture, "video/card/picture");
-    BRLS_BIND(brls::Label, labelTitle, "video/card/label/title");
-    BRLS_BIND(brls::Label, labelYear, "video/card/label/year");
-};
-
-class LibraryDataSource : public RecyclingGridDataSource {
-public:
-    using MediaList = std::vector<jellyfin::MediaSeries>;
-
-    explicit LibraryDataSource(const MediaList& r) : list(std::move(r)) {
-        brls::Logger::debug("LibraryDataSource: create {}", r.size());
+    explicit CollectionDataSource(const MediaList& r) : list(std::move(r)) {
+        brls::Logger::debug("CollectionDataSource: create {}", r.size());
     }
 
     size_t getItemCount() override { return this->list.size(); }
@@ -49,10 +32,17 @@ public:
 
         cell->labelTitle->setText(item.Name);
         cell->labelYear->setText(std::to_string(item.ProductionYear));
+
+        if (item.CommunityRating > 0)
+            cell->labelDuration->setText(fmt::format("{:.1f}", item.CommunityRating));
+        else
+            cell->labelDuration->setText("");
         return cell;
     }
 
-    void onItemSelected(RecyclingGrid* recycler, size_t index) override {}
+    void onItemSelected(RecyclingGrid* recycler, size_t index) override {
+        recycler->present(new MediaSeries(this->list[index].Id));
+    }
 
     void clearData() override { this->list.clear(); }
 
@@ -62,15 +52,15 @@ private:
     MediaList list;
 };
 
-LibraryView::LibraryView(const std::string& id) : itemId(id), startIndex(0) {
+MediaCollection::MediaCollection(const std::string& id) : itemId(id), startIndex(0) {
     // Inflate the tab from the XML file
-    this->inflateFromXMLRes("xml/tabs/library_view.xml");
-    brls::Logger::debug("LibraryView: create");
+    this->inflateFromXMLRes("xml/tabs/collection.xml");
+    brls::Logger::debug("MediaCollection: create");
     this->pageSize = this->recyclerSeries->spanCount * 3;
 
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
-        this->startIndex = 0; 
-        return true; 
+        this->startIndex = 0;
+        return true;
     });
     this->recyclerSeries->registerCell("Cell", &VideoCardCell::create);
     this->recyclerSeries->onNextPage([this]() { this->doRequest(); });
@@ -78,7 +68,7 @@ LibraryView::LibraryView(const std::string& id) : itemId(id), startIndex(0) {
     this->doRequest();
 }
 
-void LibraryView::doRequest() {
+void MediaCollection::doRequest() {
     std::string query = HTTP::encode_query({
         {"ParentId", this->itemId},
         {"Limit", std::to_string(this->pageSize)},
@@ -86,15 +76,15 @@ void LibraryView::doRequest() {
     });
     ASYNC_RETAIN
     jellyfin::getJSON(fmt::format(jellyfin::apiUserLibrary, AppConfig::instance().getUserId(), query),
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaSeries>& r) {
+        [ASYNC_TOKEN](const jellyfin::MediaQueryResult& r) {
             ASYNC_RELEASE
 
             this->startIndex = r.StartIndex + this->pageSize;
             if (r.StartIndex == 0) {
-                this->recyclerSeries->setDataSource(new LibraryDataSource(r.Items));
+                this->recyclerSeries->setDataSource(new CollectionDataSource(r.Items));
                 brls::Application::giveFocus(this->recyclerSeries);
             } else {
-                auto dataSrc = dynamic_cast<LibraryDataSource*>(this->recyclerSeries->getDataSource());
+                auto dataSrc = dynamic_cast<CollectionDataSource*>(this->recyclerSeries->getDataSource());
                 dataSrc->appendData(r.Items);
                 this->recyclerSeries->notifyDataChanged();
             }

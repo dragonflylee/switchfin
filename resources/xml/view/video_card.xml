@@ -16,6 +16,36 @@
             height="100%"
             image="@res/img/video-card-bg.png"
             cornerRadius="4" />
+
+        <brls:Label
+            id="video/card/badge/top"
+            positionType="absolute"
+            positionTop="8"
+            positionRight="0"
+            height="24" />
+
+        <brls:Box
+            id="video/card/badge/box/bottom"
+            positionBottom="0"
+            positionType="absolute"
+            background="vertical_linear"
+            paddingLeft="10"
+            paddingRight="10"
+            width="100%"
+            height="10%"
+            alignItems="center">
+            <brls:Image
+                id="video/card/badge/bottom/left"
+                scalingType="fit"
+                height="16" />
+            <brls:Label
+                id="video/card/label/duration"
+                positionType="absolute"
+                positionRight="0"
+                textColor="#FFFFFF"
+                fontSize="16"/>
+        </brls:Box>
+
     </brls:Box>
 
     <brls:Box
@@ -25,14 +55,14 @@
         <brls:Label
             wireframe="false"
             id="video/card/label/title"
-            fontSize="20"/>
+            fontSize="20" />
         <brls:Label
             wireframe="false"
             id="video/card/label/year"
             fontSize="15"
             marginTop="10"
             marginBottom="0"
-            textColor="@theme/font/grey"/>
+            textColor="@theme/font/grey" />
     </brls:Box>
 
 </brls:Box>
