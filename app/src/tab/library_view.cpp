@@ -62,13 +62,16 @@ private:
     MediaList list;
 };
 
-LibraryView::LibraryView(const std::string& id) : itemId(id) {
+LibraryView::LibraryView(const std::string& id) : itemId(id), startIndex(0) {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/library_view.xml");
     brls::Logger::debug("LibraryView: create");
     this->pageSize = this->recyclerSeries->spanCount * 3;
 
-    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) { return true; });
+    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
+        this->startIndex = 0; 
+        return true; 
+    });
     this->recyclerSeries->registerCell("Cell", &VideoCardCell::create);
     this->recyclerSeries->onNextPage([this]() { this->doRequest(); });
 
@@ -85,7 +88,8 @@ void LibraryView::doRequest() {
     jellyfin::getJSON(fmt::format(jellyfin::apiUserLibrary, AppConfig::instance().getUserId(), query),
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaSeries>& r) {
             ASYNC_RELEASE
-            this->startIndex += this->pageSize;
+
+            this->startIndex = r.StartIndex + this->pageSize;
             if (r.StartIndex == 0) {
                 this->recyclerSeries->setDataSource(new LibraryDataSource(r.Items));
                 brls::Application::giveFocus(this->recyclerSeries);

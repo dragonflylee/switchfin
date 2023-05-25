@@ -2,20 +2,18 @@
 #include <fmt/format.h>
 #include <borealis/core/cache_helper.hpp>
 
-Image::Pool Image::requests;
-
 Image::Image(brls::Image* view) : image(view) {
     this->isCancel = std::make_shared<std::atomic_bool>(false);
     view->ptrLock();
     // 设置图片组件不处理纹理的销毁，由缓存统一管理纹理销毁
     view->setFreeTexture(false);
 
-    brls::Logger::debug("new Image {}", fmt::ptr(this));
+    brls::Logger::verbose("new Image {}", fmt::ptr(this));
 }
 
 Image::~Image() {
     if (this->image) this->image->ptrUnlock();
-    brls::Logger::debug("delete Image {}", fmt::ptr(this));
+    brls::Logger::verbose("delete Image {}", fmt::ptr(this));
 }
 
 void Image::load(brls::Image* view, const std::string& url) {
@@ -35,6 +33,9 @@ void Image::load(brls::Image* view, const std::string& url) {
 }
 
 void Image::cancel(brls::Image* view) {
+    brls::TextureCache::instance().removeCache(view->getTexture());
+    view->clear();
+
     auto it = requests.find(view);
     if (it != requests.end()) {
         it->second->isCancel->store(true);
@@ -43,14 +44,13 @@ void Image::cancel(brls::Image* view) {
 }
 
 void Image::doRequest() {
-    brls::Image *image = this->image;
     if (this->isCancel->load()) {
-        brls::sync([image](){ requests.erase(image); });
+        brls::sync(std::bind(&Image::clear, this->image));
         return;
     }
     try {
         std::string data = HTTP::get(this->url, this->isCancel);
-        brls::Logger::debug("request Image {} size {}", this->url, data.size());
+        brls::Logger::verbose("request Image {} size {}", this->url, data.size());
         brls::sync([this, data] {
             // Load texture
             int tex = brls::TextureCache::instance().getCache(url);
@@ -65,6 +65,8 @@ void Image::doRequest() {
         });
     } catch (const std::exception& ex) {
         brls::Logger::warning("request image {} {}", this->url, ex.what());
-        brls::sync([image](){ requests.erase(image); });
+        brls::sync(std::bind(&Image::clear, this->image));
     }
 }
+
+void Image::clear(brls::Image* view) { requests.erase(view); }

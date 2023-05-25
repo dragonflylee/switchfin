@@ -80,13 +80,8 @@ void MediaFolders::doRequest() {
     jellyfin::getJSON(fmt::format(jellyfin::apiUserViews, AppConfig::instance().getUserId()),
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<>& r) {
             ASYNC_RELEASE
-            if (r.StartIndex == 0) {
-                this->recyclerFolders->setDataSource(new MediaFolderDataSource(r.Items));
-                brls::Application::giveFocus(this->recyclerFolders);
-            } else {
-                auto dataSrc = dynamic_cast<MediaFolderDataSource*>(this->recyclerFolders->getDataSource());
-                dataSrc->appendData(r.Items);
-                this->recyclerFolders->notifyDataChanged();
-            }
+
+            this->recyclerFolders->setDataSource(new MediaFolderDataSource(r.Items));
+            brls::Application::giveFocus(this->recyclerFolders);
         });
 }

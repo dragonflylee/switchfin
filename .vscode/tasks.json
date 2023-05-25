@@ -10,7 +10,7 @@
       "args": [
         "-DPLATFORM_DESKTOP=ON",
         "-DCMAKE_BUILD_TYPE=Release",
-        "-B", "build-pc",
+        "-B", "build_pc",
         "-G", "MinGW Makefiles"
       ],
     },
@@ -19,7 +19,7 @@
       "type": "shell",
       "command": "make",
       "args": [
-        "-C", "build-pc"
+        "-C", "build_pc"
       ],
     }
   ]

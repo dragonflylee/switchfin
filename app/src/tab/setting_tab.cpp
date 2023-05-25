@@ -15,16 +15,29 @@
 */
 
 #include "tab/setting_tab.hpp"
-#include "view/setting_about.hpp"
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
-#include <borealis/core/cache_helper.hpp>
-#include <borealis/views/applet_frame.hpp>
 #if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
 #include <borealis/platforms/desktop/desktop_platform.hpp>
 #endif
 
 using namespace brls::literals;  // for _i18n
+
+class SettingAbout : public brls::Box {
+public:
+    SettingAbout() {
+        this->inflateFromXMLRes("xml/view/setting_about.xml");
+        this->labelTitle->setText(AppVersion::getPlatform());
+        this->labelVersion->setText(AppVersion::getVersion());
+        brls::Logger::debug("dialog SettingAbout: create");
+    }
+
+    ~SettingAbout() { brls::Logger::debug("dialog SettingAbout: delete"); }
+
+private:
+    BRLS_BIND(brls::Label, labelTitle, "setting/about/title");
+    BRLS_BIND(brls::Label, labelVersion, "setting/about/version");
+};
 
 SettingTab::SettingTab() {
     // Inflate the tab from the XML file
@@ -83,12 +96,10 @@ SettingTab::SettingTab() {
     int langIndex = conf.getOptionIndex(AppConfig::APP_LANG);
     selectorLang->init("main/setting/others/language/header"_i18n,
         {
-#ifdef __SWITCH__
             "main/setting/others/language/auto"_i18n,
-#endif
             "main/setting/others/language/english"_i18n,
-            "main/setting/others/language/chinese_t"_i18n,
             "main/setting/others/language/chinese_s"_i18n,
+            "main/setting/others/language/chinese_t"_i18n,
         },
         langIndex, [&conf, langIndex](int selected) {
             if (langIndex == selected) return false;

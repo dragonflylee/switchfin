@@ -8,7 +8,7 @@
       "name": "(gdb) 启动",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build-pc/Switchfin.exe",
+      "program": "${workspaceFolder}/build_pc/Switchfin.exe",
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",

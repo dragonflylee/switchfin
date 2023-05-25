@@ -5,7 +5,6 @@
 
 class Image {
     using Ref = std::shared_ptr<Image>;
-    using Pool = std::unordered_map<brls::Image*, Ref>;
 
 public:
     Image(brls::Image* view);
@@ -22,11 +21,13 @@ public:
 private:
     void doRequest();
 
+    static void clear(brls::Image* view);
+
 private:
     std::string url;
     brls::Image* image;
     HTTP::Cancel isCancel;
 
     /// 对象池
-    static Pool requests;
+    inline static std::unordered_map<brls::Image*, Ref> requests;
 };

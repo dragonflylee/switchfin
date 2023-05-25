@@ -14,10 +14,10 @@
         alignItems="flexEnd"
         marginBottom="20px">
         <brls:Label
-            fontSize="50"
+            id="setting/about/title"
+            fontSize="40"
             marginRight="10"
-            lineHeight="1"
-            text="@i18n/main/title" />
+            lineHeight="1" />
         <brls:Label
             id="setting/about/version"
             marginRight="20"

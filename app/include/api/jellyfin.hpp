@@ -16,11 +16,10 @@ using OnError = std::function<void(const std::string&)>;
 std::string defaultAuthHeader();
 
 template <typename Then>
-void getJSON(
-    const std::string& path, Then then, OnError error = nullptr) {
+void getJSON(const std::string& path, Then then, OnError error = nullptr) {
     HTTP::Header header;
     const std::string& token = AppConfig::instance().getAccessToken();
-    const std::string& url = AppConfig::instance().getServerUrl();
+    std::string url = AppConfig::instance().getServerUrl() + path;
     if (token.empty())
         header.push_back(defaultAuthHeader());
     else
@@ -31,17 +30,16 @@ void getJSON(
             brls::sync(std::bind(std::move(then), std::move(j)));
         },
         [error](const std::string& ex) {
-           if (error) brls::sync(std::bind(std::move(error), std::move(ex)));
-        }, url + path, header,
-        HTTP::Timeout{1000});
+            if (error) brls::sync(std::bind(std::move(error), std::move(ex)));
+        },
+        url, header, HTTP::Timeout{1000});
 }
 
 template <typename Then>
-void postJSON(
-    const std::string& path, const nlohmann::json& data, Then then, OnError error = nullptr) {
+void postJSON(const std::string& path, const nlohmann::json& data, Then then, OnError error = nullptr) {
     HTTP::Header header = {"Content-Type: application/json"};
     const std::string& token = AppConfig::instance().getAccessToken();
-    const std::string& url = AppConfig::instance().getServerUrl();
+    std::string url = AppConfig::instance().getServerUrl() + path;
     if (token.empty())
         header.push_back(defaultAuthHeader());
     else
@@ -53,8 +51,8 @@ void postJSON(
         },
         [error](const std::string& ex) {
             if (error) brls::sync(std::bind(std::move(error), std::move(ex)));
-        }, url + path,
-        data.dump(), header, HTTP::Timeout{1000});
+        },
+        url, data.dump(), header, HTTP::Timeout{1000});
 }
 
 };  // namespace jellyfin

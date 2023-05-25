@@ -30,6 +30,8 @@
             wireframe="false"
             id="video/card/label/year"
             fontSize="15"
+            marginTop="10"
+            marginBottom="0"
             textColor="@theme/font/grey"/>
     </brls:Box>
 
