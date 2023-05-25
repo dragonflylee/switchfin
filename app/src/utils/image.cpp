@@ -1,4 +1,5 @@
 #include "utils/image.hpp"
+#include "utils/thread.hpp"
 #include <fmt/format.h>
 #include <borealis/core/cache_helper.hpp>
 
@@ -27,7 +28,7 @@ void Image::load(brls::Image* view, const std::string& url) {
     item->url = url;
     auto it = requests.insert(std::make_pair(view, item));
     if (it.second)
-        brls::async(std::bind(&Image::doRequest, item));
+        ThreadPool::instance().submit(std::bind(&Image::doRequest, item));
     else
         brls::Logger::warning("insert Image {} failed", fmt::ptr(view));
 }
