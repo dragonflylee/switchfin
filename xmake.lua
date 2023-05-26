@@ -22,8 +22,9 @@ add_repositories("local-repo library")
 add_requires("borealis")
 add_requires("lunasvg")
 add_requires("libcurl")
+add_requires("mpv", {configs={shared=true}})
 
-target("switchfin")
+target("Switchfin")
     add_includedirs("app/include")
     add_files("app/src/**.cpp")
     add_defines("BRLS_RESOURCES=\"./resources/\"")
@@ -41,9 +42,10 @@ target("switchfin")
     else
         add_defines("__GLFW__=1")
     end
-    add_packages("borealis", "lunasvg", "libcurl")
+    add_packages("borealis", "lunasvg", "libcurl", "mpv")
     if is_plat("windows", "mingw") then
         add_files("app/app_win32.rc")
+        add_defines("BOREALIS_USE_STD_THREAD")
         after_build(function (target)
             for _, pkg in pairs(target:pkgs()) do
                 if pkg:has_shared() then
@@ -66,6 +68,7 @@ target("switchfin")
         end
     end
     on_config(function (target)
+        target:add("defines", "BUILD_PACKAGE_NAME="..target:name())
         target:add("defines", "BUILD_TAG_VERSION=$(shell git describe --tags)")
         target:add("defines", "BUILD_TAG_SHORT=$(shell git rev-parse --short HEAD)")
     end)

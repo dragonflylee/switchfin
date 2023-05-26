@@ -19,10 +19,17 @@ make -C build_switch Switchfin.nro -j$(nproc)
 
 ```bash
 # https://github.com/niXman/mingw-builds-binaries/releases/download/12.2.0-rt_v10-rev2/x86_64-12.2.0-release-posix-seh-msvcrt-rt_v10-rev2.7z
-# https://curl.se/windows/dl-8.1.0_1/curl-8.1.0_1-win64-mingw.zip
-cmake -B build_pc -DPLATFORM_DESKTOP=ON -DCMAKE_BUILD_TYPE=Release -DWIN32_TERMINAL=ON -G "MinGW Makefiles"
+# https://curl.se/windows/dl-8.1.1_1/curl-8.1.1_1-win64-mingw.zip
+
+cmake -B build_pc -G 'MinGW Makefiles' -DPLATFORM_DESKTOP=ON
 mingw32-make -C build_pc -j$(nproc)
+
+# build deps
+cmake -B build -G 'MinGW Makefiles' -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/c/MinGW64
+mingw32-make -C build -j$(nproc) install
 ```
+
+
 
 ## Lanuch Jellyfin Server
 

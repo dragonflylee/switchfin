@@ -14,6 +14,7 @@ elseif(USE_GLFW)
     set(USE_SDL2 OFF)
 endif()
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/deps.cmake)
 
 # toolchain
 if (PLATFORM_DESKTOP)
@@ -48,6 +49,7 @@ set(PROJECT_TITLEID "0x010FF000FFFF0003")
 set(PROJECT_AUTHOR "dragonflylee")
 set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon.jpg)
 set(PROJECT_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/resources)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 # build borealis qrcode and other third party libraries
 add_subdirectory(library)
