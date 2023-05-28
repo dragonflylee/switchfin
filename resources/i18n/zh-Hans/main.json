@@ -38,6 +38,11 @@
       "hwdec": "硬件解码",
       "video_codec": "视频编码"
     },
+    "image": {
+      "header": "图片设置",
+      "texture": "纹理缓存数量",
+      "threads": "加载线程数"
+    },
     "others": {
       "header": "其他",
       "fullscreen": "全屏显示",

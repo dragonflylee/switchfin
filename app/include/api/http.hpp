@@ -98,7 +98,7 @@ private:
     static size_t easy_write_cb(char* ptr, size_t size, size_t nmemb, void* userdata);
     static int easy_progress_cb(
         void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow);
-    int perform(std::ostream* body);
+    void perform(std::ostream* body);
 
     void add_header(const std::string& header);
     void set_option(const Header& hs);

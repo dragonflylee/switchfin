@@ -21,6 +21,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {FULLSCREEN, {"fullscreen"}},
     {PLAYER_HWDEC, {"player_hwdec"}},
     {TEXTURE_CACHE_NUM, {"texture_cache_num"}},
+    {REQUEST_THREADS, {"request_threads"}},
 };
 
 AppConfig::AppConfig() = default;
@@ -125,18 +126,18 @@ std::string AppConfig::configDir() {
 #endif
 }
 
-int AppConfig::getOptionIndex(const Item item) {
-    auto& o = settingMap[item];
-    if (setting.contains(o.key)) {
+int AppConfig::getOptionIndex(const Item item) const {
+    auto it = settingMap.find(item);
+    if (setting.contains(it->second.key)) {
         try {
-            std::string value = this->setting.at(o.key);
-            for (size_t i = 0; i < o.options.size(); ++i)
-                if (o.options[i] == value) return i;
+            std::string value = this->setting.at(it->second.key);
+            for (size_t i = 0; i < it->second.options.size(); ++i)
+                if (it->second.options[i] == value) return i;
         } catch (const std::exception& e) {
-            brls::Logger::error("Damaged config found: {}/{}", o.key, e.what());
+            brls::Logger::error("Damaged config found: {}/{}", it->second.key, e.what());
         }
     }
-    return o.defaultOption;
+    return it->second.selected;
 }
 
 bool AppConfig::addServer(const AppServer& s) {

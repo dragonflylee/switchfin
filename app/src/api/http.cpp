@@ -3,6 +3,15 @@
 #include <borealis/core/logger.hpp>
 #include <sstream>
 
+class curl_error : public std::exception {
+public:
+    explicit curl_error(CURLcode c) : code(c) {}
+    const char* what() const noexcept override { return curl_easy_strerror(this->code); }
+
+private:
+    CURLcode code;
+};
+
 /// @brief curl context
 
 HTTP::HTTP() : chunk(nullptr) {
@@ -74,18 +83,15 @@ size_t HTTP::easy_write_cb(char* ptr, size_t size, size_t nmemb, void* userdata)
     return count;
 }
 
-int HTTP::perform(std::ostream* body) {
+void HTTP::perform(std::ostream* body) {
     curl_easy_setopt(this->easy, CURLOPT_WRITEFUNCTION, easy_write_cb);
     curl_easy_setopt(this->easy, CURLOPT_WRITEDATA, body);
 
     CURLcode res = curl_easy_perform(this->easy);
-    if (res != CURLE_OK) {
-        body->clear();
-        throw std::runtime_error(curl_easy_strerror(res));
-    }
+    if (res != CURLE_OK) throw curl_error(res);
+
     int status_code = 0;
     curl_easy_getinfo(this->easy, CURLINFO_RESPONSE_CODE, &status_code);
-    return status_code;
 }
 
 std::string HTTP::encode_form(const Form& form) {

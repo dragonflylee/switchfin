@@ -23,12 +23,10 @@
                 height="auto"
                 axis="column"
                 marginBottom="30px">
-
                 <brls:DetailCell
                     title="@i18n/main/setting/user"
                     focusable="false"
                     id="setting/user" />
-
                 <brls:DetailCell
                     title="@i18n/main/setting/server/header"
                     id="setting/server" />
@@ -44,13 +42,26 @@
                 height="auto"
                 axis="column"
                 marginBottom="30px">
-
                 <brls:BooleanCell
                     id="setting/video/hwdec" />
-
                 <brls:SelectorCell
                     id="setting/video/codec" />
+            </brls:Box>
 
+            <brls:Header
+                width="auto"
+                height="auto"
+                title="@i18n/main/setting/image/header"
+                marginBottom="0px" />
+            <brls:Box
+                width="100%"
+                height="auto"
+                axis="column"
+                marginBottom="30px">
+                <brls:SelectorCell
+                    id="setting/image/texture" />
+                <brls:SelectorCell
+                    id="setting/image/threads" />
             </brls:Box>
 
             <brls:Header
@@ -63,23 +74,17 @@
                 height="auto"
                 axis="column"
                 marginBottom="30px">
-
                 <brls:BooleanCell
                     id="setting/fullscreen" />
-
                 <brls:SelectorCell
                     id="setting/keymap" />
-
                 <brls:SelectorCell
                     id="setting/ui/theme" />
-
                 <brls:SelectorCell
                     id="setting/language" />
-
                 <brls:DetailCell
                     title="@i18n/main/setting/about/header"
                     id="setting/about" />
-
             </brls:Box>
 
         </brls:Box>

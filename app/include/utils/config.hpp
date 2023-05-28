@@ -45,6 +45,7 @@ public:
         VIDEO_CODEC,
         PLAYER_HWDEC,
         TEXTURE_CACHE_NUM,
+        REQUEST_THREADS,
     };
 
     AppConfig();
@@ -75,11 +76,11 @@ public:
     struct Option {
         std::string key;
         std::vector<std::string> options;
-        size_t defaultOption;
+        size_t selected;
     };
 
-    int getOptionIndex(const Item item);
-    inline Option getOptions(const Item item) { return settingMap[item]; }
+    int getOptionIndex(const Item item) const;
+    inline const Option& getOptions(const Item item) const { return settingMap[item]; }
 
     bool addServer(const AppServer& s);
     bool addUser(const AppUser& u);
