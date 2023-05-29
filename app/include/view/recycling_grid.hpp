@@ -178,7 +178,6 @@ private:
     float paddingLeft = 0;
 
     std::function<void()> nextPageCallback = nullptr;
-    std::function<void()> refreshAction = nullptr;
 
     RecyclingGridContentBox* contentBox = nullptr;
     brls::Image* hintImage;

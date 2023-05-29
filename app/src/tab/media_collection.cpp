@@ -11,7 +11,7 @@ using namespace brls::literals;  // for _i18n
 
 class CollectionDataSource : public RecyclingGridDataSource {
 public:
-    using MediaList = std::vector<jellyfin::MediaItem>;
+    using MediaList = std::vector<jellyfin::MediaSeries>;
 
     explicit CollectionDataSource(const MediaList& r) : list(std::move(r)) {
         brls::Logger::debug("CollectionDataSource: create {}", r.size());
@@ -26,7 +26,7 @@ public:
         const std::string& url = AppConfig::instance().getServerUrl();
         std::string query = HTTP::encode_query({
             {"tag", item.ImageTags[jellyfin::imageTypePrimary]},
-            {"fillHeight", std::to_string(240)},
+            {"maxWidth", "200"},
         });
         Image::load(cell->picture, url + fmt::format(jellyfin::apiPrimaryImage, item.Id, query));
 
@@ -71,12 +71,14 @@ MediaCollection::MediaCollection(const std::string& id) : itemId(id), startIndex
 void MediaCollection::doRequest() {
     std::string query = HTTP::encode_query({
         {"ParentId", this->itemId},
+        {"SortBy", "SortName"},
+        {"Fields", "PrimaryImageAspectRatio,BasicSyncInfo"},
         {"Limit", std::to_string(this->pageSize)},
         {"StartIndex", std::to_string(this->startIndex)},
     });
     ASYNC_RETAIN
     jellyfin::getJSON(fmt::format(jellyfin::apiUserLibrary, AppConfig::instance().getUserId(), query),
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult& r) {
+        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaSeries>& r) {
             ASYNC_RELEASE
 
             this->startIndex = r.StartIndex + this->pageSize;

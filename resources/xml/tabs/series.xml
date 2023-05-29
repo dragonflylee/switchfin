@@ -6,11 +6,36 @@
     paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
     paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
 
+
+    <brls:Box
+        axis="column"
+        margin="10"
+        height="100%"
+        width="20%">
+        <brls:Label
+            fontSize="25"
+            marginBottom="20"
+            id="series/label/season" />
+        <brls:SelectorCell
+            paddingTop="8"
+            paddingBottom="8"
+            id="series/selector/season" />
+        <brls:Image
+            marginTop="20"
+            grow="1"
+            id="series/image/primary"
+            backgroundColor="@theme/color/grey_1"
+            image="@res/img/video-card-bg.png"
+            cornerRadius="4" />
+    </brls:Box>
+
     <RecyclingGrid
         grow="1"
         wireframe="false"
-        spanCount="6"
-        itemHeight="300"
-        id="media/season" />
+        marginLeft="20"
+        spanCount="1"
+        itemSpace="10"
+        flowMode="true"
+        id="media/episodes" />
 
 </brls:Box>

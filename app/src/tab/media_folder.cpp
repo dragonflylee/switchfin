@@ -92,7 +92,7 @@ void MediaFolders::doRequest() {
     ASYNC_RETAIN
     jellyfin::getJSON(
         fmt::format(jellyfin::apiUserViews, AppConfig::instance().getUserId()),
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult& r) {
+        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaItem>& r) {
             ASYNC_RELEASE
 
             this->recyclerFolders->setDataSource(new MediaFolderDataSource(r.Items));
