@@ -40,6 +40,10 @@ std::string AppVersion::getDeviceName() {
     return std::string(name.data());
 }
 
+std::string AppVersion::getPackageName() {
+    return std::string{STR(BUILD_PACKAGE_NAME)};
+}
+
 bool AppVersion::needUpdate(std::string latestVersion) { return false; }
 
 void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {

@@ -59,3 +59,4 @@ void postJSON(const std::string& path, const nlohmann::json& data, Then then, On
 
 #include "api/jellyfin/system.hpp"
 #include "api/jellyfin/media.hpp"
+#include "api/jellyfin/playback.hpp"

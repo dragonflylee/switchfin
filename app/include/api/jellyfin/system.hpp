@@ -1,5 +1,5 @@
 /*
-    Copyright 2023 dragonflylee
+    Copyright 2023 jellyfin
 */
 
 #pragma once
@@ -21,7 +21,6 @@ struct PublicSystemInfo {
     bool StartupWizardCompleted;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PublicSystemInfo, Id, ServerName, Version, OperatingSystem);
-
 
 struct UserPolicy {
     bool IsAdministrator;

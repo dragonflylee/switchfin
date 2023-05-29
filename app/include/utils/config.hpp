@@ -9,6 +9,7 @@ public:
     static std::string getVersion();
     static std::string getPlatform();
     static std::string getDeviceName();
+    static std::string getPackageName();
     static bool needUpdate(std::string latestVersion);
     static void checkUpdate(int delay = 2000, bool showUpToDateDialog = false);
 

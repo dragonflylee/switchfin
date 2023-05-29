@@ -1,8 +1,13 @@
 cmake_minimum_required(VERSION 3.15)
 
 # build options
-option(PLATFORM_DESKTOP "build for linux macos or windows" OFF)
-option(PLATFORM_SWITCH "build for NintendoSwitch" OFF)
+set(PLATFORM_DESKTOP OFF CACHE BOOL "build for desktop, ON for desktop; OFF for switch")
+set(PLATFORM_SWITCH OFF CACHE BOOL "build for NintendoSwitch")
+set(WIN32_TERMINAL ON CACHE BOOL "Show terminal when run on Windows")
+
+# mpv related
+set(MPV_SW_RENDER OFF CACHE BOOL "Using CPU to draw videos")
+
 option(USE_GLFW "using glfw for input and create window" ON)
 option(USE_SDL2 "using sdl2 for input and create window" OFF)
 
@@ -13,6 +18,10 @@ elseif(USE_GLFW)
     message("GLFW")
     set(USE_SDL2 OFF)
 endif()
+
+if (MPV_SW_RENDER)
+    add_definitions(-DMPV_SW_RENDER)
+endif ()
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/deps.cmake)
 
@@ -50,6 +59,7 @@ set(PROJECT_AUTHOR "dragonflylee")
 set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon.jpg)
 set(PROJECT_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/resources)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+add_definitions(-DBUILD_PACKAGE_NAME=${CMAKE_PROJECT_NAME})
 
 # build borealis qrcode and other third party libraries
 add_subdirectory(library)
@@ -60,13 +70,18 @@ file(GLOB_RECURSE MAIN_SRC app/src/*.cpp)
 set(PLATFORM_OPTION)
 if (PLATFORM_DESKTOP)
     find_package(CURL REQUIRED)
-    set(PLATFORM_LIBS
-            CURL::libcurl
-            )
+    find_package(MPV REQUIRED)
+    if (MPV_FOUND)
+        message(STATUS "Found libmpv: ${MPV_VERSION} ${MPV_INCLUDE_DIR} ${MPV_LIBRARY}")
+    endif()
+    set(PLATFORM_LIBS CURL::libcurl ${MPV_LIBRARY})
 elseif (PLATFORM_SWITCH)
     set(PLATFORM_LIBS
             # needed by borealis
             glfw3 EGL glapi drm_nouveau
+            # needed by mpv
+            mpv swscale swresample avformat avfilter avcodec avutil ass freetype fribidi png bz2 z
+            mbedx509 mbedtls mbedcrypto
             # needed by curl
             curl z
             # base lib
@@ -74,11 +89,6 @@ elseif (PLATFORM_SWITCH)
             )
     list(APPEND MAIN_SRC ${CMAKE_SOURCE_DIR}/library/borealis/library/lib/platforms/switch/switch_wrapper.c)
 endif()
-
-# Add git info
-execute_process(COMMAND git describe --tags TIMEOUT 5 OUTPUT_VARIABLE GIT_TAG_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND git rev-parse --short HEAD TIMEOUT 5 OUTPUT_VARIABLE GIT_TAG_SHORT OUTPUT_STRIP_TRAILING_WHITESPACE)
-add_definitions(-DBUILD_TAG_VERSION=${GIT_TAG_VERSION} -DBUILD_TAG_SHORT=${GIT_TAG_SHORT})
 
 # building target
 if (WIN32)
