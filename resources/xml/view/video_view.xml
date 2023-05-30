@@ -19,6 +19,32 @@
             marginRight="120"
             singleLine="true"
             textColor="#FFFFFF" />
+
+        <brls:Box
+            wireframe="false"
+            id="video/osd/setting"
+            hideClickAnimation="true"
+            positionType="absolute"
+            positionRight="10"
+            positionTop="10"
+            alignItems="center"
+            justifyContent="center"
+            height="60"
+            width="60">
+            <SVGImage
+                id="video/osd/setting/icon"
+                focusable="true"
+                focusUp="video/osd/setting/icon"
+                focusLeft="video/osd/toggle/icon"
+                focusRight="video/osd/setting/icon"
+                focusDown="video/osd/bottom/box"
+                hideHighlightBackground="true"
+                highlightCornerRadius="30"
+                height="30"
+                width="30"
+                svg="@res/icon/ico-setting.svg" />
+        </brls:Box>
+
     </brls:Box>
 
     <brls:Box

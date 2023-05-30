@@ -1,6 +1,7 @@
 #include <borealis/core/logger.hpp>
 #include <fmt/format.h>
 #include "utils/thread.hpp"
+#include "utils/config.hpp"
 
 constexpr std::chrono::milliseconds max_idle_time{60000};
 
@@ -10,7 +11,7 @@ const size_t max_thread_num = 4;
 const size_t max_thread_num = std::thread::hardware_concurrency();
 #endif
 
-ThreadPool::ThreadPool() { this->start(max_thread_num); }
+ThreadPool::ThreadPool() { this->start(AppConfig::instance().getItem(AppConfig::REQUEST_THREADS, max_thread_num)); }
 
 ThreadPool::~ThreadPool() { this->stop(); }
 
@@ -56,7 +57,7 @@ void *ThreadPool::task_loop(void *ptr) {
         }
     }
 
-    brls::Logger::debug("thread: exit {}", fmt::ptr(p));
+    brls::Logger::verbose("thread: exit {}", fmt::ptr(p));
     return nullptr;
 }
 

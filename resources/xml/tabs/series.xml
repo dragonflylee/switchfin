@@ -6,23 +6,26 @@
     paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
     paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
 
-
-    <brls:Box
-        axis="column"
+    <brls:ScrollingFrame
         margin="10"
         height="100%"
         width="20%">
-        <brls:Image
-            marginBottom="20"
-            id="series/image/logo"
-            scalingType="fit"
-            backgroundColor="@theme/color/grey_1"
-            image="@res/img/video-card-bg.png" />
-        <brls:SelectorCell
-            paddingTop="8"
-            paddingBottom="8"
-            id="series/selector/season" />
-    </brls:Box>
+        <brls:Box
+            width="auto"
+            height="auto"
+            axis="column">
+            <brls:Image
+                marginBottom="20"
+                id="series/image/logo"
+                scalingType="fit"
+                backgroundColor="@theme/color/grey_1"
+                image="@res/img/video-card-bg.png" />
+            <brls:SelectorCell
+                paddingTop="8"
+                paddingBottom="8"
+                id="series/selector/season" />
+        </brls:Box>
+    </brls:ScrollingFrame>
 
     <RecyclingGrid
         grow="1"

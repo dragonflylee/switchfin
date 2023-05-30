@@ -8,6 +8,11 @@ option("driver")
     set_showmenu(true)
 option_end()
 
+option("sw")
+    set_default(false)
+    set_showmenu(true)
+option_end()
+
 if is_plat("windows") then
     add_cxflags("/utf-8")
     set_languages("c++20")
@@ -23,6 +28,8 @@ add_requires("borealis")
 add_requires("lunasvg")
 add_requires("libcurl")
 add_requires("mpv", {configs={shared=true}})
+
+set_version("0.1.0", {build = "$(shell git rev-list --count --all)"})
 
 target("Switchfin")
     add_includedirs("app/include")
@@ -42,9 +49,14 @@ target("Switchfin")
     else
         add_defines("__GLFW__=1")
     end
+    if get_config("sw") then
+        add_defines("MPV_SW_RENDER=1")
+    end
     add_packages("borealis", "lunasvg", "libcurl", "mpv")
     if is_plat("windows", "mingw") then
-        add_files("app/app_win32.rc")
+        set_configvar("CMAKE_SOURCE_DIR", "$(projectdir)");
+        add_configfiles("app/app_win32.rc.in")
+        add_files("$(buildir)/app_win32.rc")
         add_defines("BOREALIS_USE_STD_THREAD")
         after_build(function (target)
             for _, pkg in pairs(target:pkgs()) do
@@ -64,11 +76,11 @@ target("Switchfin")
             add_cxflags("-Wl,--subsystem,windows", {force = true})
             add_ldflags("-Wl,--subsystem,windows", {force = true})
         elseif is_plat("windows") then
-            add_ldflags("-subsystem:windows -entry:mainCRTStartup", {force = true})
+            -- add_ldflags("-subsystem:windows -entry:mainCRTStartup", {force = true})
         end
     end
     on_config(function (target)
         target:add("defines", "BUILD_PACKAGE_NAME="..target:name())
-        target:add("defines", "BUILD_TAG_VERSION=$(shell git describe --tags)")
+        target:add("defines", "BUILD_TAG_VERSION="..target:get("version"))
         target:add("defines", "BUILD_TAG_SHORT=$(shell git rev-parse --short HEAD)")
     end)

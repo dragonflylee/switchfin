@@ -151,7 +151,7 @@ void MPVCore::init() {
 
     brls::Logger::info("MPV Version: {}", mpv_get_property_string(mpv, "mpv-version"));
     brls::Logger::info("FFMPEG Version: {}", mpv_get_property_string(mpv, "ffmpeg-version"));
-    command_str(fmt::format("set audio-client-name {}", AppVersion::getPlatform()).c_str());
+    command_str("set audio-client-name {}", AppVersion::getDeviceName());
 
     // set event callback
     mpv_set_wakeup_callback(mpv, on_wakeup, this);
@@ -349,8 +349,6 @@ void MPVCore::initializeGL() {
 }
 
 void MPVCore::command_str(const char *args) { check_error(mpv_command_string(mpv, args)); }
-
-void MPVCore::command(const char **args) { check_error(mpv_command(mpv, args)); }
 
 void MPVCore::command_async(const char **args) { check_error(mpv_command_async(mpv, 0, args)); }
 
@@ -724,10 +722,14 @@ void MPVCore::stop() {
     command_async(cmd);
 }
 
-void MPVCore::seek(int64_t p) { command_str(fmt::format("seek {} absolute", p).c_str()); }
+void MPVCore::seek(int64_t p) { command_str("seek {} absolute", p); }
 
 int MPVCore::get_property(const char *name, mpv_format format, void *data) {
     return mpv_get_property(mpv, name, format, data);
+}
+
+int MPVCore::set_property(const char *name, int64_t data) {
+    return mpv_set_property(mpv, name, MPV_FORMAT_INT64, &data);
 }
 
 bool MPVCore::isStopped() {
@@ -748,7 +750,7 @@ double MPVCore::getSpeed() {
     return ret;
 }
 
-void MPVCore::setSpeed(double value) { this->command_str(fmt::format("set speed {}", value).c_str()); }
+void MPVCore::setSpeed(double value) { this->command_str("set speed {}", value); }
 
 std::string MPVCore::getString(const std::string &key) {
     char *value = nullptr;

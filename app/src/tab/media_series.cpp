@@ -33,11 +33,14 @@ public:
         EpisodeCardCell* cell = dynamic_cast<EpisodeCardCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
 
-        Image::load(cell->picture, jellyfin::apiPrimaryImage, AppConfig::instance().getServerUrl(), item.Id,
-            HTTP::encode_query({
-                {"tag", item.ImageTags[jellyfin::imageTypePrimary]},
-                {"maxWidth", "300"},
-            }));
+        auto epimage = item.ImageTags.find(jellyfin::imageTypePrimary);
+        if (epimage != item.ImageTags.end()) {
+            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
+                HTTP::encode_query({{"tag", epimage->second}, {"fillWidth", "300"}}));
+        } else {
+            Image::load(cell->picture, jellyfin::apiPrimaryImage, this->seriesId,
+                HTTP::encode_query({{"tag", item.SeriesPrimaryImageTag}, {"fillWidth", "300"}}));
+        }
 
         cell->labelName->setText(fmt::format("{}. {}", item.IndexNumber, item.Name));
         cell->labelOverview->setText(item.Overview);
@@ -47,7 +50,7 @@ public:
 
     void onItemSelected(RecyclingGrid* recycler, size_t index) override {
         auto& item = this->list.at(index);
-        VideoView* view = new VideoView(item.Id);
+        VideoView* view = new VideoView(item);
         brls::sync([view]() { brls::Application::giveFocus(view); });
     }
 
@@ -60,7 +63,7 @@ private:
     MediaList list;
 };
 
-MediaSeries::MediaSeries(jellyfin::MediaSeries& item) : seriesId(item.Id) {
+MediaSeries::MediaSeries(const jellyfin::MediaSeries& item) : seriesId(item.Id) {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/series.xml");
     brls::Logger::debug("MediaSeries: create");
@@ -71,11 +74,16 @@ MediaSeries::MediaSeries(jellyfin::MediaSeries& item) : seriesId(item.Id) {
     this->doSeasons();
 
     // 加载 Logo
-    Image::load(this->imageLogo, jellyfin::apiLogoImage, AppConfig::instance().getServerUrl(), item.Id,
-        HTTP::encode_query({
-            {"tag", item.ImageTags[jellyfin::imageTypeLogo]},
-            {"maxWidth", "300"},
-        }));
+    auto logo = item.ImageTags.find(jellyfin::imageTypeLogo);
+    if (logo != item.ImageTags.end()) {
+        Image::load(this->imageLogo, jellyfin::apiLogoImage, item.Id,
+            HTTP::encode_query({
+                {"tag", logo->second},
+                {"maxWidth", "300"},
+            }));
+    } else {
+        this->imageLogo->setVisibility(brls::Visibility::GONE);
+    }
 }
 
 void MediaSeries::doSeasons() {

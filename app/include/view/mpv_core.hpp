@@ -70,11 +70,17 @@ public:
 
     void command_str(const char *args);
 
-    void command(const char **args);
+    template <typename... T>
+    void command_str(const std::string &fmt, T &&...args) {
+        std::string cmd = fmt::format(fmt::runtime(fmt), std::forward<T>(args)...);
+        command_str(cmd.c_str());
+    }
 
     void command_async(const char **args);
 
     int get_property(const char *name, mpv_format format, void *data);
+
+    int set_property(const char *name, int64_t data);
 
     bool isStopped();
 

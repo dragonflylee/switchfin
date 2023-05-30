@@ -43,7 +43,7 @@ public:
         auto& item = this->list.at(index);
 
         std::string query = HTTP::encode_query({{"tag", item.ImageTags[jellyfin::imageTypePrimary]}});
-        Image::load(cell->picture, jellyfin::apiPrimaryImage, AppConfig::instance().getServerUrl(), item.Id, query);
+        Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id, query);
         return cell;
     }
 

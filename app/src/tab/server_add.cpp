@@ -13,7 +13,7 @@ ServerAdd::ServerAdd() {
     this->inflateFromXMLRes("xml/tabs/server_add.xml");
     brls::Logger::debug("ServerAdd: create");
 
-    inputUrl->init("URL", "https://jf1.3m3m.top");
+    inputUrl->init("URL", "https://");
 
     btnConnect->registerClickAction(std::bind(&ServerAdd::onConnect, this));
 }

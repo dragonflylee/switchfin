@@ -10,7 +10,7 @@
         <brls:Image
             id="video/card/picture"
             backgroundColor="@theme/color/grey_1"
-            scalingType="fit"
+            scalingType="center"
             image="@res/img/video-card-bg.png"/>
     </brls:Box>
 

@@ -1,0 +1,62 @@
+<brls:Box
+    width="auto"
+    height="auto"
+    justifyContent="flexEnd"
+    backgroundColor="@theme/brls/backdrop">
+
+    <brls:Box
+        width="460"
+        height="100%"
+        axis="column"
+        backgroundColor="@theme/brls/background">
+
+        <brls:ScrollingFrame
+            id="player/settings"
+            width="100%"
+            grow="1"
+            scrollingBehavior="centered">
+
+            <brls:Box
+                width="auto"
+                height="auto"
+                axis="column"
+                marginTop="30px"
+                paddingLeft="40"
+                paddingRight="@style/brls/tab_frame/content_padding_sides"
+                paddingBottom="@style/brls/tab_frame/content_padding_top_bottom"
+                alignItems="stretch">
+
+                <brls:Header
+                    width="auto"
+                    height="auto"
+                    title="@i18n/main/setting/playback/header" />
+                <brls:Box
+                    width="100%"
+                    height="auto"
+                    axis="column"
+                    marginBottom="30px">
+                    <brls:SelectorCell
+                        id="setting/track/audio" />
+                    <brls:SelectorCell
+                        id="setting/track/subtitle" />
+                </brls:Box>
+
+                <brls:Header
+                    width="auto"
+                    height="auto"
+                    title="@i18n/main/player/common"
+                    marginBottom="0px" />
+                <brls:Box
+                    width="100%"
+                    height="auto"
+                    axis="column"
+                    marginBottom="30px">
+                    <brls:BooleanCell
+                        id="setting/fullscreen" />
+                </brls:Box>
+
+            </brls:Box>
+
+        </brls:ScrollingFrame>
+    </brls:Box>
+</brls:Box>

@@ -97,9 +97,10 @@ void HTTP::perform(std::ostream* body) {
 std::string HTTP::encode_form(const Form& form) {
     std::ostringstream ss;
     char* escaped;
-    for (auto it : form) {
-        escaped = curl_easy_escape(this->easy, it.second.c_str(), it.second.size());
-        ss << it.first << '=' << escaped << '&';
+    for (auto it = form.begin(); it != form.end(); ++it) {
+        if (it != form.begin()) ss << '&';
+        escaped = curl_easy_escape(this->easy, it->second.c_str(), it->second.size());
+        ss << it->first << '=' << escaped;
         curl_free(escaped);
     }
     return ss.str();

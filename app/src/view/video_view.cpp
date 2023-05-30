@@ -6,18 +6,26 @@
 #include "utils/config.hpp"
 #include <fmt/format.h>
 
-VideoView::VideoView(const std::string& id) {
+VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
     this->inflateFromXMLRes("xml/view/video_view.xml");
-    brls::Logger::debug("VideoView: create {}", id);
+    brls::Logger::debug("VideoView: create {}", item.Id);
     this->setHideHighlightBackground(true);
     this->setHideClickAnimation(true);
 
+    brls::Box* container = new brls::Box();
+    float width = brls::Application::contentWidth;
+    float height = brls::Application::contentHeight;
+
+    container->setDimensions(width, height);
+    this->setDimensions(width, height);
     this->setWidthPercentage(100);
     this->setHeightPercentage(100);
     this->setId("video");
-    brls::Application::pushActivity(new brls::Activity(this), brls::TransitionAnimation::NONE);
+    container->addView(this);
+    brls::Application::pushActivity(new brls::Activity(container), brls::TransitionAnimation::NONE);
 
-    this->doMediaSource(id);
+    this->doPlaybackInfo();
+    this->videoTitleLabel->setText(item.Name);
 
     this->registerAction(
         "cancel", brls::ControllerButton::BUTTON_B,
@@ -37,12 +45,15 @@ VideoView::VideoView(const std::string& id) {
         },
         true);
 
+    this->registerAction(
+        "setting", brls::ControllerButton::BUTTON_X, [this](...) { return this->showSetting(); }, true);
+
     this->registerMpvEvent();
 
     osdSlider->getProgressSetEvent().subscribe([this](float progress) {
         brls::Logger::verbose("Set progress: {}", progress);
         this->showOSD(true);
-        MPVCore::instance().command_str(fmt::format("seek {} absolute-percent", progress * 100).c_str());
+        MPVCore::instance().command_str("seek {} absolute-percent", progress * 100);
     });
 
     osdSlider->getProgressEvent().subscribe([this](float progress) { this->showOSD(false); });
@@ -56,12 +67,24 @@ VideoView::VideoView(const std::string& id) {
             mpv.isPaused() ? mpv.resume() : mpv.pause();
         },
         brls::TapGestureConfig(false, brls::SOUND_NONE, brls::SOUND_NONE, brls::SOUND_NONE)));
+
+    /// 播放器设置按钮
+    this->btnSetting->registerClickAction([this](...) { return this->showSetting(); });
+    this->btnSetting->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnSetting));
 }
 
 VideoView::~VideoView() {
     brls::Logger::debug("trying delete VideoView...");
     this->unRegisterMpvEvent();
     MPVCore::instance().stop();
+}
+
+bool VideoView::showSetting() {
+    brls::View* setting = new PlayerSetting(this->itemSource);
+    brls::Application::pushActivity(new brls::Activity(setting));
+    // 手动将焦点赋给设置页面
+    brls::sync([setting]() { brls::Application::giveFocus(setting); });
+    return true;
 }
 
 void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::Style style, brls::FrameContext* ctx) {
@@ -74,19 +97,13 @@ void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::S
     // draw osd
     time_t current = time(nullptr);
     if (current < this->osdLastShowTime) {
-        if (!this->isOsdShown) {
-            this->isOsdShown = true;
-            this->onOSDStateChanged(true);
-        }
+        if (!this->isOsdShown) this->isOsdShown = true;
         osdTopBox->setVisibility(brls::Visibility::VISIBLE);
         osdBottomBox->setVisibility(brls::Visibility::VISIBLE);
         osdBottomBox->frame(ctx);
         osdTopBox->frame(ctx);
     } else {
-        if (this->isOsdShown) {
-            this->isOsdShown = false;
-            this->onOSDStateChanged(false);
-        }
+        if (this->isOsdShown) this->isOsdShown = false;
         osdTopBox->setVisibility(brls::Visibility::INVISIBLE);
         osdBottomBox->setVisibility(brls::Visibility::INVISIBLE);
     }
@@ -111,33 +128,64 @@ void VideoView::onLayout() {
     oldRect = rect;
 }
 
-void VideoView::doMediaSource(const std::string& itemId) {
+void VideoView::onChildFocusGained(View* directChild, View* focusedView) {
+    Box::onChildFocusGained(directChild, focusedView);
+    // 只有在全屏显示OSD时允许OSD组件获取焦点
+    if (this->isOsdShown) {
+        // 当弹幕按钮隐藏时不可获取焦点
+        if (focusedView->getParent()->getVisibility() == brls::Visibility::GONE) {
+            brls::Application::giveFocus(this);
+        }
+        return;
+    }
+    brls::Application::giveFocus(this);
+}
+
+void VideoView::doPlaybackInfo() {
     ASYNC_RETAIN
-    jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MediaEpisode& r) {
+    jellyfin::postJSON(
+        {
+            {"UserId", AppConfig::instance().getUserId()},
+            {
+                "DeviceProfile",
+                {{"SubtitleProfiles",
+                    {
+                        {{"Format", "ass"}, {"Method", "External"}},
+                        {{"Format", "ssa"}, {"Method", "External"}},
+                        {{"Format", "srt"}, {"Method", "External"}},
+                    }}},
+            },
+        },
+        [ASYNC_TOKEN](const jellyfin::PlaybackResult& r) {
             ASYNC_RELEASE
             if (r.MediaSources.empty()) return;
+            this->itemSource = std::move(r.MediaSources.front());
 
-            this->videoTitleLabel->setText(r.Name);
-            auto& src = r.MediaSources[0];
             auto& mpv = MPVCore::instance();
+            auto& svr = AppConfig::instance().getServerUrl();
 
-            mpv.setUrl(fmt::format(fmt::runtime(jellyfin::apiStream), AppConfig::instance().getServerUrl(), src.Id,
-                src.Container,
+            std::stringstream ssextra;
+            ssextra << "network-timeout=20";
+            for (auto& s : itemSource.MediaStreams) {
+                if (s.Type == jellyfin::streamTypeSubtitle && s.IsExternal) {
+                    ssextra << ",sub-file=" << svr << s.DeliveryUrl;
+                }
+            }
+
+            std::string url = fmt::format(fmt::runtime(jellyfin::apiStream), this->itemId,
                 HTTP::encode_query({
-                    {"Static", "true"},
-                    {"mediaSourceId", src.Id},
-                    {"deviceId", AppVersion::getDeviceName()},
-                    {"api_key", AppConfig::instance().getAccessToken()},
-                    {"Tag", src.ETag},
-                })));
+                    {"static", "true"},
+                    {"mediaSourceId", itemSource.Id},
+                    {"playSessionId", r.PlaySessionId},
+                    {"tag", itemSource.ETag},
+                }));
+            mpv.setUrl(svr + url, ssextra.str());
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             Dialog::show(ex);
-            this->dismiss();
         },
-        jellyfin::apiUserItem, AppConfig::instance().getUserId(), itemId);
+        jellyfin::apiPlayback, this->itemId);
 }
 
 void VideoView::registerMpvEvent() {
@@ -214,13 +262,6 @@ void VideoView::toggleOSD() {
         this->hideOSD();
     } else {
         this->showOSD(true);
-    }
-}
-
-void VideoView::onOSDStateChanged(bool state) {
-    // 当焦点位于video组件内部重新赋予焦点，用来隐藏屏幕上的高亮框
-    if (!state && isChildFocused()) {
-        brls::Application::giveFocus(this);
     }
 }
 

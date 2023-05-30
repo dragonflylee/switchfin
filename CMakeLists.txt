@@ -51,9 +51,9 @@ endif ()
 
 # project info
 project(Switchfin)
-set(VERSION_MAJOR "1")
-set(VERSION_MINOR "0")
-set(VERSION_REVISION "0")
+set(VERSION_MAJOR "0")
+set(VERSION_MINOR "1")
+set(VERSION_ALTER "0")
 set(PROJECT_TITLEID "0x010FF000FFFF0003")
 set(PROJECT_AUTHOR "dragonflylee")
 set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon.jpg)
@@ -65,7 +65,7 @@ add_definitions(-DBUILD_PACKAGE_NAME=${CMAKE_PROJECT_NAME})
 add_subdirectory(library)
 
 # setting src and include
-file(GLOB_RECURSE MAIN_SRC app/src/*.cpp)
+file(GLOB_RECURSE MAIN_SRC "${CMAKE_SOURCE_DIR}/app/src/*.cpp")
 
 set(PLATFORM_OPTION)
 if (PLATFORM_DESKTOP)
@@ -92,10 +92,11 @@ endif()
 
 # building target
 if (WIN32)
+    configure_file("${CMAKE_SOURCE_DIR}/app/app_win32.rc.in" "${CMAKE_BINARY_DIR}/app_win32.rc")
     if (WIN32_TERMINAL)
-        add_executable(${PROJECT_NAME} ${MAIN_SRC} app/app_win32.rc)
+        add_executable(${PROJECT_NAME} ${MAIN_SRC} "${CMAKE_BINARY_DIR}/app_win32.rc")
     else ()
-        add_executable(${PROJECT_NAME} WIN32 ${MAIN_SRC} app/app_win32.rc)
+        add_executable(${PROJECT_NAME} WIN32 ${MAIN_SRC} "${CMAKE_BINARY_DIR}/app_win32.rc")
     endif ()
 else ()
     add_executable(${PROJECT_NAME} ${MAIN_SRC})
@@ -117,18 +118,14 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 # building release file
 if (PLATFORM_DESKTOP)
     add_custom_target(${PROJECT_NAME}.data
-            COMMAND "${CMAKE_COMMAND}" -E tar c ${CMAKE_CURRENT_BINARY_DIR}/resources.zip ${CMAKE_SOURCE_DIR}/resources
+            COMMAND "${CMAKE_COMMAND}" -E copy_directory ${CMAKE_SOURCE_DIR}/resources ${CMAKE_CURRENT_BINARY_DIR}/resources
             )
     add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}.data)
 elseif(PLATFORM_SWITCH)
-    add_custom_target(${PROJECT_NAME}.nro
-            DEPENDS ${PROJECT_NAME}
-            COMMAND ${NX_NACPTOOL_EXE} --create "${PROJECT_NAME}"
-            "${PROJECT_AUTHOR}" "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_REVISION}"
-            ${PROJECT_NAME}.nacp --titleid=${PROJECT_TITLEID}
+    add_custom_target(${PROJECT_NAME}.nro DEPENDS ${PROJECT_NAME}
+            COMMAND ${NX_NACPTOOL_EXE} --create "${PROJECT_NAME}" "${PROJECT_AUTHOR}" "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}" ${PROJECT_NAME}.nacp --titleid=${PROJECT_TITLEID}
             COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_RESOURCES} ${CMAKE_BINARY_DIR}/resources
             COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/resources/font
-            COMMAND ${NX_ELF2NRO_EXE} ${PROJECT_NAME}.elf ${PROJECT_NAME}.nro --icon=${PROJECT_ICON}
-            --nacp=${PROJECT_NAME}.nacp --romfsdir=${CMAKE_BINARY_DIR}/resources
+            COMMAND ${NX_ELF2NRO_EXE} ${PROJECT_NAME}.elf ${PROJECT_NAME}.nro --icon=${PROJECT_ICON} --nacp=${PROJECT_NAME}.nacp --romfsdir=${CMAKE_BINARY_DIR}/resources
             )
 endif ()

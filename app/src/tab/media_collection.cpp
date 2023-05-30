@@ -6,6 +6,7 @@
 #include "tab/media_series.hpp"
 #include "api/jellyfin.hpp"
 #include "view/video_card.hpp"
+#include "view/video_view.hpp"
 
 using namespace brls::literals;  // for _i18n
 
@@ -23,14 +24,14 @@ public:
         VideoCardCell* cell = dynamic_cast<VideoCardCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
 
-        Image::load(cell->picture, jellyfin::apiPrimaryImage, AppConfig::instance().getServerUrl(), item.Id,
+        Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
             HTTP::encode_query({
                 {"tag", item.ImageTags[jellyfin::imageTypePrimary]},
                 {"maxWidth", "200"},
             }));
 
         cell->labelTitle->setText(item.Name);
-        cell->labelYear->setText(std::to_string(item.ProductionYear));
+        if (item.ProductionYear > 0) cell->labelYear->setText(std::to_string(item.ProductionYear));
 
         if (item.CommunityRating > 0)
             cell->labelDuration->setText(fmt::format("{:.1f}", item.CommunityRating));
@@ -42,7 +43,14 @@ public:
     void onItemSelected(RecyclingGrid* recycler, size_t index) override {
         auto& item = this->list.at(index);
 
-        if (item.Type == jellyfin::mediaTypeSeries) recycler->present(new MediaSeries(item));
+        if (item.Type == jellyfin::mediaTypeSeries) {
+            recycler->present(new MediaSeries(item));
+        } else if (item.Type == jellyfin::mediaTypeFolder) {
+            recycler->present(new MediaCollection(item.Id));
+        } else if (item.Type == jellyfin::mediaTypeMovie) {
+            VideoView* view = new VideoView(item);
+            brls::sync([view]() { brls::Application::giveFocus(view); });
+        }
     }
 
     void clearData() override { this->list.clear(); }

@@ -6,6 +6,8 @@
 
 #include <borealis.hpp>
 #include "view/mpv_core.hpp"
+#include "view/player_setting.hpp"
+#include "api/jellyfin/media.hpp"
 
 class VideoProgressSlider;
 class SVGImage;
@@ -27,7 +29,7 @@ enum class OSDState {
 
 class VideoView : public brls::Box {
 public:
-    VideoView(const std::string& id);
+    VideoView(const jellyfin::MediaItem& item);
 
     ~VideoView() override;
 
@@ -39,6 +41,8 @@ public:
 
     View* getDefaultFocus() override { return this->isOsdShown ? this->btnToggle : this; }
 
+    void onChildFocusGained(View* directChild, View* focusedView) override;
+
     View* getNextFocus(brls::FocusDirection direction, View* currentView) override { return this; }
 
 private:
@@ -46,6 +50,7 @@ private:
     BRLS_BIND(brls::Label, videoTitleLabel, "video/osd/title");
     BRLS_BIND(brls::ProgressSpinner, osdSpinner, "video/osd/loading");
     BRLS_BIND(VideoProgressSlider, osdSlider, "video/osd/bottom/progress");
+    BRLS_BIND(brls::Box, btnSetting, "video/osd/setting");
     BRLS_BIND(brls::Box, btnToggle, "video/osd/toggle");
     BRLS_BIND(SVGImage, btnToggleIcon, "video/osd/toggle/icon");
     BRLS_BIND(brls::Box, osdTopBox, "video/osd/top/box");
@@ -54,7 +59,7 @@ private:
     BRLS_BIND(brls::Label, centerLabel, "video/osd/center/label");
 
     /// @brief get video url
-    void doMediaSource(const std::string& id);
+    void doPlaybackInfo();
 
     void registerMpvEvent();
     void unRegisterMpvEvent();
@@ -65,7 +70,7 @@ private:
     void toggleOSD();
     void showOSD(bool autoHide = true);
     void hideOSD();
-    void onOSDStateChanged(bool state);
+    bool showSetting();
 
     // OSD
     bool isOsdShown = false;
@@ -76,4 +81,7 @@ private:
     MPVEvent::Subscription eventSubscribeID;
     MPVCustomEvent::Subscription customEventSubscribeID;
     brls::Rect oldRect = brls::Rect(-1, -1, -1, -1);
+
+    std::string itemId;
+    jellyfin::MediaSource itemSource;
 };
