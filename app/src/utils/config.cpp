@@ -9,6 +9,7 @@
 #include <borealis.hpp>
 #include <borealis/core/cache_helper.hpp>
 #include "utils/config.hpp"
+#include "view/mpv_core.hpp"
 
 constexpr uint32_t MINIMUM_WINDOW_WIDTH = 640;
 constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
@@ -19,7 +20,9 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {KEYMAP, {"keymap", {"xbox", "ps", "keyboard"}}},
     {VIDEO_CODEC, {"video_codec", {"AVC/H.264", "HEVC/H.265", "AV1"}}},
     {FULLSCREEN, {"fullscreen"}},
+    {PLAYER_BOTTOM_BAR,{"player_bottom_bar"}},
     {PLAYER_HWDEC, {"player_hwdec"}},
+    {PLAYER_HWDEC_CUSTOM,{"player_hwdec_custom"}},
     {TEXTURE_CACHE_NUM, {"texture_cache_num"}},
     {REQUEST_THREADS, {"request_threads"}},
 };
@@ -42,6 +45,15 @@ void AppConfig::init() {
 
     // 初始化是否全屏，必须在创建窗口前设置此值
     VideoContext::FULLSCREEN = this->getItem(FULLSCREEN, false);
+
+    // 初始化是否固定显示底部进度条
+    MPVCore::BOTTOM_BAR = this->getItem(PLAYER_BOTTOM_BAR, true);
+
+    // 初始化是否使用硬件加速 （仅限非switch设备）
+    MPVCore::HARDWARE_DEC = this->getItem(PLAYER_HWDEC, true);
+
+    // 初始化自定义的硬件加速方案
+    MPVCore::PLAYER_HWDEC_METHOD = this->getItem(PLAYER_HWDEC_CUSTOM, MPVCore::PLAYER_HWDEC_METHOD);
 
     // 初始化i18n
     std::set<std::string> i18nSet{

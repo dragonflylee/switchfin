@@ -27,6 +27,7 @@
         <brls:Label
             id="episode/card/overview"
             fontSize="15"
+            animated="false"
             textColor="@theme/font/grey" />
     </brls:Box>
 

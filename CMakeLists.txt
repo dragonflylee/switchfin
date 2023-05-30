@@ -80,7 +80,7 @@ elseif (PLATFORM_SWITCH)
             # needed by borealis
             glfw3 EGL glapi drm_nouveau
             # needed by mpv
-            mpv swscale swresample avformat avfilter avcodec avutil ass freetype fribidi png bz2 z
+            mpv swscale swresample avformat avfilter avcodec avutil ass freetype fribidi png bz2 z SDL2
             mbedx509 mbedtls mbedcrypto
             # needed by curl
             curl z

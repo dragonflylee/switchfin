@@ -114,21 +114,21 @@ public:
 
     void openglDraw(brls::Rect rect, float alpha = 1.0);
 
-    mpv_render_context *getContext();
+    mpv_render_context *getContext() { return this->mpv_context; }
 
-    mpv_handle *getHandle();
+    mpv_handle *getHandle() { return this->mpv; }
 
     /**
      * 播放器内部事件
      * 传递内容为: 事件类型
      */
-    MPVEvent *getEvent();
+    MPVEvent &getEvent() { return this->mpvCoreEvent; }
 
     /**
      * 可以用于共享自定义事件
      * 传递内容为: string类型的事件名与一个任意类型的指针
      */
-    MPVCustomEvent *getCustomEvent();
+    MPVCustomEvent &getCustomEvent() { return this->mpvCoreCustomEvent; }
 
     void reset();
 
@@ -167,7 +167,7 @@ public:
     // 触发倍速时的默认值，单位为 %
     inline static int VIDEO_SPEED = 200;
 
-    NVGcolor bottomBarColor = brls::Application::getTheme().getColor("color/bilibili");
+    NVGcolor bottomBarColor = brls::Application::getTheme().getColor("color/app");
 
 private:
     mpv_handle *mpv = nullptr;

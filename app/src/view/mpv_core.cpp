@@ -151,7 +151,7 @@ void MPVCore::init() {
 
     brls::Logger::info("MPV Version: {}", mpv_get_property_string(mpv, "mpv-version"));
     brls::Logger::info("FFMPEG Version: {}", mpv_get_property_string(mpv, "ffmpeg-version"));
-    command_str(fmt::format("set audio-client-name {}", AppVersion::getPackageName()).c_str());
+    command_str(fmt::format("set audio-client-name {}", AppVersion::getPlatform()).c_str());
 
     // set event callback
     mpv_set_wakeup_callback(mpv, on_wakeup, this);
@@ -507,14 +507,6 @@ void MPVCore::openglDraw(brls::Rect rect, float alpha) {
     }
 }
 
-mpv_render_context *MPVCore::getContext() { return this->mpv_context; }
-
-mpv_handle *MPVCore::getHandle() { return this->mpv; }
-
-MPVEvent *MPVCore::getEvent() { return &this->mpvCoreEvent; }
-
-MPVCustomEvent *MPVCore::getCustomEvent() { return &this->mpvCoreCustomEvent; }
-
 std::string MPVCore::getCacheSpeed() {
     if (cache_speed >> 20 > 0) {
         return fmt::format("{:.2f} MB/s", (cache_speed >> 10) / 1024.0f);
@@ -799,7 +791,7 @@ double MPVCore::getPlaybackTime() {
     return this->playback_time;
 }
 void MPVCore::disableDimming(bool disable) {
-    brls::Application::getPlatform()->disableScreenDimming(disable, "Playing video", AppVersion::getPackageName());
+    brls::Application::getPlatform()->disableScreenDimming(disable, "Playing video", AppVersion::getPlatform());
     brls::Application::setAutomaticDeactivation(!disable);
 }
 

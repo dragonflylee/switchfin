@@ -10,6 +10,8 @@
 #include "view/svg_image.hpp"
 #include "view/auto_tab_frame.hpp"
 #include "view/recycling_grid.hpp"
+#include "view/video_progress_slider.hpp"
+
 #include "activity/main_activity.hpp"
 #include "activity/server_list.hpp"
 #include "tab/server_add.hpp"
@@ -47,6 +49,7 @@ int main(int argc, char* argv[]) {
     brls::Application::registerXMLView("SVGImage", SVGImage::create);
     brls::Application::registerXMLView("AutoTabFrame", AutoTabFrame::create);
     brls::Application::registerXMLView("RecyclingGrid", RecyclingGrid::create);
+    brls::Application::registerXMLView("VideoProgressSlider", VideoProgressSlider::create);
     brls::Application::registerXMLView("HomeTab", HomeTab::create);
     brls::Application::registerXMLView("MediaFolders", MediaFolders::create);
     brls::Application::registerXMLView("SettingTab", SettingTab::create);

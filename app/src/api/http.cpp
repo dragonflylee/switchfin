@@ -26,7 +26,7 @@ HTTP::HTTP() : chunk(nullptr) {
         }
     } global;
 
-    static std::string user_agent = fmt::format("{}/{}", AppVersion::getPackageName(), AppVersion::getVersion());
+    static std::string user_agent = fmt::format("{}/{}", AppVersion::getPlatform(), AppVersion::getVersion());
     this->easy = curl_easy_init();
 
     curl_easy_setopt(this->easy, CURLOPT_USERAGENT, user_agent.c_str());

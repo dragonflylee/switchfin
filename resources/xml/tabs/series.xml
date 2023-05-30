@@ -12,21 +12,16 @@
         margin="10"
         height="100%"
         width="20%">
-        <brls:Label
-            fontSize="25"
+        <brls:Image
             marginBottom="20"
-            id="series/label/season" />
+            id="series/image/logo"
+            scalingType="fit"
+            backgroundColor="@theme/color/grey_1"
+            image="@res/img/video-card-bg.png" />
         <brls:SelectorCell
             paddingTop="8"
             paddingBottom="8"
             id="series/selector/season" />
-        <brls:Image
-            marginTop="20"
-            grow="1"
-            id="series/image/primary"
-            backgroundColor="@theme/color/grey_1"
-            image="@res/img/video-card-bg.png"
-            cornerRadius="4" />
     </brls:Box>
 
     <RecyclingGrid

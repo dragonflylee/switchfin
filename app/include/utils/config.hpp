@@ -9,7 +9,6 @@ public:
     static std::string getVersion();
     static std::string getPlatform();
     static std::string getDeviceName();
-    static std::string getPackageName();
     static bool needUpdate(std::string latestVersion);
     static void checkUpdate(int delay = 2000, bool showUpToDateDialog = false);
 
@@ -44,7 +43,9 @@ public:
         APP_LANG,
         KEYMAP,
         VIDEO_CODEC,
+        PLAYER_BOTTOM_BAR,
         PLAYER_HWDEC,
+        PLAYER_HWDEC_CUSTOM,
         TEXTURE_CACHE_NUM,
         REQUEST_THREADS,
     };

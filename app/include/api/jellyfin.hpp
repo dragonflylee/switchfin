@@ -59,4 +59,3 @@ inline void postJSON(const nlohmann::json& data, Then then, OnError error, const
 
 #include "api/jellyfin/system.hpp"
 #include "api/jellyfin/media.hpp"
-#include "api/jellyfin/playback.hpp"

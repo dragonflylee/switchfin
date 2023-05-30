@@ -5,6 +5,7 @@
 #include "tab/media_series.hpp"
 #include "api/jellyfin.hpp"
 #include "view/video_card.hpp"
+#include "view/video_view.hpp"
 
 using namespace brls::literals;  // for _i18n
 
@@ -44,7 +45,11 @@ public:
         return cell;
     }
 
-    void onItemSelected(RecyclingGrid* recycler, size_t index) override {}
+    void onItemSelected(RecyclingGrid* recycler, size_t index) override {
+        auto& item = this->list.at(index);
+        VideoView* view = new VideoView(item.Id);
+        brls::sync([view]() { brls::Application::giveFocus(view); });
+    }
 
     void clearData() override { this->list.clear(); }
 
@@ -69,7 +74,7 @@ MediaSeries::MediaSeries(const std::string& id) : seriesId(id) {
 void MediaSeries::doSeasons() {
     std::string query = HTTP::encode_query({
         {"userId", AppConfig::instance().getUserId()},
-        {"Fields", "ItemCounts,PrimaryImageAspectRatio,Overview"},
+        {"Fields", "ItemCounts,PrimaryImageAspectRatio"},
     });
 
     ASYNC_RETAIN
@@ -85,9 +90,7 @@ void MediaSeries::doSeasons() {
                 }
                 this->selectorSeason->init("", seasons, 0, [this](int index) {
                     this->doEpisodes(this->seasonIds[index]);
-                    return true;
                 });
-                this->labelSeason->setText(r.Items[0].SeriesName);
                 this->selectorSeason->setSelection(0);
                 brls::Application::giveFocus(this->selectorSeason);
             }

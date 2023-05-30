@@ -40,7 +40,9 @@ public:
     }
 
     void onItemSelected(RecyclingGrid* recycler, size_t index) override {
-        recycler->present(new MediaSeries(this->list[index].Id));
+        auto& item = this->list.at(index);
+
+        if (item.Type == jellyfin::mediaTypeSeries) recycler->present(new MediaSeries(this->list[index].Id));
     }
 
     void clearData() override { this->list.clear(); }

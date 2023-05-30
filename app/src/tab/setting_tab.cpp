@@ -17,6 +17,8 @@
 #include "tab/setting_tab.hpp"
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
+#include "view/mpv_core.hpp"
+
 #if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
 #include <borealis/platforms/desktop/desktop_platform.hpp>
 #endif
@@ -52,8 +54,12 @@ SettingTab::SettingTab() {
 #ifdef __SWITCH__
     btnHWDEC->setVisibility(brls::Visibility::GONE);
 #else
-    btnHWDEC->init("main/setting/playback/hwdec"_i18n, conf.getItem(AppConfig::PLAYER_HWDEC, false),
-        [&conf](bool value) { conf.setItem(AppConfig::PLAYER_HWDEC, value); });
+    btnHWDEC->init("main/setting/playback/hwdec"_i18n, MPVCore::HARDWARE_DEC, [&conf](bool value) {
+        if (MPVCore::HARDWARE_DEC == value) return;
+        MPVCore::HARDWARE_DEC = value;
+        MPVCore::instance().restart();
+        conf.setItem(AppConfig::PLAYER_HWDEC, value);
+    });
 #endif
 
     auto& codecOption = conf.getOptions(AppConfig::VIDEO_CODEC);
@@ -83,12 +89,11 @@ SettingTab::SettingTab() {
             "main/setting/others/keymap/keyboard"_i18n,
         },
         keyIndex, [keyIndex](int selected) {
-            if (keyIndex == selected) return false;
+            if (keyIndex == selected) return;
             auto& conf = AppConfig::instance();
             auto& keyOptions = conf.getOptions(AppConfig::KEYMAP);
             conf.setItem(AppConfig::KEYMAP, keyOptions.options[selected]);
             Dialog::quitApp();
-            return true;
         });
 #else
     selectorKeymap->setVisibility(brls::Visibility::GONE);
@@ -104,12 +109,11 @@ SettingTab::SettingTab() {
             "main/setting/others/language/chinese_t"_i18n,
         },
         langIndex, [langIndex](int selected) {
-            if (langIndex == selected) return false;
+            if (langIndex == selected) return;
             auto& conf = AppConfig::instance();
             auto& langOptions = conf.getOptions(AppConfig::APP_LANG);
             conf.setItem(AppConfig::APP_LANG, langOptions.options[selected]);
             Dialog::quitApp();
-            return true;
         });
 
     // App theme
@@ -121,12 +125,11 @@ SettingTab::SettingTab() {
             "main/setting/others/theme/3"_i18n,
         },
         themeIndex, [themeIndex](int selected) {
-            if (themeIndex == selected) return false;
+            if (themeIndex == selected) return;
             auto& conf = AppConfig::instance();
             auto& themeOptions = conf.getOptions(AppConfig::APP_THEME);
             conf.setItem(AppConfig::APP_THEME, themeOptions.options[selected]);
             Dialog::quitApp();
-            return true;
         });
 
     selectorTexture->init("main/setting/image/texture"_i18n,
@@ -137,11 +140,9 @@ SettingTab::SettingTab() {
         });
 
     int threads = conf.getItem(AppConfig::REQUEST_THREADS, 1);
-    selectorThreads->init("main/setting/image/threads"_i18n, {"1", "2", "4", "8"},
-        log2(threads), [](int selected) {
-            AppConfig::instance().setItem(AppConfig::REQUEST_THREADS, 1 << selected);
-            return true;
-        });
+    selectorThreads->init("main/setting/image/threads"_i18n, {"1", "2", "4", "8"}, log2(threads), [](int selected) {
+        AppConfig::instance().setItem(AppConfig::REQUEST_THREADS, 1 << selected);
+    });
 
     btnAbout->setDetailText(">");
     btnAbout->registerClickAction([](...) {

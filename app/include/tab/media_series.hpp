@@ -13,7 +13,7 @@ public:
     MediaSeries(const std::string& id);
 
 private:
-    BRLS_BIND(brls::Label, labelSeason, "series/label/season");
+    BRLS_BIND(brls::Image, imageLogo, "series/image/logo");
     BRLS_BIND(brls::SelectorCell, selectorSeason, "series/selector/season");
     BRLS_BIND(RecyclingGrid, recyclerEpisodes, "media/episodes");
 
