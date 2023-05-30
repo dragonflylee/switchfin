@@ -23,11 +23,11 @@ public:
         VideoCardCell* cell = dynamic_cast<VideoCardCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
 
-        const std::string query = HTTP::encode_query({
-            {"tag", item.ImageTags[jellyfin::imageTypePrimary]},
-            {"maxWidth", "200"},
-        });
-        Image::load(cell->picture, jellyfin::apiPrimaryImage, AppConfig::instance().getServerUrl(), item.Id, query);
+        Image::load(cell->picture, jellyfin::apiPrimaryImage, AppConfig::instance().getServerUrl(), item.Id,
+            HTTP::encode_query({
+                {"tag", item.ImageTags[jellyfin::imageTypePrimary]},
+                {"maxWidth", "200"},
+            }));
 
         cell->labelTitle->setText(item.Name);
         cell->labelYear->setText(std::to_string(item.ProductionYear));
@@ -42,7 +42,7 @@ public:
     void onItemSelected(RecyclingGrid* recycler, size_t index) override {
         auto& item = this->list.at(index);
 
-        if (item.Type == jellyfin::mediaTypeSeries) recycler->present(new MediaSeries(this->list[index].Id));
+        if (item.Type == jellyfin::mediaTypeSeries) recycler->present(new MediaSeries(item));
     }
 
     void clearData() override { this->list.clear(); }

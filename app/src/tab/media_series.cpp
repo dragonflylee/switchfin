@@ -33,11 +33,11 @@ public:
         EpisodeCardCell* cell = dynamic_cast<EpisodeCardCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
 
-        std::string query = HTTP::encode_query({
-            {"tag", item.ImageTags[jellyfin::imageTypePrimary]},
-            {"maxWidth", "300"},
-        });
-        Image::load(cell->picture, jellyfin::apiPrimaryImage, AppConfig::instance().getServerUrl(), item.Id, query);
+        Image::load(cell->picture, jellyfin::apiPrimaryImage, AppConfig::instance().getServerUrl(), item.Id,
+            HTTP::encode_query({
+                {"tag", item.ImageTags[jellyfin::imageTypePrimary]},
+                {"maxWidth", "300"},
+            }));
 
         cell->labelName->setText(fmt::format("{}. {}", item.IndexNumber, item.Name));
         cell->labelOverview->setText(item.Overview);
@@ -60,7 +60,7 @@ private:
     MediaList list;
 };
 
-MediaSeries::MediaSeries(const std::string& id) : seriesId(id) {
+MediaSeries::MediaSeries(jellyfin::MediaSeries& item) : seriesId(item.Id) {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/series.xml");
     brls::Logger::debug("MediaSeries: create");
@@ -69,6 +69,13 @@ MediaSeries::MediaSeries(const std::string& id) : seriesId(id) {
     this->recyclerEpisodes->registerCell("Cell", &EpisodeCardCell::create);
 
     this->doSeasons();
+
+    // 加载 Logo
+    Image::load(this->imageLogo, jellyfin::apiLogoImage, AppConfig::instance().getServerUrl(), item.Id,
+        HTTP::encode_query({
+            {"tag", item.ImageTags[jellyfin::imageTypeLogo]},
+            {"maxWidth", "300"},
+        }));
 }
 
 void MediaSeries::doSeasons() {
@@ -88,9 +95,8 @@ void MediaSeries::doSeasons() {
                     seasons.push_back(it.Name);
                     this->seasonIds.push_back(it.Id);
                 }
-                this->selectorSeason->init("", seasons, 0, [this](int index) {
-                    this->doEpisodes(this->seasonIds[index]);
-                });
+                this->selectorSeason->init(
+                    "", seasons, 0, [this](int index) { this->doEpisodes(this->seasonIds[index]); });
                 this->selectorSeason->setSelection(0);
                 brls::Application::giveFocus(this->selectorSeason);
             }

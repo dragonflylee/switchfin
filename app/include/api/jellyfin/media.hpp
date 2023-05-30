@@ -10,8 +10,9 @@ const std::string apiUserItem = "{}/Users/{}/Items/{}";
 const std::string apiShowSeanon = "{}/Shows/{}/Seasons?{}";
 const std::string apiShowEpisodes = "{}/Shows/{}/Episodes?{}";
 const std::string apiPrimaryImage = "{}/Items/{}/Images/Primary?{}";
+const std::string apiLogoImage = "{}/Items/{}/Images/Logo?{}";
 const std::string apiPlayback = "{}/Items/{}/PlaybackInfo?{}";
-const std::string apiStream = "{}/Videos/{}/stream.mkv?{}";
+const std::string apiStream = "{}/Videos/{}/stream.{}?{}";
 
 const std::string imageTypePrimary = "Primary";
 const std::string imageTypeLogo = "Logo";

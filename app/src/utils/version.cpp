@@ -17,13 +17,13 @@ std::string AppVersion::getVersion() {
 
 std::string AppVersion::getPlatform() {
 #if __APPLE__
-    return "Jellyfin for macOS";
+    return STR(BUILD_PACKAGE_NAME)" for macOS";
 #elif __linux__
-    return "Jellyfin for Linux";
+    return STR(BUILD_PACKAGE_NAME)" for Linux";
 #elif _WIN32
-    return "Jellyfin for Windows";
+    return STR(BUILD_PACKAGE_NAME)" for Windows";
 #elif __SWITCH__
-    return "Jellyfin for Switch";
+    return STR(BUILD_PACKAGE_NAME)" for Switch";
 #else
 #error "unsupport platform"
 #endif

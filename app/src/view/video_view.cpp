@@ -123,6 +123,7 @@ void VideoView::doMediaSource(const std::string& itemId) {
             auto& mpv = MPVCore::instance();
 
             mpv.setUrl(fmt::format(fmt::runtime(jellyfin::apiStream), AppConfig::instance().getServerUrl(), src.Id,
+                src.Container,
                 HTTP::encode_query({
                     {"Static", "true"},
                     {"mediaSourceId", src.Id},

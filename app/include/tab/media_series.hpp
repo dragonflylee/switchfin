@@ -5,12 +5,13 @@
 #pragma once
 
 #include <borealis.hpp>
+#include "api/jellyfin/media.hpp"
 
 class RecyclingGrid;
 
 class MediaSeries : public brls::Box {
 public:
-    MediaSeries(const std::string& id);
+    MediaSeries(jellyfin::MediaSeries& item);
 
 private:
     BRLS_BIND(brls::Image, imageLogo, "series/image/logo");
