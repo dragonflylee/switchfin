@@ -23,12 +23,11 @@ public:
         VideoCardCell* cell = dynamic_cast<VideoCardCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
 
-        const std::string& url = AppConfig::instance().getServerUrl();
-        std::string query = HTTP::encode_query({
+        const std::string query = HTTP::encode_query({
             {"tag", item.ImageTags[jellyfin::imageTypePrimary]},
             {"maxWidth", "200"},
         });
-        Image::load(cell->picture, url + fmt::format(jellyfin::apiPrimaryImage, item.Id, query));
+        Image::load(cell->picture, jellyfin::apiPrimaryImage, AppConfig::instance().getServerUrl(), item.Id, query);
 
         cell->labelTitle->setText(item.Name);
         cell->labelYear->setText(std::to_string(item.ProductionYear));
@@ -77,10 +76,9 @@ void MediaCollection::doRequest() {
         {"StartIndex", std::to_string(this->startIndex)},
     });
     ASYNC_RETAIN
-    jellyfin::getJSON(fmt::format(jellyfin::apiUserLibrary, AppConfig::instance().getUserId(), query),
+    jellyfin::getJSON(
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaSeries>& r) {
             ASYNC_RELEASE
-
             this->startIndex = r.StartIndex + this->pageSize;
             if (r.StartIndex == 0) {
                 this->recyclerSeries->setDataSource(new CollectionDataSource(r.Items));
@@ -90,5 +88,10 @@ void MediaCollection::doRequest() {
                 dataSrc->appendData(r.Items);
                 this->recyclerSeries->notifyDataChanged();
             }
-        });
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            this->recyclerSeries->setError(ex);
+        },
+        jellyfin::apiUserLibrary, AppConfig::instance().getUserId(), query);
 }

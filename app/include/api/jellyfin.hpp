@@ -15,11 +15,11 @@ using OnError = std::function<void(const std::string&)>;
 
 std::string defaultAuthHeader();
 
-template <typename Then>
-void getJSON(const std::string& path, Then then, OnError error = nullptr) {
+template <typename Then, typename... Args>
+inline void getJSON(Then then, OnError error, const std::string& fmt, Args&&... args) {
     HTTP::Header header;
     const std::string& token = AppConfig::instance().getAccessToken();
-    std::string url = AppConfig::instance().getServerUrl() + path;
+    std::string url = fmt::format(fmt::runtime(fmt), AppConfig::instance().getServerUrl(), std::forward<Args>(args)...);
     if (token.empty())
         header.push_back(defaultAuthHeader());
     else
@@ -35,11 +35,11 @@ void getJSON(const std::string& path, Then then, OnError error = nullptr) {
         url, header, HTTP::Timeout{1000});
 }
 
-template <typename Then>
-void postJSON(const std::string& path, const nlohmann::json& data, Then then, OnError error = nullptr) {
+template <typename Then, typename... Args>
+inline void postJSON(const nlohmann::json& data, Then then, OnError error, const std::string& fmt, Args&&... args) {
     HTTP::Header header = {"Content-Type: application/json"};
     const std::string& token = AppConfig::instance().getAccessToken();
-    std::string url = AppConfig::instance().getServerUrl() + path;
+    std::string url = fmt::format(fmt::runtime(fmt), AppConfig::instance().getServerUrl(), std::forward<Args>(args)...);
     if (token.empty())
         header.push_back(defaultAuthHeader());
     else

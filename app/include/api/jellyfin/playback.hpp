@@ -4,7 +4,7 @@
 
 namespace jellyfin {
 
-const std::string apiPlayback = "/Items/{}/PlaybackInfo?{}";
+const std::string apiPlayback = "{}/Items/{}/PlaybackInfo?{}";
 
 struct MediaStream {
     std::string Codec;

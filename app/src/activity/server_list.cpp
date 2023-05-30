@@ -45,7 +45,7 @@ public:
         auto& s = this->list[index];
         cell->labelName->setText(s.name);
         cell->labelUrl->setText(s.urls.back());
-        cell->labelUsers->setText(fmt::format("main/setting/server/users"_i18n, s.users.size()));
+        cell->labelUsers->setText(fmt::format(fmt::runtime("main/setting/server/users"_i18n), s.users.size()));
         return cell;
     }
 

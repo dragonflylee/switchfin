@@ -4,12 +4,12 @@
 
 namespace jellyfin {
 
-const std::string apiUserViews = "/Users/{}/Views";
-const std::string apiUserLibrary = "/Users/{}/Items?{}";
-const std::string apiUserItem = "/Users/{}/Items/{}";
-const std::string apiShowSeanon = "/Shows/{}/Seasons?{}";
-const std::string apiShowEpisodes = "/Shows/{}/Episodes?{}";
-const std::string apiPrimaryImage = "/Items/{}/Images/Primary?{}";
+const std::string apiUserViews = "{}/Users/{}/Views";
+const std::string apiUserLibrary = "{}/Users/{}/Items?{}";
+const std::string apiUserItem = "{}/Users/{}/Items/{}";
+const std::string apiShowSeanon = "{}/Shows/{}/Seasons?{}";
+const std::string apiShowEpisodes = "{}/Shows/{}/Episodes?{}";
+const std::string apiPrimaryImage = "{}/Items/{}/Images/Primary?{}";
 
 const std::string imageTypePrimary = "Primary";
 const std::string imageTypeLogo = "Logo";

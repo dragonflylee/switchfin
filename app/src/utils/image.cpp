@@ -17,7 +17,7 @@ Image::~Image() {
     brls::Logger::verbose("delete Image {}", fmt::ptr(this));
 }
 
-void Image::load(brls::Image* view, const std::string& url) {
+void Image::with(brls::Image* view, const std::string& url) {
     int tex = brls::TextureCache::instance().getCache(url);
     if (tex > 0) {
         view->innerSetImage(tex);

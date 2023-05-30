@@ -8,8 +8,8 @@
 
 namespace jellyfin {
 
-const std::string apiPublicInfo = "/System/Info/Public";
-const std::string apiAuthByName = "/Users/authenticatebyname";
+const std::string apiPublicInfo = "{}/System/Info/Public";
+const std::string apiAuthByName = "{}/Users/authenticatebyname";
 
 struct PublicSystemInfo {
     std::string Id;

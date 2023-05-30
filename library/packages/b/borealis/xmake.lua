@@ -30,10 +30,8 @@ package("borealis")
     end)
     on_install(function (package)
         local configs = {}
-        local window = package:config("window")
-        local driver = package:config("driver")
-        configs["window"] = window
-        configs["driver"] = driver
+        configs["window"] = package:config("window")
+        configs["driver"] = package:config("driver")
         local winrt = package:config("winrt")
         configs["winrt"] = winrt and "y" or "n"
         import("package.tools.xmake").install(package, configs)

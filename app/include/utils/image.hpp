@@ -12,8 +12,13 @@ public:
 
     virtual ~Image();
 
+    template <typename... Args>
+    static void load(brls::Image* view, const fmt::string_view fmt, Args&&... args) {
+        return with(view, fmt::format(fmt::runtime(fmt), std::forward<Args>(args)...));
+    }
+
     /// @brief 设置要加载内容的图片组件。此函数需要工作在主线程。
-    static void load(brls::Image* view, const std::string& url);
+    static void with(brls::Image* view, const std::string& url);
 
     /// @brief 取消请求，并清空图片。此函数需要工作在主线程。
     static void cancel(brls::Image* view);

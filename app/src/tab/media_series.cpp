@@ -32,12 +32,11 @@ public:
         EpisodeCardCell* cell = dynamic_cast<EpisodeCardCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
 
-        const std::string& url = AppConfig::instance().getServerUrl();
         std::string query = HTTP::encode_query({
             {"tag", item.ImageTags[jellyfin::imageTypePrimary]},
             {"maxWidth", "300"},
         });
-        Image::load(cell->picture, url + fmt::format(jellyfin::apiPrimaryImage, item.Id, query));
+        Image::load(cell->picture, jellyfin::apiPrimaryImage, AppConfig::instance().getServerUrl(), item.Id, query);
 
         cell->labelName->setText(fmt::format("{}. {}", item.IndexNumber, item.Name));
         cell->labelOverview->setText(item.Overview);
@@ -75,10 +74,8 @@ void MediaSeries::doSeasons() {
 
     ASYNC_RETAIN
     jellyfin::getJSON(
-        fmt::format(jellyfin::apiShowSeanon, this->seriesId, query),
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaSeason>& r) {
             ASYNC_RELEASE
-
             if (r.Items.size() > 0) {
                 this->seasonIds.clear();
                 std::vector<std::string> seasons;
@@ -86,9 +83,9 @@ void MediaSeries::doSeasons() {
                     seasons.push_back(it.Name);
                     this->seasonIds.push_back(it.Id);
                 }
-                this->selectorSeason->init("", seasons, 0, [this](int index) { 
+                this->selectorSeason->init("", seasons, 0, [this](int index) {
                     this->doEpisodes(this->seasonIds[index]);
-                    return true; 
+                    return true;
                 });
                 this->labelSeason->setText(r.Items[0].SeriesName);
                 this->selectorSeason->setSelection(0);
@@ -98,7 +95,8 @@ void MediaSeries::doSeasons() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             this->recyclerEpisodes->setError(ex);
-        });
+        },
+        jellyfin::apiShowSeanon, this->seriesId, query);
 }
 
 void MediaSeries::doEpisodes(const std::string& seasonId) {
@@ -110,7 +108,6 @@ void MediaSeries::doEpisodes(const std::string& seasonId) {
 
     ASYNC_RETAIN
     jellyfin::getJSON(
-        fmt::format(jellyfin::apiShowEpisodes, this->seriesId, query),
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
             ASYNC_RELEASE
             this->recyclerEpisodes->setDataSource(new SeasonDataSource(this->seriesId, r.Items));
@@ -118,5 +115,6 @@ void MediaSeries::doEpisodes(const std::string& seasonId) {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             this->recyclerEpisodes->setError(ex);
-        });
+        },
+        jellyfin::apiShowEpisodes, this->seriesId, query);
 }

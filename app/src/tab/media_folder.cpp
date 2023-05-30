@@ -42,9 +42,8 @@ public:
         MediaFolderCell* cell = dynamic_cast<MediaFolderCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
 
-        const std::string& url = AppConfig::instance().getServerUrl();
         std::string query = HTTP::encode_query({{"tag", item.ImageTags[jellyfin::imageTypePrimary]}});
-        Image::load(cell->picture, url + fmt::format(jellyfin::apiPrimaryImage, item.Id, query));
+        Image::load(cell->picture, jellyfin::apiPrimaryImage, AppConfig::instance().getServerUrl(), item.Id, query);
         return cell;
     }
 
@@ -91,7 +90,6 @@ AutoTabFrame* MediaFolders::getTabFrame() {
 void MediaFolders::doRequest() {
     ASYNC_RETAIN
     jellyfin::getJSON(
-        fmt::format(jellyfin::apiUserViews, AppConfig::instance().getUserId()),
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaItem>& r) {
             ASYNC_RELEASE
 
@@ -102,5 +100,6 @@ void MediaFolders::doRequest() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             this->recyclerFolders->setError(ex);
-        });
+        },
+        jellyfin::apiUserViews, AppConfig::instance().getUserId());
 }

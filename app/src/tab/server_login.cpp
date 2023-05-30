@@ -14,7 +14,7 @@ ServerLogin::ServerLogin(const AppServer& s) {
     this->inflateFromXMLRes("xml/tabs/server_login.xml");
     brls::Logger::debug("ServerLogin: create");
 
-    this->hdrSigin->setTitle(fmt::format("main/setting/server/sigin_to"_i18n, s.name));
+    this->hdrSigin->setTitle(fmt::format(fmt::runtime("main/setting/server/sigin_to"_i18n), s.name));
     this->inputUser->init("main/setting/username"_i18n, "");
     this->inputPass->init("main/setting/password"_i18n, "");
 
@@ -29,7 +29,6 @@ bool ServerLogin::onSignin() {
 
     ASYNC_RETAIN
     jellyfin::postJSON(
-        jellyfin::apiAuthByName,
         {
             {"Username", this->inputUser->getValue()},
             {"Pw", this->inputPass->getValue()},
@@ -45,6 +44,7 @@ bool ServerLogin::onSignin() {
             this->btnSignin->setActionsAvailable(true);
             this->btnSignin->setTextColor(brls::Application::getTheme().getColor("brls/text"));
             Dialog::show(ex);
-        });
+        },
+        jellyfin::apiAuthByName);
     return false;
 }
