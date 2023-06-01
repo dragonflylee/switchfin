@@ -11,7 +11,7 @@ class RecyclingGrid;
 
 class MediaSeries : public brls::Box {
 public:
-    MediaSeries(const jellyfin::MediaSeries& item);
+    MediaSeries(const jellyfin::MediaItem& item);
 
 private:
     BRLS_BIND(brls::Image, imageLogo, "series/image/logo");

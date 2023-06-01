@@ -6,7 +6,7 @@
 #include "utils/config.hpp"
 #include <fmt/format.h>
 
-VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
+VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id), userData(&item.UserData) {
     this->inflateFromXMLRes("xml/view/video_view.xml");
     brls::Logger::debug("VideoView: create {}", item.Id);
     this->setHideHighlightBackground(true);
@@ -77,6 +77,8 @@ VideoView::~VideoView() {
     brls::Logger::debug("trying delete VideoView...");
     this->unRegisterMpvEvent();
     MPVCore::instance().stop();
+    this->userData->PlayedPercentage = MPVCore::instance().percent_pos;
+    this->reportStop();
 }
 
 bool VideoView::showSetting() {
@@ -166,6 +168,9 @@ void VideoView::doPlaybackInfo() {
 
             std::stringstream ssextra;
             ssextra << "network-timeout=20";
+            if (this->userData->PlayedPercentage > 0) {
+                ssextra << ",start=" << int(this->userData->PlayedPercentage) << "%";
+            }
             for (auto& s : itemSource.MediaStreams) {
                 if (s.Type == jellyfin::streamTypeSubtitle && s.IsExternal) {
                     ssextra << ",sub-file=" << svr << s.DeliveryUrl;
@@ -175,9 +180,9 @@ void VideoView::doPlaybackInfo() {
             std::string url = fmt::format(fmt::runtime(jellyfin::apiStream), this->itemId,
                 HTTP::encode_query({
                     {"static", "true"},
-                    {"mediaSourceId", itemSource.Id},
+                    {"mediaSourceId", this->itemSource.Id},
                     {"playSessionId", r.PlaySessionId},
-                    {"tag", itemSource.ETag},
+                    {"tag", this->itemSource.ETag},
                 }));
             mpv.setUrl(svr + url, ssextra.str());
         },
@@ -188,6 +193,38 @@ void VideoView::doPlaybackInfo() {
         jellyfin::apiPlayback, this->itemId);
 }
 
+void VideoView::reportStart() {
+    jellyfin::postJSON(
+        {
+            {"ItemId", this->itemId},
+            {"PlayMethod", "DirectPlay"},
+        },
+        [](...) {}, nullptr, jellyfin::apiPlayStart);
+}
+
+void VideoView::reportStop() {
+    time_t ticks = MPVCore::instance().playback_time * 10000000;
+    jellyfin::postJSON(
+        {
+            {"ItemId", this->itemId},
+            {"PlayMethod", "DirectPlay"},
+            {"PositionTicks", ticks},
+        },
+        [](...) {}, nullptr, jellyfin::apiPlayStop);
+}
+
+void VideoView::reportPlay(bool isPaused) {
+    time_t ticks = MPVCore::instance().playback_time * 10000000;
+    jellyfin::postJSON(
+        {
+            {"ItemId", this->itemId},
+            {"PlayMethod", "DirectPlay"},
+            {"IsPaused", isPaused},
+            {"PositionTicks", ticks},
+        },
+        [](...) {}, nullptr, jellyfin::apiPlaying);
+}
+
 void VideoView::registerMpvEvent() {
     auto& ev = MPVCore::instance().getEvent();
     this->eventSubscribeID = ev.subscribe([this](MpvEventEnum event) {
@@ -196,12 +233,12 @@ void VideoView::registerMpvEvent() {
         switch (event) {
         case MpvEventEnum::MPV_RESUME:
             this->showOSD(true);
-            this->hideLoading();
-            this->btnToggleIcon->setImageFromSVGRes("icon/ico-pause.svg");
+            this->reportPlay();
             break;
         case MpvEventEnum::MPV_PAUSE:
             this->showOSD(false);
             this->btnToggleIcon->setImageFromSVGRes("icon/ico-play.svg");
+            this->reportPlay(true);
             break;
         case MpvEventEnum::START_FILE:
             this->showOSD(false);
@@ -211,18 +248,22 @@ void VideoView::registerMpvEvent() {
             break;
         case MpvEventEnum::LOADING_END:
             this->hideLoading();
+            this->btnToggleIcon->setImageFromSVGRes("icon/ico-pause.svg");
             break;
         case MpvEventEnum::MPV_STOP:
             this->hideLoading();
             this->showOSD(false);
+            this->reportStop();
             break;
         case MpvEventEnum::MPV_LOADED:
+            this->reportStart();
             break;
         case MpvEventEnum::UPDATE_DURATION:
             this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
             break;
         case MpvEventEnum::UPDATE_PROGRESS:
             this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
+            this->reportPlay();
             break;
         case MpvEventEnum::VIDEO_SPEED_CHANGE:
             break;

@@ -63,7 +63,7 @@ private:
     MediaList list;
 };
 
-MediaSeries::MediaSeries(const jellyfin::MediaSeries& item) : seriesId(item.Id) {
+MediaSeries::MediaSeries(const jellyfin::MediaItem& item) : seriesId(item.Id) {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/series.xml");
     brls::Logger::debug("MediaSeries: create");
@@ -94,7 +94,7 @@ void MediaSeries::doSeasons() {
 
     ASYNC_RETAIN
     jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaSeason>& r) {
+        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaItem>& r) {
             ASYNC_RELEASE
             if (r.Items.size() > 0) {
                 this->seasonIds.clear();

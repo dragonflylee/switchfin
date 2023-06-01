@@ -143,13 +143,11 @@ public:
     void clearShader(bool showHint = true);
 
     // core states
-    int core_idle = 0;
     int64_t duration = 0;     // second
     int64_t cache_speed = 0;  // Bps
     double video_speed = 0;
     double playback_time = 0;
     double percent_pos = 0;
-    int64_t video_progress = 0;
 
     // Bottom progress bar
     inline static bool BOTTOM_BAR = true;
@@ -166,9 +164,6 @@ public:
 
     // 此变量为真时，加载结束后自动播放视频
     inline static bool AUTO_PLAY = true;
-
-    // 若值大于0 则当前时间大于 CLOSE_TIME 时，自动暂停播放
-    inline static time_t CLOSE_TIME = 0;
 
     // 触发倍速时的默认值，单位为 %
     inline static int VIDEO_SPEED = 200;

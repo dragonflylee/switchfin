@@ -12,7 +12,7 @@ using namespace brls::literals;  // for _i18n
 
 class CollectionDataSource : public RecyclingGridDataSource {
 public:
-    using MediaList = std::vector<jellyfin::MediaSeries>;
+    using MediaList = std::vector<jellyfin::MediaItem>;
 
     explicit CollectionDataSource(const MediaList& r) : list(std::move(r)) {
         brls::Logger::debug("CollectionDataSource: create {}", r.size());
@@ -87,7 +87,7 @@ void MediaCollection::doRequest() {
     });
     ASYNC_RETAIN
     jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaSeries>& r) {
+        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaItem>& r) {
             ASYNC_RELEASE
             this->startIndex = r.StartIndex + this->pageSize;
             if (r.StartIndex == 0) {

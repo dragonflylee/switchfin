@@ -29,7 +29,7 @@ enum class OSDState {
 
 class VideoView : public brls::Box {
 public:
-    VideoView(const jellyfin::MediaItem& item);
+    VideoView(jellyfin::MediaItem& item);
 
     ~VideoView() override;
 
@@ -60,6 +60,9 @@ private:
 
     /// @brief get video url
     void doPlaybackInfo();
+    void reportStart();
+    void reportStop();
+    void reportPlay(bool isPaused = false);
 
     void registerMpvEvent();
     void unRegisterMpvEvent();
@@ -84,4 +87,5 @@ private:
 
     std::string itemId;
     jellyfin::MediaSource itemSource;
+    jellyfin::UserDataResult *userData;
 };

@@ -7,12 +7,19 @@ namespace jellyfin {
 const std::string apiUserViews = "/Users/{}/Views";
 const std::string apiUserLibrary = "/Users/{}/Items?{}";
 const std::string apiUserItem = "/Users/{}/Items/{}";
+const std::string apiUserResume = "/Users/{}/Items/Resume?{}";
+const std::string apiUserLatest = "/Users/{}/Items/Latest?{}";
+const std::string apiShowNextUp = "/Shows/NextUp?{}";
 const std::string apiShowSeanon = "/Shows/{}/Seasons?{}";
 const std::string apiShowEpisodes = "/Shows/{}/Episodes?{}";
 const std::string apiPrimaryImage = "/Items/{}/Images/Primary?{}";
 const std::string apiLogoImage = "/Items/{}/Images/Logo?{}";
+
 const std::string apiPlayback = "/Items/{}/PlaybackInfo";
 const std::string apiStream = "/Videos/{}/stream?{}";
+const std::string apiPlayStart = "/Sessions/Playing";
+const std::string apiPlayStop = "/Sessions/Playing/Stopped";
+const std::string apiPlaying = "/Sessions/Playing/Progress";
 
 const std::string imageTypePrimary = "Primary";
 const std::string imageTypeLogo = "Logo";
@@ -27,34 +34,25 @@ const std::string streamTypeVideo = "Video";
 const std::string streamTypeAudio = "Audio";
 const std::string streamTypeSubtitle = "Subtitle";
 
+struct UserDataResult {
+    bool IsFavorite = false;
+    int PlayCount = 0;
+    double PlayedPercentage = 0;
+    bool Played = false;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(UserDataResult, IsFavorite, PlayCount, PlayedPercentage, Played);
+
 struct MediaItem {
     std::string Id;
     std::string Name;
     std::string Type;
     std::map<std::string, std::string> ImageTags;
     bool IsFolder = false;
-};
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MediaItem, Id, Name, Type, ImageTags, IsFolder);
-
-struct MediaSeries : public MediaItem {
     long ProductionYear = 0;
     float CommunityRating = 0.0f;
+    UserDataResult UserData;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
-    MediaSeries, Id, Name, Type, ImageTags, IsFolder, ProductionYear, CommunityRating);
-
-struct MediaSeason : public MediaItem {
-    long ProductionYear = 0;
-};
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaSeason, Id, Name, Type, ImageTags, IsFolder, ProductionYear);
-
-struct UserData {
-    bool IsFavorite = false;
-    int PlayCount = 0;
-    time_t PlaybackPositionTicks = 0;
-    bool Played = false;
-};
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(UserData, IsFavorite, PlayCount, PlaybackPositionTicks, Played);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaItem, Id, Name, Type, ImageTags, IsFolder, UserData, ProductionYear, CommunityRating);
 
 struct MediaStream {
     std::string Codec;
@@ -93,7 +91,7 @@ struct MediaEpisode : public MediaItem {
     std::vector<MediaSource> MediaSources;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
-    MediaEpisode, Id, Name, Type, ImageTags, IsFolder, Overview, IndexNumber, MediaSources, SeriesPrimaryImageTag);
+    MediaEpisode, Id, Name, Type, ImageTags, IsFolder, Overview, IndexNumber, MediaSources, UserData, SeriesPrimaryImageTag);
 
 template <typename T>
 struct MediaQueryResult {
