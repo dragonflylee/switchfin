@@ -6,7 +6,9 @@
   },
   "welcome": "欢迎使用 Jellyfin",
   "about": {
-    "description": "专为手柄设计的第三方跨平台 Jellyfin 客户端."
+    "header": "关于软件",
+    "brief": "专为手柄控制设计的第三方跨平台Jellyfin客户端\n满足日常使用, 目前可以运行在PC全平台和 Nintendo Switch 上",
+    "repo_header": "开源地址"
   },
   "player": {
     "subtitle": "字幕",
@@ -22,11 +24,6 @@
     "user": "用户",
     "username": "用户名",
     "password": "密码",
-    "about": {
-      "header": "关于软件",
-      "brief": "专为手柄控制设计的第三方跨平台Jellyfin客户端\n满足日常使用, 目前可以运行在PC全平台和 Nintendo Switch 上",
-      "repo_header": "开源地址"
-    },
     "server": {
       "header": "服务器",
       "detail": "服务器详情",
@@ -43,10 +40,9 @@
       "hwdec": "硬件解码",
       "video_codec": "视频编码"
     },
-    "image": {
-      "header": "图片设置",
-      "texture": "纹理缓存数量",
-      "threads": "加载线程数"
+    "network": {
+      "header": "网络设置",
+      "threads": "图片加载线程数"
     },
     "others": {
       "header": "其他",

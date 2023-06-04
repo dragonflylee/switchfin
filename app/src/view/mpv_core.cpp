@@ -69,7 +69,7 @@ void MPVCore::init() {
     mpv_set_option_string(mpv, "ytdl", "no");
     mpv_set_option_string(mpv, "terminal", "yes");
     mpv_set_option_string(mpv, "audio-channels", "stereo");
-    mpv_set_option_string(mpv, "referrer", AppConfig::instance().getServerUrl().c_str());
+    mpv_set_option_string(mpv, "referrer", AppConfig::instance().getUrl().c_str());
     mpv_set_option_string(mpv, "idle", "yes");
     mpv_set_option_string(mpv, "loop-file", "no");
     mpv_set_option_string(mpv, "osd-level", "0");

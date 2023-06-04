@@ -12,6 +12,8 @@ class MediaCollection : public brls::Box {
 public:
     MediaCollection(const std::string& id);
 
+    brls::View* getDefaultFocus() override;
+
 private:
     BRLS_BIND(RecyclingGrid, recyclerSeries, "media/series");
 

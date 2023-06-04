@@ -86,10 +86,9 @@ public:
 
     bool addServer(const AppServer& s);
     bool addUser(const AppUser& u);
-    const std::string& getAccessToken() const { return this->user.access_token; }
-    const std::string& getUserId() const { return this->user.id; }
-    const std::string& getUsername() const { return this->user.name; }
-    const std::string& getServerUrl() const { return this->server_url; }
+    const AppUser& getUser() const { return this->user; }
+    const std::string& getUrl() const { return this->server_url; }
+    const std::string& getDevice() const { return this->device; }
     const std::vector<AppServer>& getServers() const { return this->servers; }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(AppConfig, user_id, server_url, device, users, servers, setting);

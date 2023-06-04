@@ -1,4 +1,6 @@
-#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
+#ifdef __SWITCH__
+#include <switch.h>
+#else
 #include <unistd.h>
 #include <borealis/platforms/desktop/desktop_platform.hpp>
 #endif
@@ -20,9 +22,9 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {KEYMAP, {"keymap", {"xbox", "ps", "keyboard"}}},
     {VIDEO_CODEC, {"video_codec", {"AVC/H.264", "HEVC/H.265", "AV1"}}},
     {FULLSCREEN, {"fullscreen"}},
-    {PLAYER_BOTTOM_BAR,{"player_bottom_bar"}},
+    {PLAYER_BOTTOM_BAR, {"player_bottom_bar"}},
     {PLAYER_HWDEC, {"player_hwdec"}},
-    {PLAYER_HWDEC_CUSTOM,{"player_hwdec_custom"}},
+    {PLAYER_HWDEC_CUSTOM, {"player_hwdec_custom"}},
     {TEXTURE_CACHE_NUM, {"texture_cache_num"}},
     {REQUEST_THREADS, {"request_threads"}},
 };
@@ -55,6 +57,31 @@ void AppConfig::init() {
     // 初始化自定义的硬件加速方案
     MPVCore::PLAYER_HWDEC_METHOD = this->getItem(PLAYER_HWDEC_CUSTOM, MPVCore::PLAYER_HWDEC_METHOD);
 
+    // 初始化 deviceId
+    if (this->device.empty()) {
+#ifdef __SWITCH__
+        SetSysSerialNumber serial;
+        setsysGetSerialNumber(&serial);
+        this->device = serial.number;
+#elif _WIN32
+        HW_PROFILE_INFOW profile;
+        GetCurrentHwProfileW(&profile);
+        this->device.resize(HW_PROFILE_GUIDLEN - 1);
+        WideCharToMultiByte(CP_UTF8, 0, profile.szHwProfileGuid, this->device.size(), this->device.data(),
+            this->device.size(), nullptr, nullptr);
+#elif _Linux
+#elif __APPLE__
+        io_registry_entry_t ioRegistryRoot = IORegistryEntryFromPath(kIOMasterPortDefault, "IOService:/");
+        CFStringRef uuidCf = (CFStringRef)IORegistryEntryCreateCFProperty(
+            ioRegistryRoot, CFSTR(kIOPlatformUUIDKey), kCFAllocatorDefault, 0);
+        IOObjectRelease(ioRegistryRoot);
+        this->device.resize(CFStringGetLength(cfString) + 1);
+        CFStringGetCString(uuidCf, this->device.data(), this->device.size(), kCFStringEncodingMacRoman);
+        CFRelease(uuidCf);
+#endif
+        brls::Logger::debug("init device id {}", this->device);
+    }
+
     // 初始化i18n
     std::set<std::string> i18nSet{
         brls::LOCALE_AUTO,
@@ -65,10 +92,6 @@ void AppConfig::init() {
     std::string appLang = this->getItem(APP_LANG, brls::LOCALE_AUTO);
     if (appLang != brls::LOCALE_AUTO && i18nSet.count(appLang)) {
         brls::Platform::APP_LOCALE_DEFAULT = appLang;
-    } else {
-#ifndef __SWITCH__
-        brls::Platform::APP_LOCALE_DEFAULT = brls::LOCALE_ZH_HANS;
-#endif
     }
 
     // 初始化一些在创建窗口之后才能初始化的内容

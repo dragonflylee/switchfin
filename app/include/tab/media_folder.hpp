@@ -14,6 +14,8 @@ public:
     MediaFolders();
     ~MediaFolders();
 
+    brls::View* getDefaultFocus() override;
+
     static brls::View* create();
 
 private:

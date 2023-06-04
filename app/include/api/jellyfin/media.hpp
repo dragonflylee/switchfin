@@ -51,19 +51,28 @@ struct MediaItem {
     long ProductionYear = 0;
     float CommunityRating = 0.0f;
     UserDataResult UserData;
+
+    virtual const std::string Title() { return fmt::format("{} ({})", this->Name, this->ProductionYear); }
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaItem, Id, Name, Type, ImageTags, IsFolder, UserData, ProductionYear, CommunityRating);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
+    MediaItem, Id, Name, Type, ImageTags, IsFolder, UserData, ProductionYear, CommunityRating);
+
+struct MediaSeason : public MediaItem {
+    long IndexNumber = 0;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaSeason, Id, Name, Type, ImageTags, IsFolder, IndexNumber);
 
 struct MediaStream {
     std::string Codec;
     std::string DisplayTitle;
     std::string Type;
-    long Index;
-    bool IsDefault;
-    bool IsExternal;
+    long Index = 0;
+    bool IsDefault = false;
+    bool IsExternal = false;
     std::string DeliveryUrl;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaStream, Codec, DisplayTitle, Type, Index, IsDefault, IsExternal, DeliveryUrl);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
+    MediaStream, Codec, DisplayTitle, Type, Index, IsDefault, IsExternal, DeliveryUrl);
 
 struct MediaSource {
     std::string Id;
@@ -84,14 +93,21 @@ struct PlaybackResult {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlaybackResult, MediaSources, PlaySessionId);
 
-struct MediaEpisode : public MediaItem {
+struct MediaEpisode : public MediaSeason {
     std::string Overview;
-    long IndexNumber;
+    int IndexNumber = 0;
+    int ParentIndexNumber = 0;
+    std::string SeriesName;
     std::string SeriesPrimaryImageTag;
     std::vector<MediaSource> MediaSources;
+
+    const std::string Title() override {
+        if (this->Type != mediaTypeEpisode) return MediaItem::Title();
+        return fmt::format("S{}E{}: {}", this->ParentIndexNumber, this->IndexNumber, this->Name);
+    }
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
-    MediaEpisode, Id, Name, Type, ImageTags, IsFolder, Overview, IndexNumber, MediaSources, UserData, SeriesPrimaryImageTag);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaEpisode, Id, Name, Type, ImageTags, IsFolder, Overview,
+    IndexNumber, ParentIndexNumber, MediaSources, UserData, SeriesName, SeriesPrimaryImageTag);
 
 template <typename T>
 struct MediaQueryResult {

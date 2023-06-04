@@ -1,6 +1,7 @@
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
 #include "api/http.hpp"
+#include <borealis/core/thread.hpp>
 
 #define STR_IMPL(x) #x
 #define STR(x) STR_IMPL(x)
@@ -16,24 +17,25 @@ std::string AppVersion::getVersion() {
 }
 
 std::string AppVersion::getPlatform() {
-#if __APPLE__
-    return STR(BUILD_PACKAGE_NAME)" for macOS";
+#if __SWITCH__
+    return STR(BUILD_PACKAGE_NAME) " for Switch";
+#elif __APPLE__
+    return STR(BUILD_PACKAGE_NAME) " for macOS";
 #elif __linux__
-    return STR(BUILD_PACKAGE_NAME)" for Linux";
+    return STR(BUILD_PACKAGE_NAME) " for Linux";
 #elif _WIN32
-    return STR(BUILD_PACKAGE_NAME)" for Windows";
-#elif __SWITCH__
-    return STR(BUILD_PACKAGE_NAME)" for Switch";
-#else
-#error "unsupport platform"
+    return STR(BUILD_PACKAGE_NAME) " for Windows";
 #endif
 }
 
 std::string AppVersion::getDeviceName() {
-    std::vector<char> name(128);
-#ifdef _WIN32
-    DWORD len = name.size();
-    GetComputerNameA(name.data(), &len);
+    std::string name;
+#if __SWITCH__
+#elif _WIN32
+    DWORD nSize = 128;
+    std::vector<WCHAR> buf(nSize);
+    GetComputerNameW(buf.data(), &nSize);
+    WideCharToMultiByte(CP_UTF8, 0, buf.data(), nSize, name.data(), name.size(), nullptr, nullptr);
 #else
     gethostname(name.data(), name.size());
 #endif
@@ -43,11 +45,10 @@ std::string AppVersion::getDeviceName() {
 bool AppVersion::needUpdate(std::string latestVersion) { return false; }
 
 void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
-    std::string url = "https://api.github.com/repos/jellyfin/jellyfin/releases/latest";
-    HTTP::get_async(
-        [](const std::string& resp) {
-            nlohmann::json j = nlohmann::json::parse(resp);
-            brls::Logger::info("checkUpdate {}", j.at("name").get<std::string>());
-        },
-        [](...) {}, url, HTTP::Timeout{1000});
+    brls::async([]() {
+        std::string url = "https://api.github.com/repos/jellyfin/jellyfin/releases/latest";
+        std::string resp = HTTP::get(url, HTTP::Timeout{1000});
+        nlohmann::json j = nlohmann::json::parse(resp);
+        brls::Logger::info("checkUpdate {}", j.at("name").get<std::string>());
+    });
 }

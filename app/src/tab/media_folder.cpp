@@ -75,6 +75,8 @@ MediaFolders::MediaFolders() {
 
 MediaFolders::~MediaFolders() { brls::Logger::debug("MediaFolders: deleted"); }
 
+brls::View* MediaFolders::getDefaultFocus() { return this->recyclerFolders; }
+
 brls::View* MediaFolders::create() { return new MediaFolders(); }
 
 AutoTabFrame* MediaFolders::getTabFrame() {
@@ -92,14 +94,11 @@ void MediaFolders::doRequest() {
     jellyfin::getJSON(
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaItem>& r) {
             ASYNC_RELEASE
-
             this->recyclerFolders->setDataSource(new MediaFolderDataSource(r.Items));
-
-            if (this->getTabFrame()->getActiveTab() == this) brls::Application::giveFocus(this->recyclerFolders);
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             this->recyclerFolders->setError(ex);
         },
-        jellyfin::apiUserViews, AppConfig::instance().getUserId());
+        jellyfin::apiUserViews, AppConfig::instance().getUser().id);
 }

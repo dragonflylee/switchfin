@@ -16,7 +16,7 @@ public:
     template <typename... Args>
     static void load(brls::Image* view, const fmt::string_view fmt, Args&&... args) {
         std::string path = fmt::format(fmt::runtime(fmt), std::forward<Args>(args)...);
-        return with(view, AppConfig::instance().getServerUrl() + path);
+        return with(view, AppConfig::instance().getUrl() + path);
     }
 
     /// @brief 设置要加载内容的图片组件。此函数需要工作在主线程。

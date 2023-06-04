@@ -5,11 +5,11 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <unordered_map>
 #include <memory>
 #include <atomic>
 #include <curl/curl.h>
-#include <borealis/core/thread.hpp>
 
 class HTTP {
 public:
@@ -53,19 +53,6 @@ public:
         return s.get(url);
     }
 
-    template <typename Then, typename Error, typename... Ts>
-    static void get_async(Then then, Error error, Ts... ts) {
-        brls::async(std::bind(
-            [](Then then_inner, Error error_inner, Ts... ts_inner) {
-                try {
-                    then_inner(HTTP::get(std::move(ts_inner)...));
-                } catch (const std::exception& ex) {
-                    error_inner(ex.what());
-                }
-            },
-            std::move(then), std::move(error), std::move(ts)...));
-    }
-
     // Post methods
     template <typename... Ts>
     static std::string post(const std::string& url, const std::string& data, Ts&&... ts) {
@@ -80,20 +67,7 @@ public:
         set_option(s, std::forward<Ts>(ts)...);
         return s.post(url, s.encode_form(form));
     }
-
-    template <typename Then, typename Error, typename... Ts>
-    static void post_async(Then then, Error error, Ts... ts) {
-        brls::async(std::bind(
-            [](Then then_inner, Error error_inner, Ts... ts_inner) {
-                try {
-                    then_inner(HTTP::post(std::move(ts_inner)...));
-                } catch (const std::exception& ex) {
-                    error_inner(ex.what());
-                }
-            },
-            std::move(then), std::move(error), std::move(ts)...));
-    }
-
+    
 private:
     static size_t easy_write_cb(char* ptr, size_t size, size_t nmemb, void* userdata);
     static int easy_progress_cb(

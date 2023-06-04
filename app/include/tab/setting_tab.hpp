@@ -30,8 +30,7 @@ private:
     BRLS_BIND(brls::BooleanCell, btnHWDEC, "setting/video/hwdec");
     BRLS_BIND(brls::SelectorCell, selectorCodec, "setting/video/codec");
     BRLS_BIND(brls::BooleanCell, btnFullscreen, "setting/fullscreen");
-    BRLS_BIND(brls::SelectorCell, selectorTexture, "setting/image/texture");
-    BRLS_BIND(brls::SelectorCell, selectorThreads, "setting/image/threads");
+    BRLS_BIND(brls::SelectorCell, selectorThreads, "setting/network/threads");
     BRLS_BIND(brls::SelectorCell, selectorKeymap, "setting/keymap");
     BRLS_BIND(brls::SelectorCell, selectorLang, "setting/language");
     BRLS_BIND(brls::SelectorCell, selectorTheme, "setting/ui/theme");

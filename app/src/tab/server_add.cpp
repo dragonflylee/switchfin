@@ -26,33 +26,33 @@ bool ServerAdd::onConnect() {
     this->btnConnect->setActionsAvailable(false);
     this->btnConnect->setTextColor(brls::Application::getTheme().getColor("font/grey"));
     std::string baseUrl = this->inputUrl->getValue();
-    brls::Logger::debug("ServerAdd onConnect: click");
+    brls::Logger::debug("ServerAdd onConnect: click {}", baseUrl);
 
     ASYNC_RETAIN
-    HTTP::get_async(
-        [ASYNC_TOKEN](const std::string& resp) {
+    brls::async([ASYNC_TOKEN, baseUrl]() {
+        try {
+            std::string resp = HTTP::get(baseUrl + jellyfin::apiPublicInfo, HTTP::Timeout{1000});
             jellyfin::PublicSystemInfo info = nlohmann::json::parse(resp);
-            brls::sync([ASYNC_TOKEN, info]() {
+            AppServer s = {
+                info.ServerName,
+                info.Id,
+                info.Version,
+                info.OperatingSystem,
+                {baseUrl},
+            };
+            brls::sync([ASYNC_TOKEN, s]() {
                 ASYNC_RELEASE
-                AppServer s = {
-                    info.ServerName,
-                    info.Id,
-                    info.Version,
-                    info.OperatingSystem,
-                    {this->inputUrl->getValue()},
-                };
                 AppConfig::instance().addServer(s);
                 this->present(new ServerLogin(s));
             });
-        },
-        [ASYNC_TOKEN](const std::string& ex) {
-            brls::sync([ex, ASYNC_TOKEN]() {
+        } catch (const std::exception& ex) {
+            brls::sync([ASYNC_TOKEN, &ex]() {
                 ASYNC_RELEASE
                 this->btnConnect->setActionsAvailable(true);
                 this->btnConnect->setTextColor(brls::Application::getTheme().getColor("brls/text"));
-                Dialog::show(ex);
+                Dialog::show(ex.what());
             });
-        },
-        baseUrl + jellyfin::apiPublicInfo, HTTP::Timeout{1000});
+        }
+    });
     return false;
 }

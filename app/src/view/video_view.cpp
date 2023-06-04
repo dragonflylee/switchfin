@@ -25,7 +25,7 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id), userData(&ite
     brls::Application::pushActivity(new brls::Activity(container), brls::TransitionAnimation::NONE);
 
     this->doPlaybackInfo();
-    this->videoTitleLabel->setText(item.Name);
+    this->videoTitleLabel->setText(item.Title());
 
     this->registerAction(
         "cancel", brls::ControllerButton::BUTTON_B,
@@ -147,7 +147,7 @@ void VideoView::doPlaybackInfo() {
     ASYNC_RETAIN
     jellyfin::postJSON(
         {
-            {"UserId", AppConfig::instance().getUserId()},
+            {"UserId", AppConfig::instance().getUser().id},
             {
                 "DeviceProfile",
                 {{"SubtitleProfiles",
@@ -164,7 +164,7 @@ void VideoView::doPlaybackInfo() {
             this->itemSource = std::move(r.MediaSources.front());
 
             auto& mpv = MPVCore::instance();
-            auto& svr = AppConfig::instance().getServerUrl();
+            auto& svr = AppConfig::instance().getUrl();
 
             std::stringstream ssextra;
             ssextra << "network-timeout=20";

@@ -6,15 +6,17 @@
   },
   "welcome": "Welcome to the Jellyfin.",
   "about": {
-    "description": "A hardware accelerated, controller and TV oriented video player for PC and Nintendo Switch (libnx)."
+    "header": "Introduction",
+    "brief": "Yet another third-party jellyfin client",
+    "repo_header": "Repository"
+  },
+  "player": {
+    "subtitle": "Subtitle",
+    "audio": "Audio track",
+    "common": "Common"
   },
   "setting": {
     "quit_hint": "You are about to exit the application. The settings will take effect after the next startup",
-    "about": {
-      "header": "Introduction",
-      "brief": "Yet another third-party jellyfin client",
-      "repo_header": "Repository"
-    },
     "playback": {
       "header": "Playback",
       "hwdec": "Hardware decode",

@@ -26,15 +26,15 @@
     </brls:Box>
 
     <brls:Header
-        title="@i18n/main/setting/about/header"
+        title="@i18n/main/about/header"
         marginBottom="20" />
     <brls:Label
         marginLeft="20"
         marginBottom="20"
-        text="@i18n/main/setting/about/brief" />
+        text="@i18n/main/about/brief" />
 
     <brls:Header
-        title="@i18n/main/setting/about/repo_header"
+        title="@i18n/main/about/repo_header"
         marginBottom="20" />
     <brls:Label
         textColor="#6693B6"

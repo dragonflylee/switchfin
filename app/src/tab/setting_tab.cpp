@@ -19,7 +19,7 @@
 #include "utils/dialog.hpp"
 #include "view/mpv_core.hpp"
 
-#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
+#ifndef __SWITCH__
 #include <borealis/platforms/desktop/desktop_platform.hpp>
 #endif
 
@@ -47,8 +47,8 @@ SettingTab::SettingTab() {
 
     auto& conf = AppConfig::instance();
 
-    btnServer->setDetailText(conf.getServerUrl());
-    btnUser->setDetailText(conf.getUsername());
+    btnServer->setDetailText(conf.getUrl());
+    btnUser->setDetailText(conf.getUser().name);
 
 /// Hardware decode
 #ifdef __SWITCH__
@@ -132,15 +132,8 @@ SettingTab::SettingTab() {
             Dialog::quitApp();
         });
 
-    selectorTexture->init("main/setting/image/texture"_i18n,
-        {"100", "200 (" + "hints/preset"_i18n + ")", "300", "400", "500"},
-        conf.getItem(AppConfig::TEXTURE_CACHE_NUM, 200) / 100 - 1, [](int selected) {
-            int num = 100 * (selected + 1);
-            AppConfig::instance().setItem(AppConfig::TEXTURE_CACHE_NUM, num);
-        });
-
     int threads = conf.getItem(AppConfig::REQUEST_THREADS, 1);
-    selectorThreads->init("main/setting/image/threads"_i18n, {"1", "2", "4", "8"}, log2(threads), [](int selected) {
+    selectorThreads->init("main/setting/network/threads"_i18n, {"1", "2", "4", "8"}, log2(threads), [](int selected) {
         AppConfig::instance().setItem(AppConfig::REQUEST_THREADS, 1 << selected);
     });
 

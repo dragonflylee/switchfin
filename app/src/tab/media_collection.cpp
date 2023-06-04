@@ -10,12 +10,12 @@
 
 using namespace brls::literals;  // for _i18n
 
-class CollectionDataSource : public RecyclingGridDataSource {
+class MediaDataSource : public RecyclingGridDataSource {
 public:
     using MediaList = std::vector<jellyfin::MediaItem>;
 
-    explicit CollectionDataSource(const MediaList& r) : list(std::move(r)) {
-        brls::Logger::debug("CollectionDataSource: create {}", r.size());
+    explicit MediaDataSource(const MediaList& r) : list(std::move(r)) {
+        brls::Logger::debug("MediaDataSource: create {}", r.size());
     }
 
     size_t getItemCount() override { return this->list.size(); }
@@ -77,6 +77,8 @@ MediaCollection::MediaCollection(const std::string& id) : itemId(id), startIndex
     this->doRequest();
 }
 
+brls::View* MediaCollection::getDefaultFocus() { return this->recyclerSeries; }
+
 void MediaCollection::doRequest() {
     std::string query = HTTP::encode_query({
         {"ParentId", this->itemId},
@@ -91,10 +93,10 @@ void MediaCollection::doRequest() {
             ASYNC_RELEASE
             this->startIndex = r.StartIndex + this->pageSize;
             if (r.StartIndex == 0) {
-                this->recyclerSeries->setDataSource(new CollectionDataSource(r.Items));
+                this->recyclerSeries->setDataSource(new MediaDataSource(r.Items));
                 brls::Application::giveFocus(this->recyclerSeries);
             } else {
-                auto dataSrc = dynamic_cast<CollectionDataSource*>(this->recyclerSeries->getDataSource());
+                auto dataSrc = dynamic_cast<MediaDataSource*>(this->recyclerSeries->getDataSource());
                 dataSrc->appendData(r.Items);
                 this->recyclerSeries->notifyDataChanged();
             }
@@ -103,5 +105,5 @@ void MediaCollection::doRequest() {
             ASYNC_RELEASE
             this->recyclerSeries->setError(ex);
         },
-        jellyfin::apiUserLibrary, AppConfig::instance().getUserId(), query);
+        jellyfin::apiUserLibrary, AppConfig::instance().getUser().id, query);
 }

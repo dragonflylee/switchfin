@@ -30,7 +30,6 @@
     <RecyclingGrid
         grow="1"
         wireframe="false"
-        itemHeight="200"
         marginLeft="20"
         spanCount="1"
         itemSpace="10"

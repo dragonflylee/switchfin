@@ -51,7 +51,7 @@
             <brls:Header
                 width="auto"
                 height="auto"
-                title="@i18n/main/setting/image/header"
+                title="@i18n/main/setting/network/header"
                 marginBottom="0px" />
             <brls:Box
                 width="100%"
@@ -59,9 +59,7 @@
                 axis="column"
                 marginBottom="30px">
                 <brls:SelectorCell
-                    id="setting/image/texture" />
-                <brls:SelectorCell
-                    id="setting/image/threads" />
+                    id="setting/network/threads" />
             </brls:Box>
 
             <brls:Header
@@ -83,7 +81,7 @@
                 <brls:SelectorCell
                     id="setting/language" />
                 <brls:DetailCell
-                    title="@i18n/main/setting/about/header"
+                    title="@i18n/main/about/header"
                     id="setting/about" />
             </brls:Box>
 

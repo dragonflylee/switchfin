@@ -19,12 +19,12 @@ public:
     BRLS_BIND(brls::Label, labelOverview, "episode/card/overview");
 };
 
-class SeasonDataSource : public RecyclingGridDataSource {
+class EpisodeDataSource : public RecyclingGridDataSource {
 public:
     using MediaList = std::vector<jellyfin::MediaEpisode>;
 
-    explicit SeasonDataSource(const std::string& id, const MediaList& r) : seriesId(id), list(std::move(r)) {
-        brls::Logger::debug("SeasonDataSource: create {}", r.size());
+    explicit EpisodeDataSource(const std::string& id, const MediaList& r) : seriesId(id), list(std::move(r)) {
+        brls::Logger::debug("EpisodeDataSource: create {}", r.size());
     }
 
     size_t getItemCount() override { return this->list.size(); }
@@ -42,7 +42,10 @@ public:
                 HTTP::encode_query({{"tag", item.SeriesPrimaryImageTag}, {"fillWidth", "300"}}));
         }
 
-        cell->labelName->setText(fmt::format("{}. {}", item.IndexNumber, item.Name));
+        if (item.IndexNumber > 0)
+            cell->labelName->setText(fmt::format("{}. {}", item.IndexNumber, item.Name));
+        else
+            cell->labelName->setText(item.Name);
         cell->labelOverview->setText(item.Overview);
 
         return cell;
@@ -88,26 +91,30 @@ MediaSeries::MediaSeries(const jellyfin::MediaItem& item) : seriesId(item.Id) {
 
 void MediaSeries::doSeasons() {
     std::string query = HTTP::encode_query({
-        {"userId", AppConfig::instance().getUserId()},
+        {"userId", AppConfig::instance().getUser().id},
         {"Fields", "ItemCounts,PrimaryImageAspectRatio"},
     });
 
     ASYNC_RETAIN
     jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaItem>& r) {
+        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaSeason>& r) {
             ASYNC_RELEASE
-            if (r.Items.size() > 0) {
-                this->seasonIds.clear();
-                std::vector<std::string> seasons;
-                for (auto& it : r.Items) {
-                    seasons.push_back(it.Name);
-                    this->seasonIds.push_back(it.Id);
-                }
-                this->selectorSeason->init(
-                    "", seasons, 0, [this](int index) { this->doEpisodes(this->seasonIds[index]); });
-                this->selectorSeason->setSelection(0);
-                brls::Application::giveFocus(this->selectorSeason);
+
+            size_t selected = 0;
+            this->seasonIds.clear();
+
+            std::vector<std::string> seasons;
+            for (size_t i = 0; i < r.Items.size(); i++) {
+                auto& it = r.Items.at(i);
+                seasons.push_back(it.Name);
+                this->seasonIds.push_back(it.Id);
+                if (it.IndexNumber == 1) selected = i;
             }
+            this->selectorSeason->setData(seasons);
+            this->selectorSeason->getEvent()->subscribe(
+                [this](int index) { this->doEpisodes(this->seasonIds[index]); });
+            this->selectorSeason->setSelection(selected);
+            brls::Application::giveFocus(this->selectorSeason);
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
@@ -118,7 +125,7 @@ void MediaSeries::doSeasons() {
 
 void MediaSeries::doEpisodes(const std::string& seasonId) {
     std::string query = HTTP::encode_query({
-        {"userId", AppConfig::instance().getUserId()},
+        {"userId", AppConfig::instance().getUser().id},
         {"seasonId", seasonId},
         {"Fields", "ItemCounts,PrimaryImageAspectRatio,Overview"},
     });
@@ -127,7 +134,7 @@ void MediaSeries::doEpisodes(const std::string& seasonId) {
     jellyfin::getJSON(
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
             ASYNC_RELEASE
-            this->recyclerEpisodes->setDataSource(new SeasonDataSource(this->seriesId, r.Items));
+            this->recyclerEpisodes->setDataSource(new EpisodeDataSource(this->seriesId, r.Items));
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
