@@ -6,6 +6,7 @@
 #include <borealis.hpp>
 
 #include "utils/config.hpp"
+#include "utils/thread.hpp"
 
 #include "view/svg_image.hpp"
 #include "view/auto_tab_frame.hpp"
@@ -80,6 +81,7 @@ int main(int argc, char* argv[]) {
     while (brls::Application::mainLoop())
         ;
 
+    ThreadPool::instance().stop();
     // Exit
     return EXIT_SUCCESS;
 }

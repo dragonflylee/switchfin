@@ -46,9 +46,12 @@ bool AppVersion::needUpdate(std::string latestVersion) { return false; }
 
 void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
     brls::async([]() {
-        std::string url = "https://api.github.com/repos/jellyfin/jellyfin/releases/latest";
-        std::string resp = HTTP::get(url, HTTP::Timeout{1000});
-        nlohmann::json j = nlohmann::json::parse(resp);
-        brls::Logger::info("checkUpdate {}", j.at("name").get<std::string>());
+        try {
+            std::string url = "https://api.github.com/repos/jellyfin/jellyfin/releases/latest";
+            std::string resp = HTTP::get(url, HTTP::Timeout{1000});
+            nlohmann::json j = nlohmann::json::parse(resp);
+            brls::Logger::info("checkUpdate {}", j.at("name").get<std::string>());
+        } catch (const std::exception& ex) {
+        }
     });
 }

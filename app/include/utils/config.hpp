@@ -48,6 +48,7 @@ public:
         PLAYER_HWDEC_CUSTOM,
         TEXTURE_CACHE_NUM,
         REQUEST_THREADS,
+        REQUEST_TIMEOUT,
     };
 
     AppConfig();
@@ -78,7 +79,6 @@ public:
     struct Option {
         std::string key;
         std::vector<std::string> options;
-        size_t selected;
     };
 
     int getOptionIndex(const Item item) const;
@@ -102,5 +102,5 @@ private:
     std::string device;
     std::vector<AppUser> users;
     std::vector<AppServer> servers;
-    nlohmann::json setting;
+    nlohmann::json setting = {};
 };

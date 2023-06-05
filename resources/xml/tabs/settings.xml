@@ -58,8 +58,10 @@
                 height="auto"
                 axis="column"
                 marginBottom="30px">
-                <brls:SelectorCell
+                <brls:InputNumericCell
                     id="setting/network/threads" />
+                <brls:InputNumericCell
+                    id="setting/network/timeout" />
             </brls:Box>
 
             <brls:Header

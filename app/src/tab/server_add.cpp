@@ -31,7 +31,7 @@ bool ServerAdd::onConnect() {
     ASYNC_RETAIN
     brls::async([ASYNC_TOKEN, baseUrl]() {
         try {
-            std::string resp = HTTP::get(baseUrl + jellyfin::apiPublicInfo, HTTP::Timeout{1000});
+            std::string resp = HTTP::get(baseUrl + jellyfin::apiPublicInfo, HTTP::Timeout{});
             jellyfin::PublicSystemInfo info = nlohmann::json::parse(resp);
             AppServer s = {
                 info.ServerName,

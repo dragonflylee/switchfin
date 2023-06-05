@@ -17,6 +17,7 @@
 #include "tab/setting_tab.hpp"
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
+#include "utils/thread.hpp"
 #include "view/mpv_core.hpp"
 
 #ifndef __SWITCH__
@@ -132,10 +133,17 @@ SettingTab::SettingTab() {
             Dialog::quitApp();
         });
 
-    int threads = conf.getItem(AppConfig::REQUEST_THREADS, 1);
-    selectorThreads->init("main/setting/network/threads"_i18n, {"1", "2", "4", "8"}, log2(threads), [](int selected) {
-        AppConfig::instance().setItem(AppConfig::REQUEST_THREADS, 1 << selected);
-    });
+    intputThreads->init(
+        "main/setting/network/threads"_i18n, ThreadPool::instance().size(),
+        [](long threads) {
+            ThreadPool::instance().start(threads);
+            AppConfig::instance().setItem(AppConfig::REQUEST_THREADS, threads);
+        },
+        "", 1);
+
+    inputTimeout->init(
+        "main/setting/network/timeout"_i18n, conf.getItem(AppConfig::REQUEST_TIMEOUT, 1000L),
+        [](long value) { AppConfig::instance().setItem(AppConfig::REQUEST_TIMEOUT, value); }, "", 5);
 
     btnAbout->setDetailText(">");
     btnAbout->registerClickAction([](...) {

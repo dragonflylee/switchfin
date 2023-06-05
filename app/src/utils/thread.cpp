@@ -6,19 +6,22 @@
 constexpr std::chrono::milliseconds max_idle_time{60000};
 
 #ifdef __SWITCH__
-const size_t max_thread_num = 4;
+size_t ThreadPool::max_thread_num = 4;
 #else
-const size_t max_thread_num = std::thread::hardware_concurrency();
+size_t ThreadPool::max_thread_num = std::thread::hardware_concurrency();
 #endif
 
-ThreadPool::ThreadPool() { this->start(AppConfig::instance().getItem(AppConfig::REQUEST_THREADS, max_thread_num)); }
+ThreadPool::ThreadPool() {
+    size_t num = AppConfig::instance().getItem(AppConfig::REQUEST_THREADS, max_thread_num);
+    this->start(num < max_thread_num ? num : max_thread_num);
+}
 
-ThreadPool::~ThreadPool() { this->stop(); }
+ThreadPool::~ThreadPool() {}
 
 void ThreadPool::start(size_t num) {
     brls::Logger::info("ThreadPool start {}", num);
 
-    for (size_t i = 0; i < num; ++i) {
+    while (this->threads.size() < num) {
 #ifdef BOREALIS_USE_STD_THREAD
         Thread th = std::make_shared<std::thread>(std::bind(task_loop, this));
 #else

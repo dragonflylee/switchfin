@@ -26,10 +26,14 @@ public:
     }
 
     /// @brief 创建线程
-    void start(size_t num = 4);
+    void start(size_t num);
+
+    size_t size() const { return this->threads.size(); }
 
     /// @brief 停止所有线程
     void stop();
+
+    static size_t max_thread_num;
 
 private:
     static void* task_loop(void*);

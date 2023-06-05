@@ -560,7 +560,8 @@ void MPVCore::eventMainLoop() {
         case MPV_EVENT_PROPERTY_CHANGE: {
             /// https://mpv.io/manual/stable/#property-list
             mpv_event_property *prop = (mpv_event_property *)event->data;
-            if (strcmp(prop->name, "pause") == 0 && prop->format == MPV_FORMAT_FLAG) {
+            if (prop->format == MPV_FORMAT_NONE) break;
+            if (strcmp(prop->name, "pause") == 0) {
                 if (!!*(int *)prop->data) {
                     brls::Logger::info("MPVCore => PAUSE");
                     mpvCoreEvent.fire(MpvEventEnum::MPV_PAUSE);
@@ -570,7 +571,7 @@ void MPVCore::eventMainLoop() {
                     mpvCoreEvent.fire(MpvEventEnum::MPV_RESUME);
                     disableDimming(true);
                 }
-            } else if (strcmp(prop->name, "core-idle") == 0 && prop->format == MPV_FORMAT_FLAG) {
+            } else if (strcmp(prop->name, "core-idle") == 0) {
                 if (!!*(int *)prop->data) {
                     if (duration > 0 && (double)duration - playback_time < 1) {
                         brls::Logger::info("MPVCore => END_OF_FILE");
@@ -584,33 +585,32 @@ void MPVCore::eventMainLoop() {
                     mpvCoreEvent.fire(MpvEventEnum::LOADING_END);
                     disableDimming(true);
                 }
-            } else if (strcmp(prop->name, "cache-speed") == 0 && prop->format == MPV_FORMAT_INT64) {
+            } else if (strcmp(prop->name, "cache-speed") == 0) {
                 this->cache_speed = *(int64_t *)prop->data;
                 mpvCoreEvent.fire(MpvEventEnum::CACHE_SPEED_CHANGE);
-            } else if (strcmp(prop->name, "playback-time") == 0 && prop->format == MPV_FORMAT_DOUBLE) {
+            } else if (strcmp(prop->name, "playback-time") == 0) {
                 this->playback_time = *(double *)prop->data;
-            } else if (strcmp(prop->name, "duration") == 0 && prop->format == MPV_FORMAT_INT64) {
+            } else if (strcmp(prop->name, "duration") == 0) {
                 // 视频总时长更新
                 duration = *(int64_t *)prop->data;
                 if (duration >= 0) {
                     brls::Logger::debug("MPVCore => duration: {}", duration);
                     mpvCoreEvent.fire(MpvEventEnum::UPDATE_DURATION);
                 }
-            } else if (strcmp(prop->name, "percent-pos") == 0 && prop->format == MPV_FORMAT_DOUBLE) {
+            } else if (strcmp(prop->name, "percent-pos") == 0) {
                 // 视频进度更新（百分比）
                 double pos = *(double *)prop->data;
                 if (abs(pos - this->percent_pos) > 0.5) mpvCoreEvent.fire(MpvEventEnum::UPDATE_PROGRESS);
                 this->percent_pos = pos;
-            } else if (strcmp(prop->name, "speed") == 0 && prop->format == MPV_FORMAT_DOUBLE) {
+            } else if (strcmp(prop->name, "speed") == 0) {
                 // 倍速信息
                 this->video_speed = *(double *)prop->data;
                 mpvCoreEvent.fire(VIDEO_SPEED_CHANGE);
-            } else if (strcmp(prop->name, "demuxer-cache-time") == 0 && prop->format == MPV_FORMAT_DOUBLE) {
+            } else if (strcmp(prop->name, "demuxer-cache-time") == 0) {
                 brls::Logger::verbose("MPVCore => demuxer-cache-time: {}", *(double *)prop->data);
-            } else if (prop->format != MPV_FORMAT_NONE) {
+            } else {
                 brls::Logger::debug("MPVCore => PROPERTY_CHANGE `{}` {}", prop->name, int(prop->format));
             }
-
             break;
         }
         default:

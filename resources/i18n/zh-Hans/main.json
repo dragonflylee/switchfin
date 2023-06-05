@@ -42,7 +42,8 @@
     },
     "network": {
       "header": "网络设置",
-      "threads": "图片加载线程数"
+      "threads": "图片加载线程数",
+      "timeout": "请求超时时间 (毫秒)"
     },
     "others": {
       "header": "其他",

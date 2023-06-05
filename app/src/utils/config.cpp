@@ -27,6 +27,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {PLAYER_HWDEC_CUSTOM, {"player_hwdec_custom"}},
     {TEXTURE_CACHE_NUM, {"texture_cache_num"}},
     {REQUEST_THREADS, {"request_threads"}},
+    {REQUEST_TIMEOUT, {"request_timeout"}},
 };
 
 AppConfig::AppConfig() = default;
@@ -172,7 +173,7 @@ int AppConfig::getOptionIndex(const Item item) const {
             brls::Logger::error("Damaged config found: {}/{}", it->second.key, e.what());
         }
     }
-    return it->second.selected;
+    return 0;
 }
 
 bool AppConfig::addServer(const AppServer& s) {
