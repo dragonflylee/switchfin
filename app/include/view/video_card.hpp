@@ -2,6 +2,7 @@
 
 #include <borealis.hpp>
 #include "view/recycling_grid.hpp"
+#include "api/jellyfin/media.hpp"
 #include "utils/image.hpp"
 
 class BaseVideoCard : public RecyclingGridItem {
@@ -22,6 +23,6 @@ public:
     static VideoCardCell* create() { return new VideoCardCell(); }
 
     BRLS_BIND(brls::Label, labelTitle, "video/card/label/title");
-    BRLS_BIND(brls::Label, labelYear, "video/card/label/year");
-    BRLS_BIND(brls::Label, labelDuration, "video/card/label/duration");
+    BRLS_BIND(brls::Label, labelExt, "video/card/label/ext");
+    BRLS_BIND(brls::Label, labelRating, "video/card/label/rating");
 };

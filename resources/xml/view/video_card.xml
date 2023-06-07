@@ -40,7 +40,7 @@
                 scalingType="fit"
                 height="16" />
             <brls:Label
-                id="video/card/label/duration"
+                id="video/card/label/rating"
                 positionType="absolute"
                 positionRight="0"
                 textColor="#FFFFFF"
@@ -50,18 +50,18 @@
     </brls:Box>
 
     <brls:Box
-        marginTop="10"
         axis="column"
         alignItems="center">
         <brls:Label
             wireframe="false"
+            marginTop="5"
             id="video/card/label/title"
-            fontSize="20" />
+            fontSize="18" />
         <brls:Label
             wireframe="false"
-            id="video/card/label/year"
-            fontSize="15"
-            marginTop="10"
+            id="video/card/label/ext"
+            fontSize="13"
+            marginTop="5"
             textColor="@theme/font/grey" />
     </brls:Box>
 

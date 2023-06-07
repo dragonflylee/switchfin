@@ -45,9 +45,11 @@ public:
 
     View* getNextFocus(brls::FocusDirection direction, View* currentView) override { return this; }
 
+    void setTitie(const std::string& title);
+
 private:
     /// OSD
-    BRLS_BIND(brls::Label, videoTitleLabel, "video/osd/title");
+    BRLS_BIND(brls::Label, titleLabel, "video/osd/title");
     BRLS_BIND(brls::ProgressSpinner, osdSpinner, "video/osd/loading");
     BRLS_BIND(VideoProgressSlider, osdSlider, "video/osd/bottom/progress");
     BRLS_BIND(brls::Box, btnSetting, "video/osd/setting");

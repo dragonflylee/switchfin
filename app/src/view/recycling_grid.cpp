@@ -9,9 +9,10 @@
 
 RecyclingGridItem::RecyclingGridItem() {
     this->setFocusable(true);
-    this->registerClickAction([this](View* view) {
-        auto* recycler = dynamic_cast<RecyclingGrid*>(getParent()->getParent());
-        if (recycler) recycler->getDataSource()->onItemSelected(recycler, index);
+    this->registerClickAction([this](...) {
+        brls::View* view = getParent()->getParent();
+        RecyclingView* recycler = dynamic_cast<RecyclingView*>(view);
+        if (recycler) recycler->getDataSource()->onItemSelected(view, index);
         return true;
     });
     this->addGestureRecognizer(new brls::TapGestureRecognizer(this));
@@ -50,9 +51,11 @@ void SkeletonCell::draw(
 class DataSourceSkeleton : public RecyclingGridDataSource {
 public:
     DataSourceSkeleton(unsigned int n) : num(n) {}
-    RecyclingGridItem* cellForRow(RecyclingGrid* recycler, size_t index) {
-        SkeletonCell* item = (SkeletonCell*)recycler->dequeueReusableCell("Skeleton");
-        item->setHeight(recycler->estimatedRowHeight);
+
+    RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) {
+        SkeletonCell* item = dynamic_cast<SkeletonCell*>(recycler->dequeueReusableCell("Skeleton"));
+        RecyclingGrid* view = dynamic_cast<RecyclingGrid*>(recycler);
+        if (view) item->setHeight(view->estimatedRowHeight);
         return item;
     }
 
@@ -63,6 +66,42 @@ public:
 private:
     unsigned int num;
 };
+
+/// RecyclingView
+
+void RecyclingView::registerCell(std::string identifier, std::function<RecyclingGridItem*()> allocation) {
+    queueMap.insert(std::make_pair(identifier, new std::vector<RecyclingGridItem*>()));
+    allocationMap.insert(std::make_pair(identifier, allocation));
+}
+
+RecyclingGridItem* RecyclingView::dequeueReusableCell(std::string identifier) {
+    brls::Logger::verbose("RecyclingView::dequeueReusableCell: {}", identifier);
+    RecyclingGridItem* cell = nullptr;
+    auto it = queueMap.find(identifier);
+
+    if (it != queueMap.end()) {
+        std::vector<RecyclingGridItem*>* vector = it->second;
+        if (!vector->empty()) {
+            cell = vector->back();
+            vector->pop_back();
+        } else {
+            cell = allocationMap.at(identifier)();
+            cell->reuseIdentifier = identifier;
+            cell->detach();
+        }
+    }
+
+    if (cell) cell->prepareForReuse();
+
+    return cell;
+}
+
+void RecyclingView::queueReusableCell(RecyclingGridItem* cell) {
+    queueMap.at(cell->reuseIdentifier)->push_back(cell);
+    cell->cacheForReuse();
+}
+
+RecyclingGridDataSource* RecyclingView::getDataSource() const { return this->dataSource; }
 
 /// RecyclingGrid
 
@@ -119,7 +158,7 @@ RecyclingGrid::RecyclingGrid() {
 }
 
 RecyclingGrid::~RecyclingGrid() {
-    brls::Logger::debug("View RecyclingGridActivity: delete");
+    brls::Logger::debug("View RecyclingGrid: delete");
     if (this->hintImage) this->hintImage->freeView();
     this->hintImage = nullptr;
     if (this->hintLabel) this->hintLabel->freeView();
@@ -141,7 +180,7 @@ void RecyclingGrid::draw(
     NVGcontext* vg, float x, float y, float width, float height, brls::Style style, brls::FrameContext* ctx) {
     // 触摸或鼠标滑动时会导致屏幕元素位置变更
     // 简单地在draw函数中调用itemsRecyclingLoop 实现动态的增删元素
-    // todo：只在滑动过程中调用 itemsRecyclingLoop 以节省静止时的计算消耗
+    // todo: 只在滑动过程中调用 itemsRecyclingLoop 以节省静止时的计算消耗
     itemsRecyclingLoop();
 
     ScrollingFrame::draw(vg, x, y, width, height, style, ctx);
@@ -155,11 +194,6 @@ void RecyclingGrid::draw(
         this->hintLabel->setAlpha(this->getAlpha());
         this->hintLabel->draw(vg, x + (width - w2) / 2, y + (height + h1) / 2, w2, h2, style, ctx);
     }
-}
-
-void RecyclingGrid::registerCell(std::string identifier, std::function<RecyclingGridItem*()> allocation) {
-    queueMap.insert(std::make_pair(identifier, new std::vector<RecyclingGridItem*>()));
-    allocationMap.insert(std::make_pair(identifier, allocation));
 }
 
 void RecyclingGrid::addCellAt(size_t index, int downSide) {
@@ -226,7 +260,7 @@ void RecyclingGrid::addCellAt(size_t index, int downSide) {
     if (isFlowMode)
         contentBox->setHeight(getHeightByCellIndex(this->dataSource->getItemCount()) + paddingTop + paddingBottom);
 
-    brls::Logger::verbose("Cell #{} - added", index);
+    brls::Logger::verbose("RecyclingGrid Cell #{} - added", index);
 }
 
 void RecyclingGrid::setDataSource(RecyclingGridDataSource* source) {
@@ -313,10 +347,6 @@ RecyclingGridItem* RecyclingGrid::getGridItemByIndex(size_t index) {
     }
     // 当前索引数据没有绑定列表项
     return nullptr;
-}
-
-std::vector<RecyclingGridItem*>& RecyclingGrid::getGridItems() {
-    return (std::vector<RecyclingGridItem*>&)contentBox->getChildren();
 }
 
 void RecyclingGrid::clearData() {
@@ -444,8 +474,6 @@ void RecyclingGrid::itemsRecyclingLoop() {
         }
     }
 }
-
-RecyclingGridDataSource* RecyclingGrid::getDataSource() const { return this->dataSource; }
 
 void RecyclingGrid::showSkeleton(unsigned int num) { this->setDataSource(new DataSourceSkeleton(num)); }
 
@@ -594,11 +622,6 @@ bool RecyclingGrid::checkWidth() {
     return false;
 }
 
-void RecyclingGrid::queueReusableCell(RecyclingGridItem* cell) {
-    queueMap.at(cell->reuseIdentifier)->push_back(cell);
-    cell->cacheForReuse();
-}
-
 void RecyclingGrid::setPadding(float padding) { this->setPadding(padding, padding, padding, padding); }
 
 void RecyclingGrid::setPadding(float top, float right, float bottom, float left) {
@@ -631,29 +654,6 @@ void RecyclingGrid::setPaddingLeft(float left) {
 }
 
 brls::View* RecyclingGrid::create() { return new RecyclingGrid(); }
-
-RecyclingGridItem* RecyclingGrid::dequeueReusableCell(std::string identifier) {
-    brls::Logger::verbose("RecyclingGrid::dequeueReusableCell: {}", identifier);
-    RecyclingGridItem* cell = nullptr;
-    auto it = queueMap.find(identifier);
-
-    if (it != queueMap.end()) {
-        std::vector<RecyclingGridItem*>* vector = it->second;
-        if (!vector->empty()) {
-            cell = vector->back();
-            vector->pop_back();
-        } else {
-            cell = allocationMap.at(identifier)();
-            cell->reuseIdentifier = identifier;
-            cell->detach();
-        }
-    }
-
-    cell->setHeight(brls::View::AUTO);
-    if (cell) cell->prepareForReuse();
-
-    return cell;
-}
 
 /// RecyclingGridContentBox
 

@@ -40,7 +40,7 @@ public:
 
     size_t getItemCount() override { return this->list.size(); }
 
-    RecyclingGridItem* cellForRow(RecyclingGrid* recycler, size_t index) override {
+    RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         ServerCell* cell = dynamic_cast<ServerCell*>(recycler->dequeueReusableCell("Cell"));
         auto& s = this->list[index];
         cell->labelName->setText(s.name);
@@ -51,7 +51,7 @@ public:
 
     void setEvent(const Event& ev) { this->onSelect = ev; }
 
-    void onItemSelected(RecyclingGrid* recycler, size_t index) override { this->onSelect(this->list[index]); }
+    void onItemSelected(brls::View* recycler, size_t index) override { this->onSelect(this->list[index]); }
 
     void clearData() override { this->list.clear(); }
 

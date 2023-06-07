@@ -11,6 +11,7 @@
 #include "view/svg_image.hpp"
 #include "view/auto_tab_frame.hpp"
 #include "view/recycling_grid.hpp"
+#include "view/h_recycling.hpp"
 #include "view/video_progress_slider.hpp"
 
 #include "activity/main_activity.hpp"
@@ -27,10 +28,12 @@ int main(int argc, char* argv[]) {
 #ifdef __SWITCH__
     appletInitializeGamePlayRecording();
 #endif
-
-    // Set log level
     // We recommend to use INFO for real apps
-    brls::Logger::setLogLevel(brls::LogLevel::LOG_DEBUG);
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "-v") == 0) {
+            brls::Logger::setLogLevel(brls::LogLevel::LOG_DEBUG);
+        }
+    }
 
     // Load cookies and settings
     AppConfig::instance().init();
@@ -50,6 +53,7 @@ int main(int argc, char* argv[]) {
     brls::Application::registerXMLView("SVGImage", SVGImage::create);
     brls::Application::registerXMLView("AutoTabFrame", AutoTabFrame::create);
     brls::Application::registerXMLView("RecyclingGrid", RecyclingGrid::create);
+    brls::Application::registerXMLView("HRecyclerFrame", HRecyclerFrame::create);
     brls::Application::registerXMLView("VideoProgressSlider", VideoProgressSlider::create);
     brls::Application::registerXMLView("HomeTab", HomeTab::create);
     brls::Application::registerXMLView("MediaFolders", MediaFolders::create);
@@ -82,6 +86,8 @@ int main(int argc, char* argv[]) {
         ;
 
     ThreadPool::instance().stop();
+
+    AppConfig::instance().checkRestart(argv);
     // Exit
     return EXIT_SUCCESS;
 }

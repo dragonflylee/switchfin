@@ -4,7 +4,11 @@
     "home": "首页",
     "setting": "设置"
   },
-  "welcome": "欢迎使用 Jellyfin",
+  "home": {
+    "resume": "继续观看",
+    "nextup": "接下来",
+    "latest": "最近新增"
+  },
   "about": {
     "header": "关于软件",
     "brief": "专为手柄控制设计的第三方跨平台Jellyfin客户端\n满足日常使用, 目前可以运行在PC全平台和 Nintendo Switch 上",

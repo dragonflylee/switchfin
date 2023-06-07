@@ -8,7 +8,7 @@
 
 VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id), userData(&item.UserData) {
     this->inflateFromXMLRes("xml/view/video_view.xml");
-    brls::Logger::debug("VideoView: create {}", item.Id);
+    brls::Logger::debug("VideoView: create {} type {}", item.Id, item.Type);
     this->setHideHighlightBackground(true);
     this->setHideClickAnimation(true);
 
@@ -25,7 +25,6 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id), userData(&ite
     brls::Application::pushActivity(new brls::Activity(container), brls::TransitionAnimation::NONE);
 
     this->doPlaybackInfo();
-    this->videoTitleLabel->setText(item.Title());
 
     this->registerAction(
         "cancel", brls::ControllerButton::BUTTON_B,
@@ -80,6 +79,8 @@ VideoView::~VideoView() {
     this->userData->PlayedPercentage = MPVCore::instance().percent_pos;
     this->reportStop();
 }
+
+void VideoView::setTitie(const std::string& title) { this->titleLabel->setText(title); }
 
 bool VideoView::showSetting() {
     brls::View* setting = new PlayerSetting(this->itemSource);
@@ -233,6 +234,7 @@ void VideoView::registerMpvEvent() {
         switch (event) {
         case MpvEventEnum::MPV_RESUME:
             this->showOSD(true);
+            this->hideLoading();
             this->reportPlay();
             break;
         case MpvEventEnum::MPV_PAUSE:

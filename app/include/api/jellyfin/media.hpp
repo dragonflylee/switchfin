@@ -51,19 +51,10 @@ struct MediaItem {
     bool IsFolder = false;
     long ProductionYear = 0;
     float CommunityRating = 0.0f;
-    int IndexNumber = 0;
-    int ParentIndexNumber = 0;
     UserDataResult UserData;
-
-    const std::string Title() {
-        if (this->Type == mediaTypeEpisode)
-            return fmt::format("S{}E{} {}", this->ParentIndexNumber, this->IndexNumber, this->Name);
-        if (this->ProductionYear > 0) return fmt::format("{} ({})", this->Name, this->ProductionYear);
-        return this->Name;
-    }
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaItem, Id, Name, Type, ImageTags, IsFolder, UserData,
-    ProductionYear, CommunityRating, IndexNumber, ParentIndexNumber);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
+    MediaItem, Id, Name, Type, ImageTags, IsFolder, ProductionYear, CommunityRating, UserData);
 
 struct MediaSeason : public MediaItem {
     long IndexNumber = 0;
@@ -102,13 +93,15 @@ struct PlaybackResult {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlaybackResult, MediaSources, PlaySessionId);
 
 struct MediaEpisode : public MediaSeason {
+    int ParentIndexNumber = 0;
     std::string Overview;
+    std::string SeriesId;
     std::string SeriesName;
     std::string SeriesPrimaryImageTag;
     std::vector<MediaSource> MediaSources;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaEpisode, Id, Name, Type, ImageTags, IsFolder, Overview,
-    IndexNumber, ParentIndexNumber, MediaSources, UserData, SeriesName, SeriesPrimaryImageTag);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaEpisode, Id, Name, Type, ImageTags, IsFolder, ProductionYear,
+    UserData, IndexNumber, ParentIndexNumber, Overview, SeriesId, SeriesName, SeriesPrimaryImageTag, MediaSources);
 
 template <typename T>
 struct MediaQueryResult {

@@ -561,28 +561,21 @@ void MPVCore::eventMainLoop() {
             /// https://mpv.io/manual/stable/#property-list
             mpv_event_property *prop = (mpv_event_property *)event->data;
             if (prop->format == MPV_FORMAT_NONE) break;
-            if (strcmp(prop->name, "pause") == 0) {
-                if (!!*(int *)prop->data) {
+            if (strcmp(prop->name, "core-idle") == 0) {
+                if (duration > 0 && (double)duration - playback_time < 1) {
+                    brls::Logger::info("MPVCore => END_OF_FILE");
+                    mpvCoreEvent.fire(MpvEventEnum::END_OF_FILE);
+                } else if (isPaused()) {
                     brls::Logger::info("MPVCore => PAUSE");
                     mpvCoreEvent.fire(MpvEventEnum::MPV_PAUSE);
+                    disableDimming(false);
+                } else if (!!*(int *)prop->data) {
+                    brls::Logger::info("MPVCore => LOADING");
+                    mpvCoreEvent.fire(MpvEventEnum::LOADING_START);
                     disableDimming(false);
                 } else {
                     brls::Logger::info("MPVCore => RESUME");
                     mpvCoreEvent.fire(MpvEventEnum::MPV_RESUME);
-                    disableDimming(true);
-                }
-            } else if (strcmp(prop->name, "core-idle") == 0) {
-                if (!!*(int *)prop->data) {
-                    if (duration > 0 && (double)duration - playback_time < 1) {
-                        brls::Logger::info("MPVCore => END_OF_FILE");
-                        mpvCoreEvent.fire(MpvEventEnum::END_OF_FILE);
-                    } else {
-                        brls::Logger::info("MPVCore => LOADING");
-                        mpvCoreEvent.fire(MpvEventEnum::LOADING_START);
-                    }
-                    disableDimming(false);
-                } else {
-                    mpvCoreEvent.fire(MpvEventEnum::LOADING_END);
                     disableDimming(true);
                 }
             } else if (strcmp(prop->name, "cache-speed") == 0) {

@@ -16,11 +16,40 @@
             paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
             paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
 
-            <brls:Label
+            <brls:Header
                 width="auto"
                 height="auto"
-                text="@i18n/main/welcome"
-                marginBottom="10px" />
+                title="@i18n/main/home/resume"
+                marginBottom="0px" />
+            <HRecyclerFrame
+                width="auto"
+                height="240"
+                itemWidth="350"
+                id="user/resume" />
+
+            <brls:Header
+                width="auto"
+                height="auto"
+                marginTop="15"
+                title="@i18n/main/home/nextup"
+                marginBottom="0px" />
+            <HRecyclerFrame
+                width="auto"
+                height="240"
+                itemWidth="350"
+                id="show/nextup" />
+
+            <brls:Header
+                width="auto"
+                height="auto"
+                marginTop="15"
+                title="@i18n/main/home/latest"
+                marginBottom="0px" />
+            <HRecyclerFrame
+                width="auto"
+                height="300"
+                itemWidth="180"
+                id="user/latest" />
 
         </brls:Box>
 

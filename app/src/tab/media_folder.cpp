@@ -38,7 +38,7 @@ public:
 
     size_t getItemCount() override { return this->list.size(); }
 
-    RecyclingGridItem* cellForRow(RecyclingGrid* recycler, size_t index) override {
+    RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         MediaFolderCell* cell = dynamic_cast<MediaFolderCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
 
@@ -47,7 +47,7 @@ public:
         return cell;
     }
 
-    void onItemSelected(RecyclingGrid* recycler, size_t index) override {
+    void onItemSelected(brls::View* recycler, size_t index) override {
         recycler->present(new MediaCollection(this->list[index].Id));
     }
 
@@ -94,7 +94,8 @@ void MediaFolders::doRequest() {
     jellyfin::getJSON(
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaItem>& r) {
             ASYNC_RELEASE
-            this->recyclerFolders->setDataSource(new MediaFolderDataSource(r.Items));
+            if (r.Items.empty()) this->recyclerFolders->setEmpty();
+            else this->recyclerFolders->setDataSource(new MediaFolderDataSource(r.Items));
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE

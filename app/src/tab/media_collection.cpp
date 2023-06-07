@@ -10,46 +10,44 @@
 
 using namespace brls::literals;  // for _i18n
 
-class MediaDataSource : public RecyclingGridDataSource {
+class SeriesDataSource : public RecyclingGridDataSource {
 public:
     using MediaList = std::vector<jellyfin::MediaItem>;
 
-    explicit MediaDataSource(const MediaList& r) : list(std::move(r)) {
-        brls::Logger::debug("MediaDataSource: create {}", r.size());
-    }
+    explicit SeriesDataSource(const MediaList& r) : list(std::move(r)) {}
 
     size_t getItemCount() override { return this->list.size(); }
 
-    RecyclingGridItem* cellForRow(RecyclingGrid* recycler, size_t index) override {
+    RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         VideoCardCell* cell = dynamic_cast<VideoCardCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
 
-        Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
-            HTTP::encode_query({
-                {"tag", item.ImageTags[jellyfin::imageTypePrimary]},
-                {"maxWidth", "200"},
-            }));
+        auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
+        if (it != item.ImageTags.end())
+            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
+                HTTP::encode_query({{"tag", it->second}, {"maxWidth", "200"}}));
 
         cell->labelTitle->setText(item.Name);
-        if (item.ProductionYear > 0) cell->labelYear->setText(std::to_string(item.ProductionYear));
-
-        if (item.CommunityRating > 0)
-            cell->labelDuration->setText(fmt::format("{:.1f}", item.CommunityRating));
-        else
-            cell->labelDuration->setText("");
+        cell->labelExt->setText(item.ProductionYear > 0 ? std::to_string(item.ProductionYear) : "");
+        cell->labelRating->setText(item.CommunityRating > 0 ? fmt::format("{:.1f}", item.CommunityRating) : "");
         return cell;
     }
 
-    void onItemSelected(RecyclingGrid* recycler, size_t index) override {
+    void onItemSelected(brls::View* recycler, size_t index) override {
         auto& item = this->list.at(index);
 
         if (item.Type == jellyfin::mediaTypeSeries) {
-            recycler->present(new MediaSeries(item));
+            brls::View* view = dynamic_cast<brls::View*>(recycler);
+            view->present(new MediaSeries(item));
         } else if (item.Type == jellyfin::mediaTypeFolder) {
-            recycler->present(new MediaCollection(item.Id));
-        } else if (item.Type == jellyfin::mediaTypeMovie) {
+            brls::View* view = dynamic_cast<brls::View*>(recycler);
+            view->present(new MediaCollection(item.Id));
+        } else if (item.Type == jellyfin::mediaTypeMovie || item.Type == jellyfin::mediaTypeEpisode) {
             VideoView* view = new VideoView(item);
+            view->setTitie(item.ProductionYear ? fmt::format("{} ({})", item.Name, item.ProductionYear) : item.Name);
             brls::sync([view]() { brls::Application::giveFocus(view); });
+        } else {
+            brls::Logger::debug("unsupport type {}", item.Type);
         }
     }
 
@@ -81,11 +79,11 @@ brls::View* MediaCollection::getDefaultFocus() { return this->recyclerSeries; }
 
 void MediaCollection::doRequest() {
     std::string query = HTTP::encode_query({
-        {"ParentId", this->itemId},
-        {"SortBy", "SortName"},
-        {"Fields", "PrimaryImageAspectRatio,BasicSyncInfo"},
-        {"Limit", std::to_string(this->pageSize)},
-        {"StartIndex", std::to_string(this->startIndex)},
+        {"parentId", this->itemId},
+        {"sortBy", "SortName"},
+        {"fields", "PrimaryImageAspectRatio,BasicSyncInfo"},
+        {"limit", std::to_string(this->pageSize)},
+        {"startIndex", std::to_string(this->startIndex)},
     });
     ASYNC_RETAIN
     jellyfin::getJSON(
@@ -93,10 +91,10 @@ void MediaCollection::doRequest() {
             ASYNC_RELEASE
             this->startIndex = r.StartIndex + this->pageSize;
             if (r.StartIndex == 0) {
-                this->recyclerSeries->setDataSource(new MediaDataSource(r.Items));
+                this->recyclerSeries->setDataSource(new SeriesDataSource(r.Items));
                 brls::Application::giveFocus(this->recyclerSeries);
             } else {
-                auto dataSrc = dynamic_cast<MediaDataSource*>(this->recyclerSeries->getDataSource());
+                auto dataSrc = dynamic_cast<SeriesDataSource*>(this->recyclerSeries->getDataSource());
                 dataSrc->appendData(r.Items);
                 this->recyclerSeries->notifyDataChanged();
             }

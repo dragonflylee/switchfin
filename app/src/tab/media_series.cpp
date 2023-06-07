@@ -23,13 +23,13 @@ class EpisodeDataSource : public RecyclingGridDataSource {
 public:
     using MediaList = std::vector<jellyfin::MediaEpisode>;
 
-    explicit EpisodeDataSource(const std::string& id, const MediaList& r) : seriesId(id), list(std::move(r)) {
+    explicit EpisodeDataSource(const MediaList& r) : list(std::move(r)) {
         brls::Logger::debug("EpisodeDataSource: create {}", r.size());
     }
 
     size_t getItemCount() override { return this->list.size(); }
 
-    RecyclingGridItem* cellForRow(RecyclingGrid* recycler, size_t index) override {
+    RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         EpisodeCardCell* cell = dynamic_cast<EpisodeCardCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
 
@@ -38,7 +38,7 @@ public:
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
                 HTTP::encode_query({{"tag", epimage->second}, {"fillWidth", "300"}}));
         } else {
-            Image::load(cell->picture, jellyfin::apiPrimaryImage, this->seriesId,
+            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId,
                 HTTP::encode_query({{"tag", item.SeriesPrimaryImageTag}, {"fillWidth", "300"}}));
         }
 
@@ -51,9 +51,10 @@ public:
         return cell;
     }
 
-    void onItemSelected(RecyclingGrid* recycler, size_t index) override {
+    void onItemSelected(brls::View* recycler, size_t index) override {
         auto& item = this->list.at(index);
         VideoView* view = new VideoView(item);
+        view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
         brls::sync([view]() { brls::Application::giveFocus(view); });
     }
 
@@ -62,7 +63,6 @@ public:
     void appendData(const MediaList& data) { this->list.insert(this->list.end(), data.begin(), data.end()); }
 
 private:
-    std::string seriesId;
     MediaList list;
 };
 
@@ -92,7 +92,7 @@ MediaSeries::MediaSeries(const jellyfin::MediaItem& item) : seriesId(item.Id) {
 void MediaSeries::doSeasons() {
     std::string query = HTTP::encode_query({
         {"userId", AppConfig::instance().getUser().id},
-        {"Fields", "ItemCounts,PrimaryImageAspectRatio"},
+        {"fields", "ItemCounts,PrimaryImageAspectRatio"},
     });
 
     ASYNC_RETAIN
@@ -127,14 +127,14 @@ void MediaSeries::doEpisodes(const std::string& seasonId) {
     std::string query = HTTP::encode_query({
         {"userId", AppConfig::instance().getUser().id},
         {"seasonId", seasonId},
-        {"Fields", "ItemCounts,PrimaryImageAspectRatio,Overview"},
+        {"fields", "ItemCounts,PrimaryImageAspectRatio,Overview"},
     });
 
     ASYNC_RETAIN
     jellyfin::getJSON(
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
             ASYNC_RELEASE
-            this->recyclerEpisodes->setDataSource(new EpisodeDataSource(this->seriesId, r.Items));
+            this->recyclerEpisodes->setDataSource(new EpisodeDataSource(r.Items));
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE

@@ -1,7 +1,7 @@
 package("mpv")
     if is_plat("windows", "mingw") then
-        set_urls("https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20230531/mpv-dev-x86_64-20230531-git-f794584.7z")
-        add_versions("20230531", "d102e531af71fdeb55f1dfa6a2f177a745347900e3e7bb553f07862d1dbeecc5")
+        set_urls("https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20230607/mpv-dev-x86_64-20230607-git-effc680.7z")
+        add_versions("20230607", "91b12131d3919b51b896b26881ca0dd7a9c23c284d3a211b12daf1c45ff44fa2")
     end
     add_links("mpv")
     on_install("windows", "mingw", function (package)

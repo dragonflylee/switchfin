@@ -6,7 +6,7 @@
 
 #include <borealis.hpp>
 
-class RecyclingGrid;
+class RecyclingView;
 
 class RecyclingGridItem : public brls::Box {
 public:
@@ -54,40 +54,56 @@ public:
     /*
      * Asks the data source for a cell to insert in a particular location of the recycler frame.
      */
-    virtual RecyclingGridItem* cellForRow(RecyclingGrid* recycler, size_t index) { return nullptr; }
+    virtual RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) { return nullptr; }
 
     /*
      * Asks the data source for the height to use for a row in a specified location.
      * Return -1 to use autoscaling.
      */
-    virtual float heightForRow(RecyclingGrid* recycler, size_t index) { return -1; }
+    virtual float heightForRow(brls::View* recycler, size_t index) { return -1; }
 
     /*
      * Tells the data source a row is selected.
      */
-    virtual void onItemSelected(RecyclingGrid* recycler, size_t index) {}
+    virtual void onItemSelected(brls::View* recycler, size_t index) {}
 
     virtual void clearData() = 0;
 };
 
+class RecyclingView {
+public:
+    virtual ~RecyclingView() = default;
+
+    void registerCell(std::string identifier, std::function<RecyclingGridItem*()> allocation);
+
+    RecyclingGridItem* dequeueReusableCell(std::string identifier);
+
+    RecyclingGridDataSource* getDataSource() const;
+
+protected:
+    // 回收列表项
+    void queueReusableCell(RecyclingGridItem* cell);
+
+    RecyclingGridDataSource* dataSource = nullptr;
+
+    std::map<std::string, std::vector<RecyclingGridItem*>*> queueMap;
+    std::map<std::string, std::function<RecyclingGridItem*(void)>> allocationMap;
+};
+
 class RecyclingGridContentBox;
 
-class RecyclingGrid : public brls::ScrollingFrame {
+class RecyclingGrid : public brls::ScrollingFrame, public RecyclingView {
 public:
     RecyclingGrid();
 
     void draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style,
         brls::FrameContext* ctx) override;
 
-    void registerCell(std::string identifier, std::function<RecyclingGridItem*()> allocation);
-
     void setDefaultCellFocus(size_t index);
 
     size_t getDefaultCellFocus() const;
 
     void setDataSource(RecyclingGridDataSource* source);
-
-    RecyclingGridDataSource* getDataSource() const;
 
     void showSkeleton(unsigned int num = 12);
 
@@ -97,10 +113,8 @@ public:
     void notifyDataChanged();
 
     /// 获取当前指定索引数据所在的item指针
-    ///（注意，因为是循环使用列表项的，所以此指针只能在获取时刻在主线程内使用）
+    /// 注意，因为是循环使用列表项的，所以此指针只能在获取时刻在主线程内使用
     RecyclingGridItem* getGridItemByIndex(size_t index);
-
-    std::vector<RecyclingGridItem*>& getGridItems();
 
     void clearData();
 
@@ -110,7 +124,7 @@ public:
 
     void selectRowAt(size_t index, bool animated);
 
-    //    计算从start元素的顶点到index（不包含index）元素顶点的距离
+    // 计算从start元素的顶点到index (不包含index) 元素顶点的距离
     float getHeightByCellIndex(size_t index, size_t start = 0);
 
     View* getNextCellFocus(brls::FocusDirection direction, View* currentView);
@@ -135,11 +149,6 @@ public:
     void setPaddingBottom(float bottom) override;
     void setPaddingLeft(float left) override;
 
-    // 获取一个列表项组件
-    // 如果缓存列表中存在就从中取出一个
-    // 如果缓存列表为空则生成一个新的
-    RecyclingGridItem* dequeueReusableCell(std::string identifier);
-
     ~RecyclingGrid() override;
 
     static View* create();
@@ -160,7 +169,6 @@ public:
     bool isFlowMode = false;
 
 private:
-    RecyclingGridDataSource* dataSource = nullptr;
     bool layouted = false;
     float oldWidth = -1;
 
@@ -184,14 +192,9 @@ private:
     brls::Label* hintLabel;
     brls::Rect renderedFrame;
     std::vector<float> cellHeightCache;
-    std::map<std::string, std::vector<RecyclingGridItem*>*> queueMap;
-    std::map<std::string, std::function<RecyclingGridItem*(void)>> allocationMap;
 
     //检查宽度是否有变化
     bool checkWidth();
-
-    // 回收列表项
-    void queueReusableCell(RecyclingGridItem* cell);
 
     void itemsRecyclingLoop();
 
