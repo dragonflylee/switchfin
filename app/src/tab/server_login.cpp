@@ -9,7 +9,7 @@
 
 using namespace brls::literals;  // for _i18n
 
-ServerLogin::ServerLogin(const AppServer& s) {
+ServerLogin::ServerLogin(const AppServer& s) : url(s.urls.front()) {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/server_login.xml");
     brls::Logger::debug("ServerLogin: create");
@@ -24,27 +24,36 @@ ServerLogin::ServerLogin(const AppServer& s) {
 ServerLogin::~ServerLogin() { brls::Logger::debug("ServerLogin Activity: delete"); }
 
 bool ServerLogin::onSignin() {
-    this->btnSignin->setActionsAvailable(false);
-    this->btnSignin->setTextColor(brls::Application::getTheme().getColor("font/grey"));
+    btnSignin->setActionsAvailable(false);
+    btnSignin->setTextColor(brls::Application::getTheme().getColor("font/grey"));
+    nlohmann::json data = {{"Username", inputUser->getValue()}, {"Pw", inputPass->getValue()}};
 
     ASYNC_RETAIN
-    jellyfin::postJSON(
-        {
-            {"Username", this->inputUser->getValue()},
-            {"Pw", this->inputPass->getValue()},
-        },
-        [ASYNC_TOKEN](const jellyfin::AuthResult& r) {
-            ASYNC_RELEASE
+    brls::async([ASYNC_TOKEN, data]() {
+        std::string device = AppConfig::instance().getDevice();
+        HTTP::Header header = {
+            "Content-Type: application/json",
+            fmt::format(
+                "X-Emby-Authorization: MediaBrowser Client=\"{}\", Device=\"{}\", DeviceId=\"{}\", Version=\"{}\"",
+                AppVersion::getPlatform(), AppVersion::getDeviceName(), device, AppVersion::getVersion()),
+        };
+
+        try {
+            auto resp = HTTP::post(this->url + jellyfin::apiAuthByName, data.dump(), header);
+            jellyfin::AuthResult r = nlohmann::json::parse(std::get<1>(resp));
             AppUser u = {r.User.Id, r.User.Name, r.AccessToken, r.ServerId};
-            AppConfig::instance().addUser(u);
-            brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
-        },
-        [ASYNC_TOKEN](const std::string& ex) {
-            ASYNC_RELEASE
-            this->btnSignin->setActionsAvailable(true);
-            this->btnSignin->setTextColor(brls::Application::getTheme().getColor("brls/text"));
-            Dialog::show(ex);
-        },
-        jellyfin::apiAuthByName);
-    return false;
+            brls::sync([ASYNC_TOKEN, u]() {
+                ASYNC_RELEASE
+                AppConfig::instance().addUser(u);
+                brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
+            });
+        } catch (const std::exception& ex) {
+            brls::sync([ASYNC_TOKEN]() {
+                ASYNC_RELEASE
+                this->btnSignin->setActionsAvailable(true);
+                this->btnSignin->setTextColor(brls::Application::getTheme().getColor("brls/text"));
+            });
+        }
+    });
+    return true;
 }

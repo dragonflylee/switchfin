@@ -12,6 +12,8 @@ private:
     CURLcode code;
 };
 
+static std::string user_agent = fmt::format("{}/{}", AppVersion::getPlatform(), AppVersion::getVersion());
+
 /// @brief curl context
 
 HTTP::HTTP() : chunk(nullptr) {
@@ -26,7 +28,6 @@ HTTP::HTTP() : chunk(nullptr) {
         }
     } global;
 
-    static std::string user_agent = fmt::format("{}/{}", AppVersion::getPlatform(), AppVersion::getVersion());
     this->easy = curl_easy_init();
 
     curl_easy_setopt(this->easy, CURLOPT_USERAGENT, user_agent.c_str());
@@ -83,7 +84,7 @@ size_t HTTP::easy_write_cb(char* ptr, size_t size, size_t nmemb, void* userdata)
     return count;
 }
 
-void HTTP::perform(std::ostream* body) {
+int HTTP::perform(std::ostream* body) {
     curl_easy_setopt(this->easy, CURLOPT_WRITEFUNCTION, easy_write_cb);
     curl_easy_setopt(this->easy, CURLOPT_WRITEDATA, body);
 
@@ -92,6 +93,7 @@ void HTTP::perform(std::ostream* body) {
 
     int status_code = 0;
     curl_easy_getinfo(this->easy, CURLINFO_RESPONSE_CODE, &status_code);
+    return status_code;
 }
 
 std::string HTTP::encode_form(const Form& form) {
@@ -106,19 +108,19 @@ std::string HTTP::encode_form(const Form& form) {
     return ss.str();
 }
 
-std::string HTTP::get(const std::string& url) {
+HTTP::Response HTTP::get(const std::string& url) {
     std::ostringstream body;
     curl_easy_setopt(this->easy, CURLOPT_URL, url.c_str());
     curl_easy_setopt(this->easy, CURLOPT_HTTPGET, 1L);
-    this->perform(&body);
-    return body.str();
+    int status_code = this->perform(&body);
+    return std::make_tuple(status_code, body.str());
 }
 
-std::string HTTP::post(const std::string& url, const std::string& data) {
+HTTP::Response HTTP::post(const std::string& url, const std::string& data) {
     std::ostringstream body;
     curl_easy_setopt(this->easy, CURLOPT_URL, url.c_str());
     curl_easy_setopt(this->easy, CURLOPT_POSTFIELDS, data.c_str());
     curl_easy_setopt(this->easy, CURLOPT_POSTFIELDSIZE, data.size());
-    this->perform(&body);
-    return body.str();
+    int status_code = this->perform(&body);
+    return std::make_tuple(status_code, body.str());
 }

@@ -49,6 +49,8 @@ else()
     message(FATAL_ERROR "Please set build target -DPLATFORM_DESKTOP=ON or -DPLATFORM_SWITCH=ON")
 endif ()
 
+include(FetchContent)
+
 # project info
 project(Switchfin)
 set(VERSION_MAJOR "0")
@@ -70,6 +72,13 @@ file(GLOB_RECURSE MAIN_SRC "${CMAKE_SOURCE_DIR}/app/src/*.cpp")
 set(PLATFORM_OPTION)
 if (PLATFORM_DESKTOP)
     find_package(CURL REQUIRED)
+    if (NOT CURL_FOUND)
+        FetchContent_Declare(curl
+            URL https://github.com/curl/curl/releases/download/curl-7_88_1/curl-7.88.1.tar.xz
+            DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+        )
+        FetchContent_MakeAvailable(curl)
+    endif()
     find_package(MPV REQUIRED)
     if (MPV_FOUND)
         message(STATUS "Found libmpv: ${MPV_VERSION} ${MPV_INCLUDE_DIR} ${MPV_LIBRARY}")

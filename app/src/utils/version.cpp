@@ -35,6 +35,7 @@ std::string AppVersion::getDeviceName() {
     DWORD nSize = 128;
     std::vector<WCHAR> buf(nSize);
     GetComputerNameW(buf.data(), &nSize);
+    name.resize(nSize);
     WideCharToMultiByte(CP_UTF8, 0, buf.data(), nSize, name.data(), name.size(), nullptr, nullptr);
 #else
     gethostname(name.data(), name.size());
@@ -48,8 +49,8 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
     brls::async([]() {
         try {
             std::string url = "https://api.github.com/repos/jellyfin/jellyfin/releases/latest";
-            std::string resp = HTTP::get(url, HTTP::Timeout{1000});
-            nlohmann::json j = nlohmann::json::parse(resp);
+            auto resp = HTTP::get(url, HTTP::Timeout{1000});
+            nlohmann::json j = nlohmann::json::parse(std::get<1>(resp));
             brls::Logger::info("checkUpdate {}", j.at("name").get<std::string>());
         } catch (const std::exception& ex) {
         }

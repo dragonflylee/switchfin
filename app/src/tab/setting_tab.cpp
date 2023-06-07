@@ -15,6 +15,7 @@
 */
 
 #include "tab/setting_tab.hpp"
+#include "activity/server_list.hpp"
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
 #include "utils/thread.hpp"
@@ -49,6 +50,11 @@ SettingTab::SettingTab() {
     auto& conf = AppConfig::instance();
 
     btnServer->setDetailText(conf.getUrl());
+    btnServer->registerClickAction([](...) {
+        brls::Application::pushActivity(new ServerList(), brls::TransitionAnimation::NONE);
+        return true;
+    });
+
     btnUser->setDetailText(conf.getUser().name);
 
 /// Hardware decode

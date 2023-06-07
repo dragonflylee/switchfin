@@ -13,6 +13,10 @@
 #include "utils/config.hpp"
 #include "view/mpv_core.hpp"
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 constexpr uint32_t MINIMUM_WINDOW_WIDTH = 640;
 constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
 
@@ -33,7 +37,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
 AppConfig::AppConfig() = default;
 
 void AppConfig::init() {
-    brls::Logger::info("() init {}", AppVersion::getPlatform(), AppVersion::getVersion());
+    brls::Logger::info("{} init {}", AppVersion::getPlatform(), AppVersion::getVersion());
 
     const std::string path = this->configDir() + "/config.json";
     std::ifstream readFile(path);
@@ -159,6 +163,15 @@ std::string AppConfig::configDir() {
 #elif __APPLE__
     return std::string(getenv("HOME")) + "/Library/Application Support/Jellyfin";
 #else
+#endif
+}
+
+void AppConfig::checkRestart(char* argv[]) {
+#ifndef __SWITCH__
+    if (brls::DesktopPlatform::RESTART_APP) {
+        brls::Logger::info("Restart app {}", argv[0]);
+        execv(argv[0], argv);
+    }
 #endif
 }
 

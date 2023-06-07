@@ -18,6 +18,8 @@ public:
     // For cancellable requests
     using Cancel = std::shared_ptr<std::atomic_bool>;
 
+    using Response = std::tuple<int, std::string>;
+
     struct Range {
         int start = 0;
         int end = 0;
@@ -32,8 +34,8 @@ public:
     ~HTTP();
 
     std::string encode_form(const Form& form);
-    std::string get(const std::string& url);
-    std::string post(const std::string& url, const std::string& data);
+    Response get(const std::string& url);
+    Response post(const std::string& url, const std::string& data);
 
     static std::string encode_query(const Form& form) {
         HTTP s;
@@ -47,7 +49,7 @@ public:
 
     // Get methods
     template <typename... Ts>
-    static std::string get(const std::string& url, Ts&&... ts) {
+    static Response get(const std::string& url, Ts&&... ts) {
         HTTP s;
         set_option(s, std::forward<Ts>(ts)...);
         return s.get(url);
@@ -55,14 +57,14 @@ public:
 
     // Post methods
     template <typename... Ts>
-    static std::string post(const std::string& url, const std::string& data, Ts&&... ts) {
+    static Response post(const std::string& url, const std::string& data, Ts&&... ts) {
         HTTP s;
         set_option(s, std::forward<Ts>(ts)...);
         return s.post(url, data);
     }
 
     template <typename... Ts>
-    static std::string post(const std::string& url, const Form& form, Ts&&... ts) {
+    static Response post(const std::string& url, const Form& form, Ts&&... ts) {
         HTTP s;
         set_option(s, std::forward<Ts>(ts)...);
         return s.post(url, s.encode_form(form));
@@ -72,7 +74,7 @@ private:
     static size_t easy_write_cb(char* ptr, size_t size, size_t nmemb, void* userdata);
     static int easy_progress_cb(
         void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow);
-    void perform(std::ostream* body);
+    int perform(std::ostream* body);
 
     void add_header(const std::string& header);
     void set_option(const Header& hs);

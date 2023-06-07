@@ -15,7 +15,7 @@ ServerAdd::ServerAdd() {
 
     inputUrl->init("URL", "https://");
 
-    btnConnect->registerClickAction(std::bind(&ServerAdd::onConnect, this));
+    btnConnect->registerClickAction([this](...) { return this->onConnect(); });
 }
 
 ServerAdd::~ServerAdd() { brls::Logger::debug("ServerAdd Activity: delete"); }
@@ -31,8 +31,8 @@ bool ServerAdd::onConnect() {
     ASYNC_RETAIN
     brls::async([ASYNC_TOKEN, baseUrl]() {
         try {
-            std::string resp = HTTP::get(baseUrl + jellyfin::apiPublicInfo, HTTP::Timeout{});
-            jellyfin::PublicSystemInfo info = nlohmann::json::parse(resp);
+            auto resp = HTTP::get(baseUrl + jellyfin::apiPublicInfo, HTTP::Timeout{});
+            jellyfin::PublicSystemInfo info = nlohmann::json::parse(std::get<1>(resp));
             AppServer s = {
                 info.ServerName,
                 info.Id,

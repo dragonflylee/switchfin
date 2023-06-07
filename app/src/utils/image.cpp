@@ -55,7 +55,7 @@ void Image::doRequest() {
         return;
     }
     try {
-        std::string data = HTTP::get(this->url, this->isCancel);
+        std::string data = std::get<1>(HTTP::get(this->url, this->isCancel));
         brls::Logger::verbose("request Image {} size {}", this->url, data.size());
         brls::sync([this, data] {
             if (this->isCancel->load()) return;

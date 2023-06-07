@@ -55,7 +55,9 @@ public:
 
     void init();
     void save();
+
     std::string configDir();
+    void checkRestart(char *argv[]);
 
     template <typename T>
     T getItem(const Item item, T defaultValue) {

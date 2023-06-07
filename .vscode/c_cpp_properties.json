@@ -30,7 +30,6 @@
               "C:\\MinGW64\\include"
             ],
             "defines": [
-                "UNICODE",
                 "BOREALIS_USE_OPENGL",
                 "YG_ENABLE_EVENTS",
                 "BRLS_RESOURCES=\"resources\""

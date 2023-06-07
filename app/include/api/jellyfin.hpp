@@ -21,19 +21,12 @@ inline void getJSON(Then then, OnError error, const std::string& fmt, Args&&... 
     std::string url = fmt::format(fmt::runtime(fmt), std::forward<Args>(args)...);
     brls::async([then, error, url]() {
         auto& c = AppConfig::instance();
-        HTTP::Header header;
+        HTTP::Header header = {"X-Emby-Token: " + c.getUser().access_token};
         const long timeout = c.getItem(AppConfig::REQUEST_TIMEOUT, default_timeout);
-        const std::string& token = c.getUser().access_token;
-        if (!token.empty())
-            header.push_back("X-Emby-Token: " + token);
-        else
-            header.push_back(fmt::format(
-                "X-Emby-Authorization: MediaBrowser Client=\"{}\", Device=\"{}\", DeviceId=\"{}\", Version=\"{}\"",
-                AppVersion::getPlatform(), AppVersion::getDeviceName(), c.getDevice(), AppVersion::getVersion()));
 
         try {
-            std::string resp = HTTP::get(c.getUrl() + url, header, HTTP::Timeout{timeout});
-            nlohmann::json j = nlohmann::json::parse(resp);
+            auto resp = HTTP::get(c.getUrl() + url, header, HTTP::Timeout{timeout});
+            nlohmann::json j = nlohmann::json::parse(std::get<1>(resp));
             brls::sync(std::bind(std::move(then), std::move(j)));
         } catch (const std::exception& ex) {
             if (error) brls::sync(std::bind(error, ex.what()));
@@ -46,18 +39,15 @@ inline void postJSON(const nlohmann::json& data, Then then, OnError error, const
     std::string url = fmt::format(fmt::runtime(fmt), std::forward<Args>(args)...);
     brls::async([then, error, url, data]() {
         auto& c = AppConfig::instance();
-        HTTP::Header header = {"Content-Type: application/json"};
+        HTTP::Header header = {
+            "Content-Type: application/json",
+            "X-Emby-Token: " + c.getUser().access_token,
+        };
         const long timeout = c.getItem(AppConfig::REQUEST_TIMEOUT, default_timeout);
-        const std::string& token = c.getUser().access_token;
-        if (!token.empty())
-            header.push_back("X-Emby-Token: " + token);
-        else
-            header.push_back(fmt::format(
-                "X-Emby-Authorization: MediaBrowser Client=\"{}\", Device=\"{}\", DeviceId=\"{}\", Version=\"{}\"",
-                AppVersion::getPlatform(), AppVersion::getDeviceName(), c.getDevice(), AppVersion::getVersion()));
+
         try {
-            std::string resp = HTTP::post(c.getUrl() + url, data.dump(), header, HTTP::Timeout{timeout});
-            nlohmann::json j = nlohmann::json::parse(resp);
+            auto resp = HTTP::post(c.getUrl() + url, data.dump(), header, HTTP::Timeout{timeout});
+            nlohmann::json j = nlohmann::json::parse(std::get<1>(resp));
             brls::sync(std::bind(std::move(then), std::move(j)));
         } catch (const std::exception& ex) {
             if (error) brls::sync(std::bind(error, ex.what()));
