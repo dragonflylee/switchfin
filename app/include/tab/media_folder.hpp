@@ -4,24 +4,19 @@
 
 #pragma once
 
-#include <borealis.hpp>
+#include "view/auto_tab_frame.hpp"
 
 class RecyclingGrid;
-class AutoTabFrame;
 
-class MediaFolders : public brls::Box {
+class MediaFolders : public AttachedView {
 public:
     MediaFolders();
     ~MediaFolders();
-
-    brls::View* getDefaultFocus() override;
 
     static brls::View* create();
 
 private:
     BRLS_BIND(RecyclingGrid, recyclerFolders, "media/folders");
-
-    AutoTabFrame *getTabFrame();
 
     void doRequest();
 };

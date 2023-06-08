@@ -71,7 +71,7 @@ public:
     void command_str(const char *args);
 
     template <typename... T>
-    void command_str(const std::string &fmt, T &&...args) {
+    void command_str(std::string_view fmt, T &&...args) {
         std::string cmd = fmt::format(fmt::runtime(fmt), std::forward<T>(args)...);
         command_str(cmd.c_str());
     }
@@ -144,6 +144,7 @@ public:
 
     // core states
     int64_t duration = 0;     // second
+    int64_t video_progress = 0;
     int64_t cache_speed = 0;  // Bps
     double video_speed = 0;
     double playback_time = 0;

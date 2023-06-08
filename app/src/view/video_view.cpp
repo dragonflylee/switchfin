@@ -5,6 +5,17 @@
 #include "utils/dialog.hpp"
 #include "utils/config.hpp"
 #include <fmt/format.h>
+#include <fmt/chrono.h>
+
+// The position, in ticks, where playback stopped. 1 tick = 10000 ms
+static const time_t playTicks = 10000000;
+
+static std::string sec2Time(int64_t t) {
+    if (t < 3600) {
+        return fmt::format("{:%M:%S}", std::chrono::seconds(t));
+    }
+    return fmt::format("{:%H:%M:%S}", std::chrono::seconds(t));
+}
 
 VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id), userData(&item.UserData) {
     this->inflateFromXMLRes("xml/view/video_view.xml");
@@ -76,7 +87,7 @@ VideoView::~VideoView() {
     brls::Logger::debug("trying delete VideoView...");
     this->unRegisterMpvEvent();
     MPVCore::instance().stop();
-    this->userData->PlayedPercentage = MPVCore::instance().percent_pos;
+    this->userData->PlaybackPositionTicks = MPVCore::instance().video_progress * playTicks;
     this->reportStop();
 }
 
@@ -100,13 +111,17 @@ void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::S
     // draw osd
     time_t current = time(nullptr);
     if (current < this->osdLastShowTime) {
-        if (!this->isOsdShown) this->isOsdShown = true;
-        osdTopBox->setVisibility(brls::Visibility::VISIBLE);
-        osdBottomBox->setVisibility(brls::Visibility::VISIBLE);
+        if (!this->isOsdShown) {
+            this->isOsdShown = true;
+            osdTopBox->setVisibility(brls::Visibility::VISIBLE);
+            osdBottomBox->setVisibility(brls::Visibility::VISIBLE);
+        }
         osdBottomBox->frame(ctx);
         osdTopBox->frame(ctx);
-    } else {
-        if (this->isOsdShown) this->isOsdShown = false;
+    } else if (this->isOsdShown) {
+        this->isOsdShown = false;
+        // 当焦点位于video组件内部重新赋予焦点，用来隐藏屏幕上的高亮框
+        if (isChildFocused()) brls::Application::giveFocus(this);
         osdTopBox->setVisibility(brls::Visibility::INVISIBLE);
         osdBottomBox->setVisibility(brls::Visibility::INVISIBLE);
     }
@@ -169,12 +184,25 @@ void VideoView::doPlaybackInfo() {
 
             std::stringstream ssextra;
             ssextra << "network-timeout=20";
-            if (this->userData->PlayedPercentage > 0) {
-                ssextra << ",start=" << int(this->userData->PlayedPercentage) << "%";
+            if (this->userData->PlaybackPositionTicks > 0) {
+                ssextra << ",start=" << sec2Time(this->userData->PlaybackPositionTicks / playTicks);
             }
+
+#ifdef _WIN32
+            const std::string separator = ";";
+#else
+            const std::string separator = ":";
+#endif
+            bool hasSub = false;
             for (auto& s : itemSource.MediaStreams) {
                 if (s.Type == jellyfin::streamTypeSubtitle && s.IsExternal) {
-                    ssextra << ",sub-file=" << svr << s.DeliveryUrl;
+                    if (hasSub) {
+                        ssextra << separator;
+                    } else {
+                        ssextra << ",sub-files=";
+                        hasSub = true;
+                    }
+                    ssextra << svr << s.DeliveryUrl;
                 }
             }
 
@@ -204,7 +232,7 @@ void VideoView::reportStart() {
 }
 
 void VideoView::reportStop() {
-    time_t ticks = MPVCore::instance().playback_time * 10000000;
+    time_t ticks = MPVCore::instance().playback_time * playTicks;
     jellyfin::postJSON(
         {
             {"ItemId", this->itemId},
@@ -215,7 +243,7 @@ void VideoView::reportStop() {
 }
 
 void VideoView::reportPlay(bool isPaused) {
-    time_t ticks = MPVCore::instance().playback_time * 10000000;
+    time_t ticks = MPVCore::instance().video_progress * playTicks;
     jellyfin::postJSON(
         {
             {"ItemId", this->itemId},
@@ -261,11 +289,13 @@ void VideoView::registerMpvEvent() {
             this->reportStart();
             break;
         case MpvEventEnum::UPDATE_DURATION:
+            this->rightStatusLabel->setText(sec2Time(mpv.duration));
             this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
             break;
         case MpvEventEnum::UPDATE_PROGRESS:
+            this->leftStatusLabel->setText(sec2Time(mpv.video_progress));
             this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
-            this->reportPlay();
+            if (mpv.video_progress % 10 == 0) this->reportPlay();
             break;
         case MpvEventEnum::VIDEO_SPEED_CHANGE:
             break;

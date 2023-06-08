@@ -16,11 +16,13 @@
 
 #pragma once
 
-#include <borealis.hpp>
+#include "view/auto_tab_frame.hpp"
 
-class SettingTab : public brls::Box {
+class SettingTab : public AttachedView {
 public:
     SettingTab();
+
+    void onCreate() override;
 
     static brls::View* create();
 

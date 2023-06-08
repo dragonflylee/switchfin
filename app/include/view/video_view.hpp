@@ -59,6 +59,8 @@ private:
     BRLS_BIND(brls::Box, osdBottomBox, "video/osd/bottom/box");
     BRLS_BIND(brls::Box, osdCenterBox, "video/osd/center/box");
     BRLS_BIND(brls::Label, centerLabel, "video/osd/center/label");
+    BRLS_BIND(brls::Label, leftStatusLabel, "video/left/status");
+    BRLS_BIND(brls::Label, rightStatusLabel, "video/right/status");
 
     /// @brief get video url
     void doPlaybackInfo();

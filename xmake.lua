@@ -76,7 +76,8 @@ target("Switchfin")
             add_cxflags("-Wl,--subsystem,windows", {force = true})
             add_ldflags("-Wl,--subsystem,windows", {force = true})
         elseif is_plat("windows") then
-            -- add_ldflags("-subsystem:windows -entry:mainCRTStartup", {force = true})
+            add_ldflags("/MANIFEST:EMBED", "/MANIFESTINPUT:app/app.manifest", {force = true})
+            add_ldflags("/SUBSYSTEM:WINDOWS", "/ENTRY:mainCRTStartup", {force = true})
         end
     end
     on_config(function (target)

@@ -563,6 +563,7 @@ void MPVCore::eventMainLoop() {
             if (prop->format == MPV_FORMAT_NONE) break;
             if (strcmp(prop->name, "core-idle") == 0) {
                 if (duration > 0 && (double)duration - playback_time < 1) {
+                    video_progress = duration;
                     brls::Logger::info("MPVCore => END_OF_FILE");
                     mpvCoreEvent.fire(MpvEventEnum::END_OF_FILE);
                 } else if (isPaused()) {
@@ -583,6 +584,10 @@ void MPVCore::eventMainLoop() {
                 mpvCoreEvent.fire(MpvEventEnum::CACHE_SPEED_CHANGE);
             } else if (strcmp(prop->name, "playback-time") == 0) {
                 this->playback_time = *(double *)prop->data;
+                if (video_progress != (int64_t)playback_time) {
+                    video_progress = (int64_t)playback_time;
+                    mpvCoreEvent.fire(MpvEventEnum::UPDATE_PROGRESS);
+                }
             } else if (strcmp(prop->name, "duration") == 0) {
                 // 视频总时长更新
                 duration = *(int64_t *)prop->data;
@@ -592,9 +597,8 @@ void MPVCore::eventMainLoop() {
                 }
             } else if (strcmp(prop->name, "percent-pos") == 0) {
                 // 视频进度更新（百分比）
-                double pos = *(double *)prop->data;
-                if (abs(pos - this->percent_pos) > 0.5) mpvCoreEvent.fire(MpvEventEnum::UPDATE_PROGRESS);
-                this->percent_pos = pos;
+                this->percent_pos = *(double *)prop->data;
+                ;
             } else if (strcmp(prop->name, "speed") == 0) {
                 // 倍速信息
                 this->video_speed = *(double *)prop->data;
@@ -618,6 +622,7 @@ void MPVCore::reset() {
     this->duration = 0;     // second
     this->cache_speed = 0;  // Bps
     this->playback_time = 0;
+    this->video_progress = 0;
 }
 
 void MPVCore::setUrl(const std::string &url, const std::string &extra, const std::string &method) {

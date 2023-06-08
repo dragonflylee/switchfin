@@ -46,7 +46,9 @@ private:
 SettingTab::SettingTab() {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/settings.xml");
+}
 
+void SettingTab::onCreate() {
     auto& conf = AppConfig::instance();
 
     btnServer->setDetailText(conf.getUrl());

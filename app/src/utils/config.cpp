@@ -84,7 +84,6 @@ void AppConfig::init() {
         CFStringGetCString(uuidCf, this->device.data(), this->device.size(), kCFStringEncodingMacRoman);
         CFRelease(uuidCf);
 #endif
-        brls::Logger::debug("init device id {}", this->device);
     }
 
     // 初始化i18n
@@ -139,7 +138,8 @@ void AppConfig::init() {
             break;
         }
     }
-    brls::Logger::debug("init finish");
+
+    brls::Logger::info("init url ({}) device {}", this->server_url, this->device);
 }
 
 void AppConfig::save() {

@@ -4,13 +4,15 @@
 
 #pragma once
 
-#include <borealis.hpp>
+#include "view/auto_tab_frame.hpp"
 
 class HRecyclerFrame;
 
-class HomeTab : public brls::Box {
+class HomeTab : public AttachedView {
 public:
     HomeTab();
+
+    void onCreate() override;
 
     static brls::View* create();
 

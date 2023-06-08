@@ -75,27 +75,17 @@ MediaFolders::MediaFolders() {
 
 MediaFolders::~MediaFolders() { brls::Logger::debug("MediaFolders: deleted"); }
 
-brls::View* MediaFolders::getDefaultFocus() { return this->recyclerFolders; }
-
 brls::View* MediaFolders::create() { return new MediaFolders(); }
-
-AutoTabFrame* MediaFolders::getTabFrame() {
-    brls::View* view = this->getParent();
-    while (view) {
-        AutoTabFrame* tabframe = dynamic_cast<AutoTabFrame*>(view);
-        if (tabframe) return tabframe;
-        view = view->getParent();
-    }
-    return nullptr;
-}
 
 void MediaFolders::doRequest() {
     ASYNC_RETAIN
     jellyfin::getJSON(
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaItem>& r) {
             ASYNC_RELEASE
-            if (r.Items.empty()) this->recyclerFolders->setEmpty();
-            else this->recyclerFolders->setDataSource(new MediaFolderDataSource(r.Items));
+            if (r.Items.empty())
+                this->recyclerFolders->setEmpty();
+            else
+                this->recyclerFolders->setDataSource(new MediaFolderDataSource(r.Items));
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE

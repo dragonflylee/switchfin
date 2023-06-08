@@ -22,6 +22,13 @@ cmake -B build_pc -G 'MinGW Makefiles' -DPLATFORM_DESKTOP=ON
 mingw32-make -C build_pc -j$(nproc)
 ```
 
+* build deps
+
+```bash
+cmake -B build -G 'MinGW Makefiles' -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/c/MinGW64
+mingw32-make -C build -j$(nproc) install
+```
+
 ## Lanuch Jellyfin Server
 
 ```bash

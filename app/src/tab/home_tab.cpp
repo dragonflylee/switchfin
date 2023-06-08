@@ -105,6 +105,8 @@ HomeTab::HomeTab() {
     this->doNextup();
 }
 
+void HomeTab::onCreate() {}
+
 brls::View* HomeTab::create() { return new HomeTab(); }
 
 void HomeTab::doResume() {

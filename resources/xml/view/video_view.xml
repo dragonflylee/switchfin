@@ -19,7 +19,47 @@
             marginRight="120"
             singleLine="true"
             textColor="#FFFFFF" />
-
+        <brls:Box
+            wireframe="false"
+            positionBottom="0"
+            positionLeft="20"
+            positionType="absolute"
+            alignItems="center">
+            <SVGImage
+                width="16"
+                height="16"
+                svg="@res/icon/widget-people.svg" />
+            <brls:Label
+                marginLeft="8"
+                textColor="#FFFFFF"
+                id="video/view/label/people"
+                fontSize="13"
+                text="N人正在看" />
+        </brls:Box>
+        <brls:Box
+            wireframe="false"
+            id="video/osd/cast"
+            hideClickAnimation="true"
+            positionType="absolute"
+            positionRight="60"
+            positionTop="10"
+            alignItems="center"
+            justifyContent="center"
+            height="60"
+            width="60">
+            <SVGImage
+                id="video/osd/cast/icon"
+                focusable="true"
+                focusUp="video/osd/cast/icon"
+                focusLeft="video/osd/cast/icon"
+                focusRight="video/osd/setting/icon"
+                focusDown="video/osd/bottom/box"
+                hideHighlightBackground="true"
+                highlightCornerRadius="30"
+                height="30"
+                width="30"
+                svg="@res/icon/ico-cast.svg" />
+        </brls:Box>
         <brls:Box
             wireframe="false"
             id="video/osd/setting"
@@ -42,9 +82,30 @@
                 highlightCornerRadius="30"
                 height="30"
                 width="30"
-                svg="@res/icon/ico-setting.svg" />
+                svg="@res/icon/ico-player-setting.svg" />
         </brls:Box>
-
+        <brls:Box
+            id="video/speed/hint/box"
+            width="100%"
+            positionBottom="-10"
+            visibility="gone"
+            positionType="absolute"
+            justifyContent="center"
+            alignItems="center">
+            <brls:Box
+                backgroundColor="#00000080"
+                cornerRadius="4"
+                justifyContent="center"
+                alignItems="center">
+                <brls:Label
+                    marginLeft="64"
+                    marginRight="8"
+                    marginTop="6"
+                    marginBottom="6"
+                    textColor="#FFFFFF"
+                    id="video/speed/hint/label" />
+            </brls:Box>
+        </brls:Box>
     </brls:Box>
 
     <brls:Box
@@ -88,20 +149,20 @@
             justifyContent="center"
             marginLeft="20"
             marginBottom="20"
-            height="100"
-            width="100">
+            height="60"
+            width="60">
             <SVGImage
                 id="video/osd/toggle/icon"
                 wireframe="false"
-                height="100"
-                width="100"
+                height="60"
+                width="60"
                 svg="@res/icon/ico-play.svg" />
         </brls:Box>
 
         <brls:Box
             width="auto"
             grow="1"
-            height="130"
+            height="100"
             axis="column">
             <VideoProgressSlider
                 focusable="false"
@@ -110,6 +171,110 @@
                 height="50"
                 marginTop="10"
                 grow="1" />
+            <brls:Box
+                width="100%"
+                alignItems="center"
+                grow="1">
+                <brls:Label
+                    wireframe="false"
+                    horizontalAlign="right"
+                    id="video/left/status"
+                    height="100%"
+                    width="100"
+                    textColor="#FFFFFF"
+                    text="00:00" />
+                <brls:Label
+                    horizontalAlign="center"
+                    height="100%"
+                    textColor="#FFFFFF"
+                    text="/" />
+                <brls:Label
+                    wireframe="false"
+                    horizontalAlign="left"
+                    id="video/right/status"
+                    height="100%"
+                    width="100"
+                    textColor="#FFFFFF"
+                    text="00:00" />
+                <brls:Box
+                    id="video/osd/icon/box"
+                    positionType="absolute"
+                    positionRight="20">
+                    <brls:Box
+                        id="video/osd/danmaku/box/setting"
+                        hideClickAnimation="true"
+                        alignItems="center"
+                        justifyContent="center"
+                        height="60"
+                        width="60">
+                        <SVGImage
+                            id="video/osd/danmaku/setting/icon"
+                            focusable="true"
+                            focusUp="video/osd/setting"
+                            focusDown="video/osd/danmaku/setting/icon"
+                            hideHighlightBackground="true"
+                            highlightCornerRadius="30"
+                            wireframe="false"
+                            height="30"
+                            width="30"
+                            svg="@res/icon/ico-danmu-setting.svg" />
+                    </brls:Box>
+                    <brls:Box
+                        id="video/osd/danmaku/box/toggle"
+                        hideClickAnimation="true"
+                        alignItems="center"
+                        justifyContent="center"
+                        height="60"
+                        width="60">
+                        <SVGImage
+                            id="video/osd/danmaku/icon"
+                            focusable="true"
+                            focusUp="video/osd/setting"
+                            focusDown="video/osd/danmaku/icon"
+                            hideHighlightBackground="true"
+                            highlightCornerRadius="30"
+                            wireframe="false"
+                            height="30"
+                            width="30"
+                            svg="@res/icon/ico-danmu-switch-on.svg" />
+                    </brls:Box>
+                    <brls:Box
+                        hideClickAnimation="true"
+                        marginLeft="10"
+                        marginRight="10"
+                        alignItems="center"
+                        justifyContent="center"
+                        height="60">
+                        <brls:Label
+                            id="video/speed"
+                            textColor="#FFFFFF"
+                            focusable="true"
+                            focusUp="video/osd/setting"
+                            focusDown="video/speed"
+                            horizontalAlign="center"
+                            text="@i18n/main/player/speed"
+                            hideHighlightBackground="true"
+                            highlightCornerRadius="8" />
+                    </brls:Box>
+                </brls:Box>
+            </brls:Box>
+            <brls:Box
+                cornerRadius="4"
+                backgroundColor="@theme/brls/backdrop"
+                detachedX="30"
+                detachedY="-20"
+                visibility="gone"
+                height="32"
+                id="video/osd/hint/box">
+                <brls:Label
+                    id="video/osd/hint/label"
+                    marginLeft="10"
+                    marginRight="10"
+                    marginTop="4"
+                    marginBottom="4"
+                    maxWidth="600"
+                    textColor="#FFFFFF" />
+            </brls:Box>
         </brls:Box>
     </brls:Box>
 

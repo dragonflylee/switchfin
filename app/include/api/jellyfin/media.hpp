@@ -38,10 +38,10 @@ const std::string streamTypeSubtitle = "Subtitle";
 struct UserDataResult {
     bool IsFavorite = false;
     int PlayCount = 0;
-    double PlayedPercentage = 0;
+    time_t PlaybackPositionTicks = 0;
     bool Played = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(UserDataResult, IsFavorite, PlayCount, PlayedPercentage, Played);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(UserDataResult, IsFavorite, PlayCount, PlaybackPositionTicks, Played);
 
 struct MediaItem {
     std::string Id;
