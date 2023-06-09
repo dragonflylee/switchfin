@@ -29,11 +29,15 @@ add_requires("lunasvg")
 add_requires("libcurl")
 add_requires("mpv", {configs={shared=true}})
 
-set_version("0.1.0", {build = "$(shell git rev-list --count --all)"})
+set_version("$(shell git describe --tags)", {build = "$(shell git rev-list --count --all)"})
 
 target("Switchfin")
     add_includedirs("app/include")
     add_files("app/src/**.cpp")
+    if is_plat("windows", "mingw") then
+        set_configvar("CMAKE_SOURCE_DIR", "$(projectdir)");
+        add_configfiles("app/app_win32.rc.in")
+    end
     add_defines("BRLS_RESOURCES=\"./resources/\"")
     local driver = get_config("driver")
     if driver == "opengl" then
@@ -54,10 +58,10 @@ target("Switchfin")
     end
     add_packages("borealis", "lunasvg", "libcurl", "mpv")
     if is_plat("windows", "mingw") then
-        set_configvar("CMAKE_SOURCE_DIR", "$(projectdir)");
-        add_configfiles("app/app_win32.rc.in")
+        add_links("Wlanapi", "iphlpapi", "Ws2_32")
         add_files("$(buildir)/app_win32.rc")
         add_defines("BOREALIS_USE_STD_THREAD")
+        add_links("Wlanapi")
         after_build(function (target)
             for _, pkg in pairs(target:pkgs()) do
                 if pkg:has_shared() then
@@ -82,6 +86,6 @@ target("Switchfin")
     end
     on_config(function (target)
         target:add("defines", "BUILD_PACKAGE_NAME="..target:name())
-        target:add("defines", "BUILD_TAG_VERSION="..target:get("version"))
+        target:add("defines", "BUILD_TAG_VERSION=v"..target:get("version"))
         target:add("defines", "BUILD_TAG_SHORT=$(shell git rev-parse --short HEAD)")
     end)

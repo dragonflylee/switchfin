@@ -22,6 +22,5 @@ execute_process(COMMAND git rev-list --count --all
         TIMEOUT 5 OUTPUT_VARIABLE VERSION_BUILD
         OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-add_definitions(-DBUILD_TAG_VERSION=${GIT_TAG_VERSION} -DBUILD_TAG_SHORT=${GIT_TAG_SHORT})
 message(STATUS "building from git tag ${GIT_TAG_VERSION}")
 message(STATUS "building from git commit ${GIT_TAG_SHORT}")

@@ -9,12 +9,7 @@
 std::string AppVersion::git_commit = STR(BUILD_TAG_SHORT);
 std::string AppVersion::git_tag = STR(BUILD_TAG_VERSION);
 
-std::string AppVersion::getVersion() {
-    if (git_tag.empty())
-        return "dev-" + git_commit;
-    else
-        return git_tag;
-}
+std::string AppVersion::getVersion() { return git_tag.empty() ? "dev-" + git_commit : git_tag; }
 
 std::string AppVersion::getPlatform() {
 #if __SWITCH__
@@ -48,7 +43,7 @@ bool AppVersion::needUpdate(std::string latestVersion) { return false; }
 void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
     brls::async([]() {
         try {
-            std::string url = "https://api.github.com/repos/jellyfin/jellyfin/releases/latest";
+            std::string url = "https://api.github.com/repos/dragonflylee/switchfin/releases/latest";
             auto resp = HTTP::get(url, HTTP::Timeout{1000});
             nlohmann::json j = nlohmann::json::parse(std::get<1>(resp));
             brls::Logger::info("checkUpdate {}", j.at("name").get<std::string>());

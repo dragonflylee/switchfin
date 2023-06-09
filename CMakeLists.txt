@@ -61,7 +61,6 @@ set(PROJECT_AUTHOR "dragonflylee")
 set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon.jpg)
 set(PROJECT_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/resources)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
-add_definitions(-DBUILD_PACKAGE_NAME=${CMAKE_PROJECT_NAME})
 
 # build borealis qrcode and other third party libraries
 add_subdirectory(library)
@@ -71,12 +70,16 @@ file(GLOB_RECURSE MAIN_SRC "${CMAKE_SOURCE_DIR}/app/src/*.cpp")
 
 set(PLATFORM_OPTION)
 if (PLATFORM_DESKTOP)
-    find_package(CURL REQUIRED)
+    find_package(CURL)
     if (NOT CURL_FOUND)
         FetchContent_Declare(curl
             URL https://github.com/curl/curl/releases/download/curl-7_88_1/curl-7.88.1.tar.xz
             DOWNLOAD_EXTRACT_TIMESTAMP TRUE
         )
+        set(SSL_BACKEND_USED "WinSSL" CACHE INTERNAL "" FORCE)
+        set(HTTP_ONLY ON CACHE INTERNAL "" FORCE)
+        set(BUILD_CURL_EXE OFF CACHE INTERNAL "" FORCE)
+        set(BUILD_TESTING OFF)
         FetchContent_MakeAvailable(curl)
     endif()
     find_package(MPV REQUIRED)
@@ -84,57 +87,83 @@ if (PLATFORM_DESKTOP)
         message(STATUS "Found libmpv: ${MPV_VERSION} ${MPV_INCLUDE_DIR} ${MPV_LIBRARY}")
     endif()
     set(PLATFORM_LIBS CURL::libcurl ${MPV_LIBRARY})
+    set(PLATFORM_OPTION -I${MPV_INCLUDE_DIR})
+    if (WIN32)
+        configure_file("${CMAKE_SOURCE_DIR}/app/app_win32.rc.in" "${CMAKE_BINARY_DIR}/app_win32.rc")
+        list(APPEND MAIN_SRC ${CMAKE_BINARY_DIR}/app_win32.rc)
+    elseif (APPLE)
+        set(PROJECT_CONTENT ${PROJECT_NAME}.app/Contents)
+        configure_file("${CMAKE_SOURCE_DIR}/app/app.plist.in" "${PROJECT_CONTENT}/Info.plist")
+    endif ()
 elseif (PLATFORM_SWITCH)
     set(PLATFORM_LIBS
-            # needed by borealis
-            glfw3 EGL glapi drm_nouveau
-            # needed by mpv
-            mpv swscale swresample avformat avfilter avcodec avutil ass freetype fribidi png bz2 z SDL2
-            mbedx509 mbedtls mbedcrypto
-            # needed by curl
-            curl z
-            # base lib
-            nx m
-            )
+        # needed by borealis
+        glfw3 EGL glapi drm_nouveau
+        # needed by mpv
+        mpv swscale swresample avformat avfilter avcodec avutil ass freetype fribidi png bz2 z SDL2
+        mbedx509 mbedtls mbedcrypto
+        # needed by curl
+        curl z
+        # base lib
+        nx m
+    )
     list(APPEND MAIN_SRC ${CMAKE_SOURCE_DIR}/library/borealis/library/lib/platforms/switch/switch_wrapper.c)
 endif()
 
 # building target
-if (WIN32)
-    configure_file("${CMAKE_SOURCE_DIR}/app/app_win32.rc.in" "${CMAKE_BINARY_DIR}/app_win32.rc")
-    if (WIN32_TERMINAL)
-        add_executable(${PROJECT_NAME} ${MAIN_SRC} "${CMAKE_BINARY_DIR}/app_win32.rc")
-    else ()
-        add_executable(${PROJECT_NAME} WIN32 ${MAIN_SRC} "${CMAKE_BINARY_DIR}/app_win32.rc")
-    endif ()
-else ()
-    add_executable(${PROJECT_NAME} ${MAIN_SRC})
-endif ()
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
+add_executable(${PROJECT_NAME} ${MAIN_SRC})
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17)
 target_include_directories(${PROJECT_NAME} PRIVATE app/include)
 target_compile_options(${PROJECT_NAME} PRIVATE
-        -ffunction-sections
-        -fdata-sections
-        ${PLATFORM_OPTION}
-        )
+    -ffunction-sections
+    -fdata-sections
+    ${PLATFORM_OPTION}
+)
 target_link_libraries(${PROJECT_NAME} PRIVATE
-        borealis
-        lunasvg
-        ${PLATFORM_LIBS}
-        )
+    borealis
+    lunasvg
+    ${PLATFORM_LIBS}
+)
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    -DBUILD_TAG_VERSION=v${GIT_TAG_VERSION}
+    -DBUILD_TAG_SHORT=${GIT_TAG_SHORT}
+    -DBUILD_PACKAGE_NAME=${CMAKE_PROJECT_NAME}
+)
+if (APPLE)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY ${PROJECT_CONTENT}/Library
+        RUNTIME_OUTPUT_DIRECTORY ${PROJECT_CONTENT}/MacOS
+    )
+endif ()
 
 
 # building release file
 if (PLATFORM_DESKTOP)
-    add_custom_target(${PROJECT_NAME}.data
-            COMMAND "${CMAKE_COMMAND}" -E copy_directory ${CMAKE_SOURCE_DIR}/resources ${CMAKE_CURRENT_BINARY_DIR}/resources
-            )
-    add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}.data)
+    if (APPLE)
+        message(STATUS "CMAKE_OSX_ARCHITECTURES: x86_64;arm64")
+        set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Architectures" FORCE)
+        set(CMAKE_XCODE_ATTRIBUTE_MACOSX_DEPLOYMENT_TARGET[arch=arm64] "11.0" CACHE STRING "arm 64 minimum deployment target" FORCE)
+
+        add_custom_target(${PROJECT_NAME}.app
+            COMMAND "${CMAKE_COMMAND}" -E make_directory ${PROJECT_CONTENT}/Resources ${PROJECT_CONTENT}/MacOS
+            COMMAND "${CMAKE_COMMAND}" -E copy_directory ${PROJECT_RESOURCES} ${PROJECT_CONTENT}/Resources/resources
+            COMMAND "${CMAKE_COMMAND}" -E copy ${CMAKE_SOURCE_DIR}/app/app.icns ${PROJECT_CONTENT}/Resources
+            COMMAND dylibbundler -cd -b -x ${PROJECT_CONTENT}/MacOS/${PROJECT_NAME} -d ${PROJECT_CONTENT}/Library/ -p @executable_path/../Library/
+            COMMAND codesign --sign - --force ${PROJECT_CONTENT}/Library/*
+        )
+        add_dependencies(${PROJECT_NAME}.app ${PROJECT_NAME})
+    else()
+        add_custom_target(${PROJECT_NAME}.data
+            COMMAND "${CMAKE_COMMAND}" -E copy_directory ${PROJECT_RESOURCES} ${CMAKE_CURRENT_BINARY_DIR}/resources
+        )
+        add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}.data)
+    endif()
+
 elseif(PLATFORM_SWITCH)
     add_custom_target(${PROJECT_NAME}.nro DEPENDS ${PROJECT_NAME}
-            COMMAND ${NX_NACPTOOL_EXE} --create "${PROJECT_NAME}" "${PROJECT_AUTHOR}" "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}" ${PROJECT_NAME}.nacp --titleid=${PROJECT_TITLEID}
-            COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_RESOURCES} ${CMAKE_BINARY_DIR}/resources
-            COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/resources/font
-            COMMAND ${NX_ELF2NRO_EXE} ${PROJECT_NAME}.elf ${PROJECT_NAME}.nro --icon=${PROJECT_ICON} --nacp=${PROJECT_NAME}.nacp --romfsdir=${CMAKE_BINARY_DIR}/resources
-            )
+        COMMAND ${NX_NACPTOOL_EXE} --create "${PROJECT_NAME}" "${PROJECT_AUTHOR}" "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}" ${PROJECT_NAME}.nacp --titleid=${PROJECT_TITLEID}
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_RESOURCES} ${CMAKE_BINARY_DIR}/resources
+        COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/resources/font
+        COMMAND ${NX_ELF2NRO_EXE} ${PROJECT_NAME}.elf ${PROJECT_NAME}.nro --icon=${PROJECT_ICON} --nacp=${PROJECT_NAME}.nacp --romfsdir=${CMAKE_BINARY_DIR}/resources
+    )
 endif ()

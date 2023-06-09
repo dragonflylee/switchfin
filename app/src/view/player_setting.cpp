@@ -42,9 +42,9 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
         this->audioTrack->setVisibility(brls::Visibility::GONE);
     }
 
-    auto& conf = AppConfig::instance();
 /// Fullscreen
 #if defined(__linux__) || defined(_WIN32)
+    auto& conf = AppConfig::instance();
     btnFullscreen->init(
         "main/setting/others/fullscreen"_i18n, conf.getItem(AppConfig::FULLSCREEN, false), [](bool value) {
             AppConfig::instance().setItem(AppConfig::FULLSCREEN, value);

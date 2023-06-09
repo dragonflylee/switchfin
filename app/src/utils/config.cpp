@@ -79,24 +79,15 @@ void AppConfig::init() {
         io_registry_entry_t ioRegistryRoot = IORegistryEntryFromPath(kIOMasterPortDefault, "IOService:/");
         CFStringRef uuidCf = (CFStringRef)IORegistryEntryCreateCFProperty(
             ioRegistryRoot, CFSTR(kIOPlatformUUIDKey), kCFAllocatorDefault, 0);
-        IOObjectRelease(ioRegistryRoot);
-        this->device.resize(CFStringGetLength(cfString) + 1);
-        CFStringGetCString(uuidCf, this->device.data(), this->device.size(), kCFStringEncodingMacRoman);
+        this->device.resize(CFStringGetLength(uuidCf));
+        CFStringGetCString(uuidCf, this->device.data(), this->device.size() + 1, kCFStringEncodingMacRoman);
         CFRelease(uuidCf);
+        IOObjectRelease(ioRegistryRoot);
 #endif
     }
 
     // 初始化i18n
-    std::set<std::string> i18nSet{
-        brls::LOCALE_AUTO,
-        brls::LOCALE_EN_US,
-        brls::LOCALE_ZH_HANS,
-        brls::LOCALE_ZH_HANT,
-    };
-    std::string appLang = this->getItem(APP_LANG, brls::LOCALE_AUTO);
-    if (appLang != brls::LOCALE_AUTO && i18nSet.count(appLang)) {
-        brls::Platform::APP_LOCALE_DEFAULT = appLang;
-    }
+    brls::Platform::APP_LOCALE_DEFAULT = this->getItem(APP_LANG, brls::LOCALE_AUTO);
 
     // 初始化一些在创建窗口之后才能初始化的内容
     brls::Application::getWindowCreationDoneEvent()->subscribe([this]() {

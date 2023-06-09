@@ -71,7 +71,7 @@ MediaSeries::MediaSeries(const jellyfin::MediaItem& item) : seriesId(item.Id) {
     this->inflateFromXMLRes("xml/tabs/series.xml");
     brls::Logger::debug("MediaSeries: create");
 
-    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) { return true; });
+    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [](...) { return true; });
     this->recyclerEpisodes->registerCell("Cell", &EpisodeCardCell::create);
 
     this->doSeasons();

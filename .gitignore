@@ -10,3 +10,4 @@ settings.json
 ffmpeg-*
 mpv-*
 /*.json
+/script/switch/*/src

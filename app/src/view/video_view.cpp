@@ -6,6 +6,7 @@
 #include "utils/config.hpp"
 #include <fmt/format.h>
 #include <fmt/chrono.h>
+#include <sstream>
 
 // The position, in ticks, where playback stopped. 1 tick = 10000 ms
 static const time_t playTicks = 10000000;
@@ -39,7 +40,7 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id), userData(&ite
 
     this->registerAction(
         "cancel", brls::ControllerButton::BUTTON_B,
-        [this](brls::View* view) -> bool {
+        [](brls::View* view) -> bool {
             brls::Application::popActivity(brls::TransitionAnimation::NONE);
             return true;
         },
@@ -72,7 +73,7 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id), userData(&ite
     /// 播放/暂停 按钮
     this->btnToggle->addGestureRecognizer(new brls::TapGestureRecognizer(
         this->btnToggle,
-        [this]() {
+        []() {
             auto& mpv = MPVCore::instance();
             mpv.isPaused() ? mpv.resume() : mpv.pause();
         },

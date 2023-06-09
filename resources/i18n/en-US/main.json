@@ -4,7 +4,11 @@
     "home": "Home",
     "setting": "Setting"
   },
-  "welcome": "Welcome to the Jellyfin.",
+  "home": {
+    "resume": "Continue Watching",
+    "nextup": "Next Up",
+    "latest": "Recently Added"
+  },
   "about": {
     "header": "Introduction",
     "brief": "Yet another third-party jellyfin client",
@@ -13,14 +17,38 @@
   "player": {
     "subtitle": "Subtitle",
     "audio": "Audio track",
-    "common": "Common"
+    "common": "Common",
+    "speed": "Playback Speed"
   },
   "setting": {
     "quit_hint": "You are about to exit the application. The settings will take effect after the next startup",
+    "name": "Name",
+    "version": "Version",
+    "os": "Operating System",
+    "url": "URL",
+    "user": "User",
+    "username": "Username",
+    "password": "Paaword",
+    "server": {
+      "header": "Server",
+      "detail": "Server Details",
+      "connect_new": "New Server",
+      "connect_to": "Connect to a Jellyfin server",
+      "connect": "Connect",
+      "local": "Local Servers",
+      "users":"{} users",
+      "sigin_to": "Sign In to  {}",
+      "signin": "Sign In"
+    },
     "playback": {
       "header": "Playback",
       "hwdec": "Hardware decode",
       "video_codec": "Video Codec"
+    },
+    "network": {
+      "header": "Network",
+      "threads": "Number of image loading threads",
+      "timeout": "Request timeout (ms)"
     },
     "others": {
       "header": "Others",
