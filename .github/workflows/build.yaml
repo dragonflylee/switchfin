@@ -11,7 +11,7 @@ jobs:
   build-switch:
     runs-on: ubuntu-latest
     container:
-      image: devkitpro/devkita64:latest
+      image: devkitpro/devkita64:20221113
     steps:
     - uses: actions/checkout@v3
       with:

@@ -5,6 +5,7 @@
 #include "tab/server_login.hpp"
 #include "activity/main_activity.hpp"
 #include "api/jellyfin.hpp"
+#include "api/analytics.hpp"
 #include "utils/dialog.hpp"
 
 using namespace brls::literals;  // for _i18n
@@ -24,7 +25,6 @@ ServerLogin::ServerLogin(const AppServer& s) : url(s.urls.front()) {
 ServerLogin::~ServerLogin() { brls::Logger::debug("ServerLogin Activity: delete"); }
 
 bool ServerLogin::onSignin() {
-    btnSignin->setActionsAvailable(false);
     btnSignin->setTextColor(brls::Application::getTheme().getColor("font/grey"));
     nlohmann::json data = {{"Username", inputUser->getValue()}, {"Pw", inputPass->getValue()}};
 
@@ -46,12 +46,13 @@ bool ServerLogin::onSignin() {
                 ASYNC_RELEASE
                 AppConfig::instance().addUser(u);
                 brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
+                GA("login", {{"method", {this->url}}});
             });
         } catch (const std::exception& ex) {
-            brls::sync([ASYNC_TOKEN]() {
+            brls::sync([ASYNC_TOKEN, &ex]() {
                 ASYNC_RELEASE
-                this->btnSignin->setActionsAvailable(true);
                 this->btnSignin->setTextColor(brls::Application::getTheme().getColor("brls/text"));
+                Dialog::show(ex.what());
             });
         }
     });

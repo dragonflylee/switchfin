@@ -20,6 +20,7 @@
 #include "utils/dialog.hpp"
 #include "utils/thread.hpp"
 #include "view/mpv_core.hpp"
+#include "api/analytics.hpp"
 
 #ifndef __SWITCH__
 #include <borealis/platforms/desktop/desktop_platform.hpp>
@@ -31,7 +32,7 @@ class SettingAbout : public brls::Box {
 public:
     SettingAbout() {
         this->inflateFromXMLRes("xml/view/setting_about.xml");
-        this->labelTitle->setText(AppVersion::getPlatform());
+        this->labelTitle->setText(AppVersion::pkg_name);
         this->labelVersion->setText(AppVersion::getVersion());
         brls::Logger::debug("dialog SettingAbout: create");
     }
@@ -46,6 +47,7 @@ private:
 SettingTab::SettingTab() {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/settings.xml");
+    GA("open_setting");
 }
 
 void SettingTab::onCreate() {

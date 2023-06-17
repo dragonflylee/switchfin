@@ -68,6 +68,7 @@ void ServerList::onContentAvailable() {
     auto svrs = AppConfig::instance().getServers();
     auto dataSrc = new ServerListDataSource(svrs);
     this->recyclerServers->registerCell("Cell", []() { return new ServerCell(); });
+
     this->recyclerServers->setDataSource(dataSrc);
     dataSrc->setEvent([this](const AppServer& s) { this->onSelect(s); });
     if (svrs.size() > 0) {
@@ -77,6 +78,11 @@ void ServerList::onContentAvailable() {
         view->setHeaderVisibility(brls::Visibility::GONE);
         this->setContentView(view);
     }
+
+    this->btnServerAdd->registerClickAction([this](...){
+        this->appletFrame->pushContentView(new ServerAdd());
+        return true;
+    });
 }
 
 void ServerList::onSelect(const AppServer& s) {
