@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    brls::Application::createWindow(AppVersion::getPlatform());
+    brls::Application::createWindow(fmt::format("{} for {}", AppVersion::pkg_name, AppVersion::getPlatform()));
 
     // Have the application register an action on every activity that will quit when you press BUTTON_START
     brls::Application::setGlobalQuit(false);
@@ -80,12 +80,14 @@ int main(int argc, char* argv[]) {
         brls::Application::pushActivity(new MainActivity());
     }
 
+    auto& thread = ThreadPool::instance();
+
     AppVersion::checkUpdate();
     // Run the app
     while (brls::Application::mainLoop())
         ;
 
-    ThreadPool::instance().stop();
+    thread.stop();
 
     AppConfig::instance().checkRestart(argv);
     // Exit

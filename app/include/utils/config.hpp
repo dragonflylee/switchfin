@@ -12,9 +12,9 @@ public:
     static bool needUpdate(std::string latestVersion);
     static void checkUpdate(int delay = 2000, bool showUpToDateDialog = false);
 
-private:
     static std::string git_commit;
     static std::string git_tag;
+    static std::string pkg_name;
 };
 
 struct AppUser {

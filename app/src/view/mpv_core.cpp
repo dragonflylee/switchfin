@@ -716,7 +716,7 @@ double MPVCore::getPlaybackTime() {
     return this->playback_time;
 }
 void MPVCore::disableDimming(bool disable) {
-    brls::Application::getPlatform()->disableScreenDimming(disable, "Playing video", AppVersion::getPlatform());
+    brls::Application::getPlatform()->disableScreenDimming(disable, "Playing video", AppVersion::pkg_name);
     brls::Application::setAutomaticDeactivation(!disable);
 }
 

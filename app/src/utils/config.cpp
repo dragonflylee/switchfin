@@ -134,26 +134,27 @@ void AppConfig::init() {
 }
 
 void AppConfig::save() {
-    const std::string path = this->configDir() + "/config.json";
-    std::filesystem::create_directories(this->configDir());
-    std::ofstream f(path);
-    if (f.is_open()) {
-        nlohmann::json j(*this);
-        f << j.dump(2);
-        f.close();
+    try {
+        std::filesystem::create_directories(this->configDir());
+        std::ofstream f(this->configDir() + "/config.json");
+        if (f.is_open()) {
+            nlohmann::json j(*this);
+            f << j.dump(2);
+            f.close();
+        }
+    } catch (...) {
     }
 }
 
 std::string AppConfig::configDir() {
 #if __SWITCH__
-    return "sdmc:/switch/Jellyfin";
+    return fmt::format("sdmc:/switch/{}", AppVersion::pkg_name);
 #elif _WIN32
-    return std::string(getenv("LOCALAPPDATA")) + "\\Jellyfin";
+    return fmt::format("{}\\{}", getenv("LOCALAPPDATA"), AppVersion::pkg_name);
 #elif __linux__
-    std::string(getenv("HOME")) + "/.config/Jellyfin";
+    return fmt::format("{}/.config/{}", getenv("HOME"), AppVersion::pkg_name);
 #elif __APPLE__
-    return std::string(getenv("HOME")) + "/Library/Application Support/Jellyfin";
-#else
+    return fmt::format("{}/Library/Application Support/{}", getenv("HOME"), AppVersion::pkg_name);
 #endif
 }
 

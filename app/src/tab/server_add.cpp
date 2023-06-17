@@ -23,7 +23,6 @@ ServerAdd::~ServerAdd() { brls::Logger::debug("ServerAdd Activity: delete"); }
 ServerAdd* ServerAdd::create() { return new ServerAdd(); }
 
 bool ServerAdd::onConnect() {
-    this->btnConnect->setActionsAvailable(false);
     this->btnConnect->setTextColor(brls::Application::getTheme().getColor("font/grey"));
     std::string baseUrl = this->inputUrl->getValue();
     brls::Logger::debug("ServerAdd onConnect: click {}", baseUrl);
@@ -34,11 +33,11 @@ bool ServerAdd::onConnect() {
             auto resp = HTTP::get(baseUrl + jellyfin::apiPublicInfo, HTTP::Timeout{3000});
             jellyfin::PublicSystemInfo info = nlohmann::json::parse(std::get<1>(resp));
             AppServer s = {
-                info.ServerName,
-                info.Id,
-                info.Version,
-                info.OperatingSystem,
-                {baseUrl},
+                .name = info.ServerName,
+                .id = info.Id,
+                .version = info.Version,
+                .os = info.OperatingSystem,
+                .urls = {baseUrl},
             };
             brls::sync([ASYNC_TOKEN, s]() {
                 ASYNC_RELEASE
@@ -48,7 +47,6 @@ bool ServerAdd::onConnect() {
         } catch (const std::exception& ex) {
             brls::sync([ASYNC_TOKEN, &ex]() {
                 ASYNC_RELEASE
-                this->btnConnect->setActionsAvailable(true);
                 this->btnConnect->setTextColor(brls::Application::getTheme().getColor("brls/text"));
                 Dialog::show(ex.what());
             });

@@ -8,18 +8,19 @@
 
 std::string AppVersion::git_commit = STR(BUILD_TAG_SHORT);
 std::string AppVersion::git_tag = STR(BUILD_TAG_VERSION);
+std::string AppVersion::pkg_name = STR(BUILD_PACKAGE_NAME);
 
 std::string AppVersion::getVersion() { return git_tag.empty() ? "dev-" + git_commit : git_tag; }
 
 std::string AppVersion::getPlatform() {
 #if __SWITCH__
-    return STR(BUILD_PACKAGE_NAME) " for Switch";
+    return "NX";
 #elif __APPLE__
-    return STR(BUILD_PACKAGE_NAME) " for macOS";
+    return "macOS";
 #elif __linux__
-    return STR(BUILD_PACKAGE_NAME) " for Linux";
+    return "Linux";
 #elif _WIN32
-    return STR(BUILD_PACKAGE_NAME) " for Windows";
+    return "Windows";
 #endif
 }
 

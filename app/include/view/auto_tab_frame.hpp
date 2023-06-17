@@ -126,8 +126,8 @@ public:
 
     View* getDefaultFocus() override { return brls::Box::getDefaultFocus(); }
 
-    void registerTabAction(std::string hintText, enum brls::ControllerButton button, brls::ActionListener action, bool hidden = false,
-                           bool allowRepeating = false, enum brls::Sound sound = brls::SOUND_NONE);
+    void registerTabAction(std::string hintText, enum brls::ControllerButton button, brls::ActionListener action,
+        bool hidden = false, bool allowRepeating = false, enum brls::Sound sound = brls::SOUND_NONE);
 
 private:
     AutoSidebarItem* tab = nullptr;
@@ -193,7 +193,8 @@ public:
 
     bool isOnTop = false;
 
-    void draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style, brls::FrameContext* ctx) override;
+    void draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style,
+        brls::FrameContext* ctx) override;
 
     /**
      * Setting the position of sidebar.

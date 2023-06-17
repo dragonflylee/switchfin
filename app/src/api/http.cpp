@@ -12,7 +12,7 @@ private:
     CURLcode code;
 };
 
-static std::string user_agent = fmt::format("{}/{}", AppVersion::getPlatform(), AppVersion::getVersion());
+static std::string user_agent = fmt::format("{}/{}", AppVersion::pkg_name, AppVersion::getVersion());
 
 /// @brief curl context
 
@@ -75,6 +75,23 @@ void HTTP::set_option(const Cancel& c) {
     this->is_cancel = std::move(c);
     curl_easy_setopt(this->easy, CURLOPT_XFERINFOFUNCTION, easy_progress_cb);
     curl_easy_setopt(this->easy, CURLOPT_XFERINFODATA, this);
+}
+
+void HTTP::set_option(const Cookies& cookies) {
+    std::stringstream ss;
+    char* escaped;
+    for (auto& c : cookies)
+    {
+        ss << c.name << "=";
+        escaped = curl_easy_escape(this->easy, c.value.c_str(), c.value.size());
+        if (escaped)
+        {
+            ss << escaped;
+            curl_free(escaped);
+        }
+        ss << "; ";
+    }
+    curl_easy_setopt(this->easy, CURLOPT_COOKIE, ss.str().c_str());
 }
 
 size_t HTTP::easy_write_cb(char* ptr, size_t size, size_t nmemb, void* userdata) {

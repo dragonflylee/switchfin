@@ -29,6 +29,16 @@ public:
         long timeout = -1;
     };
 
+    struct Cookie {
+        std::string name;
+        std::string value;
+        std::string domain;
+        std::string path;
+        bool http_only;
+    };
+
+    using Cookies = std::vector<Cookie>;
+
     HTTP();
     HTTP(const HTTP& other) = delete;
     ~HTTP();
@@ -69,7 +79,7 @@ public:
         set_option(s, std::forward<Ts>(ts)...);
         return s.post(url, s.encode_form(form));
     }
-    
+
 private:
     static size_t easy_write_cb(char* ptr, size_t size, size_t nmemb, void* userdata);
     static int easy_progress_cb(
@@ -81,6 +91,7 @@ private:
     void set_option(const Range& r);
     void set_option(const Timeout& t);
     void set_option(const Cancel& c);
+    void set_option(const Cookies& cookies);
 
     template <typename CT>
     void set_option_internal(CT&& option) {

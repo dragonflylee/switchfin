@@ -35,13 +35,13 @@ bool ServerLogin::onSignin() {
             "Content-Type: application/json",
             fmt::format(
                 "X-Emby-Authorization: MediaBrowser Client=\"{}\", Device=\"{}\", DeviceId=\"{}\", Version=\"{}\"",
-                AppVersion::getPlatform(), AppVersion::getDeviceName(), device, AppVersion::getVersion()),
+                AppVersion::pkg_name, AppVersion::getDeviceName(), device, AppVersion::getVersion()),
         };
 
         try {
             auto resp = HTTP::post(this->url + jellyfin::apiAuthByName, data.dump(), header);
             jellyfin::AuthResult r = nlohmann::json::parse(std::get<1>(resp));
-            AppUser u = {r.User.Id, r.User.Name, r.AccessToken, r.ServerId};
+            AppUser u = {.id = r.User.Id, .name = r.User.Name, .access_token = r.AccessToken, .server_id = r.ServerId};
             brls::sync([ASYNC_TOKEN, u]() {
                 ASYNC_RELEASE
                 AppConfig::instance().addUser(u);

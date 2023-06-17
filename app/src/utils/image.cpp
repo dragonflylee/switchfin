@@ -55,13 +55,15 @@ void Image::doRequest() {
         return;
     }
     try {
-        std::string data = std::get<1>(HTTP::get(this->url, this->isCancel));
+        auto resp = HTTP::get(this->url, this->isCancel);
+        if (std::get<0>(resp) != 200) return;
+        std::string data = std::get<1>(resp);
         brls::Logger::verbose("request Image {} size {}", this->url, data.size());
         brls::sync([this, data] {
             if (this->isCancel->load()) return;
             // Load texture
             int tex = brls::TextureCache::instance().getCache(url);
-            if (tex == 0) {
+            if (tex == 0 && data.size() > 0) {
                 NVGcontext* vg = brls::Application::getNVGContext();
                 tex = nvgCreateImageMem(vg, 0, (unsigned char*)data.c_str(), data.size());
                 brls::TextureCache::instance().addCache(this->url, tex);
