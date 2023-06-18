@@ -42,6 +42,7 @@ git submodule update --init --recursive --depth 1
 To build for Switch, a standard development environment must first be set up. In order to do so, [refer to the Getting Started guide](https://devkitpro.org/wiki/Getting_Started).
 
 ```bash
+sudo dkp-pacman -S switch-glfw switch-libwebp switch-cmake switch-curl devkitA64
 cmake -B build_switch -DPLATFORM_SWITCH=ON
 make -C build_switch Switchfin.nro -j$(nproc)
 ```

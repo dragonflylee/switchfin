@@ -11,3 +11,6 @@ ffmpeg-*
 mpv-*
 /*.json
 /script/switch/*/src
+/parts/*
+/prime/*
+/stage/*

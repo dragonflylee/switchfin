@@ -18,14 +18,19 @@ MAKEPKG	:=	makepkg
 endif
 endif
 
-all: ffmpeg mpv 
+all: mpv
 
-.PHONY: mpv
-mpv:
-	@echo Installing libmpv
-	@cd libmpv; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
+.PHONY: libass
+libass:
+	@echo Installing libass
+	@cd libass; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
 
 .PHONY: ffmpeg
 ffmpeg:
 	@echo Installing ffmpeg
 	@cd ffmpeg; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
+
+.PHONY: mpv
+mpv: ffmpeg libass
+	@echo Installing libmpv
+	@cd libmpv; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..

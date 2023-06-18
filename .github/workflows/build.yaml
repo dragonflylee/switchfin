@@ -11,7 +11,7 @@ jobs:
   build-switch:
     runs-on: ubuntu-latest
     container:
-      image: devkitpro/devkita64:20221113
+      image: devkitpro/devkita64:20230622
     steps:
     - uses: actions/checkout@v3
       with:
@@ -32,6 +32,7 @@ jobs:
     - name: Update dependencies
       if: ${{ github.ref_name != '0.1.0' }}
       run: |
+        dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/0.1.0/switch-libass-0.17.1-1-any.pkg.tar.zst
         dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/0.1.0/switch-ffmpeg-4.4.4-1-any.pkg.tar.zst
         dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/0.1.0/switch-libmpv-0.35.1-1-any.pkg.tar.zst
     - name: Build nro
@@ -46,6 +47,22 @@ jobs:
         files: |
           Switchfin-NintendoSwitch.zip
           scripts/switch/*/*.pkg.tar.zst
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        fetch-depth: 1
+    - name: Build snap
+      uses: snapcore/action-build@v1
+      id: snapcraft
+    - name: Release and Upload Assets
+      uses: softprops/action-gh-release@v1
+      with:
+        name: ${{ github.ref_name }}
+        files: ${{ steps.snapcraft.outputs.snap }}
 
   build-macos:
     runs-on: macos-11
@@ -65,7 +82,7 @@ jobs:
         cmake -P ${BRLS_GLFW}/CMake/GenerateMappings.cmake ${BRLS_GLFW}/src/mappings.h.in ${BRLS_GLFW}/src/mappings.h
 
         cmake -B build -DPLATFORM_DESKTOP=ON -DCMAKE_BUILD_TYPE=Release
-        make -C build Switchfin.app -j$(sysctl -n hw.ncpu)
+        make -C build -j$(sysctl -n hw.ncpu)
 
         mkdir -p dist
         mv build/Switchfin.app dist/
@@ -116,5 +133,3 @@ jobs:
       with:
         name: ${{ github.ref_name }}
         files: Switchfin-Win64.zip
-      
-        

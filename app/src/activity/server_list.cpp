@@ -73,16 +73,16 @@ void ServerList::onContentAvailable() {
     dataSrc->setEvent([this](const AppServer& s) { this->onSelect(s); });
     if (svrs.size() > 0) {
         this->onSelect(svrs[this->recyclerServers->getDefaultFocusedIndex()]);
+
+        this->btnServerAdd->registerClickAction([this](...) {
+            this->appletFrame->pushContentView(new ServerAdd());
+            return true;
+        });
     } else {
         brls::AppletFrame* view = new brls::AppletFrame(new ServerAdd());
         view->setHeaderVisibility(brls::Visibility::GONE);
         this->setContentView(view);
     }
-
-    this->btnServerAdd->registerClickAction([this](...){
-        this->appletFrame->pushContentView(new ServerAdd());
-        return true;
-    });
 }
 
 void ServerList::onSelect(const AppServer& s) {

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Switchfin
+Comment=A 3rd party jellyfin client
+Icon=${SNAP}/meta/gui/icon.png
+Exec=switchfin
+Terminal=false
+Categories=AudioVideo

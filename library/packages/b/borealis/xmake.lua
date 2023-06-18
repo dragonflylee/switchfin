@@ -7,8 +7,9 @@ package("borealis")
     add_configs("winrt", {description = "use winrt api", default = false, type = "boolean"})
     add_deps("nanovg", "yoga", "nlohmann_json", "fmt", "tweeny", "stb", "tinyxml2")
     add_includedirs("include")
-    if is_plat("windows") then
+    if is_plat("windows", "mingw") then
         add_includedirs("include/compat")
+        add_syslinks("Wlanapi", "iphlpapi", "Ws2_32")
     end
     on_load(function (package)
         local window = package:config("window")

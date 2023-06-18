@@ -29,8 +29,6 @@ add_requires("lunasvg")
 add_requires("libcurl")
 add_requires("mpv", {configs={shared=true}})
 
-set_version("$(shell git describe --tags)", {build = "$(shell git rev-list --count --all)"})
-
 target("Switchfin")
     add_includedirs("app/include")
     add_files("app/src/**.cpp")
@@ -58,10 +56,8 @@ target("Switchfin")
     end
     add_packages("borealis", "lunasvg", "libcurl", "mpv")
     if is_plat("windows", "mingw") then
-        add_links("Wlanapi", "iphlpapi", "Ws2_32")
         add_files("$(buildir)/app_win32.rc")
         add_defines("BOREALIS_USE_STD_THREAD")
-        add_links("Wlanapi")
         after_build(function (target)
             for _, pkg in pairs(target:pkgs()) do
                 if pkg:has_shared() then
@@ -85,7 +81,12 @@ target("Switchfin")
         end
     end
     on_config(function (target)
+        local cmakefile = io.readfile("CMakeLists.txt")
+        target:set("configvar", "VERSION_MAJOR", string.match(cmakefile, "set%(VERSION_MAJOR \"(%d)\"%)"))
+        target:set("configvar", "VERSION_MINOR", string.match(cmakefile, "set%(VERSION_MINOR \"(%d)\"%)"))
+        target:set("configvar", "VERSION_ALTER", string.match(cmakefile, "set%(VERSION_ALTER \"(%d)\"%)"))
+        target:set("configvar", "VERSION_BUILD", "$(shell git rev-list --count --all)")
         target:add("defines", "BUILD_PACKAGE_NAME="..target:name())
-        target:add("defines", "BUILD_TAG_VERSION=v"..target:get("version"))
+        target:add("defines", "BUILD_TAG_VERSION=v$(shell git describe --tags)")
         target:add("defines", "BUILD_TAG_SHORT=$(shell git rev-parse --short HEAD)")
     end)

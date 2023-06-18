@@ -3,13 +3,14 @@ cmake_minimum_required(VERSION 3.15)
 # build options
 set(PLATFORM_DESKTOP OFF CACHE BOOL "build for desktop, ON for desktop; OFF for switch")
 set(PLATFORM_SWITCH OFF CACHE BOOL "build for NintendoSwitch")
-set(WIN32_TERMINAL ON CACHE BOOL "Show terminal when run on Windows")
+option(WIN32_TERMINAL "Show terminal when run on Windows" ON)
 
 # mpv related
-set(MPV_SW_RENDER OFF CACHE BOOL "Using CPU to draw videos")
+option(MPV_SW_RENDER "Using CPU to draw videos" OFF)
 
 option(USE_GLFW "using glfw for input and create window" ON)
 option(USE_SDL2 "using sdl2 for input and create window" OFF)
+option(CMAKE_INSTALL "Install to system. only use this option with Linux." OFF)
 
 if(USE_SDL2)
     message("SDL2")
@@ -60,7 +61,11 @@ set(PROJECT_TITLEID "0x010FF000FFFF0003")
 set(PROJECT_AUTHOR "dragonflylee")
 set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon.jpg)
 set(PROJECT_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/resources)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+
+if (CMAKE_INSTALL)
+    set(BRLS_RESOURCES_DIR ${CMAKE_INSTALL_PREFIX}/lib)
+endif ()
 
 # build borealis qrcode and other third party libraries
 add_subdirectory(library)
@@ -91,16 +96,13 @@ if (PLATFORM_DESKTOP)
     if (WIN32)
         configure_file("${CMAKE_SOURCE_DIR}/app/app_win32.rc.in" "${CMAKE_BINARY_DIR}/app_win32.rc")
         list(APPEND MAIN_SRC ${CMAKE_BINARY_DIR}/app_win32.rc)
-    elseif (APPLE)
-        set(PROJECT_CONTENT ${PROJECT_NAME}.app/Contents)
-        configure_file("${CMAKE_SOURCE_DIR}/app/app.plist.in" "${PROJECT_CONTENT}/Info.plist")
     endif ()
 elseif (PLATFORM_SWITCH)
     set(PLATFORM_LIBS
         # needed by borealis
         glfw3 EGL glapi drm_nouveau
         # needed by mpv
-        mpv swscale swresample avformat avfilter avcodec avutil ass freetype fribidi png bz2 z SDL2
+        mpv swscale swresample avformat avfilter avcodec avutil ass freetype fribidi harfbuzz png bz2 z
         mbedx509 mbedtls mbedcrypto
         # needed by curl
         curl z
@@ -129,12 +131,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     -DBUILD_TAG_SHORT=${GIT_TAG_SHORT}
     -DBUILD_PACKAGE_NAME=${CMAKE_PROJECT_NAME}
 )
-if (APPLE)
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        LIBRARY_OUTPUT_DIRECTORY ${PROJECT_CONTENT}/Library
-        RUNTIME_OUTPUT_DIRECTORY ${PROJECT_CONTENT}/MacOS
-    )
-endif ()
 
 
 # building release file
@@ -143,20 +139,33 @@ if (PLATFORM_DESKTOP)
         message(STATUS "CMAKE_OSX_ARCHITECTURES: x86_64;arm64")
         set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Architectures" FORCE)
         set(CMAKE_XCODE_ATTRIBUTE_MACOSX_DEPLOYMENT_TARGET[arch=arm64] "11.0" CACHE STRING "arm 64 minimum deployment target" FORCE)
+        set_target_properties(${PROJECT_NAME} PROPERTIES
+            MACOSX_BUNDLE TRUE
+            MACOSX_BUNDLE_BUNDLE_NAME ${PROJECT_NAME}
+            MACOSX_BUNDLE_BUNDLE_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}"
+            MACOSX_BUNDLE_LONG_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}"
+            MACOSX_BUNDLE_SHORT_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}"
+            MACOSX_BUNDLE_ICON_FILE "app.icns"
+            MACOSX_BUNDLE_COPYRIGHT "Copyright 2023 ${PROJECT_AUTHOR}"
+            RESOURCE "${PROJECT_RESOURCES} ${CMAKE_SOURCE_DIR}/app/app.icns"
+        )
 
-        add_custom_target(${PROJECT_NAME}.app
-            COMMAND "${CMAKE_COMMAND}" -E make_directory ${PROJECT_CONTENT}/Resources ${PROJECT_CONTENT}/MacOS
-            COMMAND "${CMAKE_COMMAND}" -E copy_directory ${PROJECT_RESOURCES} ${PROJECT_CONTENT}/Resources/resources
-            COMMAND "${CMAKE_COMMAND}" -E copy ${CMAKE_SOURCE_DIR}/app/app.icns ${PROJECT_CONTENT}/Resources
-            COMMAND dylibbundler -cd -b -x ${PROJECT_CONTENT}/MacOS/${PROJECT_NAME} -d ${PROJECT_CONTENT}/Library/ -p @executable_path/../Library/
-            COMMAND codesign --sign - --force ${PROJECT_CONTENT}/Library/*
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E copy_directory ${PROJECT_RESOURCES} Resources/resources
+            COMMAND "${CMAKE_COMMAND}" -E copy ${CMAKE_SOURCE_DIR}/app/app.icns Resources
+            COMMAND dylibbundler -cd -b -x MacOS/${PROJECT_NAME} -d Library/ -p @executable_path/../Library/
+            COMMAND codesign --sign - --force Library/*
+            WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/${PROJECT_NAME}.app/Contents"
         )
-        add_dependencies(${PROJECT_NAME}.app ${PROJECT_NAME})
+    elseif (CMAKE_INSTALL)
+        install(TARGETS ${PROJECT_NAME})
+        install(DIRECTORY ${PROJECT_RESOURCES} DESTINATION ${BRLS_RESOURCES_DIR}
+            FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+        )
     else()
-        add_custom_target(${PROJECT_NAME}.data
-            COMMAND "${CMAKE_COMMAND}" -E copy_directory ${PROJECT_RESOURCES} ${CMAKE_CURRENT_BINARY_DIR}/resources
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E copy_directory ${PROJECT_RESOURCES} ${PROJECT_BINARY_DIR}/resources
         )
-        add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}.data)
     endif()
 
 elseif(PLATFORM_SWITCH)
