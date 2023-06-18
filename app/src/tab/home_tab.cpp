@@ -9,6 +9,8 @@
 #include "view/video_card.hpp"
 #include "view/video_view.hpp"
 
+using namespace brls::literals;  // for _i18n
+
 class VideoDataSource : public RecyclingGridDataSource {
 public:
     using MediaList = std::vector<jellyfin::MediaEpisode>;
@@ -100,6 +102,14 @@ HomeTab::HomeTab() {
     this->userResume->registerCell("Cell", &VideoCardCell::create);
     this->userLatest->registerCell("Cell", &VideoCardCell::create);
     this->showNextup->registerCell("Cell", &VideoCardCell::create);
+
+    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
+        this->doResume();
+        this->doLatest();
+        this->doNextup();
+        return true;
+    });
+
     this->doResume();
     this->doLatest();
     this->doNextup();
@@ -120,7 +130,14 @@ void HomeTab::doResume() {
     jellyfin::getJSON(
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
             ASYNC_RELEASE
-            this->userResume->setDataSource(new ResumeDataSource(r.Items));
+            if (r.Items.empty()) {
+                this->userResume->setVisibility(brls::Visibility::GONE);
+                this->headerResume->setVisibility(brls::Visibility::GONE);
+            } else {
+                this->headerResume->setVisibility(brls::Visibility::VISIBLE);
+                this->userResume->setVisibility(brls::Visibility::VISIBLE);
+                this->userResume->setDataSource(new ResumeDataSource(r.Items));
+            }
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE

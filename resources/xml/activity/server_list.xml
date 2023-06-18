@@ -32,7 +32,7 @@
                 marginTop="20">
 
                 <brls:Button
-                    id="server/add"
+                    id="btn/server/add"
                     style="primary"
                     grow="1.0"
                     text="@i18n/main/setting/server/connect_new"
@@ -72,7 +72,7 @@
 
                 <brls:SelectorCell
                     title="@i18n/main/setting/url"
-                    id="server/urls" />
+                    id="selector/server/urls" />
 
                 <brls:DetailCell
                     title="@i18n/main/setting/version"
@@ -91,7 +91,7 @@
                 height="auto">
 
                 <brls:Button
-                    id="server/signin"
+                    id="btn/server/signin"
                     style="primary"
                     grow="1.0"
                     text="@i18n/main/setting/server/signin"

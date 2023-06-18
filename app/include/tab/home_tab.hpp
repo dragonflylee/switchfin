@@ -17,9 +17,12 @@ public:
     static brls::View* create();
 
 private:
-    BRLS_BIND(HRecyclerFrame, userResume, "user/resume");
-    BRLS_BIND(HRecyclerFrame, showNextup, "show/nextup");
-    BRLS_BIND(HRecyclerFrame, userLatest, "user/latest");
+    BRLS_BIND(brls::Header, headerResume, "home/header/resume");
+    BRLS_BIND(brls::Header, headerNextup, "home/header/nextup");
+    BRLS_BIND(brls::Header, headerLatest, "home/header/latest");
+    BRLS_BIND(HRecyclerFrame, userResume, "home/user/resume");
+    BRLS_BIND(HRecyclerFrame, showNextup, "home/show/nextup");
+    BRLS_BIND(HRecyclerFrame, userLatest, "home/user/latest");
 
     void doResume();
     void doLatest();

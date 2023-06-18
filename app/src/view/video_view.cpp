@@ -110,7 +110,7 @@ void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::S
     mpv.openglDraw(this->getFrame(), this->getAlpha());
 
     // draw osd
-    time_t current = time(nullptr);
+    time_t current = std::time(nullptr);
     if (current < this->osdLastShowTime) {
         if (!this->isOsdShown) {
             this->isOsdShown = true;
@@ -341,7 +341,7 @@ void VideoView::toggleOSD() {
 
 void VideoView::showOSD(bool autoHide) {
     if (autoHide) {
-        this->osdLastShowTime = time(nullptr) + VideoView::OSD_SHOW_TIME;
+        this->osdLastShowTime = std::time(nullptr) + VideoView::OSD_SHOW_TIME;
         this->osd_state = OSDState::SHOWN;
     } else {
         this->osdLastShowTime = 0xffffffff;

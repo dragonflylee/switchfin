@@ -20,11 +20,12 @@ public:
     void onSelect(const AppServer& s);
 
 private:
+    BRLS_BIND(brls::Button, btnServerAdd, "btn/server/add");
     BRLS_BIND(brls::AppletFrame, appletFrame, "server/frame");
     BRLS_BIND(RecyclingGrid, recyclerServers, "server/recycler");
     BRLS_BIND(RecyclingGrid, recyclerUsers, "user/recycler");
     BRLS_BIND(brls::DetailCell, serverVersion, "server/version");
     BRLS_BIND(brls::DetailCell, serverOS, "server/os");
-    BRLS_BIND(brls::SelectorCell, selectorUrl, "server/urls");
-    BRLS_BIND(brls::Button, btnSignin, "server/signin");
+    BRLS_BIND(brls::SelectorCell, selectorUrl, "selector/server/urls");
+    BRLS_BIND(brls::Button, btnSignin, "btn/server/signin");
 };

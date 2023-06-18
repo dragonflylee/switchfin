@@ -20,36 +20,39 @@
                 width="auto"
                 height="auto"
                 title="@i18n/main/home/resume"
+                id="home/header/resume"
                 marginBottom="0px" />
             <HRecyclerFrame
                 width="auto"
                 height="240"
                 itemWidth="350"
-                id="user/resume" />
+                id="home/user/resume" />
 
             <brls:Header
                 width="auto"
                 height="auto"
                 marginTop="15"
                 title="@i18n/main/home/nextup"
+                id="home/header/nextup"
                 marginBottom="0px" />
             <HRecyclerFrame
                 width="auto"
                 height="240"
                 itemWidth="350"
-                id="show/nextup" />
+                id="home/show/nextup" />
 
             <brls:Header
                 width="auto"
                 height="auto"
                 marginTop="15"
                 title="@i18n/main/home/latest"
+                id="home/header/latest"
                 marginBottom="0px" />
             <HRecyclerFrame
                 width="auto"
                 height="300"
                 itemWidth="180"
-                id="user/latest" />
+                id="home/user/latest" />
 
         </brls:Box>
 
