@@ -36,10 +36,10 @@ public:
         auto epimage = item.ImageTags.find(jellyfin::imageTypePrimary);
         if (epimage != item.ImageTags.end()) {
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
-                HTTP::encode_query({{"tag", epimage->second}, {"fillWidth", "300"}}));
+                HTTP().encode_form({{"tag", epimage->second}, {"fillWidth", "300"}}));
         } else {
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId,
-                HTTP::encode_query({{"tag", item.SeriesPrimaryImageTag}, {"fillWidth", "300"}}));
+                HTTP().encode_form({{"tag", item.SeriesPrimaryImageTag}, {"fillWidth", "300"}}));
         }
 
         if (item.IndexNumber > 0)
@@ -80,7 +80,7 @@ MediaSeries::MediaSeries(const jellyfin::MediaItem& item) : seriesId(item.Id) {
     auto logo = item.ImageTags.find(jellyfin::imageTypeLogo);
     if (logo != item.ImageTags.end()) {
         Image::load(this->imageLogo, jellyfin::apiLogoImage, item.Id,
-            HTTP::encode_query({
+            HTTP().encode_form({
                 {"tag", logo->second},
                 {"maxWidth", "300"},
             }));
@@ -90,7 +90,7 @@ MediaSeries::MediaSeries(const jellyfin::MediaItem& item) : seriesId(item.Id) {
 }
 
 void MediaSeries::doSeasons() {
-    std::string query = HTTP::encode_query({
+    std::string query = HTTP().encode_form({
         {"userId", AppConfig::instance().getUser().id},
         {"fields", "ItemCounts,PrimaryImageAspectRatio"},
     });
@@ -124,7 +124,7 @@ void MediaSeries::doSeasons() {
 }
 
 void MediaSeries::doEpisodes(const std::string& seasonId) {
-    std::string query = HTTP::encode_query({
+    std::string query = HTTP().encode_form({
         {"userId", AppConfig::instance().getUser().id},
         {"seasonId", seasonId},
         {"fields", "ItemCounts,PrimaryImageAspectRatio,Overview"},

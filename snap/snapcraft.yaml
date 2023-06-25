@@ -16,6 +16,7 @@ apps:
     - wayland
     - x11
     - opengl
+    - network
 
 layout:
   /usr/lib/dri:

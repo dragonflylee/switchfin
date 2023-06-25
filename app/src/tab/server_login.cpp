@@ -40,7 +40,7 @@ bool ServerLogin::onSignin() {
 
         try {
             auto resp = HTTP::post(this->url + jellyfin::apiAuthByName, data.dump(), header);
-            jellyfin::AuthResult r = nlohmann::json::parse(std::get<1>(resp));
+            jellyfin::AuthResult r = nlohmann::json::parse(resp);
             AppUser u = {.id = r.User.Id, .name = r.User.Name, .access_token = r.AccessToken, .server_id = r.ServerId};
             brls::sync([ASYNC_TOKEN, u]() {
                 ASYNC_RELEASE

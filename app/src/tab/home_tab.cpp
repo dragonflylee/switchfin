@@ -28,7 +28,7 @@ public:
             cell->labelExt->setText(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
 
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId,
-                HTTP::encode_query({{"tag", item.SeriesPrimaryImageTag}, {"maxWidth", "240"}}));
+                HTTP().encode_form({{"tag", item.SeriesPrimaryImageTag}, {"maxWidth", "240"}}));
         } else {
             cell->labelTitle->setText(item.Name);
             cell->labelExt->setText(item.ProductionYear > 0 ? std::to_string(item.ProductionYear) : "");
@@ -36,7 +36,7 @@ public:
             auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
             if (it != item.ImageTags.end())
                 Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
-                    HTTP::encode_query({{"tag", it->second}, {"maxWidth", "200"}}));
+                    HTTP().encode_form({{"tag", it->second}, {"maxWidth", "200"}}));
         }
         return cell;
     }
@@ -79,10 +79,10 @@ public:
         auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
         if (it != item.ImageTags.end())
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
-                HTTP::encode_query({{"tag", it->first}, {"maxWidth", "300"}}));
+                HTTP().encode_form({{"tag", it->first}, {"maxWidth", "300"}}));
         else
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId,
-                HTTP::encode_query({{"tag", item.SeriesPrimaryImageTag}, {"fillWidth", "300"}}));
+                HTTP().encode_form({{"tag", item.SeriesPrimaryImageTag}, {"fillWidth", "300"}}));
 
         if (item.Type == jellyfin::mediaTypeEpisode) {
             cell->labelTitle->setText(item.SeriesName);
@@ -120,7 +120,7 @@ void HomeTab::onCreate() {}
 brls::View* HomeTab::create() { return new HomeTab(); }
 
 void HomeTab::doResume() {
-    std::string query = HTTP::encode_query({
+    std::string query = HTTP().encode_form({
         {"enableImageTypes", "Primary"},
         {"mediaTypes", "Video"},
         {"fields", "BasicSyncInfo"},
@@ -147,7 +147,7 @@ void HomeTab::doResume() {
 }
 
 void HomeTab::doLatest() {
-    std::string query = HTTP::encode_query({
+    std::string query = HTTP().encode_form({
         {"enableImageTypes", "Primary"},
         {"fields", "BasicSyncInfo"},
         {"limit", "16"},
@@ -166,7 +166,7 @@ void HomeTab::doLatest() {
 }
 
 void HomeTab::doNextup() {
-    std::string query = HTTP::encode_query({
+    std::string query = HTTP().encode_form({
         {"userId", AppConfig::instance().getUser().id},
         {"fields", "PrimaryImageAspectRatio"},
         {"enableTotalRecordCount", "false"},

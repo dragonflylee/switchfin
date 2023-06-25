@@ -12,6 +12,15 @@ private:
     CURLcode code;
 };
 
+class curl_status_code : public std::exception {
+public:
+    explicit curl_status_code(int s) { msg = fmt::format("http status {}", s); }
+    const char* what() const noexcept override { return msg.c_str(); }
+
+private:
+    std::string msg;
+};
+
 static std::string user_agent = fmt::format("{}/{}", AppVersion::pkg_name, AppVersion::getVersion());
 
 /// @brief curl context
@@ -80,12 +89,10 @@ void HTTP::set_option(const Cancel& c) {
 void HTTP::set_option(const Cookies& cookies) {
     std::stringstream ss;
     char* escaped;
-    for (auto& c : cookies)
-    {
+    for (auto& c : cookies) {
         ss << c.name << "=";
         escaped = curl_easy_escape(this->easy, c.value.c_str(), c.value.size());
-        if (escaped)
-        {
+        if (escaped) {
             ss << escaped;
             curl_free(escaped);
         }
@@ -125,19 +132,21 @@ std::string HTTP::encode_form(const Form& form) {
     return ss.str();
 }
 
-HTTP::Response HTTP::get(const std::string& url) {
+std::string HTTP::get(const std::string& url) {
     std::ostringstream body;
     curl_easy_setopt(this->easy, CURLOPT_URL, url.c_str());
     curl_easy_setopt(this->easy, CURLOPT_HTTPGET, 1L);
     int status_code = this->perform(&body);
-    return std::make_tuple(status_code, body.str());
+    if (status_code >= 400) throw curl_status_code(status_code);
+    return body.str();
 }
 
-HTTP::Response HTTP::post(const std::string& url, const std::string& data) {
+std::string HTTP::post(const std::string& url, const std::string& data) {
     std::ostringstream body;
     curl_easy_setopt(this->easy, CURLOPT_URL, url.c_str());
     curl_easy_setopt(this->easy, CURLOPT_POSTFIELDS, data.c_str());
     curl_easy_setopt(this->easy, CURLOPT_POSTFIELDSIZE, data.size());
     int status_code = this->perform(&body);
-    return std::make_tuple(status_code, body.str());
+    if (status_code >= 400) throw curl_status_code(status_code);
+    return body.str();
 }

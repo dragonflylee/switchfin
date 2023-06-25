@@ -30,7 +30,7 @@ Analytics::Analytics() {
     const auto sec = std::chrono::duration_cast<std::chrono::seconds>(ts);
 
     this->client_id = fmt::format("GA1.3.{}.{}", AppVersion::git_commit, sec.count());
-    this->url = GA_URL + "?" + HTTP::encode_query({{"api_secret", GA_KEY}, {"measurement_id", GA_ID}});
+    this->url = GA_URL + "?" + HTTP().encode_form({{"api_secret", GA_KEY}, {"measurement_id", GA_ID}});
 
     this->ticker.setCallback([]() { brls::Threading::async([]() { Analytics::instance().send(); }); });
     this->ticker.start(10000);
@@ -65,10 +65,8 @@ void Analytics::send() {
     pkg.timestamp_micros = std::to_string(ms.count());
 
     try {
-        nlohmann::json content(pkg);
-        auto resp = HTTP::post(this->url, content.dump(), HTTP::Timeout{3000},
+        HTTP::post(this->url, nlohmann::json(pkg).dump(), HTTP::Timeout{3000},
             HTTP::Header{"Content-Type: application/json", "Referer: " + AppConfig::instance().getUrl()});
-        brls::Logger::verbose("report event {}: {}", content.dump(), std::get<0>(resp));
     } catch (const std::exception& ex) {
         brls::Logger::warning("report failed: {}", ex.what());
     }

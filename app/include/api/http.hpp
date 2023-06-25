@@ -18,8 +18,6 @@ public:
     // For cancellable requests
     using Cancel = std::shared_ptr<std::atomic_bool>;
 
-    using Response = std::tuple<int, std::string>;
-
     struct Range {
         int start = 0;
         int end = 0;
@@ -44,13 +42,8 @@ public:
     ~HTTP();
 
     std::string encode_form(const Form& form);
-    Response get(const std::string& url);
-    Response post(const std::string& url, const std::string& data);
-
-    static std::string encode_query(const Form& form) {
-        HTTP s;
-        return s.encode_form(form);
-    }
+    std::string get(const std::string& url);
+    std::string post(const std::string& url, const std::string& data);
 
     template <typename... Ts>
     static void set_option(HTTP& s, Ts&&... ts) {
@@ -59,7 +52,7 @@ public:
 
     // Get methods
     template <typename... Ts>
-    static Response get(const std::string& url, Ts&&... ts) {
+    static std::string get(const std::string& url, Ts&&... ts) {
         HTTP s;
         set_option(s, std::forward<Ts>(ts)...);
         return s.get(url);
@@ -67,14 +60,14 @@ public:
 
     // Post methods
     template <typename... Ts>
-    static Response post(const std::string& url, const std::string& data, Ts&&... ts) {
+    static std::string post(const std::string& url, const std::string& data, Ts&&... ts) {
         HTTP s;
         set_option(s, std::forward<Ts>(ts)...);
         return s.post(url, data);
     }
 
     template <typename... Ts>
-    static Response post(const std::string& url, const Form& form, Ts&&... ts) {
+    static std::string post(const std::string& url, const Form& form, Ts&&... ts) {
         HTTP s;
         set_option(s, std::forward<Ts>(ts)...);
         return s.post(url, s.encode_form(form));

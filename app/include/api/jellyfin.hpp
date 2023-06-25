@@ -26,7 +26,7 @@ inline void getJSON(Then then, OnError error, std::string_view fmt, Args&&... ar
 
         try {
             auto resp = HTTP::get(c.getUrl() + url, header, HTTP::Timeout{timeout});
-            nlohmann::json j = nlohmann::json::parse(std::get<1>(resp));
+            nlohmann::json j = nlohmann::json::parse(resp);
             brls::sync(std::bind(std::move(then), std::move(j)));
         } catch (const std::exception& ex) {
             if (error) brls::sync(std::bind(error, ex.what()));
@@ -47,7 +47,7 @@ inline void postJSON(const nlohmann::json& data, Then then, OnError error, std::
 
         try {
             auto resp = HTTP::post(c.getUrl() + url, data.dump(), header, HTTP::Timeout{timeout});
-            nlohmann::json j = nlohmann::json::parse(std::get<1>(resp));
+            nlohmann::json j = nlohmann::json::parse(resp);
             brls::sync(std::bind(std::move(then), std::move(j)));
         } catch (const std::exception& ex) {
             if (error) brls::sync(std::bind(error, ex.what()));

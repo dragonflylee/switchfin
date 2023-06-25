@@ -208,7 +208,7 @@ void VideoView::doPlaybackInfo() {
             }
 
             std::string url = fmt::format(fmt::runtime(jellyfin::apiStream), this->itemId,
-                HTTP::encode_query({
+                HTTP().encode_form({
                     {"static", "true"},
                     {"mediaSourceId", this->itemSource.Id},
                     {"playSessionId", r.PlaySessionId},

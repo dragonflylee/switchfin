@@ -42,7 +42,7 @@ public:
         MediaFolderCell* cell = dynamic_cast<MediaFolderCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
 
-        std::string query = HTTP::encode_query({{"tag", item.ImageTags[jellyfin::imageTypePrimary]}});
+        std::string query = HTTP().encode_form({{"tag", item.ImageTags[jellyfin::imageTypePrimary]}});
         Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id, query);
         return cell;
     }

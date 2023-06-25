@@ -46,7 +46,7 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
         try {
             std::string url = "https://api.github.com/repos/dragonflylee/switchfin/releases/latest";
             auto resp = HTTP::get(url, HTTP::Timeout{1000});
-            nlohmann::json j = nlohmann::json::parse(std::get<1>(resp));
+            nlohmann::json j = nlohmann::json::parse(resp);
             brls::Logger::info("checkUpdate {}", j.at("name").get<std::string>());
         } catch (const std::exception& ex) {
         }
