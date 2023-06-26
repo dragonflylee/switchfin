@@ -54,6 +54,7 @@ public:
         } else if (item.Type == jellyfin::mediaTypeEpisode) {
             VideoView* view = new VideoView(item);
             view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
+            view->setSeries(item.SeriesId);
             brls::sync([view]() { brls::Application::giveFocus(view); });
         } else {
             brls::Logger::debug("unsupport type {}", item.Type);

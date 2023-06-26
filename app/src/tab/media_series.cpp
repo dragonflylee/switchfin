@@ -6,6 +6,7 @@
 #include "api/jellyfin.hpp"
 #include "view/video_card.hpp"
 #include "view/video_view.hpp"
+#include "view/svg_image.hpp"
 
 using namespace brls::literals;  // for _i18n
 
@@ -17,6 +18,7 @@ public:
 
     BRLS_BIND(brls::Label, labelName, "episode/card/name");
     BRLS_BIND(brls::Label, labelOverview, "episode/card/overview");
+    BRLS_BIND(SVGImage, badgeTopRight, "video/card/badge/top");
 };
 
 class EpisodeDataSource : public RecyclingGridDataSource {
@@ -42,11 +44,16 @@ public:
                 HTTP().encode_form({{"tag", item.SeriesPrimaryImageTag}, {"fillWidth", "300"}}));
         }
 
-        if (item.IndexNumber > 0)
+        if (item.IndexNumber > 0) {
             cell->labelName->setText(fmt::format("{}. {}", item.IndexNumber, item.Name));
-        else
+        } else {
             cell->labelName->setText(item.Name);
+        }
         cell->labelOverview->setText(item.Overview);
+
+        if (item.UserData.Played) {
+            cell->badgeTopRight->setImageFromSVGRes("icon/ico-checkmark.svg");
+        }
 
         return cell;
     }
@@ -55,6 +62,7 @@ public:
         auto& item = this->list.at(index);
         VideoView* view = new VideoView(item);
         view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
+        view->setSeries(item.SeriesId);
         brls::sync([view]() { brls::Application::giveFocus(view); });
     }
 

@@ -9,7 +9,7 @@
 #include <sstream>
 
 // The position, in ticks, where playback stopped. 1 tick = 10000 ms
-static const time_t playTicks = 10000000;
+static const time_t PLAYTICKS = 10000000;
 
 static std::string sec2Time(int64_t t) {
     if (t < 3600) {
@@ -18,7 +18,7 @@ static std::string sec2Time(int64_t t) {
     return fmt::format("{:%H:%M:%S}", std::chrono::seconds(t));
 }
 
-VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id), userData(&item.UserData) {
+VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
     this->inflateFromXMLRes("xml/view/video_view.xml");
     brls::Logger::debug("VideoView: create {} type {}", item.Id, item.Type);
     this->setHideHighlightBackground(true);
@@ -36,15 +36,11 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id), userData(&ite
     container->addView(this);
     brls::Application::pushActivity(new brls::Activity(container), brls::TransitionAnimation::NONE);
 
-    this->doPlaybackInfo();
+    this->playMedia(item.UserData.PlaybackPositionTicks);
 
     this->registerAction(
         "cancel", brls::ControllerButton::BUTTON_B,
-        [](brls::View* view) -> bool {
-            brls::Application::popActivity(brls::TransitionAnimation::NONE);
-            return true;
-        },
-        true);
+        [](brls::View* view) -> bool { return brls::Application::popActivity(brls::TransitionAnimation::NONE); }, true);
 
     this->registerAction(
         "toggleOSD", brls::ControllerButton::BUTTON_Y,
@@ -82,13 +78,19 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id), userData(&ite
     /// 播放器设置按钮
     this->btnSetting->registerClickAction([this](...) { return this->showSetting(); });
     this->btnSetting->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnSetting));
+
+    /// 播放控制
+    this->btnBackward->registerClickAction([this](...) { return this->playNext(-1); });
+    this->btnBackward->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnBackward));
+
+    this->btnForward->registerClickAction([this](...) { return this->playNext(); });
+    this->btnForward->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnForward));
 }
 
 VideoView::~VideoView() {
     brls::Logger::debug("trying delete VideoView...");
     this->unRegisterMpvEvent();
     MPVCore::instance().stop();
-    this->userData->PlaybackPositionTicks = MPVCore::instance().video_progress * playTicks;
     this->reportStop();
 }
 
@@ -127,6 +129,11 @@ void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::S
         osdBottomBox->setVisibility(brls::Visibility::INVISIBLE);
     }
 
+    if (current > this->hintLastShowTime) {
+        this->hintBox->setVisibility(brls::Visibility::GONE);
+        this->hintLastShowTime = 0;
+    }
+
     // cache info
     osdCenterBox->frame(ctx);
 }
@@ -160,7 +167,54 @@ void VideoView::onChildFocusGained(View* directChild, View* focusedView) {
     brls::Application::giveFocus(this);
 }
 
-void VideoView::doPlaybackInfo() {
+void VideoView::setSeries(const std::string& seriesId) {
+    std::string query = HTTP().encode_form({
+        {"isVirtualUnaired", "false"},
+        {"isMissing", "false"},
+        {"userId", AppConfig::instance().getUser().id},
+        {"fields", "Chapters"},
+    });
+
+    ASYNC_RETAIN
+    jellyfin::getJSON(
+        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
+            ASYNC_RELEASE
+            for (size_t i = 0; i < r.Items.size(); i++) {
+                if (r.Items[i].Id == this->itemId) {
+                    this->itemIndex = i;
+                    break;
+                }
+            }
+            this->showEpisodes = std::move(r.Items);
+            this->btnBackward->setVisibility(this->itemIndex > 0 ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
+            this->btnForward->setVisibility(
+                this->itemIndex + 1 < this->showEpisodes.size() ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            Dialog::show(ex);
+        },
+        jellyfin::apiShowEpisodes, seriesId, query);
+}
+
+bool VideoView::playNext(int off) {
+    this->itemIndex += off;
+    if (this->itemIndex < 0 || this->itemIndex >= this->showEpisodes.size()) {
+        return brls::Application::popActivity(brls::TransitionAnimation::NONE);
+    }
+    MPVCore::instance().stop();
+
+    auto item = this->showEpisodes.at(this->itemIndex);
+    this->itemId = item.Id;
+    this->playMedia(item.UserData.PlaybackPositionTicks);
+    this->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
+    this->btnBackward->setVisibility(this->itemIndex > 0 ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
+    this->btnForward->setVisibility(
+        this->itemIndex + 1 < this->showEpisodes.size() ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
+    return true;
+}
+
+void VideoView::playMedia(time_t seekTicks) {
     ASYNC_RETAIN
     jellyfin::postJSON(
         {
@@ -175,7 +229,7 @@ void VideoView::doPlaybackInfo() {
                     }}},
             },
         },
-        [ASYNC_TOKEN](const jellyfin::PlaybackResult& r) {
+        [ASYNC_TOKEN, seekTicks](const jellyfin::PlaybackResult& r) {
             ASYNC_RELEASE
             if (r.MediaSources.empty()) return;
             this->itemSource = std::move(r.MediaSources.front());
@@ -185,8 +239,8 @@ void VideoView::doPlaybackInfo() {
 
             std::stringstream ssextra;
             ssextra << "network-timeout=20";
-            if (this->userData->PlaybackPositionTicks > 0) {
-                ssextra << ",start=" << sec2Time(this->userData->PlaybackPositionTicks / playTicks);
+            if (seekTicks > 0) {
+                ssextra << ",start=" << sec2Time(seekTicks / PLAYTICKS);
             }
 
 #ifdef _WIN32
@@ -216,39 +270,35 @@ void VideoView::doPlaybackInfo() {
                 }));
             mpv.setUrl(svr + url, ssextra.str());
         },
-        [ASYNC_TOKEN](const std::string& ex) {
-            ASYNC_RELEASE
-            Dialog::show(ex);
-        },
-        jellyfin::apiPlayback, this->itemId);
+        nullptr, jellyfin::apiPlayback, this->itemId);
 }
 
 void VideoView::reportStart() {
     jellyfin::postJSON(
         {
             {"ItemId", this->itemId},
-            {"PlayMethod", "DirectPlay"},
+            {"PlayMethod", this->playMethod},
         },
         [](...) {}, nullptr, jellyfin::apiPlayStart);
 }
 
 void VideoView::reportStop() {
-    time_t ticks = MPVCore::instance().playback_time * playTicks;
+    time_t ticks = MPVCore::instance().playback_time * PLAYTICKS;
     jellyfin::postJSON(
         {
             {"ItemId", this->itemId},
-            {"PlayMethod", "DirectPlay"},
+            {"PlayMethod", this->playMethod},
             {"PositionTicks", ticks},
         },
         [](...) {}, nullptr, jellyfin::apiPlayStop);
 }
 
 void VideoView::reportPlay(bool isPaused) {
-    time_t ticks = MPVCore::instance().video_progress * playTicks;
+    time_t ticks = MPVCore::instance().video_progress * PLAYTICKS;
     jellyfin::postJSON(
         {
             {"ItemId", this->itemId},
-            {"PlayMethod", "DirectPlay"},
+            {"PlayMethod", this->playMethod},
             {"IsPaused", isPaused},
             {"PositionTicks", ticks},
         },
@@ -304,6 +354,7 @@ void VideoView::registerMpvEvent() {
             // 播放结束
             this->showOSD(false);
             this->btnToggleIcon->setImageFromSVGRes("icon/ico-play.svg");
+            this->playNext();
             break;
         case MpvEventEnum::CACHE_SPEED_CHANGE:
             // 仅当加载圈已经开始转起的情况显示缓存
@@ -352,4 +403,12 @@ void VideoView::showOSD(bool autoHide) {
 void VideoView::hideOSD() {
     this->osdLastShowTime = 0;
     this->osd_state = OSDState::HIDDEN;
+}
+
+void VideoView::showHint(const std::string& value) {
+    brls::Logger::debug("Video hint: {}", value);
+    this->hintLabel->setText(value);
+    this->hintBox->setVisibility(brls::Visibility::VISIBLE);
+    this->hintLastShowTime = std::time(nullptr) + VideoView::OSD_SHOW_TIME;
+    this->showOSD();
 }

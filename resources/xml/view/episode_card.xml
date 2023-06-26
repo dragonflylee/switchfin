@@ -4,14 +4,22 @@
 
     <brls:Box
         axis="row"
-        alignItems="center"
         width="300"
-        minHeight="240">
-        <brls:Image
-            id="video/card/picture"
-            backgroundColor="@theme/color/grey_1"
-            scalingType="center"
-            image="@res/img/video-card-bg.png"/>
+        alignItems="center">
+        <brls:Box>
+            <brls:Image
+                id="video/card/picture"
+                backgroundColor="@theme/color/grey_1"
+                scalingType="fit"
+                image="@res/img/video-card-bg.png" />
+
+            <SVGImage
+                id="video/card/badge/top"
+                positionType="absolute"
+                positionTop="8"
+                positionRight="8"
+                height="24" />
+        </brls:Box>
     </brls:Box>
 
     <brls:Box
