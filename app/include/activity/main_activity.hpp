@@ -27,8 +27,11 @@ public:
 
     void onContentAvailable() override;
 
+    void onResume() override;
+
     ~MainActivity();
 
 private:
     BRLS_BIND(brls::AppletFrame, appletFrame, "main/frame");
+    BRLS_BIND(AutoTabFrame, tabFrame, "main/tabFrame");
 };

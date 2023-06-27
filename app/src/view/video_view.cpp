@@ -314,6 +314,7 @@ void VideoView::registerMpvEvent() {
         case MpvEventEnum::MPV_RESUME:
             this->showOSD(true);
             this->hideLoading();
+            this->btnToggleIcon->setImageFromSVGRes("icon/ico-pause.svg");
             this->reportPlay();
             break;
         case MpvEventEnum::MPV_PAUSE:
@@ -329,7 +330,7 @@ void VideoView::registerMpvEvent() {
             break;
         case MpvEventEnum::LOADING_END:
             this->hideLoading();
-            this->btnToggleIcon->setImageFromSVGRes("icon/ico-pause.svg");
+            
             break;
         case MpvEventEnum::MPV_STOP:
             this->hideLoading();

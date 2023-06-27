@@ -82,7 +82,7 @@ MediaSeries::MediaSeries(const jellyfin::MediaItem& item) : seriesId(item.Id) {
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [](...) { return true; });
     this->recyclerEpisodes->registerCell("Cell", &EpisodeCardCell::create);
 
-    this->doSeasons();
+    this->doRequest();
 
     // 加载 Logo
     auto logo = item.ImageTags.find(jellyfin::imageTypeLogo);
@@ -97,7 +97,7 @@ MediaSeries::MediaSeries(const jellyfin::MediaItem& item) : seriesId(item.Id) {
     }
 }
 
-void MediaSeries::doSeasons() {
+void MediaSeries::doRequest() {
     std::string query = HTTP().encode_form({
         {"userId", AppConfig::instance().getUser().id},
         {"fields", "ItemCounts,PrimaryImageAspectRatio"},

@@ -5,14 +5,17 @@
 #pragma once
 
 #include "view/auto_tab_frame.hpp"
+#include "view/presenter.h"
 
 class HRecyclerFrame;
 
-class HomeTab : public AttachedView {
+class HomeTab : public AttachedView, public Presenter {
 public:
     HomeTab();
 
     void onCreate() override;
+
+    void doRequest() override;
 
     static brls::View* create();
 

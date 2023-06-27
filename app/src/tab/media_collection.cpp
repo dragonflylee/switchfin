@@ -80,7 +80,8 @@ brls::View* MediaCollection::getDefaultFocus() { return this->recyclerSeries; }
 void MediaCollection::doRequest() {
     std::string query = HTTP().encode_form({
         {"parentId", this->itemId},
-        {"sortBy", "SortName"},
+        {"sortBy", "PremiereDate"},
+        {"sortOrder", "Descending"},
         {"fields", "PrimaryImageAspectRatio,BasicSyncInfo"},
         {"limit", std::to_string(this->pageSize)},
         {"startIndex", std::to_string(this->startIndex)},

@@ -103,20 +103,21 @@ HomeTab::HomeTab() {
     this->userResume->registerCell("Cell", &VideoCardCell::create);
     this->userLatest->registerCell("Cell", &VideoCardCell::create);
     this->showNextup->registerCell("Cell", &VideoCardCell::create);
+}
 
-    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
-        this->doResume();
-        this->doLatest();
-        this->doNextup();
-        return true;
-    });
-
+void HomeTab::doRequest() {
     this->doResume();
     this->doLatest();
     this->doNextup();
 }
 
-void HomeTab::onCreate() {}
+void HomeTab::onCreate() {
+    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
+        this->doRequest();
+        return true;
+    });
+    this->doRequest();
+}
 
 brls::View* HomeTab::create() { return new HomeTab(); }
 
