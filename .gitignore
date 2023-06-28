@@ -10,7 +10,7 @@ settings.json
 ffmpeg-*
 mpv-*
 /*.json
-/script/switch/*/src
-/parts/*
-/prime/*
-/stage/*
+/scripts/switch/*/src
+/scripts/parts/*
+/scripts/prime/*
+/scripts/stage/*

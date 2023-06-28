@@ -5,7 +5,7 @@
 Switchfin is third-party PC player for Jellyfin that provides a native user interface to browse and play movies and series.
 <br>
 
-[![latest release](https://img.shields.io/github/release/dragonflylee/switchfin)](https://github.com/dragonflylee/switchfin/releases) ![download](https://img.shields.io/github/downloads/dragonflylee/switchfin/total) ![NS](https://img.shields.io/badge/-Nintendo%20Switch-e4000f?style=flat&logo=Nintendo%20Switch) ![MS](https://img.shields.io/badge/-Windows%2010-357ec7?style=flat&logo=Windows) ![mac](https://img.shields.io/badge/-macOS%2010.15-black?style=flat&logo=Apple) ![Linux](https://img.shields.io/badge/-Linux-lightgrey?style=flat&logo=Linux)
+[![build](https://github.com/dragonflylee/switchfin/actions/workflows/build.yaml/badge.svg)](https://github.com/dragonflylee/switchfin/actions/workflows/build.yaml) [![release](https://img.shields.io/github/release/dragonflylee/switchfin)](https://github.com/dragonflylee/switchfin/releases) ![download](https://img.shields.io/github/downloads/dragonflylee/switchfin/total) ![NS](https://img.shields.io/badge/-Nintendo%20Switch-e4000f?style=flat&logo=Nintendo%20Switch) ![MS](https://img.shields.io/badge/-Windows%2010-357ec7?style=flat&logo=Windows) ![mac](https://img.shields.io/badge/-macOS%2010.15-black?style=flat&logo=Apple) ![Linux](https://img.shields.io/badge/-Linux-lightgrey?style=flat&logo=Linux)
 
 **This project is in its early stages so expect bugs.**
 

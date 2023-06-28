@@ -6,7 +6,13 @@
 #endif
 
 #include <fstream>
+#ifdef USE_BOOST_FILESYSTEM
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
+#else
 #include <filesystem>
+namespace fs = std::filesystem;
+#endif
 #include <set>
 #include <borealis.hpp>
 #include <borealis/core/cache_helper.hpp>
@@ -135,7 +141,7 @@ void AppConfig::init() {
 
 void AppConfig::save() {
     try {
-        std::filesystem::create_directories(this->configDir());
+        fs::create_directories(this->configDir());
         std::ofstream f(this->configDir() + "/config.json");
         if (f.is_open()) {
             nlohmann::json j(*this);

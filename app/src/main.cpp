@@ -28,10 +28,9 @@ int main(int argc, char* argv[]) {
 #ifdef __SWITCH__
     appletInitializeGamePlayRecording();
 #endif
-    int c = -1;
     // We recommend to use INFO for real apps
-    while ((c = getopt(argc, argv, "v")) != -1) {
-        if (c == 'v') brls::Logger::setLogLevel(brls::LogLevel::LOG_DEBUG);
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "-v") == 0) brls::Logger::setLogLevel(brls::LogLevel::LOG_DEBUG);
     }
 
     // Load cookies and settings

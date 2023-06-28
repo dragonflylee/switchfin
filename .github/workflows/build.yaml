@@ -8,6 +8,21 @@ permissions:
   contents: write
 
 jobs:
+  release:
+    needs: [ build-win-x64, build-switch, build-macos ]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v3
+    - name: Release and Upload Assets
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        name: ${{ github.ref_name }}
+        generate_release_notes: true
+        files: '*/*'
+        body: |
+          ![download](https://img.shields.io/github/downloads/${{ github.repository }}/${{ github.ref_name }}/total?label=Downloads)
+
   build-switch:
     runs-on: ubuntu-latest
     container:
@@ -16,7 +31,7 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
-        fetch-depth: 1
+        fetch-depth: 0
     - name: Build dependencies
       if: ${{ github.ref_name == '0.1.0' }}
       run: |
@@ -32,37 +47,75 @@ jobs:
     - name: Update dependencies
       if: ${{ github.ref_name != '0.1.0' }}
       run: |
-        dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/0.1.0/switch-libass-0.17.1-1-any.pkg.tar.zst
-        dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/0.1.0/switch-ffmpeg-4.4.4-1-any.pkg.tar.zst
-        dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/0.1.0/switch-libmpv-0.35.1-1-any.pkg.tar.zst
+        dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/switch-portlibs/switch-libass-0.17.1-1-any.pkg.tar.zst
+        dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/switch-portlibs/switch-ffmpeg-4.4.4-1-any.pkg.tar.zst
+        dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/switch-portlibs/switch-libmpv-0.35.1-1-any.pkg.tar.zst
     - name: Build nro
       run: |
         cmake -B switch -DPLATFORM_SWITCH=ON
         make -C switch Switchfin.nro -j$(nproc)
         cmake -E tar c Switchfin-NintendoSwitch.zip switch/Switchfin.nro
-    - name: Release and Upload Assets
-      uses: softprops/action-gh-release@v1
+    - name: Upload Assets
+      uses: actions/upload-artifact@v3
       with:
-        name: ${{ github.ref_name }}
-        files: |
-          Switchfin-NintendoSwitch.zip
-          scripts/switch/*/*.pkg.tar.zst
+        name: switch-${{ github.ref_name }}
+        path: Switchfin-NintendoSwitch.zip
+    - name: Upload dependencies
+      uses: softprops/action-gh-release@v1
+      if: ${{ github.ref_name == '0.1.0' }}
+      with:
+        tag_name: switch-portlibs
+        prerelease: true
+        files: scripts/switch/*/*.pkg.tar.zst
+        body: |
+          ![download](https://img.shields.io/github/downloads/${{ github.repository }}/switch-portlibs/total?label=Downloads)
 
-  build-linux:
+  build-snap:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
-        fetch-depth: 1
+        fetch-depth: 0
+    - name: Update gamepad mappings
+      run: |
+        BRLS_GLFW="library/borealis/library/lib/extern/glfw"
+        cmake -P ${BRLS_GLFW}/CMake/GenerateMappings.cmake ${BRLS_GLFW}/src/mappings.h.in ${BRLS_GLFW}/src/mappings.h
     - name: Build snap
-      uses: snapcore/action-build@v1
-      id: snapcraft
-    - name: Release and Upload Assets
-      uses: softprops/action-gh-release@v1
+      run: |
+        docker run --rm --tty -v $PWD:/data -w /data/scripts --privileged diddledani/snapcraft:core20
+    - name: Upload Assets
+      uses: actions/upload-artifact@v3
       with:
-        name: ${{ github.ref_name }}
-        files: ${{ steps.snapcraft.outputs.snap }}
+        name: snap-${{ github.ref_name }}
+        path: scripts/*.snap
+
+  build-flatpak:
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:freedesktop-22.08
+      options: --privileged
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        fetch-depth: 0
+    - name: Update gamepad mappings
+      run: |
+        dnf -y install cmake
+        BRLS_GLFW="library/borealis/library/lib/extern/glfw"
+        cmake -P ${BRLS_GLFW}/CMake/GenerateMappings.cmake ${BRLS_GLFW}/src/mappings.h.in ${BRLS_GLFW}/src/mappings.h
+    - name: Build flatpak
+      uses: flatpak/flatpak-github-actions/flatpak-builder@v6.1
+      with:
+        bundle: switchfin-Linux-${{ github.ref_name }}.flatpak
+        manifest-path: scripts/flatpak.yaml
+        cache-key: flatpak-builder-${{ github.ref_name }}
+    - name: Upload Assets
+      uses: actions/upload-artifact@v3
+      with:
+        name: flatpak-${{ github.ref_name }}
+        path: switchfin-Linux-${{ github.ref_name }}.flatpak
 
   build-macos:
     runs-on: macos-11
@@ -70,20 +123,22 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
-        fetch-depth: 1
+        fetch-depth: 0
     - name: Install deps
       run: |
         brew install create-dmg dylibbundler webp
         brew tap xfangfang/wiliwili
         brew install -v mpv-wiliwili
-    - name: Build
+    - name: Update gamepad mappings
       run: |
-        BRLS_GLFW="library/borealis/library/lib/extern/glfw/"
+        BRLS_GLFW="library/borealis/library/lib/extern/glfw"
         cmake -P ${BRLS_GLFW}/CMake/GenerateMappings.cmake ${BRLS_GLFW}/src/mappings.h.in ${BRLS_GLFW}/src/mappings.h
-
+    - name: Build App
+      run: |
         cmake -B build -DPLATFORM_DESKTOP=ON -DCMAKE_BUILD_TYPE=Release
         make -C build -j$(sysctl -n hw.ncpu)
-
+    - name: Create DMG
+      run: |
         mkdir -p dist
         mv build/Switchfin.app dist/
         cp README.md dist
@@ -92,13 +147,13 @@ jobs:
           --icon "README.md" 400 100 --hide-extension "Switchfin.app" \
           --app-drop-link 600 185 --volicon ./scripts/dmg.icns \
           --volname "Switchfin" Switchfin-macOS.dmg "dist/"
-    - name: Release and Upload Assets
-      uses: softprops/action-gh-release@v1
+    - name: Upload Assets
+      uses: actions/upload-artifact@v3
       with:
-        name: ${{ github.ref_name }}
-        files: Switchfin-macOS.dmg
+        name: macos-${{ github.ref_name }}
+        path: Switchfin-*.dmg
 
-  build-windows:
+  build-win-x64:
     runs-on: windows-2022
     steps:
     - name: Setup Windows 10 SDK
@@ -112,7 +167,7 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
-        fetch-depth: 1
+        fetch-depth: 0
     - name: Cache xmake packages
       uses: actions/cache@v3
       with:
@@ -128,8 +183,8 @@ jobs:
         xmake build -y
         cd build\windows\x64\release
         7z a "$env:GITHUB_WORKSPACE\Switchfin-Win64.zip" *
-    - name: Release and Upload Assets
-      uses: softprops/action-gh-release@v1
+    - name: Upload Assets
+      uses: actions/upload-artifact@v3
       with:
-        name: ${{ github.ref_name }}
-        files: Switchfin-Win64.zip
+        name: windows-${{ github.ref_name }}
+        path: Switchfin-Win64.zip
