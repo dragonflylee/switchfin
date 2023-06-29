@@ -33,11 +33,12 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {VIDEO_CODEC, {"video_codec", {"AVC/H.264", "HEVC/H.265", "AV1"}}},
     {FULLSCREEN, {"fullscreen"}},
     {PLAYER_BOTTOM_BAR, {"player_bottom_bar"}},
+    {PLAYER_SEEKING_STEP, {"player_seeking_step", {"5", "10", "15", "30"}, {5, 10, 15, 30}}},
     {PLAYER_HWDEC, {"player_hwdec"}},
     {PLAYER_HWDEC_CUSTOM, {"player_hwdec_custom"}},
     {TEXTURE_CACHE_NUM, {"texture_cache_num"}},
-    {REQUEST_THREADS, {"request_threads"}},
-    {REQUEST_TIMEOUT, {"request_timeout"}},
+    {REQUEST_THREADS, {"request_threads", {"1", "2", "4", "8"}, {1, 2, 4, 8}}},
+    {REQUEST_TIMEOUT, {"request_timeout", {"1000", "2000", "3000", "5000"}, {1000, 2000, 3000, 5000}}},
 };
 
 AppConfig::AppConfig() = default;
@@ -64,6 +65,7 @@ void AppConfig::init() {
 
     // 初始化是否使用硬件加速 （仅限非switch设备）
     MPVCore::HARDWARE_DEC = this->getItem(PLAYER_HWDEC, true);
+    MPVCore::SEEKING_STEP = this->getItem(PLAYER_SEEKING_STEP, 15);
 
     // 初始化自定义的硬件加速方案
     MPVCore::PLAYER_HWDEC_METHOD = this->getItem(PLAYER_HWDEC_CUSTOM, MPVCore::PLAYER_HWDEC_METHOD);
@@ -173,7 +175,7 @@ void AppConfig::checkRestart(char* argv[]) {
 #endif
 }
 
-int AppConfig::getOptionIndex(const Item item) const {
+int AppConfig::getOptionIndex(const Item item, int default_index) const {
     auto it = settingMap.find(item);
     if (setting.contains(it->second.key)) {
         try {
@@ -184,7 +186,21 @@ int AppConfig::getOptionIndex(const Item item) const {
             brls::Logger::error("Damaged config found: {}/{}", it->second.key, e.what());
         }
     }
-    return 0;
+    return default_index;
+}
+
+int AppConfig::getValueIndex(const Item item, int default_index) const {
+    auto it = settingMap.find(item);
+    if (setting.contains(it->second.key)) {
+        try {
+            int value = this->setting.at(it->second.key);
+            for (size_t i = 0; i < it->second.values.size(); ++i)
+                if (it->second.values[i] == value) return i;
+        } catch (const std::exception& e) {
+            brls::Logger::error("Damaged config found: {}/{}", it->second.key, e.what());
+        }
+    }
+    return default_index;
 }
 
 bool AppConfig::addServer(const AppServer& s) {

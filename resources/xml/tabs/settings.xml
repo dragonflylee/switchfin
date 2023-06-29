@@ -46,6 +46,8 @@
                     id="setting/video/hwdec" />
                 <brls:SelectorCell
                     id="setting/video/codec" />
+                <brls:SelectorCell
+                    id="setting/player/seeking" />
             </brls:Box>
 
             <brls:Header
@@ -60,7 +62,7 @@
                 marginBottom="30px">
                 <brls:InputNumericCell
                     id="setting/network/threads" />
-                <brls:InputNumericCell
+                <brls:SelectorCell
                     id="setting/network/timeout" />
             </brls:Box>
 

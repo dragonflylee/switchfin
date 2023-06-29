@@ -8,6 +8,8 @@
 #include <fmt/chrono.h>
 #include <sstream>
 
+using namespace brls::literals;
+
 // The position, in ticks, where playback stopped. 1 tick = 10000 ms
 static const time_t PLAYTICKS = 10000000;
 
@@ -43,11 +45,28 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
         [](brls::View* view) -> bool { return brls::Application::popActivity(brls::TransitionAnimation::NONE); }, true);
 
     this->registerAction(
+        "\uE08F", brls::ControllerButton::BUTTON_LB,
+        [this](brls::View* view) -> bool {
+            seeking_range -= MPVCore::SEEKING_STEP;
+            this->requestSeeking();
+            return true;
+        },
+        false, true);
+
+    this->registerAction(
+        "\uE08E", brls::ControllerButton::BUTTON_RB,
+        [this](brls::View* view) -> bool {
+            seeking_range += MPVCore::SEEKING_STEP;
+            this->requestSeeking();
+            return true;
+        },
+        false, true);
+
+    this->registerAction(
         "toggleOSD", brls::ControllerButton::BUTTON_Y,
         [this](brls::View* view) -> bool {
             // 拖拽进度时不要影响显示 OSD
-            // if (is_seeking) return true;
-            this->toggleOSD();
+            if (!seeking_range) this->toggleOSD();
             return true;
         },
         true);
@@ -85,6 +104,20 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
 
     this->btnForward->registerClickAction([this](...) { return this->playNext(); });
     this->btnForward->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnForward));
+
+    static std::vector<std::string> VIDEO_QUALITY = {
+        "Direct",
+        "720P AVC",
+    };
+
+    this->videoQualityLabel->setText(VIDEO_QUALITY.front());
+    this->btnVideoQuality->registerClickAction([this](...) {
+        brls::Dropdown* dropdown = new brls::Dropdown("main/player/quality"_i18n, VIDEO_QUALITY,
+            [this](int selected) { this->videoQualityLabel->setText(VIDEO_QUALITY[selected]); });
+        brls::Application::pushActivity(new brls::Activity(dropdown));
+        return true;
+    });
+    this->btnVideoQuality->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoQuality));
 }
 
 VideoView::~VideoView() {
@@ -95,6 +128,36 @@ VideoView::~VideoView() {
 }
 
 void VideoView::setTitie(const std::string& title) { this->titleLabel->setText(title); }
+
+void VideoView::requestSeeking() {
+    auto& mpv = MPVCore::instance();
+    if (mpv.duration <= 0) {
+        seeking_range = 0;
+        return;
+    }
+    double progress = (mpv.playback_time + seeking_range) / mpv.duration;
+
+    if (progress < 0) {
+        progress = 0;
+        seeking_range = (int64_t)mpv.playback_time * -1;
+    } else if (progress > 1) {
+        progress = 1;
+        seeking_range = mpv.duration;
+    }
+
+    showOSD(false);
+    osdSlider->setProgress(progress);
+    leftStatusLabel->setText(sec2Time(mpv.duration * progress));
+
+    // 延迟触发跳转进度
+    brls::cancelDelay(seeking_iter);
+    ASYNC_RETAIN
+    seeking_iter = brls::delay(400, [ASYNC_TOKEN]() {
+        ASYNC_RELEASE
+        MPVCore::instance().command_str("seek {}", seeking_range);
+        seeking_range = 0;
+    });
+}
 
 bool VideoView::showSetting() {
     brls::View* setting = new PlayerSetting(this->itemSource);
@@ -330,7 +393,7 @@ void VideoView::registerMpvEvent() {
             break;
         case MpvEventEnum::LOADING_END:
             this->hideLoading();
-            
+
             break;
         case MpvEventEnum::MPV_STOP:
             this->hideLoading();
@@ -339,14 +402,21 @@ void VideoView::registerMpvEvent() {
             break;
         case MpvEventEnum::MPV_LOADED:
             this->reportStart();
+            if (this->seeking_range == 0) {
+                this->leftStatusLabel->setText(sec2Time(mpv.video_progress));
+            }
             break;
         case MpvEventEnum::UPDATE_DURATION:
-            this->rightStatusLabel->setText(sec2Time(mpv.duration));
-            this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
+            if (this->seeking_range == 0) {
+                this->rightStatusLabel->setText(sec2Time(mpv.duration));
+                this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
+            }
             break;
         case MpvEventEnum::UPDATE_PROGRESS:
-            this->leftStatusLabel->setText(sec2Time(mpv.video_progress));
-            this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
+            if (this->seeking_range == 0) {
+                this->leftStatusLabel->setText(sec2Time(mpv.video_progress));
+                this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
+            }
             if (mpv.video_progress % 10 == 0) this->reportPlay();
             break;
         case MpvEventEnum::VIDEO_SPEED_CHANGE:

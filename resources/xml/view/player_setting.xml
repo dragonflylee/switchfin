@@ -39,6 +39,8 @@
                         id="setting/track/audio" />
                     <brls:SelectorCell
                         id="setting/track/subtitle" />
+                    <brls:SelectorCell
+                        id="setting/player/seeking" />
                 </brls:Box>
 
                 <brls:Header

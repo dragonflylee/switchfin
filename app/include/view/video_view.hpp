@@ -58,6 +58,7 @@ private:
     BRLS_BIND(brls::Box, btnBackward, "video/osd/backward");
     BRLS_BIND(brls::Box, btnSetting, "video/osd/setting");
     BRLS_BIND(brls::Box, btnToggle, "video/osd/toggle");
+    BRLS_BIND(brls::Box, btnVideoQuality, "video/quality/box");
     BRLS_BIND(SVGImage, btnToggleIcon, "video/osd/toggle/icon");
     BRLS_BIND(brls::Box, osdTopBox, "video/osd/top/box");
     BRLS_BIND(brls::Box, osdBottomBox, "video/osd/bottom/box");
@@ -65,6 +66,7 @@ private:
     BRLS_BIND(brls::Label, centerLabel, "video/osd/center/label");
     BRLS_BIND(brls::Label, leftStatusLabel, "video/left/status");
     BRLS_BIND(brls::Label, rightStatusLabel, "video/right/status");
+    BRLS_BIND(brls::Label, videoQualityLabel, "video/quality");
     BRLS_BIND(brls::Label, hintLabel, "video/osd/hint/label");
     BRLS_BIND(brls::Box, hintBox, "video/osd/hint/box");
 
@@ -87,12 +89,18 @@ private:
     bool showSetting();
     void showHint(const std::string& value);
 
+    /// @brief 延迟 200ms 触发进度跳转到 seeking_range
+    void requestSeeking();
+
     // OSD
     bool isOsdShown = false;
     time_t osdLastShowTime = 0;
     time_t hintLastShowTime = 0;
     const time_t OSD_SHOW_TIME = 5;  //默认5秒
     OSDState osd_state = OSDState::HIDDEN;
+
+    int64_t seeking_range = 0;
+    size_t seeking_iter = 0;
 
     MPVEvent::Subscription eventSubscribeID;
     MPVCustomEvent::Subscription customEventSubscribeID;

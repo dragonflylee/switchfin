@@ -79,6 +79,13 @@ void SettingTab::onCreate() {
             AppConfig::instance().setItem(AppConfig::VIDEO_CODEC, codecOption.options[selected]);
         });
 
+    auto& seekingOption = conf.getOptions(AppConfig::PLAYER_SEEKING_STEP);
+    selectorSeeking->init("main/setting/playback/seeking_step"_i18n, seekingOption.options,
+        conf.getValueIndex(AppConfig::PLAYER_SEEKING_STEP, 2), [&seekingOption](int selected) {
+            MPVCore::SEEKING_STEP = seekingOption.values[selected];
+            AppConfig::instance().setItem(AppConfig::PLAYER_SEEKING_STEP, MPVCore::SEEKING_STEP);
+        });
+
 /// Fullscreen
 #if defined(__linux__) || defined(_WIN32)
     btnFullscreen->init(
@@ -143,7 +150,7 @@ void SettingTab::onCreate() {
             Dialog::quitApp();
         });
 
-    intputThreads->init(
+    inputThreads->init(
         "main/setting/network/threads"_i18n, ThreadPool::instance().size(),
         [](long threads) {
             ThreadPool::instance().start(threads);
@@ -151,9 +158,11 @@ void SettingTab::onCreate() {
         },
         "", 1);
 
-    inputTimeout->init(
-        "main/setting/network/timeout"_i18n, conf.getItem(AppConfig::REQUEST_TIMEOUT, 1000L),
-        [](long value) { AppConfig::instance().setItem(AppConfig::REQUEST_TIMEOUT, value); }, "", 5);
+    auto& timeoutOption = conf.getOptions(AppConfig::REQUEST_TIMEOUT);
+    selectorTimeout->init("main/setting/network/timeout"_i18n, timeoutOption.options,
+        conf.getValueIndex(AppConfig::REQUEST_TIMEOUT), [&timeoutOption](int selected) {
+            AppConfig::instance().setItem(AppConfig::REQUEST_TIMEOUT, timeoutOption.values[selected]);
+        });
 
     btnAbout->setDetailText(">");
     btnAbout->registerClickAction([](...) {

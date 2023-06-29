@@ -1,7 +1,6 @@
 #pragma once
 
 #include <nlohmann/json.hpp>
-#include <fmt/format.h>
 
 namespace jellyfin {
 

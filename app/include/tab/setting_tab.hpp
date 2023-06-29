@@ -31,9 +31,10 @@ private:
     BRLS_BIND(brls::DetailCell, btnServer, "setting/server");
     BRLS_BIND(brls::BooleanCell, btnHWDEC, "setting/video/hwdec");
     BRLS_BIND(brls::SelectorCell, selectorCodec, "setting/video/codec");
+    BRLS_BIND(brls::SelectorCell, selectorSeeking, "setting/player/seeking");
     BRLS_BIND(brls::BooleanCell, btnFullscreen, "setting/fullscreen");
-    BRLS_BIND(brls::InputNumericCell, intputThreads, "setting/network/threads");
-    BRLS_BIND(brls::InputNumericCell, inputTimeout, "setting/network/timeout");
+    BRLS_BIND(brls::InputNumericCell, inputThreads, "setting/network/threads");
+    BRLS_BIND(brls::SelectorCell, selectorTimeout, "setting/network/timeout");
     BRLS_BIND(brls::SelectorCell, selectorKeymap, "setting/keymap");
     BRLS_BIND(brls::SelectorCell, selectorLang, "setting/language");
     BRLS_BIND(brls::SelectorCell, selectorTheme, "setting/ui/theme");

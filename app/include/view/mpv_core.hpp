@@ -168,6 +168,7 @@ public:
 
     // 触发倍速时的默认值，单位为 %
     inline static int VIDEO_SPEED = 200;
+    inline static int SEEKING_STEP = 15;
 
     NVGcolor bottomBarColor = brls::Application::getTheme().getColor("color/app");
 

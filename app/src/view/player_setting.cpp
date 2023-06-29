@@ -42,9 +42,16 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
         this->audioTrack->setVisibility(brls::Visibility::GONE);
     }
 
+    auto& conf = AppConfig::instance();
+    auto& seekingOption = conf.getOptions(AppConfig::PLAYER_SEEKING_STEP);
+    seekingStep->init("main/setting/playback/seeking_step"_i18n, seekingOption.options,
+        conf.getValueIndex(AppConfig::PLAYER_SEEKING_STEP, 2), [&seekingOption](int selected) {
+            MPVCore::SEEKING_STEP = seekingOption.values[selected];
+            AppConfig::instance().setItem(AppConfig::PLAYER_SEEKING_STEP, MPVCore::SEEKING_STEP);
+        });
+
 /// Fullscreen
 #if defined(__linux__) || defined(_WIN32)
-    auto& conf = AppConfig::instance();
     btnFullscreen->init(
         "main/setting/others/fullscreen"_i18n, conf.getItem(AppConfig::FULLSCREEN, false), [](bool value) {
             AppConfig::instance().setItem(AppConfig::FULLSCREEN, value);

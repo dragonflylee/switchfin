@@ -4,7 +4,10 @@
 #include <borealis/core/logger.hpp>
 #include <nlohmann/json.hpp>
 
-class AppVersion{
+const long default_timeout = 3000L;
+const int default_seekstep = 15;
+
+class AppVersion {
 public:
     static std::string getVersion();
     static std::string getPlatform();
@@ -44,6 +47,7 @@ public:
         KEYMAP,
         VIDEO_CODEC,
         PLAYER_BOTTOM_BAR,
+        PLAYER_SEEKING_STEP,
         PLAYER_HWDEC,
         PLAYER_HWDEC_CUSTOM,
         TEXTURE_CACHE_NUM,
@@ -57,7 +61,7 @@ public:
     void save();
 
     std::string configDir();
-    void checkRestart(char *argv[]);
+    void checkRestart(char* argv[]);
 
     template <typename T>
     T getItem(const Item item, T defaultValue) {
@@ -81,9 +85,11 @@ public:
     struct Option {
         std::string key;
         std::vector<std::string> options;
+        std::vector<long> values;
     };
 
-    int getOptionIndex(const Item item) const;
+    int getOptionIndex(const Item item, int default_index = 0) const;
+    int getValueIndex(const Item item, int default_index = 0) const;
     inline const Option& getOptions(const Item item) const { return settingMap[item]; }
 
     bool addServer(const AppServer& s);

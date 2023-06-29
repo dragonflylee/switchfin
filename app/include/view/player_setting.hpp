@@ -20,5 +20,6 @@ private:
     BRLS_BIND(brls::ScrollingFrame, settings, "player/settings");
     BRLS_BIND(brls::SelectorCell, subtitleTrack, "setting/track/subtitle");
     BRLS_BIND(brls::SelectorCell, audioTrack, "setting/track/audio");
+    BRLS_BIND(brls::SelectorCell, seekingStep, "setting/player/seeking");
     BRLS_BIND(brls::BooleanCell, btnFullscreen, "setting/fullscreen");
 };

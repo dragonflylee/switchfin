@@ -14,8 +14,6 @@ namespace jellyfin {
 
 using OnError = std::function<void(const std::string&)>;
 
-const long default_timeout = 1000L;
-
 template <typename Then, typename... Args>
 inline void getJSON(Then then, OnError error, std::string_view fmt, Args&&... args) {
     std::string url = fmt::format(fmt::runtime(fmt), std::forward<Args>(args)...);
