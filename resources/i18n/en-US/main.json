@@ -19,7 +19,8 @@
     "audio": "Audio track",
     "common": "Common",
     "speed": "Playback Speed",
-    "quality": "Video Quality"
+    "quality": "Video Quality",
+    "auto": "Auto"
   },
   "setting": {
     "quit_hint": "You are about to exit the application. The settings will take effect after the next startup",
@@ -44,7 +45,7 @@
     "playback": {
       "header": "Playback",
       "hwdec": "Hardware decode",
-      "video_codec": "Video Codec",
+      "transcodec": "Transcodec",
       "seeking_step": "Seeking Step"
     },
     "network": {

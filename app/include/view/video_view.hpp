@@ -6,20 +6,10 @@
 
 #include <borealis.hpp>
 #include "view/mpv_core.hpp"
-#include "view/player_setting.hpp"
 #include "api/jellyfin/media.hpp"
 
 class VideoProgressSlider;
 class SVGImage;
-
-// https://github.com/mpv-player/mpv/blob/master/DOCS/edl-mpv.rst
-class EDLUrl {
-public:
-    std::string url;
-    float length = -1;  // second
-
-    EDLUrl(std::string url, float length = -1) : url(url), length(length) {}
-};
 
 enum class OSDState {
     HIDDEN = 0,
@@ -71,7 +61,7 @@ private:
     BRLS_BIND(brls::Box, hintBox, "video/osd/hint/box");
 
     /// @brief get video url
-    void playMedia(time_t seekTicks);
+    void playMedia(const time_t seekTicks);
     bool playNext(int off = 1);
     void reportStart();
     void reportStop();
@@ -108,7 +98,10 @@ private:
 
     // Playinfo
     std::string itemId;
-    std::string playMethod = "DirectPlay";
+    /// @brief DirectPlay, Transcode
+    std::string playMethod;
+    std::string playSessionId;
+    size_t selectedQuality = 0;
     size_t itemIndex = -1;
     jellyfin::MediaSource itemSource;
     std::vector<jellyfin::MediaEpisode> showEpisodes;

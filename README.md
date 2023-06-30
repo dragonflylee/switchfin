@@ -5,7 +5,7 @@
 Switchfin is third-party PC player for Jellyfin that provides a native user interface to browse and play movies and series.
 <br>
 
-[![build](https://github.com/dragonflylee/switchfin/actions/workflows/build.yaml/badge.svg)](https://github.com/dragonflylee/switchfin/actions/workflows/build.yaml) [![release](https://img.shields.io/github/release/dragonflylee/switchfin)](https://github.com/dragonflylee/switchfin/releases) ![download](https://img.shields.io/github/downloads/dragonflylee/switchfin/total) ![NS](https://img.shields.io/badge/-Nintendo%20Switch-e4000f?style=flat&logo=Nintendo%20Switch) ![MS](https://img.shields.io/badge/-Windows%2010-357ec7?style=flat&logo=Windows) ![mac](https://img.shields.io/badge/-macOS%2010.15-black?style=flat&logo=Apple) ![Linux](https://img.shields.io/badge/-Linux-lightgrey?style=flat&logo=Linux)
+[![build](https://github.com/dragonflylee/switchfin/actions/workflows/build.yaml/badge.svg)](https://github.com/dragonflylee/switchfin/actions/workflows/build.yaml) [![download](https://img.shields.io/github/downloads/dragonflylee/switchfin/total)](https://github.com/dragonflylee/switchfin/releases) ![NS](https://img.shields.io/badge/-Nintendo%20Switch-e4000f?style=flat&logo=Nintendo%20Switch) ![MS](https://img.shields.io/badge/-Windows%2010-357ec7?style=flat&logo=Windows) ![mac](https://img.shields.io/badge/-macOS%2010.15-black?style=flat&logo=Apple) ![Linux](https://img.shields.io/badge/-Linux-lightgrey?style=flat&logo=Linux)
 
 **This project is in its early stages so expect bugs.**
 
@@ -13,7 +13,7 @@ Switchfin is third-party PC player for Jellyfin that provides a native user inte
 ## Features
 - Completely native interface
 - Supported media items: movies, series, seasons, episodes 
-  - Direct play only, (no transcoding)
+  - Direct play and transcoding
 - Base on MPV Player
   - Container formats: mkv, mov, mp4, avi
   - Video codecs: H.264, H.265, VP8, VP9, AV1
@@ -56,6 +56,7 @@ mingw32-make -C build_pc -j$(nproc)
 
 ## Thanks to
 
+- **xfangfang for [wiliwili](https://github.com/xfangfang/wiliwili)**
 - devkitpro and switchbrew for [libnx](https://github.com/switchbrew/libnx)
 - natinusala and XITRIX for [borealis](https://github.com/natinusala/borealis)
-- xfangfang for [wiliwili](https://github.com/xfangfang/wiliwili)
+- proconsule for [nxmp](https://github.com/proconsule/nxmp)

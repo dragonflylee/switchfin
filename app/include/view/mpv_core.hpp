@@ -130,12 +130,6 @@ public:
      */
     MPVEvent &getEvent() { return this->mpvCoreEvent; }
 
-    /**
-     * 可以用于共享自定义事件
-     * 传递内容为: string类型的事件名与一个任意类型的指针
-     */
-    MPVCustomEvent &getCustomEvent() { return this->mpvCoreCustomEvent; }
-
     void reset();
 
     void setShader(const std::string &profile, const std::string &shaders, bool showHint = true);
@@ -149,6 +143,8 @@ public:
     double video_speed = 0;
     double playback_time = 0;
     double percent_pos = 0;
+
+    std::set<std::string> support_codecs;
 
     // Bottom progress bar
     inline static bool BOTTOM_BAR = true;
@@ -207,9 +203,6 @@ private:
 
     // MPV 内部事件，传递内容为: 事件类型
     MPVEvent mpvCoreEvent;
-
-    // 自定义的事件，传递内容为: string类型的事件名与一个任意类型的指针
-    MPVCustomEvent mpvCoreCustomEvent;
 
     // 当前软件是否在前台的回调
     brls::Event<bool>::Subscription focusSubscription;

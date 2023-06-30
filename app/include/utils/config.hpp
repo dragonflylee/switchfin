@@ -45,7 +45,7 @@ public:
         APP_THEME,
         APP_LANG,
         KEYMAP,
-        VIDEO_CODEC,
+        TRANSCODEC,
         PLAYER_BOTTOM_BAR,
         PLAYER_SEEKING_STEP,
         PLAYER_HWDEC,

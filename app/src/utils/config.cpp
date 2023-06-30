@@ -30,7 +30,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {APP_THEME, {"app_theme", {"auto", "light", "dark"}}},
     {APP_LANG, {"app_lang", {brls::LOCALE_AUTO, brls::LOCALE_EN_US, brls::LOCALE_ZH_HANS, brls::LOCALE_ZH_HANT}}},
     {KEYMAP, {"keymap", {"xbox", "ps", "keyboard"}}},
-    {VIDEO_CODEC, {"video_codec", {"AVC/H.264", "HEVC/H.265", "AV1"}}},
+    {TRANSCODEC, {"transcodec", {"AVC/H264", "HEVC/H265"}}},
     {FULLSCREEN, {"fullscreen"}},
     {PLAYER_BOTTOM_BAR, {"player_bottom_bar"}},
     {PLAYER_SEEKING_STEP, {"player_seeking_step", {"5", "10", "15", "30"}, {5, 10, 15, 30}}},

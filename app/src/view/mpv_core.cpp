@@ -4,6 +4,7 @@
 
 #include "view/mpv_core.hpp"
 #include "utils/config.hpp"
+#include <fmt/ranges.h>
 
 #if !defined(MPV_NO_FB) && !defined(MPV_SW_RENDER)
 const char *vertexShaderSource =
@@ -151,8 +152,26 @@ void MPVCore::init() {
 
     brls::Logger::info("MPV Version: {}", mpv_get_property_string(mpv, "mpv-version"));
     brls::Logger::info("FFMPEG Version: {}", mpv_get_property_string(mpv, "ffmpeg-version"));
-    command_str("set audio-client-name {}", AppVersion::getDeviceName());
+    // check supported decoder
+    mpv_node node;
+    mpv_get_property(mpv, "decoder-list", MPV_FORMAT_NODE, &node);
+    if (node.format == MPV_FORMAT_NODE_ARRAY) {
+        mpv_node_list *codec_list = node.u.list;
+        for (int i = 0; i < codec_list->num; i++) {
+            if (codec_list->values[i].format == MPV_FORMAT_NODE_MAP) {
+                mpv_node_list *codec_map = codec_list->values[i].u.list;
+                for (int n = 0; n < codec_map->num; n++) {
+                    if (strcmp(codec_map->keys[n], "codec") == 0) {
+                        support_codecs.insert(codec_map->values[n].u.string);
+                    }
+                }
+            }
+        }
+    }
+    mpv_free_node_contents(&node);
+    brls::Logger::debug("support codecs: {}", support_codecs);
 
+    command_str("set audio-client-name {}", AppVersion::getDeviceName());
     // set event callback
     mpv_set_wakeup_callback(mpv, on_wakeup, this);
     // set render callback
@@ -699,15 +718,17 @@ int64_t MPVCore::getInt(const std::string &key) {
 std::unordered_map<std::string, mpv_node> MPVCore::getNodeMap(const std::string &key) {
     mpv_node node;
     std::unordered_map<std::string, mpv_node> nodeMap;
-    if (mpv_get_property(mpv, key.c_str(), MPV_FORMAT_NODE, &node) < 0) return nodeMap;
-    if (node.format != MPV_FORMAT_NODE_MAP) return nodeMap;
-    // todo: 目前不要使用 mpv_node中有指针的部分，因为这些内容指向的内存会在这个函数结束的时候删除
-    for (int i = 0; i < node.u.list->num; i++) {
-        char *nodeKey = node.u.list->keys[i];
-        if (nodeKey == nullptr) continue;
-        nodeMap.insert(std::make_pair(std::string{nodeKey}, node.u.list->values[i]));
+    if (mpv_get_property(mpv, key.c_str(), MPV_FORMAT_NODE, &node) >= 0) {
+        if (node.format == MPV_FORMAT_NODE_MAP) {
+            mpv_node_list *node_list = node.u.list;
+            for (int i = 0; i < node_list->num; i++) {
+                std::string key = node_list->keys[i];
+                mpv_node &value = node_list->values[i];
+                nodeMap.insert(std::make_pair(key, value));
+            }
+        }
+        mpv_free_node_contents(&node);
     }
-    mpv_free_node_contents(&node);
     return nodeMap;
 }
 

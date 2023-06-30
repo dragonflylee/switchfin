@@ -20,7 +20,7 @@ package("mpv")
         import("detect.sdks.find_vstudio")
         for _, vsinfo in pairs(find_vstudio()) do
             if vsinfo.vcvarsall then
-                os.setenv("PATH", vsinfo.vcvarsall["x64"]["PATH"])
+                os.setenv("PATH", vsinfo.vcvarsall[os.arch()]["PATH"])
             end
         end
 

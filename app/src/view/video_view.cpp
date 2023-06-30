@@ -1,6 +1,7 @@
 #include "view/video_view.hpp"
 #include "view/svg_image.hpp"
 #include "view/video_progress_slider.hpp"
+#include "view/player_setting.hpp"
 #include "api/jellyfin.hpp"
 #include "utils/dialog.hpp"
 #include "utils/config.hpp"
@@ -20,6 +21,8 @@ static std::string sec2Time(int64_t t) {
     return fmt::format("{:%H:%M:%S}", std::chrono::seconds(t));
 }
 
+static std::vector<int64_t> maxBitrate = {120000000, 10000000, 8000000, 4000000, 2000000};
+
 VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
     this->inflateFromXMLRes("xml/view/video_view.xml");
     brls::Logger::debug("VideoView: create {} type {}", item.Id, item.Type);
@@ -37,8 +40,6 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
     this->setId("video");
     container->addView(this);
     brls::Application::pushActivity(new brls::Activity(container), brls::TransitionAnimation::NONE);
-
-    this->playMedia(item.UserData.PlaybackPositionTicks);
 
     this->registerAction(
         "cancel", brls::ControllerButton::BUTTON_B,
@@ -71,6 +72,9 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
         },
         true);
 
+    /// 播放器设置按钮
+    this->btnSetting->registerClickAction([this](...) { return this->showSetting(); });
+    this->btnSetting->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnSetting));
     this->registerAction(
         "setting", brls::ControllerButton::BUTTON_X, [this](...) { return this->showSetting(); }, true);
 
@@ -94,10 +98,6 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
         },
         brls::TapGestureConfig(false, brls::SOUND_NONE, brls::SOUND_NONE, brls::SOUND_NONE)));
 
-    /// 播放器设置按钮
-    this->btnSetting->registerClickAction([this](...) { return this->showSetting(); });
-    this->btnSetting->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnSetting));
-
     /// 播放控制
     this->btnBackward->registerClickAction([this](...) { return this->playNext(-1); });
     this->btnBackward->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnBackward));
@@ -105,19 +105,29 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
     this->btnForward->registerClickAction([this](...) { return this->playNext(); });
     this->btnForward->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnForward));
 
-    static std::vector<std::string> VIDEO_QUALITY = {
-        "Direct",
-        "720P AVC",
+    static std::vector<std::string> qualities = {
+        "main/player/auto"_i18n,
+        "1080P 10Mbps",
+        "720P 8Mbps",
+        "720P 4Mbps",
+        "480P 2Mbps",
     };
-
-    this->videoQualityLabel->setText(VIDEO_QUALITY.front());
+    this->videoQualityLabel->setText(qualities[this->selectedQuality]);
     this->btnVideoQuality->registerClickAction([this](...) {
-        brls::Dropdown* dropdown = new brls::Dropdown("main/player/quality"_i18n, VIDEO_QUALITY,
-            [this](int selected) { this->videoQualityLabel->setText(VIDEO_QUALITY[selected]); });
+        brls::Dropdown* dropdown = new brls::Dropdown(
+            "main/player/quality"_i18n, qualities,
+            [this](int selected) {
+                this->selectedQuality = selected;
+                this->videoQualityLabel->setText(qualities[selected]);
+                this->playMedia(MPVCore::instance().playback_time * PLAYTICKS);
+            },
+            this->selectedQuality);
         brls::Application::pushActivity(new brls::Activity(dropdown));
         return true;
     });
     this->btnVideoQuality->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoQuality));
+
+    this->playMedia(item.UserData.PlaybackPositionTicks);
 }
 
 VideoView::~VideoView() {
@@ -277,61 +287,97 @@ bool VideoView::playNext(int off) {
     return true;
 }
 
-void VideoView::playMedia(time_t seekTicks) {
+void VideoView::playMedia(const time_t seekTicks) {
     ASYNC_RETAIN
     jellyfin::postJSON(
         {
             {"UserId", AppConfig::instance().getUser().id},
             {
                 "DeviceProfile",
-                {{"SubtitleProfiles",
+                {
+                    {"MaxStreamingBitrate", maxBitrate[this->selectedQuality]},
                     {
-                        {{"Format", "ass"}, {"Method", "External"}},
-                        {{"Format", "ssa"}, {"Method", "External"}},
-                        {{"Format", "srt"}, {"Method", "External"}},
-                    }}},
+                        "DirectPlayProfiles",
+                        {
+                            {{"Container", "mp4,m4v,mkv"}, {"Type", "Video"}, {"VideoCodec", "h264,hevc,av1,vp9"}},
+                            {{"Container", "mov"}, {"Type", "Video"}, {"VideoCodec", "h264"}},
+                        },
+                    },
+                    {
+                        "TranscodingProfiles",
+                        {
+                            {{"Container", "ts"}, {"Type", "Video"}, {"VideoCodec", "h264"}, {"Protocol", "hls"}},
+                        },
+                    },
+                    {
+                        "SubtitleProfiles",
+                        {
+                            {{"Format", "ass"}, {"Method", "External"}},
+                            {{"Format", "ssa"}, {"Method", "External"}},
+                            {{"Format", "srt"}, {"Method", "External"}},
+                        },
+                    },
+                },
             },
         },
         [ASYNC_TOKEN, seekTicks](const jellyfin::PlaybackResult& r) {
             ASYNC_RELEASE
-            if (r.MediaSources.empty()) return;
-            this->itemSource = std::move(r.MediaSources.front());
 
             auto& mpv = MPVCore::instance();
             auto& svr = AppConfig::instance().getUrl();
+            this->playSessionId = r.PlaySessionId;
 
-            std::stringstream ssextra;
-            ssextra << "network-timeout=20";
-            if (seekTicks > 0) {
-                ssextra << ",start=" << sec2Time(seekTicks / PLAYTICKS);
-            }
+            for (auto& item : r.MediaSources) {
+                this->itemSource = std::move(item);
+                std::stringstream ssextra;
+                ssextra << "network-timeout=20";
+                if (seekTicks > 0) {
+                    ssextra << ",start=" << sec2Time(seekTicks / PLAYTICKS);
+                }
 
 #ifdef _WIN32
-            const std::string separator = ";";
+                const std::string separator = ";";
 #else
-            const std::string separator = ":";
+                const std::string separator = ":";
 #endif
-            bool hasSub = false;
-            for (auto& s : itemSource.MediaStreams) {
-                if (s.Type == jellyfin::streamTypeSubtitle && s.IsExternal) {
-                    if (hasSub) {
-                        ssextra << separator;
-                    } else {
-                        ssextra << ",sub-files=";
-                        hasSub = true;
+                bool hasSub = false;
+                for (auto& s : itemSource.MediaStreams) {
+                    if (s.Type == jellyfin::streamTypeSubtitle && (s.IsExternal || !itemSource.SupportsDirectPlay)) {
+                        if (hasSub) {
+                            ssextra << separator;
+                        } else {
+                            ssextra << ",sub-files=";
+                            hasSub = true;
+                        }
+                        ssextra << svr << s.DeliveryUrl;
                     }
-                    ssextra << svr << s.DeliveryUrl;
+                }
+
+                if (itemSource.SupportsDirectPlay) {
+                    std::string url = fmt::format(fmt::runtime(jellyfin::apiStream), this->itemId,
+                        HTTP().encode_form({
+                            {"static", "true"},
+                            {"mediaSourceId", itemSource.Id},
+                            {"playSessionId", r.PlaySessionId},
+                            {"tag", itemSource.ETag},
+                        }));
+
+                    this->playMethod = "DirectPlay";
+                    mpv.setUrl(svr + url, ssextra.str());
+                    return;
+                }
+
+                if (itemSource.SupportsTranscoding) {
+                    this->playMethod = "Transcode";
+                    mpv.setUrl(svr + itemSource.TranscodingUrl, ssextra.str());
+                    return;
                 }
             }
 
-            std::string url = fmt::format(fmt::runtime(jellyfin::apiStream), this->itemId,
-                HTTP().encode_form({
-                    {"static", "true"},
-                    {"mediaSourceId", this->itemSource.Id},
-                    {"playSessionId", r.PlaySessionId},
-                    {"tag", this->itemSource.ETag},
-                }));
-            mpv.setUrl(svr + url, ssextra.str());
+            auto dialog = new brls::Dialog("Unsupport video format");
+            dialog->addButton(
+                "hints/ok"_i18n, []() { brls::Application::popActivity(brls::TransitionAnimation::NONE); });
+            dialog->open();
         },
         nullptr, jellyfin::apiPlayback, this->itemId);
 }
@@ -341,6 +387,9 @@ void VideoView::reportStart() {
         {
             {"ItemId", this->itemId},
             {"PlayMethod", this->playMethod},
+            {"PlaySessionId", this->playSessionId},
+            {"MediaSourceId", this->itemSource.Id},
+            {"MaxStreamingBitrate", maxBitrate[this->selectedQuality]},
         },
         [](...) {}, nullptr, jellyfin::apiPlayStart);
 }
@@ -351,6 +400,7 @@ void VideoView::reportStop() {
         {
             {"ItemId", this->itemId},
             {"PlayMethod", this->playMethod},
+            {"PlaySessionId", this->playSessionId},
             {"PositionTicks", ticks},
         },
         [](...) {}, nullptr, jellyfin::apiPlayStop);
@@ -362,6 +412,8 @@ void VideoView::reportPlay(bool isPaused) {
         {
             {"ItemId", this->itemId},
             {"PlayMethod", this->playMethod},
+            {"PlaySessionId", this->playSessionId},
+            {"MediaSourceId", this->itemSource.Id},
             {"IsPaused", isPaused},
             {"PositionTicks", ticks},
         },
@@ -393,7 +445,7 @@ void VideoView::registerMpvEvent() {
             break;
         case MpvEventEnum::LOADING_END:
             this->hideLoading();
-
+            this->reportStart();
             break;
         case MpvEventEnum::MPV_STOP:
             this->hideLoading();
@@ -401,7 +453,6 @@ void VideoView::registerMpvEvent() {
             this->reportStop();
             break;
         case MpvEventEnum::MPV_LOADED:
-            this->reportStart();
             if (this->seeking_range == 0) {
                 this->leftStatusLabel->setText(sec2Time(mpv.video_progress));
             }

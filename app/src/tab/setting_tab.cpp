@@ -73,10 +73,10 @@ void SettingTab::onCreate() {
     });
 #endif
 
-    auto& codecOption = conf.getOptions(AppConfig::VIDEO_CODEC);
-    selectorCodec->init("main/setting/playback/video_codec"_i18n, codecOption.options,
-        conf.getOptionIndex(AppConfig::VIDEO_CODEC), [&codecOption](int selected) {
-            AppConfig::instance().setItem(AppConfig::VIDEO_CODEC, codecOption.options[selected]);
+    auto& codecOption = conf.getOptions(AppConfig::TRANSCODEC);
+    selectorCodec->init("main/setting/playback/transcodec"_i18n, codecOption.options,
+        conf.getOptionIndex(AppConfig::TRANSCODEC), [&codecOption](int selected) {
+            AppConfig::instance().setItem(AppConfig::TRANSCODEC, codecOption.options[selected]);
         });
 
     auto& seekingOption = conf.getOptions(AppConfig::PLAYER_SEEKING_STEP);

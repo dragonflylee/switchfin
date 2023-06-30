@@ -28,7 +28,7 @@ modules:
     builddir: true
     sources:
       - type: dir
-        path: "."
+        path: ".."
     modules:
       - name: libmpv
         cleanup:
