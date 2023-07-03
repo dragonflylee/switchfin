@@ -80,10 +80,10 @@ public:
         auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
         if (it != item.ImageTags.end())
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
-                HTTP().encode_form({{"tag", it->first}, {"maxWidth", "300"}}));
+                HTTP().encode_form({{"tag", it->first}, {"fillWidth", "400"}}));
         else
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId,
-                HTTP().encode_form({{"tag", item.SeriesPrimaryImageTag}, {"fillWidth", "300"}}));
+                HTTP().encode_form({{"tag", item.SeriesPrimaryImageTag}, {"fillWidth", "400"}}));
 
         if (item.Type == jellyfin::mediaTypeEpisode) {
             cell->labelTitle->setText(item.SeriesName);

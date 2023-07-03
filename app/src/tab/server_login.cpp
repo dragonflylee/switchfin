@@ -38,6 +38,8 @@ bool ServerLogin::onSignin() {
                 AppVersion::pkg_name, AppVersion::getDeviceName(), device, AppVersion::getVersion()),
         };
 
+        brls::Logger::info("login header {}", header[1]);
+
         try {
             auto resp = HTTP::post(this->url + jellyfin::apiAuthByName, data.dump(), header);
             jellyfin::AuthResult r = nlohmann::json::parse(resp);

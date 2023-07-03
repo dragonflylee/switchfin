@@ -16,6 +16,8 @@ namespace fs = std::filesystem;
 #include <set>
 #include <borealis.hpp>
 #include <borealis/core/cache_helper.hpp>
+#include "api/http.hpp"
+#include "api/jellyfin/system.hpp"
 #include "utils/config.hpp"
 #include "view/mpv_core.hpp"
 
@@ -44,8 +46,6 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
 AppConfig::AppConfig() = default;
 
 void AppConfig::init() {
-    brls::Logger::info("{} init {}", AppVersion::getPlatform(), AppVersion::getVersion());
-
     const std::string path = this->configDir() + "/config.json";
     std::ifstream readFile(path);
     if (readFile.is_open()) {
@@ -131,14 +131,8 @@ void AppConfig::init() {
         }
     }
 
-    for (auto& u : this->users) {
-        if (u.id == this->user_id) {
-            this->user = u;
-            break;
-        }
-    }
-
-    brls::Logger::info("init url ({}) device {}", this->server_url, this->device);
+    brls::Logger::info(
+        "init {} {} device {} from {}", AppVersion::getPlatform(), AppVersion::getVersion(), this->device, path);
 }
 
 void AppConfig::save() {
@@ -152,6 +146,23 @@ void AppConfig::save() {
         }
     } catch (...) {
     }
+}
+
+bool AppConfig::checkLogin() {
+    for (auto& u : this->users) {
+        if (u.id == this->user_id) {
+            this->user = u;
+            HTTP::Header header = {"X-Emby-Token: " + u.access_token};
+            const long timeout = getItem(AppConfig::REQUEST_TIMEOUT, default_timeout);
+            try {
+                HTTP::get(getUrl() + jellyfin::apiInfo, header, HTTP::Timeout{timeout});
+                return true;
+            } catch (...) {
+                return false;
+            }
+        }
+    }
+    return false;
 }
 
 std::string AppConfig::configDir() {

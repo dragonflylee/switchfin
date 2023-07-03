@@ -71,11 +71,10 @@ int main(int argc, char* argv[]) {
     brls::Theme::getLightTheme().addColor("font/grey", nvgRGB(148, 153, 160));
     brls::Theme::getDarkTheme().addColor("font/grey", nvgRGB(148, 153, 160));
 
-    if (AppConfig::instance().getUser().access_token.empty()) {
-        brls::Application::pushActivity(new ServerList());
-    } else {
-        // Create and push the main activity to the stack
+    if (AppConfig::instance().checkLogin()) {
         brls::Application::pushActivity(new MainActivity());
+    } else {
+        brls::Application::pushActivity(new ServerList());
     }
 
     auto& thread = ThreadPool::instance();

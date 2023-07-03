@@ -59,6 +59,7 @@ public:
 
     void init();
     void save();
+    bool checkLogin();
 
     std::string configDir();
     void checkRestart(char* argv[]);
