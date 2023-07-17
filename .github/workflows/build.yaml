@@ -3,6 +3,16 @@ name: Build
 on:
   push:
     tags: ["*"]
+  workflow_dispatch:
+    inputs:
+      flatpak:
+        description: 'build flatpak'
+        required: false
+        default: 'false'
+      snap:
+        description: 'build snap'
+        required: false
+        default: 'false'
 
 permissions:
   contents: write
@@ -33,7 +43,7 @@ jobs:
         submodules: recursive
         fetch-depth: 0
     - name: Build dependencies
-      if: ${{ github.ref_name == '0.1.0' }}
+      if: ${{ github.ref_name == 'switch-portlibs' }}
       run: |
         apt-get update
         apt-get upgrade -y patch fakeroot file zstd
@@ -45,11 +55,15 @@ jobs:
         dkp-pacman --noconfirm -U scripts/switch/dkp-toolchain-vars-1.0.3-2-any.pkg.tar.zst
         su - builder -c "make -C $(pwd)/scripts/switch -j$(nproc)"
     - name: Update dependencies
-      if: ${{ github.ref_name != '0.1.0' }}
+      if: ${{ github.ref_name != 'switch-portlibs' }}
       run: |
         dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/switch-portlibs/switch-libass-0.17.1-1-any.pkg.tar.zst
         dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/switch-portlibs/switch-ffmpeg-4.4.4-1-any.pkg.tar.zst
         dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/switch-portlibs/switch-libmpv-0.35.1-1-any.pkg.tar.zst
+    - name: Set workspace permissions
+      run: |
+        chown $(id -u):$(id -g) -R "$GITHUB_WORKSPACE"
+        git config --system --add safe.directory '*'
     - name: Build nro
       run: |
         cmake -B switch -DPLATFORM_SWITCH=ON
@@ -62,7 +76,7 @@ jobs:
         path: Switchfin-NintendoSwitch.zip
     - name: Upload dependencies
       uses: softprops/action-gh-release@v1
-      if: ${{ github.ref_name == '0.1.0' }}
+      if: ${{ github.ref_name == 'switch-portlibs' }}
       with:
         tag_name: switch-portlibs
         prerelease: true
@@ -71,6 +85,7 @@ jobs:
           ![download](https://img.shields.io/github/downloads/${{ github.repository }}/switch-portlibs/total?label=Downloads)
 
   build-snap:
+    if: github.event.inputs.snap == 'true'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -91,6 +106,7 @@ jobs:
         path: scripts/*.snap
 
   build-flatpak:
+    if: github.event.inputs.flatpak == 'true'
     runs-on: ubuntu-latest
     container:
       image: bilelmoussaoui/flatpak-github-actions:freedesktop-22.08
@@ -111,11 +127,6 @@ jobs:
         bundle: switchfin-Linux-${{ github.ref_name }}.flatpak
         manifest-path: scripts/flatpak.yaml
         cache-key: flatpak-builder-${{ github.ref_name }}
-    - name: Upload Assets
-      uses: actions/upload-artifact@v3
-      with:
-        name: flatpak-${{ github.ref_name }}
-        path: switchfin-Linux-${{ github.ref_name }}.flatpak
 
   build-macos:
     runs-on: macos-11
@@ -126,7 +137,7 @@ jobs:
         fetch-depth: 0
     - name: Install deps
       run: |
-        brew install create-dmg dylibbundler webp
+        brew install create-dmg dylibbundler boost
         brew tap xfangfang/wiliwili
         brew install -v mpv-wiliwili
     - name: Update gamepad mappings
@@ -135,7 +146,7 @@ jobs:
         cmake -P ${BRLS_GLFW}/CMake/GenerateMappings.cmake ${BRLS_GLFW}/src/mappings.h.in ${BRLS_GLFW}/src/mappings.h
     - name: Build App
       run: |
-        cmake -B build -DPLATFORM_DESKTOP=ON -DCMAKE_BUILD_TYPE=Release
+        cmake -B build -DPLATFORM_DESKTOP=ON -DUSE_BOOST_FILESYSTEM=ON -DCMAKE_BUILD_TYPE=Release
         make -C build -j$(sysctl -n hw.ncpu)
     - name: Create DMG
       run: |

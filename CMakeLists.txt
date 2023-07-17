@@ -1,56 +1,34 @@
 cmake_minimum_required(VERSION 3.15)
 
 # build options
-set(PLATFORM_DESKTOP OFF CACHE BOOL "build for desktop, ON for desktop; OFF for switch")
-set(PLATFORM_SWITCH OFF CACHE BOOL "build for NintendoSwitch")
-option(WIN32_TERMINAL "Show terminal when run on Windows" ON)
+set(BOREALIS_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/library/borealis/library)
+
+# Include Platform common options
+# example: cmake -B build -DPLATFORM_DESKTOP=ON
+include(${BOREALIS_LIBRARY}/cmake/commonOption.cmake)
+
+# Linux
+# Using CMAKE_INSTALL_PREFIX specifies the location where the application is installed.
+cmake_dependent_option(CMAKE_INSTALL "Install to system path" OFF "UNIX;NOT APPLE" OFF)
 
 # mpv related
+# If your system does not support OpenGL(ES), you can use software rendering, but it will affect performance.
 option(MPV_SW_RENDER "Using CPU to draw videos" OFF)
-
-option(USE_GLFW "using glfw for input and create window" ON)
-option(USE_SDL2 "using sdl2 for input and create window" OFF)
-option(CMAKE_INSTALL "Install to system. only use this option with Linux." OFF)
-
-if(USE_SDL2)
-    message("SDL2")
-    set(USE_GLFW OFF)
-elseif(USE_GLFW)
-    message("GLFW")
-    set(USE_SDL2 OFF)
-endif()
-
 if (MPV_SW_RENDER)
-    add_definitions(-DMPV_SW_RENDER)
+    list(APPEND APP_APP_PLATFORM_OPTION -DMPV_SW_RENDER)
 endif ()
+
+# On systems that do not support framebuffer, let MPV to draw to full screen and
+# then cover unnecessary areas with UI.
+option(MPV_NO_FB "Using system provided framebuffer" OFF)
+if (MPV_NO_FB)
+    list(APPEND APP_APP_PLATFORM_OPTION -DMPV_NO_FB)
+endif()
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/deps.cmake)
 
 # toolchain
-if (PLATFORM_DESKTOP)
-    message(STATUS "building for Desktop")
-    set(TARGET_PLATFORM desktop CACHE STRING "")
-    message("Build Type: ${CMAKE_BUILD_TYPE}")
-    SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -g2 -ggdb -Wall")
-    SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
-elseif (PLATFORM_SWITCH)
-    message(STATUS "building for SWITCH")
-    message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
-    set(CMAKE_USE_SYSTEM_ENVIRONMENT_PATH OFF)
-    file(TO_CMAKE_PATH "$ENV{DEVKITPRO}" DEVKITPRO)
-    if (NOT IS_DIRECTORY ${DEVKITPRO})
-        message(FATAL_ERROR "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>/devkitpro")
-    endif ()
-    set(DEVKITPRO $ENV{DEVKITPRO} CACHE BOOL "DEVKITPRO")
-    include(${DEVKITPRO}/cmake/Switch.cmake REQUIRED)
-    set(__SWITCH__ ON)
-    set(CMAKE_C_FLAGS "-I${DEVKITPRO}/libnx/include -I${DEVKITPRO}/portlibs/switch/include")
-    set(CMAKE_CXX_FLAGS "-I${DEVKITPRO}/libnx/include -I${DEVKITPRO}/portlibs/switch/include")
-else()
-    message(FATAL_ERROR "Please set build target -DPLATFORM_DESKTOP=ON or -DPLATFORM_SWITCH=ON")
-endif ()
-
-include(FetchContent)
+include(${BOREALIS_LIBRARY}/cmake/toolchain.cmake)
 
 # project info
 project(Switchfin)
@@ -72,73 +50,93 @@ add_subdirectory(library)
 
 # setting src and include
 file(GLOB_RECURSE MAIN_SRC "${CMAKE_SOURCE_DIR}/app/src/*.cpp")
+if (PLATFORM_SWITCH)
+    # System service initialization functions required for libnx
+    list(APPEND MAIN_SRC ${BOREALIS_LIBRARY}/lib/platforms/switch/switch_wrapper.c)
+elseif (WIN32)
+    configure_file("${CMAKE_SOURCE_DIR}/app/app_win32.rc.in" "${CMAKE_BINARY_DIR}/app_win32.rc")
+    list(APPEND MAIN_SRC ${CMAKE_BINARY_DIR}/app_win32.rc)
+elseif (APPLE)
+    list(APPEND MAIN_SRC ${CMAKE_SOURCE_DIR}/app/app.icns)
+endif ()
 
-set(PLATFORM_OPTION)
-if (PLATFORM_DESKTOP)
-    find_package(CURL)
-    if (NOT CURL_FOUND)
-        FetchContent_Declare(curl
-            URL https://github.com/curl/curl/releases/download/curl-7_88_1/curl-7.88.1.tar.xz
-            DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-        )
-        set(SSL_BACKEND_USED "WinSSL" CACHE INTERNAL "" FORCE)
-        set(HTTP_ONLY ON CACHE INTERNAL "" FORCE)
-        set(BUILD_CURL_EXE OFF CACHE INTERNAL "" FORCE)
-        set(BUILD_TESTING OFF)
-        FetchContent_MakeAvailable(curl)
-    endif()
-    find_package(MPV REQUIRED)
-    if (MPV_FOUND)
-        message(STATUS "Found libmpv: ${MPV_VERSION} ${MPV_INCLUDE_DIR} ${MPV_LIBRARY}")
-    endif()
-    set(PLATFORM_LIBS CURL::libcurl ${MPV_LIBRARY})
-    set(PLATFORM_OPTION -I${MPV_INCLUDE_DIR})
-    if (WIN32)
-        configure_file("${CMAKE_SOURCE_DIR}/app/app_win32.rc.in" "${CMAKE_BINARY_DIR}/app_win32.rc")
-        list(APPEND MAIN_SRC ${CMAKE_BINARY_DIR}/app_win32.rc)
-    endif ()
-elseif (PLATFORM_SWITCH)
-    set(PLATFORM_LIBS
-        # needed by borealis
-        glfw3 EGL glapi drm_nouveau
-        # needed by mpv
-        mpv swscale swresample avformat avfilter avcodec avutil ass freetype fribidi harfbuzz png bz2 z
-        mbedx509 mbedtls mbedcrypto
-        # needed by curl
-        curl z
-        # base lib
-        nx m
+find_package(CURL)
+if (NOT CURL_FOUND)
+    include(FetchContent)
+    FetchContent_Declare(curl
+        URL https://github.com/curl/curl/releases/download/curl-7_88_1/curl-7.88.1.tar.xz
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     )
-    list(APPEND MAIN_SRC ${CMAKE_SOURCE_DIR}/library/borealis/library/lib/platforms/switch/switch_wrapper.c)
+    set(SSL_BACKEND_USED "WinSSL" CACHE INTERNAL "" FORCE)
+    set(HTTP_ONLY ON CACHE INTERNAL "" FORCE)
+    set(BUILD_CURL_EXE OFF CACHE INTERNAL "" FORCE)
+    set(BUILD_TESTING OFF)
+    FetchContent_MakeAvailable(curl)
 endif()
+list(APPEND APP_PLATFORM_LIB CURL::libcurl)
+
+find_package(Threads REQUIRED)
+list(APPEND APP_PLATFORM_LIB ${CMAKE_THREAD_LIBS_INIT})
+
+if (PLATFORM_DESKTOP)
+    find_package(MPV REQUIRED)
+    message(STATUS "Found libmpv: ${MPV_VERSION} ${MPV_INCLUDE_DIR} ${MPV_LIBRARY}")
+    list(APPEND APP_PLATFORM_INCLUDE ${MPV_INCLUDE_DIR})
+    list(APPEND APP_PLATFORM_LIB ${MPV_LIBRARY})
+    if (MINGW)
+        list(APPEND APP_PLATFORM_LIB "-static-libgcc -static-libstdc++")
+    endif ()
+else ()
+    # Used for Cross Compile such as NintendoSwitch
+    # If dependent files cannot be found, environment variables can be set before executing the cmake command:
+    # PKG_CONFIG_LIBDIR=/some/path/arm64/lib/pkgconfig
+    find_package(PkgConfig REQUIRED)
+
+    pkg_search_module(MPV REQUIRED mpv)
+    message(STATUS "Found libmpv: ${MPV_VERSION} ${MPV_INCLUDE_DIRS} ${MPV_STATIC_LIBRARIES}")
+    list(APPEND APP_PLATFORM_INCLUDE ${MPV_INCLUDE_DIRS})
+    list(APPEND APP_PLATFORM_LIB ${MPV_STATIC_LIBRARIES} )
+    list(APPEND APP_PLATFORM_LINK_OPTION -L${MPV_LIBRARY_DIRS})
+endif()
+
+if (USE_LIBROMFS)
+    message(STATUS "USE LIBROMFS")
+    add_definitions(-DUSE_LIBROMFS)
+    set(LIBROMFS_PROJECT_NAME ${PROJECT_NAME} PARENT_SCOPE)
+    set(LIBROMFS_RESOURCE_LOCATION "${PROJECT_RESOURCES}" PARENT_SCOPE)
+endif ()
+
+if (USE_BOOST_FILESYSTEM)
+    find_package(Boost 1.44 REQUIRED COMPONENTS filesystem)
+    if(Boost_FOUND)
+        list(APPEND APP_PLATFORM_LIB Boost::filesystem)
+        list(APPEND APP_PLATFORM_OPTION -DUSE_BOOST_FILESYSTEM)
+    endif()
+endif ()
 
 # building target
 add_executable(${PROJECT_NAME} ${MAIN_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17)
-target_include_directories(${PROJECT_NAME} PRIVATE app/include)
-target_compile_options(${PROJECT_NAME} PRIVATE
-    -ffunction-sections
-    -fdata-sections
-    ${PLATFORM_OPTION}
-)
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    borealis
-    lunasvg
-    ${PLATFORM_LIBS}
-)
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    -DBUILD_TAG_VERSION=v${GIT_TAG_VERSION}
-    -DBUILD_TAG_SHORT=${GIT_TAG_SHORT}
-    -DBUILD_PACKAGE_NAME=${CMAKE_PROJECT_NAME}
-)
 
+target_include_directories(${PROJECT_NAME} PRIVATE app/include ${APP_PLATFORM_INCLUDE})
+target_compile_options(${PROJECT_NAME} PRIVATE -ffunction-sections -fdata-sections -Wunused-variable ${APP_PLATFORM_OPTION})
+target_link_libraries(${PROJECT_NAME} PRIVATE borealis lunasvg z ${APP_PLATFORM_LIB})
+target_link_options(${PROJECT_NAME} PRIVATE ${APP_PLATFORM_LINK_OPTION})
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    APP_VERSION=v${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}
+    BUILD_TAG_VERSION=${GIT_TAG_VERSION}
+    BUILD_TAG_SHORT=${GIT_TAG_SHORT}
+    BUILD_PACKAGE_NAME=${CMAKE_PROJECT_NAME}
+)
 
 # building release file
 if (PLATFORM_DESKTOP)
     if (APPLE)
-        message(STATUS "CMAKE_OSX_ARCHITECTURES: x86_64;arm64")
         set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Architectures" FORCE)
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "" FORCE)
         set(CMAKE_XCODE_ATTRIBUTE_MACOSX_DEPLOYMENT_TARGET[arch=arm64] "11.0" CACHE STRING "arm 64 minimum deployment target" FORCE)
+        message(STATUS "CMAKE_OSX_ARCHITECTURES: ${CMAKE_OSX_ARCHITECTURES}")
+
         set_target_properties(${PROJECT_NAME} PROPERTIES
             MACOSX_BUNDLE TRUE
             MACOSX_BUNDLE_BUNDLE_NAME ${PROJECT_NAME}
@@ -147,12 +145,11 @@ if (PLATFORM_DESKTOP)
             MACOSX_BUNDLE_SHORT_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}"
             MACOSX_BUNDLE_ICON_FILE "app.icns"
             MACOSX_BUNDLE_COPYRIGHT "Copyright 2023 ${PROJECT_AUTHOR}"
-            RESOURCE "${PROJECT_RESOURCES} ${CMAKE_SOURCE_DIR}/app/app.icns"
+            RESOURCE "${CMAKE_SOURCE_DIR}/app/app.icns"
         )
 
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND "${CMAKE_COMMAND}" -E copy_directory ${PROJECT_RESOURCES} Resources/resources
-            COMMAND "${CMAKE_COMMAND}" -E copy ${CMAKE_SOURCE_DIR}/app/app.icns Resources
             COMMAND dylibbundler -cd -b -x MacOS/${PROJECT_NAME} -d Library/ -p @executable_path/../Library/
             COMMAND codesign --sign - --force Library/*
             WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/${PROJECT_NAME}.app/Contents"
@@ -162,7 +159,7 @@ if (PLATFORM_DESKTOP)
         install(DIRECTORY ${PROJECT_RESOURCES} DESTINATION ${BRLS_RESOURCES_DIR}
             FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
         )
-    else()
+    elseif (NOT USE_LIBROMFS)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND "${CMAKE_COMMAND}" -E copy_directory ${PROJECT_RESOURCES} ${PROJECT_BINARY_DIR}/resources
         )

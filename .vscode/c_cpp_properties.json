@@ -24,10 +24,10 @@
         {
             "name": "MinGW64",
             "includePath": [
-              "${workspaceFolder}/app/include",
-              "${workspaceFolder}/library/**",
-              "${workspaceFolder}/build_pc/library/lunasvg/include",
-              "C:\\MinGW64\\include"
+                "${workspaceFolder}/app/include",
+                "${workspaceFolder}/library/**",
+                "${workspaceFolder}/build_pc/library/lunasvg/include",
+                "C:\\MinGW64\\include"
             ],
             "defines": [
                 "BOREALIS_USE_OPENGL",
@@ -38,6 +38,22 @@
             "cStandard": "c17",
             "cppStandard": "gnu++17",
             "intelliSenseMode": "windows-gcc-x64"
+        },
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/app/include",
+                "${workspaceFolder}/library/**"
+            ],
+            "defines": [
+                "BOREALIS_USE_OPENGL",
+                "YG_ENABLE_EVENTS",
+                "BRLS_RESOURCES=\"resources\""
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-x64"
         }
     ],
     "version": 4

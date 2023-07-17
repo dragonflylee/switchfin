@@ -21,10 +21,6 @@ namespace fs = std::filesystem;
 #include "utils/config.hpp"
 #include "view/mpv_core.hpp"
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 constexpr uint32_t MINIMUM_WINDOW_WIDTH = 640;
 constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
 
@@ -82,7 +78,6 @@ void AppConfig::init() {
         this->device.resize(HW_PROFILE_GUIDLEN - 1);
         WideCharToMultiByte(CP_UTF8, 0, profile.szHwProfileGuid, this->device.size(), this->device.data(),
             this->device.size(), nullptr, nullptr);
-#elif _Linux
 #elif __APPLE__
         io_registry_entry_t ioRegistryRoot = IORegistryEntryFromPath(kIOMasterPortDefault, "IOService:/");
         CFStringRef uuidCf = (CFStringRef)IORegistryEntryCreateCFProperty(
@@ -91,6 +86,8 @@ void AppConfig::init() {
         CFStringGetCString(uuidCf, this->device.data(), this->device.size() + 1, kCFStringEncodingMacRoman);
         CFRelease(uuidCf);
         IOObjectRelease(ioRegistryRoot);
+#elif __linux__
+        this->device << std::ifstream("/etc/machine-id");
 #endif
     }
 
