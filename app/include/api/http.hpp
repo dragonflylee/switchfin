@@ -41,7 +41,7 @@ public:
     HTTP(const HTTP& other) = delete;
     ~HTTP();
 
-    std::string encode_form(const Form& form);
+    static std::string encode_form(const Form& form);
     std::string get(const std::string& url);
     std::string post(const std::string& url, const std::string& data);
 

@@ -241,7 +241,7 @@ void VideoView::onChildFocusGained(View* directChild, View* focusedView) {
 }
 
 void VideoView::setSeries(const std::string& seriesId) {
-    std::string query = HTTP().encode_form({
+    std::string query = HTTP::encode_form({
         {"isVirtualUnaired", "false"},
         {"isMissing", "false"},
         {"userId", AppConfig::instance().getUser().id},
@@ -355,7 +355,7 @@ void VideoView::playMedia(const time_t seekTicks) {
 
                 if (itemSource.SupportsDirectPlay) {
                     std::string url = fmt::format(fmt::runtime(jellyfin::apiStream), this->itemId,
-                        HTTP().encode_form({
+                        HTTP::encode_form({
                             {"static", "true"},
                             {"mediaSourceId", itemSource.Id},
                             {"playSessionId", r.PlaySessionId},

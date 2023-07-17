@@ -1,3 +1,6 @@
+#ifdef __SWITCH__
+#include <switch.h>
+#endif
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
 #include "api/http.hpp"
@@ -27,6 +30,10 @@ std::string AppVersion::getPlatform() {
 std::string AppVersion::getDeviceName() {
     std::string name;
 #if __SWITCH__
+    SetSysDeviceNickName nick;
+    if (R_SUCCEEDED(setsysGetDeviceNickname(&nick))) {
+        name = nick.nickname;
+    }
 #elif _WIN32
     DWORD nSize = 128;
     std::vector<WCHAR> buf(nSize);

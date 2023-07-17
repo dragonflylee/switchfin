@@ -30,7 +30,7 @@ Analytics::Analytics() {
     const auto sec = std::chrono::duration_cast<std::chrono::seconds>(ts);
 
     this->client_id = fmt::format("GA1.3.{}.{}", AppVersion::git_commit, sec.count());
-    this->url = GA_URL + "?" + HTTP().encode_form({{"api_secret", GA_KEY}, {"measurement_id", GA_ID}});
+    this->url = GA_URL + "?" + HTTP::encode_form({{"api_secret", GA_KEY}, {"measurement_id", GA_ID}});
 
     this->ticker.setCallback([]() { brls::Threading::async([]() { Analytics::instance().send(); }); });
     this->ticker.start(10000);

@@ -25,7 +25,7 @@ public:
         auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
         if (it != item.ImageTags.end())
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
-                HTTP().encode_form({{"tag", it->second}, {"maxWidth", "200"}}));
+                HTTP::encode_form({{"tag", it->second}, {"maxWidth", "200"}}));
 
         cell->labelTitle->setText(item.Name);
         cell->labelExt->setText(item.ProductionYear > 0 ? std::to_string(item.ProductionYear) : "");
@@ -78,7 +78,7 @@ MediaCollection::MediaCollection(const std::string& id) : itemId(id), startIndex
 brls::View* MediaCollection::getDefaultFocus() { return this->recyclerSeries; }
 
 void MediaCollection::doRequest() {
-    std::string query = HTTP().encode_form({
+    std::string query = HTTP::encode_form({
         {"parentId", this->itemId},
         {"sortBy", "PremiereDate"},
         {"sortOrder", "Descending"},
