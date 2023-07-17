@@ -22,7 +22,9 @@
 #include "view/mpv_core.hpp"
 #include "api/analytics.hpp"
 
-#ifndef __SWITCH__
+#ifdef __SWITCH__
+#include "utils/overclock.hpp"
+#else
 #include <borealis/platforms/desktop/desktop_platform.hpp>
 #endif
 
@@ -64,7 +66,12 @@ void SettingTab::onCreate() {
 /// Hardware decode
 #ifdef __SWITCH__
     btnHWDEC->setVisibility(brls::Visibility::GONE);
+    btnOverClock->init("main/setting/others/overclock"_i18n, conf.getItem(AppConfig::OVERCLOCK, false), [&conf](bool value) {
+        SwitchSys::setClock(value);
+        conf.setItem(AppConfig::OVERCLOCK, value);
+    });
 #else
+    btnOverClock->setVisibility(brls::Visibility::GONE);
     btnHWDEC->init("main/setting/playback/hwdec"_i18n, MPVCore::HARDWARE_DEC, [&conf](bool value) {
         if (MPVCore::HARDWARE_DEC == value) return;
         MPVCore::HARDWARE_DEC = value;

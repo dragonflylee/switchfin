@@ -342,7 +342,8 @@ void VideoView::playMedia(const time_t seekTicks) {
 #endif
                 bool hasSub = false;
                 for (auto& s : itemSource.MediaStreams) {
-                    if (s.Type == jellyfin::streamTypeSubtitle && s.IsExternal) {
+                    if (s.Type == jellyfin::streamTypeSubtitle && s.DeliveryUrl.size() > 0 &&
+                        (s.IsExternal || item.SupportsTranscoding)) {
                         if (hasSub) {
                             ssextra << separator;
                         } else {

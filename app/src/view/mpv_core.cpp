@@ -68,7 +68,9 @@ void MPVCore::init() {
     mpv_set_option_string(mpv, "config", "yes");
     mpv_set_option_string(mpv, "config-dir", AppConfig::instance().configDir().c_str());
     mpv_set_option_string(mpv, "ytdl", "no");
-    mpv_set_option_string(mpv, "terminal", "no");
+#ifdef _DEBUG
+    mpv_set_option_string(mpv, "terminal", "yes");
+#endif
     mpv_set_option_string(mpv, "audio-channels", "stereo");
     mpv_set_option_string(mpv, "referrer", AppConfig::instance().getUrl().c_str());
     mpv_set_option_string(mpv, "idle", "yes");

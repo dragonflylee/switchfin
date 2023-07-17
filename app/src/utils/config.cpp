@@ -1,5 +1,6 @@
 #ifdef __SWITCH__
 #include <switch.h>
+#include "utils/overclock.hpp"
 #else
 #include <unistd.h>
 #include <borealis/platforms/desktop/desktop_platform.hpp>
@@ -30,6 +31,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {KEYMAP, {"keymap", {"xbox", "ps", "keyboard"}}},
     {TRANSCODEC, {"transcodec", {"AVC/H264", "HEVC/H265"}}},
     {FULLSCREEN, {"fullscreen"}},
+    {OVERCLOCK, {"overclock"}},
     {PLAYER_BOTTOM_BAR, {"player_bottom_bar"}},
     {PLAYER_SEEKING_STEP, {"player_seeking_step", {"5", "10", "15", "30"}, {5, 10, 15, 30}}},
     {PLAYER_HWDEC, {"player_hwdec"}},
@@ -112,6 +114,13 @@ void AppConfig::init() {
         brls::Application::getPlatform()->setWindowSizeLimits(MINIMUM_WINDOW_WIDTH, MINIMUM_WINDOW_HEIGHT, 0, 0);
 #endif
     });
+
+#ifdef __SWITCH__
+    /// Set Overclock
+    if (getItem(AppConfig::OVERCLOCK, false)) {
+        SwitchSys::setClock(true);
+    };
+#endif
 
     // init custom font path
     brls::FontLoader::USER_FONT_PATH = configDir() + "/font.ttf";

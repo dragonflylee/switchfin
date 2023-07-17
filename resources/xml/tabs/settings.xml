@@ -78,6 +78,8 @@
                 marginBottom="30px">
                 <brls:BooleanCell
                     id="setting/fullscreen" />
+                <brls:BooleanCell
+                    id="setting/overclock" />
                 <brls:SelectorCell
                     id="setting/keymap" />
                 <brls:SelectorCell

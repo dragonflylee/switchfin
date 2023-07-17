@@ -56,6 +56,7 @@
     "others": {
       "header": "其他",
       "fullscreen": "全屏显示",
+      "overclock": "CPU超频",
       "theme": {
         "header": "主题配色 (需要重启)",
         "1": "跟随系统",

@@ -42,6 +42,7 @@ class AppConfig : public brls::Singleton<AppConfig> {
 public:
     enum Item {
         FULLSCREEN,
+        OVERCLOCK,
         APP_THEME,
         APP_LANG,
         KEYMAP,
