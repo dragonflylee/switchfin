@@ -45,9 +45,6 @@ if (CMAKE_INSTALL)
     set(BRLS_RESOURCES_DIR ${CMAKE_INSTALL_PREFIX}/lib)
 endif ()
 
-# build borealis qrcode and other third party libraries
-add_subdirectory(library)
-
 # setting src and include
 file(GLOB_RECURSE MAIN_SRC "${CMAKE_SOURCE_DIR}/app/src/*.cpp")
 if (PLATFORM_SWITCH)
@@ -67,7 +64,9 @@ if (NOT CURL_FOUND)
         URL https://github.com/curl/curl/releases/download/curl-7_88_1/curl-7.88.1.tar.xz
         DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     )
-    set(SSL_BACKEND_USED "WinSSL" CACHE INTERNAL "" FORCE)
+    if (WIN32)
+        set(SSL_BACKEND_USED "WinSSL" CACHE INTERNAL "" FORCE)
+    endif ()
     set(HTTP_ONLY ON CACHE INTERNAL "" FORCE)
     set(BUILD_CURL_EXE OFF CACHE INTERNAL "" FORCE)
     set(BUILD_TESTING OFF)
@@ -102,8 +101,8 @@ endif()
 if (USE_LIBROMFS)
     message(STATUS "USE LIBROMFS")
     add_definitions(-DUSE_LIBROMFS)
-    set(LIBROMFS_PROJECT_NAME ${PROJECT_NAME} PARENT_SCOPE)
-    set(LIBROMFS_RESOURCE_LOCATION "${PROJECT_RESOURCES}" PARENT_SCOPE)
+    set(LIBROMFS_PROJECT_NAME ${PROJECT_NAME})
+    set(LIBROMFS_RESOURCE_LOCATION "${PROJECT_RESOURCES}")
 endif ()
 
 if (USE_BOOST_FILESYSTEM)
@@ -113,6 +112,9 @@ if (USE_BOOST_FILESYSTEM)
         list(APPEND APP_PLATFORM_OPTION -DUSE_BOOST_FILESYSTEM)
     endif()
 endif ()
+
+# build borealis and other third party libraries
+add_subdirectory(library)
 
 # building target
 add_executable(${PROJECT_NAME} ${MAIN_SRC})
