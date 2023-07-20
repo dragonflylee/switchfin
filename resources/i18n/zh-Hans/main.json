@@ -16,6 +16,7 @@
   },
   "player": {
     "subtitle": "字幕",
+    "none": "不显示",
     "audio": "音轨",
     "common": "通用",
     "speed": "倍速",

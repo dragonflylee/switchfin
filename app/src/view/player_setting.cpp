@@ -14,6 +14,7 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
     });
 
     std::vector<std::string> subtitleOption, audioOption;
+    subtitleOption.push_back("main/player/none"_i18n);
     for (auto& it : src.MediaStreams) {
         if (it.Type == jellyfin::streamTypeSubtitle) {
             subtitleOption.push_back(it.DisplayTitle);
@@ -22,11 +23,11 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
         }
     }
     // 字幕选择
-    if (subtitleOption.size() > 0) {
+    if (subtitleOption.size() > 1) {
         int64_t value = 0;
         MPVCore::instance().get_property("sid", MPV_FORMAT_INT64, &value);
-        this->subtitleTrack->init("main/player/subtitle"_i18n, subtitleOption, int(value - 1),
-            [](int selected) { MPVCore::instance().set_property("sid", selected + 1); });
+        this->subtitleTrack->init("main/player/subtitle"_i18n, subtitleOption, value,
+            [](int selected) { MPVCore::instance().set_property("sid", selected); });
         this->subtitleTrack->detail->setVisibility(brls::Visibility::GONE);
     } else {
         this->subtitleTrack->setVisibility(brls::Visibility::GONE);
@@ -34,8 +35,8 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
     // 音轨选择
     if (audioOption.size() > 1) {
         int64_t value = 0;
-        MPVCore::instance().get_property("aid", MPV_FORMAT_INT64, &value);
-        this->audioTrack->init("main/player/audio"_i18n, audioOption, int(value - 1),
+        if (!MPVCore::instance().get_property("aid", MPV_FORMAT_INT64, &value)) value -= 1;
+        this->audioTrack->init("main/player/audio"_i18n, audioOption, value,
             [](int selected) { MPVCore::instance().set_property("aid", selected + 1); });
         this->audioTrack->detail->setVisibility(brls::Visibility::GONE);
     } else {

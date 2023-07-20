@@ -299,14 +299,36 @@ void VideoView::playMedia(const time_t seekTicks) {
                     {
                         "DirectPlayProfiles",
                         {
-                            {{"Container", "mp4,m4v,mkv"}, {"Type", "Video"}, {"VideoCodec", "h264,hevc,av1,vp9"}},
-                            {{"Container", "mov"}, {"Type", "Video"}, {"VideoCodec", "h264"}},
+                            {
+                                {"Container", "mp4,m4v,mkv"},
+                                {"Type", "Video"},
+#ifdef __SWITCH__
+                                {"VideoCodec", "h264"},
+#else
+                                {"VideoCodec", "h264,hevc,av1,vp9"},
+#endif
+                                {"AudioCodec", "aac,mp3,ac3,eac3,opus"},
+                            },
+                            {
+                                {"Container", "mov"},
+                                {"Type", "Video"},
+                                {"VideoCodec", "h264"},
+                                {"AudioCodec", "aac,mp3,ac3,eac3,opus"},
+                            },
                         },
                     },
                     {
                         "TranscodingProfiles",
                         {
-                            {{"Container", "ts"}, {"Type", "Video"}, {"VideoCodec", "h264"}, {"Protocol", "hls"}},
+                            {
+                                {"Container", "ts"},
+                                {"Type", "Video"},
+                                {"VideoCodec", "h264"},
+                                {"AudioCodec", "aac"},
+                                {"Protocol", "hls"},
+                                {"Context", "Streaming"},
+                                {"BreakOnNonKeyFrames", true},
+                            },
                         },
                     },
                     {
@@ -330,6 +352,9 @@ void VideoView::playMedia(const time_t seekTicks) {
             for (auto& item : r.MediaSources) {
                 this->itemSource = std::move(item);
                 std::stringstream ssextra;
+
+                brls::Logger::debug("mediaSource {} => {}", this->itemId, nlohmann::json(item).dump(1));
+
                 ssextra << "network-timeout=20";
                 if (seekTicks > 0) {
                     ssextra << ",start=" << sec2Time(seekTicks / PLAYTICKS);
@@ -343,11 +368,11 @@ void VideoView::playMedia(const time_t seekTicks) {
                 bool hasSub = false;
                 for (auto& s : itemSource.MediaStreams) {
                     if (s.Type == jellyfin::streamTypeSubtitle && s.DeliveryUrl.size() > 0 &&
-                        (s.IsExternal || item.SupportsTranscoding)) {
+                        (s.IsExternal || item.TranscodingUrl.size() > 0)) {
                         if (hasSub) {
                             ssextra << separator;
                         } else {
-                            ssextra << ",sub-files=";
+                            ssextra << ",sub-files-pre=";
                             hasSub = true;
                         }
                         ssextra << svr << s.DeliveryUrl;

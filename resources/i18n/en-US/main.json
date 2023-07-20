@@ -16,6 +16,7 @@
   },
   "player": {
     "subtitle": "Subtitle",
+    "none": "None",
     "audio": "Audio track",
     "common": "Common",
     "speed": "Playback Speed",
