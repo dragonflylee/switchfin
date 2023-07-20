@@ -1,0 +1,284 @@
+<brls:Box
+    axis="column"
+    backgroundColor="@theme/brls/backdrop"
+    padding="10"
+    cornerRadius="4"
+    width="600">
+
+    <!-- File-->
+    <brls:Label
+        textColor="#FFFFFF"
+        margin="3"
+        fontSize="16"
+        text="File" />
+    <brls:Box
+        axis="row"
+        height="18"
+        marginBottom="3"
+        marginLeft="20">
+        <brls:Label
+            textColor="#FFFFFF"
+            fontSize="16"
+            shrink="0"
+            marginRight="4"
+            text="Url:" />
+        <brls:Label
+            id="profile/file/url"
+            textColor="@theme/font/grey"
+            fontSize="16" />
+    </brls:Box>
+    <brls:Box
+        axis="row"
+        height="18"
+        marginBottom="3"
+        marginLeft="20">
+        <brls:Label
+            textColor="#FFFFFF"
+            fontSize="16"
+            shrink="0"
+            marginRight="4"
+            text="Play:" />
+        <brls:Label
+            id="profile/play/method"
+            textColor="@theme/font/grey"
+            fontSize="16" />
+    </brls:Box>
+    <brls:Box
+        axis="row"
+        height="16"
+        marginBottom="3"
+        marginLeft="20">
+        <brls:Label
+            textColor="#FFFFFF"
+            fontSize="16"
+            shrink="0"
+            marginRight="4"
+            text="Size:" />
+        <brls:Label
+            id="profile/file/size"
+            textColor="@theme/font/grey"
+            fontSize="16" />
+    </brls:Box>
+    <brls:Box
+        axis="row"
+        height="16"
+        marginBottom="3"
+        marginLeft="20">
+        <brls:Label
+            textColor="#FFFFFF"
+            fontSize="16"
+            shrink="0"
+            marginRight="4"
+            text="Format/Protocol:" />
+        <brls:Label
+            id="profile/file/format"
+            textColor="@theme/font/grey"
+            fontSize="16" />
+    </brls:Box>
+    <brls:Box
+        axis="row"
+        height="16"
+        marginBottom="3"
+        marginLeft="20">
+        <brls:Label
+            textColor="#FFFFFF"
+            fontSize="16"
+            shrink="0"
+            marginRight="4"
+            text="Total Cache:" />
+        <brls:Label
+            id="profile/file/cache"
+            textColor="@theme/font/grey"
+            fontSize="16" />
+    </brls:Box>
+
+    <!-- Video-->
+    <brls:Label
+        textColor="#FFFFFF"
+        margin="3"
+        fontSize="16"
+        text="Video" />
+    <brls:Box
+        axis="row"
+        height="16"
+        marginBottom="3"
+        marginLeft="20">
+        <brls:Label
+            textColor="#FFFFFF"
+            fontSize="16"
+            shrink="0"
+            marginRight="4"
+            text="Resolution:" />
+        <brls:Label
+            id="profile/video/res"
+            textColor="@theme/font/grey"
+            fontSize="16" />
+    </brls:Box>
+    <brls:Box
+        axis="row"
+        height="16"
+        marginBottom="3"
+        marginLeft="20">
+        <brls:Label
+            textColor="#FFFFFF"
+            fontSize="16"
+            shrink="0"
+            marginRight="4"
+            text="Codec:" />
+        <brls:Label
+            id="profile/video/codec"
+            textColor="@theme/font/grey"
+            fontSize="16" />
+    </brls:Box>
+    <brls:Box
+        axis="row"
+        height="16"
+        marginBottom="3"
+        marginLeft="20">
+        <brls:Label
+            textColor="#FFFFFF"
+            fontSize="16"
+            shrink="0"
+            marginRight="4"
+            text="Pixel Format:" />
+        <brls:Label
+            id="profile/video/pixel"
+            textColor="@theme/font/grey"
+            fontSize="16" />
+    </brls:Box>
+    <brls:Box
+        axis="row"
+        height="16"
+        marginBottom="3"
+        marginLeft="20">
+        <brls:Label
+            textColor="#FFFFFF"
+            fontSize="16"
+            shrink="0"
+            marginRight="4"
+            text="Hardware Decode:" />
+        <brls:Label
+            id="profile/video/hwdec"
+            textColor="@theme/font/grey"
+            fontSize="16" />
+    </brls:Box>
+    <brls:Box
+        axis="row"
+        height="16"
+        marginBottom="3"
+        marginLeft="20">
+        <brls:Label
+            textColor="#FFFFFF"
+            fontSize="16"
+            shrink="0"
+            marginRight="4"
+            text="Video Bitrate:" />
+        <brls:Label
+            id="profile/video/bitrate"
+            textColor="@theme/font/grey"
+            fontSize="16" />
+    </brls:Box>
+    <brls:Box
+        axis="row"
+        height="16"
+        marginBottom="3"
+        marginLeft="20">
+        <brls:Label
+            textColor="#FFFFFF"
+            fontSize="16"
+            shrink="0"
+            marginRight="4"
+            text="Dropped Frames:" />
+        <brls:Label
+            id="profile/video/drop"
+            textColor="@theme/font/grey"
+            fontSize="16" />
+    </brls:Box>
+    <brls:Box
+        axis="row"
+        height="16"
+        marginBottom="3"
+        marginLeft="20">
+        <brls:Label
+            textColor="#FFFFFF"
+            fontSize="16"
+            shrink="0"
+            marginRight="4"
+            text="A-V:" />
+        <brls:Label
+            id="profile/video/avsync"
+            textColor="@theme/font/grey"
+            fontSize="16" />
+    </brls:Box>
+
+    <!-- Audio-->
+    <brls:Label
+        margin="3"
+        fontSize="16"
+        textColor="#FFFFFF"
+        text="Audio" />
+    <brls:Box
+        axis="row"
+        height="16"
+        marginBottom="3"
+        marginLeft="20">
+        <brls:Label
+            textColor="#FFFFFF"
+            fontSize="16"
+            shrink="0"
+            marginRight="4"
+            text="Channels:" />
+        <brls:Label
+            id="profile/audio/channel"
+            textColor="@theme/font/grey"
+            fontSize="16" />
+    </brls:Box>
+    <brls:Box
+        axis="row"
+        height="16"
+        marginBottom="3"
+        marginLeft="20">
+        <brls:Label
+            textColor="#FFFFFF"
+            fontSize="16"
+            shrink="0"
+            marginRight="4"
+            text="Codec:" />
+        <brls:Label
+            id="profile/audio/codec"
+            textColor="@theme/font/grey"
+            fontSize="16" />
+    </brls:Box>
+    <brls:Box
+        axis="row"
+        height="16"
+        marginBottom="3"
+        marginLeft="20">
+        <brls:Label
+            textColor="#FFFFFF"
+            fontSize="16"
+            shrink="0"
+            marginRight="4"
+            text="Sample Rate:" />
+        <brls:Label
+            id="profile/audio/sample"
+            textColor="@theme/font/grey"
+            fontSize="16" />
+    </brls:Box>
+    <brls:Box
+        axis="row"
+        height="16"
+        marginBottom="3"
+        marginLeft="20">
+        <brls:Label
+            textColor="#FFFFFF"
+            fontSize="16"
+            shrink="0"
+            marginRight="4"
+            text="Bitrate:" />
+        <brls:Label
+            id="profile/audio/bitrate"
+            textColor="@theme/font/grey"
+            fontSize="16" />
+    </brls:Box>
+</brls:Box>

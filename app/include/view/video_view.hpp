@@ -10,6 +10,7 @@
 
 class VideoProgressSlider;
 class SVGImage;
+class VideoProfile;
 
 enum class OSDState {
     HIDDEN = 0,
@@ -88,6 +89,7 @@ private:
     time_t hintLastShowTime = 0;
     const time_t OSD_SHOW_TIME = 5;  //默认5秒
     OSDState osd_state = OSDState::HIDDEN;
+    VideoProfile *profile;
 
     int64_t seeking_range = 0;
     size_t seeking_iter = 0;

@@ -2,6 +2,7 @@
 #include "view/svg_image.hpp"
 #include "view/video_progress_slider.hpp"
 #include "view/player_setting.hpp"
+#include "view/video_profile.hpp"
 #include "api/jellyfin.hpp"
 #include "utils/dialog.hpp"
 #include "utils/config.hpp"
@@ -127,6 +128,18 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
     });
     this->btnVideoQuality->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoQuality));
 
+    /// 视频详情信息
+    this->profile = new VideoProfile();
+    this->addView(this->profile);
+    this->registerAction(
+        "profile", brls::ControllerButton::BUTTON_BACK,
+        [this](brls::View* view) -> bool {
+            bool shown = profile->getVisibility() == brls::Visibility::VISIBLE;
+            profile->setVisibility(shown ? brls::Visibility::INVISIBLE : brls::Visibility::VISIBLE);
+            return true;
+        },
+        true);
+
     this->playMedia(item.UserData.PlaybackPositionTicks);
 }
 
@@ -209,6 +222,16 @@ void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::S
 
     // cache info
     osdCenterBox->frame(ctx);
+
+    // draw video profile
+    if (profile->getVisibility() == brls::Visibility::VISIBLE) {
+        static time_t last = current;
+        if (current - last > 2) {
+            profile->update();
+            last = current;
+        }
+        profile->frame(ctx);
+    }
 }
 
 void VideoView::invalidate() { View::invalidate(); }
@@ -372,7 +395,7 @@ void VideoView::playMedia(const time_t seekTicks) {
                         if (hasSub) {
                             ssextra << separator;
                         } else {
-                            ssextra << ",sub-files-pre=";
+                            ssextra << ",sub-files=";
                             hasSub = true;
                         }
                         ssextra << svr << s.DeliveryUrl;
@@ -457,6 +480,7 @@ void VideoView::registerMpvEvent() {
             this->hideLoading();
             this->btnToggleIcon->setImageFromSVGRes("icon/ico-pause.svg");
             this->reportPlay();
+            this->profile->init(itemSource.Name, this->playMethod);
             break;
         case MpvEventEnum::MPV_PAUSE:
             this->showOSD(false);
