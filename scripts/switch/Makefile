@@ -18,7 +18,7 @@ MAKEPKG	:=	makepkg
 endif
 endif
 
-all: mpv
+all: mpv nsp
 
 .PHONY: libass
 libass:
@@ -34,3 +34,7 @@ ffmpeg:
 mpv: ffmpeg libass
 	@echo Installing libmpv
 	@cd libmpv; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
+
+.PHONY: nsp
+nsp:
+	@cd nspmini; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..

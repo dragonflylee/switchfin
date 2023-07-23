@@ -1,0 +1,39 @@
+name: switch-portlibs
+
+on:
+  push:
+    tags: [ switch-portlibs ]
+
+permissions:
+  contents: write
+
+jobs:
+  build-portlibs:
+    runs-on: ubuntu-latest
+    container:
+      image: devkitpro/devkita64
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        sparse-checkout: scripts/switch
+    - name: Build portlibs
+      if: ${{ github.ref_name == 'switch-portlibs' }}
+      run: |
+        apt-get update
+        apt-get upgrade -y patch fakeroot file zstd
+        
+        adduser --gecos '' --disabled-password builder
+        echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder
+        chown -R builder:builder $(pwd)/scripts/switch
+
+        dkp-pacman --noconfirm -U scripts/switch/dkp-toolchain-vars-1.0.3-2-any.pkg.tar.zst
+        su - builder -c "make -C $(pwd)/scripts/switch -j$(nproc)"
+    - name: Upload portlibs
+      uses: softprops/action-gh-release@v1
+      with:
+        name: switch-portlibs
+        tag_name: switch-portlibs
+        prerelease: true
+        files: scripts/switch/*/*.pkg.tar.zst
+        body: |
+          ![download](https://img.shields.io/github/downloads/${{ github.repository }}/switch-portlibs/total?label=Downloads)

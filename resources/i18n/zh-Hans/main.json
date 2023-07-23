@@ -78,5 +78,14 @@
         "keyboard": "键盘"
       }
     }
+  },
+  "hints": {
+    "hint1": "请从桌面选择任意游戏并按住  键",
+    "hint2": "点击  打开, 在应用开启期间保持按住  键，直到进入 hbmenu",
+    "hint3": "在 hbmenu 菜单中选择 Switchfin",
+    "hint4": "可选：安装 Switchfin NSP 通过桌面图标直接打开 Switchfin",
+    "hint_nsp": "点击  安装桌面图标",
+    "hint_confirm": "安装桌面图标可能导致ban机\n请再次确认",
+    "hint_right": "掌机图片来源于网络，版权归任天堂 Nintendo Co., Ltd 所有"
   }
 }

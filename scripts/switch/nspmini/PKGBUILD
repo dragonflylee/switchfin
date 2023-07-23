@@ -1,0 +1,37 @@
+pkgbasename=nspmini
+pkgname=switch-${pkgbasename}
+pkgver=main
+pkgrel=1
+pkgdesc='easy install nsp lib'
+arch=('any')
+license=('GPL')
+options=(!strip libtool staticlibs)
+source=("${pkgbasename}-${pkgver}.tar.gz::https://github.com/StarDustCFW/nspmini/archive/${pkgver}.tar.gz" "nspmini.patch")
+sha256sums=(
+  'SKIP'
+  'SKIP'
+)
+makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
+groups=('switch-portlibs')
+
+prepare() {
+  cd nspmini-$pkgver
+  patch -Np1 -i "$srcdir/nspmini.patch"
+}
+
+build() {
+  cd nspmini-main
+
+  source /opt/devkitpro/switchvars.sh
+
+  make
+}
+
+package() {
+  cd nspmini-main
+
+  mkdir -p $pkgdir/${PORTLIBS_PREFIX}
+
+  cp -r lib $pkgdir/${PORTLIBS_PREFIX}/lib
+  cp -r include $pkgdir/${PORTLIBS_PREFIX}/include
+}

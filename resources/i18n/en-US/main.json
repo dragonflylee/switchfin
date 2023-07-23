@@ -78,5 +78,14 @@
         "keyboard": "Keyboard"
       }
     }
+  },
+  "hints": {
+    "hint1": "Select a game from home screen",
+    "hint2": "Hold the \uE0E5 key and click \uE0E0 to enter hbmenu",
+    "hint3": "In the hbmenu, select Switchfin",
+    "hint4": "Optional: Using provided Switchfin NSP forwarder",
+    "hint_nsp": "Click \uE0E0 to install NSP forwarder",
+    "hint_confirm": "Installing NSP forwarder may result in a ban\nPlease confirm again",
+    "hint_right": "The pictures are from the Internet, and the copyright belongs to Nintendo Co., Ltd"
   }
 }

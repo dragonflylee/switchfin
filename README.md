@@ -43,7 +43,7 @@ To build for Switch, a standard development environment must first be set up. In
 
 ```bash
 sudo dkp-pacman -S switch-glfw switch-libwebp switch-cmake switch-curl devkitA64
-cmake -B build_switch -DPLATFORM_SWITCH=ON
+cmake -B build_switch -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON
 make -C build_switch Switchfin.nro -j$(nproc)
 ```
 

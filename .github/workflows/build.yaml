@@ -1,14 +1,10 @@
-name: Build
+name: build
 
 on:
   push:
-    tags: ["*"]
+    tags-ignore: [ switch-portlibs ]
   workflow_dispatch:
     inputs:
-      flatpak:
-        description: 'build flatpak'
-        required: false
-        default: 'false'
       snap:
         description: 'build snap'
         required: false
@@ -18,7 +14,7 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  upload-release:
     needs: [ build-win-x64, build-switch, build-macos ]
     runs-on: ubuntu-latest
     steps:
@@ -27,7 +23,8 @@ jobs:
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        name: ${{ github.ref_name }}
+        name: Switchfin ${{ github.ref_name }}
+        tag_name: ${{ github.ref_name }}
         generate_release_notes: true
         files: '*/*'
         body: |
@@ -36,53 +33,29 @@ jobs:
   build-switch:
     runs-on: ubuntu-latest
     container:
-      image: devkitpro/devkita64:20230622
+      image: devkitpro/devkita64
     steps:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
-        fetch-depth: 0
-    - name: Build dependencies
-      if: ${{ github.ref_name == 'switch-portlibs' }}
-      run: |
-        apt-get update
-        apt-get upgrade -y patch fakeroot file zstd
-        
-        adduser --gecos '' --disabled-password builder
-        echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder
-        chown -R builder:builder $(pwd)/scripts/switch
-
-        dkp-pacman --noconfirm -U scripts/switch/dkp-toolchain-vars-1.0.3-2-any.pkg.tar.zst
-        su - builder -c "make -C $(pwd)/scripts/switch -j$(nproc)"
     - name: Update dependencies
-      if: ${{ github.ref_name != 'switch-portlibs' }}
       run: |
-        dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/switch-portlibs/switch-libass-0.17.1-1-any.pkg.tar.zst
-        dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/switch-portlibs/switch-ffmpeg-4.4.4-1-any.pkg.tar.zst
-        dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/switch-portlibs/switch-libmpv-0.35.1-1-any.pkg.tar.zst
+        for p in `curl -sL https://api.github.com/repos/${{ github.repository }}/releases/tags/switch-portlibs | grep browser_download_url | cut -d\" -f4`; do dkp-pacman --noconfirm -U $p; done
+        curl -sL https://github.com/dragonflylee/hacBrewPack/releases/download/v3.06/hacbrewpack-v3.06_linux-amd64.tar.gz | tar zxf - -C /usr/local/bin
     - name: Set workspace permissions
       run: |
         chown $(id -u):$(id -g) -R "$GITHUB_WORKSPACE"
         git config --system --add safe.directory '*'
     - name: Build nro
       run: |
-        cmake -B switch -DPLATFORM_SWITCH=ON
+        cmake -B switch -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON
         make -C switch Switchfin.nro -j$(nproc)
-        cmake -E tar c Switchfin-NintendoSwitch.zip switch/Switchfin.nro
+        zip -9 Switchfin-NintendoSwitch.zip switch/Switchfin.nro
     - name: Upload Assets
       uses: actions/upload-artifact@v3
       with:
         name: switch-${{ github.ref_name }}
         path: Switchfin-NintendoSwitch.zip
-    - name: Upload dependencies
-      uses: softprops/action-gh-release@v1
-      if: ${{ github.ref_name == 'switch-portlibs' }}
-      with:
-        tag_name: switch-portlibs
-        prerelease: true
-        files: scripts/switch/*/*.pkg.tar.zst
-        body: |
-          ![download](https://img.shields.io/github/downloads/${{ github.repository }}/switch-portlibs/total?label=Downloads)
 
   build-snap:
     if: github.event.inputs.snap == 'true'
@@ -91,7 +64,6 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
-        fetch-depth: 0
     - name: Update gamepad mappings
       run: |
         BRLS_GLFW="library/borealis/library/lib/extern/glfw"
@@ -105,36 +77,12 @@ jobs:
         name: snap-${{ github.ref_name }}
         path: scripts/*.snap
 
-  build-flatpak:
-    if: github.event.inputs.flatpak == 'true'
-    runs-on: ubuntu-latest
-    container:
-      image: bilelmoussaoui/flatpak-github-actions:freedesktop-22.08
-      options: --privileged
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-        fetch-depth: 0
-    - name: Update gamepad mappings
-      run: |
-        dnf -y install cmake
-        BRLS_GLFW="library/borealis/library/lib/extern/glfw"
-        cmake -P ${BRLS_GLFW}/CMake/GenerateMappings.cmake ${BRLS_GLFW}/src/mappings.h.in ${BRLS_GLFW}/src/mappings.h
-    - name: Build flatpak
-      uses: flatpak/flatpak-github-actions/flatpak-builder@v6.1
-      with:
-        bundle: switchfin-Linux-${{ github.ref_name }}.flatpak
-        manifest-path: scripts/flatpak.yaml
-        cache-key: flatpak-builder-${{ github.ref_name }}
-
   build-macos:
     runs-on: macos-11
     steps:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
-        fetch-depth: 0
     - name: Install deps
       run: |
         brew install create-dmg dylibbundler boost
@@ -178,7 +126,6 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
-        fetch-depth: 0
     - name: Cache xmake packages
       uses: actions/cache@v3
       with:

@@ -13,9 +13,11 @@
 #include "view/recycling_grid.hpp"
 #include "view/h_recycling.hpp"
 #include "view/video_progress_slider.hpp"
+#include "view/gallery_view.hpp"
 
 #include "activity/main_activity.hpp"
 #include "activity/server_list.hpp"
+#include "activity/hint_activity.hpp"
 #include "tab/server_add.hpp"
 #include "tab/home_tab.hpp"
 #include "tab/media_folder.hpp"
@@ -52,7 +54,9 @@ int main(int argc, char* argv[]) {
     brls::Application::registerXMLView("AutoTabFrame", AutoTabFrame::create);
     brls::Application::registerXMLView("RecyclingGrid", RecyclingGrid::create);
     brls::Application::registerXMLView("HRecyclerFrame", HRecyclerFrame::create);
+    brls::Application::registerXMLView("GalleryView", GalleryView::create);
     brls::Application::registerXMLView("VideoProgressSlider", VideoProgressSlider::create);
+
     brls::Application::registerXMLView("HomeTab", HomeTab::create);
     brls::Application::registerXMLView("MediaFolders", MediaFolders::create);
     brls::Application::registerXMLView("SettingTab", SettingTab::create);
@@ -71,7 +75,9 @@ int main(int argc, char* argv[]) {
     brls::Theme::getLightTheme().addColor("font/grey", nvgRGB(148, 153, 160));
     brls::Theme::getDarkTheme().addColor("font/grey", nvgRGB(148, 153, 160));
 
-    if (AppConfig::instance().checkLogin()) {
+    if (!brls::Application::getPlatform()->isApplicationMode()) {
+        brls::Application::pushActivity(new HintActivity());
+    } else if (AppConfig::instance().checkLogin()) {
         brls::Application::pushActivity(new MainActivity());
     } else {
         brls::Application::pushActivity(new ServerList());

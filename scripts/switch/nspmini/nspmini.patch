@@ -1,0 +1,27 @@
+diff --git a/source/nspmini/install/nsp.cpp b/source/nspmini/install/nsp.cpp
+index a5fa00a..ec5d9b4 100644
+--- a/source/nspmini/install/nsp.cpp
++++ b/source/nspmini/install/nsp.cpp
+@@ -242,7 +242,8 @@ namespace tin::install::nsp
+ 
+ 				NcmContentInfo cnmtContentInfo;
+ 				cnmtContentInfo.content_id = cnmtContentId;
+-				*(u64*)&cnmtContentInfo.size = cnmtNcaSize & 0xFFFFFFFFFFFF;
++				cnmtContentInfo.size_high = (cnmtNcaSize >> 32) & 0xFFFF;
++				cnmtContentInfo.size_low = cnmtNcaSize & 0xFFFFFFFF;
+ 				cnmtContentInfo.content_type = NcmContentType_Meta;
+ 
+ 				CNMTList.push_back( { tin::util::GetContentMetaFromNCA(cnmtNCAFullPath), cnmtContentInfo } );
+diff --git a/source/nspmini/nx/fs.cpp b/source/nspmini/nx/fs.cpp
+index 23676e6..b0e7cd4 100644
+--- a/source/nspmini/nx/fs.cpp
++++ b/source/nspmini/nx/fs.cpp
+@@ -114,7 +114,7 @@ namespace nx::fs
+         path.reserve(FS_MAX_PATH);
+ 
+         std::string errorMsg = "Failed to open file system with id: " + path;
+-        rc = fsOpenFileSystemWithId(&m_fileSystem, titleId, fileSystemType, path.c_str());
++        rc = fsOpenFileSystemWithId(&m_fileSystem, titleId, fileSystemType, path.c_str(), FsContentAttributes_None);
+ 
+         if (rc == 0x236e02)
+             errorMsg = "File " + path + " is unreadable! You may have a bad dump, fs_mitm may need to be removed, or your firmware version may be too low to decrypt it.";

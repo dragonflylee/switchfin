@@ -11,6 +11,9 @@ include(${BOREALIS_LIBRARY}/cmake/commonOption.cmake)
 # Using CMAKE_INSTALL_PREFIX specifies the location where the application is installed.
 cmake_dependent_option(CMAKE_INSTALL "Install to system path" OFF "UNIX;NOT APPLE" OFF)
 
+# NintendoSwitch
+cmake_dependent_option(BUILTIN_NSP "Built in NSP forwarder" OFF "PLATFORM_SWITCH" OFF)
+
 # mpv related
 # If your system does not support OpenGL(ES), you can use software rendering, but it will affect performance.
 option(MPV_SW_RENDER "Using CPU to draw videos" OFF)
@@ -35,7 +38,7 @@ project(Switchfin)
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")
 set(VERSION_ALTER "0")
-set(PROJECT_TITLEID "0x010FF000FFFF0003")
+set(PROJECT_TITLEID "010ff000ffff0003")
 set(PROJECT_AUTHOR "dragonflylee")
 set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon.jpg)
 set(PROJECT_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/resources)
@@ -46,7 +49,7 @@ if (CMAKE_INSTALL)
 endif ()
 
 # setting src and include
-file(GLOB_RECURSE MAIN_SRC "${CMAKE_SOURCE_DIR}/app/src/*.cpp")
+file(GLOB_RECURSE MAIN_SRC "${PROJECT_SOURCE_DIR}/app/src/*.cpp")
 if (PLATFORM_SWITCH)
     # System service initialization functions required for libnx
     list(APPEND MAIN_SRC ${BOREALIS_LIBRARY}/lib/platforms/switch/switch_wrapper.c)
@@ -116,6 +119,12 @@ endif ()
 # build borealis and other third party libraries
 add_subdirectory(library)
 
+if (BUILTIN_NSP)
+    list(APPEND APP_PLATFORM_LIB nsp)
+    list(APPEND APP_PLATFORM_OPTION -DBUILTIN_NSP)
+    add_subdirectory(scripts/forwarder)
+endif ()
+
 # building target
 add_executable(${PROJECT_NAME} ${MAIN_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17)
@@ -168,8 +177,11 @@ if (PLATFORM_DESKTOP)
     endif()
 
 elseif(PLATFORM_SWITCH)
+    if (BUILTIN_NSP)
+        add_dependencies(${PROJECT_NAME} forwarder.nsp)
+    endif ()
     add_custom_target(${PROJECT_NAME}.nro DEPENDS ${PROJECT_NAME}
-        COMMAND ${NX_NACPTOOL_EXE} --create "${PROJECT_NAME}" "${PROJECT_AUTHOR}" "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}" ${PROJECT_NAME}.nacp --titleid=${PROJECT_TITLEID}
+        COMMAND ${NX_NACPTOOL_EXE} --create "${PROJECT_NAME}" "${PROJECT_AUTHOR}" "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}" ${PROJECT_NAME}.nacp
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_RESOURCES} ${CMAKE_BINARY_DIR}/resources
         COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/resources/font
         COMMAND ${NX_ELF2NRO_EXE} ${PROJECT_NAME}.elf ${PROJECT_NAME}.nro --icon=${PROJECT_ICON} --nacp=${PROJECT_NAME}.nacp --romfsdir=${CMAKE_BINARY_DIR}/resources
