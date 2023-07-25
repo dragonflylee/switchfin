@@ -27,6 +27,9 @@ public:
     static brls::View* create();
 
 private:
+    BRLS_BIND(brls::RadioCell, btnTutorialOpenApp, "tools/tutorial_open");
+    BRLS_BIND(brls::RadioCell, btnTutorialError, "tools/tutorial_error");
+    BRLS_BIND(brls::RadioCell, btnTutorialFont, "tools/tutorial_font");
     BRLS_BIND(brls::DetailCell, btnUser, "setting/user");
     BRLS_BIND(brls::DetailCell, btnServer, "setting/server");
     BRLS_BIND(brls::BooleanCell, btnHWDEC, "setting/video/hwdec");

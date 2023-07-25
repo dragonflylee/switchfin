@@ -16,6 +16,7 @@
 
 #include "tab/setting_tab.hpp"
 #include "activity/server_list.hpp"
+#include "activity/hint_activity.hpp"
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
 #include "utils/thread.hpp"
@@ -66,10 +67,11 @@ void SettingTab::onCreate() {
 /// Hardware decode
 #ifdef __SWITCH__
     btnHWDEC->setVisibility(brls::Visibility::GONE);
-    btnOverClock->init("main/setting/others/overclock"_i18n, conf.getItem(AppConfig::OVERCLOCK, false), [&conf](bool value) {
-        SwitchSys::setClock(value);
-        conf.setItem(AppConfig::OVERCLOCK, value);
-    });
+    btnOverClock->init(
+        "main/setting/others/overclock"_i18n, conf.getItem(AppConfig::OVERCLOCK, false), [&conf](bool value) {
+            SwitchSys::setClock(value);
+            conf.setItem(AppConfig::OVERCLOCK, value);
+        });
 #else
     btnOverClock->setVisibility(brls::Visibility::GONE);
     btnHWDEC->init("main/setting/playback/hwdec"_i18n, MPVCore::HARDWARE_DEC, [&conf](bool value) {
@@ -92,6 +94,31 @@ void SettingTab::onCreate() {
             MPVCore::SEEKING_STEP = seekingOption.values[selected];
             AppConfig::instance().setItem(AppConfig::PLAYER_SEEKING_STEP, MPVCore::SEEKING_STEP);
         });
+
+#ifdef __SWITCH__
+    btnTutorialOpenApp->registerClickAction([](...) -> bool {
+        brls::Application::pushActivity(new HintActivity());
+        return true;
+    });
+    btnTutorialError->registerClickAction([](...) -> bool {
+        auto view = brls::View::createFromXMLResource("view/tutorial_error.xml");
+        auto dialog = new brls::Dialog(dynamic_cast<brls::Box*>(view));
+        dialog->addButton("hints/ok"_i18n, []() {});
+        dialog->open();
+        return true;
+    });
+    btnTutorialFont->setVisibility(brls::Visibility::GONE);
+#else
+    btnTutorialFont->registerClickAction([](...) -> bool {
+        auto view = brls::View::createFromXMLResource("view/tutorial_font.xml");
+        auto dialog = new brls::Dialog(dynamic_cast<brls::Box*>(view));
+        dialog->addButton("hints/ok"_i18n, []() {});
+        dialog->open();
+        return true;
+    });
+    btnTutorialOpenApp->setVisibility(brls::Visibility::GONE);
+    btnTutorialError->setVisibility(brls::Visibility::GONE);
+#endif
 
 /// Fullscreen
 #if defined(__linux__) || defined(_WIN32)
