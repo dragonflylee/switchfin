@@ -41,6 +41,6 @@
         textColor="#6693B6"
         marginLeft="20"
         marginBottom="20"
-        text="@i18n/main/github" />
+        id="setting/about/github" />
 
 </brls:Box>

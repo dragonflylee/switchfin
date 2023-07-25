@@ -14,10 +14,10 @@ void Dialog::show(const std::string& msg) {
     dialog->open();
 }
 
-void Dialog::cancelable(const std::string& msg, std::function<void(void)> cb) {
+void Dialog::cancelable(const std::string& msg, std::function<void()> cb) {
     auto dialog = new brls::Dialog(msg);
     dialog->addButton("hints/cancel"_i18n, []() {});
-    dialog->addButton("hints/ok"_i18n, [cb]() { cb(); });
+    dialog->addButton("hints/ok"_i18n, cb);
     dialog->open();
 }
 

@@ -1,5 +1,4 @@
 {
-  "github": "https://github.com/jellyfin",
   "tabs": {
     "home": "Home",
     "setting": "Setting"
@@ -91,7 +90,10 @@
         "xbox": "Xbox",
         "ps": "PlayStation",
         "keyboard": "Keyboard"
-      }
+      },
+      "up2date": "App is up to date",
+      "upgrade": "{} is available now! Ready to update?",
+      "release": "Check for updates"
     }
   },
   "hints": {

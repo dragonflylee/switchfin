@@ -1,10 +1,12 @@
+#include <borealis.hpp>
 #ifdef __SWITCH__
 #include <switch.h>
 #endif
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
 #include "api/http.hpp"
-#include <borealis/core/thread.hpp>
+
+using namespace brls::literals;
 
 #define STR_IMPL(x) #x
 #define STR(x) STR_IMPL(x)
@@ -49,13 +51,27 @@ std::string AppVersion::getDeviceName() {
 bool AppVersion::needUpdate(std::string latestVersion) { return false; }
 
 void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
-    brls::async([]() {
+    brls::async([showUpToDateDialog]() {
         try {
-            std::string url = "https://api.github.com/repos/dragonflylee/switchfin/releases/latest";
+            std::string url = fmt::format("https://api.github.com/repos/{}/releases/tags/latest", git_repo);
             auto resp = HTTP::get(url, HTTP::Timeout{1000});
             nlohmann::json j = nlohmann::json::parse(resp);
-            brls::Logger::info("checkUpdate {}", j.at("name").get<std::string>());
+            std::string latest_ver = j.at("tag_name").get<std::string>();
+            if (latest_ver.compare(git_tag) <= 0) {
+                brls::Logger::info("App is up to date");
+                if (showUpToDateDialog) brls::sync([]() { Dialog::show("main/setting/others/up2date"_i18n); });
+                return;
+            }
+
+            Dialog::cancelable(fmt::format(fmt::string_view("main/setting/others/upgrade"_i18n), latest_ver), [latest_ver] {
+#ifdef __SWITCH__
+#else
+                std::string url = fmt::format("https://github.com/{}/releases/tag/{}", git_repo, latest_ver);
+                brls::Application::getPlatform()->openBrowser(url);
+#endif
+            });
         } catch (const std::exception& ex) {
+            brls::Logger::error("checkUpdate failed: {}", ex.what());
         }
     });
 }

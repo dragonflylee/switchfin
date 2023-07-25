@@ -107,6 +107,8 @@
                     id="setting/ui/theme" />
                 <brls:SelectorCell
                     id="setting/language" />
+                <brls:RadioCell
+                    id="setting/release_checker"/>
                 <brls:DetailCell
                     title="@i18n/main/about/header"
                     id="setting/about" />

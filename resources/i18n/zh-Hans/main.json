@@ -1,5 +1,4 @@
 {
-  "github": "https://github.com/jellyfin",
   "tabs": {
     "home": "首页",
     "setting": "设置"
@@ -91,7 +90,10 @@
         "xbox": "Xbox",
         "ps": "PlayStation",
         "keyboard": "键盘"
-      }
+      },
+      "up2date": "应用已经是最新版",
+      "upgrade": "发现新版本 {}，是否更新？",
+      "release": "检查更新"
     }
   },
   "hints": {

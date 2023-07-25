@@ -42,5 +42,6 @@ private:
     BRLS_BIND(brls::SelectorCell, selectorKeymap, "setting/keymap");
     BRLS_BIND(brls::SelectorCell, selectorLang, "setting/language");
     BRLS_BIND(brls::SelectorCell, selectorTheme, "setting/ui/theme");
+    BRLS_BIND(brls::RadioCell, btnReleaseChecker, "setting/release_checker");
     BRLS_BIND(brls::DetailCell, btnAbout, "setting/about");
 };

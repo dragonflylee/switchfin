@@ -25,8 +25,6 @@
 
 #ifdef __SWITCH__
 #include "utils/overclock.hpp"
-#else
-#include <borealis/platforms/desktop/desktop_platform.hpp>
 #endif
 
 using namespace brls::literals;  // for _i18n
@@ -37,6 +35,7 @@ public:
         this->inflateFromXMLRes("xml/view/setting_about.xml");
         this->labelTitle->setText(AppVersion::pkg_name);
         this->labelVersion->setText(AppVersion::getVersion());
+        this->labelGithub->setText("https://github.com/" + AppVersion::git_repo);
         brls::Logger::debug("dialog SettingAbout: create");
     }
 
@@ -45,6 +44,7 @@ public:
 private:
     BRLS_BIND(brls::Label, labelTitle, "setting/about/title");
     BRLS_BIND(brls::Label, labelVersion, "setting/about/version");
+    BRLS_BIND(brls::Label, labelGithub, "setting/about/github");
 };
 
 SettingTab::SettingTab() {
@@ -197,6 +197,13 @@ void SettingTab::onCreate() {
         conf.getValueIndex(AppConfig::REQUEST_TIMEOUT), [&timeoutOption](int selected) {
             AppConfig::instance().setItem(AppConfig::REQUEST_TIMEOUT, timeoutOption.values[selected]);
         });
+
+    btnReleaseChecker->title->setText(
+        fmt::format("{} ({}: {})", "main/setting/others/release"_i18n, "hints/current"_i18n, AppVersion::getVersion()));
+    btnReleaseChecker->registerClickAction([](...) -> bool {
+        AppVersion::checkUpdate(0, true);
+        return true;
+    });
 
     btnAbout->setDetailText(">");
     btnAbout->registerClickAction([](...) {

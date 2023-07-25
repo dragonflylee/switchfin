@@ -32,9 +32,7 @@ Switchfin is third-party PC player for Jellyfin that provides a native user inte
 ## Develop
 
 ```shell
-git clone https://github.com/dragonflylee/switchfin
-cd switchfin
-git submodule update --init --recursive --depth 1
+git clone https://github.com/dragonflylee/switchfin.git --recurse-submodules --shallow-submodules
 ```
 
 ### Building for Switch
@@ -50,8 +48,8 @@ make -C build_switch Switchfin.nro -j$(nproc)
 ### Building for MinGW64
 
 ```bash
-cmake -B build_pc -G 'MinGW Makefiles' -DPLATFORM_DESKTOP=ON
-mingw32-make -C build_pc -j$(nproc)
+cmake -B build_mingw -G 'MinGW Makefiles' -DPLATFORM_DESKTOP=ON
+mingw32-make -C build_mingw -j$(nproc)
 ```
 
 ## Thanks to

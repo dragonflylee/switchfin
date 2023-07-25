@@ -26,7 +26,7 @@
             "includePath": [
                 "${workspaceFolder}/app/include",
                 "${workspaceFolder}/library/**",
-                "${workspaceFolder}/build_pc/library/lunasvg/include",
+                "${workspaceFolder}/build_mingw/library/lunasvg/include",
                 "C:\\MinGW64\\include"
             ],
             "defines": [

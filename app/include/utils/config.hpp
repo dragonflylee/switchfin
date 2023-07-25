@@ -15,6 +15,7 @@ public:
     static bool needUpdate(std::string latestVersion);
     static void checkUpdate(int delay = 2000, bool showUpToDateDialog = false);
 
+    inline static std::string git_repo = "dragonflylee/switchfin";
     static std::string git_commit;
     static std::string git_tag;
     static std::string pkg_name;

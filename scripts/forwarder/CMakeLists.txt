@@ -24,9 +24,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE VERSION="2.4.3")
 
 if (NOT PROJECT_KEYSET)
     SET(PROJECT_KEYSET "${PROJECT_BINARY_DIR}/prod.keys")
-    add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD
-        COMMAND curl -Lo ${PROJECT_KEYSET} https://raw.githubusercontent.com/ZeeWanderer/s/master/prod.keys
-    )
+    file(DOWNLOAD https://raw.githubusercontent.com/externalEmu/s/master/prod.keys ${PROJECT_KEYSET})
 endif ()
 
 add_custom_target(${PROJECT_NAME}.pfs0 DEPENDS ${PROJECT_NAME}
@@ -36,9 +34,9 @@ add_custom_target(${PROJECT_NAME}.pfs0 DEPENDS ${PROJECT_NAME}
 )
 
 add_custom_target(${PROJECT_NAME}.nsp DEPENDS ${PROJECT_NAME}.pfs0
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/control"
-    COMMAND ${NX_NACPTOOL_EXE} --create "${PROJECT_NAME}" "${PROJECT_AUTHOR}" "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}" "${PROJECT_BINARY_DIR}/control/control.nacp"
-    COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_ICON}" "${PROJECT_BINARY_DIR}/control/icon_AmericanEnglish.dat"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "control"
+    COMMAND ${NX_NACPTOOL_EXE} --create "${PROJECT_NAME}" "${PROJECT_AUTHOR}" "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}" "control/control.nacp"
+    COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_ICON}" "control/icon_AmericanEnglish.dat"
     COMMAND ${HACBREWPACK_EXE} -k "${PROJECT_KEYSET}" --titleid ${PROJECT_TITLEID} --titlename ${CMAKE_PROJECT_NAME} --noromfs --nologo
     COMMAND ${CMAKE_COMMAND} -E rename "hacbrewpack_nsp/${PROJECT_TITLEID}.nsp" "${PROJECT_RESOURCES}/${PROJECT_NAME}.nsp"
 )
