@@ -43,6 +43,7 @@ public:
 
     static std::string encode_form(const Form& form);
     std::string get(const std::string& url);
+    void download(const std::string& url, const std::string& path);
     std::string post(const std::string& url, const std::string& data);
 
     template <typename... Ts>

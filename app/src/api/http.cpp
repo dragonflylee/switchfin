@@ -2,6 +2,7 @@
 #include "utils/config.hpp"
 #include <borealis/core/logger.hpp>
 #include <sstream>
+#include <fstream>
 
 class curl_error : public std::exception {
 public:
@@ -138,6 +139,14 @@ std::string HTTP::get(const std::string& url) {
     int status_code = this->perform(&body);
     if (status_code >= 400) throw curl_status_code(status_code);
     return body.str();
+}
+
+void HTTP::download(const std::string& url, const std::string& path) {
+    std::ofstream of(path);
+    curl_easy_setopt(this->easy, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(this->easy, CURLOPT_HTTPGET, 1L);
+    int status_code = this->perform(&of);
+    if (status_code >= 400) throw curl_status_code(status_code);
 }
 
 std::string HTTP::post(const std::string& url, const std::string& data) {

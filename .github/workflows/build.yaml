@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   upload-release:
-    needs: [ build-win-x64, build-switch, build-macos ]
+    needs: [ build-msvc-x64, build-switch, build-macos ]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/download-artifact@v3
@@ -112,7 +112,7 @@ jobs:
         name: macos-${{ github.ref_name }}
         path: Switchfin-*.dmg
 
-  build-win-x64:
+  build-msvc-x64:
     runs-on: windows-2022
     steps:
     - name: Setup Windows 10 SDK
@@ -145,4 +145,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: windows-${{ github.ref_name }}
-        path: Switchfin-Win64.zip
+        path: Switchfin-msvc-x64.zip
