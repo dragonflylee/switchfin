@@ -118,11 +118,11 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
         brls::Dropdown* dropdown = new brls::Dropdown(
             "main/player/quality"_i18n, qualities,
             [this](int selected) {
-                this->selectedQuality = selected;
+                selectedQuality = selected;
                 this->videoQualityLabel->setText(qualities[selected]);
                 this->playMedia(MPVCore::instance().playback_time * PLAYTICKS);
             },
-            this->selectedQuality);
+            selectedQuality);
         brls::Application::pushActivity(new brls::Activity(dropdown));
         return true;
     });
@@ -375,9 +375,9 @@ void VideoView::playMedia(const time_t seekTicks) {
             for (auto& item : r.MediaSources) {
                 this->itemSource = std::move(item);
                 std::stringstream ssextra;
-
+#ifdef _DEBUG
                 brls::Logger::debug("mediaSource {} => {}", this->itemId, nlohmann::json(item).dump(1));
-
+#endif
                 ssextra << "network-timeout=20";
                 if (seekTicks > 0) {
                     ssextra << ",start=" << sec2Time(seekTicks / PLAYTICKS);
@@ -389,17 +389,24 @@ void VideoView::playMedia(const time_t seekTicks) {
                 const std::string separator = ":";
 #endif
                 bool hasSub = false;
+                int numSub = 0;
                 for (auto& s : itemSource.MediaStreams) {
-                    if (s.Type == jellyfin::streamTypeSubtitle && s.DeliveryUrl.size() > 0 &&
-                        (s.IsExternal || item.TranscodingUrl.size() > 0)) {
-                        if (hasSub) {
-                            ssextra << separator;
-                        } else {
-                            ssextra << ",sub-files=";
-                            hasSub = true;
+                    if (s.Type == jellyfin::streamTypeSubtitle) {
+                        if (s.DeliveryUrl.size() > 0 && (s.IsExternal || item.TranscodingUrl.size() > 0)) {
+                            if (hasSub) {
+                                ssextra << separator;
+                            } else {
+                                ssextra << ",sub-files=";
+                                hasSub = true;
+                            }
+                            ssextra << svr << s.DeliveryUrl;
                         }
-                        ssextra << svr << s.DeliveryUrl;
+                        numSub++;
                     }
+                }
+                if (numSub > 0) {
+                    // restore last selected sid
+                    ssextra << ",sid=1";
                 }
 
                 if (itemSource.SupportsDirectPlay) {

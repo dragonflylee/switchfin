@@ -63,7 +63,7 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
                 return;
             }
 
-            Dialog::cancelable(fmt::format(fmt::string_view("main/setting/others/upgrade"_i18n), latest_ver), [latest_ver] {
+            Dialog::cancelable(fmt::format(fmt::runtime("main/setting/others/upgrade"_i18n), latest_ver), [latest_ver] {
 #ifdef __SWITCH__
 #else
                 std::string url = fmt::format("https://github.com/{}/releases/tag/{}", git_repo, latest_ver);

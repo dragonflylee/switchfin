@@ -28,4 +28,6 @@ public:
     BRLS_BIND(brls::Label, labelAudioCodec, "profile/audio/codec");
     BRLS_BIND(brls::Label, labelAudioSampleRate, "profile/audio/sample");
     BRLS_BIND(brls::Label, labelAudioBitrate, "profile/audio/bitrate");
+
+    BRLS_BIND(brls::Label, labelSubtitleLang, "profile/subtitle/lang");
 };

@@ -627,7 +627,7 @@ void MPVCore::eventMainLoop() {
             } else if (strcmp(prop->name, "demuxer-cache-time") == 0) {
                 brls::Logger::verbose("MPVCore => demuxer-cache-time: {}", *(double *)prop->data);
             } else {
-                brls::Logger::debug("MPVCore => PROPERTY_CHANGE `{}` {}", prop->name, int(prop->format));
+                brls::Logger::debug("MPVCore => PROPERTY_CHANGE `{}` type {}", prop->name, int(prop->format));
             }
             break;
         }

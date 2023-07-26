@@ -27,7 +27,7 @@ layout:
 
 parts:
   libmpv:
-    source: https://github.com/mpv-player/mpv/archive/v0.35.1.tar.gz
+    source: https://github.com/mpv-player/mpv/archive/v0.36.0.tar.gz
     source-type: tar
     plugin: meson
     meson-parameters:

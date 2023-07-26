@@ -103,7 +103,7 @@ private:
     /// @brief DirectPlay, Transcode
     std::string playMethod;
     std::string playSessionId;
-    size_t selectedQuality = 0;
+    inline static int selectedQuality = 0;
     size_t itemIndex = -1;
     jellyfin::MediaSource itemSource;
     std::vector<jellyfin::MediaEpisode> showEpisodes;

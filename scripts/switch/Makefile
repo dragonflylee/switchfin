@@ -20,18 +20,23 @@ endif
 
 all: mpv nsp
 
+.PHONY: harfbuzz
+harfbuzz:
+	@echo Installing harfbuzz
+	@cd harfbuzz; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
+
 .PHONY: libass
-libass:
+libass: harfbuzz
 	@echo Installing libass
 	@cd libass; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
 
 .PHONY: ffmpeg
-ffmpeg:
+ffmpeg: libass
 	@echo Installing ffmpeg
 	@cd ffmpeg; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
 
 .PHONY: mpv
-mpv: ffmpeg libass
+mpv: ffmpeg
 	@echo Installing libmpv
 	@cd libmpv; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
 

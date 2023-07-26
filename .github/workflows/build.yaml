@@ -140,9 +140,9 @@ jobs:
         xmake config -c -y
         xmake build -y
         cd build\windows\x64\release
-        7z a "$env:GITHUB_WORKSPACE\Switchfin-Win64.zip" *
+        7z a "$env:GITHUB_WORKSPACE\Switchfin-msvc-x64.zip" *
     - name: Upload Assets
       uses: actions/upload-artifact@v3
       with:
         name: windows-${{ github.ref_name }}
-        path: Switchfin-msvc-x64.zip
+        path: Switchfin-*.zip
