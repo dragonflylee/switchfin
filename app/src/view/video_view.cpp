@@ -91,13 +91,12 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
 
     this->addGestureRecognizer(new brls::TapGestureRecognizer(this, [this]() { this->toggleOSD(); }));
     /// 播放/暂停 按钮
-    this->btnToggle->addGestureRecognizer(new brls::TapGestureRecognizer(
-        this->btnToggle,
-        []() {
-            auto& mpv = MPVCore::instance();
-            mpv.isPaused() ? mpv.resume() : mpv.pause();
-        },
-        brls::TapGestureConfig(false, brls::SOUND_NONE, brls::SOUND_NONE, brls::SOUND_NONE)));
+    this->btnToggle->registerClickAction([](...) {
+        auto& mpv = MPVCore::instance();
+        mpv.isPaused() ? mpv.resume() : mpv.pause();
+        return true;
+    });
+    this->btnToggle->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnToggle));
 
     /// 播放控制
     this->btnBackward->registerClickAction([this](...) { return this->playNext(-1); });
