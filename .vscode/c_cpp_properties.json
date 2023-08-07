@@ -26,7 +26,7 @@
             "includePath": [
                 "${workspaceFolder}/app/include",
                 "${workspaceFolder}/library/**",
-                "${workspaceFolder}/build_mingw/library/lunasvg/include",
+                "${workspaceFolder}/build_mingw/**",
                 "C:\\MinGW64\\include"
             ],
             "defines": [
@@ -43,7 +43,10 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/app/include",
-                "${workspaceFolder}/library/**"
+                "${workspaceFolder}/library/**",
+                "/opt/switchfin/include",
+                "/usr/include/dbus-1.0",
+                "/usr/lib/x86_64-linux-gnu/dbus-1.0/include"
             ],
             "defines": [
                 "BOREALIS_USE_OPENGL",

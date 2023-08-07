@@ -4,6 +4,10 @@
 #include <sstream>
 #include <fstream>
 
+#ifndef CURL_PROGRESSFUNC_CONTINUE
+#define CURL_PROGRESSFUNC_CONTINUE 0x10000001
+#endif
+
 class curl_error : public std::exception {
 public:
     explicit curl_error(CURLcode c) : code(c) {}

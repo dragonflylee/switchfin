@@ -89,7 +89,8 @@ void AppConfig::init() {
         CFRelease(uuidCf);
         IOObjectRelease(ioRegistryRoot);
 #elif __linux__
-        this->device << std::ifstream("/etc/machine-id");
+        std::ifstream mid("/etc/machine-id");
+        if (mid.is_open()) std::getline(mid, this->device);
 #endif
     }
 

@@ -3,19 +3,14 @@ name: build
 on:
   push:
     tags-ignore: [ switch-portlibs ]
-  workflow_dispatch:
-    inputs:
-      snap:
-        description: 'build snap'
-        required: false
-        default: 'false'
+    branches: [ dev ]
 
 permissions:
   contents: write
 
 jobs:
   upload-release:
-    needs: [ build-msvc-x64, build-switch, build-macos ]
+    needs: [ build-msvc-x64, build-switch, build-macos, build-snap ]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/download-artifact@v3
@@ -38,6 +33,7 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
+        fetch-depth: 0
     - name: Update dependencies
       run: |
         for p in `curl -sL https://api.github.com/repos/${{ github.repository }}/releases/tags/switch-portlibs | grep browser_download_url | cut -d\" -f4`; do dkp-pacman --noconfirm -U $p; done
@@ -58,12 +54,12 @@ jobs:
         path: Switchfin-NintendoSwitch.zip
 
   build-snap:
-    if: github.event.inputs.snap == 'true'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
+        fetch-depth: 0
     - name: Update gamepad mappings
       run: |
         BRLS_GLFW="library/borealis/library/lib/extern/glfw"
@@ -83,6 +79,7 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
+        fetch-depth: 0
     - name: Install deps
       run: |
         brew install create-dmg dylibbundler boost
@@ -126,6 +123,7 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
+        fetch-depth: 0
     - name: Cache xmake packages
       uses: actions/cache@v3
       with:

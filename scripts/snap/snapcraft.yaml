@@ -22,8 +22,8 @@ apps:
 layout:
   /usr/lib/dri:
     bind: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri
-  /usr/lib/resources:
-    bind: $SNAP/usr/lib/resources
+  /usr/resources:
+    bind: $SNAP/usr/resources
 
 parts:
   libmpv:
@@ -47,6 +47,7 @@ parts:
       - -usr/bin
       - -usr/share
       - -usr/include
+      - -usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pkgconfig
     after:
       - ffmpeg
       - libass
@@ -60,19 +61,18 @@ parts:
       - --libdir=/usr/lib/$SNAPCRAFT_ARCH_TRIPLET
       - --enable-shared
       - --disable-static
-      - --enable-gpl
       - --disable-doc
       - --disable-programs
       - --disable-encoders
       - --disable-muxers
+      - --enable-gpl
+      - --enable-gnutls
       - --enable-encoder=png,libwebp
       - --enable-libdav1d
       - --enable-libfontconfig
       - --enable-libfreetype
       - --enable-libopus
       - --enable-librsvg
-      - --enable-libvpx
-      - --enable-libmp3lame
       - --enable-libwebp
     build-packages:
       - nasm
@@ -80,16 +80,13 @@ parts:
       - libfreetype6-dev
       - libopus-dev
       - librsvg2-dev
-      - libvpx-dev
-      - libmp3lame-dev
       - libwebp-dev
+      - libgnutls28-dev
     stage-packages:
       - libfontconfig1
       - libfreetype6
       - libopus0
       - librsvg2-2
-      - libvpx6
-      - libmp3lame0
       - libwebp6
       - libxv1
     after:
@@ -104,7 +101,7 @@ parts:
   dav1d:
     plugin: meson
     source: https://code.videolan.org/videolan/dav1d.git
-    source-tag: 0.9.2
+    source-tag: 1.2.1
     source-depth: 1
     meson-parameters:
       - --prefix=/usr
@@ -119,6 +116,7 @@ parts:
     prime:
       - -usr/include
       - -usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pkgconfig
+      - -usr/share
 
   libass:
     source: https://github.com/libass/libass/releases/download/0.17.1/libass-0.17.1.tar.gz
@@ -137,6 +135,7 @@ parts:
     prime:
       - -usr/include
       - -usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pkgconfig
+      - -usr/share
 
   switchfin:
     plugin: cmake
@@ -147,16 +146,17 @@ parts:
       - -DCMAKE_BUILD_TYPE=Release
       - -DCMAKE_INSTALL=ON
       - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DCUSTOM_RESOURCES_DIR=/usr
     build-environment:
       - LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAPCRAFT_STAGE/usr/lib/$SNAPCRAFT_ARCH_TRIPLET
     build-packages:
       - g++
       - xorg-dev
       - libdbus-1-dev
-      - libcurl4-openssl-dev
+      - libcurl4-gnutls-dev
     stage-packages:
       - libgl1-mesa-glx
-      - libcurl4
+      - libcurl3-gnutls
     after:
       - libmpv
     prime:
