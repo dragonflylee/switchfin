@@ -40,6 +40,9 @@ public:
 
     void setTitie(const std::string& title);
 
+     /// @brief get video url
+    void playMedia(const time_t seekTicks, int subtitle = 0);
+
 private:
     /// OSD
     BRLS_BIND(brls::Label, titleLabel, "video/osd/title");
@@ -61,8 +64,6 @@ private:
     BRLS_BIND(brls::Label, hintLabel, "video/osd/hint/label");
     BRLS_BIND(brls::Box, hintBox, "video/osd/hint/box");
 
-    /// @brief get video url
-    void playMedia(const time_t seekTicks);
     bool playNext(int off = 1);
     void reportStart();
     void reportStop();

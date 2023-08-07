@@ -14,7 +14,6 @@ public:
     BRLS_BIND(brls::Label, labelMethod, "profile/play/method");
     BRLS_BIND(brls::Label, labelSize, "profile/file/size");
     BRLS_BIND(brls::Label, labelFormat, "profile/file/format");
-    BRLS_BIND(brls::Label, labelCache, "profile/file/cache");
 
     BRLS_BIND(brls::Label, labelVideoRes, "profile/video/res");
     BRLS_BIND(brls::Label, labelVideoCodec, "profile/video/codec");
@@ -22,6 +21,7 @@ public:
     BRLS_BIND(brls::Label, labelVideoHW, "profile/video/hwdec");
     BRLS_BIND(brls::Label, labelVideoBitrate, "profile/video/bitrate");
     BRLS_BIND(brls::Label, labelVideoDrop, "profile/video/drop");
+    BRLS_BIND(brls::Label, labelVideoFps, "profile/video/fps");
     BRLS_BIND(brls::Label, labelVideoSync, "profile/video/avsync");
 
     BRLS_BIND(brls::Label, labelAudioChannel, "profile/audio/channel");
@@ -29,5 +29,6 @@ public:
     BRLS_BIND(brls::Label, labelAudioSampleRate, "profile/audio/sample");
     BRLS_BIND(brls::Label, labelAudioBitrate, "profile/audio/bitrate");
 
-    BRLS_BIND(brls::Label, labelSubtitleLang, "profile/subtitle/lang");
+    BRLS_BIND(brls::Label, labelSubtitleTrack, "profile/subtitle/track");
+    BRLS_BIND(brls::Label, labelSubtitleSpeed, "profile/subtitle/speed");
 };

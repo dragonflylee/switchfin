@@ -60,6 +60,14 @@ struct MediaSeason : public MediaItem {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaSeason, Id, Name, Type, ImageTags, IsFolder, IndexNumber);
 
+struct MediaAttachment {
+    std::string Codec;
+    std::string Name;
+    long Index = 0;
+    std::string DeliveryUrl;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaAttachment, Codec, Name, Index, DeliveryUrl);
+
 struct MediaStream {
     std::string Codec;
     std::string DisplayTitle;
@@ -83,9 +91,11 @@ struct MediaSource {
     std::string TranscodingUrl;
     std::string ETag;
     std::vector<MediaStream> MediaStreams;
+    std::vector<MediaAttachment> MediaAttachments;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaSource, Id, Name, Container, DefaultAudioStreamIndex,
-    DefaultSubtitleStreamIndex, SupportsDirectPlay, SupportsTranscoding, TranscodingUrl, ETag, MediaStreams);
+    DefaultSubtitleStreamIndex, SupportsDirectPlay, SupportsTranscoding, TranscodingUrl, ETag, MediaStreams,
+    MediaAttachments);
 
 struct PlaybackResult {
     std::vector<MediaSource> MediaSources;

@@ -67,6 +67,7 @@ void MPVCore::init() {
     // misc
     mpv_set_option_string(mpv, "config", "yes");
     mpv_set_option_string(mpv, "config-dir", AppConfig::instance().configDir().c_str());
+    mpv_set_option_string(mpv, "sub-fonts-dir", AppConfig::instance().configDir().c_str());
     mpv_set_option_string(mpv, "ytdl", "no");
 #ifdef _DEBUG
     mpv_set_option_string(mpv, "terminal", "yes");
@@ -672,8 +673,8 @@ int MPVCore::get_property(const char *name, mpv_format format, void *data) {
     return mpv_get_property(mpv, name, format, data);
 }
 
-int MPVCore::set_property(const char *name, int64_t data) {
-    return mpv_set_property(mpv, name, MPV_FORMAT_INT64, &data);
+int MPVCore::set_property(const char *name, mpv_format format, void *data) {
+    return mpv_set_property(mpv, name, format, data);
 }
 
 bool MPVCore::isStopped() {
@@ -711,10 +712,18 @@ double MPVCore::getDouble(const std::string &key) {
     return value;
 }
 
+void MPVCore::setDouble(const std::string &key, double value) {
+    mpv_set_property(mpv, key.c_str(), MPV_FORMAT_DOUBLE, &value);
+}
+
 int64_t MPVCore::getInt(const std::string &key) {
     int64_t value = 0;
     mpv_get_property(mpv, key.c_str(), MPV_FORMAT_INT64, &value);
     return value;
+}
+
+void MPVCore::setInt(const std::string &key, int64_t value) {
+    mpv_set_property(mpv, key.c_str(), MPV_FORMAT_INT64, &value);
 }
 
 std::unordered_map<std::string, mpv_node> MPVCore::getNodeMap(const std::string &key) {

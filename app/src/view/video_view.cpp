@@ -309,11 +309,12 @@ bool VideoView::playNext(int off) {
     return true;
 }
 
-void VideoView::playMedia(const time_t seekTicks) {
+void VideoView::playMedia(const time_t seekTicks, int subtitle) {
     ASYNC_RETAIN
     jellyfin::postJSON(
         {
             {"UserId", AppConfig::instance().getUser().id},
+            {"SubtitleStreamIndex", subtitle},
             {
                 "DeviceProfile",
                 {
@@ -372,7 +373,6 @@ void VideoView::playMedia(const time_t seekTicks) {
             this->playSessionId = r.PlaySessionId;
 
             for (auto& item : r.MediaSources) {
-                this->itemSource = std::move(item);
                 std::stringstream ssextra;
 #ifdef _DEBUG
                 brls::Logger::debug("mediaSource {} => {}", this->itemId, nlohmann::json(item).dump(1));
@@ -381,50 +381,25 @@ void VideoView::playMedia(const time_t seekTicks) {
                 if (seekTicks > 0) {
                     ssextra << ",start=" << sec2Time(seekTicks / PLAYTICKS);
                 }
-
-#ifdef _WIN32
-                const std::string separator = ";";
-#else
-                const std::string separator = ":";
-#endif
-                bool hasSub = false;
-                int numSub = 0;
-                for (auto& s : itemSource.MediaStreams) {
-                    if (s.Type == jellyfin::streamTypeSubtitle) {
-                        if (s.DeliveryUrl.size() > 0 && (s.IsExternal || item.TranscodingUrl.size() > 0)) {
-                            if (hasSub) {
-                                ssextra << separator;
-                            } else {
-                                ssextra << ",sub-files=";
-                                hasSub = true;
-                            }
-                            ssextra << svr << s.DeliveryUrl;
-                        }
-                        numSub++;
-                    }
-                }
-                if (numSub > 0) {
-                    // restore last selected sid
-                    ssextra << ",sid=1";
-                }
-
-                if (itemSource.SupportsDirectPlay) {
+                if (item.SupportsDirectPlay) {
                     std::string url = fmt::format(fmt::runtime(jellyfin::apiStream), this->itemId,
                         HTTP::encode_form({
                             {"static", "true"},
-                            {"mediaSourceId", itemSource.Id},
+                            {"mediaSourceId", item.Id},
                             {"playSessionId", r.PlaySessionId},
-                            {"tag", itemSource.ETag},
+                            {"tag", item.ETag},
                         }));
 
                     this->playMethod = "DirectPlay";
                     mpv.setUrl(svr + url, ssextra.str());
+                    this->itemSource = std::move(item);
                     return;
                 }
 
-                if (itemSource.SupportsTranscoding) {
+                if (item.SupportsTranscoding) {
                     this->playMethod = "Transcode";
-                    mpv.setUrl(svr + itemSource.TranscodingUrl, ssextra.str());
+                    mpv.setUrl(svr + item.TranscodingUrl, ssextra.str());
+                    this->itemSource = std::move(item);
                     return;
                 }
             }
@@ -479,6 +454,7 @@ void VideoView::registerMpvEvent() {
     auto& ev = MPVCore::instance().getEvent();
     this->eventSubscribeID = ev.subscribe([this](MpvEventEnum event) {
         auto& mpv = MPVCore::instance();
+        auto& svr = AppConfig::instance().getUrl();
         // brls::Logger::info("mpv event => : {}", event);
         switch (event) {
         case MpvEventEnum::MPV_RESUME:
@@ -511,6 +487,12 @@ void VideoView::registerMpvEvent() {
         case MpvEventEnum::MPV_LOADED:
             if (this->seeking_range == 0) {
                 this->leftStatusLabel->setText(sec2Time(mpv.video_progress));
+            }
+            for (auto& s : this->itemSource.MediaStreams) {
+                if (s.Type == jellyfin::streamTypeSubtitle && s.DeliveryUrl.size() > 0 &&
+                    (s.IsExternal || this->playMethod == "Transcode")) {
+                    mpv.command_str("sub-add '{}{}' select '{}'", svr, s.DeliveryUrl, s.DisplayTitle);
+                }
             }
             break;
         case MpvEventEnum::UPDATE_DURATION:

@@ -80,7 +80,7 @@ public:
 
     int get_property(const char *name, mpv_format format, void *data);
 
-    int set_property(const char *name, int64_t data);
+    int set_property(const char *name, mpv_format format, void *data);
 
     bool isStopped();
 
@@ -97,8 +97,10 @@ public:
     std::string getString(const std::string &key);
 
     double getDouble(const std::string &key);
+    void setDouble(const std::string &key, double value);
 
     int64_t getInt(const std::string &key);
+    void setInt(const std::string &key, int64_t value);
 
     std::unordered_map<std::string, mpv_node> getNodeMap(const std::string &key);
 

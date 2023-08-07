@@ -33,9 +33,10 @@ void VideoProfile::update() {
     labelVideoCodec->setText(mpv.getString("video-codec"));
     labelVideoPixel->setText(mpv.getString("video-params/pixelformat"));
     labelVideoHW->setText(mpv.getString("hwdec-current"));
-    labelVideoBitrate->setText(std::to_string(mpv.getInt("video-bitrate") / 1024) + "kbps");
+    labelVideoBitrate->setText(std::to_string(mpv.getInt("video-bitrate") / 1024.0f) + "kbps");
     labelVideoDrop->setText(fmt::format(
         "{} (decoder) {} (output)", mpv.getInt("decoder-frame-drop-count"), mpv.getInt("frame-drop-count")));
+    labelVideoFps->setText(fmt::format("{:.2f}", mpv.getDouble("estimated-vf-fps")));
     labelVideoSync->setText(fmt::format("{:.5f}", mpv.getDouble("avsync")));
 
     // audio
@@ -45,5 +46,6 @@ void VideoProfile::update() {
     labelAudioBitrate->setText(std::to_string(mpv.getInt("audio-bitrate") / 1024) + "kbps");
 
     // subtitle
-    labelSubtitleLang->setText(std::to_string(mpv.getInt("sid")));
+    labelSubtitleTrack->setText(std::to_string(mpv.getInt("sid")));
+    labelSubtitleSpeed->setText(std::to_string(mpv.getDouble("sub-speed")));
 }

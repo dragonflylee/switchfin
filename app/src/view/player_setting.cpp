@@ -13,31 +13,34 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
         return true;
     });
 
-    std::vector<std::string> subtitleOption, audioOption;
-    subtitleOption.push_back("main/player/none"_i18n);
-    for (auto& it : src.MediaStreams) {
-        if (it.Type == jellyfin::streamTypeSubtitle) {
-            subtitleOption.push_back(it.DisplayTitle);
-        } else if (it.Type == jellyfin::streamTypeAudio) {
-            audioOption.push_back(it.DisplayTitle);
-        }
+    auto& mpv = MPVCore::instance();
+
+    std::vector<std::string> subOpts, audOpts;
+    subOpts.push_back("main/player/none"_i18n);
+
+    int64_t count = mpv.getInt("track-list/count");
+    for (int64_t n = 0; n < count; n++) {
+        std::string type = mpv.getString(fmt::format("track-list/{}/type", n));
+        std::string title = mpv.getString(fmt::format("track-list/{}/title", n));
+        if (type == "sub") subOpts.push_back(title);
+        else if (type == "audio") audOpts.push_back(title);
     }
     // 字幕选择
-    if (subtitleOption.size() > 1) {
+    if (subOpts.size() > 1) {
         int64_t value = 0;
-        MPVCore::instance().get_property("sid", MPV_FORMAT_INT64, &value);
-        this->subtitleTrack->init("main/player/subtitle"_i18n, subtitleOption, value,
-            [](int selected) { MPVCore::instance().set_property("sid", selected); });
+        mpv.get_property("sid", MPV_FORMAT_INT64, &value);
+        this->subtitleTrack->init("main/player/subtitle"_i18n, subOpts, value,
+            [&mpv](int selected) { mpv.setInt("sid", selected); });
         this->subtitleTrack->detail->setVisibility(brls::Visibility::GONE);
     } else {
         this->subtitleTrack->setVisibility(brls::Visibility::GONE);
     }
     // 音轨选择
-    if (audioOption.size() > 1) {
+    if (audOpts.size() > 1) {
         int64_t value = 0;
-        if (!MPVCore::instance().get_property("aid", MPV_FORMAT_INT64, &value)) value -= 1;
-        this->audioTrack->init("main/player/audio"_i18n, audioOption, value,
-            [](int selected) { MPVCore::instance().set_property("aid", selected + 1); });
+        if (!mpv.get_property("aid", MPV_FORMAT_INT64, &value)) value -= 1;
+        this->audioTrack->init("main/player/audio"_i18n, audOpts, value,
+            [&mpv](int selected) { mpv.setInt("aid", selected + 1); });
         this->audioTrack->detail->setVisibility(brls::Visibility::GONE);
     } else {
         this->audioTrack->setVisibility(brls::Visibility::GONE);
