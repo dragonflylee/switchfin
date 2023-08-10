@@ -1,0 +1,38 @@
+<brls:Box
+    width="auto"
+    height="auto">
+
+    <brls:ScrollingFrame
+        width="auto"
+        height="auto"
+        grow="1.0">
+
+        <brls:Box
+            width="auto"
+            height="auto"
+            axis="column"
+            paddingLeft="@style/brls/tab_frame/content_padding_sides"
+            paddingRight="@style/brls/tab_frame/content_padding_sides"
+            paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
+            paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
+
+            <SearchList
+                id="search/movie"
+                title="@i18n/main/search/genres/movie"
+                width="auto"
+                height="350"
+                itemType="Movie"
+                pageSize="16" />
+
+                <SearchList
+                id="search/series"
+                title="@i18n/main/search/genres/series"
+                width="auto"
+                height="350"
+                itemType="Series"
+                pageSize="16" />
+        </brls:Box>
+
+    </brls:ScrollingFrame>
+
+</brls:Box>

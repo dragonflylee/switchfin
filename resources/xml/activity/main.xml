@@ -31,6 +31,13 @@
 
             <Tab label=""
                 fontSize="18"
+                icon="@res/icon/ico-search.svg"
+                iconActivate="@res/icon/ico-search-activate.svg">
+                <SearchTab />
+            </Tab>
+
+            <Tab label=""
+                fontSize="18"
                 icon="@res/icon/ico-setting.svg"
                 iconActivate="@res/icon/ico-setting-activate.svg">
                 <SettingTab />

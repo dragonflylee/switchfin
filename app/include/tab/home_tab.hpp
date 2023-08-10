@@ -12,6 +12,7 @@ class HRecyclerFrame;
 class HomeTab : public AttachedView, public Presenter {
 public:
     HomeTab();
+    ~HomeTab() override;
 
     void onCreate() override;
 

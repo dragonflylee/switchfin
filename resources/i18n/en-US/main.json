@@ -22,6 +22,22 @@
     "quality": "Video Quality",
     "auto": "Auto"
   },
+  "search": {
+    "tv": {
+      "hint": "Support keywords and their initial letters",
+      "clear": "Clear",
+      "delete": "Delete",
+      "search": "Search",
+      "history": "History",
+      "history_clear": "Clear all",
+      "history_delete": "Delete",
+      "suggest": "Suggest"
+    },
+    "genres": {
+      "movie": "Movie",
+      "series": "Series"
+    }
+  },
   "setting": {
     "quit_hint": "You are about to exit the application. The settings will take effect after the next startup",
     "name": "Name",
