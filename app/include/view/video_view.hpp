@@ -40,9 +40,6 @@ public:
 
     void setTitie(const std::string& title);
 
-     /// @brief get video url
-    void playMedia(const time_t seekTicks, int subtitle = 0);
-
 private:
     /// OSD
     BRLS_BIND(brls::Label, titleLabel, "video/osd/title");
@@ -64,6 +61,8 @@ private:
     BRLS_BIND(brls::Label, hintLabel, "video/osd/hint/label");
     BRLS_BIND(brls::Box, hintBox, "video/osd/hint/box");
 
+    /// @brief get video url
+    void playMedia(const time_t seekTicks);
     bool playNext(int off = 1);
     void reportStart();
     void reportStop();
@@ -90,7 +89,7 @@ private:
     time_t hintLastShowTime = 0;
     const time_t OSD_SHOW_TIME = 5;  //默认5秒
     OSDState osd_state = OSDState::HIDDEN;
-    VideoProfile *profile;
+    VideoProfile* profile;
 
     int64_t seeking_range = 0;
     size_t seeking_iter = 0;
@@ -105,7 +104,11 @@ private:
     std::string playMethod;
     std::string playSessionId;
     inline static int selectedQuality = 0;
+    inline static int selectedSubtitle = 0;
+    inline static int selectedAudio = 0;
     size_t itemIndex = -1;
     jellyfin::MediaSource itemSource;
     std::vector<jellyfin::MediaEpisode> showEpisodes;
+
+    friend class PlayerSetting;
 };

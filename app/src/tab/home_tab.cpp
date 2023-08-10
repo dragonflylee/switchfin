@@ -151,6 +151,7 @@ void HomeTab::doResume() {
 void HomeTab::doLatest() {
     std::string query = HTTP::encode_form({
         {"enableImageTypes", "Primary"},
+        {"includeItemTypes","Series,Movie"},
         {"fields", "BasicSyncInfo"},
         {"limit", "16"},
     });

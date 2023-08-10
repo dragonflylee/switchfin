@@ -1,5 +1,5 @@
 #include "view/player_setting.hpp"
-#include "view/mpv_core.hpp"
+#include "view/video_view.hpp"
 #include "utils/config.hpp"
 
 using namespace brls::literals;
@@ -22,15 +22,21 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
     for (int64_t n = 0; n < count; n++) {
         std::string type = mpv.getString(fmt::format("track-list/{}/type", n));
         std::string title = mpv.getString(fmt::format("track-list/{}/title", n));
-        if (type == "sub") subOpts.push_back(title);
-        else if (type == "audio") audOpts.push_back(title);
+        if (title.empty()) title = mpv.getString(fmt::format("track-list/{}/lang", n));
+        if (title.empty()) title = fmt::format("{} track {}", type, n);
+        if (type == "sub")
+            subOpts.push_back(title);
+        else if (type == "audio")
+            audOpts.push_back(title);
     }
     // 字幕选择
     if (subOpts.size() > 1) {
         int64_t value = 0;
         mpv.get_property("sid", MPV_FORMAT_INT64, &value);
-        this->subtitleTrack->init("main/player/subtitle"_i18n, subOpts, value,
-            [&mpv](int selected) { mpv.setInt("sid", selected); });
+        this->subtitleTrack->init("main/player/subtitle"_i18n, subOpts, value, [&mpv](int selected) {
+            VideoView::selectedSubtitle = selected;
+            mpv.setInt("sid", selected);
+        });
         this->subtitleTrack->detail->setVisibility(brls::Visibility::GONE);
     } else {
         this->subtitleTrack->setVisibility(brls::Visibility::GONE);
@@ -39,8 +45,10 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
     if (audOpts.size() > 1) {
         int64_t value = 0;
         if (!mpv.get_property("aid", MPV_FORMAT_INT64, &value)) value -= 1;
-        this->audioTrack->init("main/player/audio"_i18n, audOpts, value,
-            [&mpv](int selected) { mpv.setInt("aid", selected + 1); });
+        this->audioTrack->init("main/player/audio"_i18n, audOpts, value, [&mpv](int selected) {
+            VideoView::selectedAudio = selected;
+            mpv.setInt("aid", selected + 1);
+        });
         this->audioTrack->detail->setVisibility(brls::Visibility::GONE);
     } else {
         this->audioTrack->setVisibility(brls::Visibility::GONE);

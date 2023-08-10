@@ -117,11 +117,11 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
         brls::Dropdown* dropdown = new brls::Dropdown(
             "main/player/quality"_i18n, qualities,
             [this](int selected) {
-                selectedQuality = selected;
+                VideoView::selectedQuality = selected;
                 this->videoQualityLabel->setText(qualities[selected]);
                 this->playMedia(MPVCore::instance().playback_time * PLAYTICKS);
             },
-            selectedQuality);
+            VideoView::selectedQuality);
         brls::Application::pushActivity(new brls::Activity(dropdown));
         return true;
     });
@@ -297,11 +297,11 @@ bool VideoView::playNext(int off) {
     if (this->itemIndex < 0 || this->itemIndex >= this->showEpisodes.size()) {
         return brls::Application::popActivity(brls::TransitionAnimation::NONE);
     }
-    MPVCore::instance().stop();
+    MPVCore::instance().reset();
 
     auto item = this->showEpisodes.at(this->itemIndex);
     this->itemId = item.Id;
-    this->playMedia(item.UserData.PlaybackPositionTicks);
+    this->playMedia(0);
     this->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
     this->btnBackward->setVisibility(this->itemIndex > 0 ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
     this->btnForward->setVisibility(
@@ -309,12 +309,12 @@ bool VideoView::playNext(int off) {
     return true;
 }
 
-void VideoView::playMedia(const time_t seekTicks, int subtitle) {
+void VideoView::playMedia(const time_t seekTicks) {
     ASYNC_RETAIN
     jellyfin::postJSON(
         {
             {"UserId", AppConfig::instance().getUser().id},
-            {"SubtitleStreamIndex", subtitle},
+            {"SubtitleStreamIndex", VideoView::selectedSubtitle},
             {
                 "DeviceProfile",
                 {
@@ -325,11 +325,7 @@ void VideoView::playMedia(const time_t seekTicks, int subtitle) {
                             {
                                 {"Container", "mp4,m4v,mkv"},
                                 {"Type", "Video"},
-#ifdef __SWITCH__
-                                {"VideoCodec", "h264"},
-#else
                                 {"VideoCodec", "h264,hevc,av1,vp9"},
-#endif
                                 {"AudioCodec", "aac,mp3,ac3,eac3,opus"},
                             },
                             {
@@ -375,7 +371,9 @@ void VideoView::playMedia(const time_t seekTicks, int subtitle) {
             for (auto& item : r.MediaSources) {
                 std::stringstream ssextra;
 #ifdef _DEBUG
-                brls::Logger::debug("mediaSource {} => {}", this->itemId, nlohmann::json(item).dump(1));
+                for (auto& s : item.MediaStreams) {
+                    brls::Logger::info("Track {} type {} => {}", s.Index, s.Type, s.DisplayTitle);
+                }
 #endif
                 ssextra << "network-timeout=20";
                 if (seekTicks > 0) {
@@ -389,7 +387,6 @@ void VideoView::playMedia(const time_t seekTicks, int subtitle) {
                             {"playSessionId", r.PlaySessionId},
                             {"tag", item.ETag},
                         }));
-
                     this->playMethod = "DirectPlay";
                     mpv.setUrl(svr + url, ssextra.str());
                     this->itemSource = std::move(item);
@@ -489,10 +486,14 @@ void VideoView::registerMpvEvent() {
                 this->leftStatusLabel->setText(sec2Time(mpv.video_progress));
             }
             for (auto& s : this->itemSource.MediaStreams) {
-                if (s.Type == jellyfin::streamTypeSubtitle && s.DeliveryUrl.size() > 0 &&
-                    (s.IsExternal || this->playMethod == "Transcode")) {
-                    mpv.command_str("sub-add '{}{}' select '{}'", svr, s.DeliveryUrl, s.DisplayTitle);
+                if (s.Type == jellyfin::streamTypeSubtitle) {
+                    if (s.DeliveryUrl.size() > 0 && (s.IsExternal || this->playMethod == "Transcode")) {
+                        mpv.command_str("sub-add '{}{}' auto '{}'", svr, s.DeliveryUrl, s.DisplayTitle);
+                    }
                 }
+            }
+            if (VideoView::selectedSubtitle > 0) {
+                mpv.setInt("sid", VideoView::selectedSubtitle);
             }
             break;
         case MpvEventEnum::UPDATE_DURATION:
