@@ -30,7 +30,7 @@
     "url": "URL",
     "user": "User",
     "username": "Username",
-    "password": "Paaword",
+    "password": "Password",
     "server": {
       "header": "Server",
       "detail": "Server Details",
