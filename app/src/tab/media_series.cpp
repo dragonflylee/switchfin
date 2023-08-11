@@ -82,7 +82,11 @@ MediaSeries::MediaSeries(const jellyfin::MediaItem& item) : seriesId(item.Id) {
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [](...) { return true; });
     this->recyclerEpisodes->registerCell("Cell", &EpisodeCardCell::create);
 
-    this->doRequest();
+    this->selectorSeason->getEvent()->subscribe([this](int index) {
+        this->doEpisodes(this->seasonIds[index]);
+    });
+
+    this->doSeason();
 
     // 加载 Logo
     auto logo = item.ImageTags.find(jellyfin::imageTypeLogo);
@@ -98,6 +102,10 @@ MediaSeries::MediaSeries(const jellyfin::MediaItem& item) : seriesId(item.Id) {
 }
 
 void MediaSeries::doRequest() {
+    
+}
+
+void MediaSeries::doSeason() {
     std::string query = HTTP::encode_form({
         {"userId", AppConfig::instance().getUser().id},
         {"fields", "ItemCounts,PrimaryImageAspectRatio"},
@@ -108,7 +116,7 @@ void MediaSeries::doRequest() {
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaSeason>& r) {
             ASYNC_RELEASE
 
-            size_t selected = 0;
+            size_t firstSeason = 0;
             this->seasonIds.clear();
 
             std::vector<std::string> seasons;
@@ -116,13 +124,11 @@ void MediaSeries::doRequest() {
                 auto& it = r.Items.at(i);
                 seasons.push_back(it.Name);
                 this->seasonIds.push_back(it.Id);
-                if (it.IndexNumber == 1) selected = i;
+                if (it.IndexNumber == 1) firstSeason = i;
             }
             this->selectorSeason->setData(seasons);
-            this->selectorSeason->getEvent()->subscribe(
-                [this](int index) { this->doEpisodes(this->seasonIds[index]); });
-            this->selectorSeason->setSelection(selected);
-            brls::Application::giveFocus(this->selectorSeason);
+            this->selectorSeason->setSelection(firstSeason);
+            brls::sync([this]() { brls::Application::giveFocus(this->selectorSeason); });
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE

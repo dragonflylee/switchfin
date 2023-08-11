@@ -21,6 +21,7 @@ private:
     BRLS_BIND(brls::SelectorCell, selectorSeason, "series/selector/season");
     BRLS_BIND(RecyclingGrid, recyclerEpisodes, "media/episodes");
 
+    void doSeason();
     void doEpisodes(const std::string& seasonId);
 
     std::string seriesId;
