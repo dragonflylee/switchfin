@@ -1,0 +1,21 @@
+{
+  "ok": "確定",
+  "back": "返回",
+  "cancel": "取消",
+  "exit": "退出",
+  "on": "開",
+  "off": "關",
+  "delete": "刪除",
+  "save": "保存",
+  "submit": "送出",
+  "input": "請輸入...",
+  "preset": "預設參數",
+  "default": "預設",
+  "current": "目前",
+  "success": "成功",
+  "failed": "失敗",
+  "exit_hint": "離開本程式？",
+  "loading": "載入中",
+  "refresh": "重新整理",
+  "quit": "正在退出..."
+}
