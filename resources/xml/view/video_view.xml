@@ -3,7 +3,10 @@
     height="100%"
     axis="column"
     justifyContent="spaceBetween"
-    alignItems="center">
+    alignItems="center"
+    hideHighlight="true"
+    hideHighlightBorder="true"
+    hideHighlightBackground="true">
 
     <brls:Box
         id="video/osd/top/box"
