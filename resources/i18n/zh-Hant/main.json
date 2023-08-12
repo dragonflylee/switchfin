@@ -1,0 +1,108 @@
+{
+  "tabs": {
+    "home": "首頁",
+    "setting": "設定"
+  },
+  "home": {
+    "resume": "繼續觀賞",
+    "nextup": "即將播放",
+    "latest": "最近新增"
+  },
+  "about": {
+    "header": "關於軟體",
+    "brief": "專為搖桿控制設計的第三方跨平台Jellyfin播放器\n滿足日常使用, 目前支援 PC 全平台和 Nintendo Switch",
+    "repo_header": "原始碼連結"
+  },
+  "player": {
+    "subtitle": "字幕",
+    "none": "不顯示",
+    "audio": "音軌",
+    "common": "通用",
+    "speed": "倍速",
+    "quality": "畫質",
+    "auto": "自動"
+  },
+  "setting": {
+    "quit_hint": "即將退出本程式, 變更的設定將在下次啟動時生效",
+    "name": "名稱",
+    "version": "版本",
+    "os": "作業系統",
+    "url": "URL",
+    "user": "使用者",
+    "username": "使用者名稱",
+    "password": "密碼",
+    "server": {
+      "header": "伺服器",
+      "detail": "詳細資料",
+      "connect_new": "連線到新伺服器",
+      "connect_to": "連線到Jellyfin伺服器",
+      "connect": "連線",
+      "local": "本地伺服器",
+      "users": "{} 個使用者",
+      "sigin_to": "登入到 {}",
+      "signin": "登入"
+    },
+    "playback": {
+      "header": "播放設定",
+      "hwdec": "硬體解碼",
+      "transcodec": "轉碼格式",
+      "seeking_step": "快進步進秒數"
+    },
+    "network": {
+      "header": "網路設定",
+      "threads": "載入圖片執行緒數量",
+      "timeout": "請求逾時時長 (毫秒)"
+    },
+    "tutorial": {
+      "header": "使用教學",
+      "open": "安裝桌面圖示",
+      "error": "程式內錯誤顯示或部份功能無法使用",
+      "hot_key": "隱藏的快捷鍵說明",
+      "font": "設定自訂字型",
+      "error_q1": "無法連線",
+      "error_a1": "1. 確認大氣層及系統韌體版本為最新版\n2. 確認系統時間(包括日期)是正確的\n3. 把網路設定重設為預設值，包括IP、DNS等",
+      "error_q2": "程式閃退",
+      "error_a2": "1. 使用Fat32格式的記憶卡\n2. 確認大氣層及系統韌體版本為最新版\n3. 等待開發者們修復",
+      "font_q1": "如何設定自訂字型或按鍵圖示",
+      "font_a1": "1. 下載你想要的字型或圖示檔案\n2. 字型重新命名為：font.ttf  圖示重新命名為：icon.ttf\n3. 將重新命名後的檔案放在本程式的設定檔目錄\n4. 重新啟動本程式",
+      "font_q2": "常見問題",
+      "font_a2": "1. 本程式優先顯示自訂字型，以內建字型作為後備\n2. 「程式設定 - 使用教學」 提供快速打開設定目錄的選單\n3. 在 Linux 上，Switchfin 使用 xdg-open 來打開目錄，如果無法正常開啟設定檔目錄，可以考慮安裝此工具"
+    },
+    "others": {
+      "header": "其他",
+      "fullscreen": "全螢幕顯示",
+      "overclock": "CPU超頻",
+      "theme": {
+        "header": "主題配色 (需要重啟)",
+        "1": "跟隨系統",
+        "2": "淺色",
+        "3": "深色"
+      },
+      "language": {
+        "header": "語言 (需要重啟)",
+        "auto": "跟隨系統",
+        "chinese_s": "簡體中文",
+        "chinese_t": "繁體中文",
+        "english": "英文"
+      },
+      "keymap": {
+        "header": "按鍵圖示",
+        "xbox": "Xbox",
+        "ps": "PlayStation",
+        "keyboard": "鍵盤"
+      },
+      "up2date": "程式已經是最新版",
+      "upgrade": "發現新版本 {}，是否更新？",
+      "release": "檢查更新"
+    }
+  },
+  "hints": {
+    "hint1": "請從桌面選擇任意遊戲並按住  鍵",
+    "hint2": "按下  開啟, 在遊戲開啟期間按住  鍵，直到進入 hbmenu",
+    "hint3": "在 hbmenu 選單中選擇 Switchfin",
+    "hint4": "選用：安裝 Switchfin NSP 通過桌面圖示 Switchfin",
+    "hint_nsp": "按下  安裝桌面圖示",
+    "hint_confirm": "安裝桌面圖示可能導致主機被ban\n請再次確認",
+    "hint_right": "掌機圖片來自於網路，版權歸任天堂 Nintendo Co., Ltd 所有"
+  }
+}
