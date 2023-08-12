@@ -43,6 +43,7 @@
       "signin": "登入"
     },
     "playback": {
+      "bottom_bar": "於畫面下方顯示迷你進度條",
       "header": "播放設定",
       "hwdec": "硬體解碼",
       "transcodec": "轉碼格式",

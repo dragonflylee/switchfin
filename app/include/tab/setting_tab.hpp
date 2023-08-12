@@ -35,6 +35,7 @@ private:
     BRLS_BIND(brls::BooleanCell, btnHWDEC, "setting/video/hwdec");
     BRLS_BIND(brls::SelectorCell, selectorCodec, "setting/video/codec");
     BRLS_BIND(brls::SelectorCell, selectorSeeking, "setting/player/seeking");
+    BRLS_BIND(brls::BooleanCell, btnBottomBar, "setting/player/bottom_bar");
     BRLS_BIND(brls::BooleanCell, btnFullscreen, "setting/fullscreen");
     BRLS_BIND(brls::BooleanCell, btnOverClock, "setting/overclock");
     BRLS_BIND(brls::InputNumericCell, inputThreads, "setting/network/threads");

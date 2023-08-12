@@ -43,6 +43,7 @@
       "signin": "Sign In"
     },
     "playback": {
+      "bottom_bar": "Show a tiny progress bar on bottom",
       "header": "Playback",
       "hwdec": "Hardware decode",
       "transcodec": "Transcodec",

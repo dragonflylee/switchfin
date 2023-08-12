@@ -649,6 +649,7 @@ void MPVCore::reset() {
 
 void MPVCore::setUrl(const std::string &url, const std::string &extra, const std::string &method) {
     brls::Logger::debug("{} Url: {}, extra: {}", method, url, extra);
+    BOTTOM_BAR = AppConfig::instance().getItem(AppConfig::PLAYER_BOTTOM_BAR, true);
     if (extra.empty()) {
         const char *cmd[] = {"loadfile", url.c_str(), method.c_str(), nullptr};
         command_async(cmd);

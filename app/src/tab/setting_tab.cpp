@@ -95,6 +95,11 @@ void SettingTab::onCreate() {
             AppConfig::instance().setItem(AppConfig::PLAYER_SEEKING_STEP, MPVCore::SEEKING_STEP);
         });
 
+    btnBottomBar->init(
+        "main/setting/playback/bottom_bar"_i18n, conf.getItem(AppConfig::PLAYER_BOTTOM_BAR, true), [&conf](bool value) {
+            conf.setItem(AppConfig::PLAYER_BOTTOM_BAR, value);
+        });
+
 #ifdef __SWITCH__
     btnTutorialOpenApp->registerClickAction([](...) -> bool {
         brls::Application::pushActivity(new HintActivity());

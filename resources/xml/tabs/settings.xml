@@ -48,6 +48,8 @@
                     id="setting/video/codec" />
                 <brls:SelectorCell
                     id="setting/player/seeking" />
+                <brls:BooleanCell
+                    id="setting/player/bottom_bar" />
             </brls:Box>
 
             <brls:Header
