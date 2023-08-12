@@ -100,6 +100,11 @@ void SettingTab::onCreate() {
             conf.setItem(AppConfig::PLAYER_BOTTOM_BAR, value);
         });
 
+    btnOSDOnToggle->init(
+        "main/setting/playback/osd_on_toggle"_i18n, conf.getItem(AppConfig::OSD_ON_TOGGLE, true), [&conf](bool value) {
+            conf.setItem(AppConfig::OSD_ON_TOGGLE, value);
+        });
+
 #ifdef __SWITCH__
     btnTutorialOpenApp->registerClickAction([](...) -> bool {
         brls::Application::pushActivity(new HintActivity());

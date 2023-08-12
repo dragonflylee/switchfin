@@ -31,6 +31,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {KEYMAP, {"keymap", {"xbox", "ps", "keyboard"}}},
     {TRANSCODEC, {"transcodec", {"AVC/H264", "HEVC/H265"}}},
     {FULLSCREEN, {"fullscreen"}},
+    {OSD_ON_TOGGLE, {"osd_on_toggle"}},
     {OVERCLOCK, {"overclock"}},
     {PLAYER_BOTTOM_BAR, {"player_bottom_bar"}},
     {PLAYER_SEEKING_STEP, {"player_seeking_step", {"5", "10", "15", "30"}, {5, 10, 15, 30}}},
