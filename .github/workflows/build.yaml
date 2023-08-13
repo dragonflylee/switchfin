@@ -4,13 +4,20 @@ on:
   push:
     tags-ignore: [ switch-portlibs ]
     branches: [ dev ]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      snap:
+        description: 'build snap'
+        required: false
+        default: 'false'
 
 permissions:
   contents: write
 
 jobs:
   upload-release:
-    needs: [ build-msvc-x64, build-switch, build-macos, build-snap ]
+    needs: [ build-msvc-x64, build-switch, build-macos ]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/download-artifact@v3
@@ -44,9 +51,11 @@ jobs:
         git config --system --add safe.directory '*'
     - name: Build nro
       run: |
-        cmake -B switch -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON
-        make -C switch Switchfin.nro -j$(nproc)
-        zip -9 Switchfin-NintendoSwitch.zip switch/Switchfin.nro
+        cmake -B build_switch -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON
+        make -C build_switch Switchfin.nro -j$(nproc)
+        mkdir -p switch
+        ln -s $GITHUB_WORKSPACE/build_switch switch/Switchfin
+        zip -9 Switchfin-NintendoSwitch.zip switch/Switchfin/Switchfin.nro
     - name: Upload Assets
       uses: actions/upload-artifact@v3
       with:
@@ -55,6 +64,7 @@ jobs:
 
   build-snap:
     runs-on: ubuntu-latest
+    if: github.event.inputs.snap == 'true'
     steps:
     - uses: actions/checkout@v3
       with:
