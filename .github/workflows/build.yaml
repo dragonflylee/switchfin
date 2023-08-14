@@ -53,14 +53,14 @@ jobs:
       run: |
         cmake -B build_switch -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON
         make -C build_switch Switchfin.nro -j$(nproc)
-        mkdir -p switch
-        ln -s $GITHUB_WORKSPACE/build_switch switch/Switchfin
-        zip -9 Switchfin-NintendoSwitch.zip switch/Switchfin/Switchfin.nro
+    - name: Set outputs
+      id: vars
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
       uses: actions/upload-artifact@v3
       with:
-        name: switch-${{ github.ref_name }}
-        path: Switchfin-NintendoSwitch.zip
+        name: switchfin-switch-${{ steps.vars.outputs.sha_short }}
+        path: build_switch/*.nro
 
   build-snap:
     runs-on: ubuntu-latest
@@ -77,10 +77,13 @@ jobs:
     - name: Build snap
       run: |
         docker run --rm --tty -v $PWD:/data -w /data/scripts --privileged diddledani/snapcraft:core20
+    - name: Set outputs
+      id: vars
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
       uses: actions/upload-artifact@v3
       with:
-        name: snap-${{ github.ref_name }}
+        name: switchfin-snap-${{ steps.vars.outputs.sha_short }}
         path: scripts/*.snap
 
   build-macos:
@@ -113,10 +116,13 @@ jobs:
           --icon "README.md" 400 100 --hide-extension "Switchfin.app" \
           --app-drop-link 600 185 --volicon ./scripts/dmg.icns \
           --volname "Switchfin" Switchfin-macOS.dmg "dist/"
+    - name: Set outputs
+      id: vars
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
       uses: actions/upload-artifact@v3
       with:
-        name: macos-${{ github.ref_name }}
+        name: switchfin-macos-${{ steps.vars.outputs.sha_short }}
         path: Switchfin-*.dmg
 
   build-msvc-x64:
@@ -152,5 +158,5 @@ jobs:
     - name: Upload Assets
       uses: actions/upload-artifact@v3
       with:
-        name: windows-${{ github.ref_name }}
+        name: switchfin-win64
         path: Switchfin-*.zip
