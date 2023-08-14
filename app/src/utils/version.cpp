@@ -1,6 +1,7 @@
 #include <borealis.hpp>
 #ifdef __SWITCH__
 #include <switch.h>
+#include <filesystem>
 #endif
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
@@ -53,7 +54,7 @@ bool AppVersion::needUpdate(std::string latestVersion) { return false; }
 void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
     brls::async([showUpToDateDialog]() {
         try {
-            std::string url = fmt::format("https://api.github.com/repos/{}/releases/tags/latest", git_repo);
+            std::string url = fmt::format("https://api.github.com/repos/{}/releases/latest", git_repo);
             auto resp = HTTP::get(url, HTTP::Timeout{1000});
             nlohmann::json j = nlohmann::json::parse(resp);
             std::string latest_ver = j.at("tag_name").get<std::string>();
@@ -63,11 +64,29 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
                 return;
             }
 
-            Dialog::cancelable(fmt::format(fmt::runtime("main/setting/others/upgrade"_i18n), latest_ver), [latest_ver] {
+            brls::sync([latest_ver]() {
+                std::string title = fmt::format(fmt::runtime("main/setting/others/upgrade"_i18n), latest_ver);
 #ifdef __SWITCH__
+                Dialog::cancelable(title, [latest_ver]() {
+                    brls::async([latest_ver]() {
+                        std::string conf_dir = AppConfig::instance().configDir();
+                        std::string path = fmt::format("{}/{}_{}.nro", conf_dir, pkg_name, latest_ver);
+                        std::string url = fmt::format(
+                            "https://github.com/{}/releases/download/{}/Switchfin.nro", git_repo, latest_ver);
+                        try {
+                            HTTP::download(url, path, HTTP::Timeout{-1});
+                            romfsExit();
+                            std::filesystem::rename(path, fmt::format("{}/{}.nro", conf_dir, pkg_name));
+                            Dialog::quitApp(true);
+                        } catch (const std::exception& ex) {
+                            std::filesystem::remove(path);
+                            brls::sync([&ex]() { Dialog::show(ex.what()); });
+                        }
+                    });
+                });
 #else
                 std::string url = fmt::format("https://github.com/{}/releases/tag/{}", git_repo, latest_ver);
-                brls::Application::getPlatform()->openBrowser(url);
+                Dialog::cancelable(title, [url] { brls::Application::getPlatform()->openBrowser(url); });
 #endif
             });
         } catch (const std::exception& ex) {

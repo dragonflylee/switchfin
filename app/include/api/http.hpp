@@ -11,6 +11,8 @@
 #include <atomic>
 #include <curl/curl.h>
 
+#include <borealis/core/event.hpp>
+
 class HTTP {
 public:
     using Header = std::vector<std::string>;
@@ -59,6 +61,13 @@ public:
         return s.get(url);
     }
 
+    template <typename... Ts>
+    static void download(const std::string& url, const std::string& path, Ts&&... ts) {
+        HTTP s;
+        set_option(s, std::forward<Ts>(ts)...);
+        s.download(url, path);
+    }
+
     // Post methods
     template <typename... Ts>
     static std::string post(const std::string& url, const std::string& data, Ts&&... ts) {
@@ -101,4 +110,5 @@ private:
     void* easy;
     struct curl_slist* chunk;
     Cancel is_cancel;
+    brls::Event<void(curl_off_t, curl_off_t)> down_ev;
 };
