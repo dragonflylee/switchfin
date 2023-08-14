@@ -55,6 +55,10 @@
                     marginBottom="30px">
                     <brls:BooleanCell
                         id="setting/fullscreen" />
+                    <brls:BooleanCell
+                        id="setting/player/bottom_bar" />
+                    <brls:BooleanCell
+                        id="setting/player/osd_on_toggle" />
                 </brls:Box>
 
             </brls:Box>

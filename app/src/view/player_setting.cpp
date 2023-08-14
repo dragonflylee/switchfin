@@ -73,6 +73,18 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
 #else
     btnFullscreen->setVisibility(brls::Visibility::GONE);
 #endif
+
+    btnBottomBar->init(
+        "main/setting/playback/bottom_bar"_i18n, conf.getItem(AppConfig::PLAYER_BOTTOM_BAR, true), [&conf](bool value) {
+            MPVCore::BOTTOM_BAR = value;
+            conf.setItem(AppConfig::PLAYER_BOTTOM_BAR, value);
+        });
+
+    btnOSDOnToggle->init(
+        "main/setting/playback/osd_on_toggle"_i18n, conf.getItem(AppConfig::OSD_ON_TOGGLE, true), [&conf](bool value) {
+            MPVCore::OSD_ON_TOGGLE = value;
+            conf.setItem(AppConfig::OSD_ON_TOGGLE, value);
+        });
 }
 
 PlayerSetting::~PlayerSetting() { brls::Logger::debug("PlayerSetting: delete"); }

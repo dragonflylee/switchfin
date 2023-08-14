@@ -24,8 +24,6 @@ static std::string sec2Time(int64_t t) {
 
 static std::vector<int64_t> maxBitrate = {120000000, 10000000, 8000000, 4000000, 2000000};
 
-static bool OSD_ON_TOGGLE = true;
-
 VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
     this->inflateFromXMLRes("xml/view/video_view.xml");
     brls::Logger::debug("VideoView: create {} type {}", item.Id, item.Type);
@@ -74,8 +72,6 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
             return true;
         },
         true);
-
-    OSD_ON_TOGGLE = AppConfig::instance().getItem(AppConfig::OSD_ON_TOGGLE, true);
 
     /// 播放器设置按钮
     this->btnSetting->registerClickAction([this](...) { return this->showSetting(); });
@@ -459,7 +455,7 @@ void VideoView::registerMpvEvent() {
         // brls::Logger::info("mpv event => : {}", event);
         switch (event) {
         case MpvEventEnum::MPV_RESUME:
-            if (OSD_ON_TOGGLE) {
+            if (MPVCore::OSD_ON_TOGGLE) {
                 this->showOSD(true);
             }
             this->hideLoading();
@@ -468,7 +464,7 @@ void VideoView::registerMpvEvent() {
             this->profile->init(itemSource.Name, this->playMethod);
             break;
         case MpvEventEnum::MPV_PAUSE:
-            if (OSD_ON_TOGGLE) {
+            if (MPVCore::OSD_ON_TOGGLE) {
                 this->showOSD(false);
             }
             this->btnToggleIcon->setImageFromSVGRes("icon/ico-play.svg");

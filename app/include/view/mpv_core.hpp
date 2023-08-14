@@ -151,6 +151,8 @@ public:
     // Bottom progress bar
     inline static bool BOTTOM_BAR = true;
 
+    inline static bool OSD_ON_TOGGLE = true;
+
     // 低画质解码，剔除解码过程中的部分步骤，可以用来节省cpu
     inline static bool LOW_QUALITY = false;
 

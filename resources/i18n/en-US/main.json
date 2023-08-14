@@ -43,10 +43,10 @@
       "signin": "Sign In"
     },
     "playback": {
-      "bottom_bar": "Show a tiny progress bar on bottom",
+      "bottom_bar": "Show bottom progress bar",
       "header": "Playback",
       "hwdec": "Hardware decode",
-      "osd_on_toggle": "Show OSD when playback is resumed/paused",
+      "osd_on_toggle": "Show OSD when paused",
       "transcodec": "Transcodec",
       "seeking_step": "Seeking Step"
     },
