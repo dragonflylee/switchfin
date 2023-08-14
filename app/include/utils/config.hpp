@@ -48,6 +48,7 @@ public:
         APP_LANG,
         KEYMAP,
         TRANSCODEC,
+        OSD_ON_TOGGLE,
         PLAYER_BOTTOM_BAR,
         PLAYER_SEEKING_STEP,
         PLAYER_HWDEC,

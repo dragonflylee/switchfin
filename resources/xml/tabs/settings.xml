@@ -48,6 +48,10 @@
                     id="setting/video/codec" />
                 <brls:SelectorCell
                     id="setting/player/seeking" />
+                <brls:BooleanCell
+                    id="setting/player/bottom_bar" />
+                <brls:BooleanCell
+                    id="setting/player/osd_on_toggle" />
             </brls:Box>
 
             <brls:Header

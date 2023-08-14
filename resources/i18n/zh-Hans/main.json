@@ -43,8 +43,10 @@
       "signin": "登录"
     },
     "playback": {
+      "bottom_bar": "于画面下方显示迷你进度条",
       "header": "播放设置",
       "hwdec": "硬件解码",
+      "osd_on_toggle": "暂停/继续播放时显示介面",
       "transcodec": "转码格式",
       "seeking_step": "快进步进"
     },
