@@ -10,7 +10,7 @@ class RecyclingGrid;
 
 class MediaCollection : public brls::Box {
 public:
-    MediaCollection(const std::string& id);
+    MediaCollection(const std::string& itemId, const std::string& itemType = "");
 
     brls::View* getDefaultFocus() override;
 
@@ -20,6 +20,7 @@ private:
     void doRequest();
 
     std::string itemId;
+    std::string itemType;
     long pageSize;
     long startIndex;
 };

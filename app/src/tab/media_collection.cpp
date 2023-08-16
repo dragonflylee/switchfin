@@ -59,10 +59,11 @@ private:
     MediaList list;
 };
 
-MediaCollection::MediaCollection(const std::string& id) : itemId(id), startIndex(0) {
+MediaCollection::MediaCollection(const std::string& itemId, const std::string& itemType)
+    : itemId(itemId), itemType(itemType), startIndex(0) {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/collection.xml");
-    brls::Logger::debug("MediaCollection: create");
+    brls::Logger::debug("MediaCollection: create {} type {}", itemId, itemType);
     this->pageSize = this->recyclerSeries->spanCount * 3;
 
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
@@ -82,7 +83,10 @@ void MediaCollection::doRequest() {
         {"parentId", this->itemId},
         {"sortBy", "PremiereDate"},
         {"sortOrder", "Descending"},
+        {"IncludeItemTypes", this->itemType},
+        {"Recursive", "true"},
         {"fields", "PrimaryImageAspectRatio,BasicSyncInfo"},
+        {"EnableImageTypes", "Primary"},
         {"limit", std::to_string(this->pageSize)},
         {"startIndex", std::to_string(this->startIndex)},
     });

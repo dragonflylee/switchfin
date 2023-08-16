@@ -55,6 +55,12 @@ struct MediaItem {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
     MediaItem, Id, Name, Type, ImageTags, IsFolder, ProductionYear, CommunityRating, UserData);
 
+struct MediaCollection : public MediaItem {
+    std::string CollectionType;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
+    MediaCollection, Id, Name, Type, ImageTags, IsFolder, CollectionType);
+
 struct MediaSeason : public MediaItem {
     long IndexNumber = 0;
 };
