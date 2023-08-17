@@ -22,7 +22,6 @@ MainActivity::~MainActivity() { brls::Logger::debug("delete MainActivity"); }
 
 void MainActivity::onResume() {
     Presenter *p = dynamic_cast<Presenter *>(this->appletFrame->getContentView());
-    if (p == nullptr) p = dynamic_cast<Presenter *>(this->tabFrame->getActiveTab());
     if (p != nullptr) p->doRequest();
 }
 

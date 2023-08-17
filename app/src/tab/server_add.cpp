@@ -13,7 +13,7 @@ ServerAdd::ServerAdd() {
     this->inflateFromXMLRes("xml/tabs/server_add.xml");
     brls::Logger::debug("ServerAdd: create");
 
-    inputUrl->init("URL", "https://");
+    inputUrl->init("URL", "https://", [](...){}, "", "", 255);
 
     btnConnect->registerClickAction([this](...) { return this->onConnect(); });
 }

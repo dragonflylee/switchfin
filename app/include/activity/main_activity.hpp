@@ -33,5 +33,4 @@ public:
 
 private:
     BRLS_BIND(brls::AppletFrame, appletFrame, "main/frame");
-    BRLS_BIND(AutoTabFrame, tabFrame, "main/tabFrame");
 };
