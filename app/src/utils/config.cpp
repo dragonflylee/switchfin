@@ -29,7 +29,8 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {APP_THEME, {"app_theme", {"auto", "light", "dark"}}},
     {APP_LANG, {"app_lang", {brls::LOCALE_AUTO, brls::LOCALE_EN_US, brls::LOCALE_ZH_HANS, brls::LOCALE_ZH_HANT}}},
     {KEYMAP, {"keymap", {"xbox", "ps", "keyboard"}}},
-    {TRANSCODEC, {"transcodec", {"AVC/H264", "HEVC/H265"}}},
+    {TRANSCODEC, {"transcodec", {"h264", "hevc", "av1"}}},
+    {MAXBITRATE, {"max_bitrate", {"20Mbps", "40Mbps", "80Mbps", "160Mbps"}, {20000000, 40000000, 80000000, 160000000}}},
     {FULLSCREEN, {"fullscreen"}},
     {OSD_ON_TOGGLE, {"osd_on_toggle"}},
     {OVERCLOCK, {"overclock"}},
@@ -66,6 +67,8 @@ void AppConfig::init() {
     // 初始化是否使用硬件加速 （仅限非switch设备）
     MPVCore::HARDWARE_DEC = this->getItem(PLAYER_HWDEC, true);
     MPVCore::SEEKING_STEP = this->getItem(PLAYER_SEEKING_STEP, 15);
+    MPVCore::VIDEO_CODEC = this->getItem(TRANSCODEC, settingMap[TRANSCODEC].options.back());
+    MPVCore::MAX_BITRATE[0] = this->getItem(MAXBITRATE, settingMap[MAXBITRATE].values.back());
 
     // 初始化自定义的硬件加速方案
     MPVCore::PLAYER_HWDEC_METHOD = this->getItem(PLAYER_HWDEC_CUSTOM, MPVCore::PLAYER_HWDEC_METHOD);
@@ -161,7 +164,11 @@ bool AppConfig::checkLogin() {
     for (auto& u : this->users) {
         if (u.id == this->user_id) {
             this->user = u;
-            HTTP::Header header = {"X-Emby-Token: " + u.access_token};
+            HTTP::Header header = {
+                fmt::format("X-Emby-Authorization: MediaBrowser Client=\"{}\", Device=\"{}\", DeviceId=\"{}\", "
+                            "Version=\"{}\", Token=\"{}\"",
+                    AppVersion::pkg_name, AppVersion::getDeviceName(), this->getDevice(), AppVersion::getVersion(),
+                    u.access_token)};
             const long timeout = getItem(AppConfig::REQUEST_TIMEOUT, default_timeout);
             try {
                 HTTP::get(getUrl() + jellyfin::apiInfo, header, HTTP::Timeout{timeout});

@@ -48,6 +48,7 @@
       "hwdec": "Hardware decode",
       "osd_on_toggle": "Show OSD when paused",
       "transcodec": "Transcodec",
+      "maxbitrate": "Max Bitrate",
       "seeking_step": "Seeking Step"
     },
     "network": {

@@ -162,6 +162,8 @@ public:
     // 硬件解码
     inline static bool HARDWARE_DEC = false;
     inline static std::string PLAYER_HWDEC_METHOD = "auto-safe";
+    inline static std::string VIDEO_CODEC = "h264";
+    inline static std::vector<int64_t> MAX_BITRATE = {0, 10000000, 8000000, 4000000, 2000000};
 
     // 此变量为真时，加载结束后自动播放视频
     inline static bool AUTO_PLAY = true;

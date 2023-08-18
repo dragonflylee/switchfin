@@ -47,6 +47,8 @@
                 <brls:SelectorCell
                     id="setting/video/codec" />
                 <brls:SelectorCell
+                    id="setting/video/bitrate" />
+                <brls:SelectorCell
                     id="setting/player/seeking" />
                 <brls:BooleanCell
                     id="setting/player/bottom_bar" />
@@ -112,7 +114,7 @@
                 <brls:SelectorCell
                     id="setting/language" />
                 <brls:RadioCell
-                    id="setting/release_checker"/>
+                    id="setting/release_checker" />
                 <brls:DetailCell
                     title="@i18n/main/about/header"
                     id="setting/about" />

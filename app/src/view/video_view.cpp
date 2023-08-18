@@ -22,8 +22,6 @@ static std::string sec2Time(int64_t t) {
     return fmt::format("{:%H:%M:%S}", std::chrono::seconds(t));
 }
 
-static std::vector<int64_t> maxBitrate = {120000000, 10000000, 8000000, 4000000, 2000000};
-
 VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
     this->inflateFromXMLRes("xml/view/video_view.xml");
     brls::Logger::debug("VideoView: create {} type {}", item.Id, item.Type);
@@ -318,7 +316,7 @@ void VideoView::playMedia(const time_t seekTicks) {
             {
                 "DeviceProfile",
                 {
-                    {"MaxStreamingBitrate", maxBitrate[this->selectedQuality]},
+                    {"MaxStreamingBitrate", MPVCore::MAX_BITRATE[this->selectedQuality]},
                     {
                         "DirectPlayProfiles",
                         {
@@ -331,7 +329,7 @@ void VideoView::playMedia(const time_t seekTicks) {
                             {
                                 {"Container", "mov"},
                                 {"Type", "Video"},
-                                {"VideoCodec", "h264"},
+                                {"VideoCodec", MPVCore::VIDEO_CODEC},
                                 {"AudioCodec", "aac,mp3,ac3,eac3,opus"},
                             },
                         },
@@ -416,7 +414,7 @@ void VideoView::reportStart() {
             {"PlayMethod", this->playMethod},
             {"PlaySessionId", this->playSessionId},
             {"MediaSourceId", this->itemSource.Id},
-            {"MaxStreamingBitrate", maxBitrate[this->selectedQuality]},
+            {"MaxStreamingBitrate", MPVCore::MAX_BITRATE[this->selectedQuality]},
         },
         [](...) {}, nullptr, jellyfin::apiPlayStart);
 }

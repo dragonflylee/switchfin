@@ -83,9 +83,17 @@ void SettingTab::onCreate() {
 #endif
 
     auto& codecOption = conf.getOptions(AppConfig::TRANSCODEC);
-    selectorCodec->init("main/setting/playback/transcodec"_i18n, codecOption.options,
+    selectorCodec->init("main/setting/playback/transcodec"_i18n, {"AVC/H264", "HEVC/H265", "AV1"},
         conf.getOptionIndex(AppConfig::TRANSCODEC), [&codecOption](int selected) {
-            AppConfig::instance().setItem(AppConfig::TRANSCODEC, codecOption.options[selected]);
+            MPVCore::VIDEO_CODEC = codecOption.options[selected];
+            AppConfig::instance().setItem(AppConfig::TRANSCODEC, MPVCore::VIDEO_CODEC);
+        });
+
+    auto& bitRateOption = conf.getOptions(AppConfig::MAXBITRATE);
+    selectorBitrate->init("main/setting/playback/maxbitrate"_i18n, bitRateOption.options,
+        conf.getValueIndex(AppConfig::MAXBITRATE, bitRateOption.values.size() - 1), [&bitRateOption](int selected) {
+            MPVCore::MAX_BITRATE[0] = bitRateOption.values[selected];
+            AppConfig::instance().setItem(AppConfig::MAXBITRATE, bitRateOption.values[selected]);
         });
 
     auto& seekingOption = conf.getOptions(AppConfig::PLAYER_SEEKING_STEP);

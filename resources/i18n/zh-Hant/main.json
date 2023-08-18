@@ -46,6 +46,7 @@
       "bottom_bar": "顯示底部進度條",
       "header": "播放設定",
       "hwdec": "硬體解碼",
+      "maxbitrate": "最高碼率",
       "osd_on_toggle": "暫停時顯示控製界面",
       "transcodec": "轉碼格式",
       "seeking_step": "快進步進秒數"
