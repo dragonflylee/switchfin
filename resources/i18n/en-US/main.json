@@ -9,7 +9,7 @@
     "latest": "Recently Added"
   },
   "about": {
-    "header": "Introduction",
+    "header": "About",
     "brief": "Yet another third-party jellyfin client",
     "repo_header": "Repository"
   },
