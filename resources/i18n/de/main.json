@@ -1,0 +1,112 @@
+{
+  "tabs": {
+    "home": "Home",
+    "setting": "Einstellungen"
+  },
+  "home": {
+    "resume": "Weiterschauen",
+    "nextup": "Als Nächstes",
+    "latest": "Neustes Hinzugefügt"
+  },
+  "about": {
+    "header": "Über",
+    "brief": "Yet another third-party jellyfin client",
+    "repo_header": "Repository"
+  },
+  "player": {
+    "subtitle": "Untertitel",
+    "none": "Nichts",
+    "audio": "Tonspur",
+    "common": "Vereint",
+    "speed": "Abspielgeschwindigkeit",
+    "quality": "Videoqualität",
+    "auto": "Auto"
+  },
+  "setting": {
+    "quit_hint": "Diese Applikation wird beended und die Einstellung tritt bei dem nächsten Start in kraft.",
+    "name": "Name",
+    "version": "Version",
+    "os": "Betriebssystem",
+    "url": "URL",
+    "user": "Benutzer",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "server": {
+      "header": "Server",
+      "detail": "Serverdetails",
+      "connect_new": "Neuer Server",
+      "connect_to": "Verbinde neuen Jellyfin-Server",
+      "connect": "Verbinden",
+      "local": "Locale Server",
+      "users": "{} Benutzer",
+      "sigin_to": "In {} anmelden",
+      "signin": "Anmelden"
+    },
+    "playback": {
+      "bottom_bar": "Zeige unteren Fortschrittsbalken",
+      "header": "Videoplayer",
+      "hwdec": "Hardwaredekodierung",
+      "osd_on_toggle": "Zeige OSD wenn pausiert",
+      "transcodec": "Transcodec",
+      "maxbitrate": "Max Bitrate",
+      "seeking_step": "Seekschritt"
+    },
+    "network": {
+      "header": "Netzwerk",
+      "threads": "Anzahl an Bildladethreads",
+      "timeout": "Maximale Anfragedauer (ms)"
+    },
+    "tutorial": {
+      "header": "Anleitungen",
+      "open": "Desktop-Icon installieren",
+      "error": "Einen Fehler gefunden",
+      "hot_key": "Hotkey",
+      "font": "Eigene Schriftart verwenden",
+      "error_q1": "Netzwerk nicht erreichbar",
+      "error_a1": "1. Stelle sicher, dass Atmusphere und die Systemfirmware auf dem neusten Stand sind\n2. Bestätige, dass die Systemzeit richtig eingestellt ist\n3. Stelle die ursprünglichen Netzwerkeinstellungen wieder her, mitunter IP, DNS, usw\n4. In China verwenden",
+      "error_q2": "Verlässt mit einer zufälligen Fehlermeldung",
+      "error_a2": "1. Verwende eine Fat32-formatierte Speicherkarte\n2. Stelle sicher, dass Atmusphere und die Systemfirmware auf dem neusten Stand sind\n3. Warte auf Entwickler, die Applikation zu reparieren",
+      "font_q1": "Eigene Schriftart oder Icons setzen",
+      "font_a1": "1. Lade Schriftart oder Icons herunter\n2. Benenne die Schriftart: font.ttf; Benenne die Icons: icon.ttf\n3. Setze die neuen Dateien in den Konfigurationsordner\n4. Starte die Applikation neu",
+      "font_q2": "FAQ",
+      "font_a2": "1. Switchfin priorisiert selbst gesetzte Schriftarten, ansonsten verwendet es die selbst eingebauten Schriftarten\n2. In \"Einstellungen - Anleitungen\" befindet sich ein Knopf um den Einstellungsordner zu öffnen\n3. Auf Linux verwendet Switchfin xdg-open um diesen Ordner zu öffnen. Falls sich der Ordner sich nicht richtig öffnet, dann anstalliere xdg-open"
+    },
+    "others": {
+      "header": "Diverses",
+      "fullscreen": "Vollbild",
+      "overclock": "CPU-Übertacktung",
+      "theme": {
+        "header": "Aussehen (benötigt Neustart)",
+        "1": "Auto",
+        "2": "Hell",
+        "3": "Dunkel"
+      },
+      "language": {
+        "header": "Sprache (benötigt Neustart)",
+        "auto": "Auto",
+        "chinese_s": "简体中文",
+        "chinese_t": "繁體中文",
+        "english": "English",
+        "german": "Deutsch"
+      },
+      "keymap": {
+        "header": "Knopfstil",
+        "xbox": "Xbox",
+        "ps": "PlayStation",
+        "keyboard": "Tastatur"
+      },
+      "up2date": "Switchfin ist auf dem neusten Stand",
+      "upgrade": "{} is verfügbar! Jetzt aktualisieren?",
+      "release": "Suche nach Aktualisierungen"
+    }
+  },
+  "hints": {
+    "hint1": "Selektiere ein Spiel vom Homescreen",
+    "hint2": "Halte die \uE0E5-Taste drücke die \uE0E0-Taste um hbmenu zu öffnen",
+    "hint3": "Wähle Switchfin in hbmenu",
+    "hint4": "Optional: Verwende den bereitgestellten Switchfin NSP forwarder",
+    "hint_nsp": "Drücke \uE0E0 um den NSP forwarder zu installieren",
+    "hint_confirm": "NSP forwarder zu installieren kann zu einem Ban von Nintendo führen\nBitte erneut bestätigen",
+    "hint_right": "Die Bilder sind vom Internet und gehören Nintendo Co., Ltd"
+  }
+}
