@@ -17,7 +17,7 @@ ServerLogin::ServerLogin(const AppServer& s) : url(s.urls.front()) {
 
     this->hdrSigin->setTitle(fmt::format(fmt::runtime("main/setting/server/sigin_to"_i18n), s.name));
     this->inputUser->init("main/setting/username"_i18n, "");
-    this->inputPass->init("main/setting/password"_i18n, "");
+    this->inputPass->init("main/setting/password"_i18n, "", [](std::string text){}, "", "", 256);
 
     this->btnSignin->registerClickAction([this](...) { return this->onSignin(); });
 }
