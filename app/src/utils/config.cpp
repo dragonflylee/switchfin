@@ -27,7 +27,7 @@ constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
 
 std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {APP_THEME, {"app_theme", {"auto", "light", "dark"}}},
-    {APP_LANG, {"app_lang", {brls::LOCALE_AUTO, brls::LOCALE_EN_US, brls::LOCALE_ZH_HANS, brls::LOCALE_ZH_HANT}}},
+    {APP_LANG, {"app_lang", {brls::LOCALE_AUTO, brls::LOCALE_EN_US, brls::LOCALE_ZH_HANS, brls::LOCALE_ZH_HANT, brls::LOCALE_DE}}},
     {KEYMAP, {"keymap", {"xbox", "ps", "keyboard"}}},
     {TRANSCODEC, {"transcodec", {"h264", "hevc", "av1"}}},
     {MAXBITRATE, {"max_bitrate", {"20Mbps", "40Mbps", "80Mbps", "160Mbps"}, {20000000, 40000000, 80000000, 160000000}}},

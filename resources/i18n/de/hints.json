@@ -1,0 +1,21 @@
+{
+  "ok": "OK",
+  "back": "Zurück",
+  "cancel": "Abbrechen",
+  "exit": "Verlassen",
+  "on": "An",
+  "off": "Aus",
+  "delete": "Löschen",
+  "save": "Sichern",
+  "submit": "Absenden",
+  "input": "Bitte Eingeben...",
+  "preset": "Preset",
+  "default": "Voreinstellung",
+  "current": "Momentanig",
+  "success": "Erfolg",
+  "failed": "Fehlgeschlagen",
+  "exit_hint": "Die Applikation verlassen?",
+  "loading": "Laden",
+  "refresh": "Neu Laden",
+  "quit": "Verlasse die App..."
+}
