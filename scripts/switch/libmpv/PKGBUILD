@@ -10,10 +10,13 @@ arch=('any')
 url='https://mpv.io/'
 license=('GPL')
 options=(!strip libtool staticlibs)
-source=("${pkgbasename}-${pkgver}.tar.gz::https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz" "mpv.patch")
+source=(
+  "${pkgbasename}-${pkgver}.tar.gz::https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz" 
+  "mpv-ao-hos.patch" "mpv-fonts.patch"
+)
 sha256sums=(
-  'SKIP'
-  'SKIP'
+  '29abc44f8ebee013bb2f9fe14d80b30db19b534c679056e4851ceadf5a5e8bf6'
+  'SKIP' 'SKIP'
 )
 makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
 depends=('switch-ffmpeg' 'switch-mesa')
@@ -21,9 +24,9 @@ groups=('switch-portlibs')
 
 prepare() {
   cd mpv-$pkgver
-  rm -rf audio/out/ao_hos.c
-  rm -rf osdep/switch/sys/mman.h
-  patch -Np1 -i "$srcdir/mpv.patch"
+  rm -f audio/out/ao_hos.c osdep/switch/sys/mman.h
+  patch -Np1 -i "$srcdir/mpv-ao-hos.patch"
+  patch -Np1 -i "$srcdir/mpv-fonts.patch"
 }
 
 build() {
@@ -35,7 +38,7 @@ build() {
   export CFLAGS="$CFLAGS -D_POSIX_VERSION=200809L -DNDEBUG -I`pwd`/osdep/switch"
   LIBDIR=${PORTLIBS_PREFIX}/lib TARGET=aarch64-none-elf ./waf configure \
     --prefix="${PORTLIBS_PREFIX}" --disable-libmpv-shared \
-    --enable-libmpv-static --disable-cplayer --disable-sdl2 --enable-hos-audio \
+    --enable-libmpv-static --disable-cplayer --disable-sdl2 --disable-lua --enable-hos-audio \
     --disable-iconv --disable-jpeg --disable-libavdevice --disable-debug-build
   sed -i 's/#define HAVE_POSIX 1/#define HAVE_POSIX 0/' build/config.h
   ./waf build

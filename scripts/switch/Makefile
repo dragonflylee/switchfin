@@ -30,8 +30,13 @@ libass: harfbuzz
 	@echo Installing libass
 	@cd libass; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
 
+.PHONY: dav1d
+dav1d:
+	@echo Installing dav1d
+	@cd dav1d; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
+
 .PHONY: ffmpeg
-ffmpeg: libass
+ffmpeg: libass dav1d
 	@echo Installing ffmpeg
 	@cd ffmpeg; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
 
