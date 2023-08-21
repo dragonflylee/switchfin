@@ -64,7 +64,7 @@ void AppConfig::init() {
     MPVCore::BOTTOM_BAR = this->getItem(PLAYER_BOTTOM_BAR, true);
     MPVCore::OSD_ON_TOGGLE = this->getItem(PLAYER_BOTTOM_BAR, true);
 
-    // 初始化是否使用硬件加速 （仅限非switch设备）
+    // 初始化是否使用硬件加速
     MPVCore::HARDWARE_DEC = this->getItem(PLAYER_HWDEC, true);
     MPVCore::SEEKING_STEP = this->getItem(PLAYER_SEEKING_STEP, 15);
     MPVCore::VIDEO_CODEC = this->getItem(TRANSCODEC, settingMap[TRANSCODEC].options.back());

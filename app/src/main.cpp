@@ -32,6 +32,11 @@ int main(int argc, char* argv[]) {
 #ifdef __SWITCH__
     appletInitializeGamePlayRecording();
     appletSetWirelessPriorityMode(AppletWirelessPriorityMode_OptimizedForWlan);
+
+    extern u32 __nx_applet_type;
+    u32 saved_applet_type = std::exchange(__nx_applet_type, AppletType_LibraryApplet);
+    nvInitialize();
+    __nx_applet_type = saved_applet_type;
 #endif
     // We recommend to use INFO for real apps
     for (int i = 1; i < argc; i++) {
@@ -105,7 +110,11 @@ int main(int argc, char* argv[]) {
 
     ThreadPool::instance().stop();
 
+#ifdef __SWITCH__
+    nvExit();
+#else
     AppConfig::instance().checkRestart(argv);
+#endif
     // Exit
     return EXIT_SUCCESS;
 }

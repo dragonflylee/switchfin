@@ -73,7 +73,6 @@ void SettingTab::onCreate() {
 
 /// Hardware decode
 #ifdef __SWITCH__
-    btnHWDEC->setVisibility(brls::Visibility::GONE);
     btnOverClock->init(
         "main/setting/others/overclock"_i18n, conf.getItem(AppConfig::OVERCLOCK, false), [&conf](bool value) {
             SwitchSys::setClock(value);
@@ -81,13 +80,14 @@ void SettingTab::onCreate() {
         });
 #else
     btnOverClock->setVisibility(brls::Visibility::GONE);
+#endif
+
     btnHWDEC->init("main/setting/playback/hwdec"_i18n, MPVCore::HARDWARE_DEC, [&conf](bool value) {
         if (MPVCore::HARDWARE_DEC == value) return;
         MPVCore::HARDWARE_DEC = value;
         MPVCore::instance().restart();
         conf.setItem(AppConfig::PLAYER_HWDEC, value);
     });
-#endif
 
     auto& codecOption = conf.getOptions(AppConfig::TRANSCODEC);
     selectorCodec->init("main/setting/playback/transcodec"_i18n, {"AVC/H264", "HEVC/H265", "AV1"},
