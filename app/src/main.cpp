@@ -9,6 +9,7 @@
 #include "utils/thread.hpp"
 
 #include "view/svg_image.hpp"
+#include "view/custom_button.hpp"
 #include "view/auto_tab_frame.hpp"
 #include "view/recycling_grid.hpp"
 #include "view/h_recycling.hpp"
@@ -51,6 +52,7 @@ int main(int argc, char* argv[]) {
 
     // Register custom views (including tabs, which are views)
     brls::Application::registerXMLView("SVGImage", SVGImage::create);
+    brls::Application::registerXMLView("CustomButton", CustomButton::create);
     brls::Application::registerXMLView("AutoTabFrame", AutoTabFrame::create);
     brls::Application::registerXMLView("RecyclingGrid", RecyclingGrid::create);
     brls::Application::registerXMLView("HRecyclerFrame", HRecyclerFrame::create);
