@@ -26,7 +26,8 @@ end
 add_repositories("local-repo library")
 add_requires("borealis")
 add_requires("lunasvg")
-add_requires("libcurl")
+add_requires("libcurl 7.87.0")
+add_requires("webp")
 add_requires("mpv", {configs={shared=true}})
 
 target("Switchfin")
@@ -45,6 +46,7 @@ target("Switchfin")
     elseif driver == "metal" then
         add_defines("BOREALIS_USE_METAL")
     end
+    add_defines("USE_WEBP")
     if get_config("window") == 'sdl' then
         add_defines("__SDL2__=1")
         add_packages("sdl2")
@@ -54,7 +56,7 @@ target("Switchfin")
     if get_config("sw") then
         add_defines("MPV_SW_RENDER=1")
     end
-    add_packages("borealis", "lunasvg", "libcurl", "mpv")
+    add_packages("borealis", "lunasvg", "libcurl", "webp", "mpv")
     if is_plat("windows", "mingw") then
         add_files("$(buildir)/app_win32.rc")
         add_defines("BOREALIS_USE_STD_THREAD")

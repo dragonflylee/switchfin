@@ -19,11 +19,11 @@ jobs:
   upload-release:
     needs: [ build-msvc-x64, build-switch, build-macos ]
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
     steps:
     - uses: actions/download-artifact@v3
     - name: Release and Upload Assets
       uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
       with:
         name: Switchfin ${{ github.ref_name }}
         tag_name: ${{ github.ref_name }}
@@ -95,7 +95,7 @@ jobs:
         fetch-depth: 0
     - name: Install deps
       run: |
-        brew install create-dmg dylibbundler boost
+        brew install create-dmg dylibbundler webp boost
         brew tap xfangfang/wiliwili
         brew install -v mpv-wiliwili
     - name: Update gamepad mappings

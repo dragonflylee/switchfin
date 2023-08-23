@@ -3,20 +3,21 @@
         {
             "name": "Switch",
             "includePath": [
-                "${workspaceFolder}/app/include",
-                "${workspaceFolder}/library/**",
-                "${workspaceFolder}/build_switch/**",
+                "${env:workspaceFolder}/app/include",
+                "${env:workspaceFolder}/library/**",
+                "${env:workspaceFolder}/build_switch/**",
                 "${DEVKITPRO}/libnx/include",
                 "${DEVKITPRO}/devkitA64/aarch64-none-elf/include/**",
                 "${DEVKITPRO}/portlibs/switch/include/**"
             ],
             "defines": [
                 "__SWITCH__",
+                "USE_WEBP",
                 "YG_ENABLE_EVENTS",
                 "BOREALIS_USE_OPENGL",
                 "BRLS_RESOURCES=\"resources\""
             ],
-            "compilerPath": "${DEVKITPRO}/devkitA64/bin/aarch64-none-elf-g++",
+            "compilerPath": "${env:DEVKITPRO}/devkitA64/bin/aarch64-none-elf-g++",
             "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "gcc-arm64"

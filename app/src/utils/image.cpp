@@ -2,6 +2,11 @@
 #include "utils/thread.hpp"
 #include <fmt/format.h>
 #include <borealis/core/cache_helper.hpp>
+#ifdef USE_WEBP
+#include <webp/decode.h>
+#else
+#include <stb_image.h>
+#endif
 
 Image::Image() : image(nullptr) {
     this->isCancel = std::make_shared<std::atomic_bool>(false);
@@ -56,17 +61,32 @@ void Image::doRequest() {
     }
     try {
         std::string data = HTTP::get(this->url, this->isCancel);
+        uint8_t* imageData = nullptr;
+        int imageW = 0, imageH = 0;
+#ifdef USE_WEBP
+        imageData = WebPDecodeRGBA((const uint8_t*)data.c_str(), data.size(), &imageW, &imageH);
+#else
+        int n;
+        imageData = stbi_load_from_memory((unsigned char*)data.c_str(), data.size(), &imageW, &imageH, &n, 4);
+#endif
         brls::Logger::verbose("request Image {} size {}", this->url, data.size());
-        brls::sync([this, data] {
+        brls::sync([this, imageData, imageW, imageH] {
             if (this->isCancel->load()) return;
             // Load texture
             int tex = brls::TextureCache::instance().getCache(url);
-            if (tex == 0 && data.size() > 0) {
+            if (tex == 0 && imageData != nullptr) {
                 NVGcontext* vg = brls::Application::getNVGContext();
-                tex = nvgCreateImageMem(vg, 0, (unsigned char*)data.c_str(), data.size());
+                tex = nvgCreateImageRGBA(vg, imageW, imageH, 0, imageData);
                 brls::TextureCache::instance().addCache(this->url, tex);
             }
             if (tex > 0) this->image->innerSetImage(tex);
+            if (imageData) {
+#ifdef USE_WEBP
+                WebPFree(imageData);
+#else
+                stbi_image_free(imageData);
+#endif
+            }
 
             clear(this->image);
         });
