@@ -79,17 +79,20 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
 brls::View* MediaCollection::getDefaultFocus() { return this->recyclerSeries; }
 
 void MediaCollection::doRequest() {
-    std::string query = HTTP::encode_form({
+    HTTP::Form query = {
         {"parentId", this->itemId},
         {"sortBy", "PremiereDate"},
         {"sortOrder", "Descending"},
-        {"IncludeItemTypes", this->itemType},
-        {"Recursive", "true"},
         {"fields", "PrimaryImageAspectRatio,BasicSyncInfo"},
         {"EnableImageTypes", "Primary"},
         {"limit", std::to_string(this->pageSize)},
         {"startIndex", std::to_string(this->startIndex)},
-    });
+    };
+    if (this->itemType.size() > 0) {
+        query.insert(std::make_pair("IncludeItemTypes", this->itemType));
+        query.insert(std::make_pair("Recursive", "true"));
+    }
+
     ASYNC_RETAIN
     jellyfin::getJSON(
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaItem>& r) {
@@ -108,5 +111,5 @@ void MediaCollection::doRequest() {
             ASYNC_RELEASE
             this->recyclerSeries->setError(ex);
         },
-        jellyfin::apiUserLibrary, AppConfig::instance().getUser().id, query);
+        jellyfin::apiUserLibrary, AppConfig::instance().getUser().id, HTTP::encode_form(query));
 }

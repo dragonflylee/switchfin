@@ -18,14 +18,14 @@ cmake_dependent_option(BUILTIN_NSP "Built in NSP forwarder" OFF "PLATFORM_SWITCH
 # If your system does not support OpenGL(ES), you can use software rendering, but it will affect performance.
 option(MPV_SW_RENDER "Using CPU to draw videos" OFF)
 if (MPV_SW_RENDER)
-    list(APPEND APP_APP_PLATFORM_OPTION -DMPV_SW_RENDER)
+    list(APPEND APP_PLATFORM_OPTION -DMPV_SW_RENDER)
 endif ()
 
 # On systems that do not support framebuffer, let MPV to draw to full screen and
 # then cover unnecessary areas with UI.
 option(MPV_NO_FB "Using system provided framebuffer" OFF)
 if (MPV_NO_FB)
-    list(APPEND APP_APP_PLATFORM_OPTION -DMPV_NO_FB)
+    list(APPEND APP_PLATFORM_OPTION -DMPV_NO_FB)
 endif()
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/deps.cmake)
