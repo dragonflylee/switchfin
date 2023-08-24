@@ -3,12 +3,11 @@
         {
             "name": "Switch",
             "includePath": [
-                "${env:workspaceFolder}/app/include",
-                "${env:workspaceFolder}/library/**",
-                "${env:workspaceFolder}/build_switch/**",
-                "${DEVKITPRO}/libnx/include",
-                "${DEVKITPRO}/devkitA64/aarch64-none-elf/include/**",
-                "${DEVKITPRO}/portlibs/switch/include/**"
+                "${workspaceFolder}/app/include",
+                "${workspaceFolder}/library/**",
+                "${env:DEVKITPRO}/libnx/include",
+                "${env:DEVKITPRO}/devkitA64/aarch64-none-elf/include/**",
+                "${env:DEVKITPRO}/portlibs/switch/include/**"
             ],
             "defines": [
                 "__SWITCH__",
@@ -27,7 +26,7 @@
             "includePath": [
                 "${workspaceFolder}/app/include",
                 "${workspaceFolder}/library/**",
-                "${workspaceFolder}/build_mingw/**",
+                "${workspaceFolder}/build_mingw/_deps/curl-src/include",
                 "C:\\MinGW64\\include"
             ],
             "defines": [

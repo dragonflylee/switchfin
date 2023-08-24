@@ -43,4 +43,19 @@
         marginBottom="20"
         id="setting/about/github" />
 
+    <brls:Padding
+        lineBottom="1px"
+        lineColor="@theme/brls/header/border"
+        marginBottom="20" />
+    <brls:Label
+        textColor="@theme/font/grey"
+        marginLeft="20"
+        marginBottom="20"
+        id="setting/about/mpv" />
+    <brls:Label
+        textColor="@theme/font/grey"
+        marginLeft="20"
+        marginBottom="20"
+        id="setting/about/curl" />
+
 </brls:Box>

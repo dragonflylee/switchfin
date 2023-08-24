@@ -22,7 +22,7 @@
 #include "utils/thread.hpp"
 #include "view/mpv_core.hpp"
 #include "api/analytics.hpp"
-
+#include <curl/curl.h>
 #ifdef __SWITCH__
 #include "utils/overclock.hpp"
 #endif
@@ -33,9 +33,14 @@ class SettingAbout : public brls::Box {
 public:
     SettingAbout() {
         this->inflateFromXMLRes("xml/view/setting_about.xml");
+    
         this->labelTitle->setText(AppVersion::pkg_name);
         this->labelVersion->setText(AppVersion::getVersion());
         this->labelGithub->setText("https://github.com/" + AppVersion::git_repo);
+
+        auto& mpv = MPVCore::instance();
+        this->labelMPV->setText(fmt::format("ffmpeg/{} {}", mpv.ffmpeg_version, mpv.mpv_version));
+        this->labelCurl->setText(curl_version());
         brls::Logger::debug("dialog SettingAbout: create");
     }
 
@@ -45,6 +50,8 @@ private:
     BRLS_BIND(brls::Label, labelTitle, "setting/about/title");
     BRLS_BIND(brls::Label, labelVersion, "setting/about/version");
     BRLS_BIND(brls::Label, labelGithub, "setting/about/github");
+    BRLS_BIND(brls::Label, labelMPV, "setting/about/mpv");
+    BRLS_BIND(brls::Label, labelCurl, "setting/about/curl");
 };
 
 SettingTab::SettingTab() {

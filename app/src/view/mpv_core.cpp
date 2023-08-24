@@ -153,8 +153,9 @@ void MPVCore::init() {
         brls::fatal("failed to initialize mpv GL context");
     }
 
-    brls::Logger::info("MPV Version: {}", mpv_get_property_string(mpv, "mpv-version"));
-    brls::Logger::info("FFMPEG Version: {}", mpv_get_property_string(mpv, "ffmpeg-version"));
+    this->mpv_version = mpv_get_property_string(mpv, "mpv-version");
+    this->ffmpeg_version = mpv_get_property_string(mpv, "ffmpeg-version");
+    brls::Logger::info("version: {} ffmpeg {}", this->mpv_version, this->ffmpeg_version);
     // check supported decoder
     mpv_node node;
     mpv_get_property(mpv, "decoder-list", MPV_FORMAT_NODE, &node);
@@ -163,18 +164,22 @@ void MPVCore::init() {
         for (int i = 0; i < codec_list->num; i++) {
             if (codec_list->values[i].format == MPV_FORMAT_NODE_MAP) {
                 mpv_node_list *codec_map = codec_list->values[i].u.list;
+                std::string name, desc;
                 for (int n = 0; n < codec_map->num; n++) {
-                    if (strcmp(codec_map->keys[n], "codec") == 0) {
-                        support_codecs.insert(codec_map->values[n].u.string);
+                    char* key = codec_map->keys[n];
+                    if (strcmp(key, "codec") == 0) {
+                        name = codec_map->values[n].u.string;
+                    } else if (strcmp(key, "description") == 0) {
+                        desc = codec_map->values[n].u.string;
                     }
                 }
+                support_codecs.insert(std::make_pair(name, desc));
             }
         }
     }
     mpv_free_node_contents(&node);
-    brls::Logger::debug("support codecs: {}", support_codecs);
 
-    command_str("set audio-client-name {}", AppVersion::getDeviceName());
+    command_str("set audio-client-name {}", AppVersion::pkg_name);
     // set event callback
     mpv_set_wakeup_callback(mpv, on_wakeup, this);
     // set render callback

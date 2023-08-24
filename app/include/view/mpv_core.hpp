@@ -146,7 +146,9 @@ public:
     double playback_time = 0;
     double percent_pos = 0;
 
-    std::set<std::string> support_codecs;
+    std::string mpv_version;
+    std::string ffmpeg_version;
+    std::map<std::string, std::string> support_codecs;
 
     // Bottom progress bar
     inline static bool BOTTOM_BAR = true;
