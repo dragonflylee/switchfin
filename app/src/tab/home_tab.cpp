@@ -100,6 +100,11 @@ HomeTab::HomeTab() {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/home.xml");
 
+    this->registerFloatXMLAttribute("pageSize", [this](float value) {
+        this->pageSize = value;
+        this->doRequest();
+    });
+
     this->userResume->registerCell("Cell", &VideoCardCell::create);
     this->userLatest->registerCell("Cell", &VideoCardCell::create);
     this->showNextup->registerCell("Cell", &VideoCardCell::create);
@@ -113,10 +118,10 @@ void HomeTab::doRequest() {
 
 void HomeTab::onCreate() {
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
+        this->startNextup = 0;
         this->doRequest();
         return true;
     });
-    this->doRequest();
 }
 
 brls::View* HomeTab::create() { return new HomeTab(); }
@@ -126,7 +131,7 @@ void HomeTab::doResume() {
         {"enableImageTypes", "Primary"},
         {"mediaTypes", "Video"},
         {"fields", "BasicSyncInfo"},
-        {"limit", "12"},
+        {"limit", std::to_string(this->pageSize)},
     });
     ASYNC_RETAIN
     jellyfin::getJSON(
@@ -151,9 +156,9 @@ void HomeTab::doResume() {
 void HomeTab::doLatest() {
     std::string query = HTTP::encode_form({
         {"enableImageTypes", "Primary"},
-        {"includeItemTypes","Series,Movie"},
+        {"includeItemTypes", "Series,Movie"},
         {"fields", "BasicSyncInfo"},
-        {"limit", "16"},
+        {"limit", std::to_string(this->pageSize)},
     });
     ASYNC_RETAIN
     jellyfin::getJSON(
@@ -173,8 +178,8 @@ void HomeTab::doNextup() {
         {"userId", AppConfig::instance().getUser().id},
         {"fields", "PrimaryImageAspectRatio"},
         {"enableTotalRecordCount", "false"},
-        {"startIndex", "0"},
-        {"limit", "16"},
+        {"limit", std::to_string(this->pageSize)},
+        {"startIndex", std::to_string(this->startNextup)},
     });
     ASYNC_RETAIN
     jellyfin::getJSON(

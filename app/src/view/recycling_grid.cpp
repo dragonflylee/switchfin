@@ -462,15 +462,13 @@ void RecyclingGrid::itemsRecyclingLoop() {
         addCellAt(visibleMax + 1, true);
     }
 
-    if (visibleMax + 1 >= this->getItemCount()) {
-        // 只有当 requestNextPage 为false时，才可以请求下一页，避免多次重复请求
-        if (!requestNextPage && nextPageCallback) {
-            // 有数据、不是骨架屏数据、数据不为空
-            if (dataSource && !dynamic_cast<DataSourceSkeleton*>(dataSource) && dataSource->getItemCount() > 0) {
-                brls::Logger::debug("RecyclingGrid request next page");
-                requestNextPage = true;
-                this->nextPageCallback();
-            }
+    // 只有当 requestNextPage 为false时，才可以请求下一页，避免多次重复请求
+    if (visibleMax + 1 >= this->getItemCount() && !requestNextPage && nextPageCallback) {
+        // 有数据、不是骨架屏数据、数据不为空
+        if (!dynamic_cast<DataSourceSkeleton*>(dataSource) && dataSource->getItemCount() > 0) {
+            brls::Logger::debug("RecyclingGrid request next page");
+            requestNextPage = true;
+            this->nextPageCallback();
         }
     }
 }

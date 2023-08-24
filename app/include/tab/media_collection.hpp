@@ -21,6 +21,6 @@ private:
 
     std::string itemId;
     std::string itemType;
-    long pageSize;
-    long startIndex;
+    size_t pageSize;
+    size_t startIndex;
 };

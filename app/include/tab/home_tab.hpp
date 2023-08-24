@@ -30,4 +30,7 @@ private:
     void doResume();
     void doLatest();
     void doNextup();
+
+    size_t pageSize = 16;
+    size_t startNextup = 0;
 };

@@ -111,7 +111,7 @@ void HRecyclerFrame::reloadData() {
 
     setContentOffsetX(0, false);
 
-    if (dataSource) {
+    if (this->dataSource) {
         contentBox->setWidth(
             (estimatedRowWidth + estimatedRowSpace) * dataSource->getItemCount() + paddingLeft + paddingRight);
         // 填充足够多的cell到屏幕上
@@ -121,6 +121,16 @@ void HRecyclerFrame::reloadData() {
             if (renderedFrame.getMaxX() > frame.getMaxX()) break;
         }
         this->selectRowAt(this->defaultCellFocus, false);
+    }
+}
+
+void HRecyclerFrame::notifyDataChanged() {
+    // todo: 目前仅能处理data在原本的基础上增加的情况，需要考虑data减少或更换时的情况
+    if (!layouted) return;
+
+    if (this->dataSource) {
+        this->contentBox->setWidth(
+            (estimatedRowWidth + estimatedRowSpace) * dataSource->getItemCount() + paddingLeft + paddingRight);
     }
 }
 
@@ -196,9 +206,21 @@ void HRecyclerFrame::cellsRecyclingLoop() {
 
     // 右侧元素自动添加
     while (visibleMax + 1 < dataSource->getItemCount()) {
-        if (renderedFrame.getMaxX() > visibleFrame.getMaxX() - paddingRight) break;
+        if (renderedFrame.getMaxX() > visibleFrame.getMaxX() - paddingRight) {
+            requestNextPage = false;  // 允许加载下一页
+            break;
+        }
         brls::Logger::debug("HRecyclerFrame Cell #{} - added right", visibleMax + 1);
         addCellAt(visibleMax + 1, true);
+    }
+
+    if (this->visibleMax + 1 >= dataSource->getItemCount() && dataSource->getItemCount() > 0) {
+        // 只有当 requestNextPage 为false时，才可以请求下一页，避免多次重复请求
+        if (!this->requestNextPage && this->nextPageCallback) {
+            brls::Logger::debug("HRecyclerFrame request next page");
+            requestNextPage = true;
+            this->nextPageCallback();
+        }
     }
 }
 
@@ -293,5 +315,7 @@ void HRecyclerFrame::setPaddingLeft(float left) {
     paddingLeft = left;
     this->reloadData();
 }
+
+void HRecyclerFrame::onNextPage(const std::function<void()>& callback) { this->nextPageCallback = callback; }
 
 brls::View* HRecyclerFrame::create() { return new HRecyclerFrame(); }

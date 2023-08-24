@@ -97,7 +97,9 @@ void MediaCollection::doRequest() {
     jellyfin::getJSON(
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaItem>& r) {
             ASYNC_RELEASE
-            this->startIndex = r.StartIndex + this->pageSize;
+            if (r.Items.size() >= this->pageSize) {
+                this->startIndex = r.StartIndex + r.Items.size();
+            }
             if (r.StartIndex == 0) {
                 this->recyclerSeries->setDataSource(new SeriesDataSource(r.Items));
                 brls::Application::giveFocus(this->recyclerSeries);
