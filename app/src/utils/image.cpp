@@ -71,15 +71,17 @@ void Image::doRequest() {
 #endif
         brls::Logger::verbose("request Image {} size {}", this->url, data.size());
         brls::sync([this, imageData, imageW, imageH] {
-            if (this->isCancel->load()) return;
-            // Load texture
-            int tex = brls::TextureCache::instance().getCache(url);
-            if (tex == 0 && imageData != nullptr) {
-                NVGcontext* vg = brls::Application::getNVGContext();
-                tex = nvgCreateImageRGBA(vg, imageW, imageH, 0, imageData);
-                brls::TextureCache::instance().addCache(this->url, tex);
+            if (!this->isCancel->load()) {
+                // Load texture
+                int tex = brls::TextureCache::instance().getCache(url);
+                if (tex == 0 && imageData != nullptr) {
+                    NVGcontext* vg = brls::Application::getNVGContext();
+                    tex = nvgCreateImageRGBA(vg, imageW, imageH, 0, imageData);
+                    brls::TextureCache::instance().addCache(this->url, tex);
+                }
+                if (tex > 0) this->image->innerSetImage(tex);
+                clear(this->image);
             }
-            if (tex > 0) this->image->innerSetImage(tex);
             if (imageData) {
 #ifdef USE_WEBP
                 WebPFree(imageData);
@@ -87,8 +89,6 @@ void Image::doRequest() {
                 stbi_image_free(imageData);
 #endif
             }
-
-            clear(this->image);
         });
     } catch (const std::exception& ex) {
         brls::Logger::warning("request image {} {}", this->url, ex.what());
