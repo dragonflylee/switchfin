@@ -85,8 +85,12 @@ set(MPV_INCLUDE_DIRS ${MPV_INCLUDE_DIR})
 ### Check if everything was found and if the version is sufficient.
 #
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(
-        MPV
+find_package_handle_standard_args(MPV
+        FOUND_VAR MPV_FOUND
         REQUIRED_VARS ${_MPV_REQUIRED_VARS}
         VERSION_VAR MPV_VERSION
 )
+
+if (MPV_FOUND)
+    message(STATUS "Found libmpv: ${MPV_VERSION} ${MPV_INCLUDE_DIR} ${MPV_LIBRARY}")
+endif ()

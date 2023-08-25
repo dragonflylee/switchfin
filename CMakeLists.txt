@@ -62,6 +62,9 @@ elseif (APPLE)
     list(APPEND MAIN_SRC ${CMAKE_SOURCE_DIR}/app/app.icns)
 endif ()
 
+# build borealis and other third party libraries
+add_subdirectory(library)
+
 find_package(CURL)
 if (NOT CURL_FOUND)
     include(FetchContent)
@@ -93,12 +96,28 @@ find_package(Threads REQUIRED)
 list(APPEND APP_PLATFORM_LIB ${CMAKE_THREAD_LIBS_INIT})
 
 if (PLATFORM_DESKTOP)
-    find_package(MPV REQUIRED)
-    message(STATUS "Found libmpv: ${MPV_VERSION} ${MPV_INCLUDE_DIR} ${MPV_LIBRARY}")
+    find_package(MPV)
+    if (NOT MPV_FOUND)
+        include(ExternalProject)
+        ExternalProject_Add(mpv
+            URL https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20230727/mpv-dev-x86_64-20230727-git-bc96b23.7z
+            URL_HASH SHA256=735fac5cdc000c7ad803238d2e4c002771e9a72ae338374cde6b58fc0bb667bc
+            UPDATE_COMMAND ""
+            CONFIGURE_COMMAND ""
+            BUILD_COMMAND ""
+            BUILD_IN_SOURCE TRUE
+            INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/libmpv-2.dll ${CMAKE_BINARY_DIR}
+        )
+        ExternalProject_Get_property(mpv SOURCE_DIR)
+        add_dependencies(borealis mpv)
+        set(MPV_INCLUDE_DIR ${SOURCE_DIR}/include)
+        set(MPV_LIBRARY ${SOURCE_DIR}/libmpv.dll.a)
+    endif ()
     list(APPEND APP_PLATFORM_INCLUDE ${MPV_INCLUDE_DIR})
     list(APPEND APP_PLATFORM_LIB ${MPV_LIBRARY})
     if (MINGW)
         list(APPEND APP_PLATFORM_LIB "-static-libgcc -static-libstdc++")
+        set(CMAKE_EXE_LINKER_FLAGS "-Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive")
     endif ()
 else ()
     # Used for Cross Compile such as NintendoSwitch
@@ -107,7 +126,6 @@ else ()
     find_package(PkgConfig REQUIRED)
 
     pkg_search_module(MPV REQUIRED mpv)
-    message(STATUS "Found libmpv: ${MPV_VERSION} ${MPV_INCLUDE_DIRS} ${MPV_STATIC_LIBRARIES}")
     list(APPEND APP_PLATFORM_INCLUDE ${MPV_INCLUDE_DIRS})
     list(APPEND APP_PLATFORM_LIB ${MPV_STATIC_LIBRARIES} )
     list(APPEND APP_PLATFORM_LINK_OPTION -L${MPV_LIBRARY_DIRS})
@@ -127,9 +145,6 @@ if (USE_BOOST_FILESYSTEM)
         list(APPEND APP_PLATFORM_OPTION -DUSE_BOOST_FILESYSTEM)
     endif()
 endif ()
-
-# build borealis and other third party libraries
-add_subdirectory(library)
 
 if (BUILTIN_NSP)
     list(APPEND APP_PLATFORM_LIB nsp)
