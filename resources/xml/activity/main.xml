@@ -19,7 +19,7 @@
                 fontSize="18"
                 icon="@res/icon/ico-home.svg"
                 iconActivate="@res/icon/ico-home-activate.svg">
-                <HomeTab />
+                <HomeTab pageSize="16" />
             </Tab>
 
             <Tab label=""
@@ -27,6 +27,13 @@
                 icon="@res/icon/ico-media.svg"
                 iconActivate="@res/icon/ico-media-activate.svg">
                 <MediaFolders />
+            </Tab>
+
+            <Tab label=""
+                fontSize="18"
+                icon="@res/icon/ico-search.svg"
+                iconActivate="@res/icon/ico-search-activate.svg">
+                <SearchTab />
             </Tab>
 
             <Tab label=""

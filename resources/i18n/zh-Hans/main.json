@@ -22,6 +22,22 @@
     "quality": "画质",
     "auto": "自动"
   },
+  "search": {
+    "tv": {
+      "hint": "支持关键字及关键字首字母",
+      "clear": "清空",
+      "delete": "删除",
+      "search": "搜索",
+      "history": "历史记录",
+      "history_clear": "全部清除",
+      "history_delete": "删除",
+      "suggest": "猜你想搜"
+    },
+    "genres": {
+      "movie": "电影",
+      "series": "节目"
+    }
+  },
   "setting": {
     "quit_hint": "即将退出应用, 设置内容将在下次启动后生效",
     "name": "名称",

@@ -3,71 +3,12 @@
 */
 
 #include "tab/home_tab.hpp"
-#include "tab/media_series.hpp"
 #include "api/jellyfin.hpp"
 #include "view/h_recycling.hpp"
 #include "view/video_card.hpp"
-#include "view/video_view.hpp"
+#include "view/video_source.hpp"
 
 using namespace brls::literals;  // for _i18n
-
-class VideoDataSource : public RecyclingGridDataSource {
-public:
-    using MediaList = std::vector<jellyfin::MediaEpisode>;
-
-    explicit VideoDataSource(const MediaList& r) : list(std::move(r)) {}
-
-    size_t getItemCount() override { return this->list.size(); }
-
-    RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
-        VideoCardCell* cell = dynamic_cast<VideoCardCell*>(recycler->dequeueReusableCell("Cell"));
-        auto& item = this->list.at(index);
-
-        if (item.Type == jellyfin::mediaTypeEpisode) {
-            cell->labelTitle->setText(item.SeriesName);
-            cell->labelExt->setText(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
-
-            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId,
-                HTTP::encode_form({{"tag", item.SeriesPrimaryImageTag}, {"maxWidth", "240"}}));
-        } else {
-            cell->labelTitle->setText(item.Name);
-            cell->labelExt->setText(item.ProductionYear > 0 ? std::to_string(item.ProductionYear) : "");
-
-            auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
-            if (it != item.ImageTags.end())
-                Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
-                    HTTP::encode_form({{"tag", it->second}, {"maxWidth", "200"}}));
-        }
-        return cell;
-    }
-
-    void onItemSelected(brls::View* recycler, size_t index) override {
-        auto& item = this->list.at(index);
-
-        if (item.Type == jellyfin::mediaTypeSeries) {
-            brls::View* view = dynamic_cast<brls::View*>(recycler);
-            view->present(new MediaSeries(item));
-        } else if (item.Type == jellyfin::mediaTypeMovie) {
-            VideoView* view = new VideoView(item);
-            view->setTitie(item.ProductionYear ? fmt::format("{} ({})", item.Name, item.ProductionYear) : item.Name);
-            brls::sync([view]() { brls::Application::giveFocus(view); });
-        } else if (item.Type == jellyfin::mediaTypeEpisode) {
-            VideoView* view = new VideoView(item);
-            view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
-            view->setSeries(item.SeriesId);
-            brls::sync([view]() { brls::Application::giveFocus(view); });
-        } else {
-            brls::Logger::debug("unsupport type {}", item.Type);
-        }
-    }
-
-    void clearData() override { this->list.clear(); }
-
-    void appendData(const MediaList& data) { this->list.insert(this->list.end(), data.begin(), data.end()); }
-
-protected:
-    MediaList list;
-};
 
 class ResumeDataSource : public VideoDataSource {
 public:
@@ -97,13 +38,21 @@ public:
 };
 
 HomeTab::HomeTab() {
+    brls::Logger::debug("Tab HomeTab: create");
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/home.xml");
+
+    this->registerFloatXMLAttribute("pageSize", [this](float value) {
+        this->pageSize = value;
+        this->doRequest();
+    });
 
     this->userResume->registerCell("Cell", &VideoCardCell::create);
     this->userLatest->registerCell("Cell", &VideoCardCell::create);
     this->showNextup->registerCell("Cell", &VideoCardCell::create);
 }
+
+HomeTab::~HomeTab() { brls::Logger::debug("View HomeTab: delete"); }
 
 void HomeTab::doRequest() {
     this->doResume();
@@ -113,10 +62,10 @@ void HomeTab::doRequest() {
 
 void HomeTab::onCreate() {
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
+        this->startNextup = 0;
         this->doRequest();
         return true;
     });
-    this->doRequest();
 }
 
 brls::View* HomeTab::create() { return new HomeTab(); }
@@ -126,7 +75,7 @@ void HomeTab::doResume() {
         {"enableImageTypes", "Primary"},
         {"mediaTypes", "Video"},
         {"fields", "BasicSyncInfo"},
-        {"limit", "12"},
+        {"limit", std::to_string(this->pageSize)},
     });
     ASYNC_RETAIN
     jellyfin::getJSON(
@@ -151,9 +100,9 @@ void HomeTab::doResume() {
 void HomeTab::doLatest() {
     std::string query = HTTP::encode_form({
         {"enableImageTypes", "Primary"},
-        {"includeItemTypes","Series,Movie"},
+        {"includeItemTypes", "Series,Movie"},
         {"fields", "BasicSyncInfo"},
-        {"limit", "16"},
+        {"limit", std::to_string(this->pageSize)},
     });
     ASYNC_RETAIN
     jellyfin::getJSON(
@@ -173,8 +122,8 @@ void HomeTab::doNextup() {
         {"userId", AppConfig::instance().getUser().id},
         {"fields", "PrimaryImageAspectRatio"},
         {"enableTotalRecordCount", "false"},
-        {"startIndex", "0"},
-        {"limit", "16"},
+        {"limit", std::to_string(this->pageSize)},
+        {"startIndex", std::to_string(this->startNextup)},
     });
     ASYNC_RETAIN
     jellyfin::getJSON(

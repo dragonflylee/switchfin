@@ -22,6 +22,22 @@
     "quality": "畫質",
     "auto": "自動"
   },
+  "search": {
+    "tv": {
+      "hint": "支持關鍵字及關鍵字首字母",
+      "clear": "清空",
+      "delete": "删除",
+      "search": "搜尋",
+      "history": "歷史記錄",
+      "history_clear": "清除全部",
+      "history_delete": "删除",
+      "suggest": "猜你想搜"
+    },
+    "genres": {
+      "movie": "電影",
+      "series": "節目"
+    }
+  },
   "setting": {
     "quit_hint": "即將退出本程式, 變更的設定將在下次啟動時生效",
     "name": "名稱",

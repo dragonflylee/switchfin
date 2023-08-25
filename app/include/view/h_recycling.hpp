@@ -25,6 +25,7 @@ public:
 
     // 重新加载数据
     void reloadData();
+    void notifyDataChanged();
     void selectRowAt(size_t index, bool animated);
     float getWidthByCellIndex(size_t index, size_t start = 0);
 
@@ -50,6 +51,7 @@ private:
     float paddingBottom = 0;
     float paddingLeft = 0;
 
+    bool requestNextPage = false;
     std::function<void()> nextPageCallback = nullptr;
 
     HRecyclerContentBox* contentBox = nullptr;

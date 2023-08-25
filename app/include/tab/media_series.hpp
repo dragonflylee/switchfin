@@ -13,6 +13,7 @@ class RecyclingGrid;
 class MediaSeries : public brls::Box, public Presenter {
 public:
     MediaSeries(const jellyfin::MediaItem& item);
+    ~MediaSeries() override;
 
     void doRequest() override;
 

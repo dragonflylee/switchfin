@@ -1,0 +1,15 @@
+<brls:Box
+    axis="column"
+    width="auto"
+    height="auto">
+    <brls:Header
+        width="auto"
+        height="auto"
+        id="search/title"/>
+
+    <HRecyclerFrame
+        width="auto"
+        grow="1.0"
+        itemWidth="180"
+        id="search/result" />
+</brls:Box>

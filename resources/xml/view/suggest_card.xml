@@ -1,0 +1,20 @@
+<brls:Box
+    axis="row"
+    width="auto"
+    height="auto"
+    alignItems="center"
+    wireframe="false">
+    <brls:Label
+        id="suggest/card/order"
+        lineColor="#D0D0D0"
+        lineRight="0"
+        wireframe="false"
+        height="30"
+        horizontalAlign="center" />
+    <brls:Label
+        id="suggest/card/content"
+        wireframe="false"
+        width="auto"
+        marginRight="4"
+        height="30" />
+</brls:Box>

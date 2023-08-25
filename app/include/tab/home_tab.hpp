@@ -12,6 +12,7 @@ class HRecyclerFrame;
 class HomeTab : public AttachedView, public Presenter {
 public:
     HomeTab();
+    ~HomeTab() override;
 
     void onCreate() override;
 
@@ -30,4 +31,7 @@ private:
     void doResume();
     void doLatest();
     void doNextup();
+
+    size_t pageSize = 16;
+    size_t startNextup = 0;
 };
