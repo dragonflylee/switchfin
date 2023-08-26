@@ -18,19 +18,8 @@
 
 #include <borealis.hpp>
 
-class AutoTabFrame;
-
 class MainActivity : public brls::Activity {
 public:
     // Declare that the content of this activity is the given XML file
     CONTENT_FROM_XML_RES("activity/main.xml");
-
-    void onContentAvailable() override;
-
-    void onResume() override;
-
-    ~MainActivity();
-
-private:
-    BRLS_BIND(brls::AppletFrame, appletFrame, "main/frame");
 };

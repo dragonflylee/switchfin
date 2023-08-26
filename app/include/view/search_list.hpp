@@ -23,5 +23,4 @@ private:
     
     std::string itemType;
     long pageSize;
-    long startIndex;
 };

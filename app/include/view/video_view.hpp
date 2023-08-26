@@ -82,6 +82,8 @@ private:
 
     /// @brief 延迟 200ms 触发进度跳转到 seeking_range
     void requestSeeking();
+    /// @brief notify videoview closed
+    static void onDismiss();
 
     // OSD
     bool isOsdShown = false;

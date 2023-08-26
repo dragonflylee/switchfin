@@ -3,6 +3,7 @@
 #include "view/video_progress_slider.hpp"
 #include "view/player_setting.hpp"
 #include "view/video_profile.hpp"
+#include "view/presenter.h"
 #include "api/jellyfin.hpp"
 #include "utils/dialog.hpp"
 #include "utils/config.hpp"
@@ -42,7 +43,8 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
 
     this->registerAction(
         "cancel", brls::ControllerButton::BUTTON_B,
-        [](brls::View* view) -> bool { return brls::Application::popActivity(brls::TransitionAnimation::NONE); }, true);
+        [](brls::View* view) { return brls::Application::popActivity(brls::TransitionAnimation::NONE, &onDismiss); },
+        true);
 
     this->registerAction(
         "\uE08F", brls::ControllerButton::BUTTON_LB,
@@ -293,7 +295,7 @@ void VideoView::setSeries(const std::string& seriesId) {
 bool VideoView::playNext(int off) {
     this->itemIndex += off;
     if (this->itemIndex < 0 || this->itemIndex >= this->showEpisodes.size()) {
-        return brls::Application::popActivity(brls::TransitionAnimation::NONE);
+        return brls::Application::popActivity(brls::TransitionAnimation::NONE, &onDismiss);
     }
     MPVCore::instance().reset();
 
@@ -401,7 +403,7 @@ void VideoView::playMedia(const time_t seekTicks) {
 
             auto dialog = new brls::Dialog("Unsupport video format");
             dialog->addButton(
-                "hints/ok"_i18n, []() { brls::Application::popActivity(brls::TransitionAnimation::NONE); });
+                "hints/ok"_i18n, []() { brls::Application::popActivity(brls::TransitionAnimation::NONE, &onDismiss); });
             dialog->open();
         },
         nullptr, jellyfin::apiPlayback, this->itemId);
@@ -574,4 +576,12 @@ void VideoView::showHint(const std::string& value) {
     this->hintBox->setVisibility(brls::Visibility::VISIBLE);
     this->hintLastShowTime = std::time(nullptr) + VideoView::OSD_SHOW_TIME;
     this->showOSD();
+}
+
+void VideoView::onDismiss() {
+    auto applet = brls::Application::getCurrentFocus()->getAppletFrame();
+    if (applet != nullptr) {
+        Presenter* p = dynamic_cast<Presenter*>(applet->getContentView());
+        if (p != nullptr) p->doRequest();
+    }
 }
