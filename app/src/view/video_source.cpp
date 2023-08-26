@@ -2,6 +2,7 @@
 #include "view/video_card.hpp"
 #include "view/video_view.hpp"
 #include "tab/media_series.hpp"
+#include "tab/media_collection.hpp"
 
 VideoDataSource::VideoDataSource(const MediaList& r) : list(std::move(r)) {}
 
@@ -35,6 +36,9 @@ void VideoDataSource::onItemSelected(brls::View* recycler, size_t index) {
     if (item.Type == jellyfin::mediaTypeSeries) {
         brls::View* view = dynamic_cast<brls::View*>(recycler);
         view->present(new MediaSeries(item));
+    } else if (item.Type == jellyfin::mediaTypeFolder) {
+            brls::View* view = dynamic_cast<brls::View*>(recycler);
+            view->present(new MediaCollection(item.Id));
     } else if (item.Type == jellyfin::mediaTypeMovie) {
         VideoView* view = new VideoView(item);
         view->setTitie(item.ProductionYear ? fmt::format("{} ({})", item.Name, item.ProductionYear) : item.Name);
@@ -45,7 +49,7 @@ void VideoDataSource::onItemSelected(brls::View* recycler, size_t index) {
         view->setSeries(item.SeriesId);
         brls::sync([view]() { brls::Application::giveFocus(view); });
     } else {
-        brls::Logger::debug("unsupport type {}", item.Type);
+        brls::Logger::warning("onItemSelected type {}", item.Type);
     }
 }
 
