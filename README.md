@@ -25,7 +25,7 @@ Switchfin is third-party PC player for Jellyfin that provides a native user inte
 
 - [ ] Movie view
 - [ ] Series detail
-- [ ] Search page
+- [x] Search page
 - [ ] Websocket connection (Syncplay)
 - [ ] [danmu plugin](https://github.com/cxfksword/jellyfin-plugin-danmu) integration
 

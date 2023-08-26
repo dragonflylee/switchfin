@@ -7,7 +7,6 @@
 #include "view/auto_tab_frame.hpp"
 
 class RecyclingGrid;
-class SuggestList;
 
 class SearchTab : public AttachedView {
 public:
@@ -18,8 +17,9 @@ public:
 
 private:
     BRLS_BIND(RecyclingGrid, recyclingKeyboard, "tv/search/keyboard");
-    BRLS_BIND(SuggestList, searchSuggest, "tv/search/suggest");
-    BRLS_BIND(SuggestList, searchHistory, "tv/search/history");
+    BRLS_BIND(RecyclingGrid, searchSuggest, "tv/search/suggest");
+    BRLS_BIND(RecyclingGrid, searchHistory, "tv/search/history");
+    BRLS_BIND(brls::Box, historyBox, "tv/history/box");
     BRLS_BIND(brls::Box, searchBox, "tv/search/box");
     BRLS_BIND(brls::Label, inputLabel, "tv/search/input");
     BRLS_BIND(brls::Label, clearLabel, "tv/search/clear");
@@ -32,4 +32,6 @@ private:
     void updateInput();
 
     std::string currentSearch;
+    size_t searchIndex = 0;
+    size_t pageSize = 20;
 };

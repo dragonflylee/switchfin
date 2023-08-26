@@ -79,25 +79,27 @@
             horizontalAlign="center"
             fontSize="24"
             text="@i18n/main/search/tv/suggest" />
-        <SuggestList
+        <RecyclingGrid
             id="tv/search/suggest"
             grow="1"
             marginTop="16"
+            itemHeight="30"
             spanCount="1" />
     </brls:Box>
     <brls:Box
         marginTop="20"
         axis="column"
-        id="tv/search/history/box"
+        id="tv/history/box"
         grow="1">
         <brls:Label
             horizontalAlign="center"
             fontSize="24"
             text="@i18n/main/search/tv/history" />
-        <SuggestList
+        <RecyclingGrid
             id="tv/search/history"
             grow="1"
             marginTop="16"
+            itemHeight="30"
             spanCount="1" />
     </brls:Box>
 </brls:Box>

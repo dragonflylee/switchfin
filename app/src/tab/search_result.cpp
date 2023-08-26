@@ -8,6 +8,7 @@ SearchResult::SearchResult(const std::string& searchTerm) {
 
     this->searchMovie->doRequest(searchTerm);
     this->searchSeries->doRequest(searchTerm);
+    this->searchEpisode->doRequest(searchTerm);
 }
 
 SearchResult::~SearchResult() { brls::Logger::debug("Tab SearchResult: delete"); }

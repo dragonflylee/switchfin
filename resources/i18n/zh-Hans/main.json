@@ -35,7 +35,8 @@
     },
     "genres": {
       "movie": "电影",
-      "series": "节目"
+      "series": "节目",
+      "episode": "剧集"
     }
   },
   "setting": {

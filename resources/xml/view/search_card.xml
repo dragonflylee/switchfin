@@ -4,15 +4,18 @@
     height="auto"
     alignItems="center"
     wireframe="false">
+
     <brls:Label
-        id="suggest/card/order"
+        id="search/card/order"
+        width="50"
         lineColor="#D0D0D0"
         lineRight="0"
         wireframe="false"
         height="30"
         horizontalAlign="center" />
+
     <brls:Label
-        id="suggest/card/content"
+        id="search/card/content"
         wireframe="false"
         width="auto"
         marginRight="4"

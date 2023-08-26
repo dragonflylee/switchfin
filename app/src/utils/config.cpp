@@ -156,7 +156,8 @@ void AppConfig::save() {
             f << j.dump(2);
             f.close();
         }
-    } catch (...) {
+    } catch (const std::exception& ex) {
+        brls::Logger::warning("AppConfig save: {}", ex.what());
     }
 }
 
@@ -173,7 +174,8 @@ bool AppConfig::checkLogin() {
             try {
                 HTTP::get(getUrl() + jellyfin::apiInfo, header, HTTP::Timeout{timeout});
                 return true;
-            } catch (...) {
+            } catch (const std::exception& ex) {
+                brls::Logger::warning("AppConfig checkLogin: {}", ex.what());
                 return false;
             }
         }

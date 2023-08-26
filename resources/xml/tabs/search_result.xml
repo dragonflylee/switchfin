@@ -24,12 +24,20 @@
                 itemType="Movie"
                 pageSize="16" />
 
-                <SearchList
+            <SearchList
                 id="search/series"
                 title="@i18n/main/search/genres/series"
                 width="auto"
                 height="350"
                 itemType="Series"
+                pageSize="16" />
+
+            <SearchList
+                id="search/episode"
+                title="@i18n/main/search/genres/episode"
+                width="auto"
+                height="350"
+                itemType="Episode"
                 pageSize="16" />
         </brls:Box>
 

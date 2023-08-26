@@ -35,7 +35,8 @@
     },
     "genres": {
       "movie": "電影",
-      "series": "節目"
+      "series": "節目",
+      "episode": "劇集"
     }
   },
   "setting": {

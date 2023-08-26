@@ -15,7 +15,6 @@
 #include "view/h_recycling.hpp"
 #include "view/video_progress_slider.hpp"
 #include "view/gallery_view.hpp"
-#include "view/suggest_list.hpp"
 #include "view/search_list.hpp"
 
 #include "activity/main_activity.hpp"
@@ -60,7 +59,6 @@ int main(int argc, char* argv[]) {
     brls::Application::registerXMLView("RecyclingGrid", RecyclingGrid::create);
     brls::Application::registerXMLView("HRecyclerFrame", HRecyclerFrame::create);
     brls::Application::registerXMLView("GalleryView", GalleryView::create);
-    brls::Application::registerXMLView("SuggestList", SuggestList::create);
     brls::Application::registerXMLView("SearchList", SearchList::create);
     brls::Application::registerXMLView("VideoProgressSlider", VideoProgressSlider::create);
 
