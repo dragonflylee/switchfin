@@ -39,13 +39,18 @@ const std::string streamTypeVideo = "Video";
 const std::string streamTypeAudio = "Audio";
 const std::string streamTypeSubtitle = "Subtitle";
 
+// The position, in ticks, where playback stopped. 1 tick = 10000 ms
+const time_t PLAYTICKS = 10000000;
+
 struct UserDataResult {
     bool IsFavorite = false;
     int PlayCount = 0;
     time_t PlaybackPositionTicks = 0;
+    float PlayedPercentage = 0;
     bool Played = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(UserDataResult, IsFavorite, PlayCount, PlaybackPositionTicks, Played);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
+    UserDataResult, IsFavorite, PlayCount, PlaybackPositionTicks, PlayedPercentage, Played);
 
 struct MediaItem {
     std::string Id;
@@ -63,8 +68,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
 struct MediaCollection : public MediaItem {
     std::string CollectionType;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
-    MediaCollection, Id, Name, Type, ImageTags, IsFolder, CollectionType);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaCollection, Id, Name, Type, ImageTags, IsFolder, CollectionType);
 
 struct MediaSeason : public MediaItem {
     long IndexNumber = 0;
@@ -116,6 +120,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlaybackResult, MediaSources, PlaySessionId);
 
 struct MediaEpisode : public MediaSeason {
     int ParentIndexNumber = 0;
+    time_t RunTimeTicks = 0;
     std::string Overview;
     std::string SeriesId;
     std::string SeriesName;
@@ -123,7 +128,8 @@ struct MediaEpisode : public MediaSeason {
     std::vector<MediaSource> MediaSources;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaEpisode, Id, Name, Type, ImageTags, IsFolder, ProductionYear,
-    UserData, IndexNumber, ParentIndexNumber, Overview, SeriesId, SeriesName, SeriesPrimaryImageTag, MediaSources);
+    UserData, RunTimeTicks, IndexNumber, ParentIndexNumber, Overview, SeriesId, SeriesName, SeriesPrimaryImageTag,
+    MediaSources);
 
 template <typename T>
 struct MediaQueryResult {

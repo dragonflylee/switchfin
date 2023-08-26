@@ -7,15 +7,29 @@
 #include "view/h_recycling.hpp"
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
+#include "utils/misc.hpp"
 
 using namespace brls::literals;  // for _i18n
+
+class ResumeCard : public BaseVideoCard {
+public:
+    ResumeCard() { this->inflateFromXMLRes("xml/view/video_resume.xml"); }
+
+    static ResumeCard* create() { return new ResumeCard(); }
+
+    BRLS_BIND(brls::Label, labelTitle, "video/card/label/title");
+    BRLS_BIND(brls::Label, labelExt, "video/card/label/ext");
+    BRLS_BIND(brls::Label, labelCount, "video/card/label/count");
+    BRLS_BIND(brls::Label, labelDuration, "video/card/label/duration");
+    BRLS_BIND(brls::Rectangle, rectProgress, "video/card/progress");
+};
 
 class ResumeDataSource : public VideoDataSource {
 public:
     explicit ResumeDataSource(const MediaList& r) : VideoDataSource(r) {}
 
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
-        VideoCardCell* cell = dynamic_cast<VideoCardCell*>(recycler->dequeueReusableCell("Cell"));
+        ResumeCard* cell = dynamic_cast<ResumeCard*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
 
         auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
@@ -33,6 +47,11 @@ public:
             cell->labelTitle->setText(item.Name);
             cell->labelExt->setText(std::to_string(item.ProductionYear));
         }
+
+        cell->labelDuration->setText(
+            fmt::format("{}/{}", sec2Time(item.UserData.PlaybackPositionTicks / jellyfin::PLAYTICKS),
+                sec2Time(item.RunTimeTicks / jellyfin::PLAYTICKS)));
+        cell->rectProgress->setWidthPercentage(item.UserData.PlayedPercentage);
         return cell;
     }
 };
@@ -42,14 +61,16 @@ HomeTab::HomeTab() {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/home.xml");
 
-    this->registerFloatXMLAttribute("pageSize", [this](float value) {
-        this->pageSize = value;
+    this->registerFloatXMLAttribute("latestSize", [this](float value) {
+        this->latestSize = value;
         this->doRequest();
     });
 
-    this->userResume->registerCell("Cell", &VideoCardCell::create);
+    this->userResume->registerCell("Cell", &ResumeCard::create);
+    this->userResume->onNextPage([this]() { this->doResume(); });
     this->userLatest->registerCell("Cell", &VideoCardCell::create);
     this->showNextup->registerCell("Cell", &VideoCardCell::create);
+    this->showNextup->onNextPage([this]() { this->doNextup(); });
 }
 
 HomeTab::~HomeTab() { brls::Logger::debug("View HomeTab: delete"); }
@@ -63,6 +84,7 @@ void HomeTab::doRequest() {
 void HomeTab::onCreate() {
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
         this->startNextup = 0;
+        this->startResume = 0;
         this->doRequest();
         return true;
     });
@@ -76,18 +98,25 @@ void HomeTab::doResume() {
         {"mediaTypes", "Video"},
         {"fields", "BasicSyncInfo"},
         {"limit", std::to_string(this->pageSize)},
+        {"startIndex", std::to_string(this->startResume)},
     });
     ASYNC_RETAIN
     jellyfin::getJSON(
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
             ASYNC_RELEASE
-            if (r.Items.empty()) {
+            this->startResume = r.StartIndex + this->pageSize;
+            if (r.TotalRecordCount == 0) {
                 this->userResume->setVisibility(brls::Visibility::GONE);
                 this->headerResume->setVisibility(brls::Visibility::GONE);
-            } else {
+            } else if (r.StartIndex == 0) {
                 this->headerResume->setVisibility(brls::Visibility::VISIBLE);
                 this->userResume->setVisibility(brls::Visibility::VISIBLE);
                 this->userResume->setDataSource(new ResumeDataSource(r.Items));
+                this->headerResume->setSubtitle(std::to_string(r.TotalRecordCount));
+            } else if (r.Items.size() > 0) {
+                auto dataSrc = dynamic_cast<VideoDataSource*>(this->userResume->getDataSource());
+                dataSrc->appendData(r.Items);
+                this->userResume->notifyDataChanged();
             }
         },
         [ASYNC_TOKEN](const std::string& ex) {
@@ -102,7 +131,7 @@ void HomeTab::doLatest() {
         {"enableImageTypes", "Primary"},
         {"includeItemTypes", "Series,Movie"},
         {"fields", "BasicSyncInfo"},
-        {"limit", std::to_string(this->pageSize)},
+        {"limit", std::to_string(this->latestSize)},
     });
     ASYNC_RETAIN
     jellyfin::getJSON(
@@ -120,8 +149,7 @@ void HomeTab::doLatest() {
 void HomeTab::doNextup() {
     std::string query = HTTP::encode_form({
         {"userId", AppConfig::instance().getUser().id},
-        {"fields", "PrimaryImageAspectRatio"},
-        {"enableTotalRecordCount", "false"},
+        {"fields", "BasicSyncInfo"},
         {"limit", std::to_string(this->pageSize)},
         {"startIndex", std::to_string(this->startNextup)},
     });
@@ -129,11 +157,20 @@ void HomeTab::doNextup() {
     jellyfin::getJSON(
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
             ASYNC_RELEASE
-            this->showNextup->setDataSource(new VideoDataSource(r.Items));
+            this->startNextup = r.StartIndex + this->pageSize;
+            if (r.TotalRecordCount == 0) {
+                this->showNextup->setVisibility(brls::Visibility::GONE);
+            } else if (r.StartIndex == 0) {
+                this->showNextup->setDataSource(new VideoDataSource(r.Items));
+                this->headerNextup->setSubtitle(std::to_string(r.TotalRecordCount));
+            } else if (r.Items.size() > 0) {
+                auto dataSrc = dynamic_cast<VideoDataSource*>(this->showNextup->getDataSource());
+                dataSrc->appendData(r.Items);
+                this->showNextup->notifyDataChanged();
+            }
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            this->showNextup->setVisibility(brls::Visibility::GONE);
         },
         jellyfin::apiShowNextUp, query);
 }

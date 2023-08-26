@@ -7,21 +7,10 @@
 #include "api/jellyfin.hpp"
 #include "utils/dialog.hpp"
 #include "utils/config.hpp"
-#include <fmt/format.h>
-#include <fmt/chrono.h>
+#include "utils/misc.hpp"
 #include <sstream>
 
 using namespace brls::literals;
-
-// The position, in ticks, where playback stopped. 1 tick = 10000 ms
-static const time_t PLAYTICKS = 10000000;
-
-static std::string sec2Time(int64_t t) {
-    if (t < 3600) {
-        return fmt::format("{:%M:%S}", std::chrono::seconds(t));
-    }
-    return fmt::format("{:%H:%M:%S}", std::chrono::seconds(t));
-}
 
 VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
     this->inflateFromXMLRes("xml/view/video_view.xml");
@@ -119,7 +108,7 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
             [this](int selected) {
                 VideoView::selectedQuality = selected;
                 this->videoQualityLabel->setText(qualities[selected]);
-                this->playMedia(MPVCore::instance().playback_time * PLAYTICKS);
+                this->playMedia(MPVCore::instance().playback_time * jellyfin::PLAYTICKS);
             },
             VideoView::selectedQuality);
         brls::Application::pushActivity(new brls::Activity(dropdown));
@@ -242,8 +231,8 @@ void VideoView::onLayout() {
     if (oldRect.getWidth() == -1) this->oldRect = rect;
 
     if (!(rect == oldRect)) {
-        brls::Logger::debug("Video view: {} size: {} / {} scale: {}", fmt::ptr(this), rect.getWidth(), rect.getHeight(),
-            brls::Application::windowScale);
+        brls::Logger::debug(
+            "VideoView: size: {} / {} scale: {}", rect.getWidth(), rect.getHeight(), brls::Application::windowScale);
         MPVCore::instance().setFrameSize(rect);
     }
     oldRect = rect;
@@ -377,7 +366,7 @@ void VideoView::playMedia(const time_t seekTicks) {
 #endif
                 ssextra << "network-timeout=20";
                 if (seekTicks > 0) {
-                    ssextra << ",start=" << sec2Time(seekTicks / PLAYTICKS);
+                    ssextra << ",start=" << sec2Time(seekTicks / jellyfin::PLAYTICKS);
                 }
                 if (item.SupportsDirectPlay) {
                     std::string url = fmt::format(fmt::runtime(jellyfin::apiStream), this->itemId,
@@ -422,7 +411,7 @@ void VideoView::reportStart() {
 }
 
 void VideoView::reportStop() {
-    time_t ticks = MPVCore::instance().playback_time * PLAYTICKS;
+    time_t ticks = MPVCore::instance().playback_time * jellyfin::PLAYTICKS;
     jellyfin::postJSON(
         {
             {"ItemId", this->itemId},
@@ -434,7 +423,7 @@ void VideoView::reportStop() {
 }
 
 void VideoView::reportPlay(bool isPaused) {
-    time_t ticks = MPVCore::instance().video_progress * PLAYTICKS;
+    time_t ticks = MPVCore::instance().video_progress * jellyfin::PLAYTICKS;
     jellyfin::postJSON(
         {
             {"ItemId", this->itemId},
