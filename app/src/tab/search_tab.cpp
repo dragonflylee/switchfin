@@ -155,19 +155,19 @@ SearchTab::SearchTab() {
     });
     this->searchBox->addGestureRecognizer(new brls::TapGestureRecognizer(this->searchBox));
 
-    this->recyclingKeyboard->registerCell("Cell", &KeyboardButton::create);
+    this->recyclingKeyboard->registerCell("Cell", KeyboardButton::create);
     this->recyclingKeyboard->setDataSource(new DataSourceKeyboard([this](char key) {
         this->currentSearch += key;
         this->updateInput();
     }));
-    this->searchSuggest->registerCell("Card", &SearchCard::create);
-    this->searchSuggest->registerCell("Cell", &VideoCardCell::create);
+    this->searchSuggest->registerCell("Card", SearchCard::create);
+    this->searchSuggest->registerCell("Cell", VideoCardCell::create);
     this->searchSuggest->onNextPage([this]() {
         if (this->currentSearch.size() > 0) this->doSearch(this->currentSearch);
     });
 
     HistoryDataSource* history = new HistoryDataSource();
-    this->searchHistory->registerCell("Card", &SearchCard::create);
+    this->searchHistory->registerCell("Card", SearchCard::create);
     this->searchHistory->setDataSource(history);
 
     this->clearLabel->registerClickAction([this](...) {

@@ -1,5 +1,6 @@
 <brls:Box
-    borderColor="@theme/color/grey_1"
+    lineColor="@theme/brls/header/border"
+    lineBottom="1"
     alignItems="center"
     focusable="true">
 
@@ -29,7 +30,7 @@
             id="server/users"
             marginTop="10"
             marginBottom="10"
-            fontSize="20" />
+            fontSize="18" />
     </brls:Box>
 
 </brls:Box>

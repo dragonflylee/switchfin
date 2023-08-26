@@ -27,9 +27,8 @@
         marginLeft="20">
         <brls:Label
             id="episode/card/name"
+            margin="10"
             singleLine="true"
-            marginTop="10"
-            marginBottom="10"
             fontSize="18" />
 
         <brls:Label

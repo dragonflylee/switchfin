@@ -24,7 +24,7 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
         this->startIndex = 0;
         return true;
     });
-    this->recyclerSeries->registerCell("Cell", &VideoCardCell::create);
+    this->recyclerSeries->registerCell("Cell", VideoCardCell::create);
     this->recyclerSeries->onNextPage([this]() { this->doRequest(); });
 
     this->doRequest();

@@ -1,39 +1,107 @@
 <brls:Box
     width="auto"
     height="auto"
+    axis="column"
     paddingLeft="@style/brls/tab_frame/content_padding_sides"
     paddingRight="@style/brls/tab_frame/content_padding_sides"
     paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
     paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
 
-    <brls:ScrollingFrame
-        margin="10"
-        height="100%"
-        width="20%">
-        <brls:Box
-            width="auto"
-            height="auto"
-            axis="column">
-            <brls:Image
-                marginBottom="20"
-                id="series/image/logo"
-                scalingType="fit"
-                backgroundColor="@theme/color/grey_1"
-                image="@res/img/video-card-bg.png" />
-            <brls:SelectorCell
-                paddingTop="8"
-                paddingBottom="8"
-                id="series/selector/season" />
-        </brls:Box>
-    </brls:ScrollingFrame>
+    <brls:Box
+        alignItems="center"
+        justifyContent="spaceBetween"
+        marginBottom="5">
 
-    <RecyclingGrid
-        grow="1"
-        wireframe="false"
-        marginLeft="20"
-        spanCount="1"
-        itemSpace="10"
-        flowMode="true"
-        id="media/episodes" />
+        <brls:Header
+            id="series/header/title" />
+
+        <brls:Box>
+            <brls:Label
+                id="series/label/year"
+                marginRight="10"
+                fontSize="15" />
+
+            <brls:Box
+                wireframe="false"
+                borderColor="@theme/brls/text"
+                borderThickness="1"
+                visibility="gone"
+                paddingLeft="5"
+                paddingRight="5"
+                marginRight="10">
+                <brls:Label
+                    id="series/parental/rating"
+                    singleLine="true"
+                    wireframe="false"
+                    fontSize="15" />
+            </brls:Box>
+
+            <brls:Box
+                wireframe="false"
+                alignItems="center"
+                visibility="gone">
+                <SVGImage
+                    width="15"
+                    height="15"
+                    svg="@res/icon/ico-star.svg" />
+                <brls:Label
+                    id="series/label/rating"
+                    marginLeft="2"
+                    fontSize="15" />
+            </brls:Box>
+        </brls:Box>
+
+        <brls:SelectorCell
+            paddingBottom="0"
+            paddingTop="0"
+            height="40"
+            id="series/selector/season"
+            focusLeft="series/label/overview"
+            focusDown="media/episodes" />
+    </brls:Box>
+
+    <brls:Box>
+
+        <brls:ScrollingFrame
+            height="100%"
+            width="20%">
+
+            <brls:Box
+                width="auto"
+                height="auto"
+                paddingRight="20"
+                axis="column">
+
+                <brls:Image
+                    margin="10"
+                    id="series/image/logo"
+                    scalingType="fit"
+                    backgroundColor="@theme/color/grey_1"
+                    image="@res/img/video-card-bg.png" />
+
+                <brls:Label
+                    id="series/label/overview"
+                    margin="10"
+                    fontSize="15"
+                    animated="false"
+                    textColor="@theme/font/grey" 
+                    focusable="true"/>
+
+            </brls:Box>
+        </brls:ScrollingFrame>
+
+        <RecyclingGrid
+            grow="1"
+            wireframe="false"
+            paddingRight="10"
+            spanCount="1"
+            itemHeight="200"
+            itemSpace="10"
+            id="media/episodes"
+            focusable="true"
+            focusUp="series/selector/season"
+            focusLeft="series/label/overview" />
+
+    </brls:Box>
 
 </brls:Box>

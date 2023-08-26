@@ -153,7 +153,7 @@ RecyclingGrid::RecyclingGrid() {
         this->reloadData();
     });
 
-    this->registerCell("Skeleton", []() { return SkeletonCell::create(); });
+    this->registerCell("Skeleton", SkeletonCell::create);
     this->showSkeleton();
 }
 

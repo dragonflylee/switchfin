@@ -14,7 +14,7 @@ class EpisodeCardCell : public BaseVideoCard {
 public:
     EpisodeCardCell() { this->inflateFromXMLRes("xml/view/episode_card.xml"); }
 
-    static EpisodeCardCell* create() { return new EpisodeCardCell(); }
+    static RecyclingGridItem* create() { return new EpisodeCardCell(); }
 
     BRLS_BIND(brls::Label, labelName, "episode/card/name");
     BRLS_BIND(brls::Label, labelOverview, "episode/card/overview");
@@ -78,13 +78,15 @@ MediaSeries::MediaSeries(const std::string& itemId) : seriesId(itemId) {
     brls::Logger::debug("Tab MediaSeries: create");
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/series.xml");
+    this->imageLogo->setVisibility(brls::Visibility::GONE);
 
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [](...) { return true; });
-    this->recyclerEpisodes->registerCell("Cell", &EpisodeCardCell::create);
+    this->recyclerEpisodes->registerCell("Cell", EpisodeCardCell::create);
 
     this->selectorSeason->init("", {""}, 0, [this](int index) { this->doEpisodes(this->seasonIds[index]); });
 
     this->doSeason();
+    this->doSeries();
 }
 
 MediaSeries::~MediaSeries() { brls::Logger::debug("Tab MediaSeries: delete"); }
@@ -94,10 +96,44 @@ void MediaSeries::doRequest() {
     this->doEpisodes(this->seasonIds.at(index));
 }
 
+void MediaSeries::doSeries() {
+    ASYNC_RETAIN
+    jellyfin::getJSON(
+        [ASYNC_TOKEN](const jellyfin::MedisSeries& r) {
+            ASYNC_RELEASE
+            this->headerTitle->setTitle(r.Name);
+            this->labelYear->setText(std::to_string(r.ProductionYear));
+            if (r.OfficialRating.empty()) {
+                this->parentalRating->getParent()->setVisibility(brls::Visibility::GONE);
+            } else {
+                this->parentalRating->setText(r.OfficialRating);
+                this->parentalRating->getParent()->setVisibility(brls::Visibility::VISIBLE);
+            }
+            if (this->labelRating == 0) {
+                this->labelRating->getParent()->setVisibility(brls::Visibility::GONE);
+            } else {
+                this->labelRating->setText(fmt::format("{:.1f}", r.CommunityRating));
+                this->labelRating->getParent()->setVisibility(brls::Visibility::VISIBLE);
+            }
+            this->labelOverview->setText(r.Overview);
+            // loading Logo
+            auto logo = r.ImageTags.find(jellyfin::imageTypeLogo);
+            if (logo != r.ImageTags.end()) {
+                Image::load(this->imageLogo, jellyfin::apiLogoImage, r.Id,
+                    HTTP::encode_form({
+                        {"tag", logo->second},
+                        {"maxWidth", "300"},
+                    }));
+                this->imageLogo->setVisibility(brls::Visibility::VISIBLE);
+            }
+        },
+        [](...) {}, jellyfin::apiUserItem, AppConfig::instance().getUser().id, this->seriesId);
+}
+
 void MediaSeries::doSeason() {
     std::string query = HTTP::encode_form({
         {"userId", AppConfig::instance().getUser().id},
-        {"fields", "ItemCounts,PrimaryImageAspectRatio"},
+        {"fields", "ItemCounts"},
     });
 
     ASYNC_RETAIN
