@@ -19,7 +19,7 @@
                 fontSize="18"
                 icon="@res/icon/ico-home.svg"
                 iconActivate="@res/icon/ico-home-activate.svg">
-                <HomeTab pageSize="16" />
+                <HomeTab latestSize="20" />
             </Tab>
 
             <Tab label=""
