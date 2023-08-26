@@ -5,14 +5,13 @@
 #pragma once
 
 #include <borealis.hpp>
-#include "api/jellyfin/media.hpp"
 #include "view/presenter.h"
 
 class RecyclingGrid;
 
 class MediaSeries : public brls::Box, public Presenter {
 public:
-    MediaSeries(const jellyfin::MediaItem& item);
+    MediaSeries(const std::string& itemId);
     ~MediaSeries() override;
 
     void doRequest() override;

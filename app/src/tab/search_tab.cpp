@@ -243,16 +243,14 @@ void SearchTab::doSearch(const std::string& searchTerm) {
     jellyfin::getJSON(
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
             ASYNC_RELEASE
-            if (r.Items.size() >= this->pageSize) {
-                this->searchIndex = r.StartIndex + r.Items.size();
-            }
+            this->searchIndex = r.StartIndex + this->pageSize;
             if (r.TotalRecordCount == 0) {
                 this->searchSuggest->setEmpty();
             } else if (r.StartIndex == 0) {
                 this->searchSuggest->spanCount = 5;
                 this->searchSuggest->estimatedRowHeight = 240;
                 this->searchSuggest->setDataSource(new VideoDataSource(r.Items));
-            } else {
+            } else if (r.Items.size() > 0) {
                 auto dataSrc = dynamic_cast<VideoDataSource*>(this->searchSuggest->getDataSource());
                 if (dataSrc != nullptr) dataSrc->appendData(r.Items);
                 this->searchSuggest->notifyDataChanged();

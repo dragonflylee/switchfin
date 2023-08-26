@@ -74,7 +74,7 @@ private:
     MediaList list;
 };
 
-MediaSeries::MediaSeries(const jellyfin::MediaItem& item) : seriesId(item.Id) {
+MediaSeries::MediaSeries(const std::string& itemId) : seriesId(itemId) {
     brls::Logger::debug("Tab MediaSeries: create");
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/series.xml");
@@ -85,18 +85,6 @@ MediaSeries::MediaSeries(const jellyfin::MediaItem& item) : seriesId(item.Id) {
     this->selectorSeason->init("", {""}, 0, [this](int index) { this->doEpisodes(this->seasonIds[index]); });
 
     this->doSeason();
-
-    // 加载 Logo
-    auto logo = item.ImageTags.find(jellyfin::imageTypeLogo);
-    if (logo != item.ImageTags.end()) {
-        Image::load(this->imageLogo, jellyfin::apiLogoImage, item.Id,
-            HTTP::encode_form({
-                {"tag", logo->second},
-                {"maxWidth", "300"},
-            }));
-    } else {
-        this->imageLogo->setVisibility(brls::Visibility::GONE);
-    }
 }
 
 MediaSeries::~MediaSeries() { brls::Logger::debug("Tab MediaSeries: delete"); }

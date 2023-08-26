@@ -51,13 +51,13 @@ void MediaCollection::doRequest() {
     jellyfin::getJSON(
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
             ASYNC_RELEASE
-            if (r.Items.size() >= this->pageSize) {
-                this->startIndex = r.StartIndex + r.Items.size();
-            }
-            if (r.StartIndex == 0) {
+            this->startIndex = r.StartIndex + this->pageSize;
+            if (r.TotalRecordCount == 0) {
+                this->recyclerSeries->setEmpty();
+            } else if (r.StartIndex == 0) {
                 this->recyclerSeries->setDataSource(new VideoDataSource(r.Items));
                 brls::Application::giveFocus(this->recyclerSeries);
-            } else {
+            } else if (r.Items.size() > 0) {
                 auto dataSrc = dynamic_cast<VideoDataSource*>(this->recyclerSeries->getDataSource());
                 dataSrc->appendData(r.Items);
                 this->recyclerSeries->notifyDataChanged();
