@@ -82,7 +82,7 @@ MediaSeries::MediaSeries(const jellyfin::MediaItem& item) : seriesId(item.Id) {
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [](...) { return true; });
     this->recyclerEpisodes->registerCell("Cell", &EpisodeCardCell::create);
 
-    this->selectorSeason->getEvent()->subscribe([this](int index) { this->doEpisodes(this->seasonIds[index]); });
+    this->selectorSeason->init("", {""}, 0, [this](int index) { this->doEpisodes(this->seasonIds[index]); });
 
     this->doSeason();
 
@@ -99,9 +99,12 @@ MediaSeries::MediaSeries(const jellyfin::MediaItem& item) : seriesId(item.Id) {
     }
 }
 
-MediaSeries::~MediaSeries() { brls::Logger::debug("View MediaSeries: delete"); }
+MediaSeries::~MediaSeries() { brls::Logger::debug("Tab MediaSeries: delete"); }
 
-void MediaSeries::doRequest() {}
+void MediaSeries::doRequest() {
+    int index = this->selectorSeason->getSelection();
+    this->doEpisodes(this->seasonIds.at(index));
+}
 
 void MediaSeries::doSeason() {
     std::string query = HTTP::encode_form({
