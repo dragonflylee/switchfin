@@ -19,7 +19,9 @@ public:
         this->addView(picture);
     }
 
-    ~MediaFolderCell() { Image::cancel(this->picture); }
+    ~MediaFolderCell() override { Image::cancel(this->picture); }
+
+    static RecyclingGridItem* create() { return new MediaFolderCell(); }
 
     void prepareForReuse() override { this->picture->setImageFromRes("img/video-card-bg.png"); }
 
@@ -68,7 +70,7 @@ MediaFolders::MediaFolders() {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/media_folder.xml");
     brls::Logger::debug("MediaFolders: create");
-    this->recyclerFolders->registerCell("Cell", []() { return new MediaFolderCell(); });
+    this->recyclerFolders->registerCell("Cell", MediaFolderCell::create);
 
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
         this->doRequest();

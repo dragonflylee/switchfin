@@ -70,6 +70,15 @@ struct MediaCollection : public MediaItem {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaCollection, Id, Name, Type, ImageTags, IsFolder, CollectionType);
 
+struct MedisSeries : public MediaItem {
+    std::string OriginalTitle;
+    std::string Overview;
+    std::string OfficialRating;
+    std::vector<std::string> Genres;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MedisSeries, Id, Name, Type, ImageTags, IsFolder, ProductionYear,
+    OriginalTitle, Overview, OfficialRating, CommunityRating, Genres, UserData);
+
 struct MediaSeason : public MediaItem {
     long IndexNumber = 0;
 };

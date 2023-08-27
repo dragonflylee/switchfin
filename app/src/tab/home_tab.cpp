@@ -66,10 +66,10 @@ HomeTab::HomeTab() {
         this->doRequest();
     });
 
-    this->userResume->registerCell("Cell", &ResumeCard::create);
+    this->userResume->registerCell("Cell", ResumeCard::create);
     this->userResume->onNextPage([this]() { this->doResume(); });
-    this->userLatest->registerCell("Cell", &VideoCardCell::create);
-    this->showNextup->registerCell("Cell", &VideoCardCell::create);
+    this->userLatest->registerCell("Cell", VideoCardCell::create);
+    this->showNextup->registerCell("Cell", VideoCardCell::create);
     this->showNextup->onNextPage([this]() { this->doNextup(); });
 }
 

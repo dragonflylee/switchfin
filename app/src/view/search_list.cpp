@@ -15,7 +15,7 @@ SearchList::SearchList() {
 
     this->registerFloatXMLAttribute("pageSize", [this](float value) { this->pageSize = value; });
 
-    this->searchResult->registerCell("Cell", &VideoCardCell::create);
+    this->searchResult->registerCell("Cell", VideoCardCell::create);
 }
 
 SearchList::~SearchList() { brls::Logger::debug("View SearchList: delete"); }
