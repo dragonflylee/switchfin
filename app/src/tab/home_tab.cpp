@@ -33,12 +33,13 @@ public:
         auto& item = this->list.at(index);
 
         auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
-        if (it != item.ImageTags.end())
+        if (it != item.ImageTags.end()) {
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
-                HTTP::encode_form({{"tag", it->first}, {"fillWidth", "400"}}));
-        else
+                HTTP::encode_form({{"tag", it->second}, {"fillWidth", "400"}}));
+        } else {
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId,
                 HTTP::encode_form({{"tag", item.SeriesPrimaryImageTag}, {"fillWidth", "400"}}));
+        }
 
         if (item.Type == jellyfin::mediaTypeEpisode) {
             cell->labelTitle->setText(item.SeriesName);
@@ -114,7 +115,7 @@ void HomeTab::doResume() {
                 this->userResume->setDataSource(new ResumeDataSource(r.Items));
                 this->headerResume->setSubtitle(std::to_string(r.TotalRecordCount));
             } else if (r.Items.size() > 0) {
-                auto dataSrc = dynamic_cast<VideoDataSource*>(this->userResume->getDataSource());
+                auto dataSrc = dynamic_cast<ResumeDataSource*>(this->userResume->getDataSource());
                 dataSrc->appendData(r.Items);
                 this->userResume->notifyDataChanged();
             }
@@ -171,6 +172,7 @@ void HomeTab::doNextup() {
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
+            this->showNextup->setVisibility(brls::Visibility::GONE);
         },
         jellyfin::apiShowNextUp, query);
 }

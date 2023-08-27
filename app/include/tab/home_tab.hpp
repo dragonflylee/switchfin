@@ -32,7 +32,7 @@ private:
     void doLatest();
     void doNextup();
 
-    size_t pageSize = 5;
+    size_t pageSize = 6;
     size_t latestSize = 20;
     size_t startResume = 0;
     size_t startNextup = 0;

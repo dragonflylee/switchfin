@@ -276,7 +276,9 @@ void HRecyclerFrame::draw(
 
 bool HRecyclerFrame::checkHeight() {
     float height = getHeight();
-    static float oldHeight = height;
+    if (oldHeight == -1) {
+        oldHeight = height;
+    }
     if ((int)oldHeight != (int)height && height != 0) {
         oldHeight = height;
         return true;

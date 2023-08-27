@@ -42,6 +42,7 @@ public:
 
 private:
     bool layouted = false;
+    float oldHeight = -1;
 
     uint32_t visibleMin, visibleMax;
     size_t defaultCellFocus = 0;
