@@ -49,7 +49,6 @@ HTTP::HTTP() : chunk(nullptr) {
     // enable all supported built-in compressions
     curl_easy_setopt(this->easy, CURLOPT_ACCEPT_ENCODING, "");
     curl_easy_setopt(this->easy, CURLOPT_SSL_VERIFYPEER, 0L);
-    curl_easy_setopt(this->easy, CURLOPT_NOPROGRESS, 0L);
     curl_easy_setopt(this->easy, CURLOPT_VERBOSE, 0L);
 }
 
@@ -88,12 +87,14 @@ int HTTP::easy_progress_cb(void* clientp, curl_off_t dltotal, curl_off_t dlnow, 
 
 void HTTP::set_option(const Cancel& c) {
     this->is_cancel = std::move(c);
+    curl_easy_setopt(this->easy, CURLOPT_NOPROGRESS, 0L);
     curl_easy_setopt(this->easy, CURLOPT_XFERINFOFUNCTION, easy_progress_cb);
     curl_easy_setopt(this->easy, CURLOPT_XFERINFODATA, this);
 }
 
 void HTTP::set_option(Progress::Callback p) {
     this->event.subscribe(p);
+    curl_easy_setopt(this->easy, CURLOPT_NOPROGRESS, 0L);
     curl_easy_setopt(this->easy, CURLOPT_XFERINFOFUNCTION, easy_progress_cb);
     curl_easy_setopt(this->easy, CURLOPT_XFERINFODATA, this);
 }
