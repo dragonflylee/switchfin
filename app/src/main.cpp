@@ -94,14 +94,12 @@ int main(int argc, char* argv[]) {
         brls::Application::pushActivity(new ServerList());
     }
 
-    auto& thread = ThreadPool::instance();
-
     AppVersion::checkUpdate();
     // Run the app
     while (brls::Application::mainLoop())
         ;
 
-    thread.stop();
+    ThreadPool::instance().stop();
 
     AppConfig::instance().checkRestart(argv);
     // Exit

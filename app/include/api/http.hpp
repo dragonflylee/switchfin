@@ -19,6 +19,7 @@ public:
     using Form = std::unordered_map<std::string, std::string>;
     // For cancellable requests
     using Cancel = std::shared_ptr<std::atomic_bool>;
+    using Progress = brls::Event<curl_off_t, curl_off_t>;
 
     struct Range {
         int start = 0;
@@ -95,6 +96,7 @@ private:
     void set_option(const Timeout& t);
     void set_option(const Cancel& c);
     void set_option(const Cookies& cookies);
+    void set_option(Progress::Callback p);
 
     template <typename CT>
     void set_option_internal(CT&& option) {
@@ -110,5 +112,5 @@ private:
     void* easy;
     struct curl_slist* chunk;
     Cancel is_cancel;
-    brls::Event<void(curl_off_t, curl_off_t)> down_ev;
+    Progress event;
 };

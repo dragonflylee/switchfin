@@ -3,6 +3,7 @@
 #include <borealis/core/singleton.hpp>
 #include <borealis/core/logger.hpp>
 #include <nlohmann/json.hpp>
+#include <atomic>
 
 const long default_timeout = 3000L;
 const int default_seekstep = 15;
@@ -15,6 +16,7 @@ public:
     static bool needUpdate(std::string latestVersion);
     static void checkUpdate(int delay = 2000, bool showUpToDateDialog = false);
 
+    inline static std::shared_ptr<std::atomic_bool> updating = std::make_shared<std::atomic_bool>(true);
     inline static std::string git_repo = "dragonflylee/switchfin";
     static std::string git_commit;
     static std::string git_tag;

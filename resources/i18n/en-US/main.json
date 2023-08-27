@@ -114,6 +114,7 @@
       },
       "up2date": "App is up to date",
       "upgrade": "{} is available now! Ready to update?",
+      "updating": "Updating in progress, cancel now?",
       "release": "Check for updates"
     }
   },
