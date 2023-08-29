@@ -3,6 +3,7 @@
 #include "view/video_view.hpp"
 #include "tab/media_series.hpp"
 #include "tab/media_collection.hpp"
+#include "tab/music_album.hpp"
 
 VideoDataSource::VideoDataSource(const MediaList& r) : list(std::move(r)) {}
 
@@ -48,6 +49,8 @@ void VideoDataSource::onItemSelected(brls::View* recycler, size_t index) {
         view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
         view->setSeries(item.SeriesId);
         brls::sync([view]() { brls::Application::giveFocus(view); });
+    } else if (item.Type == jellyfin::mediaTypeMusicAlbum) {
+        recycler->present(new MusicAlbum(item.Id));
     } else {
         brls::Logger::warning("onItemSelected type {}", item.Type);
     }

@@ -1,0 +1,37 @@
+<brls:Box
+    width="auto"
+    height="auto"
+    paddingLeft="@style/brls/tab_frame/content_padding_sides"
+    paddingRight="@style/brls/tab_frame/content_padding_sides"
+    paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
+    paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
+
+    <brls:Box
+        axis="column"
+        padding="5"
+        marginRight="30"
+        width="300"
+        borderColor="@theme/brls/text"
+        borderThickness="1">
+
+        <brls:Image
+            id="album/image/cover"
+            scalingType="fill"
+            backgroundColor="@theme/brls/header/border"
+            image="@res/img/video-card-bg.png" />
+
+        <brls:Header
+            id="album/header/title" />
+    </brls:Box>
+
+    <RecyclingGrid
+        grow="1"
+        wireframe="false"
+        paddingLeft="30"
+        paddingRight="30"
+        spanCount="1"
+        flowMode="true"
+        id="album/tracks"
+        focusable="true" />
+
+</brls:Box>

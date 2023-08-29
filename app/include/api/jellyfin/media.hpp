@@ -154,6 +154,24 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaEpisode, Id, Name, Type, Im
     UserData, Chapters, RunTimeTicks, IndexNumber, ParentIndexNumber, Overview, SeriesId, SeriesName,
     SeriesPrimaryImageTag, MediaSources);
 
+struct MusicAlbum : public MediaItem {
+    std::string AlbumArtist;
+    std::string PremiereDate;
+    time_t RunTimeTicks = 0;
+    long RecursiveItemCount = 0;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MusicAlbum, Id, Name, Type, ImageTags, IsFolder, ProductionYear,
+    AlbumArtist, PremiereDate, RunTimeTicks, RecursiveItemCount);
+
+struct MusicTrack : public MediaItem {
+    long IndexNumber = 0;
+    long ParentIndexNumber = 0;
+    time_t RunTimeTicks = 0;
+    std::vector<std::string> Artists;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
+    MusicTrack, Id, Name, Type, IndexNumber, ParentIndexNumber, RunTimeTicks, Artists);
+
 template <typename T>
 struct MediaQueryResult {
     std::vector<T> Items;
