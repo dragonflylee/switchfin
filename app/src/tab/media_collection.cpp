@@ -16,7 +16,7 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
     brls::Logger::debug("MediaCollection: create {} type {}", itemId, itemType);
     this->pageSize = this->recyclerSeries->spanCount * 3;
 
-    if (itemType == "MusicAlbum") {
+    if (itemType == jellyfin::mediaTypeMusicAlbum) {
         this->recyclerSeries->estimatedRowHeight = 240;
     }
 

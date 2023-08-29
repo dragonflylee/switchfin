@@ -34,6 +34,7 @@ const std::string mediaTypeSeries = "Series";
 const std::string mediaTypeSeason = "Season";
 const std::string mediaTypeEpisode = "Episode";
 const std::string mediaTypeMovie = "Movie";
+const std::string mediaTypeMusicAlbum = "MusicAlbum";
 
 const std::string streamTypeVideo = "Video";
 const std::string streamTypeAudio = "Audio";

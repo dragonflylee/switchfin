@@ -52,9 +52,9 @@ public:
     void onItemSelected(brls::View* recycler, size_t index) override {
         auto& item = this->list.at(index);
         std::string itemType;
-        if (item.CollectionType == "tvshows") itemType = "Series";
-        else if (item.CollectionType == "movies") itemType = "Movie";
-        else if (item.CollectionType == "music") itemType = "MusicAlbum";
+        if (item.CollectionType == "tvshows") itemType = jellyfin::mediaTypeSeries;
+        else if (item.CollectionType == "movies") itemType = jellyfin::mediaTypeMovie;
+        else if (item.CollectionType == "music") itemType = jellyfin::mediaTypeMusicAlbum;
         recycler->present(new MediaCollection(item.Id, itemType));
     }
 
