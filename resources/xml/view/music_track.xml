@@ -1,0 +1,33 @@
+<brls:Box
+    highlightCornerRadius="8"
+    lineBottom="1px"
+    lineColor="@theme/brls/header/border">
+
+    <brls:Label
+        id="music/track/index"
+        fontSize="@style/brls/header/font_size"
+        width="30" />
+
+    <brls:Box
+        grow="1.0">
+        <brls:Label
+            id="music/track/name"
+            fontSize="@style/brls/header/font_size" />
+        <brls:Padding />
+        <brls:Label
+            id="music/track/artists"
+            fontSize="15"
+            marginTop="5"
+            textColor="@theme/brls/header/subtitle" />
+    </brls:Box>
+
+    <brls:Box
+        axis="column"
+        marginLeft="20">
+        <brls:Label
+            id="music/track/duration"
+            singleLine="true"
+            fontSize="18" />
+    </brls:Box>
+
+</brls:Box>
