@@ -279,6 +279,7 @@ void SearchTab::updateInput() {
             this->historyBox->setVisibility(brls::Visibility::GONE);
             this->searchSuggest->setEmpty("hints/loading"_i18n);
         }
+        this->searchIndex = 0;
         this->doSearch(this->currentSearch);
     }
 }

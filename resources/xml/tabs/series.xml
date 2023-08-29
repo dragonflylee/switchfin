@@ -9,47 +9,48 @@
 
     <brls:Box
         alignItems="center"
-        justifyContent="spaceBetween"
         marginBottom="5">
 
-        <brls:Header
-            id="series/header/title" />
-
-        <brls:Box>
-            <brls:Label
-                id="series/label/year"
-                marginRight="10"
-                fontSize="15" />
-
-            <brls:Box
-                wireframe="false"
-                borderColor="@theme/brls/text"
-                borderThickness="1"
-                visibility="gone"
-                paddingLeft="5"
-                paddingRight="5"
-                marginRight="10">
-                <brls:Label
-                    id="series/parental/rating"
-                    singleLine="true"
-                    wireframe="false"
-                    fontSize="15" />
-            </brls:Box>
-
-            <brls:Box
-                wireframe="false"
-                alignItems="center"
-                visibility="gone">
-                <SVGImage
-                    width="15"
-                    height="15"
-                    svg="@res/icon/ico-star.svg" />
-                <brls:Label
-                    id="series/label/rating"
-                    marginLeft="2"
-                    fontSize="15" />
-            </brls:Box>
+        <brls:Box width="25%">
+            <brls:Header
+                id="series/header/title" />
         </brls:Box>
+
+        <brls:Label
+            id="series/label/year"
+            marginRight="10"
+            fontSize="15" />
+
+        <brls:Box
+            wireframe="false"
+            borderColor="@theme/brls/text"
+            borderThickness="1"
+            visibility="gone"
+            paddingLeft="5"
+            paddingRight="5"
+            marginRight="10">
+            <brls:Label
+                id="series/parental/rating"
+                singleLine="true"
+                wireframe="false"
+                fontSize="15" />
+        </brls:Box>
+
+        <brls:Box
+            wireframe="false"
+            alignItems="center"
+            visibility="gone">
+            <SVGImage
+                width="15"
+                height="15"
+                svg="@res/icon/ico-star.svg" />
+            <brls:Label
+                id="series/label/rating"
+                marginLeft="2"
+                fontSize="15" />
+        </brls:Box>
+
+        <brls:Padding />
 
         <brls:SelectorCell
             paddingBottom="0"
@@ -64,7 +65,7 @@
 
         <brls:ScrollingFrame
             height="100%"
-            width="20%">
+            width="25%">
 
             <brls:Box
                 width="auto"
@@ -72,20 +73,20 @@
                 paddingRight="20"
                 axis="column">
 
+                <brls:Label
+                    id="series/label/overview"
+                    margin="10"
+                    fontSize="15"
+                    animated="false"
+                    textColor="@theme/font/grey"
+                    focusable="true" />
+
                 <brls:Image
                     margin="10"
                     id="series/image/logo"
                     scalingType="fit"
                     backgroundColor="@theme/color/grey_1"
                     image="@res/img/video-card-bg.png" />
-
-                <brls:Label
-                    id="series/label/overview"
-                    margin="10"
-                    fontSize="15"
-                    animated="false"
-                    textColor="@theme/font/grey" 
-                    focusable="true"/>
 
             </brls:Box>
         </brls:ScrollingFrame>
@@ -95,6 +96,7 @@
             wireframe="false"
             paddingRight="10"
             spanCount="1"
+            flowMode="true"
             itemHeight="200"
             itemSpace="10"
             id="media/episodes"
