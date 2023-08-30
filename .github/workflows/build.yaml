@@ -9,16 +9,18 @@ on:
   workflow_dispatch:
     inputs:
       snap:
-        description: 'build snap'
-        required: false
-        default: 'false'
+        description: build snap
+        type: boolean
+      mingw64:
+        description: build mingw64
+        type: boolean
 
 permissions:
   contents: write
 
 jobs:
   upload-release:
-    needs: [ build-msvc-x64, build-switch, build-macos ]
+    needs: [ build-msvc-x64, build-mingw64, build-switch, build-macos, build-snap ]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
@@ -65,7 +67,7 @@ jobs:
 
   build-snap:
     runs-on: ubuntu-latest
-    if: github.event.inputs.snap == 'true'
+    if: github.event.inputs.snap
     steps:
     - uses: actions/checkout@v3
       with:
@@ -73,8 +75,8 @@ jobs:
         fetch-depth: 0
     - name: Update gamepad mappings
       run: |
-        BRLS_GLFW="library/borealis/library/lib/extern/glfw"
-        cmake -P ${BRLS_GLFW}/CMake/GenerateMappings.cmake ${BRLS_GLFW}/src/mappings.h.in ${BRLS_GLFW}/src/mappings.h
+        BRLS_GLFW=library/borealis/library/lib/extern/glfw
+        cmake -P $BRLS_GLFW/CMake/GenerateMappings.cmake $BRLS_GLFW/src/mappings.h.in $BRLS_GLFW/src/mappings.h
     - name: Build snap
       run: |
         docker run --rm --tty -v $PWD:/data -w /data/scripts --privileged diddledani/snapcraft:core20
@@ -101,8 +103,8 @@ jobs:
         brew install -v mpv-wiliwili
     - name: Update gamepad mappings
       run: |
-        BRLS_GLFW="library/borealis/library/lib/extern/glfw"
-        cmake -P ${BRLS_GLFW}/CMake/GenerateMappings.cmake ${BRLS_GLFW}/src/mappings.h.in ${BRLS_GLFW}/src/mappings.h
+        BRLS_GLFW=library/borealis/library/lib/extern/glfw
+        cmake -P $BRLS_GLFW/CMake/GenerateMappings.cmake $BRLS_GLFW/src/mappings.h.in $BRLS_GLFW/src/mappings.h
     - name: Build App
       run: |
         cmake -B build -DPLATFORM_DESKTOP=ON -DUSE_BOOST_FILESYSTEM=ON -DCMAKE_BUILD_TYPE=Release
@@ -126,13 +128,55 @@ jobs:
         name: switchfin-macos-${{ steps.vars.outputs.sha_short }}
         path: Switchfin-*.dmg
 
+  build-mingw64:
+    runs-on: windows-2022
+    if: github.event.inputs.mingw64
+    env:
+      MSYSTEM: MINGW64
+    defaults:
+      run:
+        shell: C:\shells\msys2bash.cmd {0}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        fetch-depth: 0
+    - name: Install dependency
+      run: |
+        pacman -S --noconfirm --noprogressbar mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake git p7zip
+    - name: Build dependency
+      run: |
+        curl -sL https://github.com/webmproject/libwebp/archive/v1.3.1.tar.gz | tar zxf - -C /tmp
+        cd /tmp/libwebp-1.3.1
+        cmake -B build -G 'MinGW Makefiles' -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/mingw64 -DBUILD_SHARED_LIBS=OFF \
+          -DWEBP_BUILD_ANIM_UTILS=OFF -DWEBP_BUILD_CWEBP=OFF -DWEBP_BUILD_DWEBP=OFF -DWEBP_BUILD_GIF2WEBP=OFF \
+          -DWEBP_BUILD_IMG2WEBP=OFF -DWEBP_BUILD_VWEBP=OFF -DWEBP_BUILD_WEBPINFO=OFF -DWEBP_BUILD_WEBPMUX=OFF \
+          -DWEBP_BUILD_LIBWEBPMUX=OFF -DWEBP_BUILD_EXTRAS=OFF
+        mingw32-make -C build -j4 
+        mingw32-make -C build install
+    - name: Update gamepad mappings
+      run: |
+        BRLS_GLFW=library/borealis/library/lib/extern/glfw
+        cmake -P $BRLS_GLFW/CMake/GenerateMappings.cmake $BRLS_GLFW/src/mappings.h.in $BRLS_GLFW/src/mappings.h
+    - name: Build
+      run: |
+        cmake -B build_mingw -G 'MinGW Makefiles' -DUSE_LIBROMFS=ON -DPLATFORM_DESKTOP=ON -DWIN32_TERMINAL=OFF -DUSE_SYSTEM_CURL=OFF
+        mingw32-make -C build_mingw -j4
+
+        for i in {libwinpthread-1,zlib1}; do cp /mingw64/bin/$i.dll build_mingw; done
+        cd build_mingw; 7z a -mx=9 Switchfin-mingw64.7z Switchfin.exe *.dll
+    - name: Set outputs
+      id: vars
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+    - name: Upload Assets
+      uses: actions/upload-artifact@v3
+      with:
+        name: switchfin-mingw64-${{ steps.vars.outputs.sha_short }}
+        path: build_mingw/Switchfin-*.7z
+
   build-msvc-x64:
     runs-on: windows-2022
     steps:
-    - name: Setup Windows 10 SDK
-      uses: GuillaumeFalourd/setup-windows10-sdk-action@v1.11
-      with:
-        sdk-version: 19041
     - name: Install xmake
       shell: powershell
       run: |
@@ -155,9 +199,13 @@ jobs:
         xmake config -c -y
         xmake build -y
         cd build\windows\x64\release
-        7z a "$env:GITHUB_WORKSPACE\Switchfin-msvc-x64.zip" *
+        7z a -mx=9 "$env:GITHUB_WORKSPACE\Switchfin-msvc-x64.zip" *
+    - name: Set outputs
+      id: vars
+      shell: bash
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
       uses: actions/upload-artifact@v3
       with:
-        name: switchfin-win64
+        name: switchfin-win64-${{ steps.vars.outputs.sha_short }}
         path: Switchfin-*.zip

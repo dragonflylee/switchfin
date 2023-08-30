@@ -7,6 +7,8 @@ set(BOREALIS_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/library/borealis/library)
 # example: cmake -B build -DPLATFORM_DESKTOP=ON
 include(${BOREALIS_LIBRARY}/cmake/commonOption.cmake)
 
+option(USE_SYSTEM_CURL "use system installed libcurl" ON)
+
 # Linux
 # Using CMAKE_INSTALL_PREFIX specifies the location where the application is installed.
 cmake_dependent_option(CMAKE_INSTALL "Install to system path" OFF "UNIX;NOT APPLE" OFF)
@@ -62,25 +64,37 @@ elseif (APPLE)
     list(APPEND MAIN_SRC ${CMAKE_SOURCE_DIR}/app/app.icns)
 endif ()
 
+if (USE_LIBROMFS)
+    message(STATUS "USE LIBROMFS")
+    add_definitions(-DUSE_LIBROMFS)
+    set(LIBROMFS_PROJECT_NAME ${PROJECT_NAME})
+    set(LIBROMFS_RESOURCE_LOCATION "${PROJECT_RESOURCES}")
+endif ()
+
 # build borealis and other third party libraries
 add_subdirectory(library)
 
-find_package(CURL)
-if (NOT CURL_FOUND)
+if (USE_SYSTEM_CURL)
+    find_package(CURL REQUIRED)
+else ()
     include(FetchContent)
     FetchContent_Declare(curl
         URL https://github.com/curl/curl/releases/download/curl-7_88_1/curl-7.88.1.tar.xz
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     )
-    find_package(OpenSSL)
-    if (OPENSSL_FOUND)
-        set(CURL_USE_OPENSSL ON CACHE INTERNAL "" FORCE)
-    elseif (WIN32)
+    if (WIN32)
         set(CURL_USE_SCHANNEL ON CACHE INTERNAL "" FORCE)
+    else ()
+        find_package(OpenSSL REQUIRED)
+        set(CURL_USE_OPENSSL ON CACHE INTERNAL "" FORCE)
     endif()
     set(HTTP_ONLY ON CACHE INTERNAL "" FORCE)
     set(BUILD_CURL_EXE OFF CACHE INTERNAL "" FORCE)
     set(BUILD_TESTING OFF CACHE INTERNAL "" FORCE)
     set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "" FORCE)
+    set(USE_LIBIDN2 OFF CACHE INTERNAL "" FORCE)
+    set(CURL_USE_LIBSSH2 OFF CACHE INTERNAL "" FORCE)
+    set(CURL_USE_LIBPSL OFF CACHE INTERNAL "" FORCE)
     set(CURL_DISABLE_PROGRESS_METER ON CACHE INTERNAL "" FORCE)
     FetchContent_MakeAvailable(curl)
 endif ()
@@ -98,27 +112,30 @@ list(APPEND APP_PLATFORM_LIB ${CMAKE_THREAD_LIBS_INIT})
 
 if (PLATFORM_DESKTOP)
     find_package(MPV)
-    if (NOT MPV_FOUND)
+    if (MPV_FOUND)
+        list(APPEND APP_PLATFORM_INCLUDE ${MPV_INCLUDE_DIR})
+        list(APPEND APP_PLATFORM_LIB ${MPV_LIBRARY})
+    elseif (MINGW)
         include(ExternalProject)
         ExternalProject_Add(mpv
-            URL https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20230727/mpv-dev-x86_64-20230727-git-bc96b23.7z
-            URL_HASH SHA256=735fac5cdc000c7ad803238d2e4c002771e9a72ae338374cde6b58fc0bb667bc
+            URL https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20230831/mpv-dev-x86_64-20230831-git-edd7189.7z
+            URL_HASH SHA256=1d6b964e97faecad291fe5cc128a3ccf04138d3a0b2ff0635290060ebaf98d34
             UPDATE_COMMAND ""
             CONFIGURE_COMMAND ""
             BUILD_COMMAND ""
             BUILD_IN_SOURCE TRUE
+            DOWNLOAD_EXTRACT_TIMESTAMP TRUE
             INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/libmpv-2.dll ${CMAKE_BINARY_DIR}
         )
         ExternalProject_Get_property(mpv SOURCE_DIR)
         add_dependencies(borealis mpv)
-        set(MPV_INCLUDE_DIR ${SOURCE_DIR}/include)
-        set(MPV_LIBRARY ${SOURCE_DIR}/libmpv.dll.a)
+        list(APPEND APP_PLATFORM_INCLUDE ${SOURCE_DIR}/include)
+        list(APPEND APP_PLATFORM_LIB ${SOURCE_DIR}/libmpv.dll.a)
+    else ()
+        message(FATAL_ERROR "Missing library MPV")
     endif ()
-    list(APPEND APP_PLATFORM_INCLUDE ${MPV_INCLUDE_DIR})
-    list(APPEND APP_PLATFORM_LIB ${MPV_LIBRARY})
     if (MINGW)
         list(APPEND APP_PLATFORM_LIB "-static-libgcc -static-libstdc++")
-        set(CMAKE_EXE_LINKER_FLAGS "-Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive")
     endif ()
 else ()
     # Used for Cross Compile such as NintendoSwitch
@@ -131,13 +148,6 @@ else ()
     list(APPEND APP_PLATFORM_LIB ${MPV_STATIC_LIBRARIES} )
     list(APPEND APP_PLATFORM_LINK_OPTION -L${MPV_LIBRARY_DIRS})
 endif()
-
-if (USE_LIBROMFS)
-    message(STATUS "USE LIBROMFS")
-    add_definitions(-DUSE_LIBROMFS)
-    set(LIBROMFS_PROJECT_NAME ${PROJECT_NAME})
-    set(LIBROMFS_RESOURCE_LOCATION "${PROJECT_RESOURCES}")
-endif ()
 
 if (USE_BOOST_FILESYSTEM)
     find_package(Boost 1.44 REQUIRED COMPONENTS filesystem)
@@ -154,12 +164,12 @@ if (BUILTIN_NSP)
 endif ()
 
 # building target
-add_executable(${PROJECT_NAME} ${MAIN_SRC})
+program_target(${PROJECT_NAME} "${MAIN_SRC}")
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17)
 
 target_include_directories(${PROJECT_NAME} PRIVATE app/include ${APP_PLATFORM_INCLUDE})
 target_compile_options(${PROJECT_NAME} PRIVATE -ffunction-sections -fdata-sections -Wunused-variable ${APP_PLATFORM_OPTION})
-target_link_libraries(${PROJECT_NAME} PRIVATE borealis lunasvg z ${APP_PLATFORM_LIB})
+target_link_libraries(${PROJECT_NAME} PRIVATE borealis lunasvg ${APP_PLATFORM_LIB})
 target_link_options(${PROJECT_NAME} PRIVATE ${APP_PLATFORM_LINK_OPTION})
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     APP_VERSION=v${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}
