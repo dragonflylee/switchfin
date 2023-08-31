@@ -20,6 +20,15 @@ void VideoProfile::init(const std::string& title, const std::string& method) {
     labelMethod->setText(method);
     labelFormat->setText(mpv.getString("file-format"));
     labelSize->setText(fmt::format("{:.2f}MB", mpv.getInt("file-size") / 1048576.0));
+
+    // subtitle
+    int subId = mpv.getInt("sid");
+    if (subId > 0) {
+        labelSubtitleTrack->setText(fmt::format("{} SrcID {} ", subId, mpv.getString("current-tracks/sub/src-id")));
+        boxSubtitle->setVisibility(brls::Visibility::VISIBLE);
+    } else {
+        boxSubtitle->setVisibility(brls::Visibility::GONE);
+    }
     this->update();
 }
 
@@ -44,8 +53,4 @@ void VideoProfile::update() {
     labelAudioChannel->setText(mpv.getString("audio-params/channel-count"));
     labelAudioSampleRate->setText(std::to_string(mpv.getInt("audio-params/samplerate") / 1000) + "kHz");
     labelAudioBitrate->setText(std::to_string(mpv.getInt("audio-bitrate") / 1024) + "kbps");
-
-    // subtitle
-    labelSubtitleTrack->setText(std::to_string(mpv.getInt("sid")));
-    labelSubtitleSpeed->setText(fmt::format("{:.2f}", mpv.getDouble("sub-speed")));
 }

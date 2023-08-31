@@ -29,6 +29,6 @@ public:
     BRLS_BIND(brls::Label, labelAudioSampleRate, "profile/audio/sample");
     BRLS_BIND(brls::Label, labelAudioBitrate, "profile/audio/bitrate");
 
+    BRLS_BIND(brls::Box, boxSubtitle, "profile/subtitle/box");
     BRLS_BIND(brls::Label, labelSubtitleTrack, "profile/subtitle/track");
-    BRLS_BIND(brls::Label, labelSubtitleSpeed, "profile/subtitle/speed");
 };

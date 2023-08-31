@@ -81,6 +81,7 @@ void MPVCore::init() {
     mpv_set_option_string(mpv, "keep-open", "yes");
     mpv_set_option_string(mpv, "hr-seek", "yes");
     mpv_set_option_string(mpv, "reset-on-next-file", "speed,pause");
+    mpv_set_option_string(mpv, "subs-fallback", "yes");
 
     if (MPVCore::LOW_QUALITY) {
         // Less cpu cost
@@ -166,7 +167,7 @@ void MPVCore::init() {
                 mpv_node_list *codec_map = codec_list->values[i].u.list;
                 std::string name, desc;
                 for (int n = 0; n < codec_map->num; n++) {
-                    char* key = codec_map->keys[n];
+                    char *key = codec_map->keys[n];
                     if (strcmp(key, "codec") == 0) {
                         name = codec_map->values[n].u.string;
                     } else if (strcmp(key, "description") == 0) {

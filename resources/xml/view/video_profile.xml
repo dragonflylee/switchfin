@@ -283,41 +283,29 @@
     </brls:Box>
 
     <!-- Subtitles -->
-    <brls:Label
-        margin="3"
-        fontSize="16"
-        textColor="#FFFFFF"
-        text="Subtitles" />
     <brls:Box
-        axis="row"
-        height="16"
-        marginBottom="3"
-        marginLeft="20">
+        id="profile/subtitle/box"
+        axis="column">
         <brls:Label
-            textColor="#FFFFFF"
+            margin="3"
             fontSize="16"
-            shrink="0"
-            marginRight="4"
-            text="Tracks:" />
-        <brls:Label
-            id="profile/subtitle/track"
-            textColor="@theme/font/grey"
-            fontSize="16" />
-    </brls:Box>
-    <brls:Box
-        axis="row"
-        height="16"
-        marginBottom="3"
-        marginLeft="20">
-        <brls:Label
             textColor="#FFFFFF"
-            fontSize="16"
-            shrink="0"
-            marginRight="4"
-            text="Speed:" />
-        <brls:Label
-            id="profile/subtitle/speed"
-            textColor="@theme/font/grey"
-            fontSize="16" />
+            text="Subtitles" />
+        <brls:Box
+            axis="row"
+            height="16"
+            marginBottom="3"
+            marginLeft="20">
+            <brls:Label
+                textColor="#FFFFFF"
+                fontSize="16"
+                shrink="0"
+                marginRight="4"
+                text="Tracks:" />
+            <brls:Label
+                id="profile/subtitle/track"
+                textColor="@theme/font/grey"
+                fontSize="16" />
+        </brls:Box>
     </brls:Box>
 </brls:Box>
