@@ -1,4 +1,3 @@
-// Switch include only necessary for demo videos recording
 #ifdef __SWITCH__
 #include <switch.h>
 #endif
@@ -32,10 +31,15 @@ int main(int argc, char* argv[]) {
     // Enable recording for Twitter memes
 #ifdef __SWITCH__
     appletInitializeGamePlayRecording();
+    appletSetWirelessPriorityMode(AppletWirelessPriorityMode_OptimizedForWlan);
 #endif
     // We recommend to use INFO for real apps
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-v") == 0) brls::Logger::setLogLevel(brls::LogLevel::LOG_DEBUG);
+#ifdef __SWITCH__
+        else if (strcmp(argv[i], "-l") == 0)
+            nxlinkStdio();
+#endif
     }
 
     // Load cookies and settings

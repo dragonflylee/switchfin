@@ -43,6 +43,8 @@ To build for Switch, a standard development environment must first be set up. In
 sudo dkp-pacman -S switch-glfw switch-libwebp switch-cmake switch-curl devkitA64
 cmake -B build_switch -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON
 make -C build_switch Switchfin.nro -j$(nproc)
+# for debug
+nxlink -a 192.168.3.97 -p Switchfin/Switchfin.nro -s Switchfin.nro --args -l 
 ```
 
 ### Building for MinGW64
@@ -54,7 +56,8 @@ mingw32-make -C build_mingw -j$(nproc)
 
 ## Thanks to
 
-- **xfangfang for [wiliwili](https://github.com/xfangfang/wiliwili)**
-- devkitpro and switchbrew for [libnx](https://github.com/switchbrew/libnx)
-- natinusala and XITRIX for [borealis](https://github.com/natinusala/borealis)
-- proconsule for [nxmp](https://github.com/proconsule/nxmp)
+- **@xfangfang for [wiliwili](https://github.com/xfangfang/wiliwili)**
+- @devkitpro and switchbrew for [libnx](https://github.com/switchbrew/libnx)
+- @natinusala and XITRIX for [borealis](https://github.com/natinusala/borealis)
+- @proconsule for [nxmp](https://github.com/proconsule/nxmp)
+- @averne for great work of [FFmpeg](https://github.com/averne/FFmpeg) hwaccel backend 

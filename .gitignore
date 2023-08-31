@@ -7,6 +7,7 @@ build*/
 *.exe
 *.json
 *.tar.gz
+*.tar.xz
 *.pkg.tar.zst
 /resources/forwarder.nsp
 /scripts/switch/*/src
