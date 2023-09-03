@@ -21,7 +21,6 @@ public:
 
 private:
     BRLS_BIND(brls::Button, btnServerAdd, "btn/server/add");
-    BRLS_BIND(brls::AppletFrame, appletFrame, "server/frame");
     BRLS_BIND(RecyclingGrid, recyclerServers, "server/recycler");
     BRLS_BIND(RecyclingGrid, recyclerUsers, "user/recycler");
     BRLS_BIND(brls::DetailCell, serverVersion, "server/version");

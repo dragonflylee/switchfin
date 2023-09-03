@@ -7,8 +7,7 @@
         id="video/card/pic_box"
         axis="row"
         width="100%"
-        grow="1.0f"
-    >
+        grow="1.0f">
         <brls:Image
             id="video/card/picture"
             backgroundColor="@theme/color/grey_1"
@@ -51,7 +50,7 @@
 
     <brls:Box
         axis="column"
-        height="50px"
+        height="20px"
         alignItems="center">
         <brls:Label
             wireframe="false"

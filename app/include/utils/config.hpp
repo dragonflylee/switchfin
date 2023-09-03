@@ -104,7 +104,7 @@ public:
     const AppUser& getUser() const { return this->user; }
     const std::string& getUrl() const { return this->server_url; }
     const std::string& getDevice() const { return this->device; }
-    const std::vector<AppServer>& getServers() const { return this->servers; }
+    const std::vector<AppServer> getServers() const;
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(AppConfig, user_id, server_url, device, users, servers, setting);
 

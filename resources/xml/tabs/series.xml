@@ -53,8 +53,6 @@
         <brls:Padding />
 
         <brls:SelectorCell
-            paddingBottom="0"
-            paddingTop="0"
             height="40"
             id="series/selector/season"
             focusLeft="series/label/overview"

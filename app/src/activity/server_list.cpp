@@ -3,9 +3,12 @@
 */
 
 #include "activity/server_list.hpp"
+#include "activity/main_activity.hpp"
 #include "view/recycling_grid.hpp"
 #include "tab/server_add.hpp"
 #include "tab/server_login.hpp"
+#include "utils/image.hpp"
+#include "utils/dialog.hpp"
 #include "api/jellyfin.hpp"
 
 using namespace brls::literals;  // for _i18n
@@ -20,13 +23,61 @@ public:
     BRLS_BIND(brls::Label, labelUsers, "server/users");
 };
 
+class UserCell : public RecyclingGridItem {
+public:
+    UserCell() { this->inflateFromXMLRes("xml/view/user_item.xml"); }
+
+    void prepareForReuse() override { this->picture->setImageFromRes("img/video-card-bg.png"); }
+
+    void cacheForReuse() override { Image::cancel(this->picture); }
+
+    BRLS_BIND(brls::Label, labelName, "user/name");
+    BRLS_BIND(brls::Image, picture, "user/avatar");
+};
+
 class ServerUserDataSource : public RecyclingGridDataSource {
 public:
-    void clearData() override {}
-
-    ServerUserDataSource(const std::vector<AppUser>& users) : list(std::move(users)) {}
+    ServerUserDataSource(const std::vector<AppUser>& users) : list(users) {}
 
     size_t getItemCount() override { return this->list.size(); }
+
+    RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
+        UserCell* cell = dynamic_cast<UserCell*>(recycler->dequeueReusableCell("Cell"));
+        auto& u = this->list.at(index);
+        cell->labelName->setText(u.name);
+        Image::load(cell->picture, jellyfin::apiUserImage, u.id, "");
+        return cell;
+    }
+
+    void onItemSelected(brls::View* recycler, size_t index) override {
+        auto& u = this->list.at(index);
+        brls::Application::blockInputs();
+
+        brls::async([u]() {
+            auto& conf = AppConfig::instance();
+            HTTP::Header header = {
+                fmt::format("X-Emby-Authorization: MediaBrowser Client=\"{}\", Device=\"{}\", DeviceId=\"{}\", "
+                            "Version=\"{}\", Token=\"{}\"",
+                    AppVersion::pkg_name, AppVersion::getDeviceName(), conf.getDevice(), AppVersion::getVersion(),
+                    u.access_token)};
+            const long timeout = conf.getItem(AppConfig::REQUEST_TIMEOUT, default_timeout);
+            try {
+                HTTP::get(conf.getUrl() + jellyfin::apiInfo, header, HTTP::Timeout{timeout});
+                brls::sync([u]() {
+                    AppConfig::instance().addUser(u);
+                    brls::Application::unblockInputs();
+                    brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
+                });
+            } catch (const std::exception& ex) {
+                brls::sync([&ex]() {
+                    brls::Application::unblockInputs();
+                    Dialog::show(ex.what());
+                });
+            }
+        });
+    }
+
+    void clearData() override { this->list.clear(); }
 
 private:
     std::vector<AppUser> list;
@@ -34,24 +85,25 @@ private:
 
 class ServerListDataSource : public RecyclingGridDataSource {
 public:
-    using Event = std::function<void(const AppServer&)>;
+    using Event = brls::Event<AppServer>;
 
-    ServerListDataSource(const std::vector<AppServer>& s) : list(std::move(s)) {}
+    ServerListDataSource(Event::Callback ev) {
+        this->list = AppConfig::instance().getServers();
+        this->onSelect.subscribe(ev);
+    }
 
     size_t getItemCount() override { return this->list.size(); }
 
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         ServerCell* cell = dynamic_cast<ServerCell*>(recycler->dequeueReusableCell("Cell"));
-        auto& s = this->list[index];
+        auto& s = this->list.at(index);
         cell->labelName->setText(s.name);
         cell->labelUrl->setText(s.urls.back());
         cell->labelUsers->setText(fmt::format(fmt::runtime("main/setting/server/users"_i18n), s.users.size()));
         return cell;
     }
 
-    void setEvent(const Event& ev) { this->onSelect = ev; }
-
-    void onItemSelected(brls::View* recycler, size_t index) override { this->onSelect(this->list[index]); }
+    void onItemSelected(brls::View* recycler, size_t index) override { this->onSelect.fire(this->list[index]); }
 
     void clearData() override { this->list.clear(); }
 
@@ -65,17 +117,16 @@ ServerList::ServerList() { brls::Logger::debug("ServerList: create"); }
 ServerList::~ServerList() { brls::Logger::debug("ServerList Activity: delete"); }
 
 void ServerList::onContentAvailable() {
-    auto svrs = AppConfig::instance().getServers();
-    auto dataSrc = new ServerListDataSource(svrs);
+    auto dataSrc = new ServerListDataSource([this](const AppServer& s) { this->onSelect(s); });
     this->recyclerServers->registerCell("Cell", []() { return new ServerCell(); });
-
+    this->recyclerUsers->registerCell("Cell", []() { return new UserCell(); });
     this->recyclerServers->setDataSource(dataSrc);
-    dataSrc->setEvent([this](const AppServer& s) { this->onSelect(s); });
-    if (svrs.size() > 0) {
-        this->onSelect(svrs[this->recyclerServers->getDefaultFocusedIndex()]);
 
-        this->btnServerAdd->registerClickAction([this](...) {
-            this->appletFrame->pushContentView(new ServerAdd());
+    if (dataSrc->getItemCount() > 0) {
+        dataSrc->onItemSelected(this->recyclerServers, 0);
+
+        this->btnServerAdd->registerClickAction([](brls::View *view) {
+            view->present(new ServerAdd());
             return true;
         });
     } else {
@@ -92,8 +143,8 @@ void ServerList::onSelect(const AppServer& s) {
 
     });
 
-    this->btnSignin->registerClickAction([this, s](...) {
-        this->appletFrame->pushContentView(new ServerLogin(s));
+    this->btnSignin->registerClickAction([s](brls::View *view) {
+        view->present(new ServerLogin(s));
         return true;
     });
 

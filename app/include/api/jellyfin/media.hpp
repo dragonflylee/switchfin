@@ -13,9 +13,11 @@ const std::string apiShowNextUp = "/Shows/NextUp?{}";
 const std::string apiShowSeanon = "/Shows/{}/Seasons?{}";
 const std::string apiShowEpisodes = "/Shows/{}/Episodes?{}";
 #ifdef USE_WEBP
+const std::string apiUserImage = "/Users/{}/Images/Primary?format=Webp&{}";
 const std::string apiPrimaryImage = "/Items/{}/Images/Primary?format=Webp&{}";
 const std::string apiLogoImage = "/Items/{}/Images/Logo?format=Webp&{}";
 #else
+const std::string apiUserImage = "/Users/{}/Images/Primary?format=Png&{}";
 const std::string apiPrimaryImage = "/Items/{}/Images/Primary?format=Png&{}";
 const std::string apiLogoImage = "/Items/{}/Images/Logo?format=Png&{}";
 #endif
