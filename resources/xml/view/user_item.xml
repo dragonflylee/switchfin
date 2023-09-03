@@ -1,0 +1,29 @@
+<brls:Box
+    highlightCornerRadius="8"
+    axis="column"
+    width="auto"
+    height="auto">
+    <brls:Box
+        id="video/card/pic_box"
+        axis="row"
+        width="100%"
+        padding="10">
+        <brls:Image
+            id="user/avatar"
+            backgroundColor="@theme/color/grey_1"
+            scalingType="fill"
+            grow="1.0f"
+            image="@res/img/video-card-bg.png"
+            cornerRadius="30" />
+    </brls:Box>
+
+    <brls:Box
+        axis="column"
+        height="50px"
+        alignItems="center">
+        <brls:Label
+            wireframe="false"
+            id="user/name"
+            fontSize="18" />
+    </brls:Box>
+</brls:Box>

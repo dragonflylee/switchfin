@@ -17,7 +17,8 @@ ServerLogin::ServerLogin(const AppServer& s) : url(s.urls.front()) {
 
     this->hdrSigin->setTitle(fmt::format(fmt::runtime("main/setting/server/sigin_to"_i18n), s.name));
     this->inputUser->init("main/setting/username"_i18n, "");
-    this->inputPass->init("main/setting/password"_i18n, "", [](std::string text){}, "", "", 256);
+    this->inputPass->init(
+        "main/setting/password"_i18n, "", [](std::string text) {}, "", "", 256);
 
     this->btnSignin->registerClickAction([this](...) { return this->onSignin(); });
 }
@@ -25,6 +26,7 @@ ServerLogin::ServerLogin(const AppServer& s) : url(s.urls.front()) {
 ServerLogin::~ServerLogin() { brls::Logger::debug("ServerLogin Activity: delete"); }
 
 bool ServerLogin::onSignin() {
+    brls::Application::blockInputs();
     btnSignin->setTextColor(brls::Application::getTheme().getColor("font/grey"));
     nlohmann::json data = {{"Username", inputUser->getValue()}, {"Pw", inputPass->getValue()}};
 
@@ -47,6 +49,7 @@ bool ServerLogin::onSignin() {
             brls::sync([ASYNC_TOKEN, u]() {
                 ASYNC_RELEASE
                 AppConfig::instance().addUser(u);
+                brls::Application::unblockInputs();
                 brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
                 GA("login", {{"method", {this->url}}});
             });
@@ -54,6 +57,7 @@ bool ServerLogin::onSignin() {
             brls::sync([ASYNC_TOKEN, &ex]() {
                 ASYNC_RELEASE
                 this->btnSignin->setTextColor(brls::Application::getTheme().getColor("brls/text"));
+                brls::Application::unblockInputs();
                 Dialog::show(ex.what());
             });
         }

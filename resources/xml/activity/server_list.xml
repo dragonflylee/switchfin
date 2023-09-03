@@ -6,17 +6,18 @@
 
     <brls:Box
         axis="row"
-        width="auto"
-        height="auto">
+        paddingLeft="@style/brls/tab_frame/content_padding_sides"
+        paddingRight="@style/brls/tab_frame/content_padding_sides"
+        paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
+        paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
 
         <brls:Box
             wireframe="false"
             width="40%"
             axis="column"
-            paddingTop="@style/brls/sidebar/padding_top"
             paddingRight="@style/brls/sidebar/padding_right"
-            paddingBottom="@style/brls/sidebar/padding_bottom"
-            paddingLeft="@style/brls/sidebar/padding_left">
+            lineColor="@theme/color/line"
+            lineRight="1">
 
             <brls:Header
                 width="auto"
@@ -35,8 +36,7 @@
                     id="btn/server/add"
                     style="primary"
                     grow="1.0"
-                    text="@i18n/main/setting/server/connect_new"
-                />
+                    text="@i18n/main/setting/server/connect_new" />
             </brls:Box>
 
             <RecyclingGrid
@@ -44,42 +44,38 @@
                 grow="1"
                 spanCount="1"
                 wireframe="false"
-                itemHeight="100"
-                lineColor="@theme/color/line"
-                lineRight="1"
-            />
+                itemHeight="100" />
         </brls:Box>
 
         <brls:Box
             wireframe="false"
+            paddingLeft="@style/brls/sidebar/padding_left"
             axis="column"
-            paddingLeft="@style/brls/tab_frame/content_padding_sides"
-            paddingRight="@style/brls/tab_frame/content_padding_sides"
-            paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
-            paddingBottom="@style/brls/tab_frame/content_padding_top_bottom"
             grow="1">
 
             <brls:Header
                 width="auto"
                 height="auto"
-                title="@i18n/main/setting/server/detail"
-                marginBottom="0px" />
+                title="@i18n/main/setting/server/detail" />
+
             <brls:Box
                 width="100%"
                 height="auto"
-                axis="column"
-                marginBottom="30px">
+                axis="column">
 
                 <brls:SelectorCell
+                    height="auto"
                     title="@i18n/main/setting/url"
                     id="selector/server/urls" />
 
                 <brls:DetailCell
+                    height="auto"
                     title="@i18n/main/setting/version"
                     focusable="false"
                     id="server/version" />
 
                 <brls:DetailCell
+                    height="auto"
                     title="@i18n/main/setting/os"
                     focusable="false"
                     id="server/os" />
@@ -88,22 +84,20 @@
 
             <brls:Box
                 width="100%"
-                height="auto">
+                height="auto"
+                marginTop="20px"
+                marginBottom="20px">
 
                 <brls:Button
                     id="btn/server/signin"
                     style="primary"
                     grow="1.0"
-                    text="@i18n/main/setting/server/signin"
-                />
+                    text="@i18n/main/setting/server/signin" />
             </brls:Box>
 
             <RecyclingGrid
-                paddingLeft="20"
                 paddingRight="20"
-                itemHeight="200"
                 grow="1"
-                preFetchLine="2"
                 spanCount="3"
                 wireframe="false"
                 id="user/recycler" />
