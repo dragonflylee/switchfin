@@ -18,7 +18,7 @@ MAKEPKG	:=	makepkg
 endif
 endif
 
-all: mpv nsp
+all: mpv curl nsp
 
 .PHONY: harfbuzz
 harfbuzz:
@@ -30,8 +30,13 @@ libass: harfbuzz
 	@echo Installing libass
 	@cd libass; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
 
+.PHONY: dav1d
+dav1d:
+	@echo Installing dav1d
+	@cd dav1d; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
+
 .PHONY: ffmpeg
-ffmpeg: libass
+ffmpeg: libass dav1d
 	@echo Installing ffmpeg
 	@cd ffmpeg; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
 
@@ -39,6 +44,10 @@ ffmpeg: libass
 mpv: ffmpeg
 	@echo Installing libmpv
 	@cd libmpv; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
+
+.PHONY: curl
+curl:
+	@cd curl; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
 
 .PHONY: nsp
 nsp:
