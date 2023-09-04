@@ -18,7 +18,7 @@ MAKEPKG	:=	makepkg
 endif
 endif
 
-all: mpv nsp
+all: mpv curl nsp
 
 .PHONY: harfbuzz
 harfbuzz:
@@ -44,6 +44,10 @@ ffmpeg: libass dav1d
 mpv: ffmpeg
 	@echo Installing libmpv
 	@cd libmpv; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
+
+.PHONY: curl
+curl:
+	@cd curl; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
 
 .PHONY: nsp
 nsp:
