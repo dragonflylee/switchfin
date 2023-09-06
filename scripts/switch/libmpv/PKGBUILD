@@ -1,10 +1,11 @@
 # Maintainer:  Dave Murphy <davem@devkitpro.org>
+# Contributor: averne <averne381@gmail.com>
 # Contributor: Cpasjuste <cpasjuste@gmail.com>
 
 pkgbasename=libmpv
 pkgname=switch-${pkgbasename}
 pkgver=0.36.0
-pkgrel=1
+pkgrel=2
 pkgdesc='Command line video player (library only)'
 arch=('any')
 url='https://mpv.io/'
@@ -12,11 +13,11 @@ license=('GPL')
 options=(!strip libtool staticlibs)
 source=(
   "${pkgbasename}-${pkgver}.tar.gz::https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz" 
-  "mpv-ao-hos.patch" "mpv-fonts.patch"
+  "mpv-ao-hos.patch" "mpv-fonts.patch" "mpv-tx1.patch"
 )
 sha256sums=(
   '29abc44f8ebee013bb2f9fe14d80b30db19b534c679056e4851ceadf5a5e8bf6'
-  'SKIP' 'SKIP'
+  'SKIP' 'SKIP' 'SKIP'
 )
 makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
 depends=('switch-ffmpeg' 'switch-mesa')
@@ -25,8 +26,9 @@ groups=('switch-portlibs')
 prepare() {
   cd mpv-$pkgver
   rm -f audio/out/ao_hos.c osdep/switch/sys/mman.h
-  patch -Np1 -i "$srcdir/mpv-ao-hos.patch"
+  patch -Np1 -i "$srcdir/mpv-tx1.patch"
   patch -Np1 -i "$srcdir/mpv-fonts.patch"
+  patch -Np1 -i "$srcdir/mpv-ao-hos.patch"
 }
 
 build() {

@@ -5743,10 +5743,10 @@ index e6266494ac..ed3e641c02 100644
  #endif /* AVUTIL_HWCONTEXT_INTERNAL_H */
 diff --git a/libavutil/hwcontext_tx1.c b/libavutil/hwcontext_tx1.c
 new file mode 100644
-index 0000000000..455162a966
+index 0000000000..6ff82d47bd
 --- /dev/null
 +++ b/libavutil/hwcontext_tx1.c
-@@ -0,0 +1,1035 @@
+@@ -0,0 +1,1044 @@
 +/*
 + * Copyright (c) 2023 averne <averne381@gmail.com>
 + *
@@ -6008,6 +6008,15 @@ index 0000000000..455162a966
 +        goto fail;
 +
 +    err = ff_tx1_channel_open(&hwctx->vic_channel, "/dev/nvhost-vic");
++    if (err < 0)
++        goto fail;
++
++    /* Note: Official code only sets this for the nvdec channel */
++    err = ff_tx1_channel_set_submit_timeout(&hwctx->nvdec_channel, 1000);
++    if (err < 0)
++        goto fail;
++
++    err = ff_tx1_channel_set_submit_timeout(&hwctx->nvjpg_channel, 1000);
 +    if (err < 0)
 +        goto fail;
 +
@@ -9121,10 +9130,10 @@ index 37c2c79e01..ee45e7f875 100644
  
 diff --git a/libavutil/tx1.c b/libavutil/tx1.c
 new file mode 100644
-index 0000000000..41e6906773
+index 0000000000..01982bd447
 --- /dev/null
 +++ b/libavutil/tx1.c
-@@ -0,0 +1,684 @@
+@@ -0,0 +1,698 @@
 +/*
 + * Copyright (c) 2023 averne <averne381@gmail.com>
 + *
@@ -9317,6 +9326,20 @@ index 0000000000..41e6906773
 +        *fence = tmp.value;
 +
 +    return 0;
++#endif
++}
++
++int ff_tx1_channel_set_submit_timeout(AVTX1Channel *channel, uint32_t timeout_ms) {
++    struct nvhost_set_timeout_args args;
++
++    args = (struct nvhost_set_timeout_args){
++        .timeout = timeout_ms,
++    };
++
++#ifndef __SWITCH__
++    return (ioctl(channel->fd, NVHOST_IOCTL_CHANNEL_SET_TIMEOUT, &args) < 0) ? AVERROR(errno) : 0;
++#else
++    return AVERROR(nvIoctl(channel->channel.fd, _NV_IOW(0, 7, args), &args));
 +#endif
 +}
 +
@@ -9811,10 +9834,10 @@ index 0000000000..41e6906773
 +}
 diff --git a/libavutil/tx1.h b/libavutil/tx1.h
 new file mode 100644
-index 0000000000..42a122aee5
+index 0000000000..f0e6fe52ac
 --- /dev/null
 +++ b/libavutil/tx1.h
-@@ -0,0 +1,186 @@
+@@ -0,0 +1,187 @@
 +/*
 + * Copyright (c) 2023 averne <averne381@gmail.com>
 + *
@@ -9906,6 +9929,7 @@ index 0000000000..42a122aee5
 +int ff_tx1_channel_get_clock_rate(AVTX1Channel *channel, uint32_t moduleid, uint32_t *clock_rate);
 +int ff_tx1_channel_set_clock_rate(AVTX1Channel *channel, uint32_t moduleid, uint32_t clock_rate);
 +int ff_tx1_channel_submit(AVTX1Channel *channel, AVTX1Cmdbuf *cmdbuf, uint32_t *fence);
++int ff_tx1_channel_set_submit_timeout(AVTX1Channel *channel, uint32_t timeout_ms);
 +
 +int ff_tx1_syncpt_wait(AVTX1Channel *channel, uint32_t threshold, int32_t timeout);
 +

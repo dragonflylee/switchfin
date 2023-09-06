@@ -1,5 +1,5 @@
 diff --git a/sub/sd_ass.c b/sub/sd_ass.c
-index e4e5652875..306c83a716 100644
+index e4e5652875..978d8703f9 100644
 --- a/sub/sd_ass.c
 +++ b/sub/sd_ass.c
 @@ -21,6 +21,10 @@
@@ -13,7 +13,7 @@ index e4e5652875..306c83a716 100644
  #include <libavutil/common.h>
  #include <ass/ass.h>
  
-@@ -198,6 +202,27 @@ static void enable_output(struct sd *sd, bool enable)
+@@ -198,6 +202,31 @@ static void enable_output(struct sd *sd, bool enable)
      } else {
          ctx->ass_renderer = ass_renderer_init(ctx->ass_library);
  
@@ -27,14 +27,18 @@ index e4e5652875..306c83a716 100644
 +            [PlSharedFontType_NintendoExt]          = "NintendoExt003",
 +        };
 +
-+        PlFontData font;
-+        for (int i = 0; i < PlSharedFontType_Total; ++i) {
-+            Result rc = plGetSharedFontByType(&font, i);
-+            if (R_SUCCEEDED(rc))
-+                ass_add_font(ctx->ass_library, pl_font_names[font.type],
-+                    font.address, font.size);
-+            else
-+                MP_ERR(sd, "Failed to add font %s from pl: %#x\n", pl_font_names[i], rc);
++        Result rc = plInitialize(PlServiceType_User);
++        if (R_SUCCEEDED(rc)) {
++            PlFontData font;
++            for (int i = 0; i < PlSharedFontType_Total; ++i) {
++                rc = plGetSharedFontByType(&font, i);
++                if (R_SUCCEEDED(rc))
++                    ass_add_font(ctx->ass_library, pl_font_names[font.type],
++                        font.address, font.size);
++                else
++                    MP_ERR(sd, "Failed to add font %s from pl: %#x\n", pl_font_names[i], rc);
++            }
++            plExit();
 +        }
 +#endif
 +
