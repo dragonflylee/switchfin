@@ -49,11 +49,13 @@ static void *get_proc_address(void *unused, const char *name) {
 #endif
 
 void MPVCore::on_update(void *self) {
-    brls::sync([]() { mpv_render_context_update(MPVCore::instance().getContext()); });
+    MPVCore *mpv = reinterpret_cast<MPVCore *>(self);
+    brls::sync([mpv]() { mpv_render_context_update(mpv->getContext()); });
 }
 
 void MPVCore::on_wakeup(void *self) {
-    brls::sync([]() { MPVCore::instance().eventMainLoop(); });
+    MPVCore *mpv = reinterpret_cast<MPVCore *>(self);
+    brls::sync([mpv]() { mpv->eventMainLoop(); });
 }
 
 MPVCore::MPVCore() { this->init(); }
@@ -67,7 +69,6 @@ void MPVCore::init() {
     // misc
     mpv_set_option_string(mpv, "config", "yes");
     mpv_set_option_string(mpv, "config-dir", AppConfig::instance().configDir().c_str());
-    mpv_set_option_string(mpv, "sub-fonts-dir", AppConfig::instance().configDir().c_str());
     mpv_set_option_string(mpv, "ytdl", "no");
 #ifdef _DEBUG
     mpv_set_option_string(mpv, "terminal", "yes");
@@ -99,26 +100,32 @@ void MPVCore::init() {
         mpv_set_option_string(mpv, "cache", "no");
     }
 
-    // hardware decoding
-#ifndef __SWITCH__
-    mpv_set_option_string(mpv, "hwdec", HARDWARE_DEC ? PLAYER_HWDEC_METHOD.c_str() : "no");
-    brls::Logger::info("MPV hardware decode: {}/{}", HARDWARE_DEC, PLAYER_HWDEC_METHOD);
-#endif
-
     // Making the loading process faster
 #ifdef __SWITCH__
-    mpv_set_option_string(mpv, "vd-lavc-dr", "no");
-    mpv_set_option_string(mpv, "vd-lavc-threads", "4");
+    mpv_set_option_string(mpv, "vd-lavc-dr", "yes");
+    mpv_set_option_string(mpv, "vd-lavc-threads", "3");
 #endif
-    mpv_set_option_string(mpv, "demuxer-lavf-analyzeduration", "0.1");
-    mpv_set_option_string(mpv, "demuxer-lavf-probe-info", "nostreams");
-    mpv_set_option_string(mpv, "demuxer-lavf-probescore", "24");
 
-    // log
-    // mpv_set_option_string(mpv, "msg-level", "ffmpeg=trace");
-    // mpv_set_option_string(mpv, "msg-level", "all=no");
+    // hardware decoding
+    if (HARDWARE_DEC) {
+#ifdef __SWITCH__
+        mpv_set_option_string(mpv, "hwdec", "tx1-copy");
+        brls::Logger::info("MPV hardware decode: {}", "tx1-copy");
+#elif defined(__PSV__)
+        mpv_set_option_string(mpv, "hwdec", "vita-copy");
+        brls::Logger::info("MPV hardware decode: vita-copy");
+#else
+        mpv_set_option_string(mpv, "hwdec", PLAYER_HWDEC_METHOD.c_str());
+        brls::Logger::info("MPV hardware decode: {}", PLAYER_HWDEC_METHOD);
+#endif
+    } else {
+        mpv_set_option_string(mpv, "hwdec", "no");
+    }
 
 #ifdef _DEBUG
+    // log
+    mpv_set_option_string(mpv, "msg-level", "ffmpeg=trace");
+    //  mpv_set_option_string(mpv, "msg-level", "all=no");
     mpv_set_option_string(mpv, "msg-level", "all=v");
 #endif
 
