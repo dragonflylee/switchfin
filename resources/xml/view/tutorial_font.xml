@@ -1,16 +1,21 @@
 <brls:Box
-    margin="20"
-    axis="column">
+    axis="column"
+    paddingLeft="@style/brls/tab_frame/content_padding_sides"
+    paddingRight="@style/brls/tab_frame/content_padding_sides"
+    paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
+    paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
+
     <brls:Header
-        margin="10"
+        marginBottom="5"
         title="@i18n/main/setting/tutorial/font_q1" />
     <brls:Label
-        margin="10"
+        marginBottom="15"
         text="@i18n/main/setting/tutorial/font_a1" />
+
     <brls:Header
-        margin="10"
+        marginBottom="5"
         title="@i18n/main/setting/tutorial/font_q2" />
     <brls:Label
-        margin="10"
         text="@i18n/main/setting/tutorial/font_a2" />
+
 </brls:Box>

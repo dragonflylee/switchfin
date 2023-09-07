@@ -1,0 +1,23 @@
+<brls:Box
+    axis="column"
+    paddingLeft="60"
+    paddingRight="60"
+    paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
+    paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
+
+    <brls:Header
+        marginBottom="20"
+        title="@i18n/main/setting/quick_connect/header" />
+
+    <brls:Label
+        text="@i18n/main/setting/quick_connect/steps" />
+
+    <brls:Box
+        marginTop="30"
+        justifyContent="center">
+        <brls:Label
+            fontSize="35"
+            id="quick/label/code" />
+    </brls:Box>
+
+</brls:Box>

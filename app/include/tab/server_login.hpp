@@ -18,6 +18,7 @@ private:
     BRLS_BIND(brls::InputCell, inputUser, "server/user");
     BRLS_BIND(brls::InputCell, inputPass, "server/pass");
     BRLS_BIND(brls::Button, btnSignin, "server/signin");
+    BRLS_BIND(brls::Button, btnQuickConnect, "server/quick_connect");
 
     std::string url;
 };

@@ -24,5 +24,12 @@
             fontSize="@style/brls/sidebar/item_font_size"
             id="server/signin" />
 
+        <brls:Button
+            text="@i18n/main/setting/quick_connect/header"
+            marginTop="15"
+            fontSize="@style/brls/sidebar/item_font_size"
+            padding="12.5"
+            id="server/quick_connect" />
+
     </brls:Box>
 </brls:Box>

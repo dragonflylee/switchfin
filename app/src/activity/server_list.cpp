@@ -148,7 +148,7 @@ void ServerList::onContentAvailable() {
 
 void ServerList::onSelect(const AppServer& s) {
     this->serverVersion->setDetailText(s.version);
-    this->serverOS->setDetailText(s.os);
+    this->serverOS->setDetailText(s.os.empty() ? "-" : s.os);
     this->selectorUrl->init("main/setting/url"_i18n, s.urls, 0, [](size_t selected) {
 
     });

@@ -11,6 +11,11 @@ namespace jellyfin {
 const std::string apiInfo = "/System/Info";
 const std::string apiPublicInfo = "/System/Info/Public";
 const std::string apiAuthByName = "/Users/authenticatebyname";
+// apiQuickConnect
+const std::string apiQuickEnabled = "/QuickConnect/Enabled";
+const std::string apiQuickInitiate = "/QuickConnect/Initiate";
+const std::string apiQuickConnect = "/QuickConnect/Connect?secret={}";
+const std::string apiAuthWithQuickConnect = "/Users/AuthenticateWithQuickConnect";
 
 struct PublicSystemInfo {
     std::string Id;
@@ -43,21 +48,22 @@ struct UserResult {
     UserPolicy Policy;
     UserConfiguration Configuration;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(UserResult, Id, Name, ServerId, HasPassword, Policy, Configuration);
-
-struct SessionResult {
-    std::string Id;
-    std::string RemoteEndPoint;
-};
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SessionResult, Id, RemoteEndPoint);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(UserResult, Id, Name, ServerId, HasPassword);
 
 /// @brief /Users/authenticatebyname
 struct AuthResult {
     std::string AccessToken;
     std::string ServerId;
     UserResult User;
-    SessionResult SessionInfo;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AuthResult, AccessToken, ServerId, User, SessionInfo);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AuthResult, AccessToken, ServerId, User);
+
+struct QuickConnect {
+    bool Authenticated;
+    std::string Code;
+    std::string DateAdded;
+    std::string Secret;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(QuickConnect, Authenticated, Code, DateAdded, Secret);
 
 }

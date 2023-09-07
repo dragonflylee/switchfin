@@ -22,6 +22,21 @@
     "quality": "Videoqualität",
     "auto": "Auto"
   },
+  "search": {
+    "tv": {
+      "hint": "Support keywords and their initial letters",
+      "clear": "klären",
+      "delete": "löschen",
+      "search": "Suche",
+      "history": "Geschichte",
+      "suggest": "Vorschläge"
+    },
+    "genres": {
+      "movie": "Filme",
+      "series": "Serie",
+      "episode": "Folgen"
+    }
+  },
   "setting": {
     "quit_hint": "Diese Applikation wird beended und die Einstellung tritt bei dem nächsten Start in kraft.",
     "name": "Name",
@@ -70,6 +85,14 @@
       "font_a1": "1. Lade Schriftart oder Icons herunter\n2. Benenne die Schriftart: font.ttf; Benenne die Icons: icon.ttf\n3. Setze die neuen Dateien in den Konfigurationsordner\n4. Starte die Applikation neu",
       "font_q2": "FAQ",
       "font_a2": "1. Switchfin priorisiert selbst gesetzte Schriftarten, ansonsten verwendet es die selbst eingebauten Schriftarten\n2. In \"Einstellungen - Anleitungen\" befindet sich ein Knopf um den Einstellungsordner zu öffnen\n3. Auf Linux verwendet Switchfin xdg-open um diesen Ordner zu öffnen. Falls sich der Ordner sich nicht richtig öffnet, dann anstalliere xdg-open"
+    },
+    "quick_connect": {
+      "header": "Schnellverbindung",
+      "code": "Code für die Schnellverbindung",
+      "invalid": "Ungültiger Code für die Schnellverbindung",
+      "success": "Autorisierung für Schnellverbindung erfolgreich. Bitte fahre auf dem anderen Gerät fort.",
+      "steps": "1. Öffne die Jellyfin App auf deinem Smartphone oder Web Browser und logge dich mit deinem Account ein\n2. Öffne das Benutzer-Menü und gehe zur Seite für die Schnellverbindung\n3. Gib folgenden Code ein:",
+      "disabled": "Hinweis: Schnellverbindung nicht aktiviert"
     },
     "others": {
       "header": "Diverses",
