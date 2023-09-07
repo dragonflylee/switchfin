@@ -144,8 +144,8 @@ void AppConfig::init() {
         }
     }
 
-    brls::Logger::info(
-        "init {} {} device {} from {}", AppVersion::getPlatform(), AppVersion::getVersion(), this->device, path);
+    brls::Logger::info("init {} v{}-{} device {} from {}", AppVersion::getPlatform(), AppVersion::getVersion(),
+        AppVersion::getCommit(), this->device, path);
 }
 
 void AppConfig::save() {
@@ -182,13 +182,13 @@ bool AppConfig::checkLogin() {
 
 std::string AppConfig::configDir() {
 #if __SWITCH__
-    return fmt::format("sdmc:/switch/{}", AppVersion::pkg_name);
+    return fmt::format("sdmc:/switch/{}", AppVersion::getPackageName());
 #elif _WIN32
-    return fmt::format("{}\\{}", getenv("LOCALAPPDATA"), AppVersion::pkg_name);
+    return fmt::format("{}\\{}", getenv("LOCALAPPDATA"), AppVersion::getPackageName());
 #elif __linux__
-    return fmt::format("{}/.config/{}", getenv("HOME"), AppVersion::pkg_name);
+    return fmt::format("{}/.config/{}", getenv("HOME"), AppVersion::getPackageName());
 #elif __APPLE__
-    return fmt::format("{}/Library/Application Support/{}", getenv("HOME"), AppVersion::pkg_name);
+    return fmt::format("{}/Library/Application Support/{}", getenv("HOME"), AppVersion::getPackageName());
 #endif
 }
 
@@ -271,12 +271,12 @@ std::string AppConfig::getDevice(const std::string& token) {
     if (token.empty())
         return fmt::format(
             "X-Emby-Authorization: MediaBrowser Client=\"{}\", Device=\"{}\", DeviceId=\"{}\", Version=\"{}\"",
-            AppVersion::pkg_name, AppVersion::getDeviceName(), this->device, AppVersion::getVersion());
+            AppVersion::getPackageName(), AppVersion::getDeviceName(), this->device, AppVersion::getVersion());
     else
         return fmt::format(
             "X-Emby-Authorization: MediaBrowser Client=\"{}\", Device=\"{}\", DeviceId=\"{}\", Version=\"{}\", "
             "Token=\"{}\"",
-            AppVersion::pkg_name, AppVersion::getDeviceName(), this->device, AppVersion::getVersion(), token);
+            AppVersion::getPackageName(), AppVersion::getDeviceName(), this->device, AppVersion::getVersion(), token);
 }
 
 const std::vector<AppServer> AppConfig::getServers() const {

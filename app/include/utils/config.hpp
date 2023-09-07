@@ -13,14 +13,13 @@ public:
     static std::string getVersion();
     static std::string getPlatform();
     static std::string getDeviceName();
+    static std::string getPackageName();
+    static std::string getCommit();
     static bool needUpdate(std::string latestVersion);
     static void checkUpdate(int delay = 2000, bool showUpToDateDialog = false);
 
     inline static std::shared_ptr<std::atomic_bool> updating = std::make_shared<std::atomic_bool>(true);
     inline static std::string git_repo = "dragonflylee/switchfin";
-    static std::string git_commit;
-    static std::string git_tag;
-    static std::string pkg_name;
 };
 
 struct AppUser {

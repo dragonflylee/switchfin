@@ -13,11 +13,11 @@ using namespace brls::literals;
 #define STR_IMPL(x) #x
 #define STR(x) STR_IMPL(x)
 
-std::string AppVersion::git_commit = STR(BUILD_TAG_SHORT);
-std::string AppVersion::git_tag = STR(BUILD_TAG_VERSION);
-std::string AppVersion::pkg_name = STR(BUILD_PACKAGE_NAME);
+std::string AppVersion::getVersion() { return STR(APP_VERSION); }
 
-std::string AppVersion::getVersion() { return git_tag.empty() ? "dev-" + git_commit : git_tag; }
+std::string AppVersion::getPackageName() { return STR(BUILD_PACKAGE_NAME); }
+
+std::string AppVersion::getCommit()  { return STR(BUILD_TAG_SHORT); }
 
 std::string AppVersion::getPlatform() {
 #if __SWITCH__
@@ -63,7 +63,7 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
             auto resp = HTTP::get(url, HTTP::Timeout{default_timeout});
             nlohmann::json j = nlohmann::json::parse(resp);
             std::string latest_ver = j.at("tag_name").get<std::string>();
-            if (latest_ver.compare(git_tag) <= 0) {
+            if (latest_ver.compare(getVersion()) <= 0) {
                 brls::Logger::info("App is up to date");
                 if (showUpToDateDialog) brls::sync([]() { Dialog::show("main/setting/others/up2date"_i18n); });
                 return;
@@ -76,6 +76,7 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
                     AppVersion::updating->store(false);
                     ThreadPool::instance().submit([latest_ver]() {
                         std::string conf_dir = AppConfig::instance().configDir();
+                        std::string pkg_name = AppVersion::getPackageName();
                         std::string path = fmt::format("{}/{}_{}.nro", conf_dir, pkg_name, latest_ver);
                         std::string url = fmt::format(
                             "https://github.com/{}/releases/download/{}/Switchfin.nro", git_repo, latest_ver);

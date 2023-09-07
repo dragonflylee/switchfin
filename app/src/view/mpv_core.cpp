@@ -187,7 +187,7 @@ void MPVCore::init() {
     }
     mpv_free_node_contents(&node);
 
-    command_str("set audio-client-name {}", AppVersion::pkg_name);
+    command_str("set audio-client-name {}", AppVersion::getPackageName());
     // set event callback
     mpv_set_wakeup_callback(mpv, on_wakeup, this);
     // set render callback
@@ -760,7 +760,7 @@ double MPVCore::getPlaybackTime() {
     return this->playback_time;
 }
 void MPVCore::disableDimming(bool disable) {
-    brls::Application::getPlatform()->disableScreenDimming(disable, "Playing video", AppVersion::pkg_name);
+    brls::Application::getPlatform()->disableScreenDimming(disable, "Playing video", AppVersion::getPackageName());
     brls::Application::setAutomaticDeactivation(!disable);
 }
 

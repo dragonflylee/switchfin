@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   upload-release:
-    needs: [ build-msvc-x64, build-mingw64, build-switch, build-macos, build-snap ]
+    needs: [ build-msvc-x64, build-switch, build-macos ]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
@@ -43,7 +43,6 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
-        fetch-depth: 0
     - name: Update dependencies
       run: |
         for p in `curl -sL https://api.github.com/repos/${{ github.repository }}/releases/tags/switch-portlibs | grep browser_download_url | cut -d\" -f4`; do dkp-pacman --noconfirm -U $p; done
@@ -54,7 +53,7 @@ jobs:
         git config --system --add safe.directory '*'
     - name: Build nro
       run: |
-        cmake -B build_switch -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON
+        cmake -B build_switch -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON -DVERSION_BUILD=${{ github.run_number }}
         make -C build_switch Switchfin.nro -j$(nproc)
     - name: Set outputs
       id: vars
@@ -72,7 +71,6 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
-        fetch-depth: 0
     - name: Update gamepad mappings
       run: |
         BRLS_GLFW=library/borealis/library/lib/extern/glfw
@@ -95,7 +93,6 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
-        fetch-depth: 0
     - name: Install deps
       run: |
         brew install create-dmg dylibbundler webp boost
@@ -107,7 +104,7 @@ jobs:
         cmake -P $BRLS_GLFW/CMake/GenerateMappings.cmake $BRLS_GLFW/src/mappings.h.in $BRLS_GLFW/src/mappings.h
     - name: Build App
       run: |
-        cmake -B build -DPLATFORM_DESKTOP=ON -DUSE_BOOST_FILESYSTEM=ON -DCMAKE_BUILD_TYPE=Release
+        cmake -B build -DPLATFORM_DESKTOP=ON -DUSE_BOOST_FILESYSTEM=ON -DVERSION_BUILD=${{ github.run_number }}
         make -C build -j$(sysctl -n hw.ncpu)
     - name: Create DMG
       run: |
@@ -140,7 +137,6 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
-        fetch-depth: 0
     - name: Install dependency
       run: |
         pacman -S --noconfirm --noprogressbar mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake git p7zip
@@ -160,7 +156,7 @@ jobs:
         cmake -P $BRLS_GLFW/CMake/GenerateMappings.cmake $BRLS_GLFW/src/mappings.h.in $BRLS_GLFW/src/mappings.h
     - name: Build
       run: |
-        cmake -B build_mingw -G 'MinGW Makefiles' -DUSE_LIBROMFS=ON -DPLATFORM_DESKTOP=ON -DWIN32_TERMINAL=OFF -DUSE_SYSTEM_CURL=OFF
+        cmake -B build_mingw -G 'MinGW Makefiles' -DUSE_LIBROMFS=ON -DPLATFORM_DESKTOP=ON -DWIN32_TERMINAL=OFF -DUSE_SYSTEM_CURL=OFF -DVERSION_BUILD=${{ github.run_number }}
         mingw32-make -C build_mingw -j4
 
         for i in {libwinpthread-1,zlib1}; do cp /mingw64/bin/$i.dll build_mingw; done
@@ -184,7 +180,6 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
-        fetch-depth: 0
     - name: Cache xmake packages
       uses: actions/cache@v3
       with:

@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
     // Return directly to the desktop when closing the application (only for NX)
     brls::Application::getPlatform()->exitToHomeMode(true);
 
-    brls::Application::createWindow(fmt::format("{} for {}", AppVersion::pkg_name, AppVersion::getPlatform()));
+    brls::Application::createWindow(fmt::format("{} for {}", AppVersion::getPackageName(), AppVersion::getPlatform()));
 
     // Have the application register an action on every activity that will quit when you press BUTTON_START
     brls::Application::setGlobalQuit(false);

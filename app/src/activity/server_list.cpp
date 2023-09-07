@@ -58,7 +58,7 @@ public:
             HTTP::Header header = {
                 fmt::format("X-Emby-Authorization: MediaBrowser Client=\"{}\", Device=\"{}\", DeviceId=\"{}\", "
                             "Version=\"{}\", Token=\"{}\"",
-                    AppVersion::pkg_name, AppVersion::getDeviceName(), conf.getDevice(), AppVersion::getVersion(),
+                    AppVersion::getPackageName(), AppVersion::getDeviceName(), conf.getDevice(), AppVersion::getVersion(),
                     u.access_token)};
             const long timeout = conf.getItem(AppConfig::REQUEST_TIMEOUT, default_timeout);
             try {

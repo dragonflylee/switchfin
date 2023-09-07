@@ -26,7 +26,7 @@ private:
     std::string msg;
 };
 
-static std::string user_agent = fmt::format("{}/{}", AppVersion::pkg_name, AppVersion::getVersion());
+static std::string user_agent = fmt::format("{}/{}", AppVersion::getPackageName(), AppVersion::getVersion());
 
 /// @brief curl context
 

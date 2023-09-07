@@ -50,7 +50,7 @@
 
     <brls:Box
         axis="column"
-        height="20px"
+        height="50"
         alignItems="center">
         <brls:Label
             wireframe="false"

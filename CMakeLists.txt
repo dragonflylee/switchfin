@@ -30,7 +30,25 @@ if (MPV_NO_FB)
     list(APPEND APP_PLATFORM_OPTION -DMPV_NO_FB)
 endif()
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/deps.cmake)
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+elseif (CMAKE_BUILD_TYPE STREQUAL Debug)
+    list(APPEND APP_PLATFORM_OPTION -D_DEBUG -D_GLIBCXX_ASSERTIONS)
+endif()
+
+# Add git info
+if (NOT DEFINED GIT_TAG_SHORT)
+    execute_process(COMMAND git rev-parse --short HEAD
+        TIMEOUT 5 OUTPUT_VARIABLE GIT_TAG_SHORT
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif ()
+
+if (NOT DEFINED VERSION_BUILD)
+    execute_process(COMMAND git rev-list --count --all
+        TIMEOUT 5 OUTPUT_VARIABLE VERSION_BUILD
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif ()
+message(STATUS "git commit ${GIT_TAG_SHORT} build ${VERSION_BUILD}")
 
 # toolchain
 include(${BOREALIS_LIBRARY}/cmake/toolchain.cmake)
@@ -38,7 +56,7 @@ include(${BOREALIS_LIBRARY}/cmake/toolchain.cmake)
 # project info
 project(Switchfin)
 set(VERSION_MAJOR "0")
-set(VERSION_MINOR "2")
+set(VERSION_MINOR "3")
 set(VERSION_ALTER "0")
 set(PROJECT_TITLEID "010ff000ffff0003")
 set(PROJECT_AUTHOR "dragonflylee")
@@ -172,8 +190,8 @@ target_compile_options(${PROJECT_NAME} PRIVATE -ffunction-sections -fdata-sectio
 target_link_libraries(${PROJECT_NAME} PRIVATE borealis lunasvg ${APP_PLATFORM_LIB})
 target_link_options(${PROJECT_NAME} PRIVATE ${APP_PLATFORM_LINK_OPTION})
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-    APP_VERSION=v${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}
-    BUILD_TAG_VERSION=${GIT_TAG_VERSION}
+    APP_VERSION=${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}
+    APP_BUILD=${VERSION_BUILD}
     BUILD_TAG_SHORT=${GIT_TAG_SHORT}
     BUILD_PACKAGE_NAME=${CMAKE_PROJECT_NAME}
 )

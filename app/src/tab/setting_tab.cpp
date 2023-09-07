@@ -34,8 +34,8 @@ public:
     SettingAbout() {
         this->inflateFromXMLRes("xml/view/setting_about.xml");
 
-        this->labelTitle->setText(AppVersion::pkg_name);
-        this->labelVersion->setText(AppVersion::getVersion());
+        this->labelTitle->setText(AppVersion::getPackageName());
+        this->labelVersion->setText(fmt::format("v{}-{}", AppVersion::getVersion(), AppVersion::getCommit()));
         this->labelGithub->setText("https://github.com/" + AppVersion::git_repo);
 
         auto& mpv = MPVCore::instance();
