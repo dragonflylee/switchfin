@@ -4,34 +4,26 @@
 
     <brls:Box
         width="50%"
-        height="auto"
         axis="column"
         alignItems="stretch">
 
         <brls:Header
-            width="auto"
-            height="auto"
             id="server/sigin_to" />
-        <brls:Box
-            width="100%"
-            height="auto"
-            axis="column">
 
-            <brls:InputCell
-                id="server/user" />
 
-            <brls:InputCell
-                id="server/pass" />
+        <brls:InputCell
+            id="server/user" />
 
-            <brls:Button
-                marginTop="15"
-                text="@i18n/main/setting/server/signin"
-                style="primary"
-                fontSize="@style/brls/sidebar/item_font_size"
-                padding="12.5"
-                id="server/signin" />
+        <brls:InputCell
+            id="server/pass" />
 
-        </brls:Box>
+        <brls:Button
+            text="@i18n/main/setting/server/signin"
+            marginTop="15"
+            style="primary"
+            fontSize="@style/brls/sidebar/item_font_size"
+            padding="12.5"
+            id="server/signin" />
 
     </brls:Box>
 </brls:Box>

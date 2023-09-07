@@ -165,11 +165,7 @@ void AppConfig::save() {
 bool AppConfig::checkLogin() {
     for (auto& u : this->users) {
         if (u.id == this->user_id) {
-            HTTP::Header header = {
-                fmt::format("X-Emby-Authorization: MediaBrowser Client=\"{}\", Device=\"{}\", DeviceId=\"{}\", "
-                            "Version=\"{}\", Token=\"{}\"",
-                    AppVersion::pkg_name, AppVersion::getDeviceName(), this->getDevice(), AppVersion::getVersion(),
-                    u.access_token)};
+            HTTP::Header header = {this->getDevice(u.access_token)};
             const long timeout = this->getItem(AppConfig::REQUEST_TIMEOUT, default_timeout);
             try {
                 HTTP::get(this->server_url + jellyfin::apiInfo, header, HTTP::Timeout{timeout});
@@ -269,6 +265,18 @@ bool AppConfig::addUser(const AppUser& u) {
     this->user = u;
     this->save();
     return found;
+}
+
+std::string AppConfig::getDevice(const std::string& token) {
+    if (token.empty())
+        return fmt::format(
+            "X-Emby-Authorization: MediaBrowser Client=\"{}\", Device=\"{}\", DeviceId=\"{}\", Version=\"{}\"",
+            AppVersion::pkg_name, AppVersion::getDeviceName(), this->device, AppVersion::getVersion());
+    else
+        return fmt::format(
+            "X-Emby-Authorization: MediaBrowser Client=\"{}\", Device=\"{}\", DeviceId=\"{}\", Version=\"{}\", "
+            "Token=\"{}\"",
+            AppVersion::pkg_name, AppVersion::getDeviceName(), this->device, AppVersion::getVersion(), token);
 }
 
 const std::vector<AppServer> AppConfig::getServers() const {

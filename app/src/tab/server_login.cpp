@@ -26,20 +26,20 @@ ServerLogin::ServerLogin(const AppServer& s, const std::string& user) : url(s.ur
 ServerLogin::~ServerLogin() { brls::Logger::debug("ServerLogin Activity: delete"); }
 
 bool ServerLogin::onSignin() {
+    std::string username = inputUser->getValue();
+    std::string password = inputPass->getValue();
+    if (username.empty()) {
+        Dialog::show("Username is empty");
+        return false;
+    }
+
     brls::Application::blockInputs();
     btnSignin->setTextColor(brls::Application::getTheme().getColor("font/grey"));
-    nlohmann::json data = {{"Username", inputUser->getValue()}, {"Pw", inputPass->getValue()}};
+    nlohmann::json data = {{"Username", username}, {"Pw", password}};
 
     ASYNC_RETAIN
     brls::async([ASYNC_TOKEN, data]() {
-        HTTP::Header header = {
-            "Content-Type: application/json",
-            fmt::format(
-                "X-Emby-Authorization: MediaBrowser Client=\"{}\", Device=\"{}\", DeviceId=\"{}\", Version=\"{}\"",
-                AppVersion::pkg_name, AppVersion::getDeviceName(), AppConfig::instance().getDevice(),
-                AppVersion::getVersion()),
-        };
-
+        HTTP::Header header = {"Content-Type: application/json", AppConfig::instance().getDevice()};
         brls::Logger::info("login header {}", header[1]);
 
         try {
