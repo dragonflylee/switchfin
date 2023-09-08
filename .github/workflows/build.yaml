@@ -194,7 +194,7 @@ jobs:
         xmake config -c -y
         xmake build -y
         cd build\windows\x64\release
-        7z a -mx=9 "$env:GITHUB_WORKSPACE\Switchfin-msvc-x64.zip" *
+        7z a -mx=9 "$env:GITHUB_WORKSPACE\Switchfin-msvc-x64.7z" *
     - name: Set outputs
       id: vars
       shell: bash
@@ -203,4 +203,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: switchfin-win64-${{ steps.vars.outputs.sha_short }}
-        path: Switchfin-*.zip
+        path: Switchfin-*.7z

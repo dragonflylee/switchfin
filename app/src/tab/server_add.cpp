@@ -23,6 +23,7 @@ ServerAdd::~ServerAdd() { brls::Logger::debug("ServerAdd Activity: delete"); }
 ServerAdd* ServerAdd::create() { return new ServerAdd(); }
 
 bool ServerAdd::onConnect() {
+    brls::Application::blockInputs();
     this->btnConnect->setTextColor(brls::Application::getTheme().getColor("font/grey"));
     std::string baseUrl = this->inputUrl->getValue();
     brls::Logger::debug("ServerAdd onConnect: click {}", baseUrl);
@@ -42,12 +43,14 @@ bool ServerAdd::onConnect() {
             brls::sync([ASYNC_TOKEN, s]() {
                 ASYNC_RELEASE
                 AppConfig::instance().addServer(s);
+                brls::Application::unblockInputs();
                 this->present(new ServerLogin(s));
             });
         } catch (const std::exception& ex) {
             brls::sync([ASYNC_TOKEN, &ex]() {
                 ASYNC_RELEASE
                 this->btnConnect->setTextColor(brls::Application::getTheme().getColor("brls/text"));
+                brls::Application::unblockInputs();
                 Dialog::show(ex.what());
             });
         }

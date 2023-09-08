@@ -34,7 +34,7 @@ bool ServerLogin::onSignin() {
     }
 
     brls::Application::blockInputs();
-    btnSignin->setTextColor(brls::Application::getTheme().getColor("font/grey"));
+    this->btnSignin->setState(brls::ButtonState::DISABLED);
     nlohmann::json data = {{"Username", username}, {"Pw", password}};
 
     ASYNC_RETAIN
@@ -49,6 +49,7 @@ bool ServerLogin::onSignin() {
             brls::sync([ASYNC_TOKEN, u]() {
                 ASYNC_RELEASE
                 AppConfig::instance().addUser(u);
+                this->btnSignin->setState(brls::ButtonState::ENABLED);
                 brls::Application::unblockInputs();
                 brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
                 GA("login", {{"method", {this->url}}});
@@ -56,7 +57,7 @@ bool ServerLogin::onSignin() {
         } catch (const std::exception& ex) {
             brls::sync([ASYNC_TOKEN, &ex]() {
                 ASYNC_RELEASE
-                this->btnSignin->setTextColor(brls::Application::getTheme().getColor("brls/text"));
+                this->btnSignin->setState(brls::ButtonState::ENABLED);
                 brls::Application::unblockInputs();
                 Dialog::show(ex.what());
             });
