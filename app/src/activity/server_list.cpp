@@ -69,9 +69,10 @@ public:
                     brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
                 });
             } catch (const std::exception& ex) {
-                brls::sync([&ex]() {
+                std::string msg = ex.what();
+                brls::sync([msg]() {
                     brls::Application::unblockInputs();
-                    Dialog::show(ex.what());
+                    Dialog::show(msg);
                 });
             }
         });

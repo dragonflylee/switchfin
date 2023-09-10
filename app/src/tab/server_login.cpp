@@ -55,11 +55,12 @@ bool ServerLogin::onSignin() {
                 GA("login", {{"method", {this->url}}});
             });
         } catch (const std::exception& ex) {
-            brls::sync([ASYNC_TOKEN, &ex]() {
+            std::string msg = ex.what();
+            brls::sync([ASYNC_TOKEN, msg]() {
                 ASYNC_RELEASE
                 this->btnSignin->setState(brls::ButtonState::ENABLED);
                 brls::Application::unblockInputs();
-                Dialog::show(ex.what());
+                Dialog::show(msg);
             });
         }
     });

@@ -22,7 +22,6 @@
             marginTop="15"
             style="primary"
             fontSize="@style/brls/sidebar/item_font_size"
-            padding="12.5"
             id="server/signin" />
 
     </brls:Box>

@@ -47,11 +47,12 @@ bool ServerAdd::onConnect() {
                 this->present(new ServerLogin(s));
             });
         } catch (const std::exception& ex) {
-            brls::sync([ASYNC_TOKEN, &ex]() {
+            std::string msg = ex.what();
+            brls::sync([ASYNC_TOKEN, msg]() {
                 ASYNC_RELEASE
                 this->btnConnect->setTextColor(brls::Application::getTheme().getColor("brls/text"));
                 brls::Application::unblockInputs();
-                Dialog::show(ex.what());
+                Dialog::show(msg);
             });
         }
     });
