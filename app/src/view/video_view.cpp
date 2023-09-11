@@ -214,10 +214,9 @@ void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::S
 
     // draw video profile
     if (profile->getVisibility() == brls::Visibility::VISIBLE) {
-        static time_t last = current;
-        if (current - last > 2) {
+        if (current - this->profileLastShowTime > 2) {
             profile->update();
-            last = current;
+            this->profileLastShowTime = current;
         }
         profile->frame(ctx);
     }

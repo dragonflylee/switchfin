@@ -90,7 +90,7 @@ public:
 
     double getPlaybackTime();
 
-    std::string getCacheSpeed();
+    std::string getCacheSpeed() const;
 
     void setUrl(const std::string &url, const std::string &extra = "", const std::string &method = "replace");
 

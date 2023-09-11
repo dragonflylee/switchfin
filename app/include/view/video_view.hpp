@@ -89,6 +89,7 @@ private:
     bool isOsdShown = false;
     time_t osdLastShowTime = 0;
     time_t hintLastShowTime = 0;
+    time_t profileLastShowTime = 0;
     const time_t OSD_SHOW_TIME = 5;  //默认5秒
     OSDState osd_state = OSDState::HIDDEN;
     VideoProfile* profile;

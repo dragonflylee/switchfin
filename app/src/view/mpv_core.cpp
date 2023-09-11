@@ -411,10 +411,9 @@ void MPVCore::setFrameSize(brls::Rect rect) {
         mpv_params[3].data = pixels;
     }
 
-    if (nvg_image) nvgDeleteImage(brls::Application::getNVGContext(), nvg_image);
-    nvg_image = nvgCreateImageRGBA(
-        brls::Application::getNVGContext(), drawWidth, drawHeight, mpvImageFlags, (const unsigned char *)pixels);
-    brls::Logger::error("=======> {}/{}", drawWidth, drawHeight);
+    auto vg = brls::Application::getNVGContext();
+    if (nvg_image) nvgDeleteImage(vg, nvg_image);
+    nvg_image = nvgCreateImageRGBA(vg, drawWidth, drawHeight, mpvImageFlags, (const unsigned char *)pixels);
 
     sw_size[0] = drawWidth;
     sw_size[1] = drawHeight;
@@ -540,7 +539,7 @@ void MPVCore::openglDraw(brls::Rect rect, float alpha) {
     }
 }
 
-std::string MPVCore::getCacheSpeed() {
+std::string MPVCore::getCacheSpeed() const {
     if (cache_speed >> 20 > 0) {
         return fmt::format("{:.2f} MB/s", (cache_speed >> 10) / 1024.0f);
     } else if (cache_speed >> 10 > 0) {

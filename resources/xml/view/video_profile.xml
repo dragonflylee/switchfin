@@ -3,7 +3,7 @@
     backgroundColor="@theme/brls/backdrop"
     padding="10"
     cornerRadius="4"
-    width="650">
+    width="60%">
 
     <!-- File-->
     <brls:Label
