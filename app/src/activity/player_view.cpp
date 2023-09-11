@@ -256,6 +256,12 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
                 if (seekTicks > 0) {
                     ssextra << ",start=" << misc::sec2Time(seekTicks / jellyfin::PLAYTICKS);
                 }
+                if (item.DirectStreamUrl.size() > 0) {
+                    this->playMethod = jellyfin::methodDirectPlay;
+                    mpv.setUrl(svr + item.DirectStreamUrl, ssextra.str());
+                    this->stream = std::move(item);
+                    return;
+                }
                 if (item.SupportsDirectPlay || MPVCore::FORCE_DIRECTPLAY) {
                     std::string url = fmt::format(fmt::runtime(jellyfin::apiStream), this->itemId,
                         HTTP::encode_form({
@@ -269,7 +275,6 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
                     this->stream = std::move(item);
                     return;
                 }
-
                 if (item.SupportsTranscoding) {
                     this->playMethod = jellyfin::methodTranscode;
                     mpv.setUrl(svr + item.TranscodingUrl, ssextra.str());
