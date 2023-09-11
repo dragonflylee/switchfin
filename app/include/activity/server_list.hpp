@@ -18,6 +18,7 @@ public:
 
     void onContentAvailable() override;
     void onSelect(const AppServer& s);
+    std::string getUrl();
 
 private:
     BRLS_BIND(brls::Button, btnServerAdd, "btn/server/add");

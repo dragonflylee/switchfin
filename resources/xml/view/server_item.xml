@@ -4,6 +4,17 @@
     alignItems="center"
     focusable="true">
 
+    <brls:Rectangle
+        id="brls/sidebar/item_accent"
+        width="@style/brls/sidebar/item_accent_rect_width"
+        height="auto"
+        visibility="invisible"
+        color="@theme/brls/sidebar/active_item"
+        marginTop="@style/brls/sidebar/item_accent_margin_top_bottom"
+        marginBottom="@style/brls/sidebar/item_accent_margin_top_bottom"
+        marginLeft="@style/brls/sidebar/item_accent_margin_sides"
+        marginRight="@style/brls/sidebar/item_accent_margin_sides" />
+
     <SVGImage
         width="80"
         height="auto"

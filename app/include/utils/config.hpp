@@ -99,7 +99,7 @@ public:
     inline const Option& getOptions(const Item item) const { return settingMap[item]; }
 
     bool addServer(const AppServer& s);
-    bool addUser(const AppUser& u);
+    bool addUser(const AppUser& u, const std::string& url);
     std::string getDevice(const std::string& token = "");
     const AppUser& getUser() const { return this->user; }
     const std::string& getUrl() const { return this->server_url; }

@@ -44,7 +44,7 @@ bool ServerAdd::onConnect() {
                 ASYNC_RELEASE
                 AppConfig::instance().addServer(s);
                 brls::Application::unblockInputs();
-                this->present(new ServerLogin(s));
+                this->present(new ServerLogin(s.name, s.urls.front()));
             });
         } catch (const std::exception& ex) {
             std::string msg = ex.what();

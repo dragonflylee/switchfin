@@ -37,7 +37,7 @@ public:
 
 class ServerUserDataSource : public RecyclingGridDataSource {
 public:
-    ServerUserDataSource(const std::vector<AppUser>& users) : list(users) {}
+    ServerUserDataSource(const std::vector<AppUser>& users, ServerList* server) : list(users), parent(server) {}
 
     size_t getItemCount() override { return this->list.size(); }
 
@@ -45,26 +45,20 @@ public:
         UserCell* cell = dynamic_cast<UserCell*>(recycler->dequeueReusableCell("Cell"));
         auto& u = this->list.at(index);
         cell->labelName->setText(u.name);
-        Image::load(cell->picture, jellyfin::apiUserImage, u.id, "");
+        // Image::with(cell->picture, this->parent->getUrl() + fmt::format(fmt::runtime(jellyfin::apiUserImage), u.id, ""));
         return cell;
     }
 
     void onItemSelected(brls::View* recycler, size_t index) override {
-        auto& u = this->list.at(index);
         brls::Application::blockInputs();
 
-        brls::async([u]() {
-            auto& conf = AppConfig::instance();
-            HTTP::Header header = {
-                fmt::format("X-Emby-Authorization: MediaBrowser Client=\"{}\", Device=\"{}\", DeviceId=\"{}\", "
-                            "Version=\"{}\", Token=\"{}\"",
-                    AppVersion::getPackageName(), AppVersion::getDeviceName(), conf.getDevice(), AppVersion::getVersion(),
-                    u.access_token)};
-            const long timeout = conf.getItem(AppConfig::REQUEST_TIMEOUT, default_timeout);
+        brls::async([this, index]() {
+            auto& u = this->list.at(index);
+            HTTP::Header header = {fmt::format("X-Emby-Token: {}", u.access_token)};
             try {
-                HTTP::get(conf.getUrl() + jellyfin::apiInfo, header, HTTP::Timeout{timeout});
-                brls::sync([u]() {
-                    AppConfig::instance().addUser(u);
+                HTTP::get(this->parent->getUrl() + jellyfin::apiInfo, header, HTTP::Timeout{default_timeout});
+                brls::sync([this, u]() {
+                    AppConfig::instance().addUser(u, this->parent->getUrl());
                     brls::Application::unblockInputs();
                     brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
                 });
@@ -82,6 +76,7 @@ public:
 
 private:
     std::vector<AppUser> list;
+    ServerList* parent;
 };
 
 class ServerListDataSource : public RecyclingGridDataSource {
@@ -144,8 +139,8 @@ void ServerList::onSelect(const AppServer& s) {
 
     });
 
-    this->btnSignin->registerClickAction([s](brls::View *view) {
-        view->present(new ServerLogin(s));
+    this->btnSignin->registerClickAction([this, s](brls::View* view) {
+        view->present(new ServerLogin(s.name, this->getUrl()));
         return true;
     });
 
@@ -153,6 +148,8 @@ void ServerList::onSelect(const AppServer& s) {
         this->recyclerUsers->setVisibility(brls::Visibility::GONE);
     } else {
         this->recyclerUsers->setVisibility(brls::Visibility::VISIBLE);
-        this->recyclerUsers->setDataSource(new ServerUserDataSource(s.users));
+        this->recyclerUsers->setDataSource(new ServerUserDataSource(s.users, this));
     }
 }
+
+std::string ServerList::getUrl() { return this->selectorUrl->detail->getFullText(); }

@@ -10,12 +10,12 @@
 
 using namespace brls::literals;  // for _i18n
 
-ServerLogin::ServerLogin(const AppServer& s, const std::string& user) : url(s.urls.front()) {
+ServerLogin::ServerLogin(const std::string& name, const std::string& url, const std::string& user) : url(url) {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/server_login.xml");
     brls::Logger::debug("ServerLogin: create");
 
-    this->hdrSigin->setTitle(fmt::format(fmt::runtime("main/setting/server/sigin_to"_i18n), s.name));
+    this->hdrSigin->setTitle(fmt::format(fmt::runtime("main/setting/server/sigin_to"_i18n), name));
     this->inputUser->init("main/setting/username"_i18n, user);
     this->inputPass->init(
         "main/setting/password"_i18n, "", [](std::string text) {}, "", "", 256);
@@ -48,7 +48,7 @@ bool ServerLogin::onSignin() {
             AppUser u = {.id = r.User.Id, .name = r.User.Name, .access_token = r.AccessToken, .server_id = r.ServerId};
             brls::sync([ASYNC_TOKEN, u]() {
                 ASYNC_RELEASE
-                AppConfig::instance().addUser(u);
+                AppConfig::instance().addUser(u, this->url);
                 this->btnSignin->setState(brls::ButtonState::ENABLED);
                 brls::Application::unblockInputs();
                 brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);

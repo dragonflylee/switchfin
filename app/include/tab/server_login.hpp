@@ -5,11 +5,10 @@
 #pragma once
 
 #include <borealis.hpp>
-#include "utils/config.hpp"
 
 class ServerLogin : public brls::Box {
 public:
-    ServerLogin(const AppServer& s, const std::string& user = "");
+    ServerLogin(const std::string& name, const std::string& url, const std::string& user = "");
     ~ServerLogin();
 
     bool onSignin();

@@ -248,7 +248,7 @@ bool AppConfig::addServer(const AppServer& s) {
     return found;
 }
 
-bool AppConfig::addUser(const AppUser& u) {
+bool AppConfig::addUser(const AppUser& u, const std::string& url) {
     bool found = false;
     for (auto& o : this->users) {
         if (o.id == u.id) {
@@ -261,6 +261,7 @@ bool AppConfig::addUser(const AppUser& u) {
     }
     if (!found) this->users.push_back(u);
 
+    this->server_url = url;
     this->user_id = u.id;
     this->user = u;
     this->save();
