@@ -153,17 +153,17 @@ void MediaCollection::doRequest() {
     jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
         [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
             ASYNC_RELEASE
-            this->startIndex = r.StartIndex + this->pageSize;
             if (r.TotalRecordCount == 0) {
                 this->recycler->setEmpty();
-            } else if (r.StartIndex == 0) {
+            } else if (this->startIndex == 0) {
                 this->recycler->setDataSource(new VideoDataSource(r.Items));
                 brls::Application::giveFocus(this->recycler);
-            } else if (r.Items.size() > 0) {
+            } else if (r.Items.size() > 0 && this->startIndex < r.TotalRecordCount) {
                 auto dataSrc = dynamic_cast<VideoDataSource*>(this->recycler->getDataSource());
                 dataSrc->appendData(r.Items);
                 this->recycler->notifyDataChanged();
             }
+            this->startIndex += this->pageSize;
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
