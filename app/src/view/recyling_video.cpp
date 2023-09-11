@@ -68,11 +68,10 @@ void RecylingVideo::doRequest(bool refresh) {
     jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
         [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
             ASYNC_RELEASE
-            this->start = r.StartIndex + this->pageSize;
-            if (r.TotalRecordCount == 0) {
+            if (r.TotalRecordCount == 0 && this->start == 0) {
                 this->setVisibility(brls::Visibility::GONE);
                 this->recycler->clearData();
-            } else if (r.StartIndex == 0) {
+            } else if (this->start == 0) {
                 this->setVisibility(brls::Visibility::VISIBLE);
                 this->recycler->setDataSource(new VideoDataSource(r.Items));
                 this->title->setSubtitle(std::to_string(r.TotalRecordCount));
@@ -81,6 +80,7 @@ void RecylingVideo::doRequest(bool refresh) {
                 dataSrc->appendData(r.Items);
                 this->recycler->notifyDataChanged();
             }
+            this->start += this->pageSize;
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
@@ -125,11 +125,10 @@ void RecylingVideo::doLiveTV(bool refresh) {
     jellyfin::getJSON<jellyfin::Result<jellyfin::ProgramInfo>>(
         [ASYNC_TOKEN](const jellyfin::Result<jellyfin::ProgramInfo>& r) {
             ASYNC_RELEASE
-            this->start = r.StartIndex + this->pageSize;
             if (r.TotalRecordCount == 0) {
                 this->setVisibility(brls::Visibility::GONE);
                 this->recycler->clearData();
-            } else if (r.StartIndex == 0) {
+            } else if (this->start == 0) {
                 this->setVisibility(brls::Visibility::VISIBLE);
                 this->recycler->setDataSource(new ProgramDataSource(r.Items));
             } else if (r.Items.size() > 0) {
@@ -137,6 +136,7 @@ void RecylingVideo::doLiveTV(bool refresh) {
                 dataSrc->appendData(r.Items);
                 this->recycler->notifyDataChanged();
             }
+            this->start += this->pageSize;
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE

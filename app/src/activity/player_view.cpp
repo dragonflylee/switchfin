@@ -301,13 +301,11 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
     jellyfin::postJSON(
         {
             {"UserId", AppConfig::instance().getUserId()},
-            {"MediaSourceId", this->sourceId},
             {"AudioStreamIndex", PlayerSetting::selectedAudio},
             {"SubtitleStreamIndex", PlayerSetting::selectedSubtitle},
 #if defined(__PSV__)
             {"AlwaysBurnInSubtitleWhenTranscoding", PlayerSetting::selectedSubtitle > 0},
 #endif
-            {"AllowAudioStreamCopy", true},
             {"DeviceProfile", profile},
         },
         [ASYNC_TOKEN, seekTicks](const jellyfin::PlaybackResult& r) {
@@ -341,6 +339,12 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
 
                 if (HTTP::PROXY_STATUS) ssextra << ",http-proxy=\"" << HTTP::PROXY << "\"";
 
+                if (item.DirectStreamUrl.size() > 0) {
+                    this->playMethod = jellyfin::methodDirectPlay;
+                    mpv.setUrl(svr + item.DirectStreamUrl, ssextra.str());
+                    this->stream = std::move(item);
+                    return;
+                }
                 if (item.SupportsDirectPlay || MPVCore::FORCE_DIRECTPLAY) {
                     std::string url = fmt::format(fmt::runtime(jellyfin::apiStream), this->itemId,
                         HTTP::encode_form({

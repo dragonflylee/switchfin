@@ -37,16 +37,16 @@ public:
         jellyfin::getJSON<jellyfin::Result<jellyfin::ProgramInfo>>(
             [ASYNC_TOKEN](const jellyfin::Result<jellyfin::ProgramInfo>& r) {
                 ASYNC_RELEASE
-                this->start = r.StartIndex + this->pageSize;
                 if (r.TotalRecordCount == 0) {
                     this->clearData();
-                } else if (r.StartIndex == 0) {
+                } else if (this->start == 0) {
                     this->setDataSource(new ProgramDataSource(r.Items));
                 } else if (r.Items.size() > 0) {
                     auto dataSrc = dynamic_cast<ProgramDataSource*>(this->getDataSource());
                     dataSrc->appendData(r.Items);
                     this->notifyDataChanged();
                 }
+                this->start += this->pageSize;
             },
             [ASYNC_TOKEN](const std::string& ex) {
                 ASYNC_RELEASE
