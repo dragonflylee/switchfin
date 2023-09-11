@@ -6,8 +6,6 @@ ifeq ($(strip $(DEVKITPRO)),)
 $(error "Please set DEVKITPRO in your environment. export DEVKITPRO=<path to>/devkitpro")
 endif
 
-include $(DEVKITPRO)/libnx/switch_rules
-
 ifeq ($(OS),Windows_NT)
 MAKEPKG	:=	makepkg
 else
@@ -30,13 +28,8 @@ libass: harfbuzz
 	@echo Installing libass
 	@cd libass; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
 
-.PHONY: dav1d
-dav1d:
-	@echo Installing dav1d
-	@cd dav1d; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
-
 .PHONY: ffmpeg
-ffmpeg: libass dav1d
+ffmpeg: libass
 	@echo Installing ffmpeg
 	@cd ffmpeg; $(MAKEPKG) -c -C -f -i -s --noconfirm; cd ..
 

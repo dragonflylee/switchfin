@@ -19,7 +19,7 @@ jobs:
     - name: Install depends
       run: |
         apt-get update
-        apt-get install -y patch fakeroot file zstd ninja-build autoconf libtool python3-distutils
+        apt-get install -y fakeroot zstd ninja-build libtool python3-distutils manpages-
         curl -sL https://bootstrap.pypa.io/get-pip.py | python3 -
         pip3 install meson
 
