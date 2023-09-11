@@ -78,10 +78,9 @@ void MediaCollection::doRequest() {
     jellyfin::getJSON(
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
             ASYNC_RELEASE
-            this->startIndex = r.StartIndex + this->pageSize;
             if (r.TotalRecordCount == 0) {
                 this->recyclerSeries->setEmpty();
-            } else if (r.StartIndex == 0) {
+            } else if (this->startIndex == 0) {
                 this->recyclerSeries->setDataSource(new VideoDataSource(r.Items));
                 brls::Application::giveFocus(this->recyclerSeries);
             } else if (r.Items.size() > 0) {
@@ -89,6 +88,7 @@ void MediaCollection::doRequest() {
                 dataSrc->appendData(r.Items);
                 this->recyclerSeries->notifyDataChanged();
             }
+            this->startIndex += this->pageSize;
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE

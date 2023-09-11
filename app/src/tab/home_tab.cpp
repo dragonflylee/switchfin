@@ -61,11 +61,10 @@ void HomeTab::doResume() {
     jellyfin::getJSON(
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
             ASYNC_RELEASE
-            this->startResume = r.StartIndex + this->pageSize;
             if (r.TotalRecordCount == 0) {
                 this->userResume->setVisibility(brls::Visibility::GONE);
                 this->headerResume->setVisibility(brls::Visibility::GONE);
-            } else if (r.StartIndex == 0) {
+            } else if (this->startResume == 0) {
                 this->headerResume->setVisibility(brls::Visibility::VISIBLE);
                 this->userResume->setVisibility(brls::Visibility::VISIBLE);
                 this->userResume->setDataSource(new VideoDataSource(r.Items));
@@ -75,6 +74,7 @@ void HomeTab::doResume() {
                 dataSrc->appendData(r.Items);
                 this->userResume->notifyDataChanged();
             }
+            this->startResume += this->pageSize;
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
@@ -150,11 +150,10 @@ void HomeTab::doNextup() {
     jellyfin::getJSON(
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
             ASYNC_RELEASE
-            this->startNextup = r.StartIndex + this->pageSize;
             if (r.TotalRecordCount == 0) {
                 this->showNextup->setVisibility(brls::Visibility::GONE);
                 this->headerNextup->setVisibility(brls::Visibility::GONE);
-            } else if (r.StartIndex == 0) {
+            } else if (this->startNextup == 0) {
                 this->showNextup->setVisibility(brls::Visibility::VISIBLE);
                 this->headerNextup->setVisibility(brls::Visibility::VISIBLE);
                 this->showNextup->setDataSource(new VideoDataSource(r.Items));
@@ -164,6 +163,7 @@ void HomeTab::doNextup() {
                 dataSrc->appendData(r.Items);
                 this->showNextup->notifyDataChanged();
             }
+            this->startNextup += this->pageSize;
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE

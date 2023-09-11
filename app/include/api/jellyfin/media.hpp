@@ -127,14 +127,15 @@ struct MediaSource {
     int DefaultSubtitleStreamIndex;
     bool SupportsDirectPlay;
     bool SupportsTranscoding;
+    std::string DirectStreamUrl;
     std::string TranscodingUrl;
     std::string ETag;
     std::vector<MediaStream> MediaStreams;
     std::vector<MediaAttachment> MediaAttachments;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaSource, Id, Name, Container, DefaultAudioStreamIndex,
-    DefaultSubtitleStreamIndex, SupportsDirectPlay, SupportsTranscoding, TranscodingUrl, ETag, MediaStreams,
-    MediaAttachments);
+    DefaultSubtitleStreamIndex, SupportsDirectPlay, SupportsTranscoding, DirectStreamUrl, TranscodingUrl, ETag,
+    MediaStreams, MediaAttachments);
 
 struct PlaybackResult {
     std::vector<MediaSource> MediaSources;
@@ -177,17 +178,16 @@ template <typename T>
 struct MediaQueryResult {
     std::vector<T> Items;
     long TotalRecordCount = 0;
-    long StartIndex = 0;
 };
 
 template <typename T>
 inline void to_json(nlohmann::json& nlohmann_json_j, const MediaQueryResult<T>& nlohmann_json_t) {
-    NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_TO, Items, TotalRecordCount, StartIndex))
+    NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_TO, Items, TotalRecordCount))
 }
 
 template <typename T>
 inline void from_json(const nlohmann::json& nlohmann_json_j, MediaQueryResult<T>& nlohmann_json_t) {
-    NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM, Items, TotalRecordCount, StartIndex))
+    NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM, Items, TotalRecordCount))
 }
 
 }  // namespace jellyfin
