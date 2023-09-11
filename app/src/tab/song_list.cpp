@@ -141,16 +141,16 @@ void SongList::doList() {
     jellyfin::getJSON<jellyfin::Result<jellyfin::Track>>(
         [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Track>& r) {
             ASYNC_RELEASE
-            this->start = r.StartIndex + this->pageSize;
             if (r.TotalRecordCount == 0) {
                 this->list->clearData();
-            } else if (r.StartIndex == 0) {
+            } else if (this->start == 0) {
                 this->list->setDataSource(new SongsDataSource(r.Items));
             } else if (r.Items.size() > 0) {
                 auto dataSrc = dynamic_cast<SongsDataSource*>(this->list->getDataSource());
                 dataSrc->appendData(r.Items);
                 this->list->notifyDataChanged();
             }
+            this->start += this->pageSize;
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE

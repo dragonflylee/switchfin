@@ -14,7 +14,7 @@ on:
     - images/*
     - CHANGELOG.md
     - README.md
-    branches: [ dev ]
+    branches: [ emby ]
   pull_request:
     paths-ignore:
     - scripts/**

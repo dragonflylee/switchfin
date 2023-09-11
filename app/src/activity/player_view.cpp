@@ -297,7 +297,6 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
 
     nlohmann::json param = {
         {"UserId", AppConfig::instance().getUserId()},
-        {"MediaSourceId", this->sourceId},
 #if defined(__PSV__)
         {"AlwaysBurnInSubtitleWhenTranscoding", PlayerSetting::selectedSubtitle > 0},
 #endif
@@ -342,6 +341,12 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
 
                 if (HTTP::PROXY_STATUS) ssextra << ",http-proxy=\"" << HTTP::PROXY << "\"";
 
+                if (item.DirectStreamUrl.size() > 0) {
+                    this->playMethod = jellyfin::methodDirectPlay;
+                    mpv.setUrl(svr + item.DirectStreamUrl, ssextra.str());
+                    this->stream = std::move(item);
+                    return;
+                }
                 if (item.SupportsDirectPlay || MPVCore::FORCE_DIRECTPLAY) {
                     std::string url = fmt::format(fmt::runtime(jellyfin::apiStream), this->itemId,
                         HTTP::encode_form({

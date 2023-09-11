@@ -40,7 +40,7 @@ add_custom_target(${PROJECT_NAME}.pfs0 DEPENDS ${PROJECT_NAME}
 
 add_custom_target(${PROJECT_NAME}.nsp DEPENDS ${PROJECT_NAME}.pfs0
     COMMAND ${CMAKE_COMMAND} -E make_directory "control" "logo"
-    COMMAND ${NX_NACPTOOL_EXE} --create "${PROJECT_NAME}" "${PROJECT_AUTHOR}" "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}" "control/control.nacp"
+    COMMAND ${NX_NACPTOOL_EXE} --create "Emby" "${PROJECT_AUTHOR}" "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}" "control/control.nacp"
     COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/icon/logo.png" "logo/NintendoLogo.png"
     COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/icon/logo.gif" "logo/StartupMovie.gif"
     COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_ICON}" "control/icon_AmericanEnglish.dat"
