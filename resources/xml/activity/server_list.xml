@@ -39,12 +39,14 @@
                     text="@i18n/main/setting/server/connect_new" />
             </brls:Box>
 
-            <RecyclingGrid
-                id="server/recycler"
-                grow="1"
-                spanCount="1"
-                wireframe="false"
-                itemHeight="100" />
+            <brls:ScrollingFrame
+                grow="1">
+                <brls:Box
+                    axis="column"
+                    id="server/sidebar"
+                    paddingRight="20" />
+
+            </brls:ScrollingFrame>
         </brls:Box>
 
         <brls:Box

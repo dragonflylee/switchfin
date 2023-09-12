@@ -7,7 +7,7 @@
     <brls:Rectangle
         id="brls/sidebar/item_accent"
         width="@style/brls/sidebar/item_accent_rect_width"
-        height="auto"
+        height="75%"
         visibility="invisible"
         color="@theme/brls/sidebar/active_item"
         marginTop="@style/brls/sidebar/item_accent_margin_top_bottom"
@@ -22,12 +22,10 @@
 
     <brls:Box
         axis="column"
-        marginLeft="10">
+        margin="15">
 
         <brls:Label
             id="server/name"
-            marginTop="10"
-            marginBottom="10"
             fontSize="25" />
 
         <brls:Label
@@ -35,12 +33,12 @@
             marginLeft="4"
             fontSize="15"
             singleLine="true"
+            marginTop="10"
+            marginBottom="10"
             textColor="@theme/font/grey" />
 
         <brls:Label
             id="server/users"
-            marginTop="10"
-            marginBottom="10"
             fontSize="18" />
     </brls:Box>
 

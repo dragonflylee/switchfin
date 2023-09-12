@@ -13,10 +13,41 @@
 
 using namespace brls::literals;  // for _i18n
 
-class ServerCell : public RecyclingGridItem {
+class ServerCell : public brls::Box {
 public:
-    ServerCell() { this->inflateFromXMLRes("xml/view/server_item.xml"); }
+    ServerCell(const AppServer& s) {
+        this->inflateFromXMLRes("xml/view/server_item.xml");
 
+        this->setFocusSound(brls::SOUND_FOCUS_SIDEBAR);
+        this->registerAction(
+            "hints/ok"_i18n, brls::BUTTON_A,
+            [](View* view) {
+                brls::Application::onControllerButtonPressed(brls::BUTTON_NAV_RIGHT, false);
+                return true;
+            },
+            false, false, brls::SOUND_CLICK_SIDEBAR);
+
+        this->addGestureRecognizer(new brls::TapGestureRecognizer(this));
+
+        this->labelName->setText(s.name);
+        this->labelUrl->setText(s.urls.back());
+        this->labelUsers->setText(fmt::format(fmt::runtime("main/setting/server/users"_i18n), s.users.size()));
+    }
+
+    void setActive(bool active) {
+        auto theme = brls::Application::getTheme();
+        if (active) {
+            this->accent->setVisibility(brls::Visibility::VISIBLE);
+            this->labelName->setTextColor(theme["brls/sidebar/active_item"]);
+            this->labelUsers->setTextColor(theme["brls/sidebar/active_item"]);
+        } else {
+            this->accent->setVisibility(brls::Visibility::INVISIBLE);
+            this->labelName->setTextColor(theme["brls/text"]);
+            this->labelUsers->setTextColor(theme["brls/text"]);
+        }
+    }
+
+private:
     BRLS_BIND(brls::Rectangle, accent, "brls/sidebar/item_accent");
     BRLS_BIND(brls::Label, labelName, "server/name");
     BRLS_BIND(brls::Label, labelUrl, "server/url");
@@ -79,56 +110,39 @@ private:
     ServerList* parent;
 };
 
-class ServerListDataSource : public RecyclingGridDataSource {
-public:
-    using Event = brls::Event<AppServer>;
-
-    ServerListDataSource(Event::Callback ev) {
-        this->list = AppConfig::instance().getServers();
-        this->onSelect.subscribe(ev);
-    }
-
-    size_t getItemCount() override { return this->list.size(); }
-
-    RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
-        ServerCell* cell = dynamic_cast<ServerCell*>(recycler->dequeueReusableCell("Cell"));
-        auto& s = this->list.at(index);
-        cell->labelName->setText(s.name);
-        cell->labelUrl->setText(s.urls.back());
-        cell->labelUsers->setText(fmt::format(fmt::runtime("main/setting/server/users"_i18n), s.users.size()));
-        return cell;
-    }
-
-    void onItemSelected(brls::View* recycler, size_t index) override { this->onSelect.fire(this->list[index]); }
-
-    void clearData() override { this->list.clear(); }
-
-private:
-    std::vector<AppServer> list;
-    Event onSelect;
-};
-
 ServerList::ServerList() { brls::Logger::debug("ServerList: create"); }
 
 ServerList::~ServerList() { brls::Logger::debug("ServerList Activity: delete"); }
 
 void ServerList::onContentAvailable() {
-    auto dataSrc = new ServerListDataSource([this](const AppServer& s) { this->onSelect(s); });
-    this->recyclerServers->registerCell("Cell", []() { return new ServerCell(); });
-    this->recyclerUsers->registerCell("Cell", []() { return new UserCell(); });
-    this->recyclerServers->setDataSource(dataSrc);
-
-    if (dataSrc->getItemCount() > 0) {
-        dataSrc->onItemSelected(this->recyclerServers, 0);
-
-        this->btnServerAdd->registerClickAction([](brls::View *view) {
-            view->present(new ServerAdd());
-            return true;
-        });
-    } else {
+    auto list = AppConfig::instance().getServers();
+    if (list.empty()) {
         brls::AppletFrame* view = new brls::AppletFrame(new ServerAdd());
         view->setHeaderVisibility(brls::Visibility::GONE);
         this->setContentView(view);
+        return;
+    }
+
+    this->recyclerUsers->registerCell("Cell", []() { return new UserCell(); });
+    this->btnServerAdd->registerClickAction([](brls::View* view) {
+        view->present(new ServerAdd());
+        return true;
+    });
+
+    for (auto& s : list) {
+        ServerCell* item = new ServerCell(s);
+        item->getFocusEvent()->subscribe([this, s](brls::View* view) {
+            this->setActive(view);
+            this->onSelect(s);
+        });
+
+        if (s.urls.front() == AppConfig::instance().getUrl()) {
+            item->setActive(true);
+            this->onSelect(s);
+        }
+
+        this->items.push_back(item);
+        this->sidebarServers->addView(item);
     }
 }
 
@@ -153,3 +167,12 @@ void ServerList::onSelect(const AppServer& s) {
 }
 
 std::string ServerList::getUrl() { return this->selectorUrl->detail->getFullText(); }
+
+void ServerList::setActive(brls::View* active) {
+    for (ServerCell* item : this->items) {
+        if (item == active)
+            item->setActive(true);
+        else
+            item->setActive(false);
+    }
+}
