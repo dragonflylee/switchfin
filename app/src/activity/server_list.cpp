@@ -159,9 +159,8 @@ void ServerList::onSelect(const AppServer& s) {
     });
 
     if (s.users.empty()) {
-        this->recyclerUsers->setVisibility(brls::Visibility::GONE);
+        this->recyclerUsers->setEmpty();
     } else {
-        this->recyclerUsers->setVisibility(brls::Visibility::VISIBLE);
         this->recyclerUsers->setDataSource(new ServerUserDataSource(s.users, this));
     }
 }

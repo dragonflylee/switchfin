@@ -23,7 +23,7 @@ void ThreadPool::start(size_t num) {
 
     while (this->threads.size() < num) {
 #ifdef BOREALIS_USE_STD_THREAD
-        Thread th = std::make_shared<std::thread>(std::bind(task_loop, this));
+        Thread th = std::make_shared<std::thread>(task_loop, this);
 #else
         Thread th = 0;
         pthread_create(&th, nullptr, task_loop, this);
