@@ -50,7 +50,7 @@ class MPVCore : public brls::Singleton<MPVCore> {
 public:
     MPVCore();
 
-    ~MPVCore();
+    ~MPVCore() = default;
 
     void restart();
 

@@ -315,13 +315,11 @@ void VideoView::playMedia(const time_t seekTicks) {
                                 {"Container", "mp4,m4v,mkv"},
                                 {"Type", "Video"},
                                 {"VideoCodec", "h264,hevc,av1,vp9"},
-                                {"AudioCodec", "aac,mp3,ac3,eac3,opus"},
                             },
                             {
                                 {"Container", "mov"},
                                 {"Type", "Video"},
                                 {"VideoCodec", MPVCore::VIDEO_CODEC},
-                                {"AudioCodec", "aac,mp3,ac3,eac3,opus"},
                             },
                         },
                     },
