@@ -9,6 +9,13 @@ Switchfin is third-party PC player for Jellyfin that provides a native user inte
 
 **This project is in its early stages so expect bugs.**
 
+## Screenshots
+| Home                                | Library                             |
+|-------------------------------------|-------------------------------------|
+| ![Home](images/home.jpg) | ![Library](images/library.jpg) | 
+|Search                            | Episode                             |
+![Search](images/search.jpg) | ![Episode](images/episode.jpg) |
+
 
 ## Features
 - Completely native interface

@@ -26,8 +26,6 @@
             "includePath": [
                 "${workspaceFolder}/app/include",
                 "${workspaceFolder}/library/**",
-                "${workspaceFolder}/build_mingw/_deps/curl-src/include",
-                "${workspaceFolder}/build_mingw/mpv-prefix/src/mpv/include",
                 "C:\\MinGW64\\include"
             ],
             "defines": [
