@@ -1,6 +1,6 @@
 [submodule "library/borealis"]
 	path = library/borealis
-	url = https://github.com/xfangfang/borealis
+	url = https://github.com/dragonflylee/borealis
 	branch = wiliwili
 [submodule "library/lunasvg"]
 	path = library/lunasvg

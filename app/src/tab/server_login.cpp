@@ -67,6 +67,7 @@ public:
                 this->ticker.stop();
                 dialog->dismiss([u, this]() {
                     AppConfig::instance().addUser(u, this->url);
+                    brls::Application::clear();
                     brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
                 });
             });
@@ -150,6 +151,7 @@ bool ServerLogin::onSignin() {
                 AppConfig::instance().addUser(u, this->url);
                 this->btnSignin->setState(brls::ButtonState::ENABLED);
                 brls::Application::unblockInputs();
+                brls::Application::clear();
                 brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
                 GA("login", {{"method", {this->url}}});
             });

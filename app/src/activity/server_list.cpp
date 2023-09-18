@@ -91,6 +91,7 @@ public:
                 brls::sync([this, u]() {
                     AppConfig::instance().addUser(u, this->parent->getUrl());
                     brls::Application::unblockInputs();
+                    brls::Application::clear();
                     brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
                 });
             } catch (const std::exception& ex) {
