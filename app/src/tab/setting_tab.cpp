@@ -89,6 +89,12 @@ void SettingTab::onCreate() {
         conf.setItem(AppConfig::PLAYER_HWDEC, value);
     });
 
+    btnDirectPlay->init("main/setting/playback/force_directplay"_i18n, MPVCore::FORCE_DIRECTPLAY, [&conf](bool value) {
+        if (MPVCore::FORCE_DIRECTPLAY == value) return;
+        MPVCore::FORCE_DIRECTPLAY = value;
+        conf.setItem(AppConfig::FORCE_DIRECTPLAY, value);
+    });
+
     auto& codecOption = conf.getOptions(AppConfig::TRANSCODEC);
     selectorCodec->init("main/setting/playback/transcodec"_i18n, {"AVC/H264", "HEVC/H265", "AV1"},
         conf.getOptionIndex(AppConfig::TRANSCODEC), [&codecOption](int selected) {

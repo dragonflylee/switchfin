@@ -49,6 +49,7 @@ public:
         APP_LANG,
         KEYMAP,
         TRANSCODEC,
+        FORCE_DIRECTPLAY,
         MAXBITRATE,
         OSD_ON_TOGGLE,
         PLAYER_BOTTOM_BAR,

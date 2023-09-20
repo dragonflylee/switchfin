@@ -46,6 +46,8 @@
                     id="setting/video/hwdec" />
                 <brls:SelectorCell
                     id="setting/video/codec" />
+                <brls:BooleanCell
+                    id="setting/video/directplay" />
                 <brls:SelectorCell
                     id="setting/video/bitrate" />
                 <brls:SelectorCell

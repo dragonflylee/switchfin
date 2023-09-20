@@ -31,6 +31,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
                                 brls::LOCALE_DE}}},
     {KEYMAP, {"keymap", {"xbox", "ps", "keyboard"}}},
     {TRANSCODEC, {"transcodec", {"h264", "hevc", "av1"}}},
+    {FORCE_DIRECTPLAY, {"force_directplay"}},
     {MAXBITRATE, {"max_bitrate", {"20Mbps", "40Mbps", "80Mbps", "160Mbps"}, {20000000, 40000000, 80000000, 160000000}}},
     {FULLSCREEN, {"fullscreen"}},
     {OSD_ON_TOGGLE, {"osd_on_toggle"}},
@@ -67,6 +68,7 @@ void AppConfig::init() {
 
     // 初始化是否使用硬件加速
     MPVCore::HARDWARE_DEC = this->getItem(PLAYER_HWDEC, true);
+    MPVCore::FORCE_DIRECTPLAY = this->getItem(FORCE_DIRECTPLAY, false);
     MPVCore::SEEKING_STEP = this->getItem(PLAYER_SEEKING_STEP, 15);
     MPVCore::VIDEO_CODEC = this->getItem(TRANSCODEC, settingMap[TRANSCODEC].options.back());
     MPVCore::MAX_BITRATE[0] = this->getItem(MAXBITRATE, settingMap[MAXBITRATE].values.back());

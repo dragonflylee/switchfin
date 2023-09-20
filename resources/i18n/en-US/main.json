@@ -61,6 +61,7 @@
       "bottom_bar": "Show bottom progress bar",
       "header": "Playback",
       "hwdec": "Hardware decode",
+      "force_directplay": "Force direct play",
       "osd_on_toggle": "Show OSD when paused",
       "transcodec": "Transcodec",
       "maxbitrate": "Max Bitrate",

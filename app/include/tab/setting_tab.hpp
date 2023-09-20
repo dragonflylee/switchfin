@@ -33,6 +33,7 @@ private:
     BRLS_BIND(brls::DetailCell, btnUser, "setting/user");
     BRLS_BIND(brls::DetailCell, btnServer, "setting/server");
     BRLS_BIND(brls::BooleanCell, btnHWDEC, "setting/video/hwdec");
+    BRLS_BIND(brls::BooleanCell, btnDirectPlay, "setting/video/directplay");
     BRLS_BIND(brls::SelectorCell, selectorCodec, "setting/video/codec");
     BRLS_BIND(brls::SelectorCell, selectorBitrate, "setting/video/bitrate");
     BRLS_BIND(brls::SelectorCell, selectorSeeking, "setting/player/seeking");

@@ -61,6 +61,7 @@
       "bottom_bar": "顯示底部進度條",
       "header": "播放設定",
       "hwdec": "硬體解碼",
+      "force_directplay": "强制直接播放",
       "maxbitrate": "最高碼率",
       "osd_on_toggle": "暫停時顯示控製界面",
       "transcodec": "轉碼格式",

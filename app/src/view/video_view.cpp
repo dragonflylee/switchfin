@@ -303,6 +303,7 @@ void VideoView::playMedia(const time_t seekTicks) {
     jellyfin::postJSON(
         {
             {"UserId", AppConfig::instance().getUser().id},
+            {"AudioStreamIndex", VideoView::selectedAudio},
             {"SubtitleStreamIndex", VideoView::selectedSubtitle},
             {
                 "DeviceProfile",
@@ -366,7 +367,7 @@ void VideoView::playMedia(const time_t seekTicks) {
                 if (seekTicks > 0) {
                     ssextra << ",start=" << sec2Time(seekTicks / jellyfin::PLAYTICKS);
                 }
-                if (item.SupportsDirectPlay) {
+                if (item.SupportsDirectPlay || MPVCore::FORCE_DIRECTPLAY) {
                     std::string url = fmt::format(fmt::runtime(jellyfin::apiStream), this->itemId,
                         HTTP::encode_form({
                             {"static", "true"},

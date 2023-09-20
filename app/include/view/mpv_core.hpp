@@ -167,6 +167,8 @@ public:
     inline static std::string VIDEO_CODEC = "h264";
     inline static std::vector<int64_t> MAX_BITRATE = {0, 10000000, 8000000, 4000000, 2000000};
 
+    inline static bool FORCE_DIRECTPLAY = false;
+
     // 此变量为真时，加载结束后自动播放视频
     inline static bool AUTO_PLAY = true;
 
