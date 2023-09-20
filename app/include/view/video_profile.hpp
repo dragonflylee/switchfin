@@ -10,6 +10,7 @@ public:
     void init(const std::string& title, const std::string& method);
     void update();
 
+private:
     BRLS_BIND(brls::Label, labelUrl, "profile/file/url");
     BRLS_BIND(brls::Label, labelMethod, "profile/play/method");
     BRLS_BIND(brls::Label, labelSize, "profile/file/size");
@@ -31,4 +32,12 @@ public:
 
     BRLS_BIND(brls::Box, boxSubtitle, "profile/subtitle/box");
     BRLS_BIND(brls::Label, labelSubtitleTrack, "profile/subtitle/track");
+
+    BRLS_BIND(brls::Box, boxTranscode, "profile/transcode/box");
+    BRLS_BIND(brls::Label, labelTranscodePercent, "profile/transcode/percent");
+    BRLS_BIND(brls::Label, labelTranscodeReasons, "profile/transcode/reasons");
+
+    void onRequest();
+
+    brls::RepeatingTimer ticker;
 };
