@@ -17,9 +17,11 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src, std::function<voi
 
     auto& mpv = MPVCore::instance();
 
-    std::vector<std::string> subTrack, audioTrack, audioSource;
-    std::vector<int> audioStream, subStream;
-    subTrack.push_back("main/player/none"_i18n);
+    std::vector<std::string> audioTrack, audioSource;
+    std::vector<int> audioStream;
+    std::vector<std::string> subTrack = {"main/player/none"_i18n};
+    std::vector<std::string> subSource = {"main/player/none"_i18n};
+    std::vector<int> subStream = {0};
 
     int64_t count = mpv.getInt("track-list/count");
     for (int64_t n = 0; n < count; n++) {
@@ -37,6 +39,9 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src, std::function<voi
         if (s.Type == jellyfin::streamTypeAudio) {
             audioSource.push_back(s.DisplayTitle);
             audioStream.push_back(s.Index);
+        } else if (s.Type == jellyfin::streamTypeSubtitle) {
+            subSource.push_back(s.DisplayTitle);
+            subStream.push_back(s.Index);
         }
     }
     // 字幕选择
@@ -46,6 +51,14 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src, std::function<voi
         this->subtitleTrack->init("main/player/subtitle"_i18n, subTrack, value, [&mpv](int selected) {
             VideoView::selectedSubtitle = selected;
             mpv.setInt("sid", selected);
+        });
+    } else if (subSource.size() > 0) {
+        int value = 0;
+        for (size_t i = 0; i < subStream.size(); i++)
+            if (subStream[i] == VideoView::selectedSubtitle) value = i;
+        this->subtitleTrack->init("main/player/subtitle"_i18n, subSource, value, [subStream, reload](int selected) {
+            VideoView::selectedSubtitle = subStream[selected];
+            reload();
         });
     } else {
         this->subtitleTrack->setVisibility(brls::Visibility::GONE);

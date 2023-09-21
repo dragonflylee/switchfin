@@ -307,6 +307,7 @@ void VideoView::playMedia(const time_t seekTicks) {
             {"MediaSourceId", this->itemId},
             {"AudioStreamIndex", VideoView::selectedAudio},
             {"SubtitleStreamIndex", VideoView::selectedSubtitle},
+            {"AllowAudioStreamCopy", true},
             {
                 "DeviceProfile",
                 {
@@ -322,17 +323,14 @@ void VideoView::playMedia(const time_t seekTicks) {
                     },
                     {
                         "TranscodingProfiles",
-                        {
-                            {
-                                {"Container", "ts"},
-                                {"Type", "Video"},
-                                {"VideoCodec", MPVCore::VIDEO_CODEC},
-                                {"AudioCodec", "aac"},
-                                {"Protocol", "hls"},
-                                {"Context", "Streaming"},
-                                {"BreakOnNonKeyFrames", true},
-                            },
-                        },
+                        {{
+                            {"Container", "ts"},
+                            {"Type", "Video"},
+                            {"VideoCodec", MPVCore::VIDEO_CODEC},
+                            {"Protocol", "hls"},
+                            {"Context", "Streaming"},
+                            {"BreakOnNonKeyFrames", true},
+                        }},
                     },
                     {
                         "SubtitleProfiles",
@@ -484,7 +482,7 @@ void VideoView::registerMpvEvent() {
                     }
                 }
             }
-            if (VideoView::selectedSubtitle > 0 && this->playMethod == jellyfin::methodDirectPlay) {
+            if (VideoView::selectedSubtitle > 0) {
                 mpv.setInt("sid", VideoView::selectedSubtitle);
             }
             break;
