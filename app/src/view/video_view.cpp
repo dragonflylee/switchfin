@@ -311,18 +311,12 @@ void VideoView::playMedia(const time_t seekTicks) {
                     {"MaxStreamingBitrate", MPVCore::MAX_BITRATE[this->selectedQuality]},
                     {
                         "DirectPlayProfiles",
-                        {
-                            {
-                                {"Container", "mp4,m4v,mkv"},
-                                {"Type", "Video"},
-                                {"VideoCodec", "h264,hevc,av1,vp9"},
-                            },
-                            {
-                                {"Container", "mov"},
-                                {"Type", "Video"},
-                                {"VideoCodec", MPVCore::VIDEO_CODEC},
-                            },
-                        },
+                        {{
+                            {"Type", "Video"},
+#ifdef __SWITCH__
+                            {"VideoCodec", "h264,hevc,av1,vp9"},
+#endif
+                        }},
                     },
                     {
                         "TranscodingProfiles",
@@ -330,7 +324,7 @@ void VideoView::playMedia(const time_t seekTicks) {
                             {
                                 {"Container", "ts"},
                                 {"Type", "Video"},
-                                {"VideoCodec", "h264"},
+                                {"VideoCodec", MPVCore::VIDEO_CODEC},
                                 {"AudioCodec", "aac"},
                                 {"Protocol", "hls"},
                                 {"Context", "Streaming"},
@@ -344,6 +338,10 @@ void VideoView::playMedia(const time_t seekTicks) {
                             {{"Format", "ass"}, {"Method", "External"}},
                             {{"Format", "ssa"}, {"Method", "External"}},
                             {{"Format", "srt"}, {"Method", "External"}},
+                            {{"Format", "smi"}, {"Method", "External"}},
+                            {{"Format", "sub"}, {"Method", "External"}},
+                            {{"Format", "dvdsub"}, {"Method", "Embed"}},
+                            {{"Format", "pgs"}, {"Method", "Embed"}},
                         },
                     },
                 },
