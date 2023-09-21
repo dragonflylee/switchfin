@@ -4,9 +4,11 @@
 
 using namespace brls::literals;
 
-PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
+PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src, std::function<void()> reload) {
     this->inflateFromXMLRes("xml/view/player_setting.xml");
     brls::Logger::debug("PlayerSetting: create");
+    this->audioTrack->detail->setVisibility(brls::Visibility::GONE);
+    this->subtitleTrack->detail->setVisibility(brls::Visibility::GONE);
 
     this->registerAction("hints/cancel"_i18n, brls::BUTTON_B, [](...) {
         brls::Application::popActivity();
@@ -15,8 +17,9 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
 
     auto& mpv = MPVCore::instance();
 
-    std::vector<std::string> subOpts, audOpts;
-    subOpts.push_back("main/player/none"_i18n);
+    std::vector<std::string> subTrack, audioTrack, audioSource;
+    std::vector<int> audioStream, subStream;
+    subTrack.push_back("main/player/none"_i18n);
 
     int64_t count = mpv.getInt("track-list/count");
     for (int64_t n = 0; n < count; n++) {
@@ -25,31 +28,45 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
         if (title.empty()) title = mpv.getString(fmt::format("track-list/{}/lang", n));
         if (title.empty()) title = fmt::format("{} track {}", type, n);
         if (type == "sub")
-            subOpts.push_back(title);
+            subTrack.push_back(title);
         else if (type == "audio")
-            audOpts.push_back(title);
+            audioTrack.push_back(title);
+    }
+
+    for (auto& s : src.MediaStreams) {
+        if (s.Type == jellyfin::streamTypeAudio) {
+            audioSource.push_back(s.DisplayTitle);
+            audioStream.push_back(s.Index);
+        }
     }
     // 字幕选择
-    if (subOpts.size() > 1) {
+    if (subTrack.size() > 1) {
         int64_t value = 0;
         mpv.get_property("sid", MPV_FORMAT_INT64, &value);
-        this->subtitleTrack->init("main/player/subtitle"_i18n, subOpts, value, [&mpv](int selected) {
+        this->subtitleTrack->init("main/player/subtitle"_i18n, subTrack, value, [&mpv](int selected) {
             VideoView::selectedSubtitle = selected;
             mpv.setInt("sid", selected);
         });
-        this->subtitleTrack->detail->setVisibility(brls::Visibility::GONE);
     } else {
         this->subtitleTrack->setVisibility(brls::Visibility::GONE);
     }
     // 音轨选择
-    if (audOpts.size() > 1) {
+    if (audioTrack.size() > 1) {
         int64_t value = 0;
         if (!mpv.get_property("aid", MPV_FORMAT_INT64, &value)) value -= 1;
-        this->audioTrack->init("main/player/audio"_i18n, audOpts, value, [&mpv](int selected) {
-            VideoView::selectedAudio = selected;
-            mpv.setInt("aid", selected + 1);
+        this->audioTrack->init("main/player/audio"_i18n, audioTrack, value, [&mpv](int selected) {
+            VideoView::selectedAudio = selected + 1;
+            mpv.setInt("aid", VideoView::selectedAudio);
         });
         this->audioTrack->detail->setVisibility(brls::Visibility::GONE);
+    } else if (audioSource.size() > 1) {
+        int value = 0;
+        for (size_t i = 0; i < audioStream.size(); i++)
+            if (audioStream[i] == VideoView::selectedAudio) value = i;
+        this->audioTrack->init("main/player/audio"_i18n, audioSource, value, [audioStream, reload](int selected) {
+            VideoView::selectedAudio = audioStream[selected];
+            reload();
+        });
     } else {
         this->audioTrack->setVisibility(brls::Visibility::GONE);
     }

@@ -172,7 +172,8 @@ void VideoView::requestSeeking() {
 }
 
 bool VideoView::showSetting() {
-    brls::View* setting = new PlayerSetting(this->itemSource);
+    brls::View* setting = new PlayerSetting(
+        this->itemSource, [this]() { this->playMedia(MPVCore::instance().playback_time * jellyfin::PLAYTICKS); });
     brls::Application::pushActivity(new brls::Activity(setting));
     // 手动将焦点赋给设置页面
     brls::sync([setting]() { brls::Application::giveFocus(setting); });
@@ -303,6 +304,7 @@ void VideoView::playMedia(const time_t seekTicks) {
     jellyfin::postJSON(
         {
             {"UserId", AppConfig::instance().getUser().id},
+            {"MediaSourceId", this->itemId},
             {"AudioStreamIndex", VideoView::selectedAudio},
             {"SubtitleStreamIndex", VideoView::selectedSubtitle},
             {
@@ -373,14 +375,14 @@ void VideoView::playMedia(const time_t seekTicks) {
                             {"playSessionId", r.PlaySessionId},
                             {"tag", item.ETag},
                         }));
-                    this->playMethod = "DirectPlay";
+                    this->playMethod = jellyfin::methodDirectPlay;
                     mpv.setUrl(svr + url, ssextra.str());
                     this->itemSource = std::move(item);
                     return;
                 }
 
                 if (item.SupportsTranscoding) {
-                    this->playMethod = "Transcode";
+                    this->playMethod = jellyfin::methodTranscode;
                     mpv.setUrl(svr + item.TranscodingUrl, ssextra.str());
                     this->itemSource = std::move(item);
                     return;
@@ -477,12 +479,12 @@ void VideoView::registerMpvEvent() {
             }
             for (auto& s : this->itemSource.MediaStreams) {
                 if (s.Type == jellyfin::streamTypeSubtitle) {
-                    if (s.DeliveryUrl.size() > 0 && (s.IsExternal || this->playMethod == "Transcode")) {
+                    if (s.DeliveryUrl.size() > 0 && (s.IsExternal || this->playMethod == jellyfin::methodTranscode)) {
                         mpv.command_str("sub-add '{}{}' auto '{}'", svr, s.DeliveryUrl, s.DisplayTitle);
                     }
                 }
             }
-            if (VideoView::selectedSubtitle > 0) {
+            if (VideoView::selectedSubtitle > 0 && this->playMethod == jellyfin::methodDirectPlay) {
                 mpv.setInt("sid", VideoView::selectedSubtitle);
             }
             break;

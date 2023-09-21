@@ -27,7 +27,7 @@ void VideoProfile::init(const std::string& title, const std::string& method) {
     labelMethod->setText(method);
     labelFormat->setText(mpv.getString("file-format"));
     labelSize->setText(fmt::format("{:.2f}MB", mpv.getInt("file-size") / 1048576.0));
-    if (method == "Transcode")
+    if (method == jellyfin::methodTranscode)
         ticker.start(2000);
     else
         this->ticker.stop();
@@ -75,7 +75,7 @@ void VideoProfile::onRequest() {
             if (list.empty()) return;
 
             auto& s = list.front();
-            if (s.PlayState.PlayMethod == "Transcode") {
+            if (s.PlayState.PlayMethod == jellyfin::methodTranscode) {
                 this->boxTranscode->setVisibility(brls::Visibility::VISIBLE);
                 this->labelTranscodePercent->setText(fmt::format("{:.5f}", s.TranscodingInfo.CompletionPercentage));
                 this->labelTranscodeReasons->setText(

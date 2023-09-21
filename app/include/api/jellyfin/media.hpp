@@ -42,6 +42,9 @@ const std::string streamTypeVideo = "Video";
 const std::string streamTypeAudio = "Audio";
 const std::string streamTypeSubtitle = "Subtitle";
 
+const std::string methodDirectPlay = "Directplay";
+const std::string methodTranscode = "Transcode";
+
 // The position, in ticks, where playback stopped. 1 tick = 10000 ms
 const time_t PLAYTICKS = 10000000;
 
