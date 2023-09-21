@@ -1,3 +1,19 @@
+diff --git a/sub/osd.c b/sub/osd.c
+index 811b6c821b..4e0f8c9475 100644
+--- a/sub/osd.c
++++ b/sub/osd.c
+@@ -95,7 +95,11 @@ const struct m_sub_options sub_style_conf = {
+     .opts = style_opts,
+     .size = sizeof(struct osd_style_opts),
+     .defaults = &(const struct osd_style_opts){
++#ifdef __SWITCH__
++        .font = "nintendo_udsg-r_std_003",
++#else
+         .font = "sans-serif",
++#endif
+         .font_size = 55,
+         .color = {255, 255, 255, 255},
+         .border_color = {0, 0, 0, 255},
 diff --git a/sub/sd_ass.c b/sub/sd_ass.c
 index e4e5652875..978d8703f9 100644
 --- a/sub/sd_ass.c

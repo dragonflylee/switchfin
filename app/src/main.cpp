@@ -28,23 +28,9 @@
 using namespace brls::literals;  // for _i18n
 
 int main(int argc, char* argv[]) {
-    // Enable recording for Twitter memes
-#ifdef __SWITCH__
-    appletInitializeGamePlayRecording();
-    appletSetWirelessPriorityMode(AppletWirelessPriorityMode_OptimizedForWlan);
-
-    extern u32 __nx_applet_type;
-    u32 saved_applet_type = std::exchange(__nx_applet_type, AppletType_LibraryApplet);
-    nvInitialize();
-    __nx_applet_type = saved_applet_type;
-#endif
     // We recommend to use INFO for real apps
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-v") == 0) brls::Logger::setLogLevel(brls::LogLevel::LOG_DEBUG);
-#ifdef __SWITCH__
-        else if (strcmp(argv[i], "-l") == 0)
-            nxlinkStdio();
-#endif
     }
 
     // Load cookies and settings
@@ -110,15 +96,7 @@ int main(int argc, char* argv[]) {
 
     ThreadPool::instance().stop();
 
-#ifdef __SWITCH__
-    nvExit();
-#else
     AppConfig::instance().checkRestart(argv);
-#endif
     // Exit
     return EXIT_SUCCESS;
 }
-
-#ifdef __WINRT__
-#include <borealis/core/main.hpp>
-#endif
