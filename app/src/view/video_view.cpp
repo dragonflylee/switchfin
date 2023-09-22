@@ -327,9 +327,8 @@ void VideoView::playMedia(const time_t seekTicks) {
                             {"Container", "ts"},
                             {"Type", "Video"},
                             {"VideoCodec", MPVCore::VIDEO_CODEC},
+                            {"AudioCodec", "aac,mp3,ac3,opus"},
                             {"Protocol", "hls"},
-                            {"Context", "Streaming"},
-                            {"BreakOnNonKeyFrames", true},
                         }},
                     },
                     {
