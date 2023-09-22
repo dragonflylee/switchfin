@@ -31,15 +31,15 @@ parts:
     source-type: tar
     plugin: meson
     meson-parameters:
-      - -Dprefix=/usr
-      - -Dbuildtype=release
-      - -Dbuild-date=false
-      - -Ddefault_library=shared
+      - --prefix=/usr
+      - --buildtype=release
+      - --default-library=shared
       - -Dcplayer=false
       - -Dlibmpv=true
       - -Dtests=false
       - -Dplain-gl=enabled
       - -Dalsa=disabled
+      - -Dlua=disabled
     stage-packages:
       - libdrm2
     prime:

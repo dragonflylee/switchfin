@@ -2,17 +2,28 @@ name: build
 
 on:
   push:
-    tags-ignore: [ switch-portlibs ]
+    tags-ignore: 
+    - switch-portlibs
+    - mingw-packages
     branches: [ dev ]
   pull_request:
     branches: [ dev ]
   workflow_dispatch:
     inputs:
+      nx:
+        description: build nintendo switch
+        type: boolean
+      macos:
+        description: build macos dmg
+        type: boolean
       snap:
-        description: build snap
+        description: build linux snap
         type: boolean
       mingw64:
-        description: build mingw64
+        description: build win64 mingw64
+        type: boolean
+      msvc:
+        description: build win64 msvc
         type: boolean
 
 permissions:
@@ -20,7 +31,7 @@ permissions:
 
 jobs:
   upload-release:
-    needs: [ build-msvc-x64, build-switch, build-macos ]
+    needs: [ build-mingw64, build-nx, build-macos ]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
@@ -35,8 +46,9 @@ jobs:
         body: |
           ![download](https://img.shields.io/github/downloads/${{ github.repository }}/${{ github.ref_name }}/total?label=Downloads)
 
-  build-switch:
+  build-nx:
     runs-on: ubuntu-latest
+    if: ${{ inputs.nx || github.event_name != 'workflow_dispatch'}}
     container:
       image: devkitpro/devkita64
     steps:
@@ -66,7 +78,7 @@ jobs:
 
   build-snap:
     runs-on: ubuntu-latest
-    if: github.event.inputs.snap
+    if: ${{ inputs.snap }}
     steps:
     - uses: actions/checkout@v3
       with:
@@ -89,6 +101,7 @@ jobs:
 
   build-macos:
     runs-on: macos-11
+    if: ${{ inputs.macos || github.event_name != 'workflow_dispatch'}}
     steps:
     - uses: actions/checkout@v3
       with:
@@ -127,9 +140,10 @@ jobs:
 
   build-mingw64:
     runs-on: windows-2022
-    if: github.event.inputs.mingw64
+    if: ${{ inputs.mingw64 == true || github.event_name != 'workflow_dispatch'}}
     env:
       MSYSTEM: MINGW64
+      MSYS2_PATH_TYPE: inherit
     defaults:
       run:
         shell: C:\shells\msys2bash.cmd {0}
@@ -139,28 +153,31 @@ jobs:
         submodules: recursive
     - name: Install dependency
       run: |
-        pacman -S --noconfirm --noprogressbar mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake git p7zip
-    - name: Build dependency
-      run: |
-        curl -sL https://github.com/webmproject/libwebp/archive/v1.3.1.tar.gz | tar zxf - -C /tmp
-        cd /tmp/libwebp-1.3.1
-        cmake -B build -G 'MinGW Makefiles' -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/mingw64 -DBUILD_SHARED_LIBS=OFF \
-          -DWEBP_BUILD_ANIM_UTILS=OFF -DWEBP_BUILD_CWEBP=OFF -DWEBP_BUILD_DWEBP=OFF -DWEBP_BUILD_GIF2WEBP=OFF \
-          -DWEBP_BUILD_IMG2WEBP=OFF -DWEBP_BUILD_VWEBP=OFF -DWEBP_BUILD_WEBPINFO=OFF -DWEBP_BUILD_WEBPMUX=OFF \
-          -DWEBP_BUILD_LIBWEBPMUX=OFF -DWEBP_BUILD_EXTRAS=OFF
-        mingw32-make -C build -j4 
-        mingw32-make -C build install
+        for p in mpv-0.36.0-3 libwebp-1.3.2-1 curl-7.88.1-1; do
+          curl -LO https://github.com/${{ github.repository }}/releases/download/mingw-packages/mingw-w64-x86_64-$p-any.pkg.tar.zst
+        done
+        pacman -U --noconfirm *.pkg.tar.zst
+
+        pacman -S --noconfirm --noprogressbar \
+          ${MINGW_PACKAGE_PREFIX}-gcc \
+          ${MINGW_PACKAGE_PREFIX}-ninja
+
     - name: Update gamepad mappings
       run: |
         BRLS_GLFW=library/borealis/library/lib/extern/glfw
         cmake -P $BRLS_GLFW/CMake/GenerateMappings.cmake $BRLS_GLFW/src/mappings.h.in $BRLS_GLFW/src/mappings.h
     - name: Build
       run: |
-        cmake -B build_mingw -G 'MinGW Makefiles' -DUSE_LIBROMFS=ON -DPLATFORM_DESKTOP=ON -DWIN32_TERMINAL=OFF -DUSE_SYSTEM_CURL=OFF -DVERSION_BUILD=${{ github.run_number }}
-        mingw32-make -C build_mingw -j4
-
-        for i in {libwinpthread-1,zlib1}; do cp /mingw64/bin/$i.dll build_mingw; done
-        cd build_mingw; 7z a -mx=9 Switchfin-mingw64.7z Switchfin.exe *.dll
+        cmake -B build_mingw -G Ninja \
+          -DUSE_LIBROMFS=ON \
+          -DPLATFORM_DESKTOP=ON \
+          -DWIN32_TERMINAL=OFF \
+          -DZLIB_USE_STATIC_LIBS=ON \
+          -DVERSION_BUILD=${{ github.run_number }}
+        cmake --build build_mingw
+        cd build_mingw
+        strip Switchfin.exe
+        7z a -mx=9 Switchfin-windows-mingw64.7z Switchfin.exe $MINGW_PREFIX/bin/libmpv-2.dll
     - name: Set outputs
       id: vars
       run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -172,6 +189,7 @@ jobs:
 
   build-msvc-x64:
     runs-on: windows-2022
+    if: ${{ inputs.msvc }}
     steps:
     - name: Install xmake
       shell: powershell
@@ -194,7 +212,7 @@ jobs:
         xmake config -c -y
         xmake build -y
         cd build\windows\x64\release
-        7z a -mx=9 "$env:GITHUB_WORKSPACE\Switchfin-msvc-x64.7z" *
+        7z a -mx=9 "$env:GITHUB_WORKSPACE\Switchfin-windows-msvc.7z" *
     - name: Set outputs
       id: vars
       shell: bash
@@ -202,5 +220,5 @@ jobs:
     - name: Upload Assets
       uses: actions/upload-artifact@v3
       with:
-        name: switchfin-win64-${{ steps.vars.outputs.sha_short }}
+        name: switchfin-msvc-${{ steps.vars.outputs.sha_short }}
         path: Switchfin-*.7z

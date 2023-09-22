@@ -8,6 +8,8 @@ build*/
 /resources/forwarder.nsp
 /scripts/switch/*/*.tar.*
 /scripts/switch/*/src
+/scripts/mingw64/*/*.tar.*
+/scripts/mingw64/*/src
 /scripts/parts/*
 /scripts/prime/*
 /scripts/stage/*

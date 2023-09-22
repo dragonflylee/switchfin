@@ -1,0 +1,55 @@
+name: mingw-packages
+
+on:
+  push:
+    tags: [ mingw-packages ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { msystem: MINGW64, runner: windows-2022 },
+          { msystem: MINGW32, runner: windows-2022 },
+        ]
+    name: ${{ matrix.msystem }}
+    runs-on: ${{ matrix.runner }}
+    env:
+      MSYSTEM: ${{ matrix.msystem }}
+    defaults:
+      run:
+        shell: C:\shells\msys2bash.cmd {0}
+    steps:
+    - name: Disable autocrlf
+      shell: bash
+      run: git config --global core.autocrlf false
+    - uses: actions/checkout@v4
+    - name: Install dependency
+      run: |
+        pacman -S --noconfirm --noprogressbar \
+          ${MINGW_PACKAGE_PREFIX}-make \
+          ${MINGW_PACKAGE_PREFIX}-autotools \
+          ${MINGW_PACKAGE_PREFIX}-cmake \
+          ${MINGW_PACKAGE_PREFIX}-ninja \
+          ${MINGW_PACKAGE_PREFIX}-meson \
+          ${MINGW_PACKAGE_PREFIX}-cc patch
+    - name: Build packages
+      run: |
+        cd scripts/mingw64
+        for p in freetype harfbuzz libass ffmpeg mpv libwebp curl; do
+          echo building $p
+          cd $p; makepkg-mingw -sciCf --noconfirm; cd ..
+        done
+    - name: Upload packages
+      uses: softprops/action-gh-release@v1
+      with:
+        name: mingw-packages
+        tag_name: mingw-packages
+        prerelease: true
+        files: scripts/mingw64/*/*.pkg.tar.zst
+        body: |
+          ![download](https://img.shields.io/github/downloads/${{ github.repository }}/mingw-packages/total?label=Downloads)

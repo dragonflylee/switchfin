@@ -1,0 +1,83 @@
+# Maintainer: Alexey Pavlov <alexpux@gmail.com>
+
+_realname=curl
+pkgbase=mingw-w64-${_realname}
+pkgname=${MINGW_PACKAGE_PREFIX}-${_realname}
+pkgver=7.88.1
+pkgrel=1
+pkgdesc="library for transferring data with URLs (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw64')
+url="https://curl.se/"
+license=("spdx:MIT")
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "${MINGW_PACKAGE_PREFIX}-autotools"
+)
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-zlib"
+  "${MINGW_PACKAGE_PREFIX}-mbedtls"
+)
+source=(
+  "https://curl.haxx.se/download/${_realname}-${pkgver}.tar.xz"
+  "0001-skip-compiling-unnecessary-stuff.patch"
+)
+sha256sums=('1dae31b2a7c1fe269de99c0c31bb488346aab3459b5ffca909d6938249ae415f' 'SKIP')
+
+prepare() {
+  cd "${srcdir}/${_realname}-${pkgver}"
+  patch -Nbp1 -i "${srcdir}/0001-skip-compiling-unnecessary-stuff.patch"
+
+  autoreconf -fiv
+}
+
+build() {
+  extra_config=(
+    --disable-dict
+    --disable-file
+    --disable-ftp
+    --disable-gopher
+    --disable-imap
+    --disable-ldap
+    --disable-ldaps
+    --disable-mqtt
+    --disable-pop3
+    --disable-rtsp
+    --disable-smb
+    --disable-smtp
+    --disable-telnet
+    --disable-tftp
+  )
+
+  mkdir -p "${srcdir}/build-${MSYSTEM}" && cd "${srcdir}/build-${MSYSTEM}"
+  ${srcdir}/${_realname}-${pkgver}/configure \
+    --prefix=${MINGW_PREFIX} \
+    --build=${MINGW_CHOST} \
+    --host=${MINGW_CHOST} \
+    --target=${MINGW_CHOST} \
+    --disable-pthreads \
+    --disable-progress-meter \
+    --without-random \
+    --enable-static \
+    --enable-shared \
+    --disable-debug \
+    --without-brotli \
+    --without-zstd \
+    --without-nghttp2 \
+    --without-libgsasl \
+    --without-libpsl \
+    --without-libidn2 \
+    --with-winidn=${MINGW_PREFIX} \
+    --with-mbedtls=${MINGW_PREFIX} \
+    "${extra_config[@]}"
+  make -j4
+}
+
+package() {
+  cd "${srcdir}/build-${MSYSTEM}"
+  make DESTDIR="${pkgdir}" install
+
+  local PREFIX_DEPS=$(cygpath -am ${MINGW_PREFIX})
+  sed -s "s|${PREFIX_DEPS}|${MINGW_PREFIX}|g" -i ${pkgdir}${MINGW_PREFIX}/bin/curl-config
+  sed -s "s|${PREFIX_DEPS}|${MINGW_PREFIX}|g" -i ${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/libcurl.pc
+}

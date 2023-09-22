@@ -1,0 +1,50 @@
+# Maintainer: Alexey Pavlov <alexpux@gmail.com>
+# Contributor: James Ross-Gowan <rossymiles@gmail.com>
+
+_realname=mpv
+pkgbase="mingw-w64-${_realname}"
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+pkgver=0.36.0
+pkgrel=3
+pkgdesc="Video player based on MPlayer/mplayer2 (mingw-w64)"
+url="https://mpv.io/"
+arch=('any')
+mingw_arch=('mingw64')
+license=('spx:GPL-2.0-only' 'spx:LGPL-2.1-only')
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-ffmpeg"
+  "${MINGW_PACKAGE_PREFIX}-libass"
+)
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "${MINGW_PACKAGE_PREFIX}-meson"
+  "${MINGW_PACKAGE_PREFIX}-ninja"
+)
+options=('staticlibs' '!strip')
+source=("${_realname}-${pkgver}.tar.gz"::"https://github.com/mpv-player/${_realname}/archive/v${pkgver}.tar.gz")
+sha256sums=('29abc44f8ebee013bb2f9fe14d80b30db19b534c679056e4851ceadf5a5e8bf6')
+
+build() {
+  MSYS2_ARG_CONV_EXCL="--prefix=" \
+    meson setup \
+      --prefix="${MINGW_PREFIX}" \
+      --buildtype=release \
+      --default-library=static \
+      -Dlibmpv=true \
+      -Dcplayer=false \
+      -Dtests=false \
+      -Dplain-gl=enabled \
+      -Dlibarchive=disabled \
+      -Dlua=disabled \
+      "build-${MSYSTEM}" \
+      "${srcdir}/${_realname}-${pkgver}"
+
+  meson compile -C "build-${MSYSTEM}"
+}
+
+package() {
+  cd "${srcdir}/build-${MSYSTEM}"
+  meson install --destdir "${pkgdir}"
+
+  sed -s "s|$(cygpath -am ${MINGW_PREFIX})|${MINGW_PREFIX}|g" -i ${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/mpv.pc
+}

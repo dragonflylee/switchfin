@@ -1,0 +1,47 @@
+# Maintainer: Alexey Pavlov <alexpux@gmail.com>
+# Contributor: Renato Silva <br.renatosilva@gmail.com>
+
+_realname=harfbuzz
+pkgbase=mingw-w64-${_realname}
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+pkgver=8.2.1
+pkgrel=1
+pkgdesc="OpenType text shaping engine (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw64')
+url="https://github.com/harfbuzz/harfbuzz"
+license=('spdx:MIT')
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "${MINGW_PACKAGE_PREFIX}-meson"
+  "${MINGW_PACKAGE_PREFIX}-ninja"
+)
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-freetype"
+  "${MINGW_PACKAGE_PREFIX}-libpng"
+)
+options=('staticlibs' '!strip')
+source=("https://github.com/harfbuzz/harfbuzz/releases/download/${pkgver}/harfbuzz-${pkgver}.tar.xz")
+sha256sums=('0fec78f98c9c8faf228957a201c8846f809452c20f8445eb092a1ba6f22dbea5')
+
+build() {
+  MSYS2_ARG_CONV_EXCL="--prefix=" \
+    meson setup \
+      --prefix="${MINGW_PREFIX}" \
+      --buildtype=release \
+      --default-library=static \
+      -Dicu=disabled \
+      -Dglib=disabled \
+      -Dgobject=disabled \
+      -Dtests=disabled \
+      -Ddocs=disabled \
+      -Dbenchmark=disabled \
+      "build-${MSYSTEM}" \
+      "${srcdir}/${_realname}-${pkgver}"
+
+  meson compile -C "build-${MSYSTEM}"
+}
+
+package() {
+  meson install -C "build-${MSYSTEM}" --destdir "${pkgdir}"
+}

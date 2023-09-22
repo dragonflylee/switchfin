@@ -1,0 +1,71 @@
+# Maintainer: Alexey Pavlov <alexpux@gmail.com>
+
+_realname=curl
+pkgbase=mingw-w64-${_realname}
+pkgname=${MINGW_PACKAGE_PREFIX}-${_realname}
+pkgver=7.88.1
+pkgrel=1
+pkgdesc="library for transferring data with URLs (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw32' 'mingw64' 'clangarm64')
+url="https://curl.se/"
+license=("spdx:MIT")
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "${MINGW_PACKAGE_PREFIX}-cmake"
+  "${MINGW_PACKAGE_PREFIX}-ninja"
+)
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-zlib"
+)
+source=("https://curl.haxx.se/download/${_realname}-${pkgver}.tar.xz")
+sha256sums=('1dae31b2a7c1fe269de99c0c31bb488346aab3459b5ffca909d6938249ae415f')
+
+build() {
+  msg2 "Building shared library"
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    cmake -B "build-${MSYSTEM}-shared" -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+      -DCMAKE_SHARED_LIBRARY_SUFFIX_C="-4.dll" \
+      -DBUILD_SHARED_LIBS=ON \
+      -DHTTP_ONLY=ON \
+      -DCURL_USE_SCHANNEL=ON \
+      -DCURL_DISABLE_PROGRESS_METER=ON \
+      -DBUILD_CURL_EXE=OFF \
+      -DBUILD_TESTING=OFF \
+      -DUSE_LIBIDN2=OFF \
+      -DUSE_WIN32_IDN=ON \
+      -DCURL_USE_LIBSSH2=OFF \
+      -DCURL_USE_LIBPSL=OFF \
+      "${srcdir}/${_realname}-${pkgver}"
+  cmake --build "build-${MSYSTEM}-shared"
+
+  msg2 "Building static library"
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    cmake -B "build-${MSYSTEM}-static" -G Ninja  \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+      -DBUILD_SHARED_LIBS=OFF \
+      -DZLIB_USE_STATIC_LIBS=ON \
+      -DHTTP_ONLY=ON \
+      -DCURL_USE_SCHANNEL=ON \
+      -DCURL_DISABLE_PROGRESS_METER=ON \
+      -DBUILD_CURL_EXE=OFF \
+      -DBUILD_TESTING=OFF \
+      -DUSE_LIBIDN2=OFF \
+      -DUSE_WIN32_IDN=ON \
+      -DCURL_USE_LIBSSH2=OFF \
+      -DCURL_USE_LIBPSL=OFF \
+      "${srcdir}/${_realname}-${pkgver}"
+  cmake --build "build-${MSYSTEM}-static"
+}
+
+package() {
+  DESTDIR="${pkgdir}" cmake --install "build-${MSYSTEM}-shared"
+  DESTDIR="${pkgdir}" cmake --install "build-${MSYSTEM}-static"
+
+  local PREFIX_DEPS=$(cygpath -am ${MINGW_PREFIX})
+  sed -s "s|${PREFIX_DEPS}|${MINGW_PREFIX}|g" -i ${pkgdir}${MINGW_PREFIX}/bin/curl-config
+  sed -s "s|${PREFIX_DEPS}|${MINGW_PREFIX}|g" -i ${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/libcurl.pc
+}

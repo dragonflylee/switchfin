@@ -1,0 +1,48 @@
+# Maintainer: Alexey Pavlov <alexpux@gmail.com>
+# Contributor: Renato Silva <br.renatosilva@gmail.com>
+
+_realname=freetype
+pkgbase=mingw-w64-${_realname}
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+pkgver=2.13.2
+pkgrel=1
+pkgdesc="TrueType font rendering library (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw64')
+msys2_references=(
+  'archlinux: freetype2'
+)
+url="https://www.freetype.org/"
+license=('spdx:GPL-2.0-or-later OR FTL')
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-bzip2"
+  "${MINGW_PACKAGE_PREFIX}-libpng"
+  "${MINGW_PACKAGE_PREFIX}-zlib"
+)
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-meson"
+  "${MINGW_PACKAGE_PREFIX}-ninja"
+  "${MINGW_PACKAGE_PREFIX}-cc"
+)
+options=('staticlibs' '!strip')
+source=(https://download-mirror.savannah.gnu.org/releases/freetype/freetype-${pkgver}.tar.xz)
+sha256sums=('12991c4e55c506dd7f9b765933e62fd2be2e06d421505d7950a132e4f1bb484d')
+
+build() {
+  MSYS2_ARG_CONV_EXCL="--prefix=" \
+    meson setup \
+      --prefix="${MINGW_PREFIX}" \
+      --buildtype=release \
+      --default-library=static \
+      -Dharfbuzz=disabled \
+      -Dtests=disabled \
+      -Dbrotli=disabled \
+      "build-${MSYSTEM}" \
+      "${srcdir}/${_realname}-${pkgver}"
+
+  meson compile -C "build-${MSYSTEM}"
+}
+
+package () {
+  meson install -C "build-${MSYSTEM}" --destdir "${pkgdir}"
+}

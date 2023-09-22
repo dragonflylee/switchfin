@@ -56,7 +56,7 @@ find_path(
 set(_MPV_LIBRARY_NAMES mpv)
 if (PC_MPV_LIBRARIES)
     set(_MPV_LIBRARY_NAMES ${PC_MPV_LIBRARIES})
-endif (PC_MPV_LIBRARIES)
+endif ()
 
 foreach (l ${_MPV_LIBRARY_NAMES})
     find_library(

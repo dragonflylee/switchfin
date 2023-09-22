@@ -1,0 +1,87 @@
+# Maintainer: Alexey Pavlov <Alexpux@gmail.com>
+# Contributor: Zach Bacon <11doctorwhocanada@gmail.com>
+# Contributor: wirx6 <wirx654@gmail.com>
+# Contributor: Ray Donnelly <mingw.android@gmail.com>
+
+_realname=ffmpeg
+pkgbase="mingw-w64-${_realname}"
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+pkgver=6.0
+pkgrel=7
+pkgdesc="Complete solution to record, convert and stream audio and video (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw64')
+url="https://ffmpeg.org/"
+license=('spdx:GPL-3.0-or-later')
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-bzip2"
+  "${MINGW_PACKAGE_PREFIX}-fribidi"
+  "${MINGW_PACKAGE_PREFIX}-freetype"
+  "${MINGW_PACKAGE_PREFIX}-dav1d"
+  "${MINGW_PACKAGE_PREFIX}-libass"
+  "${MINGW_PACKAGE_PREFIX}-mbedtls"
+  "${MINGW_PACKAGE_PREFIX}-zlib"
+)
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "${MINGW_PACKAGE_PREFIX}-autotools"
+  "${MINGW_PACKAGE_PREFIX}-nasm"
+  "${MINGW_PACKAGE_PREFIX}-amf-headers"
+  "${MINGW_PACKAGE_PREFIX}-ffnvcodec-headers"
+)
+options=('staticlibs' '!strip')
+source=(
+  https://ffmpeg.org/releases/${_realname}-${pkgver}.tar.xz
+  https://github.com/FFmpeg/FFmpeg/commit/effadce6c756247ea8bae32dc13bb3e6f464f0eb.patch
+)
+sha256sums=('57be87c22d9b49c112b6d24bc67d42508660e6b718b3db89c44e47e289137082' 'SKIP')
+
+prepare() {
+  cd "${srcdir}/${_realname}-${pkgver}"
+
+  # https://github.com/msys2/MINGW-packages/issues/17946
+  patch -Np1 -i "${srcdir}"/effadce6c756247ea8bae32dc13bb3e6f464f0eb.patch
+}
+
+build() {
+  mkdir -p "${srcdir}/build-${MSYSTEM}" && cd "${srcdir}/build-${MSYSTEM}"
+  ${srcdir}/${_realname}-${pkgver}/configure \
+    --prefix=${MINGW_PREFIX} \
+    --disable-shared \
+    --enable-static \
+    --enable-runtime-cpudetect \
+    --disable-programs \
+    --disable-debug \
+    --disable-doc \
+    --disable-avdevice \
+    --disable-encoders \
+    --disable-muxers \
+    --enable-swscale \
+    --enable-swresample \
+    --enable-network  \
+    --disable-protocols \
+    --enable-dxva2 \
+    --enable-d3d11va \
+    --enable-amf \
+    --enable-nvdec \
+    --enable-protocol=file,http,tcp,udp,hls,https,tls \
+    --enable-zlib \
+    --enable-bzlib \
+    --enable-libass \
+    --enable-libfreetype \
+    --enable-libfribidi \
+    --enable-libdav1d \
+    --enable-mbedtls \
+    --enable-version3 \
+    --enable-gpl \
+    --extra-libs='-lstdc++'
+  make -j4
+}
+
+package() {
+  cd "${srcdir}/build-${MSYSTEM}"
+  make DESTDIR="${pkgdir}" install
+
+  local PREFIX_DEPS=$(cygpath -am ${MINGW_PREFIX})
+  find ${pkgdir}${MINGW_PREFIX}/lib/pkgconfig -name *.pc -exec sed -i -e"s|${PREFIX_DEPS}|${MINGW_PREFIX}|g" {} \;
+}
