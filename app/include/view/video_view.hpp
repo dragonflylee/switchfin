@@ -50,6 +50,7 @@ private:
     BRLS_BIND(brls::Box, btnSetting, "video/osd/setting");
     BRLS_BIND(brls::Box, btnToggle, "video/osd/toggle");
     BRLS_BIND(brls::Box, btnVideoQuality, "video/quality/box");
+    BRLS_BIND(brls::Box, btnVideoChapter, "video/chapter/box");
     BRLS_BIND(SVGImage, btnToggleIcon, "video/osd/toggle/icon");
     BRLS_BIND(brls::Box, osdTopBox, "video/osd/top/box");
     BRLS_BIND(brls::Box, osdBottomBox, "video/osd/bottom/box");
@@ -57,6 +58,7 @@ private:
     BRLS_BIND(brls::Label, centerLabel, "video/osd/center/label");
     BRLS_BIND(brls::Label, leftStatusLabel, "video/left/status");
     BRLS_BIND(brls::Label, rightStatusLabel, "video/right/status");
+    BRLS_BIND(brls::Label, videoChapterLabel, "video/chapter");
     BRLS_BIND(brls::Label, videoQualityLabel, "video/quality");
     BRLS_BIND(brls::Label, hintLabel, "video/osd/hint/label");
     BRLS_BIND(brls::Box, hintBox, "video/osd/hint/box");
@@ -103,6 +105,7 @@ private:
 
     // Playinfo
     std::string itemId;
+    std::vector<jellyfin::MediaChapter> chapters;
     /// @brief DirectPlay, Transcode
     std::string playMethod;
     std::string playSessionId;

@@ -129,7 +129,45 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
         },
         true);
 
-    this->playMedia(item.UserData.PlaybackPositionTicks);
+    this->btnVideoChapter->registerClickAction([this](...) {
+        if (this->chapters.empty()) return false;
+
+        int selectedChapter = -1;
+        time_t ticks = MPVCore::instance().video_progress * jellyfin::PLAYTICKS;
+        std::vector<std::string> values;
+        for (auto& item : this->chapters) {
+            values.push_back(item.Name);
+            if (item.StartPositionTicks <= ticks) selectedChapter++;
+        }
+
+        brls::Dropdown* dropdown = new brls::Dropdown(
+            "main/player/chapter"_i18n, values,
+            [this](int selected) {
+                int64_t offset = this->chapters[selected].StartPositionTicks;
+                MPVCore::instance().command_str("seek {} absolute", offset / jellyfin::PLAYTICKS);
+            },
+            selectedChapter);
+        brls::Application::pushActivity(new brls::Activity(dropdown));
+        return true;
+    });
+    this->btnVideoChapter->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoChapter));
+
+    // request mediainfo
+    ASYNC_RETAIN
+    jellyfin::getJSON(
+        [ASYNC_TOKEN](const jellyfin::MediaItem& r) {
+            ASYNC_RELEASE
+            this->chapters = r.Chapters;
+            this->playMedia(r.UserData.PlaybackPositionTicks);
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            auto dialog = new brls::Dialog(ex);
+            dialog->addButton(
+                "hints/ok"_i18n, []() { brls::Application::popActivity(brls::TransitionAnimation::NONE, &onDismiss); });
+            dialog->open();
+        },
+        jellyfin::apiUserItem, AppConfig::instance().getUser().id, this->itemId);
 }
 
 VideoView::~VideoView() {
@@ -291,6 +329,7 @@ bool VideoView::playNext(int off) {
 
     auto item = this->showEpisodes.at(this->itemIndex);
     this->itemId = item.Id;
+    this->chapters = item.Chapters;
     this->playMedia(0);
     this->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
     this->btnBackward->setVisibility(this->itemIndex > 0 ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
@@ -300,6 +339,8 @@ bool VideoView::playNext(int off) {
 }
 
 void VideoView::playMedia(const time_t seekTicks) {
+    this->btnVideoChapter->setVisibility(this->chapters.empty() ? brls::Visibility::GONE : brls::Visibility::VISIBLE);
+
     ASYNC_RETAIN
     jellyfin::postJSON(
         {
@@ -391,7 +432,14 @@ void VideoView::playMedia(const time_t seekTicks) {
                 "hints/ok"_i18n, []() { brls::Application::popActivity(brls::TransitionAnimation::NONE, &onDismiss); });
             dialog->open();
         },
-        nullptr, jellyfin::apiPlayback, this->itemId);
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            auto dialog = new brls::Dialog(ex);
+            dialog->addButton(
+                "hints/ok"_i18n, []() { brls::Application::popActivity(brls::TransitionAnimation::NONE, &onDismiss); });
+            dialog->open();
+        },
+        jellyfin::apiPlayback, this->itemId);
 }
 
 void VideoView::reportStart() {

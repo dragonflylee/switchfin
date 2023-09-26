@@ -58,6 +58,12 @@ struct UserDataResult {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
     UserDataResult, IsFavorite, PlayCount, PlaybackPositionTicks, PlayedPercentage, Played);
 
+struct MediaChapter {
+    std::string Name;
+    time_t StartPositionTicks = 0;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaChapter, Name, StartPositionTicks);
+
 struct MediaItem {
     std::string Id;
     std::string Name;
@@ -67,9 +73,10 @@ struct MediaItem {
     long ProductionYear = 0;
     float CommunityRating = 0.0f;
     UserDataResult UserData;
+    std::vector<MediaChapter> Chapters;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
-    MediaItem, Id, Name, Type, ImageTags, IsFolder, ProductionYear, CommunityRating, UserData);
+    MediaItem, Id, Name, Type, ImageTags, IsFolder, ProductionYear, CommunityRating, UserData, Chapters);
 
 struct MediaCollection : public MediaItem {
     std::string CollectionType;
@@ -143,8 +150,8 @@ struct MediaEpisode : public MediaSeason {
     std::vector<MediaSource> MediaSources;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaEpisode, Id, Name, Type, ImageTags, IsFolder, ProductionYear,
-    UserData, RunTimeTicks, IndexNumber, ParentIndexNumber, Overview, SeriesId, SeriesName, SeriesPrimaryImageTag,
-    MediaSources);
+    UserData, Chapters, RunTimeTicks, IndexNumber, ParentIndexNumber, Overview, SeriesId, SeriesName,
+    SeriesPrimaryImageTag, MediaSources);
 
 template <typename T>
 struct MediaQueryResult {

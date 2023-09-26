@@ -203,6 +203,25 @@
                     positionType="absolute"
                     positionRight="20">
                     <brls:Box
+                        id="video/chapter/box"
+                        hideClickAnimation="true"
+                        marginLeft="10"
+                        marginRight="10"
+                        alignItems="center"
+                        justifyContent="center"
+                        height="60">
+                        <brls:Label
+                            id="video/chapter"
+                            textColor="#FFFFFF"
+                            text="@i18n/main/player/chapter"
+                            focusable="true"
+                            focusUp="video/osd/setting"
+                            focusDown="video/chapter"
+                            horizontalAlign="center"
+                            hideHighlightBackground="true"
+                            highlightCornerRadius="8" />
+                    </brls:Box>
+                    <brls:Box
                         id="video/quality/box"
                         hideClickAnimation="true"
                         marginLeft="10"

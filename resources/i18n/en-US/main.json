@@ -20,6 +20,7 @@
     "common": "Common",
     "speed": "Playback Speed",
     "quality": "Video Quality",
+    "chapter": "Chapter",
     "auto": "Auto"
   },
   "search": {
