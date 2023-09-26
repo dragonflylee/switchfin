@@ -385,9 +385,13 @@ void MPVCore::initializeGL() {
 #endif
 }
 
-void MPVCore::command_str(const char *args) { check_error(mpv_command_string(mpv, args)); }
+void MPVCore::command_str(const char *args) {
+    if (this->mpv) check_error(mpv_command_string(mpv, args));
+}
 
-void MPVCore::command_async(const char **args) { check_error(mpv_command_async(mpv, 0, args)); }
+void MPVCore::command_async(const char **args) {
+    if (this->mpv) check_error(mpv_command_async(mpv, 0, args));
+}
 
 void MPVCore::setFrameSize(brls::Rect rect) {
 #ifdef MPV_SW_RENDER
