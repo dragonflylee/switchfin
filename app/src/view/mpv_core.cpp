@@ -79,15 +79,17 @@ void MPVCore::init() {
         brls::fatal("Error Create mpv Handle");
     }
 
+    auto &conf = AppConfig::instance();
+
     // misc
     mpv_set_option_string(mpv, "config", "yes");
-    mpv_set_option_string(mpv, "config-dir", AppConfig::instance().configDir().c_str());
+    mpv_set_option_string(mpv, "config-dir", conf.configDir().c_str());
     mpv_set_option_string(mpv, "ytdl", "no");
 #ifdef _DEBUG
     mpv_set_option_string(mpv, "terminal", "yes");
 #endif
     mpv_set_option_string(mpv, "audio-channels", "stereo");
-    mpv_set_option_string(mpv, "referrer", AppConfig::instance().getUrl().c_str());
+    mpv_set_option_string(mpv, "referrer", conf.getUrl().c_str());
     mpv_set_option_string(mpv, "idle", "yes");
     mpv_set_option_string(mpv, "loop-file", "no");
     mpv_set_option_string(mpv, "osd-level", "0");
@@ -113,10 +115,19 @@ void MPVCore::init() {
         mpv_set_option_string(mpv, "cache", "no");
     }
 
-    // Making the loading process faster
 #ifdef __SWITCH__
+    // Making the loading process faster
     mpv_set_option_string(mpv, "vd-lavc-dr", "yes");
     mpv_set_option_string(mpv, "vd-lavc-threads", "3");
+
+    // Set default subfont
+    std::string locale = brls::Application::getPlatform()->getLocale();
+    if (locale == brls::LOCALE_ZH_HANS)
+        mpv_set_option_string(mpv, "sub-font", "nintendo_udsg-r_org_zh-cn_003");
+    else if (locale == brls::LOCALE_ZH_HANT)
+        mpv_set_option_string(mpv, "sub-font", "nintendo_udjxh-db_zh-tw_003");
+    else if (locale == brls::LOCALE_Ko)
+        mpv_set_option_string(mpv, "sub-font", "nintendo_udsg-r_ko_003");
 #endif
 
     // hardware decoding
