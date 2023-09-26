@@ -37,6 +37,12 @@ public:
         this->labelTitle->setText(AppVersion::getPackageName());
         this->labelVersion->setText(fmt::format("v{}-{}", AppVersion::getVersion(), AppVersion::getCommit()));
         this->labelGithub->setText("https://github.com/" + AppVersion::git_repo);
+        this->btnGithub->registerClickAction([this](...){
+            std::string url = this->labelGithub->getFullText();
+            brls::Application::getPlatform()->openBrowser(url);
+            return true;
+        });
+        this->btnGithub->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnGithub));
 
         auto& mpv = MPVCore::instance();
         this->labelMPV->setText(fmt::format("ffmpeg/{} {}", mpv.ffmpeg_version, mpv.mpv_version));
@@ -52,6 +58,7 @@ private:
     BRLS_BIND(brls::Label, labelGithub, "setting/about/github");
     BRLS_BIND(brls::Label, labelMPV, "setting/about/mpv");
     BRLS_BIND(brls::Label, labelCurl, "setting/about/curl");
+    BRLS_BIND(brls::Box, btnGithub, "setting/box/github");
 };
 
 SettingTab::SettingTab() {

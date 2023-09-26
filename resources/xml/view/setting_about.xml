@@ -24,34 +24,34 @@
 
     <brls:Header
         title="@i18n/main/about/header"
-        marginBottom="20" />
+        marginBottom="15" />
     <brls:Label
-        marginLeft="20"
-        marginBottom="20"
+        marginBottom="15"
         text="@i18n/main/about/brief" />
 
     <brls:Header
         title="@i18n/main/about/repo_header"
-        marginBottom="20" />
-    <brls:Label
-        textColor="#6693B6"
-        marginLeft="20"
-        marginBottom="20"
-        id="setting/about/github" />
+        marginBottom="15" />
+    <brls:Box
+        id="setting/box/github"
+        marginBottom="15"
+        axis="column">
+        <brls:Label
+            textColor="#6693B6"
+            id="setting/about/github" />
+    </brls:Box>
 
     <brls:Padding
         lineBottom="1px"
         lineColor="@theme/brls/header/border"
-        marginBottom="20" />
+        marginBottom="15" />
+
     <brls:Label
         textColor="@theme/font/grey"
-        marginLeft="20"
-        marginBottom="20"
+        marginBottom="15"
         id="setting/about/mpv" />
     <brls:Label
         textColor="@theme/font/grey"
-        marginLeft="20"
-        marginBottom="20"
         id="setting/about/curl" />
 
 </brls:Box>
