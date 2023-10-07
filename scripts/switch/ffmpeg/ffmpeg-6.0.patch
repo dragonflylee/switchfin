@@ -504,7 +504,7 @@ index d456e5dd11..0e9dcd40ff 100644
                             },
 diff --git a/libavcodec/tx1_decode.c b/libavcodec/tx1_decode.c
 new file mode 100644
-index 0000000000..2e9615454b
+index 0000000000..0c23aa24ac
 --- /dev/null
 +++ b/libavcodec/tx1_decode.c
 @@ -0,0 +1,411 @@
@@ -620,7 +620,7 @@ index 0000000000..2e9615454b
 +    if (err < 0)
 +        goto fail;
 +
-+    err = ff_tx1_dfs_init(hw_device_ctx, ctx->channel, avctx->width, avctx->height,
++    err = ff_tx1_dfs_init(hw_device_ctx, ctx->channel, avctx->coded_width, avctx->coded_height,
 +                          av_q2d(avctx->framerate));
 +    if (err < 0)
 +        goto fail;
@@ -897,8 +897,8 @@ index 0000000000..2e9615454b
 +    const AVPixFmtDescriptor *sw_desc;
 +
 +    frames_ctx->format = AV_PIX_FMT_TX1;
-+    frames_ctx->width  = FFALIGN(avctx->width,  2); /* NVDEC only supports even sizes */
-+    frames_ctx->height = FFALIGN(avctx->height, 2);
++    frames_ctx->width  = FFALIGN(avctx->coded_width,  2); /* NVDEC only supports even sizes */
++    frames_ctx->height = FFALIGN(avctx->coded_height, 2);
 +
 +    sw_desc = av_pix_fmt_desc_get(avctx->sw_pix_fmt);
 +    if (!sw_desc)
@@ -921,7 +921,7 @@ index 0000000000..2e9615454b
 +}
 diff --git a/libavcodec/tx1_decode.h b/libavcodec/tx1_decode.h
 new file mode 100644
-index 0000000000..bbb62b84ac
+index 0000000000..596806f194
 --- /dev/null
 +++ b/libavcodec/tx1_decode.h
 @@ -0,0 +1,93 @@
@@ -993,12 +993,12 @@ index 0000000000..bbb62b84ac
 +     * Official software uses a static map of a predetermined size, usually around 0x600000 (6MiB).
 +     * Our implementation supports dynamically resizing the input map, so be less conservative.
 +     */
-+    if ((avctx->width >= 3840) || (avctx->height >= 2160))  /* 4k */
-+        return 0x100000;                                    /* 1MiB */
-+    if ((avctx->width >= 1920) || (avctx->height >= 1080))  /* 1080p */
-+        return 0x40000;                                     /* 256KiB */
++    if ((avctx->coded_width >= 3840) || (avctx->coded_height >= 2160))  /* 4k */
++        return 0x100000;                                                /* 1MiB */
++    if ((avctx->coded_width >= 1920) || (avctx->coded_height >= 1080))  /* 1080p */
++        return 0x40000;                                                 /* 256KiB */
 +    else
-+        return 0x10000;                                     /* 64KiB */
++        return 0x10000;                                                 /* 64KiB */
 +}
 +
 +static inline AVFrame *ff_tx1_safe_get_ref(AVFrame *ref, AVFrame *fallback) {
@@ -1020,10 +1020,10 @@ index 0000000000..bbb62b84ac
 +#endif /* AVCODEC_TX1_H */
 diff --git a/libavcodec/tx1_h264.c b/libavcodec/tx1_h264.c
 new file mode 100644
-index 0000000000..316035d004
+index 0000000000..c5fa8cbfa3
 --- /dev/null
 +++ b/libavcodec/tx1_h264.c
-@@ -0,0 +1,511 @@
+@@ -0,0 +1,512 @@
 +/*
 + * Copyright (c) 2023 averne <averne381@gmail.com>
 + *
@@ -1122,8 +1122,8 @@ index 0000000000..316035d004
 +
 +    av_log(avctx, AV_LOG_DEBUG, "Initializing TX1 H264 decoder\n");
 +
-+    aligned_width  = FFALIGN(avctx->width,  MB_SIZE);
-+    aligned_height = FFALIGN(avctx->height, MB_SIZE);
++    aligned_width  = FFALIGN(avctx->coded_width,  MB_SIZE);
++    aligned_height = FFALIGN(avctx->coded_height, MB_SIZE);
 +    width_in_mbs   = aligned_width  / MB_SIZE;
 +    height_in_mbs  = aligned_height / MB_SIZE;
 +
@@ -1384,8 +1384,9 @@ index 0000000000..316035d004
 +        }
 +    }
 +
-+    memcpy(setup->WeightScale,    pps->scaling_matrix4, sizeof(setup->WeightScale));
-+    memcpy(setup->WeightScale8x8, pps->scaling_matrix8, sizeof(setup->WeightScale8x8));
++    memcpy(setup->WeightScale,       pps->scaling_matrix4,    sizeof(setup->WeightScale));
++    memcpy(setup->WeightScale8x8[0], pps->scaling_matrix8[0], sizeof(setup->WeightScale8x8[0]));
++    memcpy(setup->WeightScale8x8[1], pps->scaling_matrix8[3], sizeof(setup->WeightScale8x8[1]));
 +}
 +
 +static int tx1_h264_prepare_cmdbuf(AVTX1Cmdbuf *cmdbuf, H264Context *h,
@@ -1537,10 +1538,10 @@ index 0000000000..316035d004
 +#endif
 diff --git a/libavcodec/tx1_hevc.c b/libavcodec/tx1_hevc.c
 new file mode 100644
-index 0000000000..c55b767eed
+index 0000000000..30a23afc68
 --- /dev/null
 +++ b/libavcodec/tx1_hevc.c
-@@ -0,0 +1,625 @@
+@@ -0,0 +1,628 @@
 +/*
 + * Copyright (c) 2023 averne <averne381@gmail.com>
 + *
@@ -1651,8 +1652,8 @@ index 0000000000..c55b767eed
 +    if (err < 0)
 +        goto fail;
 +
-+    aligned_width      = FFALIGN(avctx->width,  CTU_SIZE);
-+    aligned_height     = FFALIGN(avctx->height, CTU_SIZE);
++    aligned_width      = FFALIGN(avctx->coded_width,  CTU_SIZE);
++    aligned_height     = FFALIGN(avctx->coded_height, CTU_SIZE);
 +    coloc_size         = (aligned_width * aligned_height) + (aligned_width * aligned_height / MB_SIZE);
 +    filter_buffer_size = (FILTER_SIZE + SAO_SIZE + BSD_SIZE) * aligned_height;
 +
@@ -1690,9 +1691,10 @@ index 0000000000..c55b767eed
 +
 +    int i;
 +
-+    /* Discarded in official software? */
-+    memcpy(list->ScalingListDCCoeff16x16, sl->sl_dc[0], 6);
-+    memcpy(list->ScalingListDCCoeff32x32, sl->sl_dc[1], 2);
++    for (i = 0; i < FF_ARRAY_ELEMS(list->ScalingListDCCoeff16x16); ++i)
++        list->ScalingListDCCoeff16x16[i] = sl->sl_dc[0][i];
++    for (i = 0; i < FF_ARRAY_ELEMS(list->ScalingListDCCoeff32x32); ++i)
++        list->ScalingListDCCoeff32x32[i] = sl->sl_dc[1][i * 3];
 +
 +    for (i = 0; i < 6; ++i)
 +        memcpy(list->ScalingList4x4[i],   sl->sl[0][i], 16);
@@ -1759,7 +1761,7 @@ index 0000000000..c55b767eed
 +    mem = ff_tx1_map_get_addr(input_map);
 +
 +    /* Enable 10-bit output if asked for regardless of colorspace */
-+    // TODO: Dithered down 8-bit decoding (needs DISPLAY_BUF stuff)
++    /* TODO: Dithered down 8-bit decoding (needs DISPLAY_BUF stuff) */
 +    if (frames_ctx->sw_format == AV_PIX_FMT_P010 && sps->bit_depth == 10) {
 +        output_mode = 1;                /* 10-bit bt709 */
 +    } else {
@@ -2049,15 +2051,17 @@ index 0000000000..c55b767eed
 +        }
 +    }
 +
-+    // TODO: Dithered down 8-bit decoding
-+    // if (ctx->last_frame) {
-+    //     FF_TX1_PUSH_RELOC(cmdbuf, NVC5B0_SET_DISPLAY_BUF_LUMA_OFFSET,
-+    //         ff_tx1_frame_get_fbuf_map(ctx->last_frame), 0, NVHOST_RELOC_TYPE_DEFAULT);
-+    //     FF_TX1_PUSH_RELOC(cmdbuf, NVC5B0_SET_DISPLAY_BUF_CHROMA_OFFSET,
-+    //         ff_tx1_frame_get_fbuf_map(ctx->last_frame),
-+    //         ctx->last_frame->data[1] - ctx->last_frame->data[0],
-+    //         NVHOST_RELOC_TYPE_DEFAULT);
-+    // }
++    /*
++     * TODO: Dithered down 8-bit decoding
++     * if (ctx->last_frame) {
++     *     FF_TX1_PUSH_RELOC(cmdbuf, NVC5B0_SET_DISPLAY_BUF_LUMA_OFFSET,
++     *         ff_tx1_frame_get_fbuf_map(ctx->last_frame), 0, NVHOST_RELOC_TYPE_DEFAULT);
++     *     FF_TX1_PUSH_RELOC(cmdbuf, NVC5B0_SET_DISPLAY_BUF_CHROMA_OFFSET,
++     *         ff_tx1_frame_get_fbuf_map(ctx->last_frame),
++     *         ctx->last_frame->data[1] - ctx->last_frame->data[0],
++     *         NVHOST_RELOC_TYPE_DEFAULT);
++     * }
++     */
 +
 +    FF_TX1_PUSH_VALUE(cmdbuf, NVC5B0_EXECUTE,
 +                      FF_TX1_ENUM(NVC5B0_EXECUTE, AWAKEN, ENABLE));
@@ -2495,7 +2499,7 @@ index 0000000000..a457b363d7
 +#endif
 diff --git a/libavcodec/tx1_mpeg12.c b/libavcodec/tx1_mpeg12.c
 new file mode 100644
-index 0000000000..ecf8b813cf
+index 0000000000..d2db568528
 --- /dev/null
 +++ b/libavcodec/tx1_mpeg12.c
 @@ -0,0 +1,316 @@
@@ -2568,8 +2572,8 @@ index 0000000000..ecf8b813cf
 +
 +    av_log(avctx, AV_LOG_DEBUG, "Initializing TX1 MPEG12 decoder\n");
 +
-+    num_slices = (FFALIGN(avctx->width,  MB_SIZE) / MB_SIZE) *
-+                 (FFALIGN(avctx->height, MB_SIZE) / MB_SIZE);
++    num_slices = (FFALIGN(avctx->coded_width,  MB_SIZE) / MB_SIZE) *
++                 (FFALIGN(avctx->coded_height, MB_SIZE) / MB_SIZE);
 +    num_slices = FFMIN(num_slices, 8160);
 +
 +    /* Ignored: histogram map, size 0x400 */
@@ -2817,7 +2821,7 @@ index 0000000000..ecf8b813cf
 +#endif
 diff --git a/libavcodec/tx1_mpeg4.c b/libavcodec/tx1_mpeg4.c
 new file mode 100644
-index 0000000000..0a9c35a525
+index 0000000000..a8dea8a354
 --- /dev/null
 +++ b/libavcodec/tx1_mpeg4.c
 @@ -0,0 +1,347 @@
@@ -2921,8 +2925,8 @@ index 0000000000..0a9c35a525
 +    if (err < 0)
 +        goto fail;
 +
-+    width_in_mbs  = FFALIGN(avctx->width,  MB_SIZE) / MB_SIZE;
-+    height_in_mbs = FFALIGN(avctx->height, MB_SIZE) / MB_SIZE;
++    width_in_mbs  = FFALIGN(avctx->coded_width,  MB_SIZE) / MB_SIZE;
++    height_in_mbs = FFALIGN(avctx->coded_height, MB_SIZE) / MB_SIZE;
 +    coloc_size    = FFALIGN(FFALIGN(height_in_mbs, 2) * (width_in_mbs * 64) - 63, 0x100);
 +    history_size  = FFALIGN(width_in_mbs * 0x100 + 0x1100, 0x100);
 +    scratch_size  = 0x400;
@@ -3170,7 +3174,7 @@ index 0000000000..0a9c35a525
 +#endif
 diff --git a/libavcodec/tx1_vc1.c b/libavcodec/tx1_vc1.c
 new file mode 100644
-index 0000000000..82ace4cf40
+index 0000000000..2025e297de
 --- /dev/null
 +++ b/libavcodec/tx1_vc1.c
 @@ -0,0 +1,474 @@
@@ -3259,9 +3263,8 @@ index 0000000000..82ace4cf40
 +
 +    av_log(avctx, AV_LOG_DEBUG, "Initializing TX1 VC1 decoder\n");
 +
-+
-+    width_in_mbs   = FFALIGN(avctx->width,  MB_SIZE) / MB_SIZE;
-+    height_in_mbs  = FFALIGN(avctx->height, MB_SIZE) / MB_SIZE;
++    width_in_mbs   = FFALIGN(avctx->coded_width,  MB_SIZE) / MB_SIZE;
++    height_in_mbs  = FFALIGN(avctx->coded_height, MB_SIZE) / MB_SIZE;
 +
 +    num_slices = width_in_mbs * height_in_mbs;
 +
@@ -3327,6 +3330,7 @@ index 0000000000..82ace4cf40
 +{
 +    VC1Context     *v = avctx->priv_data;
 +    MpegEncContext *s = &v->s;
++    AVFrame    *frame = s->current_picture.f;
 +
 +    /*
 +     * Note: a lot of fields in this structure are unused by official software,
@@ -3340,8 +3344,8 @@ index 0000000000..82ace4cf40
 +        .bitstream_offset        = 0,
 +
 +        .FrameStride             = {
-+            s->current_picture.f->linesize[0],
-+            s->current_picture.f->linesize[1],
++            frame->linesize[0],
++            frame->linesize[1],
 +        },
 +
 +        // TODO: Set these for interlaced content
@@ -3352,9 +3356,9 @@ index 0000000000..82ace4cf40
 +        .chroma_bot_offset       = 0,
 +        .chroma_frame_offset     = 0,
 +
-+        .CodedWidth              = FFALIGN(avctx->width,
++        .CodedWidth              = FFALIGN(avctx->coded_width,
 +                                           (v->profile == PROFILE_ADVANCED) ? 1 : MB_SIZE),
-+        .CodedHeight             = FFALIGN(avctx->height,
++        .CodedHeight             = FFALIGN(avctx->coded_height,
 +                                           (v->profile == PROFILE_ADVANCED) ? 1 : MB_SIZE),
 +
 +        .HistBufferSize          = ctx->history_size / 256,
@@ -3368,9 +3372,9 @@ index 0000000000..82ace4cf40
 +
 +        .fastuvmc                = v->fastuvmc,
 +
-+        .FrameWidth              = FFALIGN(avctx->width,
++        .FrameWidth              = FFALIGN(frame->width,
 +                                           (v->profile == PROFILE_ADVANCED) ? 1 : MB_SIZE),
-+        .FrameHeight             = FFALIGN(avctx->height,
++        .FrameHeight             = FFALIGN(frame->height,
 +                                           (v->profile == PROFILE_ADVANCED) ? 1 : MB_SIZE),
 +
 +        .profile                 = (v->profile != PROFILE_ADVANCED) ? 1 : 2,
@@ -3434,7 +3438,7 @@ index 0000000000..82ace4cf40
 +        setup->displayPara.OutputBottom[0] = 0;
 +        setup->displayPara.OutputBottom[1] = 0;
 +        setup->displayPara.OutputStructure = v->interlace & 1;
-+        setup->displayPara.OutStride       = s->current_picture.f->linesize[0] & 0xff;
++        setup->displayPara.OutStride       = frame->linesize[0] & 0xff;
 +    }
 +}
 +
@@ -3650,7 +3654,7 @@ index 0000000000..82ace4cf40
 +#endif
 diff --git a/libavcodec/tx1_vp8.c b/libavcodec/tx1_vp8.c
 new file mode 100644
-index 0000000000..f205e9a068
+index 0000000000..e8c9950867
 --- /dev/null
 +++ b/libavcodec/tx1_vp8.c
 @@ -0,0 +1,339 @@
@@ -3776,7 +3780,7 @@ index 0000000000..f205e9a068
 +    if (err < 0)
 +        goto fail;
 +
-+    width_in_mbs = FFALIGN(avctx->width, MB_SIZE) / MB_SIZE;
++    width_in_mbs = FFALIGN(avctx->coded_width, MB_SIZE) / MB_SIZE;
 +    ctx->history_size = width_in_mbs * 0x200;
 +
 +    ctx->prob_data_off = 0;
@@ -3995,7 +3999,7 @@ index 0000000000..f205e9a068
 +#endif
 diff --git a/libavcodec/tx1_vp9.c b/libavcodec/tx1_vp9.c
 new file mode 100644
-index 0000000000..ea3a2c212a
+index 0000000000..39c5023f8b
 --- /dev/null
 +++ b/libavcodec/tx1_vp9.c
 @@ -0,0 +1,667 @@
@@ -4111,8 +4115,8 @@ index 0000000000..ea3a2c212a
 +    if (err < 0)
 +        goto fail;
 +
-+    aligned_width    = FFALIGN(avctx->width,  MB_SIZE);
-+    aligned_height   = FFALIGN(avctx->height, MB_SIZE);
++    aligned_width    = FFALIGN(avctx->coded_width,  MB_SIZE);
++    aligned_height   = FFALIGN(avctx->coded_height, MB_SIZE);
 +    max_sb_size      = CEILDIV(aligned_width, 64) * CEILDIV(aligned_height, 64);
 +    segment_rw_size  = FFALIGN(max_sb_size * 32, 0x100);
 +    filter_size      = FFALIGN(avctx->height, 64) * 988;

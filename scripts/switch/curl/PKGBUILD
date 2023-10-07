@@ -16,10 +16,7 @@ source=(
 )
 groups=('switch-portlibs')
 
-sha256sums=(
- '03c7d5e6697f7b7e40ada1b2256e565a555657398e6c1fcfa4cb251ccd819d4f'
- 'SKIP'
-)
+sha256sums=('03c7d5e6697f7b7e40ada1b2256e565a555657398e6c1fcfa4cb251ccd819d4f' 'SKIP')
 
 build() {
   cd curl-$pkgver
