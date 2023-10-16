@@ -1,0 +1,27 @@
+diff --git a/cmake/shaderc_combined.pc.in b/cmake/shaderc_combined.pc.in
+index 6d217bf..7aa3f2e 100644
+--- a/cmake/shaderc_combined.pc.in
++++ b/cmake/shaderc_combined.pc.in
+@@ -8,5 +8,7 @@ Description: Tools and libraries for Vulkan shader compilation
+ Version: @CURRENT_VERSION@
+ URL: https://github.com/google/shaderc
+ 
++Requires.private: SPIRV-Tools
++Libs.private: -lGenericCodeGen -lOGLCompiler -lOSDependent -lMachineIndependent -lSPIRV
+ Libs: -L${libdir} @LIBS@
+ Cflags: -I${includedir}
+diff --git a/libshaderc_util/CMakeLists.txt b/libshaderc_util/CMakeLists.txt
+index 99ce3c4..aa81bf2 100644
+--- a/libshaderc_util/CMakeLists.txt
++++ b/libshaderc_util/CMakeLists.txt
+@@ -46,8 +46,8 @@ add_definitions(-DENABLE_HLSL)
+ 
+ find_package(Threads)
+ target_link_libraries(shaderc_util PRIVATE
+-  glslang OSDependent OGLCompiler HLSL glslang SPIRV
+-  SPIRV-Tools-opt ${CMAKE_THREAD_LIBS_INIT})
++  MachineIndependent GenericCodeGen glslang OSDependent OGLCompiler glslang HLSL SPIRV
++  SPIRV-Tools-opt SPIRV-Tools ${CMAKE_THREAD_LIBS_INIT})
+ 
+ shaderc_add_tests(
+   TEST_PREFIX shaderc_util

@@ -1,0 +1,57 @@
+# Maintainer: Biswapriyo Nath <nathbappai@gmail.com>
+
+_realname=spirv-cross
+pkgbase=mingw-w64-${_realname}
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+epoch=1
+pkgver=1.3.261.1
+pkgrel=1
+pkgdesc="A tool and library for parsing and converting SPIR-V to other shader languages (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw32' 'mingw64' 'clang64' 'clangarm64')
+url='https://github.com/KhronosGroup/SPIRV-Cross/'
+license=('spdx:Apache-2.0')
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-gcc-libs"
+  "${MINGW_PACKAGE_PREFIX}-glslang"
+  "${MINGW_PACKAGE_PREFIX}-spirv-tools"
+)
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-cmake"
+  "${MINGW_PACKAGE_PREFIX}-ninja"
+  "${MINGW_PACKAGE_PREFIX}-python"
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "${MINGW_PACKAGE_PREFIX}-spirv-headers"
+)
+source=(
+  "${_realname}-${pkgver}.tar.gz::https://github.com/KhronosGroup/SPIRV-Cross/archive/sdk-${pkgver}.tar.gz"
+  "0001-static-linking-hacks.patch"
+)
+sha256sums=('a5cf99ed62e93800232e50b782890321d4d7e053dcaa71bd8efc0c48a00bd1dd' 'SKIP')
+
+prepare() {
+  cd "${srcdir}/SPIRV-Cross-sdk-${pkgver}"
+
+  patch -Nbp1 -i "${srcdir}/0001-static-linking-hacks.patch"
+  # Use system provided glslang and spirv-tools binaries.
+  sed -e "s|NO_DEFAULT_PATH||g" -i CMakeLists.txt
+}
+
+build() {
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    cmake -B "build-${MSYSTEM}" -G Ninja \
+      -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DSPIRV_CROSS_SHARED=ON \
+      -DSPIRV_CROSS_CLI=OFF \
+      -DSPIRV_CROSS_ENABLE_TESTS=OFF \
+      -DCMAKE_CXX_FLAGS='${CMAKE_CXX_FLAGS} -D__USE_MINGW_ANSI_STDIO' \
+      "${srcdir}/SPIRV-Cross-sdk-${pkgver}"
+  cmake --build "build-${MSYSTEM}"
+}
+
+package() {
+  DESTDIR="${pkgdir}" cmake --install "build-${MSYSTEM}"
+
+  install -Dm644 "${srcdir}/SPIRV-Cross-sdk-${pkgver}/LICENSE" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
+}

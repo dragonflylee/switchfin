@@ -12,12 +12,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: [
-          { msystem: MINGW64, runner: windows-2022 },
-          { msystem: MINGW32, runner: windows-2022 },
-        ]
+        msystem: [ MINGW64, MINGW32 ]
     name: ${{ matrix.msystem }}
-    runs-on: ${{ matrix.runner }}
+    runs-on: windows-2022
     env:
       MSYSTEM: ${{ matrix.msystem }}
     defaults:
@@ -36,20 +33,30 @@ jobs:
           ${MINGW_PACKAGE_PREFIX}-cmake \
           ${MINGW_PACKAGE_PREFIX}-ninja \
           ${MINGW_PACKAGE_PREFIX}-meson \
-          ${MINGW_PACKAGE_PREFIX}-cc patch
+          ${MINGW_PACKAGE_PREFIX}-cc patch p7zip
     - name: Build packages
       run: |
         cd scripts/mingw64
-        for p in freetype harfbuzz libass ffmpeg mpv libwebp curl; do
+        for p in freetype harfbuzz libass ffmpeg spirv-cross shaderc mpv libwebp curl; do
           echo building $p
           cd $p; makepkg-mingw -sciCf --noconfirm; cd ..
         done
+
+        cd ${MINGW_PREFIX}
+        7z a -mx=9 ${GITHUB_WORKSPACE}/mpv-${MSYSTEM_CARCH}.7z include/mpv \
+          ${MINGW_PREFIX}/bin/libmpv-2.dll \
+          ${MINGW_PREFIX}/lib/libmpv.dll.a \
+          ${MINGW_PREFIX}/share/doc/mpv/mpv.def
     - name: Upload packages
       uses: softprops/action-gh-release@v1
       with:
         name: mingw-packages
         tag_name: mingw-packages
         prerelease: true
-        files: scripts/mingw64/*/*.pkg.tar.zst
+        files: |
+          scripts/mingw64/curl/*.pkg.tar.zst
+          scripts/mingw64/libwebp/*.pkg.tar.zst
+          scripts/mingw64/mpv/*.pkg.tar.zst
+          mpv-*.7z
         body: |
           ![download](https://img.shields.io/github/downloads/${{ github.repository }}/mingw-packages/total?label=Downloads)

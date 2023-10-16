@@ -1,0 +1,200 @@
+diff --git a/libmpv/mpv.def b/libmpv/mpv.def
+index 232490d44d..8e0171abce 100644
+--- a/libmpv/mpv.def
++++ b/libmpv/mpv.def
+@@ -1,3 +1,4 @@
++EXPORTS
+ mpv_abort_async_command
+ mpv_client_api_version
+ mpv_client_id
+diff --git a/libmpv/render.h b/libmpv/render.h
+index 29f9b91e96..d3cefdcde4 100644
+--- a/libmpv/render.h
++++ b/libmpv/render.h
+@@ -421,6 +421,10 @@ typedef enum mpv_render_param_type {
+      * See MPV_RENDER_PARAM_SW_STRIDE for alignment requirements.
+      */
+     MPV_RENDER_PARAM_SW_POINTER = 20,
++    /*
++     * MPV_RENDER_API_TYPE_DXGI only
++     */
++    MPV_RENDER_PARAM_DXGI_INIT_PARAMS = 21,
+ } mpv_render_param_type;
+ 
+ /**
+@@ -467,6 +471,8 @@ typedef struct mpv_render_param {
+ #define MPV_RENDER_API_TYPE_OPENGL "opengl"
+ // See section "Software renderer"
+ #define MPV_RENDER_API_TYPE_SW "sw"
++// See render_dxgi.h
++#define MPV_RENDER_API_TYPE_DXGI "dxgi"
+ 
+ /**
+  * Flags used in mpv_render_frame_info.flags. Each value represents a bit in it.
+diff --git a/libmpv/render_dxgi.h b/libmpv/render_dxgi.h
+new file mode 100644
+index 0000000000..5614cc99d9
+--- /dev/null
++++ b/libmpv/render_dxgi.h
+@@ -0,0 +1,18 @@
++#ifndef MPV_CLIENT_API_RENDER_DXGI_H_
++#define MPV_CLIENT_API_RENDER_DXGI_H_
++
++#include "render.h"
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++typedef struct mpv_dxgi_init_params {
++    void *device;
++    void *swapchain;
++} mpv_dxgi_init_params;
++
++#ifdef __cplusplus
++}
++#endif
++#endif // MPV_CLIENT_API_RENDER_DXGI_H_
+diff --git a/meson.build b/meson.build
+index f9fe4e7263..75a3e500c3 100644
+--- a/meson.build
++++ b/meson.build
+@@ -980,7 +980,8 @@ d3d11 = get_option('d3d11').require(
+ features += {'d3d11': d3d11.allowed()}
+ if features['d3d11']
+     sources += files('video/out/d3d11/context.c',
+-                     'video/out/d3d11/ra_d3d11.c')
++                     'video/out/d3d11/ra_d3d11.c',
++                     'video/out/d3d11/libmpv_d3d11.c')
+ endif
+ 
+ wayland = {
+@@ -1724,8 +1725,10 @@ if get_option('libmpv')
+                  description: 'mpv media player client library')
+ 
+     headers = ['libmpv/client.h', 'libmpv/render.h',
+-               'libmpv/render_gl.h', 'libmpv/stream_cb.h']
++               'libmpv/render_gl.h', 'libmpv/stream_cb.h',
++               'libmpv/render_dxgi.h']
+     install_headers(headers, subdir: 'mpv')
++    install_data(sources: 'libmpv/mpv.def', install_dir: 'share/doc/mpv')
+ endif
+ 
+ if get_option('cplayer')
+diff --git a/video/out/d3d11/libmpv_d3d11.c b/video/out/d3d11/libmpv_d3d11.c
+new file mode 100644
+index 0000000000..9059834745
+--- /dev/null
++++ b/video/out/d3d11/libmpv_d3d11.c
+@@ -0,0 +1,87 @@
++#include "common/msg.h"
++#include "ra_d3d11.h"
++#include "libmpv/render_dxgi.h"
++#include "video/out/gpu/libmpv_gpu.h"
++#include "osdep/windows_utils.h"
++
++struct priv {
++    struct ra_tex *tex;
++    ID3D11Device *device;
++    IDXGISwapChain *swapchain;
++};
++
++static int init(struct libmpv_gpu_context *ctx, mpv_render_param *params)
++{
++    MP_VERBOSE(ctx, "Creating libmpv d3d11 context\n");
++    struct priv *p = ctx->priv = talloc_zero(NULL, struct priv);
++
++    mpv_dxgi_init_params *init_params =
++        get_mpv_render_param(params, MPV_RENDER_PARAM_DXGI_INIT_PARAMS, NULL);
++    if (!init_params)
++        return MPV_ERROR_INVALID_PARAMETER;
++
++    p->device = init_params->device;
++    p->swapchain = init_params->swapchain;
++    ID3D11Device_AddRef(p->device);
++    ID3D11Device_AddRef(p->swapchain);
++
++    // initialize a blank ra_ctx to reuse ra_gl_ctx
++    struct ra_ctx *ra_ctx = talloc_zero(p, struct ra_ctx);
++    ra_ctx->log = ctx->log;
++    ra_ctx->global = ctx->global;
++
++    if (!spirv_compiler_init(ra_ctx))
++        return MPV_ERROR_UNSUPPORTED;
++
++    ra_ctx->ra = ra_d3d11_create(p->device, ctx->log, ra_ctx->spirv);
++    if (!ra_ctx->ra)
++        return MPV_ERROR_UNSUPPORTED;    
++
++    ctx->ra_ctx = ra_ctx;
++    return 0;
++}
++
++static int wrap_fbo(struct libmpv_gpu_context *ctx, mpv_render_param *params, struct ra_tex **out)
++{
++    struct priv *p = ctx->priv;
++    ID3D11Resource *backbuffer = NULL;
++
++    if (!p->tex) {
++        HRESULT hr = IDXGISwapChain_GetBuffer(p->swapchain, 0, &IID_ID3D11Texture2D,
++                        (void**)&backbuffer);
++        if (FAILED(hr)) {
++            MP_ERR(ctx, "Couldn't get swapchain image\n");
++            return MPV_ERROR_UNSUPPORTED;
++        }
++        p->tex = ra_d3d11_wrap_tex(ctx->ra_ctx->ra, backbuffer);
++        SAFE_RELEASE(backbuffer);
++    }
++
++    *out = p->tex;
++    return 0;
++}
++
++static void done_frame(struct libmpv_gpu_context *ctx, bool ds)
++{
++    struct priv *p = ctx->priv;
++
++    ra_d3d11_flush(ctx->ra_ctx->ra);
++    ra_tex_free(ctx->ra_ctx->ra, &p->tex);
++}
++
++static void destroy(struct libmpv_gpu_context *ctx)
++{
++    struct priv *p = ctx->priv;
++    if (ctx->ra_ctx->ra)
++        ra_tex_free(ctx->ra_ctx->ra, &p->tex);
++    SAFE_RELEASE(p->swapchain);
++    SAFE_RELEASE(p->device);
++}
++
++const struct libmpv_gpu_context_fns libmpv_gpu_context_d3d11 = {
++    .api_name    = MPV_RENDER_API_TYPE_DXGI,
++    .init        = init,
++    .wrap_fbo    = wrap_fbo,
++    .done_frame  = done_frame,
++    .destroy     = destroy,
++};
+\ No newline at end of file
+diff --git a/video/out/gpu/libmpv_gpu.c b/video/out/gpu/libmpv_gpu.c
+index aae1d18eed..bc65a73f7b 100644
+--- a/video/out/gpu/libmpv_gpu.c
++++ b/video/out/gpu/libmpv_gpu.c
+@@ -6,6 +6,9 @@
+ #include "video/out/libmpv.h"
+ 
+ static const struct libmpv_gpu_context_fns *context_backends[] = {
++#if HAVE_D3D11
++    &libmpv_gpu_context_d3d11,
++#endif
+ #if HAVE_GL
+     &libmpv_gpu_context_gl,
+ #endif
+diff --git a/video/out/gpu/libmpv_gpu.h b/video/out/gpu/libmpv_gpu.h
+index 497dcc3f69..fad1a00c0a 100644
+--- a/video/out/gpu/libmpv_gpu.h
++++ b/video/out/gpu/libmpv_gpu.h
+@@ -38,3 +38,4 @@ struct libmpv_gpu_context_fns {
+ };
+ 
+ extern const struct libmpv_gpu_context_fns libmpv_gpu_context_gl;
++extern const struct libmpv_gpu_context_fns libmpv_gpu_context_d3d11;

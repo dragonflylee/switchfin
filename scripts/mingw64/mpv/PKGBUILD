@@ -5,7 +5,7 @@ _realname=mpv
 pkgbase="mingw-w64-${_realname}"
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
 pkgver=0.36.0
-pkgrel=3
+pkgrel=4
 pkgdesc="Video player based on MPlayer/mplayer2 (mingw-w64)"
 url="https://mpv.io/"
 arch=('any')
@@ -17,14 +17,24 @@ makedepends=(
   "${MINGW_PACKAGE_PREFIX}-ninja"
   "${MINGW_PACKAGE_PREFIX}-ffmpeg"
   "${MINGW_PACKAGE_PREFIX}-libass"
+  "${MINGW_PACKAGE_PREFIX}-shaderc"
+  "${MINGW_PACKAGE_PREFIX}-spirv-cross"
 )
 options=('strip')
-source=("${_realname}-${pkgver}.tar.gz"::"https://github.com/mpv-player/${_realname}/archive/v${pkgver}.tar.gz")
-sha256sums=('29abc44f8ebee013bb2f9fe14d80b30db19b534c679056e4851ceadf5a5e8bf6')
+source=(
+  "${_realname}-${pkgver}.tar.gz"::"https://github.com/mpv-player/${_realname}/archive/v${pkgver}.tar.gz"
+  "0001-d3d11-render.patch"
+)
+sha256sums=('29abc44f8ebee013bb2f9fe14d80b30db19b534c679056e4851ceadf5a5e8bf6' 'SKIP')
+
+prepare() {
+  cd "${srcdir}/${_realname}-${pkgver}"
+  patch -Nbp1 -i "${srcdir}/0001-d3d11-render.patch"
+}
 
 build() {
   MSYS2_ARG_CONV_EXCL="--prefix=" \
-  LDFLAGS="-static-libgcc -static-libstdc++ -static" \
+  LDFLAGS="-lstdc++ -static-libgcc -static-libstdc++ -static" \
     meson setup \
       --prefix="${MINGW_PREFIX}" \
       --buildtype=release \
@@ -34,6 +44,7 @@ build() {
       -Dcplayer=false \
       -Dtests=false \
       -Dplain-gl=enabled \
+      -Dd3d11=enabled \
       -Dlibarchive=disabled \
       -Dlua=disabled \
       "build-${MSYSTEM}" \
@@ -43,8 +54,7 @@ build() {
 }
 
 package() {
-  cd "${srcdir}/build-${MSYSTEM}"
-  meson install --destdir "${pkgdir}"
+  meson install -C "build-${MSYSTEM}" --destdir "${pkgdir}"
 
   sed -s "s|$(cygpath -am ${MINGW_PREFIX})|${MINGW_PREFIX}|g" -i ${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/mpv.pc
 }

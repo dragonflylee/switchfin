@@ -18,8 +18,8 @@ VideoProfile::~VideoProfile() {
     this->ticker.stop();
 }
 
-#include "view/mpv_core.hpp"
 #include "api/jellyfin.hpp"
+#include "view/mpv_core.hpp"
 
 void VideoProfile::init(const std::string& title, const std::string& method) {
     auto& mpv = MPVCore::instance();

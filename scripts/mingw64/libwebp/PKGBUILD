@@ -31,7 +31,7 @@ prepare() {
 
 build() {
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
-    cmake -B "build-${MSYSTEM}" -G Ninja \
+    ${MINGW_PREFIX}/bin/cmake.exe -B "build-${MSYSTEM}" -G Ninja \
       -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}" \
       -DCMAKE_BUILD_TYPE=Release \
       -DBUILD_SHARED_LIBS=OFF \
@@ -46,9 +46,9 @@ build() {
       -DWEBP_BUILD_WEBPMUX=OFF \
       -DWEBP_BUILD_EXTRAS=OFF \
       "${srcdir}/${_realname}-${pkgver}"
-    cmake --build "build-${MSYSTEM}"
+    ${MINGW_PREFIX}/bin/cmake.exe --build "build-${MSYSTEM}"
 }
 
 package() {
-  DESTDIR="${pkgdir}" cmake --install "build-${MSYSTEM}"
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake.exe --install "build-${MSYSTEM}"
 }

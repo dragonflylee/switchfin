@@ -18,18 +18,8 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
     this->setHideHighlightBorder(true);
     this->setHideHighlightBackground(true);
     this->setHideClickAnimation(true);
-
-    brls::Box* container = new brls::Box();
-    float width = brls::Application::contentWidth;
-    float height = brls::Application::contentHeight;
-
-    container->setDimensions(width, height);
-    this->setDimensions(width, height);
-    this->setWidthPercentage(100);
-    this->setHeightPercentage(100);
     this->setId("video");
-    container->addView(this);
-    brls::Application::pushActivity(new brls::Activity(container), brls::TransitionAnimation::NONE);
+    brls::Application::pushActivity(new brls::Activity(this), brls::TransitionAnimation::NONE);
 
     this->registerAction(
         "cancel", brls::ControllerButton::BUTTON_B,
@@ -223,7 +213,7 @@ void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::S
     if (!mpv.isValid()) return;
 
     // draw video
-    mpv.openglDraw(this->getFrame(), this->getAlpha());
+    mpv.draw(this->getFrame(), this->getAlpha());
 
     // draw osd
     time_t current = std::time(nullptr);

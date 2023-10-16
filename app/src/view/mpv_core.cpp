@@ -6,30 +6,6 @@
 #include "utils/config.hpp"
 #include <fmt/ranges.h>
 
-#if !defined(MPV_NO_FB) && !defined(MPV_SW_RENDER)
-const char *vertexShaderSource =
-    "#version 150 core\n"
-    "in vec3 aPos;\n"
-    "in vec2 aTexCoord;\n"
-    "out vec2 TexCoord;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = vec4(aPos, 1.0);\n"
-    "   TexCoord = aTexCoord;\n"
-    "}\0";
-const char *fragmentShaderSource =
-    "#version 150 core\n"
-    "in vec2 TexCoord;\n"
-    "out vec4 FragColor;\n"
-    "uniform sampler2D ourTexture;\n"
-    "uniform float Alpha = 1.0;\n"
-    "void main()\n"
-    "{\n"
-    "   FragColor = texture(ourTexture, TexCoord);\n"
-    "   FragColor.a = Alpha;\n"
-    "}\n\0";
-#endif
-
 static inline void check_error(int status) {
     if (status < 0) {
         brls::Logger::error("MPV ERROR ====> {}", mpv_error_string(status));
@@ -37,6 +13,11 @@ static inline void check_error(int status) {
 }
 
 #ifndef MPV_SW_RENDER
+#ifdef BOREALIS_USE_D3D11
+#include <borealis/platforms/driver/d3d11.hpp>
+extern std::unique_ptr<brls::D3D11Context> D3D11_CONTEXT;
+#else
+#include <glad/glad.h>
 static void *get_proc_address(void *unused, const char *name) {
 #ifdef __SDL2__
     SDL_GL_GetCurrentContext();
@@ -46,6 +27,7 @@ static void *get_proc_address(void *unused, const char *name) {
     return (void *)glfwGetProcAddress(name);
 #endif
 }
+#endif
 #endif
 
 void MPVCore::on_update(void *self) {
@@ -85,9 +67,6 @@ void MPVCore::init() {
     mpv_set_option_string(mpv, "config", "yes");
     mpv_set_option_string(mpv, "config-dir", conf.configDir().c_str());
     mpv_set_option_string(mpv, "ytdl", "no");
-#ifdef _DEBUG
-    mpv_set_option_string(mpv, "terminal", "yes");
-#endif
     mpv_set_option_string(mpv, "audio-channels", "stereo");
     mpv_set_option_string(mpv, "referrer", conf.getUrl().c_str());
     mpv_set_option_string(mpv, "idle", "yes");
@@ -147,7 +126,7 @@ void MPVCore::init() {
     }
 
 #ifdef _DEBUG
-    // log
+    mpv_set_option_string(mpv, "terminal", "yes");
     mpv_set_option_string(mpv, "msg-level", "ffmpeg=trace");
     //  mpv_set_option_string(mpv, "msg-level", "all=no");
     mpv_set_option_string(mpv, "msg-level", "all=v");
@@ -172,17 +151,29 @@ void MPVCore::init() {
 
     // init renderer params
 #ifdef MPV_SW_RENDER
-    mpv_render_param params[]{
-        {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_SW)}, {MPV_RENDER_PARAM_INVALID, nullptr}};
+    mpv_render_param params[] = {
+        {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_SW)},
+        {MPV_RENDER_PARAM_INVALID, nullptr},
+    };
+#elif defined(BOREALIS_USE_D3D11)
+    mpv_dxgi_init_params init_params{D3D11_CONTEXT->GetDevice(), D3D11_CONTEXT->GetSwapChain()};
+    mpv_render_param params[] = {
+        {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_DXGI)},
+        {MPV_RENDER_PARAM_DXGI_INIT_PARAMS, &init_params},
+        {MPV_RENDER_PARAM_INVALID, nullptr},
+    };
 #else
     mpv_opengl_init_params gl_init_params{get_proc_address, nullptr};
-    mpv_render_param params[]{{MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_OPENGL)},
-        {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_init_params}, {MPV_RENDER_PARAM_INVALID, nullptr}};
+    mpv_render_param params[] = {
+        {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_OPENGL)},
+        {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_init_params},
+        {MPV_RENDER_PARAM_INVALID, nullptr},
+    };
 #endif
 
     if (mpv_render_context_create(&mpv_context, mpv, params) < 0) {
         mpv_terminate_destroy(mpv);
-        brls::fatal("failed to initialize mpv GL context");
+        brls::fatal("failed to initialize mpv context");
     }
 
     this->mpv_version = mpv_get_property_string(mpv, "mpv-version");
@@ -217,8 +208,6 @@ void MPVCore::init() {
     // set render callback
     mpv_render_context_set_update_callback(mpv_context, on_update, this);
 
-    this->initializeGL();
-
     focusSubscription = brls::Application::getWindowFocusChangedEvent()->subscribe([this](bool focus) {
         static bool playing = false;
         // save current AUTO_PLAY value to autoPlay
@@ -242,14 +231,7 @@ void MPVCore::init() {
 
 void MPVCore::clean() {
     check_error(mpv_command_string(this->mpv, "quit"));
-
     brls::Application::getWindowFocusChangedEvent()->unsubscribe(focusSubscription);
-
-    brls::Logger::info("trying delete fbo");
-    this->deleteFrameBuffer();
-
-    brls::Logger::info("trying delete shader");
-    this->deleteShader();
 
     brls::Logger::info("trying free mpv context");
     if (this->mpv_context) {
@@ -268,132 +250,6 @@ void MPVCore::clean() {
 void MPVCore::restart() {
     this->clean();
     this->init();
-}
-
-void MPVCore::deleteFrameBuffer() {
-#if defined(MPV_NO_FB) || defined(MPV_SW_RENDER)
-#else
-    if (this->media_framebuffer != 0) {
-        glDeleteFramebuffers(1, &this->media_framebuffer);
-        this->media_framebuffer = 0;
-    }
-    if (this->media_texture != 0) {
-        glDeleteTextures(1, &this->media_texture);
-        this->media_texture = 0;
-    }
-#endif
-}
-
-void MPVCore::deleteShader() {
-#if defined(MPV_NO_FB) || defined(MPV_SW_RENDER)
-#else
-    if (shader.vao != 0) glDeleteVertexArrays(1, &shader.vao);
-    if (shader.vbo != 0) glDeleteBuffers(1, &shader.vbo);
-    if (shader.ebo != 0) glDeleteBuffers(1, &shader.ebo);
-    if (shader.prog != 0) glDeleteProgram(shader.prog);
-#endif
-}
-
-void MPVCore::initializeGL() {
-#if defined(MPV_NO_FB) || defined(MPV_SW_RENDER)
-#else
-    if (media_framebuffer != 0) return;
-    brls::Logger::debug("initializeGL");
-
-    // create frame buffer
-    glGenFramebuffers(1, &this->media_framebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, this->media_framebuffer);
-    glGenTextures(1, &this->media_texture);
-    glBindTexture(GL_TEXTURE_2D, this->media_texture);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, brls::Application::windowWidth, brls::Application::windowHeight, 0,
-        GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->media_texture, 0);
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        brls::Logger::error("glCheckFramebufferStatus failed");
-        this->deleteFrameBuffer();
-    }
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    this->mpv_fbo.fbo = (int)this->media_framebuffer;
-    brls::Logger::debug("create fbo and texture done\n");
-
-    // build and compile our shader program
-    // ------------------------------------
-    // vertex shader
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-    // check for shader compile errors
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        brls::Logger::error("vertex shader compile error:", infoLog);
-    }
-
-    // fragment shader
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    // check for shader compile errors
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        brls::Logger::error("fragment shader compile error:", infoLog);
-    }
-
-    // link shaders
-    unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    // check for linking errors
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        brls::Logger::error("shaders linking error: {}", infoLog);
-    }
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-    this->shader.prog = shaderProgram;
-
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
-    unsigned int indices[] = {0, 1, 3, 1, 2, 3};
-    glGenVertexArrays(1, &this->shader.vao);
-    glGenBuffers(1, &this->shader.vbo);
-    glGenBuffers(1, &this->shader.ebo);
-    glBindVertexArray(this->shader.vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, this->shader.vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->shader.ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    GLuint aPos = glGetAttribLocation(shaderProgram, "aPos");
-    glVertexAttribPointer(aPos, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
-    glEnableVertexAttribArray(aPos);
-
-    GLuint aTexCoord = glGetAttribLocation(shaderProgram, "aTexCoord");
-    glVertexAttribPointer(aTexCoord, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(aTexCoord);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-    brls::Logger::debug("initializeGL done");
-#endif
 }
 
 void MPVCore::command_str(const char *args) {
@@ -435,54 +291,12 @@ void MPVCore::setFrameSize(brls::Rect rect) {
     sw_size[0] = drawWidth;
     sw_size[1] = drawHeight;
     pitch = PIXCEL_SIZE * drawWidth;
-#elif defined(MPV_NO_FB)
-    // Using default framebuffer
-    this->mpv_fbo.w = brls::Application::windowWidth;
-    this->mpv_fbo.h = brls::Application::windowHeight;
-    mpv_set_option_string(
-        mpv, "video-margin-ratio-left", fmt::format("{}", rect.getMinX() / brls::Application::contentWidth).c_str());
-    mpv_set_option_string(mpv, "video-margin-ratio-right",
-        fmt::format("{}", (brls::Application::contentWidth - rect.getMaxX()) / brls::Application::contentWidth)
-            .c_str());
-    mpv_set_option_string(
-        mpv, "video-margin-ratio-top", fmt::format("{}", rect.getMinY() / brls::Application::contentHeight).c_str());
-    mpv_set_option_string(mpv, "video-margin-ratio-bottom",
-        fmt::format("{}", (brls::Application::contentHeight - rect.getMaxY()) / brls::Application::contentHeight)
-            .c_str());
-#else
-    if (this->media_texture == 0) return;
-    int drawWidth = rect.getWidth() * brls::Application::windowScale;
-    int drawHeight = rect.getHeight() * brls::Application::windowScale;
-
-    if (drawWidth == 0 || drawHeight == 0) return;
-    brls::Logger::debug("MPVCore::setFrameSize: {}/{}", drawWidth, drawHeight);
-    glBindTexture(GL_TEXTURE_2D, this->media_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, drawWidth, drawHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-    this->mpv_fbo.w = drawWidth;
-    this->mpv_fbo.h = drawHeight;
-
-    float new_min_x = rect.getMinX() / brls::Application::contentWidth * 2 - 1;
-    float new_min_y = 1 - rect.getMinY() / brls::Application::contentHeight * 2;
-    float new_max_x = rect.getMaxX() / brls::Application::contentWidth * 2 - 1;
-    float new_max_y = 1 - rect.getMaxY() / brls::Application::contentHeight * 2;
-
-    vertices[0] = new_max_x;
-    vertices[1] = new_min_y;
-    vertices[5] = new_max_x;
-    vertices[6] = new_max_y;
-    vertices[10] = new_min_x;
-    vertices[11] = new_max_y;
-    vertices[15] = new_min_x;
-    vertices[16] = new_min_y;
-
-    glBindBuffer(GL_ARRAY_BUFFER, this->shader.vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 #endif
 }
 
 bool MPVCore::isValid() { return mpv_context != nullptr; }
 
-void MPVCore::openglDraw(brls::Rect rect, float alpha) {
+void MPVCore::draw(brls::Rect rect, float alpha) {
     if (mpv_context == nullptr) return;
 
 #ifdef MPV_SW_RENDER
@@ -504,46 +318,23 @@ void MPVCore::openglDraw(brls::Rect rect, float alpha) {
     nvgRect(vg, rect.getMinX(), rect.getMinY(), rect.getWidth(), rect.getHeight());
     nvgFillPaint(vg, nvgImagePattern(vg, 0, 0, rect.getWidth(), rect.getHeight(), 0, nvg_image, alpha));
     nvgFill(vg);
-
-#elif defined(MPV_NO_FB)
+#else
     // 只在非透明时绘制视频，可以避免退出页面时视频画面残留
     if (alpha >= 1) {
+#ifndef BOREALIS_USE_D3D11
+        // Using default framebuffer
+        this->mpv_fbo.w = brls::Application::windowWidth;
+        this->mpv_fbo.h = brls::Application::windowHeight;
+#endif
         // 绘制视频
         mpv_render_context_render(this->mpv_context, mpv_params);
-        glViewport(0, 0, brls::Application::windowWidth, brls::Application::windowHeight);
-        mpv_render_context_report_swap(this->mpv_context);
-
-        // 画背景来覆盖mpv的黑色边框
-        if (rect.getWidth() < brls::Application::contentWidth) {
-            auto *vg = brls::Application::getNVGContext();
-            nvgBeginPath(vg);
-            nvgFillColor(vg, brls::Application::getTheme().getColor("brls/background"));
-            nvgRect(vg, 0, 0, rect.getMinX(), brls::Application::contentHeight);
-            nvgRect(vg, rect.getMaxX(), 0, brls::Application::contentWidth - rect.getMaxX(),
-                brls::Application::contentHeight);
-            nvgRect(vg, rect.getMinX() - 1, 0, rect.getWidth() + 2, rect.getMinY());
-            nvgRect(vg, rect.getMinX() - 1, rect.getMaxY(), rect.getWidth() + 2,
-                brls::Application::contentHeight - rect.getMaxY());
-            nvgFill(vg);
-        }
-    }
+#ifdef BOREALIS_USE_D3D11
+        D3D11_CONTEXT->SetRenderTarget();
 #else
-    mpv_render_context_render(this->mpv_context, mpv_params);
-    glViewport(0, 0, brls::Application::windowWidth, brls::Application::windowHeight);
-    mpv_render_context_report_swap(this->mpv_context);
-
-    // shader draw
-    glUseProgram(shader.prog);
-    glBindTexture(GL_TEXTURE_2D, this->media_texture);
-    glBindVertexArray(shader.vao);
-
-    // Set alpha
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    static GLuint alphaID = glGetUniformLocation(shader.prog, "Alpha");
-    glUniform1f(alphaID, alpha);
-
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        glViewport(0, 0, brls::Application::windowWidth, brls::Application::windowHeight);
+#endif
+        mpv_render_context_report_swap(this->mpv_context);
+    }
 #endif
 
     if (BOTTOM_BAR) {

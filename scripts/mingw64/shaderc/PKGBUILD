@@ -1,0 +1,60 @@
+# Maintainer: Biswapriyo Nath <nathbappai@gmail.com>
+
+_realname=shaderc
+pkgbase=mingw-w64-${_realname}
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+pkgver=2023.6
+pkgrel=2
+pkgdesc="Collection of tools, libraries and tests for shader compilation (mingw-w64)"
+url="https://github.com/google/shaderc"
+arch=('any')
+mingw_arch=('mingw32' 'mingw64' 'clang64' 'clangarm64')
+license=('spdx:Apache-2.0')
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-gcc-libs"
+  "${MINGW_PACKAGE_PREFIX}-glslang"
+  "${MINGW_PACKAGE_PREFIX}-spirv-tools"
+)
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-cmake"
+  "${MINGW_PACKAGE_PREFIX}-ninja"
+  "${MINGW_PACKAGE_PREFIX}-python"
+  "${MINGW_PACKAGE_PREFIX}-spirv-headers"
+  "${MINGW_PACKAGE_PREFIX}-cc"
+)
+source=(
+  "${_realname}-${pkgver}.tar.gz"::"https://github.com/google/shaderc/archive/v${pkgver}.tar.gz"
+  "0001-fix-glslang-hlsl-linking-order.patch"
+)
+sha256sums=('e40fd4a87a56f6610e223122179f086d5c4f11a7e0e2aa461f0325c3a0acc6ae' 'SKIP')
+
+prepare() {
+  cd "${srcdir}/${_realname}-${pkgver}"
+
+  # https://www.mail-archive.com/devel@lists.fedoraproject.org/msg156020.html
+  patch -Nbp1 -i "${srcdir}/0001-fix-glslang-hlsl-linking-order.patch"
+
+  # de-vendor libs and disable git versioning
+  sed '/glslc/d;/third_party/d' -i CMakeLists.txt
+}
+
+build() {
+  if [[ ${MINGW_PACKAGE_PREFIX} == *-clang-* ]]; then
+    CXXFLAGS+=" -Wno-c++11-narrowing"
+  fi
+
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    ${MINGW_PREFIX}/bin/cmake.exe -B "build-${MSYSTEM}" -G Ninja \
+      -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+      -DCMAKE_BUILD_TYPE=Release \
+      -Dglslang_SOURCE_DIR=$(cygpath -m "${MINGW_PREFIX}/include/glslang") \
+      -DSHADERC_SKIP_TESTS=ON \
+      -DSHADERC_SKIP_EXAMPLES=ON \
+      "${srcdir}/${_realname}-${pkgver}"
+
+  ${MINGW_PREFIX}/bin/cmake.exe --build "build-${MSYSTEM}"
+}
+
+package() {
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake.exe --install "build-${MSYSTEM}"
+}

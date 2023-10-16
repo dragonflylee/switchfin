@@ -23,13 +23,6 @@ if (MPV_SW_RENDER)
     list(APPEND APP_PLATFORM_OPTION -DMPV_SW_RENDER)
 endif ()
 
-# On systems that do not support framebuffer, let MPV to draw to full screen and
-# then cover unnecessary areas with UI.
-option(MPV_NO_FB "Using system provided framebuffer" OFF)
-if (MPV_NO_FB)
-    list(APPEND APP_PLATFORM_OPTION -DMPV_NO_FB)
-endif()
-
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
 elseif (CMAKE_BUILD_TYPE STREQUAL Debug)

@@ -20,9 +20,9 @@
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
 #include "utils/thread.hpp"
+#include <curl/curl.h>
 #include "view/mpv_core.hpp"
 #include "api/analytics.hpp"
-#include <curl/curl.h>
 #ifdef __SWITCH__
 #include "utils/overclock.hpp"
 #endif

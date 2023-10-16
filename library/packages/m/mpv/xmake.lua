@@ -1,7 +1,7 @@
 package("mpv")
     if is_plat("windows", "mingw") then
-        set_urls("https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20230831/mpv-dev-x86_64-20230831-git-edd7189.7z")
-        add_versions("20230831", "1d6b964e97faecad291fe5cc128a3ccf04138d3a0b2ff0635290060ebaf98d34")
+        set_urls("https://github.com/dragonflylee/switchfin/releases/download/mingw-packages/mpv-x86_64.7z")
+        add_versions("latest", "SKIP")
     end
     add_links("mpv")
     on_install("windows", "mingw", function (package)
@@ -18,7 +18,7 @@ package("mpv")
 
         os.execv("lib.exe", {
             "/name:libmpv-2.dll", 
-            "/def:"..package:scriptdir().."/mpv.def", 
+            "/def:mpv.def", 
             "/out:"..package:installdir("lib").."/mpv.lib", 
             "/MACHINE:X64",
         })

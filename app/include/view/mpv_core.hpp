@@ -7,23 +7,20 @@
 #include "borealis.hpp"
 #include "borealis/core/singleton.hpp"
 #include <mpv/client.h>
-#include <mpv/render.h>
-#ifndef MPV_SW_RENDER
-#include <mpv/render_gl.h>
-#include <glad/glad.h>
+
 #ifdef __SDL2__
 #include <SDL2/SDL.h>
 #else
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #endif
-#include <nanovg_gl.h>
-struct GLShader {
-    GLuint prog;
-    GLuint vao;
-    GLuint vbo;
-    GLuint ebo;
-};
+
+#ifdef MPV_SW_RENDER
+#include <mpv/render.h>
+#elif BOREALIS_USE_D3D11
+#include <mpv/render_dxgi.h>
+#else
+#include <mpv/render_gl.h>
 #endif
 
 typedef enum MpvEventEnum {
@@ -61,12 +58,6 @@ public:
     static void on_update(void *self);
 
     static void on_wakeup(void *self);
-
-    void deleteFrameBuffer();
-
-    void deleteShader();
-
-    void initializeGL();
 
     void command_str(const char *args);
 
@@ -120,7 +111,7 @@ public:
 
     static void disableDimming(bool disable);
 
-    void openglDraw(brls::Rect rect, float alpha = 1.0);
+    void draw(brls::Rect rect, float alpha = 1.0);
 
     mpv_render_context *getContext() { return this->mpv_context; }
 
@@ -139,7 +130,7 @@ public:
     void clearShader(bool showHint = true);
 
     // core states
-    int64_t duration = 0;     // second
+    int64_t duration = 0;  // second
     int64_t video_progress = 0;
     int64_t cache_speed = 0;  // Bps
     double video_speed = 0;
@@ -163,7 +154,7 @@ public:
 
     // 硬件解码
     inline static bool HARDWARE_DEC = false;
-    inline static std::string PLAYER_HWDEC_METHOD = "auto-safe";
+    inline static std::string PLAYER_HWDEC_METHOD = "auto";
     inline static std::string VIDEO_CODEC = "h264";
     inline static std::vector<int64_t> MAX_BITRATE = {0, 10000000, 8000000, 4000000, 2000000};
 
@@ -185,30 +176,31 @@ private:
     const int PIXCEL_SIZE = 4;
     int nvg_image = 0;
     const char *sw_format = "rgba";
-    int sw_size[2] = {1920, 1080};
+    int sw_size[2] = {
+        (int)brls::Application::windowWidth,
+        (int)brls::Application::windowHeight,
+    };
     size_t pitch = PIXCEL_SIZE * sw_size[0];
     void *pixels = nullptr;
-    mpv_render_param mpv_params[5] = {{MPV_RENDER_PARAM_SW_SIZE, &sw_size[0]},
-        {MPV_RENDER_PARAM_SW_FORMAT, (void *)sw_format}, {MPV_RENDER_PARAM_SW_STRIDE, &pitch},
+    mpv_render_param mpv_params[5] = {
+        {MPV_RENDER_PARAM_SW_SIZE, &sw_size[0]},
+        {MPV_RENDER_PARAM_SW_FORMAT, (void *)sw_format},
+        {MPV_RENDER_PARAM_SW_STRIDE, &pitch},
         {MPV_RENDER_PARAM_SW_POINTER, pixels},
-        { MPV_RENDER_PARAM_INVALID,
-            nullptr }};
-#elif defined(MPV_NO_FB)
-    mpv_opengl_fbo mpv_fbo{0, 1920, 1080};
-    int flip_y{1};
-    mpv_render_param mpv_params[3] = {{MPV_RENDER_PARAM_OPENGL_FBO, &mpv_fbo}, {MPV_RENDER_PARAM_FLIP_Y, &flip_y},
-        { MPV_RENDER_PARAM_INVALID,
-            nullptr }};
+        {MPV_RENDER_PARAM_INVALID, nullptr},
+    };
+#elif defined(BOREALIS_USE_D3D11)
+    mpv_render_param mpv_params[1] = {
+        {MPV_RENDER_PARAM_INVALID, nullptr},
+    };
 #else
-    GLuint media_framebuffer = 0;
-    GLuint media_texture = 0;
-    GLShader shader{0};
-    mpv_opengl_fbo mpv_fbo{0, 1920, 1080};
+    mpv_opengl_fbo mpv_fbo;
     int flip_y{1};
-    mpv_render_param mpv_params[3] = {{MPV_RENDER_PARAM_OPENGL_FBO, &mpv_fbo}, {MPV_RENDER_PARAM_FLIP_Y, &flip_y},
-        {MPV_RENDER_PARAM_INVALID, nullptr}};
-    float vertices[20] = {1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-        -1.0f, 1.0f, 0.0f, 0.0f, 1.0f};
+    mpv_render_param mpv_params[3] = {
+        {MPV_RENDER_PARAM_OPENGL_FBO, &mpv_fbo},
+        {MPV_RENDER_PARAM_FLIP_Y, &flip_y},
+        {MPV_RENDER_PARAM_INVALID, nullptr},
+    };
 #endif
 
     // MPV 内部事件，传递内容为: 事件类型
