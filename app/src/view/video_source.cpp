@@ -37,6 +37,8 @@ void VideoDataSource::onItemSelected(brls::View* recycler, size_t index) {
         recycler->present(new MediaSeries(item.Id));
     } else if (item.Type == jellyfin::mediaTypeFolder) {
         recycler->present(new MediaCollection(item.Id));
+    } else if (item.Type == jellyfin::mediaTypeBoxSet) {
+        recycler->present(new MediaCollection(item.Id));
     } else if (item.Type == jellyfin::mediaTypeMovie) {
         VideoView* view = new VideoView(item);
         view->setTitie(item.ProductionYear ? fmt::format("{} ({})", item.Name, item.ProductionYear) : item.Name);
