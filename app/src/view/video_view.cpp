@@ -22,12 +22,12 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
     brls::Application::pushActivity(new brls::Activity(this), brls::TransitionAnimation::NONE);
 
     this->registerAction(
-        "cancel", brls::ControllerButton::BUTTON_B,
+        "hints/back"_i18n, brls::BUTTON_B,
         [](brls::View* view) { return brls::Application::popActivity(brls::TransitionAnimation::NONE, &onDismiss); },
         true);
 
     this->registerAction(
-        "\uE08F", brls::ControllerButton::BUTTON_LB,
+        "\uE08F", brls::BUTTON_LB,
         [this](brls::View* view) -> bool {
             seeking_range -= MPVCore::SEEKING_STEP;
             this->requestSeeking();
@@ -36,7 +36,7 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
         false, true);
 
     this->registerAction(
-        "\uE08E", brls::ControllerButton::BUTTON_RB,
+        "\uE08E", brls::BUTTON_RB,
         [this](brls::View* view) -> bool {
             seeking_range += MPVCore::SEEKING_STEP;
             this->requestSeeking();
@@ -45,7 +45,7 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
         false, true);
 
     this->registerAction(
-        "toggleOSD", brls::ControllerButton::BUTTON_Y,
+        "toggleOSD", brls::BUTTON_Y,
         [this](brls::View* view) -> bool {
             // 拖拽进度时不要影响显示 OSD
             if (!seeking_range) this->toggleOSD();
@@ -54,10 +54,18 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
         true);
 
     /// 播放器设置按钮
-    this->btnSetting->registerClickAction([this](...) { return this->showSetting(); });
+    this->btnSetting->registerClickAction([this](...) {
+        this->showSetting();
+        return true;
+    });
     this->btnSetting->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnSetting));
     this->registerAction(
-        "setting", brls::ControllerButton::BUTTON_X, [this](...) { return this->showSetting(); }, true);
+        "main/player/setting"_i18n, brls::BUTTON_X,
+        [this](...) {
+            this->showSetting();
+            return true;
+        },
+        true);
 
     this->registerMpvEvent();
 
@@ -71,9 +79,8 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
 
     this->addGestureRecognizer(new brls::TapGestureRecognizer(this, [this]() { this->toggleOSD(); }));
     /// 播放/暂停 按钮
-    this->btnToggle->registerClickAction([](...) {
-        auto& mpv = MPVCore::instance();
-        mpv.isPaused() ? mpv.resume() : mpv.pause();
+    this->btnToggle->registerClickAction([this](...) {
+        this->togglePlay();
         return true;
     });
     this->btnToggle->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnToggle));
@@ -84,6 +91,14 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
 
     this->btnForward->registerClickAction([this](...) { return this->playNext(); });
     this->btnForward->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnForward));
+
+    this->registerAction("main/player/toggle"_i18n, brls::BUTTON_A, [this](brls::View* view) {
+        this->togglePlay();
+        if (MPVCore::OSD_ON_TOGGLE) {
+            this->showOSD(true);
+        }
+        return true;
+    });
 
     static std::vector<std::string> qualities = {
         "main/player/auto"_i18n,
@@ -111,13 +126,9 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
     this->profile = new VideoProfile();
     this->addView(this->profile);
     this->registerAction(
-        "profile", brls::ControllerButton::BUTTON_BACK,
-        [this](brls::View* view) -> bool {
-            bool shown = profile->getVisibility() == brls::Visibility::VISIBLE;
-            profile->setVisibility(shown ? brls::Visibility::INVISIBLE : brls::Visibility::VISIBLE);
-            return true;
-        },
-        true);
+        "profile", brls::BUTTON_BACK, [this](brls::View* view) { return this->toggleProfile(); }, true);
+    this->btnCast->registerClickAction([this](...) { return this->toggleProfile(); });
+    this->btnCast->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnCast));
 
     this->btnVideoChapter->registerClickAction([this](...) {
         if (this->chapters.empty()) return false;
@@ -199,13 +210,12 @@ void VideoView::requestSeeking() {
     });
 }
 
-bool VideoView::showSetting() {
+void VideoView::showSetting() {
     brls::View* setting = new PlayerSetting(
         this->itemSource, [this]() { this->playMedia(MPVCore::instance().playback_time * jellyfin::PLAYTICKS); });
     brls::Application::pushActivity(new brls::Activity(setting));
     // 手动将焦点赋给设置页面
     brls::sync([setting]() { brls::Application::giveFocus(setting); });
-    return true;
 }
 
 void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::Style style, brls::FrameContext* ctx) {
@@ -391,7 +401,7 @@ void VideoView::playMedia(const time_t seekTicks) {
                     brls::Logger::info("Track {} type {} => {}", s.Index, s.Type, s.DisplayTitle);
                 }
 #endif
-                ssextra << "network-timeout=20";
+                ssextra << "network-timeout=60";
                 if (seekTicks > 0) {
                     ssextra << ",start=" << sec2Time(seekTicks / jellyfin::PLAYTICKS);
                 }
@@ -494,7 +504,9 @@ void VideoView::registerMpvEvent() {
             this->reportPlay(true);
             break;
         case MpvEventEnum::START_FILE:
-            this->showOSD(false);
+            if (MPVCore::OSD_ON_TOGGLE) {
+                this->showOSD(false);
+            }
             break;
         case MpvEventEnum::LOADING_START:
             this->showLoading();
@@ -568,6 +580,21 @@ void VideoView::showLoading() {
 }
 
 void VideoView::hideLoading() { this->osdCenterBox->setVisibility(brls::Visibility::GONE); }
+
+void VideoView::togglePlay() {
+    auto& mpv = MPVCore::instance();
+    mpv.isPaused() ? mpv.resume() : mpv.pause();
+}
+
+bool VideoView::toggleProfile() {
+    if (profile->getVisibility() == brls::Visibility::VISIBLE) {
+        profile->setVisibility(brls::Visibility::INVISIBLE);
+        return false;
+    }
+    profile->setVisibility(brls::Visibility::VISIBLE);
+    profile->update();
+    return true;
+}
 
 /// OSD
 void VideoView::toggleOSD() {

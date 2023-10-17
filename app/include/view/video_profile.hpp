@@ -15,6 +15,7 @@ private:
     BRLS_BIND(brls::Label, labelMethod, "profile/play/method");
     BRLS_BIND(brls::Label, labelSize, "profile/file/size");
     BRLS_BIND(brls::Label, labelFormat, "profile/file/format");
+    BRLS_BIND(brls::Label, labelCache, "profile/file/cache");
 
     BRLS_BIND(brls::Label, labelVideoRes, "profile/video/res");
     BRLS_BIND(brls::Label, labelVideoCodec, "profile/video/codec");

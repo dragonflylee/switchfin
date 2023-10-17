@@ -48,6 +48,7 @@ private:
     BRLS_BIND(brls::Box, btnForward, "video/osd/forward");
     BRLS_BIND(brls::Box, btnBackward, "video/osd/backward");
     BRLS_BIND(brls::Box, btnSetting, "video/osd/setting");
+    BRLS_BIND(brls::Box, btnCast, "video/osd/cast");
     BRLS_BIND(brls::Box, btnToggle, "video/osd/toggle");
     BRLS_BIND(brls::Box, btnVideoQuality, "video/quality/box");
     BRLS_BIND(brls::Box, btnVideoChapter, "video/chapter/box");
@@ -75,11 +76,13 @@ private:
 
     void showLoading();
     void hideLoading();
+    void togglePlay();
+    bool toggleProfile();
     /// OSD
     void toggleOSD();
     void showOSD(bool autoHide = true);
     void hideOSD();
-    bool showSetting();
+    void showSetting();
     void showHint(const std::string& value);
 
     /// @brief 延迟 200ms 触发进度跳转到 seeking_range

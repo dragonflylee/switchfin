@@ -49,9 +49,6 @@
     <brls:Label
         textColor="@theme/font/grey"
         marginBottom="15"
-        id="setting/about/mpv" />
-    <brls:Label
-        textColor="@theme/font/grey"
-        id="setting/about/curl" />
+        id="setting/about/thirdpart" />
 
 </brls:Box>

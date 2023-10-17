@@ -20,7 +20,8 @@
     "common": "Vereint",
     "speed": "Abspielgeschwindigkeit",
     "quality": "Videoqualität",
-    "auto": "Auto"
+    "auto": "Auto",
+    "toggle": "Wiedergabe/Pause"
   },
   "search": {
     "tv": {

@@ -37,7 +37,7 @@ public:
         this->labelTitle->setText(AppVersion::getPackageName());
         this->labelVersion->setText(fmt::format("v{}-{}", AppVersion::getVersion(), AppVersion::getCommit()));
         this->labelGithub->setText("https://github.com/" + AppVersion::git_repo);
-        this->btnGithub->registerClickAction([this](...){
+        this->btnGithub->registerClickAction([this](...) {
             std::string url = this->labelGithub->getFullText();
             brls::Application::getPlatform()->openBrowser(url);
             return true;
@@ -45,8 +45,8 @@ public:
         this->btnGithub->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnGithub));
 
         auto& mpv = MPVCore::instance();
-        this->labelMPV->setText(fmt::format("ffmpeg/{} {}", mpv.ffmpeg_version, mpv.mpv_version));
-        this->labelCurl->setText(curl_version());
+        std::string thirdpart = fmt::format("ffmpeg/{} {}\n{}", mpv.ffmpeg_version, mpv.mpv_version, curl_version());
+        this->labelThirdpart->setText(thirdpart);
         brls::Logger::debug("dialog SettingAbout: create");
     }
 
@@ -56,8 +56,7 @@ private:
     BRLS_BIND(brls::Label, labelTitle, "setting/about/title");
     BRLS_BIND(brls::Label, labelVersion, "setting/about/version");
     BRLS_BIND(brls::Label, labelGithub, "setting/about/github");
-    BRLS_BIND(brls::Label, labelMPV, "setting/about/mpv");
-    BRLS_BIND(brls::Label, labelCurl, "setting/about/curl");
+    BRLS_BIND(brls::Label, labelThirdpart, "setting/about/thirdpart");
     BRLS_BIND(brls::Box, btnGithub, "setting/box/github");
 };
 

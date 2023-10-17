@@ -44,7 +44,11 @@ void VideoProfile::update() {
     labelVideoCodec->setText(mpv.getString("video-codec"));
     labelVideoPixel->setText(mpv.getString("video-params/pixelformat"));
     labelVideoHW->setText(mpv.getString("hwdec-current"));
-    labelVideoBitrate->setText(std::to_string(mpv.getInt("video-bitrate") / 1024) + "kbps");
+
+    auto cache = mpv.getNodeMap("demuxer-cache-state");
+    labelCache->setText(fmt::format(
+        "{:.2f}MB ({:.1f} sec)", cache["fw-bytes"].u.int64 / 1048576.0f, mpv.getDouble("demuxer-cache-duration")));
+    labelVideoBitrate->setText(fmt::format("{} kbps", mpv.getInt("video-bitrate") / 1024));
     labelVideoDrop->setText(fmt::format(
         "{} (decoder) {} (output)", mpv.getInt("decoder-frame-drop-count"), mpv.getInt("frame-drop-count")));
     labelVideoFps->setText(fmt::format("{:.2f}", mpv.getDouble("estimated-vf-fps")));

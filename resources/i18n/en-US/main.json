@@ -21,7 +21,8 @@
     "speed": "Playback Speed",
     "quality": "Video Quality",
     "chapter": "Chapter",
-    "auto": "Auto"
+    "auto": "Auto",
+    "toggle": "Play/Pause"
   },
   "search": {
     "tv": {
