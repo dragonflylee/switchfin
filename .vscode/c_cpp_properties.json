@@ -26,7 +26,6 @@
             "includePath": [
                 "${workspaceFolder}/app/include",
                 "${workspaceFolder}/library/**",
-                "${workspaceFolder}/build_mingw/_deps/**",
                 "D:\\msys64\\mingw64\\include"
             ],
             "defines": [

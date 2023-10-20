@@ -13,7 +13,7 @@ license=('GPL')
 options=(!strip libtool staticlibs)
 source=(
   "${pkgbasename}-${pkgver}.tar.gz::https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz" 
-  "mpv-ao-hos.patch" "mpv-fonts.patch" "mpv-tx1.patch"
+  "hos-audio.patch" "ass-fonts.patch" "mp-image.patch"
 )
 sha256sums=(
   '29abc44f8ebee013bb2f9fe14d80b30db19b534c679056e4851ceadf5a5e8bf6'
@@ -26,9 +26,9 @@ groups=('switch-portlibs')
 prepare() {
   cd mpv-$pkgver
   rm -f audio/out/ao_hos.c osdep/switch/sys/mman.h
-  patch -Np1 -i "$srcdir/mpv-tx1.patch"
-  patch -Np1 -i "$srcdir/mpv-fonts.patch"
-  patch -Np1 -i "$srcdir/mpv-ao-hos.patch"
+  patch -Np1 -i "$srcdir/hos-audio.patch"
+  patch -Np1 -i "$srcdir/ass-fonts.patch"
+  patch -Np1 -i "$srcdir/mp-image.patch"
 }
 
 build() {

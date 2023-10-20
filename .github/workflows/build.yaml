@@ -5,8 +5,14 @@ on:
     tags-ignore: 
     - switch-portlibs
     - mingw-packages
+    paths-ignore:
+    - scripts/mingw64/*/*
+    - scripts/switch/*/*
     branches: [ dev ]
   pull_request:
+    paths-ignore:
+    - scripts/mingw64/*/*
+    - scripts/switch/*/*
     branches: [ dev ]
   workflow_dispatch:
     inputs:
@@ -135,9 +141,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        msystem: [ MINGW64, MINGW32 ]
-        driver: [ OPENGL, D3D11 ]
-    runs-on: windows-2022
+        msystem: [ MINGW64 ]
+        driver: [ GL3, D3D11 ]
+    runs-on: windows-2019
     env:
       MSYSTEM: ${{ matrix.msystem }}
       MSYS2_PATH_TYPE: inherit
@@ -156,7 +162,7 @@ jobs:
         done
         pacman -U --noconfirm *.pkg.tar.zst
 
-        pacman -S --noconfirm --noprogressbar \
+        pacman -S --needed --noconfirm --noprogressbar \
           ${MINGW_PACKAGE_PREFIX}-gcc \
           ${MINGW_PACKAGE_PREFIX}-ninja
     - name: Build
@@ -165,13 +171,14 @@ jobs:
           -DUSE_LIBROMFS=ON \
           -DPLATFORM_DESKTOP=ON \
           -DWIN32_TERMINAL=OFF \
-          -DZLIB_USE_STATIC_LIBS=ON \
-          -DBOREALIS_USE_${{ matrix.driver }}=ON \
+          -DUSE_${{ matrix.driver }}=ON \
           -DVERSION_BUILD=${{ github.run_number }}
         cmake --build build_mingw
         cd build_mingw
         strip Switchfin.exe
-        7z a -mx=9 Switchfin-windows-${MSYSTEM_CARCH}-${DRIVER,,}.7z Switchfin.exe ${MINGW_PREFIX}/bin/libmpv-2.dll
+        7z a -mx=9 Switchfin-windows-${MSYSTEM_CARCH}-${DRIVER,,}.7z \
+            Switchfin.exe ${MINGW_PREFIX}/bin/libmpv-2.dll \
+            ${MINGW_PREFIX}/bin/libcurl-4.dll
     - name: Set outputs
       id: vars
       run: echo "sha_short=${MSYSTEM_CARCH}-${DRIVER,,}-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT

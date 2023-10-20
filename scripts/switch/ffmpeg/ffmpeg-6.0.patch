@@ -504,10 +504,10 @@ index d456e5dd11..0e9dcd40ff 100644
                             },
 diff --git a/libavcodec/tx1_decode.c b/libavcodec/tx1_decode.c
 new file mode 100644
-index 0000000000..0c23aa24ac
+index 0000000000..9980e0fbf4
 --- /dev/null
 +++ b/libavcodec/tx1_decode.c
-@@ -0,0 +1,411 @@
+@@ -0,0 +1,414 @@
 +/*
 + * Copyright (c) 2023 averne <averne381@gmail.com>
 + *
@@ -600,6 +600,9 @@ index 0000000000..0c23aa24ac
 +    frames_ctx    = (AVHWFramesContext *)avctx->hw_frames_ctx->data;
 +    hw_device_ctx = (AVHWDeviceContext *)frames_ctx->device_ref->data;
 +    device_hwctx  = hw_device_ctx->hwctx;
++
++    if ((!ctx->is_nvjpg && !device_hwctx->has_nvdec) || (ctx->is_nvjpg && !device_hwctx->has_nvjpg))
++        return AVERROR(EACCES);
 +
 +    ctx->hw_device_ref = av_buffer_ref(frames_ctx->device_ref);
 +    if (!ctx->hw_device_ref) {
@@ -5839,10 +5842,10 @@ index e6266494ac..ed3e641c02 100644
  #endif /* AVUTIL_HWCONTEXT_INTERNAL_H */
 diff --git a/libavutil/hwcontext_tx1.c b/libavutil/hwcontext_tx1.c
 new file mode 100644
-index 0000000000..6328cc3866
+index 0000000000..6fb47b19a9
 --- /dev/null
 +++ b/libavutil/hwcontext_tx1.c
-@@ -0,0 +1,1041 @@
+@@ -0,0 +1,1052 @@
 +/*
 + * Copyright (c) 2023 averne <averne381@gmail.com>
 + *
@@ -6068,8 +6071,10 @@ index 0000000000..6328cc3866
 +
 +    ff_tx1_map_destroy(&hwctx->vic_map);
 +
-+    ff_tx1_channel_close(&hwctx->nvdec_channel);
-+    ff_tx1_channel_close(&hwctx->nvjpg_channel);
++    if (hwctx->has_nvdec)
++        ff_tx1_channel_close(&hwctx->nvdec_channel);
++    if (hwctx->has_nvjpg)
++        ff_tx1_channel_close(&hwctx->nvjpg_channel);
 +    ff_tx1_channel_close(&hwctx->vic_channel);
 +
 +#ifndef __SWITCH__
@@ -6082,8 +6087,10 @@ index 0000000000..6328cc3866
 +    nvFenceExit();
 +    nvMapExit();
 +    nvExit();
-+    mmuRequestFinalize(&hwctx->nvdec_channel.mmu_request);
-+    mmuRequestFinalize(&hwctx->nvjpg_channel.mmu_request);
++    if (hwctx->has_nvdec)
++        mmuRequestFinalize(&hwctx->nvdec_channel.mmu_request);
++    if (hwctx->has_nvjpg)
++        mmuRequestFinalize(&hwctx->nvjpg_channel.mmu_request);
 +    mmuExit();
 +#endif
 +}
@@ -6097,25 +6104,27 @@ index 0000000000..6328cc3866
 +    av_log(ctx, AV_LOG_DEBUG, "Initializing TX1 device\n");
 +
 +    err = ff_tx1_channel_open(&hwctx->nvdec_channel, "/dev/nvhost-nvdec");
-+    if (err < 0)
-+        goto fail;
++    hwctx->has_nvdec = err == 0;
 +
 +    err = ff_tx1_channel_open(&hwctx->nvjpg_channel, "/dev/nvhost-nvjpg");
-+    if (err < 0)
-+        goto fail;
++    hwctx->has_nvjpg = err == 0;
 +
 +    err = ff_tx1_channel_open(&hwctx->vic_channel, "/dev/nvhost-vic");
 +    if (err < 0)
 +        goto fail;
 +
 +    /* Note: Official code only sets this for the nvdec channel */
-+    err = ff_tx1_channel_set_submit_timeout(&hwctx->nvdec_channel, 1000);
-+    if (err < 0)
-+        goto fail;
++    if (hwctx->has_nvdec) {
++        err = ff_tx1_channel_set_submit_timeout(&hwctx->nvdec_channel, 1000);
++        if (err < 0)
++            goto fail;
++    }
 +
-+    err = ff_tx1_channel_set_submit_timeout(&hwctx->nvjpg_channel, 1000);
-+    if (err < 0)
-+        goto fail;
++    if (hwctx->has_nvjpg) {
++        err = ff_tx1_channel_set_submit_timeout(&hwctx->nvjpg_channel, 1000);
++        if (err < 0)
++            goto fail;
++    }
 +
 +#ifdef __SWITCH__
 +    hwctx->vic_map.owner = hwctx->vic_channel.channel.fd;
@@ -6152,13 +6161,18 @@ index 0000000000..6328cc3866
 +     * The NVHOST_IOCTL_CHANNEL_SET_CLK_RATE ioctl also exists on HOS but the clock rate
 +     * will be reset when the console goes to sleep.
 +     */
-+    err = AVERROR(mmuRequestInitialize(&hwctx->nvdec_channel.mmu_request, (MmuModuleId)5, 8, false));
-+    if (err < 0)
-+        goto fail;
 +
-+    err = AVERROR(mmuRequestInitialize(&hwctx->nvjpg_channel.mmu_request, MmuModuleId_Nvjpg, 8, false));
-+    if (err < 0)
-+        goto fail;
++    if (hwctx->has_nvdec) {
++        err = AVERROR(mmuRequestInitialize(&hwctx->nvdec_channel.mmu_request, (MmuModuleId)5, 8, false));
++        if (err < 0)
++            goto fail;
++    }
++
++    if (hwctx->has_nvjpg) {
++        err = AVERROR(mmuRequestInitialize(&hwctx->nvjpg_channel.mmu_request, MmuModuleId_Nvjpg, 8, false));
++        if (err < 0)
++            goto fail;
++    }
 +#endif
 +
 +    return 0;
@@ -6886,10 +6900,10 @@ index 0000000000..6328cc3866
 +};
 diff --git a/libavutil/hwcontext_tx1.h b/libavutil/hwcontext_tx1.h
 new file mode 100644
-index 0000000000..f651928fe3
+index 0000000000..f867259469
 --- /dev/null
 +++ b/libavutil/hwcontext_tx1.h
-@@ -0,0 +1,61 @@
+@@ -0,0 +1,62 @@
 +/*
 + * Copyright (c) 2023 averne <averne381@gmail.com>
 + *
@@ -6923,6 +6937,7 @@ index 0000000000..f651928fe3
 +
 +typedef struct AVTX1DeviceContext {
 +    AVTX1Channel nvdec_channel, nvjpg_channel, vic_channel;
++    bool has_nvdec, has_nvjpg;
 +
 +    AVTX1Map vic_map;
 +    uint32_t vic_setup_off, vic_cmdbuf_off, vic_filter_off;

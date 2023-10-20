@@ -1,6 +1,6 @@
 package("mpv")
     if is_plat("windows", "mingw") then
-        set_urls("https://github.com/dragonflylee/switchfin/releases/download/mingw-packages/mpv-x86_64.7z")
+        set_urls("https://github.com/dragonflylee/switchfin/releases/download/mingw-packages/mpv-dev-x86_64.7z")
         add_versions("latest", "SKIP")
     end
     add_links("mpv")

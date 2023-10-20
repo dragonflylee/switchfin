@@ -1,8 +1,8 @@
 diff --git a/configure.ac b/configure.ac
-index e7ad63925..819a22c72 100755
+index f0fbcb0af..7b00009a1 100755
 --- a/configure.ac
 +++ b/configure.ac
-@@ -156,7 +156,7 @@ AC_SUBST(PKGADD_VENDOR)
+@@ -143,7 +143,7 @@ AC_SUBST(PKGADD_VENDOR)
  
  dnl
  dnl initialize all the info variables
@@ -11,7 +11,7 @@ index e7ad63925..819a22c72 100755
      curl_ssh_msg="no      (--with-{libssh,libssh2})"
     curl_zlib_msg="no      (--with-zlib)"
   curl_brotli_msg="no      (--with-brotli)"
-@@ -2632,10 +2632,89 @@ if test -z "$ssl_backends" -o "x$OPT_NSS" != xno; then
+@@ -2720,10 +2720,89 @@ if test -z "$ssl_backends" -o "x$OPT_NSS" != xno; then
    test -z "$ssl_msg" || ssl_backends="${ssl_backends:+$ssl_backends, }$ssl_msg"
  fi
  
@@ -104,7 +104,7 @@ index e7ad63925..819a22c72 100755
  x1)
    # one SSL backend is enabled
 diff --git a/include/curl/curl.h b/include/curl/curl.h
-index b7cb30a58..8786b1be5 100644
+index e3531f5df..8454de0fa 100644
 --- a/include/curl/curl.h
 +++ b/include/curl/curl.h
 @@ -75,7 +75,8 @@
@@ -128,47 +128,46 @@ index b7cb30a58..8786b1be5 100644
  
  /* aliases for library clones and renames */
 diff --git a/lib/Makefile.inc b/lib/Makefile.inc
-index 46ded90bb..c268dde36 100644
+index 723b826e9..bfededfc6 100644
 --- a/lib/Makefile.inc
 +++ b/lib/Makefile.inc
-@@ -30,12 +30,12 @@ LIB_VAUTH_HFILES = vauth/vauth.h vauth/digest.h vauth/ntlm.h
- LIB_VTLS_CFILES = vtls/openssl.c vtls/gtls.c vtls/vtls.c vtls/nss.c     \
-   vtls/mbedtls_threadlock.c vtls/wolfssl.c vtls/schannel.c              \
-   vtls/schannel_verify.c vtls/sectransp.c vtls/gskit.c vtls/mbedtls.c   \
--  vtls/mesalink.c vtls/bearssl.c
-+  vtls/mesalink.c vtls/bearssl.c vtls/libnx.c
+@@ -30,11 +30,11 @@ LIB_VAUTH_HFILES = vauth/digest.h vauth/ntlm.h vauth/vauth.h
+ LIB_VTLS_CFILES = vtls/bearssl.c vtls/gskit.c vtls/gtls.c vtls/keylog.c  \
+   vtls/mbedtls.c vtls/mbedtls_threadlock.c vtls/mesalink.c vtls/nss.c    \
+   vtls/openssl.c vtls/schannel.c vtls/schannel_verify.c vtls/sectransp.c \
+-  vtls/vtls.c vtls/wolfssl.c
++  vtls/vtls.c vtls/wolfssl.c vtls/libnx.c
  
- LIB_VTLS_HFILES = vtls/openssl.h vtls/vtls.h vtls/gtls.h vtls/nssg.h    \
-   vtls/mbedtls_threadlock.h vtls/wolfssl.h vtls/schannel.h              \
-   vtls/sectransp.h vtls/gskit.h vtls/mbedtls.h vtls/mesalink.h          \
--  vtls/bearssl.h
-+  vtls/bearssl.h vtls/libnx.h
+ LIB_VTLS_HFILES = vtls/bearssl.h vtls/gskit.h vtls/gtls.h vtls/keylog.h      \
+   vtls/mbedtls.h vtls/mbedtls_threadlock.h vtls/mesalink.h vtls/nssg.h       \
+-  vtls/openssl.h vtls/schannel.h vtls/sectransp.h vtls/vtls.h vtls/wolfssl.h
++  vtls/openssl.h vtls/schannel.h vtls/sectransp.h vtls/vtls.h vtls/wolfssl.h vtls/libnx.h
  
- LIB_VQUIC_CFILES = vquic/ngtcp2.c vquic/quiche.c
+ LIB_VQUIC_CFILES = vquic/ngtcp2.c vquic/quiche.c vquic/vquic.c
  
-@@ -63,7 +63,7 @@ LIB_CFILES = file.c timeval.c base64.c hostip.c progress.c formdata.c   \
-   curl_multibyte.c hostcheck.c conncache.c dotdot.c                     \
-   x509asn1.c http2.c smb.c curl_endian.c curl_des.c system_win32.c      \
-   mime.c sha256.c setopt.c curl_path.c curl_ctype.c curl_range.c psl.c  \
--  doh.c urlapi.c curl_get_line.c altsvc.c socketpair.c rename.c
-+  doh.c urlapi.c curl_get_line.c altsvc.c socketpair.c rename.c hos.c
+@@ -60,7 +60,7 @@ LIB_CFILES = altsvc.c amigaos.c asyn-ares.c asyn-thread.c base64.c            \
+   sendf.c setopt.c sha256.c share.c slist.c smb.c smtp.c socketpair.c socks.c \
+   socks_gssapi.c socks_sspi.c speedcheck.c splay.c strcase.c strdup.c         \
+   strerror.c strtok.c strtoofft.c system_win32.c telnet.c tftp.c timeval.c    \
+-  transfer.c urlapi.c version.c warnless.c wildcard.c x509asn1.c dynbuf.c
++  transfer.c urlapi.c version.c warnless.c wildcard.c x509asn1.c dynbuf.c hos.c
  
- LIB_HFILES = arpa_telnet.h netrc.h file.h timeval.h hostip.h progress.h \
-   formdata.h cookie.h http.h sendf.h ftp.h url.h dict.h if2ip.h         \
-@@ -84,7 +84,7 @@ LIB_HFILES = arpa_telnet.h netrc.h file.h timeval.h hostip.h progress.h \
-   x509asn1.h http2.h sigpipe.h smb.h curl_endian.h curl_des.h           \
-   curl_printf.h system_win32.h rand.h mime.h curl_sha256.h setopt.h     \
-   curl_path.h curl_ctype.h curl_range.h psl.h doh.h urlapi-int.h        \
--  curl_get_line.h altsvc.h quic.h socketpair.h rename.h
-+  curl_get_line.h altsvc.h quic.h socketpair.h rename.h hos.h
+ LIB_HFILES = altsvc.h amigaos.h arpa_telnet.h asyn.h conncache.h connect.h    \
+   content_encoding.h cookie.h curl_addrinfo.h curl_base64.h curl_ctype.h      \
+@@ -79,7 +79,7 @@ LIB_HFILES = altsvc.h amigaos.h arpa_telnet.h asyn.h conncache.h connect.h    \
+   smb.h smtp.h sockaddr.h socketpair.h socks.h speedcheck.h splay.h strcase.h \
+   strdup.h strerror.h strtok.h strtoofft.h system_win32.h telnet.h tftp.h     \
+   timeval.h transfer.h urlapi-int.h urldata.h warnless.h wildcard.h           \
+-  x509asn1.h dynbuf.h
++  x509asn1.h dynbuf.h hos.h
  
  LIB_RCFILES = libcurl.rc
  
 diff --git a/lib/curl_setup.h b/lib/curl_setup.h
-index 4ecda6a9b..85c4188ff 100644
+index d76c630d0..9374339e0 100644
 --- a/lib/curl_setup.h
 +++ b/lib/curl_setup.h
-@@ -653,7 +653,7 @@ int netware_init(void);
+@@ -619,7 +619,7 @@ int netware_init(void);
      defined(USE_MBEDTLS) || \
      defined(USE_WOLFSSL) || defined(USE_SCHANNEL) || \
      defined(USE_SECTRANSP) || defined(USE_GSKIT) || defined(USE_MESALINK) || \
@@ -317,7 +316,7 @@ index 000000000..ea92bac57
 +#endif /* HEADER_CURL_HOS_H */
 +
 diff --git a/lib/url.c b/lib/url.c
-index 47fc66aed..2bffba526 100644
+index a1a6b6910..e553aa2a1 100644
 --- a/lib/url.c
 +++ b/lib/url.c
 @@ -96,6 +96,7 @@ bool curl_win32_idn_to_ascii(const char *in, char **out);
@@ -328,7 +327,7 @@ index 47fc66aed..2bffba526 100644
  
  /* And now for the protocols */
  #include "ftp.h"
-@@ -2376,6 +2377,12 @@ static CURLcode create_conn_helper_init_proxy(struct connectdata *conn)
+@@ -2399,6 +2400,12 @@ static CURLcode create_conn_helper_init_proxy(struct connectdata *conn)
    CURLcode result = CURLE_OK;
    struct Curl_easy *data = conn->data;
  
@@ -921,7 +920,7 @@ index 000000000..372b638c5
 +    failf(data, "Unable to dump certificate information.\n");
 +
 +  if(pinnedpubkey) {
-+    curl_X509certificate cert;
++    struct Curl_X509certificate cert;
 +
 +    if(!peercert || !peercert_size) {
 +      const char *errorptr = "";
@@ -1282,10 +1281,10 @@ index 000000000..67b8fae28
 +#endif /* USE_LIBNX */
 +#endif /* HEADER_CURL_LIBNX_H */
 diff --git a/lib/vtls/vtls.c b/lib/vtls/vtls.c
-index dfefa1bd5..e46379f72 100644
+index c3a55fb1c..20bf6ee5b 100644
 --- a/lib/vtls/vtls.c
 +++ b/lib/vtls/vtls.c
-@@ -1189,6 +1189,8 @@ const struct Curl_ssl *Curl_ssl =
+@@ -1260,6 +1260,8 @@ const struct Curl_ssl *Curl_ssl =
    &Curl_ssl_mesalink;
  #elif defined(USE_BEARSSL)
    &Curl_ssl_bearssl;
@@ -1294,18 +1293,18 @@ index dfefa1bd5..e46379f72 100644
  #else
  #error "Missing struct Curl_ssl for selected SSL backend"
  #endif
-@@ -1224,6 +1226,9 @@ static const struct Curl_ssl *available_backends[] = {
+@@ -1294,6 +1296,9 @@ static const struct Curl_ssl *available_backends[] = {
+ #endif
  #if defined(USE_BEARSSL)
    &Curl_ssl_bearssl,
- #endif
++#endif
 +#if defined(USE_LIBNX)
 +  &Curl_ssl_libnx,
-+#endif
+ #endif
    NULL
  };
- 
 diff --git a/lib/vtls/vtls.h b/lib/vtls/vtls.h
-index a81b2f22d..7874353e8 100644
+index bcc844416..5a8504ff9 100644
 --- a/lib/vtls/vtls.h
 +++ b/lib/vtls/vtls.h
 @@ -108,6 +108,7 @@ CURLcode Curl_none_md5sum(unsigned char *input, size_t inputlen,
@@ -1317,7 +1316,7 @@ index a81b2f22d..7874353e8 100644
  #ifndef MAX_PINNED_PUBKEY_SIZE
  #define MAX_PINNED_PUBKEY_SIZE 1048576 /* 1MB */
 diff --git a/lib/x509asn1.c b/lib/x509asn1.c
-index ece5364d8..d6a26e1c6 100644
+index 52747d57d..a24ce72fd 100644
 --- a/lib/x509asn1.c
 +++ b/lib/x509asn1.c
 @@ -23,7 +23,7 @@
@@ -1339,7 +1338,7 @@ index ece5364d8..d6a26e1c6 100644
  #if defined(USE_GSKIT)
  
 diff --git a/lib/x509asn1.h b/lib/x509asn1.h
-index 205fdc0d7..03d130deb 100644
+index 0b7fb8817..0f0f215f2 100644
 --- a/lib/x509asn1.h
 +++ b/lib/x509asn1.h
 @@ -26,7 +26,7 @@
@@ -1351,7 +1350,7 @@ index 205fdc0d7..03d130deb 100644
  
  #include "urldata.h"
  
-@@ -130,5 +130,5 @@ CURLcode Curl_extract_certinfo(struct connectdata *conn, int certnum,
+@@ -129,5 +129,5 @@ CURLcode Curl_extract_certinfo(struct connectdata *conn, int certnum,
                                 const char *beg, const char *end);
  CURLcode Curl_verifyhost(struct connectdata *conn,
                           const char *beg, const char *end);

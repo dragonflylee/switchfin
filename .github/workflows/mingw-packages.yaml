@@ -3,6 +3,7 @@ name: mingw-packages
 on:
   push:
     tags: [ mingw-packages ]
+    paths: [ scripts/mingw64/*/* ]
 
 permissions:
   contents: write
@@ -25,9 +26,11 @@ jobs:
       shell: bash
       run: git config --global core.autocrlf false
     - uses: actions/checkout@v4
+      with:
+        sparse-checkout: scripts/mingw64
     - name: Install dependency
       run: |
-        pacman -S --noconfirm --noprogressbar \
+        pacman -S --needed --noconfirm --noprogressbar \
           ${MINGW_PACKAGE_PREFIX}-make \
           ${MINGW_PACKAGE_PREFIX}-autotools \
           ${MINGW_PACKAGE_PREFIX}-cmake \
@@ -37,13 +40,13 @@ jobs:
     - name: Build packages
       run: |
         cd scripts/mingw64
-        for p in freetype harfbuzz libass ffmpeg spirv-cross shaderc mpv libwebp curl; do
-          echo building $p
-          cd $p; makepkg-mingw -sciCf --noconfirm; cd ..
+        for pkg in curl freetype harfbuzz libass libwebp ffmpeg spirv-cross shaderc mpv; do
+          echo building $pkg
+          cd $pkg; makepkg-mingw -sciCf --noconfirm; cd ..
         done
 
         cd ${MINGW_PREFIX}
-        7z a -mx=9 ${GITHUB_WORKSPACE}/mpv-${MSYSTEM_CARCH}.7z include/mpv \
+        7z a -mx=9 ${GITHUB_WORKSPACE}/mpv-dev-${MSYSTEM_CARCH}.7z include/mpv \
           ${MINGW_PREFIX}/bin/libmpv-2.dll \
           ${MINGW_PREFIX}/lib/libmpv.dll.a \
           ${MINGW_PREFIX}/share/doc/mpv/mpv.def

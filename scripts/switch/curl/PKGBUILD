@@ -1,8 +1,8 @@
 
 # Maintainer: WinterMute <davem@devkitpro.org>
 pkgname=switch-curl
-pkgver=7.69.1
-pkgrel=6
+pkgver=7.71.1
+pkgrel=1
 pkgdesc='An URL retrieval utility and library'
 arch=('any')
 url='http://www.zlib.net/'
@@ -16,7 +16,7 @@ source=(
 )
 groups=('switch-portlibs')
 
-sha256sums=('03c7d5e6697f7b7e40ada1b2256e565a555657398e6c1fcfa4cb251ccd819d4f' 'SKIP')
+sha256sums=('40f83eda27cdbeb25cd4da48cefb639af1b9395d6026d2da1825bf059239658c' 'SKIP')
 
 build() {
   cd curl-$pkgver
@@ -29,14 +29,13 @@ build() {
   ./buildconf
 
   ./configure --prefix=$PORTLIBS_PREFIX --host=aarch64-none-elf \
-    --disable-shared --enable-static --enable-ipv6 --disable-unix-sockets \
+    --disable-shared --enable-static --disable-ipv6 --disable-unix-sockets \
     --disable-manual --disable-ntlm-wb --disable-threaded-resolver \
     --without-ssl --without-polar-ssl --without-cyassl --without-wolfssl \
     --without-mbedtls --disable-progress-meter \
     --with-libnx --with-default-ssl-backend=libnx
 
   make -C lib
-  
 }
 
 package() {
@@ -47,5 +46,4 @@ package() {
   make DESTDIR="$pkgdir" -C lib install
   make DESTDIR="$pkgdir" -C include install
   make DESTDIR="$pkgdir" install-binSCRIPTS install-pkgconfigDATA
-
 }

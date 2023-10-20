@@ -3,6 +3,7 @@ name: switch-portlibs
 on:
   push:
     tags: [ switch-portlibs ]
+    paths: [ scripts/switch/*/* ]
 
 permissions:
   contents: write
@@ -21,15 +22,28 @@ jobs:
         apt-get update
         apt-get install -y fakeroot zstd ninja-build libtool python3-distutils manpages-
         curl -sL https://bootstrap.pypa.io/get-pip.py | python3 -
-        pip3 install meson
+        pip3 install meson mako
 
         for i in scripts/switch/dkp-*.zst; do dkp-pacman --noconfirm -U $i; done
+    - name: Build dekotools
+      run: |
+        apt-get install -y bison flex g++ manpages-
+        git clone https://github.com/fincs/dekotools.git --depth 1
+        cd dekotools
+        meson setup build
+        ninja -C build install
     - name: Build portlibs
       run: |
         adduser --gecos '' --disabled-password builder
         echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder
-        chown -R builder:builder $GITHUB_WORKSPACE/scripts/switch
-        su - builder -c "make -C $GITHUB_WORKSPACE/scripts/switch"
+        chown -R builder:builder ${GITHUB_WORKSPACE}/scripts/switch
+        sudo -u builder -i bash -s << EOF
+          cd ${GITHUB_WORKSPACE}/scripts/switch
+          for pkg in curl harfbuzz libass ffmpeg libmpv deko3d libuam nspmini; do
+            echo building \$pkg
+            cd \$pkg; dkp-makepkg -sciCf --noconfirm; cd ..
+          done
+        EOF
     - name: Upload portlibs
       uses: softprops/action-gh-release@v1
       with:

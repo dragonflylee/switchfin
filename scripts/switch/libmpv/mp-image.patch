@@ -1,3 +1,19 @@
+From d2962328abf27a8752b30eb714bf8a7b4fdb475f Mon Sep 17 00:00:00 2001
+From: dragonflylee <dragonflylee@outlook.com>
+Date: Thu, 7 Sep 2023 06:02:20 +0000
+Subject: [PATCH] switch specific fix for tx1 hwdec
+
+---
+ osdep/io.c              |  4 ++--
+ osdep/io.h              |  2 +-
+ osdep/switch/sys/mman.h | 15 +++++++++++++++
+ sub/filter_regex.c      |  2 +-
+ video/mp_image.c        |  2 +-
+ video/mp_image.h        |  2 +-
+ wscript_build.py        |  3 ---
+ 7 files changed, 21 insertions(+), 9 deletions(-)
+ create mode 100644 osdep/switch/sys/mman.h
+
 diff --git a/osdep/io.c b/osdep/io.c
 index 8cd6dede85..a1933888dd 100644
 --- a/osdep/io.c
@@ -66,7 +82,7 @@ index 8e299918ce..c7b08f5273 100644
  #include "common/common.h"
  #include "common/msg.h"
 diff --git a/video/mp_image.c b/video/mp_image.c
-index 40678d10bd..eaed5dd9c8 100644
+index 40678d10bd..d30b2d8057 100644
 --- a/video/mp_image.c
 +++ b/video/mp_image.c
 @@ -176,7 +176,7 @@ static bool mp_image_alloc_planes(struct mp_image *mpi)
@@ -92,7 +108,7 @@ index 98dd666412..376e269356 100644
  #define MP_IMGFIELD_TOP_FIRST 0x02
  #define MP_IMGFIELD_REPEAT_FIRST 0x04
 diff --git a/wscript_build.py b/wscript_build.py
-index a470808ae5..ca510ada87 100644
+index ba42b93d60..3a82bc6ba8 100644
 --- a/wscript_build.py
 +++ b/wscript_build.py
 @@ -240,7 +240,6 @@ def build(ctx):

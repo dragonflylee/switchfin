@@ -1,0 +1,29 @@
+# Maintainer: fincs <fincs@devkitpro.org>
+# Contributor: averne <averne381@gmail.com>
+
+pkgname=('libuam')
+pkgver=master
+pkgrel=1
+pkgdesc="Shader compiler for Nintendo Switch, targeting the deko3d API"
+arch=('any')
+license=('custom')
+url="https://github.com/averne/${pkgname}"
+options=(!strip libtool staticlibs)
+source=(${pkgname}-${pkgver}.tar.gz::${url}/archive/${pkgver}.tar.gz)
+sha256sums=('SKIP')
+makedepends=("dkp-toolchain-vars" "dkp-meson-scripts")
+
+groups=('switch-dev')
+
+build() {
+  cd ${pkgname}-${pkgver}
+
+  /opt/devkitpro/meson-cross.sh switch ../crossfile.txt build
+  meson compile -C build
+}
+
+package() {
+  cd ${pkgname}-${pkgver}
+
+  DESTDIR="$pkgdir" meson install -C build
+}
