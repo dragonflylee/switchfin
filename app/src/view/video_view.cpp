@@ -29,7 +29,7 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
     this->registerAction(
         "\uE08F", brls::BUTTON_LB,
         [this](brls::View* view) -> bool {
-            seeking_range -= MPVCore::SEEKING_STEP;
+            this->seekingRange -= MPVCore::SEEKING_STEP;
             this->requestSeeking();
             return true;
         },
@@ -38,7 +38,7 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
     this->registerAction(
         "\uE08E", brls::BUTTON_RB,
         [this](brls::View* view) -> bool {
-            seeking_range += MPVCore::SEEKING_STEP;
+            this->seekingRange += MPVCore::SEEKING_STEP;
             this->requestSeeking();
             return true;
         },
@@ -48,7 +48,7 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
         "toggleOSD", brls::BUTTON_Y,
         [this](brls::View* view) -> bool {
             // 拖拽进度时不要影响显示 OSD
-            if (!seeking_range) this->toggleOSD();
+            if (!this->seekingRange) this->toggleOSD();
             return true;
         },
         true);
@@ -77,7 +77,95 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
 
     osdSlider->getProgressEvent().subscribe([this](float progress) { this->showOSD(false); });
 
-    this->addGestureRecognizer(new brls::TapGestureRecognizer(this, [this]() { this->toggleOSD(); }));
+    /// 组件触摸事件
+    /// 单击控制 OSD
+    /// 双击控制播放与暂停
+    /// 长按加速
+    this->addGestureRecognizer(
+        new brls::TapGestureRecognizer([this](brls::TapGestureStatus status, brls::Sound* soundToPlay) {
+            brls::Application::giveFocus(this);
+            auto& mpv = MPVCore::instance();
+            // 当长按时已经加速，则忽视此次加速
+            switch (status.state) {
+            case brls::GestureState::UNSURE: {
+                // 长按加速
+                if (fabs(mpv.getSpeed() - 1) > 10e-2) {
+                    this->ignoreSpeed = true;
+                    break;
+                }
+                this->ignoreSpeed = false;
+                brls::cancelDelay(this->speedIter);
+                ASYNC_RETAIN
+                this->speedIter = brls::delay(200, [ASYNC_TOKEN]() {
+                    ASYNC_RELEASE
+                    float cur = MPVCore::VIDEO_SPEED == 100 ? 2.0 : MPVCore::VIDEO_SPEED * 0.01f;
+                    MPVCore::instance().setSpeed(cur);
+                    // 绘制临时加速标识
+                    this->speedHintLabel->setText(fmt::format(fmt::runtime("main/player/speed_up"_i18n), cur));
+                    this->speedHintBox->setVisibility(brls::Visibility::VISIBLE);
+                });
+                break;
+            }
+            case brls::GestureState::FAILED:
+            case brls::GestureState::INTERRUPTED: {
+                // 打断加速
+                if (!this->ignoreSpeed) {
+                    brls::cancelDelay(this->speedIter);
+                    mpv.setSpeed(1.0f);
+                    this->speedHintBox->setVisibility(brls::Visibility::GONE);
+                }
+                break;
+            }
+            case brls::GestureState::END: {
+                // 打断加速
+                if (!ignoreSpeed) {
+                    brls::cancelDelay(this->speedIter);
+                    mpv.setSpeed(1.0f);
+                    if (this->speedHintBox->getVisibility() == brls::Visibility::VISIBLE) {
+                        this->speedHintBox->setVisibility(brls::Visibility::GONE);
+                        // 正在加速时抬起手指，不触发后面 OSD 相关内容，直接结束此次事件
+                        break;
+                    }
+                }
+                // 处理点击事件
+                const int CHECK_TIME = 200000;
+                switch (this->clickState) {
+                case ClickState::IDLE: {
+                    this->pressTime = brls::getCPUTimeUsec();
+                    this->clickState = ClickState::CLICK_DOUBLE;
+                    // 单击切换 OSD，设置一个延迟用来等待双击结果
+                    ASYNC_RETAIN
+                    this->tapIter = brls::delay(200, [ASYNC_TOKEN]() {
+                        ASYNC_RELEASE
+                        this->toggleOSD();
+                    });
+                    break;
+                }
+                case ClickState::CLICK_DOUBLE: {
+                    brls::cancelDelay(this->tapIter);
+                    if (brls::getCPUTimeUsec() - this->pressTime < CHECK_TIME) {
+                        // 双击切换播放状态
+                        mpv.isPaused() ? mpv.resume() : mpv.pause();
+                        this->clickState = ClickState::IDLE;
+                    } else {
+                        // 单击切换 OSD，设置一个延迟用来等待双击结果
+                        this->pressTime = brls::getCPUTimeUsec();
+                        this->clickState = ClickState::CLICK_DOUBLE;
+                        ASYNC_RETAIN
+                        this->tapIter = brls::delay(200, [ASYNC_TOKEN]() {
+                            ASYNC_RELEASE
+                            this->toggleOSD();
+                        });
+                    }
+                    break;
+                }
+                default:;
+                }
+            }
+            default:;
+            }
+        }));
+
     /// 播放/暂停 按钮
     this->btnToggle->registerClickAction([this](...) {
         this->togglePlay();
@@ -101,20 +189,17 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
     });
 
     static std::vector<std::string> qualities = {
-        "main/player/auto"_i18n,
-        "1080P 10Mbps",
-        "720P 8Mbps",
-        "720P 4Mbps",
-        "480P 2Mbps",
-    };
-    this->videoQualityLabel->setText(qualities[this->selectedQuality]);
-    this->btnVideoQuality->registerClickAction([this](...) {
+        "main/player/auto"_i18n, "1080P 10Mbps", "720P 8Mbps", "720P 4Mbps", "480P 2Mbps"};
+    this->videoQualityLabel->setText(qualities[VideoView::selectedQuality]);
+    this->btnVideoQuality->registerClickAction([this](brls::View* view) {
         brls::Dropdown* dropdown = new brls::Dropdown(
             "main/player/quality"_i18n, qualities,
             [this](int selected) {
+                if (selected == VideoView::selectedQuality) return false;
                 VideoView::selectedQuality = selected;
                 this->videoQualityLabel->setText(qualities[selected]);
                 this->playMedia(MPVCore::instance().playback_time * jellyfin::PLAYTICKS);
+                return false;
             },
             VideoView::selectedQuality);
         brls::Application::pushActivity(new brls::Activity(dropdown));
@@ -130,7 +215,19 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
     this->btnCast->registerClickAction([this](...) { return this->toggleProfile(); });
     this->btnCast->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnCast));
 
-    this->btnVideoChapter->registerClickAction([this](...) {
+    /// 倍速按钮
+    this->btnVideoSpeed->registerClickAction([](brls::View* view) {
+        brls::Dropdown* dropdown = new brls::Dropdown(
+            "main/player/speed"_i18n, {"1x", "2x", "4x", "8x"},
+            [](int selected) { MPVCore::instance().setSpeed(pow(2, selected)); },
+            floor(MPVCore::instance().video_speed) - 1);
+        brls::Application::pushActivity(new brls::Activity(dropdown));
+        return true;
+    });
+    this->btnVideoSpeed->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoSpeed));
+
+    /// 章节信息
+    this->btnVideoChapter->registerClickAction([this](brls::View* view) {
         if (this->chapters.empty()) return false;
 
         int selectedChapter = -1;
@@ -183,17 +280,17 @@ void VideoView::setTitie(const std::string& title) { this->titleLabel->setText(t
 void VideoView::requestSeeking() {
     auto& mpv = MPVCore::instance();
     if (mpv.duration <= 0) {
-        seeking_range = 0;
+        this->seekingRange = 0;
         return;
     }
-    double progress = (mpv.playback_time + seeking_range) / mpv.duration;
+    double progress = (mpv.playback_time + this->seekingRange) / mpv.duration;
 
     if (progress < 0) {
         progress = 0;
-        seeking_range = (int64_t)mpv.playback_time * -1;
+        this->seekingRange = (int64_t)mpv.playback_time * -1;
     } else if (progress > 1) {
         progress = 1;
-        seeking_range = mpv.duration;
+        this->seekingRange = mpv.duration;
     }
 
     showOSD(false);
@@ -201,12 +298,12 @@ void VideoView::requestSeeking() {
     leftStatusLabel->setText(sec2Time(mpv.duration * progress));
 
     // 延迟触发跳转进度
-    brls::cancelDelay(seeking_iter);
+    brls::cancelDelay(this->seekingIter);
     ASYNC_RETAIN
-    seeking_iter = brls::delay(400, [ASYNC_TOKEN]() {
+    this->seekingIter = brls::delay(400, [ASYNC_TOKEN]() {
         ASYNC_RELEASE
-        MPVCore::instance().command_str("seek {}", seeking_range);
-        seeking_range = 0;
+        MPVCore::instance().command_str("seek {}", this->seekingRange);
+        this->seekingRange = 0;
     });
 }
 
@@ -226,7 +323,7 @@ void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::S
     mpv.draw(this->getFrame(), this->getAlpha());
 
     // draw osd
-    time_t current = std::time(nullptr);
+    brls::Time current = brls::getCPUTimeUsec();
     if (current < this->osdLastShowTime) {
         if (!this->isOsdShown) {
             this->isOsdShown = true;
@@ -248,12 +345,37 @@ void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::S
         this->hintLastShowTime = 0;
     }
 
+    // draw speed hint
+    if (speedHintBox->getVisibility() == brls::Visibility::VISIBLE) {
+        speedHintBox->frame(ctx);
+        brls::Rect frame = speedHintLabel->getFrame();
+
+        // a1-3 周期 800，范围 800 * 0.3 / 2 = 120, 0 - 120 - 0
+        int ta1 = ((current >> 10) % 800) * 0.3;
+        float tx = frame.getMinX() - 50;
+        float ty = frame.getMinY() + 4.5;
+
+        for (int i = 0; i < 3; i++) {
+            int offx = tx + i * 15;
+            int ta2 = (ta1 + i * 40) % 240;
+            if (ta2 > 120) ta2 = 240 - ta2;
+
+            nvgBeginPath(vg);
+            nvgMoveTo(vg, offx, ty);
+            nvgLineTo(vg, offx, ty + 12);
+            nvgLineTo(vg, offx + 12, ty + 6);
+            nvgFillColor(vg, a(nvgRGBA(255, 255, 255, ta2 + 80)));
+            nvgClosePath(vg);
+            nvgFill(vg);
+        }
+    }
+
     // cache info
     osdCenterBox->frame(ctx);
 
     // draw video profile
     if (profile->getVisibility() == brls::Visibility::VISIBLE) {
-        if (current - this->profileLastShowTime > 2) {
+        if (current - this->profileLastShowTime > 2000000) {
             profile->update();
             this->profileLastShowTime = current;
         }
@@ -521,7 +643,7 @@ void VideoView::registerMpvEvent() {
             this->reportStop();
             break;
         case MpvEventEnum::MPV_LOADED:
-            if (this->seeking_range == 0) {
+            if (this->seekingRange == 0) {
                 this->leftStatusLabel->setText(sec2Time(mpv.video_progress));
             }
             for (auto& s : this->itemSource.MediaStreams) {
@@ -536,19 +658,24 @@ void VideoView::registerMpvEvent() {
             }
             break;
         case MpvEventEnum::UPDATE_DURATION:
-            if (this->seeking_range == 0) {
+            if (this->seekingRange == 0) {
                 this->rightStatusLabel->setText(sec2Time(mpv.duration));
                 this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
             }
             break;
         case MpvEventEnum::UPDATE_PROGRESS:
-            if (this->seeking_range == 0) {
+            if (this->seekingRange == 0) {
                 this->leftStatusLabel->setText(sec2Time(mpv.video_progress));
                 this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
             }
             if (mpv.video_progress % 10 == 0) this->reportPlay();
             break;
         case MpvEventEnum::VIDEO_SPEED_CHANGE:
+            if (fabs(mpv.video_speed - 1) < 1e-5) {
+                this->videoSpeedLabel->setText("main/player/speed"_i18n);
+            } else {
+                this->videoSpeedLabel->setText(fmt::format("{}x", mpv.video_speed));
+            }
             break;
         case MpvEventEnum::END_OF_FILE:
             // 播放结束
@@ -607,24 +734,24 @@ void VideoView::toggleOSD() {
 
 void VideoView::showOSD(bool autoHide) {
     if (autoHide) {
-        this->osdLastShowTime = std::time(nullptr) + VideoView::OSD_SHOW_TIME;
-        this->osd_state = OSDState::SHOWN;
+        this->osdLastShowTime = brls::getCPUTimeUsec() + VideoView::OSD_SHOW_TIME;
+        this->osdState = OSDState::SHOWN;
     } else {
         this->osdLastShowTime = 0xffffffff;
-        this->osd_state = OSDState::ALWAYS_ON;
+        this->osdState = OSDState::ALWAYS_ON;
     }
 }
 
 void VideoView::hideOSD() {
     this->osdLastShowTime = 0;
-    this->osd_state = OSDState::HIDDEN;
+    this->osdState = OSDState::HIDDEN;
 }
 
 void VideoView::showHint(const std::string& value) {
     brls::Logger::debug("Video hint: {}", value);
     this->hintLabel->setText(value);
     this->hintBox->setVisibility(brls::Visibility::VISIBLE);
-    this->hintLastShowTime = std::time(nullptr) + VideoView::OSD_SHOW_TIME;
+    this->hintLastShowTime = brls::getCPUTimeUsec() + VideoView::OSD_SHOW_TIME;
     this->showOSD();
 }
 

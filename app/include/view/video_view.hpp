@@ -18,6 +18,14 @@ enum class OSDState {
     ALWAYS_ON = 2,
 };
 
+enum class ClickState {
+    IDLE = 0,
+    PRESS = 1,
+    FAST_RELEASE = 3,
+    FAST_PRESS = 4,
+    CLICK_DOUBLE = 5,
+};
+
 class VideoView : public brls::Box {
 public:
     VideoView(jellyfin::MediaItem& item);
@@ -52,6 +60,7 @@ private:
     BRLS_BIND(brls::Box, btnToggle, "video/osd/toggle");
     BRLS_BIND(brls::Box, btnVideoQuality, "video/quality/box");
     BRLS_BIND(brls::Box, btnVideoChapter, "video/chapter/box");
+    BRLS_BIND(brls::Box, btnVideoSpeed, "video/speed/box");
     BRLS_BIND(SVGImage, btnToggleIcon, "video/osd/toggle/icon");
     BRLS_BIND(brls::Box, osdTopBox, "video/osd/top/box");
     BRLS_BIND(brls::Box, osdBottomBox, "video/osd/bottom/box");
@@ -61,6 +70,9 @@ private:
     BRLS_BIND(brls::Label, rightStatusLabel, "video/right/status");
     BRLS_BIND(brls::Label, videoChapterLabel, "video/chapter");
     BRLS_BIND(brls::Label, videoQualityLabel, "video/quality");
+    BRLS_BIND(brls::Label, videoSpeedLabel, "video/speed");
+    BRLS_BIND(brls::Label, speedHintLabel, "video/speed/hint/label");
+    BRLS_BIND(brls::Box, speedHintBox, "video/speed/hint/box");
     BRLS_BIND(brls::Label, hintLabel, "video/osd/hint/label");
     BRLS_BIND(brls::Box, hintBox, "video/osd/hint/box");
 
@@ -95,16 +107,23 @@ private:
     time_t osdLastShowTime = 0;
     time_t hintLastShowTime = 0;
     time_t profileLastShowTime = 0;
-    const time_t OSD_SHOW_TIME = 5;  //默认5秒
-    OSDState osd_state = OSDState::HIDDEN;
+    const time_t OSD_SHOW_TIME = 5000000;  //默认5秒
+    OSDState osdState = OSDState::HIDDEN;
     VideoProfile* profile;
 
-    int64_t seeking_range = 0;
-    size_t seeking_iter = 0;
+    int64_t seekingRange = 0;
+    size_t seekingIter = 0;
 
     MPVEvent::Subscription eventSubscribeID;
     MPVCustomEvent::Subscription customEventSubscribeID;
     brls::Rect oldRect = brls::Rect(-1, -1, -1, -1);
+
+    // Touch Event
+    size_t speedIter = 0;
+    bool ignoreSpeed = false;
+    ClickState clickState = ClickState::IDLE;
+    brls::Time pressTime;
+    size_t tapIter = 0;
 
     // Playinfo
     std::string itemId;

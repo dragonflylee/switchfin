@@ -22,7 +22,8 @@
     "quality": "画质",
     "chapter": "章节",
     "auto": "自动",
-    "toggle": "播放/暂停"
+    "toggle": "播放/暂停",
+    "speed_up": "{} 倍速播放中"
   },
   "search": {
     "tv": {
