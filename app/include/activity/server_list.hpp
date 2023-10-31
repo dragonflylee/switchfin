@@ -29,8 +29,10 @@ private:
     BRLS_BIND(brls::DetailCell, serverOS, "server/os");
     BRLS_BIND(brls::SelectorCell, selectorUrl, "selector/server/urls");
     BRLS_BIND(brls::Button, btnSignin, "btn/server/signin");
+    BRLS_BIND(brls::AppletFrame, mainframe, "server/frame");
 
     void setActive(brls::View *active);
+    void onLoad();
 
     std::vector<ServerCell *> items;
 };

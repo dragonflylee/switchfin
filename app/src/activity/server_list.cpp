@@ -29,6 +29,7 @@ public:
 
         this->addGestureRecognizer(new brls::TapGestureRecognizer(this));
 
+        this->serverId = s.id;
         this->labelName->setText(s.name);
         this->labelUrl->setText(s.urls.back());
         this->labelUsers->setText(fmt::format(fmt::runtime("main/setting/server/users"_i18n), s.users.size()));
@@ -47,6 +48,8 @@ public:
         }
     }
 
+    std::string serverId;
+
 private:
     BRLS_BIND(brls::Rectangle, accent, "brls/sidebar/item_accent");
     BRLS_BIND(brls::Label, labelName, "server/name");
@@ -64,6 +67,8 @@ public:
 
     BRLS_BIND(brls::Label, labelName, "user/name");
     BRLS_BIND(brls::Image, picture, "user/avatar");
+
+    std::string userId;
 };
 
 class ServerUserDataSource : public RecyclingGridDataSource {
@@ -75,6 +80,7 @@ public:
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         UserCell* cell = dynamic_cast<UserCell*>(recycler->dequeueReusableCell("Cell"));
         auto& u = this->list.at(index);
+        cell->userId = u.id;
         cell->labelName->setText(u.name);
         // Image::with(cell->picture, this->parent->getUrl() + fmt::format(fmt::runtime(jellyfin::apiUserImage), u.id, ""));
         return cell;
@@ -116,19 +122,42 @@ ServerList::ServerList() { brls::Logger::debug("ServerList: create"); }
 ServerList::~ServerList() { brls::Logger::debug("ServerList Activity: delete"); }
 
 void ServerList::onContentAvailable() {
-    auto list = AppConfig::instance().getServers();
-    if (list.empty()) {
-        brls::AppletFrame* view = new brls::AppletFrame(new ServerAdd());
-        view->setHeaderVisibility(brls::Visibility::GONE);
-        this->setContentView(view);
-        return;
-    }
-
     this->recyclerUsers->registerCell("Cell", []() { return new UserCell(); });
-    this->btnServerAdd->registerClickAction([](brls::View* view) {
-        view->present(new ServerAdd());
+    this->btnServerAdd->registerClickAction([this](brls::View* view) {
+        view->present(new ServerAdd([this]() { this->onLoad(); }));
         return true;
     });
+
+    this->sidebarServers->registerAction("hints/delete"_i18n, brls::BUTTON_X, [this](brls::View* view) {
+        Dialog::cancelable("hints/delete"_i18n, [this]() {
+            ServerCell* cell = dynamic_cast<ServerCell*>(brls::Application::getCurrentFocus());
+            if (cell != nullptr && AppConfig::instance().removeServer(cell->serverId)) this->onLoad();
+        });
+        return true;
+    });
+
+    this->recyclerUsers->registerAction("hints/delete"_i18n, brls::BUTTON_X, [this](brls::View* view) {
+        Dialog::cancelable("hints/delete"_i18n, [this]() {
+            UserCell* cell = dynamic_cast<UserCell*>(brls::Application::getCurrentFocus());
+            if (cell != nullptr && AppConfig::instance().removeUser(cell->userId)) this->onLoad();
+        });
+        return true;
+    });
+
+    this->onLoad();
+}
+
+void ServerList::onLoad() {
+    auto list = AppConfig::instance().getServers();
+    if (list.empty()) {
+        this->mainframe->pushContentView(new ServerAdd([this]() { this->onLoad(); }));
+        this->mainframe->setActionAvailable(brls::BUTTON_B, false);
+        return;
+    }
+    this->mainframe->setActionAvailable(brls::BUTTON_B, true);
+
+    this->items.clear();
+    this->sidebarServers->clearViews();
 
     for (auto& s : list) {
         ServerCell* item = new ServerCell(s);
@@ -161,6 +190,7 @@ void ServerList::onSelect(const AppServer& s) {
 
     if (s.users.empty()) {
         this->recyclerUsers->setEmpty();
+        brls::sync([this]() { brls::Application::giveFocus(this->sidebarServers); });
     } else {
         this->recyclerUsers->setDataSource(new ServerUserDataSource(s.users, this));
     }

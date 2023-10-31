@@ -270,6 +270,28 @@ bool AppConfig::addUser(const AppUser& u, const std::string& url) {
     return found;
 }
 
+bool AppConfig::removeServer(const std::string& id) {
+    for (auto it = this->servers.begin(); it != this->servers.end(); ++it) {
+        if (it->id == id) {
+            this->servers.erase(it);
+            this->save();
+            return true;
+        }
+    }
+    return false;
+}
+
+bool AppConfig::removeUser(const std::string& id) {
+    for (auto it = this->users.begin(); it != this->users.end(); ++it) {
+        if (it->id == id) {
+            this->users.erase(it);
+            this->save();
+            return true;
+        }
+    }
+    return false;
+}
+
 std::string AppConfig::getDevice(const std::string& token) {
     if (token.empty())
         return fmt::format(

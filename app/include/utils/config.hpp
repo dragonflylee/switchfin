@@ -101,6 +101,8 @@ public:
 
     bool addServer(const AppServer& s);
     bool addUser(const AppUser& u, const std::string& url);
+    bool removeServer(const std::string& id);
+    bool removeUser(const std::string& id);
     const std::string& getDeviceId() { return this->device; }
     std::string getDevice(const std::string& token = "");
     const AppUser& getUser() const { return this->user; }

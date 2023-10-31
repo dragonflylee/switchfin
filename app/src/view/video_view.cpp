@@ -54,14 +54,14 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
         true);
 
     /// 播放器设置按钮
-    this->btnSetting->registerClickAction([this](...) {
+    this->btnSetting->registerClickAction([this](brls::View* view) {
         this->showSetting();
         return true;
     });
     this->btnSetting->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnSetting));
     this->registerAction(
         "main/player/setting"_i18n, brls::BUTTON_X,
-        [this](...) {
+        [this](brls::View* view) {
             this->showSetting();
             return true;
         },
@@ -203,6 +203,7 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
             },
             VideoView::selectedQuality);
         brls::Application::pushActivity(new brls::Activity(dropdown));
+        brls::sync([dropdown]() { brls::Application::giveFocus(dropdown); });
         return true;
     });
     this->btnVideoQuality->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoQuality));
@@ -222,6 +223,7 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
             [](int selected) { MPVCore::instance().setSpeed(pow(2, selected)); },
             floor(MPVCore::instance().video_speed) - 1);
         brls::Application::pushActivity(new brls::Activity(dropdown));
+        brls::sync([dropdown]() { brls::Application::giveFocus(dropdown); });
         return true;
     });
     this->btnVideoSpeed->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoSpeed));

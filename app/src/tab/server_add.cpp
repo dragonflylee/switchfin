@@ -8,7 +8,7 @@
 #include "utils/dialog.hpp"
 #include "api/jellyfin.hpp"
 
-ServerAdd::ServerAdd() {
+ServerAdd::ServerAdd(std::function<void(void)> cb) : cbConnected(cb) {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/server_add.xml");
     brls::Logger::debug("ServerAdd: create");
@@ -19,8 +19,6 @@ ServerAdd::ServerAdd() {
 }
 
 ServerAdd::~ServerAdd() { brls::Logger::debug("ServerAdd Activity: delete"); }
-
-ServerAdd* ServerAdd::create() { return new ServerAdd(); }
 
 bool ServerAdd::onConnect() {
     brls::Application::blockInputs();
@@ -44,6 +42,7 @@ bool ServerAdd::onConnect() {
                 ASYNC_RELEASE
                 AppConfig::instance().addServer(s);
                 brls::Application::unblockInputs();
+                this->dismiss(this->cbConnected);
                 this->present(new ServerLogin(s.name, s.urls.front()));
             });
         } catch (const std::exception& ex) {
