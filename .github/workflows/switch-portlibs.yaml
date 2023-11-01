@@ -14,6 +14,8 @@ jobs:
     container:
       image: devkitpro/devkita64
     steps:
+    - name: Disable autocrlf
+      run: git config --global core.autocrlf false
     - uses: actions/checkout@v3
       with:
         sparse-checkout: scripts/switch
@@ -24,7 +26,7 @@ jobs:
         curl -sL https://bootstrap.pypa.io/get-pip.py | python3 -
         pip3 install meson mako
 
-        for i in scripts/switch/dkp-*.zst; do dkp-pacman --noconfirm -U $i; done
+        dkp-pacman --noconfirm -U scripts/switch/dkp-*.zst
     - name: Build dekotools
       run: |
         apt-get install -y bison flex g++ manpages-
@@ -39,7 +41,7 @@ jobs:
         chown -R builder:builder ${GITHUB_WORKSPACE}/scripts/switch
         sudo -u builder -i bash -s << EOF
           cd ${GITHUB_WORKSPACE}/scripts/switch
-          for pkg in curl harfbuzz libass ffmpeg libmpv deko3d libuam nspmini; do
+          for pkg in hacbrewpack curl harfbuzz libass ffmpeg libmpv deko3d libuam nspmini; do
             echo building \$pkg
             cd \$pkg; dkp-makepkg -sciCf --noconfirm; cd ..
           done

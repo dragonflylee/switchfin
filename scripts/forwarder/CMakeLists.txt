@@ -37,6 +37,6 @@ add_custom_target(${PROJECT_NAME}.nsp DEPENDS ${PROJECT_NAME}.pfs0
     COMMAND ${CMAKE_COMMAND} -E make_directory "control"
     COMMAND ${NX_NACPTOOL_EXE} --create "${PROJECT_NAME}" "${PROJECT_AUTHOR}" "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}" "control/control.nacp"
     COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_ICON}" "control/icon_AmericanEnglish.dat"
-    COMMAND ${HACBREWPACK_EXE} -k "${PROJECT_KEYSET}" --titleid ${PROJECT_TITLEID} --titlename ${CMAKE_PROJECT_NAME} --noromfs --nologo
+    COMMAND ${HACBREWPACK_EXE} -k "${PROJECT_KEYSET}" --titleid ${PROJECT_TITLEID} --titlename ${CMAKE_PROJECT_NAME} --noromfs --nologo --nostartupuser
     COMMAND ${CMAKE_COMMAND} -E rename "hacbrewpack_nsp/${PROJECT_TITLEID}.nsp" "${PROJECT_RESOURCES}/${PROJECT_NAME}.nsp"
 )

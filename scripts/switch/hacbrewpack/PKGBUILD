@@ -1,0 +1,26 @@
+# Maintainer: fincs <fincs@devkitpro.org>
+
+pkgname=('hacBrewPack')
+pkgver=3.05
+pkgrel=1
+pkgdesc="Make NCAs/NSPs from Nintendo Switch homebrews"
+arch=('any')
+license=('custom')
+url="http://github.com/The-4n/${pkgname}"
+options=(!strip)
+source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/v${pkgver}.tar.gz" "nostartupuser.patch")
+sha256sums=('9b5cb51e8e8a53d20d0e7d4518d82c99012eb40545d45b4f8edaa9786670e0ec' 'SKIP')
+
+groups=('switch-dev')
+
+build() {
+  cd $srcdir/$pkgname-$pkgver
+  patch -Np1 -i "$srcdir/nostartupuser.patch"
+  mv config.mk.template config.mk
+  make
+}
+
+package() {
+  cd $srcdir/$pkgname-$pkgver
+  install -D hacbrewpack $pkgdir/opt/devkitpro/tools/bin/hacbrewpack
+}
