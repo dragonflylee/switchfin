@@ -36,6 +36,11 @@
                     id="btn/server/add"
                     style="primary"
                     grow="1.0"
+                    focusable="true"
+                    focusUp="btn/server/add"
+                    focusDown="server/sidebar"
+                    focusLeft="btn/server/add"
+                    focusRight="btn/server/signin"
                     text="@i18n/main/setting/server/connect_new" />
             </brls:Box>
 
@@ -43,6 +48,11 @@
                 grow="1">
                 <brls:Box
                     axis="column"
+                    focusable="true"
+                    focusUp="btn/server/add"
+                    focusDown="server/sidebar"
+                    focusLeft="server/sidebar"
+                    focusRight="btn/server/signin"
                     id="server/sidebar"
                     paddingRight="20" />
 
@@ -91,6 +101,9 @@
                 marginBottom="20px">
 
                 <brls:Button
+                    focusable="true"
+                    focusLeft="server/sidebar"
+                    focusRight="btn/server/signin"
                     id="btn/server/signin"
                     style="primary"
                     grow="1.0"
