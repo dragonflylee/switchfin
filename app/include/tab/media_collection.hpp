@@ -23,4 +23,9 @@ private:
     std::string itemType;
     size_t pageSize;
     size_t startIndex;
+
+    inline static int selectedSort = 1;
+    inline static int selectedOrder = 1;
+
+    friend class MediaFilter; 
 };

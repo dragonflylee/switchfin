@@ -6,6 +6,7 @@
 #include "api/jellyfin.hpp"
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
+#include "view/media_filter.hpp"
 
 using namespace brls::literals;  // for _i18n
 
@@ -20,8 +21,14 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
         this->recyclerSeries->estimatedRowHeight = 240;
     }
 
-    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
+    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](brls::View* view) {
         this->startIndex = 0;
+        return true;
+    });
+    this->registerAction("main/media/sort"_i18n, brls::BUTTON_Y, [this](brls::View* view) {
+        brls::View* filter = new MediaFilter(this);
+        brls::Application::pushActivity(new brls::Activity(filter));
+        brls::sync([filter]() { brls::Application::giveFocus(filter); });
         return true;
     });
     this->recyclerSeries->registerCell("Cell", VideoCardCell::create);
@@ -33,10 +40,20 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
 brls::View* MediaCollection::getDefaultFocus() { return this->recyclerSeries; }
 
 void MediaCollection::doRequest() {
+    static std::string sortBy[] = {
+        "SortName",
+        "DateCreated",
+        "DatePlayed",
+        "PremiereDate",
+        "PlayCount",
+        "CommunityRating",
+        "Random",
+    };
+
     HTTP::Form query = {
         {"parentId", this->itemId},
-        {"sortBy", "PremiereDate"},
-        {"sortOrder", "Descending"},
+        {"sortBy", sortBy[selectedSort]},
+        {"sortOrder", selectedOrder ? "Descending" : "Ascending"},
         {"fields", "PrimaryImageAspectRatio,BasicSyncInfo"},
         {"EnableImageTypes", "Primary"},
         {"limit", std::to_string(this->pageSize)},

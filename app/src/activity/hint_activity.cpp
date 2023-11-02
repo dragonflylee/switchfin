@@ -73,7 +73,7 @@ private:
 
 HintActivity::HintActivity() {
     brls::Logger::debug("HintActivityActivity: create");
-    GA("open_hint")
+    GA("tutorial_begin")
 }
 
 void HintActivity::onContentAvailable() {
@@ -98,4 +98,5 @@ void HintActivity::onContentAvailable() {
 
 HintActivity::~HintActivity() {
     brls::Logger::debug("HintActivityActivity: delete");
+    GA("tutorial_complete")
 }

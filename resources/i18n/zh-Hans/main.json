@@ -25,6 +25,23 @@
     "toggle": "播放/暂停",
     "speed_up": "{} 倍速播放中"
   },
+  "media": {
+    "sort": "排序",
+    "sort_by": "排序方式",
+    "filter": "筛选",
+    "order": "顺序",
+    "ascending": "升序",
+    "descending": "降序",
+    "name": "名称",
+    "date_add": "加入日期",
+    "date_played": "播放日期",
+    "premiere_date": "上映时间",
+    "play_count": "播放次数",
+    "rating": "评分",
+    "random": "随机",
+    "played": "已播放",
+    "unplayed": "未播放"
+  },
   "search": {
     "tv": {
       "hint": "支持关键字及关键字首字母",

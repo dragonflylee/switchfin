@@ -25,6 +25,23 @@
     "toggle": "Play/Pause",
     "speed_up": "Current speed {}"
   },
+  "media": {
+    "sort": "Sort",
+    "sort_by": "Sort By",
+    "filter": "Filter",
+    "order": "Order",
+    "ascending": "Ascending",
+    "descending": "Descending",
+    "name": "Name",
+    "date_add": "Date Add",
+    "date_played": "Date Played",
+    "premiere_date": "Premiere Date",
+    "play_count": "Play Count",
+    "rating": "Community Rating",
+    "random": "Random",
+    "played": "Played",
+    "unplayed": "Unplayed"
+  },
   "search": {
     "tv": {
       "hint": "Support keywords and their initial letters",

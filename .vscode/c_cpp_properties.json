@@ -29,7 +29,7 @@
                 "D:\\msys64\\mingw64\\include"
             ],
             "defines": [
-                "BOREALIS_USE_D3D11",
+                "BOREALIS_USE_OPENGL",
                 "YG_ENABLE_EVENTS",
                 "BRLS_RESOURCES=\"resources\""
             ],

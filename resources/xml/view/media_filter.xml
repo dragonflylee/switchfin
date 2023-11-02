@@ -1,0 +1,63 @@
+<brls:Box
+    width="auto"
+    height="auto"
+    justifyContent="flexEnd"
+    backgroundColor="@theme/brls/backdrop">
+
+    <brls:Box
+        width="460"
+        height="100%"
+        axis="column"
+        backgroundColor="@theme/brls/background">
+
+        <brls:ScrollingFrame
+            id="media/filters"
+            width="100%"
+            grow="1"
+            scrollingBehavior="centered">
+
+            <brls:Box
+                width="auto"
+                height="auto"
+                axis="column"
+                marginTop="30px"
+                paddingLeft="40"
+                paddingRight="@style/brls/tab_frame/content_padding_sides"
+                paddingBottom="@style/brls/tab_frame/content_padding_top_bottom"
+                alignItems="stretch">
+
+                <brls:Header
+                    width="auto"
+                    height="auto"
+                    title="@i18n/main/media/sort" />
+                <brls:Box
+                    width="100%"
+                    height="auto"
+                    axis="column"
+                    marginBottom="30px">
+                    <brls:SelectorCell
+                        id="media/sort/by" />
+                    <brls:SelectorCell
+                        id="media/sort/order" />
+                </brls:Box>
+
+                <brls:Header
+                    width="auto"
+                    height="auto"
+                    title="@i18n/main/media/filter" />
+                <brls:Box
+                    width="100%"
+                    height="auto"
+                    axis="column"
+                    marginBottom="30px">
+                    <brls:BooleanCell
+                        id="media/filter/played" />
+                    <brls:BooleanCell
+                        id="media/filter/unplayed" />
+                </brls:Box>
+
+            </brls:Box>
+
+        </brls:ScrollingFrame>
+    </brls:Box>
+</brls:Box>

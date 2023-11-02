@@ -10,7 +10,7 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src, std::function<voi
     this->audioTrack->detail->setVisibility(brls::Visibility::GONE);
     this->subtitleTrack->detail->setVisibility(brls::Visibility::GONE);
 
-    this->registerAction("hints/cancel"_i18n, brls::BUTTON_B, [](...) {
+    this->registerAction("hints/cancel"_i18n, brls::BUTTON_B, [](brls::View* view) {
         brls::Application::popActivity();
         return true;
     });
