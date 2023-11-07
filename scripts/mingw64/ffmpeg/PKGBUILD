@@ -6,8 +6,8 @@
 _realname=ffmpeg
 pkgbase="mingw-w64-${_realname}"
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=6.0
-pkgrel=8
+pkgver=6.1
+pkgrel=1
 pkgdesc="Complete solution to record, convert and stream audio and video (mingw-w64)"
 arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'clangarm64')
@@ -19,7 +19,6 @@ depends=(
   "${MINGW_PACKAGE_PREFIX}-freetype"
   "${MINGW_PACKAGE_PREFIX}-dav1d"
   "${MINGW_PACKAGE_PREFIX}-libass"
-  "${MINGW_PACKAGE_PREFIX}-libwebp"
   "${MINGW_PACKAGE_PREFIX}-mbedtls"
   "${MINGW_PACKAGE_PREFIX}-zlib"
 )
@@ -32,31 +31,12 @@ makedepends=(
   $([[ ${MINGW_PACKAGE_PREFIX} == *-clang-aarch64* ]] || echo "${MINGW_PACKAGE_PREFIX}-nasm")
 )
 options=('staticlibs' '!strip')
-source=(
-  https://ffmpeg.org/releases/${_realname}-${pkgver}.tar.xz
-  "0002-gcc-12.patch"
-  "0001-lavu-vulkan-fix-handle-type-for-32-bit-targets.patch"
-  https://github.com/FFmpeg/FFmpeg/commit/f9620d74cd49c35223304ba41e28be6144e45783.patch
-  https://github.com/FFmpeg/FFmpeg/commit/effadce6c756247ea8bae32dc13bb3e6f464f0eb.patch
-)
-sha256sums=(
-  '57be87c22d9b49c112b6d24bc67d42508660e6b718b3db89c44e47e289137082'
-  'SKIP' 'SKIP' 'SKIP' 'SKIP'
-)
-
-prepare() {
-  cd "${srcdir}/${_realname}-${pkgver}"
-
-  patch -Np1 -i "${srcdir}"/0002-gcc-12.patch
-  patch -Np1 -i "${srcdir}"/0001-lavu-vulkan-fix-handle-type-for-32-bit-targets.patch
-  patch -Np1 -i "${srcdir}"/f9620d74cd49c35223304ba41e28be6144e45783.patch
-  # https://github.com/msys2/MINGW-packages/issues/17946
-  patch -Np1 -i "${srcdir}"/effadce6c756247ea8bae32dc13bb3e6f464f0eb.patch
-}
+source=("https://github.com/FFmpeg/FFmpeg/archive/release/${pkgver}.tar.gz")
+sha256sums=('SKIP')
 
 build() {
   mkdir -p "${srcdir}/build-${MSYSTEM}" && cd "${srcdir}/build-${MSYSTEM}"
-  ${srcdir}/${_realname}-${pkgver}/configure \
+  ${srcdir}/FFmpeg-release-${pkgver}/configure \
     --prefix=${MINGW_PREFIX} \
     --cc=${CC} \
     --cxx=${CXX} \
@@ -83,12 +63,11 @@ build() {
     --enable-libdav1d \
     --enable-libfreetype \
     --enable-libfribidi \
-    --enable-libwebp \
     --enable-mbedtls \
     --enable-version3 \
     --enable-gpl \
     $( [[ "${MINGW_PACKAGE_PREFIX}" != *clang-aarch64* ]] \
-      && echo "--enable-amf --enable-nvdec")
+      && echo "--enable-nvdec")
 
   make -j4
 }

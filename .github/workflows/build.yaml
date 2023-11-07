@@ -63,10 +63,10 @@ jobs:
         submodules: recursive
     - name: Update dependencies
       run: |
-        for pkg in curl-7.71.1-1 harfbuzz-8.2.1-1 libass-0.17.1-1 ffmpeg-6.0-2 libmpv-0.36.0-2 nspmini-main-1; do
+        for pkg in curl-7.71.1-1 harfbuzz-8.2.1-1 libass-0.17.1-1 ffmpeg-6.1-1 libmpv-0.36.0-2 nspmini-main-1; do
           dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/switch-portlibs/switch-${pkg}-any.pkg.tar.zst
         done
-        dkp-pacman --noconfirm -U https://github.com/dragonflylee/switchfin/releases/download/switch-portlibs/hacBrewPack-3.05-1-any.pkg.tar.zst
+        dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/switch-portlibs/hacBrewPack-3.05-1-any.pkg.tar.zst
     - name: Set workspace permissions
       run: |
         chown $(id -u):$(id -g) -R "$GITHUB_WORKSPACE"
