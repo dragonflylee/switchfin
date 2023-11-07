@@ -3,15 +3,12 @@
 
 using namespace brls::literals;
 
-MediaFilter::MediaFilter(MediaCollection *view) {
+MediaFilter::MediaFilter(std::function<void(void)> cb) {
     this->inflateFromXMLRes("xml/view/media_filter.xml");
     brls::Logger::debug("MediaFilter: create");
 
-    this->registerAction("hints/cancel"_i18n, brls::BUTTON_B, [view](...) {
-        brls::Application::popActivity(brls::TransitionAnimation::NONE, [view]() {
-            view->startIndex = 0;
-            view->doRequest();
-        });
+    this->registerAction("hints/cancel"_i18n, brls::BUTTON_B, [cb](...) {
+        brls::Application::popActivity(brls::TransitionAnimation::NONE, cb);
         return true;
     });
 
@@ -25,18 +22,19 @@ MediaFilter::MediaFilter(MediaCollection *view) {
             "main/media/rating"_i18n,
             "main/media/random"_i18n,
         },
-        MediaCollection::selectedSort, [this](int selected) { MediaCollection::selectedSort = selected; });
+        selectedSort, [](int selected) { selectedSort = selected; });
 
     this->sortOrder->init("main/media/order"_i18n,
         {
             "main/media/ascending"_i18n,
             "main/media/descending"_i18n,
         },
-        MediaCollection::selectedOrder, [this](int selected) { MediaCollection::selectedOrder = selected; });
+        selectedOrder, [](int selected) { selectedOrder = selected; });
 
-    this->filterPlayed->init("main/media/played"_i18n, true, [](bool value) {});
-    this->filterUnplayed->init("main/media/unplayed"_i18n, true, [](bool value) {});
-
+    this->filterPlayed->init("main/media/played"_i18n, selectedPlayed,
+        [](bool value) { selectedPlayed = value; });
+    this->filterUnplayed->init( "main/media/unplayed"_i18n, selectedUnplayed,
+        [](bool value) { selectedUnplayed = value; });
 }
 
 MediaFilter::~MediaFilter() { brls::Logger::debug("MediaFilter: delete"); }

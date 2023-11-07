@@ -7,6 +7,7 @@
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
 #include "view/media_filter.hpp"
+#include <fmt/format.h>
 
 using namespace brls::literals;  // for _i18n
 
@@ -23,10 +24,14 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
 
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](brls::View* view) {
         this->startIndex = 0;
+        this->doRequest();
         return true;
     });
     this->registerAction("main/media/sort"_i18n, brls::BUTTON_Y, [this](brls::View* view) {
-        brls::View* filter = new MediaFilter(this);
+        brls::View* filter = new MediaFilter([this]() {
+            this->startIndex = 0;
+            this->doRequest();
+        });
         brls::Application::pushActivity(new brls::Activity(filter));
         brls::sync([filter]() { brls::Application::giveFocus(filter); });
         return true;
@@ -50,12 +55,17 @@ void MediaCollection::doRequest() {
         "Random",
     };
 
+    std::vector<std::string> filters;
+    if (MediaFilter::selectedPlayed) filters.push_back("IsPlayed");
+    if (MediaFilter::selectedUnplayed) filters.push_back("IsUnplayed");
+
     HTTP::Form query = {
         {"parentId", this->itemId},
-        {"sortBy", sortBy[selectedSort]},
-        {"sortOrder", selectedOrder ? "Descending" : "Ascending"},
+        {"sortBy", sortBy[MediaFilter::selectedSort]},
+        {"sortOrder", MediaFilter::selectedOrder ? "Descending" : "Ascending"},
         {"fields", "PrimaryImageAspectRatio,BasicSyncInfo"},
         {"EnableImageTypes", "Primary"},
+        {"filters", fmt::format("{}", fmt::join(filters, ","))},
         {"limit", std::to_string(this->pageSize)},
         {"startIndex", std::to_string(this->startIndex)},
     };

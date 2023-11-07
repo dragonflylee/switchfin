@@ -6,14 +6,17 @@
 
 #include <borealis.hpp>
 
-class MediaCollection;
-
 class MediaFilter : public brls::Box {
 public:
-    MediaFilter(MediaCollection *view);
+    MediaFilter(std::function<void(void)> cb);
     ~MediaFilter() override;
 
     bool isTranslucent() override { return true; }
+
+    inline static int selectedSort = 1;
+    inline static int selectedOrder = 1;
+    inline static bool selectedPlayed = true;
+    inline static bool selectedUnplayed = true;
 
 private:
     BRLS_BIND(brls::SelectorCell, sortBy, "media/sort/by");

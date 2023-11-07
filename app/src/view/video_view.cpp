@@ -96,7 +96,7 @@ VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
                 this->ignoreSpeed = false;
                 brls::cancelDelay(this->speedIter);
                 ASYNC_RETAIN
-                this->speedIter = brls::delay(200, [ASYNC_TOKEN]() {
+                this->speedIter = brls::delay(500, [ASYNC_TOKEN]() {
                     ASYNC_RELEASE
                     float cur = MPVCore::VIDEO_SPEED == 100 ? 2.0 : MPVCore::VIDEO_SPEED * 0.01f;
                     MPVCore::instance().setSpeed(cur);
@@ -470,13 +470,13 @@ void VideoView::playMedia(const time_t seekTicks) {
         {
             {"UserId", AppConfig::instance().getUser().id},
             {"MediaSourceId", this->itemId},
-            {"AudioStreamIndex", VideoView::selectedAudio},
-            {"SubtitleStreamIndex", VideoView::selectedSubtitle},
+            {"AudioStreamIndex", PlayerSetting::selectedAudio},
+            {"SubtitleStreamIndex", PlayerSetting::selectedSubtitle},
             {"AllowAudioStreamCopy", true},
             {
                 "DeviceProfile",
                 {
-                    {"MaxStreamingBitrate", MPVCore::MAX_BITRATE[this->selectedQuality]},
+                    {"MaxStreamingBitrate", MPVCore::MAX_BITRATE[VideoView::selectedQuality]},
                     {
                         "DirectPlayProfiles",
                         {{
@@ -573,7 +573,7 @@ void VideoView::reportStart() {
             {"PlayMethod", this->playMethod},
             {"PlaySessionId", this->playSessionId},
             {"MediaSourceId", this->itemSource.Id},
-            {"MaxStreamingBitrate", MPVCore::MAX_BITRATE[this->selectedQuality]},
+            {"MaxStreamingBitrate", MPVCore::MAX_BITRATE[VideoView::selectedQuality]},
         },
         [](...) {}, nullptr, jellyfin::apiPlayStart);
 }
@@ -655,8 +655,8 @@ void VideoView::registerMpvEvent() {
                     }
                 }
             }
-            if (VideoView::selectedSubtitle > 0) {
-                mpv.setInt("sid", VideoView::selectedSubtitle);
+            if (PlayerSetting::selectedSubtitle > 0) {
+                mpv.setInt("sid", PlayerSetting::selectedSubtitle);
             }
             break;
         case MpvEventEnum::UPDATE_DURATION:

@@ -132,11 +132,7 @@ private:
     std::string playMethod;
     std::string playSessionId;
     inline static int selectedQuality = 0;
-    inline static int selectedSubtitle = 0;
-    inline static int selectedAudio = 0;
     size_t itemIndex = -1;
     jellyfin::MediaSource itemSource;
     std::vector<jellyfin::MediaEpisode> showEpisodes;
-
-    friend class PlayerSetting;
 };

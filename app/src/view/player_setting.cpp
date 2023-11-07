@@ -1,5 +1,5 @@
 #include "view/player_setting.hpp"
-#include "view/video_view.hpp"
+#include "view/mpv_core.hpp"
 #include "utils/config.hpp"
 
 using namespace brls::literals;
@@ -49,15 +49,15 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src, std::function<voi
         int64_t value = 0;
         mpv.get_property("sid", MPV_FORMAT_INT64, &value);
         this->subtitleTrack->init("main/player/subtitle"_i18n, subTrack, value, [&mpv](int selected) {
-            VideoView::selectedSubtitle = selected;
+            selectedSubtitle = selected;
             mpv.setInt("sid", selected);
         });
     } else if (subSource.size() > 0) {
         int value = 0;
         for (size_t i = 0; i < subStream.size(); i++)
-            if (subStream[i] == VideoView::selectedSubtitle) value = i;
+            if (subStream[i] == selectedSubtitle) value = i;
         this->subtitleTrack->init("main/player/subtitle"_i18n, subSource, value, [subStream, reload](int selected) {
-            VideoView::selectedSubtitle = subStream[selected];
+            selectedSubtitle = subStream[selected];
             reload();
         });
     } else {
@@ -68,16 +68,16 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src, std::function<voi
         int64_t value = 0;
         if (!mpv.get_property("aid", MPV_FORMAT_INT64, &value)) value -= 1;
         this->audioTrack->init("main/player/audio"_i18n, audioTrack, value, [&mpv](int selected) {
-            VideoView::selectedAudio = selected + 1;
-            mpv.setInt("aid", VideoView::selectedAudio);
+            selectedAudio = selected + 1;
+            mpv.setInt("aid", selectedAudio);
         });
         this->audioTrack->detail->setVisibility(brls::Visibility::GONE);
     } else if (audioSource.size() > 1) {
         int value = 0;
         for (size_t i = 0; i < audioStream.size(); i++)
-            if (audioStream[i] == VideoView::selectedAudio) value = i;
+            if (audioStream[i] == selectedAudio) value = i;
         this->audioTrack->init("main/player/audio"_i18n, audioSource, value, [audioStream, reload](int selected) {
-            VideoView::selectedAudio = audioStream[selected];
+            selectedAudio = audioStream[selected];
             reload();
         });
     } else {

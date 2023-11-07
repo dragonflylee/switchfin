@@ -16,6 +16,9 @@ public:
 
     View* getDefaultFocus() override { return this->settings->getDefaultFocus(); }
 
+    inline static int selectedSubtitle = 0;
+    inline static int selectedAudio = 0;
+
 private:
     BRLS_BIND(brls::ScrollingFrame, settings, "player/settings");
     BRLS_BIND(brls::SelectorCell, subtitleTrack, "setting/track/subtitle");
