@@ -40,10 +40,12 @@ bool ServerAdd::onConnect() {
             };
             brls::sync([ASYNC_TOKEN, s]() {
                 ASYNC_RELEASE
+                brls::View *view = new ServerLogin(s.name, s.urls.front());
                 AppConfig::instance().addServer(s);
                 brls::Application::unblockInputs();
                 this->dismiss(this->cbConnected);
-                this->present(new ServerLogin(s.name, s.urls.front()));
+                this->present(view);
+                brls::sync([view]() { brls::Application::giveFocus(view); });
             });
         } catch (const std::exception& ex) {
             std::string msg = ex.what();

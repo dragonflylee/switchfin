@@ -18,12 +18,10 @@ const size_t REPORT_MAX_NUM = 25;
 #define GA(a, ...) analytics::Analytics::instance().report(a, ##__VA_ARGS__);
 #endif /* NO_GA */
 
-using Params = std::unordered_map<std::string, std::string>;
-
 class Event {
 public:
     std::string name;
-    Params params;
+    nlohmann::json params;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Event, name, params);
 
@@ -32,7 +30,7 @@ public:
     Analytics();
     ~Analytics();
 
-    void report(const std::string& event, Params params = {});
+    void report(const std::string& event, nlohmann::json params = {});
 
 private:
     void send();
