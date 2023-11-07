@@ -15,8 +15,8 @@ public:
 
     inline static int selectedSort = 1;
     inline static int selectedOrder = 1;
-    inline static bool selectedPlayed = true;
-    inline static bool selectedUnplayed = true;
+    inline static bool selectedPlayed = false;
+    inline static bool selectedUnplayed = false;
 
 private:
     BRLS_BIND(brls::SelectorCell, sortBy, "media/sort/by");
