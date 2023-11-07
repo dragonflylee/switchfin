@@ -119,6 +119,7 @@
       "header": "其他",
       "fullscreen": "全螢幕顯示",
       "overclock": "CPU超頻",
+      "debug": "調試窗口",
       "theme": {
         "header": "主題配色 (需要重啟)",
         "1": "跟隨系統",

@@ -244,6 +244,9 @@ void SettingTab::onCreate() {
             AppConfig::instance().setItem(AppConfig::REQUEST_TIMEOUT, timeoutOption.values[selected]);
         });
 
+    btnDebug->init("main/setting/others/debug"_i18n, brls::Application::isDebuggingViewEnabled(),
+        [](bool value) { brls::Application::enableDebuggingView(value); });
+
     btnReleaseChecker->title->setText(
         fmt::format("{} ({}: {})", "main/setting/others/release"_i18n, "hints/current"_i18n, AppVersion::getVersion()));
     btnReleaseChecker->registerClickAction([](...) -> bool {

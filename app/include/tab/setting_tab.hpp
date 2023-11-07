@@ -41,6 +41,7 @@ private:
     BRLS_BIND(brls::BooleanCell, btnOSDOnToggle, "setting/player/osd_on_toggle");
     BRLS_BIND(brls::BooleanCell, btnFullscreen, "setting/fullscreen");
     BRLS_BIND(brls::BooleanCell, btnOverClock, "setting/overclock");
+    BRLS_BIND(brls::BooleanCell, btnDebug, "setting/debug");
     BRLS_BIND(brls::InputNumericCell, inputThreads, "setting/network/threads");
     BRLS_BIND(brls::SelectorCell, selectorTimeout, "setting/network/timeout");
     BRLS_BIND(brls::SelectorCell, selectorKeymap, "setting/keymap");

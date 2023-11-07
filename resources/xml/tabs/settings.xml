@@ -115,6 +115,8 @@
                     id="setting/ui/theme" />
                 <brls:SelectorCell
                     id="setting/language" />
+                <brls:BooleanCell
+                    id="setting/debug" />
                 <brls:RadioCell
                     id="setting/release_checker" />
                 <brls:DetailCell

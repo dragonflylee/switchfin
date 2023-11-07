@@ -119,6 +119,7 @@
       "header": "Others",
       "fullscreen": "Fullscreen",
       "overclock": "CPU Overclock",
+      "debug": "Debug View",
       "theme": {
         "header": "Theme (restart required)",
         "1": "Auto",
