@@ -110,7 +110,7 @@ void MPVCore::init() {
 #endif
 
     // hardware decoding
-    if (HARDWARE_DEC) {
+    if (MPVCore::HARDWARE_DEC) {
 #ifdef __SWITCH__
         mpv_set_option_string(mpv, "hwdec", "tx1-copy");
         brls::Logger::info("MPV hardware decode: {}", "tx1-copy");
@@ -125,12 +125,11 @@ void MPVCore::init() {
         mpv_set_option_string(mpv, "hwdec", "no");
     }
 
-#ifdef _DEBUG
-    mpv_set_option_string(mpv, "terminal", "yes");
-    mpv_set_option_string(mpv, "msg-level", "ffmpeg=trace");
-    //  mpv_set_option_string(mpv, "msg-level", "all=no");
-    mpv_set_option_string(mpv, "msg-level", "all=v");
-#endif
+    if (MPVCore::DEBUG) {
+        mpv_set_option_string(mpv, "terminal", "yes");
+        //  mpv_set_option_string(mpv, "msg-level", "all=no");
+        mpv_set_option_string(mpv, "msg-level", "all=v");
+    }
 
     if (mpv_initialize(mpv) < 0) {
         mpv_terminate_destroy(mpv);
