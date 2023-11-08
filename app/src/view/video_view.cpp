@@ -12,14 +12,23 @@
 
 using namespace brls::literals;
 
-VideoView::VideoView(jellyfin::MediaItem& item) : itemId(item.Id) {
+VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
     this->inflateFromXMLRes("xml/view/video_view.xml");
-    brls::Logger::debug("VideoView: create {} type {}", item.Id, item.Type);
+    brls::Logger::debug("VideoView: create with item {}", itemId);
     this->setHideHighlightBorder(true);
     this->setHideHighlightBackground(true);
     this->setHideClickAnimation(true);
+    
+    float width = brls::Application::contentWidth;
+    float height = brls::Application::contentHeight;
+    brls::Box* container = new brls::Box();
+    container->setDimensions(width, height);
+    this->setDimensions(width, height);
+    this->setWidthPercentage(100);
+    this->setHeightPercentage(100);
     this->setId("video");
-    brls::Application::pushActivity(new brls::Activity(this), brls::TransitionAnimation::NONE);
+    container->addView(this);
+    brls::Application::pushActivity(new brls::Activity(container), brls::TransitionAnimation::NONE);
 
     this->registerAction(
         "hints/back"_i18n, brls::BUTTON_B,

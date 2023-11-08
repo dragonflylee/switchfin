@@ -28,7 +28,7 @@ enum class ClickState {
 
 class VideoView : public brls::Box {
 public:
-    VideoView(jellyfin::MediaItem& item);
+    VideoView(const std::string& itemId);
 
     ~VideoView() override;
 

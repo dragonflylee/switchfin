@@ -60,7 +60,7 @@ public:
 
     void onItemSelected(brls::View* recycler, size_t index) override {
         auto& item = this->list.at(index);
-        VideoView* view = new VideoView(item);
+        VideoView* view = new VideoView(item.Id);
         view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
         view->setSeries(item.SeriesId);
         brls::sync([view]() { brls::Application::giveFocus(view); });

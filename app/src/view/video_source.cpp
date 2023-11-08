@@ -40,11 +40,11 @@ void VideoDataSource::onItemSelected(brls::View* recycler, size_t index) {
     } else if (item.Type == jellyfin::mediaTypeBoxSet) {
         recycler->present(new MediaCollection(item.Id));
     } else if (item.Type == jellyfin::mediaTypeMovie) {
-        VideoView* view = new VideoView(item);
+        VideoView* view = new VideoView(item.Id);
         view->setTitie(item.ProductionYear ? fmt::format("{} ({})", item.Name, item.ProductionYear) : item.Name);
         brls::sync([view]() { brls::Application::giveFocus(view); });
     } else if (item.Type == jellyfin::mediaTypeEpisode) {
-        VideoView* view = new VideoView(item);
+        VideoView* view = new VideoView(item.Id);
         view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
         view->setSeries(item.SeriesId);
         brls::sync([view]() { brls::Application::giveFocus(view); });
