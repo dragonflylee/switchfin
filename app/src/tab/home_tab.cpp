@@ -69,7 +69,8 @@ HomeTab::HomeTab() {
 
     this->userResume->registerCell("Cell", ResumeCard::create);
     this->userResume->onNextPage([this]() { this->doResume(); });
-    this->userLatest->registerCell("Cell", VideoCardCell::create);
+    this->videoLatest->registerCell("Cell", VideoCardCell::create);
+    this->musicLatest->registerCell("Cell", VideoCardCell::create);
     this->showNextup->registerCell("Cell", VideoCardCell::create);
     this->showNextup->onNextPage([this]() { this->doNextup(); });
 }
@@ -78,7 +79,8 @@ HomeTab::~HomeTab() { brls::Logger::debug("View HomeTab: delete"); }
 
 void HomeTab::doRequest() {
     this->doResume();
-    this->doLatest();
+    this->doVideoLatest();
+    this->doMusicLatest();
     this->doNextup();
 }
 
@@ -127,7 +129,7 @@ void HomeTab::doResume() {
         jellyfin::apiUserResume, AppConfig::instance().getUser().id, query);
 }
 
-void HomeTab::doLatest() {
+void HomeTab::doVideoLatest() {
     std::string query = HTTP::encode_form({
         {"enableImageTypes", "Primary"},
         {"includeItemTypes", "Series,Movie"},
@@ -138,11 +140,31 @@ void HomeTab::doLatest() {
     jellyfin::getJSON(
         [ASYNC_TOKEN](const std::vector<jellyfin::MediaEpisode>& r) {
             ASYNC_RELEASE
-            this->userLatest->setDataSource(new VideoDataSource(r));
+            this->videoLatest->setDataSource(new VideoDataSource(r));
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            this->userLatest->setVisibility(brls::Visibility::GONE);
+            this->videoLatest->setVisibility(brls::Visibility::GONE);
+        },
+        jellyfin::apiUserLatest, AppConfig::instance().getUser().id, query);
+}
+
+void HomeTab::doMusicLatest() {
+    std::string query = HTTP::encode_form({
+        {"enableImageTypes", "Primary"},
+        {"includeItemTypes", "MusicAlbum"},
+        {"fields", "BasicSyncInfo"},
+        {"limit", std::to_string(this->latestSize)},
+    });
+    ASYNC_RETAIN
+    jellyfin::getJSON(
+        [ASYNC_TOKEN](const std::vector<jellyfin::MediaEpisode>& r) {
+            ASYNC_RELEASE
+            this->musicLatest->setDataSource(new VideoDataSource(r));
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            this->musicLatest->setVisibility(brls::Visibility::GONE);
         },
         jellyfin::apiUserLatest, AppConfig::instance().getUser().id, query);
 }

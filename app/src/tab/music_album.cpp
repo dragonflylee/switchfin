@@ -1,6 +1,7 @@
 #include "tab/music_album.hpp"
 #include "view/mpv_core.hpp"
 #include "view/recycling_grid.hpp"
+#include "view/music_view.hpp"
 #include "api/jellyfin.hpp"
 #include "utils/image.hpp"
 #include "utils/misc.hpp"
@@ -34,21 +35,12 @@ public:
         cell->trackIndex->setText(std::to_string(item.IndexNumber));
         cell->trackName->setText(item.Name);
         cell->trackArtists->setText(fmt::format("{}", fmt::join(item.Artists, " ")));
-        cell->tracDuration->setText(sec2Time(item.RunTimeTicks / jellyfin::PLAYTICKS));
+        cell->tracDuration->setText(misc::sec2Time(item.RunTimeTicks / jellyfin::PLAYTICKS));
         return cell;
     }
 
     void onItemSelected(brls::View* recycler, size_t index) override {
-        auto& conf = AppConfig::instance();
-        const auto ts = std::chrono::system_clock::now().time_since_epoch();
-        const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(ts);
-        std::string query = HTTP::encode_form({
-            {"static", "true"},
-            {"api_key", conf.getUser().access_token},
-            {"PlaySessionId", std::to_string(ms.count())},
-        });
-
-        MPVCore::instance().setUrl(fmt::format("{}/Audio/{}/stream?{}", conf.getUrl(), this->list[index].Id, query));
+        MPVCore::instance().command_str("playlist-play-index {}", index);
     }
 
     void clearData() override { this->list.clear(); }
@@ -101,6 +93,7 @@ void MusicAlbum::doTracks() {
         [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MusicTrack>& r) {
             ASYNC_RELEASE
             this->albumTracks->setDataSource(new TracksDataSource(r.Items));
+            this->musicView->load(r.Items);
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE

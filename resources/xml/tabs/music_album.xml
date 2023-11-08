@@ -22,6 +22,9 @@
 
         <brls:Header
             id="album/header/title" />
+
+        <MusicView
+            id="music/view" />
     </brls:Box>
 
     <RecyclingGrid
