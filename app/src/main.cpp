@@ -1,7 +1,3 @@
-#ifdef __SWITCH__
-#include <switch.h>
-#endif
-
 #include <borealis.hpp>
 
 #include "utils/config.hpp"
@@ -15,6 +11,7 @@
 #include "view/video_progress_slider.hpp"
 #include "view/gallery_view.hpp"
 #include "view/search_list.hpp"
+#include "view/video_view.hpp"
 
 #include "activity/main_activity.hpp"
 #include "activity/server_list.hpp"
@@ -28,9 +25,14 @@
 using namespace brls::literals;  // for _i18n
 
 int main(int argc, char* argv[]) {
-    // We recommend to use INFO for real apps
+    std::string itemId;
     for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "-v") == 0) brls::Logger::setLogLevel(brls::LogLevel::LOG_DEBUG);
+        if (std::strcmp(argv[i], "-v") == 0) {
+            MPVCore::DEBUG = true;
+            brls::Logger::setLogLevel(brls::LogLevel::LOG_DEBUG);
+        } else if (std::strlen(argv[i]) == 32) {
+            itemId = argv[i];
+        }
     }
 
     // Load cookies and settings
@@ -83,10 +85,13 @@ int main(int argc, char* argv[]) {
 
     if (!brls::Application::getPlatform()->isApplicationMode()) {
         brls::Application::pushActivity(new HintActivity());
-    } else if (AppConfig::instance().checkLogin()) {
+    } else if (!AppConfig::instance().checkLogin()) {
+        brls::Application::pushActivity(new ServerList());
+    } else if (itemId.empty()) {
         brls::Application::pushActivity(new MainActivity());
     } else {
-        brls::Application::pushActivity(new ServerList());
+        VideoView* view = new VideoView(itemId);
+        brls::sync([view]() { brls::Application::giveFocus(view); });
     }
 
     AppVersion::checkUpdate();

@@ -245,8 +245,8 @@ void SettingTab::onCreate() {
         });
 
     btnDebug->init("main/setting/others/debug"_i18n, brls::Application::isDebuggingViewEnabled(), [](bool value) {
-        brls::Logger::setLogLevel(value ? brls::LogLevel::LOG_DEBUG : brls::LogLevel::LOG_INFO);
         brls::Application::enableDebuggingView(value);
+        MPVCore::instance().restart();
     });
 
     btnReleaseChecker->title->setText(

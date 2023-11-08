@@ -129,6 +129,8 @@ void MPVCore::init() {
         mpv_set_option_string(mpv, "terminal", "yes");
         //  mpv_set_option_string(mpv, "msg-level", "all=no");
         mpv_set_option_string(mpv, "msg-level", "all=v");
+    } else if (brls::Application::isDebuggingViewEnabled()) {
+        mpv_request_log_messages(mpv, "info");
     }
 
     if (mpv_initialize(mpv) < 0) {
@@ -362,6 +364,21 @@ void MPVCore::eventMainLoop() {
         switch (event->event_id) {
         case MPV_EVENT_NONE:
             return;
+        case MPV_EVENT_LOG_MESSAGE: {
+            auto log = (mpv_event_log_message *)event->data;
+            if (log->log_level <= MPV_LOG_LEVEL_ERROR) {
+                brls::Logger::error("{}: {}", log->prefix, log->text);
+            } else if (log->log_level <= MPV_LOG_LEVEL_WARN) {
+                brls::Logger::warning("{}: {}", log->prefix, log->text);
+            } else if (log->log_level <= MPV_LOG_LEVEL_INFO) {
+                brls::Logger::info("{}: {}", log->prefix, log->text);
+            } else if (log->log_level <= MPV_LOG_LEVEL_V) {
+                brls::Logger::debug("{}: {}", log->prefix, log->text);
+            } else {
+                brls::Logger::verbose("{}: {}", log->prefix, log->text);
+            }
+            break;
+        }
         case MPV_EVENT_SHUTDOWN:
             brls::Logger::debug("MPVCore => EVENT_SHUTDOWN");
             disableDimming(false);

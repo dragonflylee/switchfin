@@ -75,7 +75,7 @@ void Analytics::send() {
     try {
         HTTP::post(this->url, nlohmann::json(pkg).dump(), HTTP::Timeout{3000},
             HTTP::Header{"Content-Type: application/json", "Referer: " + AppConfig::instance().getUrl()});
-        brls::Logger::info("report event: {}", pkg.events.size());
+        brls::Logger::debug("report event: {}", pkg.events.size());
     } catch (const std::exception& ex) {
         brls::Logger::warning("report failed: {}", ex.what());
     }
