@@ -56,7 +56,7 @@ nxlink -a <YOUR IP> -p Switchfin/Switchfin.nro -s Switchfin.nro --args -l
 ### Building for MinGW64
 
 ```bash
-pacman -S ${MINGW_PACKAGE_PREFIX}-gcc ${MINGW_PACKAGE_PREFIX}-ninja ${MINGW_PACKAGE_PREFIX}-cmake
+pacman -S ${MINGW_PACKAGE_PREFIX}-cc ${MINGW_PACKAGE_PREFIX}-ninja ${MINGW_PACKAGE_PREFIX}-cmake
 cmake -B build_mingw -DPLATFORM_DESKTOP=ON
 cmake --build build_mingw
 ```

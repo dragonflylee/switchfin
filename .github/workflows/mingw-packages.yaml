@@ -15,7 +15,7 @@ jobs:
       matrix:
         msystem: [ MINGW64, MINGW32 ]
     name: ${{ matrix.msystem }}
-    runs-on: windows-2022
+    runs-on: windows-latest
     env:
       MSYSTEM: ${{ matrix.msystem }}
     defaults:
@@ -41,7 +41,7 @@ jobs:
     - name: Build packages
       run: |
         cd scripts/mingw64
-        for pkg in curl libwebp freetype harfbuzz libass ffmpeg spirv-cross shaderc mpv; do
+        for pkg in libwebp freetype harfbuzz libass ffmpeg spirv-cross shaderc mpv; do
           echo building $pkg
           cd $pkg; makepkg-mingw -sciCf --noconfirm; cd ..
         done

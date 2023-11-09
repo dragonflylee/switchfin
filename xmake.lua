@@ -26,7 +26,7 @@ end
 add_repositories("local-repo library")
 add_requires("borealis")
 add_requires("lunasvg")
-add_requires("libcurl 7.87.0")
+add_requires("libcurl")
 add_requires("webp")
 add_requires("mpv", {configs={shared=true}})
 

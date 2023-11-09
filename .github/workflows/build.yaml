@@ -63,7 +63,7 @@ jobs:
         submodules: recursive
     - name: Update dependencies
       run: |
-        for pkg in curl-7.71.1-1 harfbuzz-8.2.1-1 libass-0.17.1-1 ffmpeg-6.1-1 libmpv-0.36.0-2 nspmini-main-1; do
+        for pkg in curl-7.71.1-1 harfbuzz-8.2.2-1 libass-0.17.1-1 ffmpeg-6.1-1 libmpv-0.36.0-2 nspmini-main-1; do
           dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/switch-portlibs/switch-${pkg}-any.pkg.tar.zst
         done
         dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/switch-portlibs/hacBrewPack-3.05-1-any.pkg.tar.zst
@@ -145,7 +145,7 @@ jobs:
       matrix:
         msystem: [ MINGW64 ]
         driver: [ GL3, D3D11 ]
-    runs-on: windows-2019
+    runs-on: windows-latest
     env:
       MSYSTEM: ${{ matrix.msystem }}
       MSYS2_PATH_TYPE: inherit
@@ -159,13 +159,13 @@ jobs:
         submodules: recursive
     - name: Install dependency
       run: |
-        for pkg in mpv-0.36.0-4 libwebp-1.3.2-1 curl-8.4.0-1; do
+        for pkg in mpv-0.36.0-4 libwebp-1.3.2-1; do
           curl -sLO https://github.com/${{ github.repository }}/releases/download/mingw-packages/${MINGW_PACKAGE_PREFIX}-${pkg}-any.pkg.tar.zst
         done
         pacman -U --noconfirm *.pkg.tar.zst
 
         pacman -S --needed --noconfirm --noprogressbar \
-          ${MINGW_PACKAGE_PREFIX}-gcc \
+          ${MINGW_PACKAGE_PREFIX}-cc \
           ${MINGW_PACKAGE_PREFIX}-ninja
     - name: Build
       run: |
@@ -173,14 +173,14 @@ jobs:
           -DUSE_LIBROMFS=ON \
           -DPLATFORM_DESKTOP=ON \
           -DWIN32_TERMINAL=OFF \
+          -DUSE_SYSTEM_CURL=OFF \
           -DUSE_${{ matrix.driver }}=ON \
           -DVERSION_BUILD=${{ github.run_number }}
         cmake --build build_mingw
         cd build_mingw
         strip Switchfin.exe
         7z a -mx=9 Switchfin-windows-${MSYSTEM_CARCH}-${DRIVER,,}.7z \
-            Switchfin.exe ${MINGW_PREFIX}/bin/libmpv-2.dll \
-            ${MINGW_PREFIX}/bin/libcurl-4.dll
+            Switchfin.exe ${MINGW_PREFIX}/bin/libmpv-2.dll
     - name: Set outputs
       id: vars
       run: echo "sha_short=${MSYSTEM_CARCH}-${DRIVER,,}-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -191,7 +191,7 @@ jobs:
         path: build_mingw/Switchfin-*.7z
 
   build-msvc-x64:
-    runs-on: windows-2022
+    runs-on: windows-latest
     if: ${{ inputs.msvc }}
     steps:
     - name: Install xmake
@@ -204,7 +204,7 @@ jobs:
     - name: Cache xmake packages
       uses: actions/cache@v3
       with:
-        key: ${{ runner.os }}-build
+        key: ${{ runner.os }}-xmake
         path: |
           ${{ runner.temp }}/.xmake/packages
     - name: Build
