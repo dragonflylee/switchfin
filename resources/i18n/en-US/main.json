@@ -72,6 +72,7 @@
       "connect_new": "New Server",
       "connect_to": "Connect to a Jellyfin server",
       "connect": "Connect",
+      "invalid": "Invalid Server Address!",
       "local": "Local Servers",
       "users": "{} users",
       "sigin_to": "Sign In to  {}",

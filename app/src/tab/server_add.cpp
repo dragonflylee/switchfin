@@ -8,12 +8,15 @@
 #include "utils/dialog.hpp"
 #include "api/jellyfin.hpp"
 
+using namespace brls::literals;  // for _i18n
+
 ServerAdd::ServerAdd(std::function<void(void)> cb) : cbConnected(cb) {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/server_add.xml");
     brls::Logger::debug("ServerAdd: create");
 
-    inputUrl->init("URL", "https://", [](...){}, "", "", 255);
+    inputUrl->init(
+        "URL", "https://", [](...) {}, "", "", 255);
 
     btnConnect->registerClickAction([this](...) { return this->onConnect(); });
 }
@@ -24,6 +27,13 @@ bool ServerAdd::onConnect() {
     brls::Application::blockInputs();
     this->btnConnect->setTextColor(brls::Application::getTheme().getColor("font/grey"));
     std::string baseUrl = this->inputUrl->getValue();
+    if (baseUrl.size() < 7 || baseUrl.substr(0, 4).compare("http")) {
+        brls::Application::unblockInputs();
+        Dialog::show("main/setting/server/invalid"_i18n);
+        return false;
+    }
+    while (baseUrl.back() == '/') baseUrl.pop_back();
+
     brls::Logger::debug("ServerAdd onConnect: click {}", baseUrl);
 
     ASYNC_RETAIN
@@ -40,7 +50,7 @@ bool ServerAdd::onConnect() {
             };
             brls::sync([ASYNC_TOKEN, s]() {
                 ASYNC_RELEASE
-                brls::View *view = new ServerLogin(s.name, s.urls.front());
+                brls::View* view = new ServerLogin(s.name, s.urls.front());
                 AppConfig::instance().addServer(s);
                 brls::Application::unblockInputs();
                 this->dismiss(this->cbConnected);

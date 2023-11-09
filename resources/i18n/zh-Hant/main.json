@@ -71,6 +71,7 @@
       "detail": "詳細資料",
       "connect_new": "連線到新伺服器",
       "connect_to": "連線到Jellyfin伺服器",
+      "invalid": "伺服器URL無效！",
       "connect": "連線",
       "local": "本地伺服器",
       "users": "{} 個使用者",
