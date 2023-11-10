@@ -94,6 +94,7 @@ private:
     void toggleOSD();
     void showOSD(bool autoHide = true);
     void hideOSD();
+    bool toggleSpeed();
     void showSetting();
     void showHint(const std::string& value);
 

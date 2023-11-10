@@ -18,7 +18,7 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
     this->setHideHighlightBorder(true);
     this->setHideHighlightBackground(true);
     this->setHideClickAnimation(true);
-    
+
     float width = brls::Application::contentWidth;
     float height = brls::Application::contentHeight;
     brls::Box* container = new brls::Box();
@@ -226,15 +226,8 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
     this->btnCast->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnCast));
 
     /// 倍速按钮
-    this->btnVideoSpeed->registerClickAction([](brls::View* view) {
-        brls::Dropdown* dropdown = new brls::Dropdown(
-            "main/player/speed"_i18n, {"1x", "2x", "4x", "8x"},
-            [](int selected) { MPVCore::instance().setSpeed(pow(2, selected)); },
-            floor(MPVCore::instance().video_speed) - 1);
-        brls::Application::pushActivity(new brls::Activity(dropdown));
-        brls::sync([dropdown]() { brls::Application::giveFocus(dropdown); });
-        return true;
-    });
+    this->btnVideoSpeed->registerClickAction([this](...) { return this->toggleSpeed(); });
+    this->registerAction("main/player/speed"_i18n, brls::BUTTON_LSB, [this](...) { return this->toggleSpeed(); });
     this->btnVideoSpeed->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoSpeed));
 
     /// 章节信息
@@ -764,6 +757,16 @@ void VideoView::showHint(const std::string& value) {
     this->hintBox->setVisibility(brls::Visibility::VISIBLE);
     this->hintLastShowTime = brls::getCPUTimeUsec() + VideoView::OSD_SHOW_TIME;
     this->showOSD();
+}
+
+bool VideoView::toggleSpeed() {
+    brls::Dropdown* dropdown = new brls::Dropdown(
+        "main/player/speed"_i18n, {"2.0x", "1.75x", "1.5x", "1.25x", "1.0x", "0.75x", "0.5x"},
+        [](int selected) { MPVCore::instance().setSpeed((200 - selected * 25) / 100.0f); },
+        int(200 - MPVCore::instance().video_speed * 100) / 25);
+    brls::Application::pushActivity(new brls::Activity(dropdown));
+    brls::sync([dropdown]() { brls::Application::giveFocus(dropdown); });
+    return true;
 }
 
 void VideoView::onDismiss() {
