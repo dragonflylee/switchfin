@@ -27,7 +27,7 @@ bool ServerAdd::onConnect() {
     brls::Application::blockInputs();
     this->btnConnect->setTextColor(brls::Application::getTheme().getColor("font/grey"));
     std::string baseUrl = this->inputUrl->getValue();
-    if (baseUrl.size() < 7 || baseUrl.substr(0, 4).compare("http")) {
+    if (baseUrl.length() < 10 || baseUrl.substr(0, 4).compare("http")) {
         brls::Application::unblockInputs();
         Dialog::show("main/setting/server/invalid"_i18n);
         return false;

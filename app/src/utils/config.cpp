@@ -232,22 +232,28 @@ int AppConfig::getValueIndex(const Item item, int default_index) const {
 }
 
 bool AppConfig::addServer(const AppServer& s) {
-    bool found = false;
+    this->server_url = s.urls.front();
+
     for (auto& o : this->servers) {
         if (s.id == o.id) {
             o.name = s.name;
             o.version = s.version;
             o.os = s.os;
-            o.urls.push_back(s.urls.back());
-            found = true;
-            break;
+            // remove old url
+            for (auto it = o.urls.begin(); it != o.urls.end(); ++it) {
+                if (it->compare(this->server_url) == 0) {
+                    it = o.urls.erase(it);
+                    break;
+                }
+            }
+            o.urls.insert(o.urls.begin(), this->server_url);
+            this->save();
+            return true;
         }
     }
-    if (!found) this->servers.push_back(s);
-
-    this->server_url = s.urls.back();
+    this->servers.push_back(s);
     this->save();
-    return found;
+    return false;
 }
 
 bool AppConfig::addUser(const AppUser& u, const std::string& url) {

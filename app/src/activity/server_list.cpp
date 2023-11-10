@@ -31,7 +31,7 @@ public:
 
         this->serverId = s.id;
         this->labelName->setText(s.name);
-        this->labelUrl->setText(s.urls.back());
+        this->labelUrl->setText(s.urls.front());
         this->labelUsers->setText(fmt::format(fmt::runtime("main/setting/server/users"_i18n), s.users.size()));
     }
 

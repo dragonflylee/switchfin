@@ -27,11 +27,10 @@ using namespace brls::literals;  // for _i18n
 int main(int argc, char* argv[]) {
     std::string itemId;
     for (int i = 1; i < argc; i++) {
-        if (std::strcmp(argv[i], "-v") == 0) {
+        if (std::strcmp(argv[i], "--debug") == 0) {
             MPVCore::DEBUG = true;
-            brls::Logger::setLogLevel(brls::LogLevel::LOG_DEBUG);
-        } else if (std::strlen(argv[i]) == 32) {
-            itemId = argv[i];
+        } else if (std::strcmp(argv[i], "-i") == 0) {
+            if (i + 1 < argc) itemId = argv[++i];
         }
     }
 
@@ -90,7 +89,7 @@ int main(int argc, char* argv[]) {
     } else if (itemId.empty()) {
         brls::Application::pushActivity(new MainActivity());
     } else {
-        VideoView* view = new VideoView(itemId);
+        brls::View* view = new VideoView(itemId);
         brls::sync([view]() { brls::Application::giveFocus(view); });
     }
 
