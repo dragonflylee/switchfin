@@ -51,6 +51,7 @@
       "history": "History",
       "suggest": "Suggest"
     },
+    "clear_history": "Confirm to clear search histroy?",
     "genres": {
       "movie": "Movie",
       "series": "Series",

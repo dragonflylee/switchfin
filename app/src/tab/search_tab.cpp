@@ -8,6 +8,7 @@
 #include "view/video_source.hpp"
 #include "view/video_card.hpp"
 #include "tab/search_result.hpp"
+#include "utils/dialog.hpp"
 #include "api/jellyfin.hpp"
 #include <fstream>
 
@@ -112,14 +113,20 @@ public:
         recycler->present(new SearchResult(this->list[index]));
     }
 
-    void clearData() override { this->list.clear(); }
+    void clearData() override {
+        this->list.clear();
+        this->save();
+    }
 
     void appendData(const std::string& searchTerm) {
         for (auto& item : this->list) {
             if (item == searchTerm) return;
         }
-        this->list.push_back(searchTerm);
+        this->list.insert(this->list.begin(), searchTerm);
+        this->save();
+    }
 
+    void save() {
         std::ofstream writeFile(this->path);
         if (writeFile.is_open()) {
             nlohmann::json j(this->list);
@@ -144,7 +151,7 @@ SearchTab::SearchTab() {
         this->searchSVG->setImageFromSVGRes("img/header-search.svg");
     }
 
-    this->searchBox->registerClickAction([this](...) {
+    this->searchBox->registerClickAction([this](brls::View* view) {
         brls::Application::getImeManager()->openForText(
             [this](const std::string& text) {
                 this->currentSearch = text;
@@ -169,15 +176,22 @@ SearchTab::SearchTab() {
     HistoryDataSource* history = new HistoryDataSource();
     this->searchHistory->registerCell("Card", SearchCard::create);
     this->searchHistory->setDataSource(history);
+    this->searchHistory->registerAction("main/search/tv/clear"_i18n, brls::BUTTON_X, [this](brls::View* view) {
+        Dialog::cancelable("main/search/clear_history"_i18n, [this]() {
+            this->searchHistory->setEmpty();
+            brls::sync([this]() { brls::Application::giveFocus(this->searchBox); });
+        });
+        return true;
+    });
 
-    this->clearLabel->registerClickAction([this](...) {
+    this->clearLabel->registerClickAction([this](brls::View* view) {
         this->currentSearch.clear();
         this->updateInput();
         return true;
     });
     this->clearLabel->addGestureRecognizer(new brls::TapGestureRecognizer(clearLabel));
 
-    this->deleteLabel->registerClickAction([this](...) {
+    this->deleteLabel->registerClickAction([this](brls::View* view) {
         if (!currentSearch.empty()) {
             this->currentSearch.pop_back();
             this->updateInput();
@@ -186,7 +200,7 @@ SearchTab::SearchTab() {
     });
     this->deleteLabel->addGestureRecognizer(new brls::TapGestureRecognizer(deleteLabel));
 
-    this->searchLabel->registerClickAction([this, history](...) {
+    this->searchLabel->registerClickAction([this, history](brls::View* view) {
         if (this->currentSearch.size() > 0) {
             this->present(new SearchResult(this->currentSearch));
             history->appendData(this->currentSearch);

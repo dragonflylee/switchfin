@@ -51,6 +51,7 @@
       "history": "历史记录",
       "suggest": "猜你想搜"
     },
+    "clear_history": "确认清空搜索记录？",
     "genres": {
       "movie": "电影",
       "series": "节目",
