@@ -46,18 +46,18 @@ git clone https://github.com/dragonflylee/switchfin.git --recurse-submodules --s
 To build for Switch, a standard development environment must first be set up. In order to do so, [refer to the Getting Started guide](https://devkitpro.org/wiki/Getting_Started).
 
 ```bash
-sudo dkp-pacman -S switch-glfw switch-libwebp switch-cmake switch-curl devkitA64
+sudo dkp-pacman -S switch-dev switch-glfw switch-libwebp switch-curl
 cmake -B build_switch -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON
 make -C build_switch Switchfin.nro -j$(nproc)
 # for debug
-nxlink -a <YOUR IP> -p Switchfin/Switchfin.nro -s Switchfin.nro --args -l 
+nxlink -a <YOUR IP> -p Switchfin/Switchfin.nro -s Switchfin.nro --args --debug
 ```
 
 ### Building for MinGW64
 
 ```bash
 pacman -S ${MINGW_PACKAGE_PREFIX}-cc ${MINGW_PACKAGE_PREFIX}-ninja ${MINGW_PACKAGE_PREFIX}-cmake
-cmake -B build_mingw -DPLATFORM_DESKTOP=ON
+cmake -B build_mingw -G Ninja -DPLATFORM_DESKTOP=ON
 cmake --build build_mingw
 ```
 

@@ -98,7 +98,7 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
             switch (status.state) {
             case brls::GestureState::UNSURE: {
                 // 长按加速
-                if (fabs(mpv.getSpeed() - 1) > 10e-2) {
+                if (std::fabs(mpv.getSpeed() - 1) > 10e-2) {
                     this->ignoreSpeed = true;
                     break;
                 }
@@ -682,7 +682,7 @@ void VideoView::registerMpvEvent() {
             if (mpv.video_progress % 10 == 0) this->reportPlay();
             break;
         case MpvEventEnum::VIDEO_SPEED_CHANGE:
-            if (fabs(mpv.video_speed - 1) < 1e-5) {
+            if (std::fabs(mpv.video_speed - 1) < 1e-5) {
                 this->videoSpeedLabel->setText("main/player/speed"_i18n);
             } else {
                 this->videoSpeedLabel->setText(fmt::format("{}x", mpv.video_speed));

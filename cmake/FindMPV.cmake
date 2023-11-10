@@ -41,13 +41,13 @@ endif ()
 ### Look for the include files.
 #
 find_path(
-        MPV_INCLUDE_DIR
-        NAMES mpv/client.h
-        HINTS
+    MPV_INCLUDE_DIR
+    NAMES mpv/client.h
+    HINTS
         ${HOMEBREW_MPV}/include
         ${PC_MPV_INCLUDEDIR}
         ${PC_MPV_INCLUDE_DIRS} # Unused for MPV but anyway
-        PATH_SUFFIXES mpv
+    DOC "MPV include directory"
 )
 
 #
@@ -58,15 +58,15 @@ if (PC_MPV_LIBRARIES)
     set(_MPV_LIBRARY_NAMES ${PC_MPV_LIBRARIES})
 endif ()
 
-foreach (l ${_MPV_LIBRARY_NAMES})
+foreach(l ${_MPV_LIBRARY_NAMES})
     find_library(
-            MPV_LIBRARY_${l}
-            NAMES ${l}
-            HINTS
+        MPV_LIBRARY_${l}
+        NAMES ${l}
+        HINTS
             ${HOMEBREW_MPV}/lib
             ${PC_MPV_LIBDIR}
             ${PC_MPV_LIBRARY_DIRS} # Unused for MPV but anyway
-            PATH_SUFFIXES lib${LIB_SUFFIX}
+        PATH_SUFFIXES lib${LIB_SUFFIX}
     )
     list(APPEND MPV_LIBRARY ${MPV_LIBRARY_${l}})
 endforeach ()
@@ -86,9 +86,9 @@ set(MPV_INCLUDE_DIRS ${MPV_INCLUDE_DIR})
 #
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(MPV
-        FOUND_VAR MPV_FOUND
-        REQUIRED_VARS ${_MPV_REQUIRED_VARS}
-        VERSION_VAR MPV_VERSION
+    FOUND_VAR MPV_FOUND
+    REQUIRED_VARS ${_MPV_REQUIRED_VARS}
+    VERSION_VAR MPV_VERSION
 )
 
 if (MPV_FOUND)

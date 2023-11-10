@@ -35,7 +35,13 @@ public:
         this->inflateFromXMLRes("xml/view/setting_about.xml");
 
         this->labelTitle->setText(AppVersion::getPackageName());
-        this->labelVersion->setText(fmt::format("v{}-{}", AppVersion::getVersion(), AppVersion::getCommit()));
+        this->labelVersion->setText(fmt::format("v{}-{} ({})", AppVersion::getVersion(), AppVersion::getCommit(),
+#if defined(BOREALIS_USE_D3D11)
+            "D3D11"
+#else
+            "OpenGL"
+#endif
+            ));
         this->labelGithub->setText("https://github.com/" + AppVersion::git_repo);
         this->btnGithub->registerClickAction([this](...) {
             std::string url = this->labelGithub->getFullText();

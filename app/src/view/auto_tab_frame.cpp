@@ -455,7 +455,7 @@ void AutoTabFrame::draw(NVGcontext* vg, float x, float y, float width, float hei
 
         brls::Time curTime = brls::getCPUTimeUsec() / 1000;
         float p = (curTime % 1000) * 1.0 / 1000;
-        p = fabs(0.5 - p) + 0.25;
+        p = std::fabs(0.5 - p) + 0.25;
 
         float padding = 20;
         auto drawWidth = width - 3 * padding;

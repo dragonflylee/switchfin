@@ -17,7 +17,17 @@ static inline void check_error(int status) {
 #include <borealis/platforms/driver/d3d11.hpp>
 extern std::unique_ptr<brls::D3D11Context> D3D11_CONTEXT;
 #else
+#if defined(__PSV__) || defined(PS4)
+#include <GLES2/gl2.h>
+#else
 #include <glad/glad.h>
+#endif
+#ifdef __SDL2__
+#include <SDL2/SDL.h>
+#else
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+#endif
 static void *get_proc_address(void *unused, const char *name) {
 #ifdef __SDL2__
     SDL_GL_GetCurrentContext();
@@ -93,9 +103,8 @@ void MPVCore::init() {
     } else {
         mpv_set_option_string(mpv, "cache", "no");
     }
-
-#ifdef __SWITCH__
     // Making the loading process faster
+#if defined(__SWITCH__)
     mpv_set_option_string(mpv, "vd-lavc-dr", "yes");
     mpv_set_option_string(mpv, "vd-lavc-threads", "3");
 
@@ -107,6 +116,13 @@ void MPVCore::init() {
         mpv_set_option_string(mpv, "sub-font", "nintendo_udjxh-db_zh-tw_003");
     else if (locale == brls::LOCALE_Ko)
         mpv_set_option_string(mpv, "sub-font", "nintendo_udsg-r_ko_003");
+#elif defined(PS4)
+    mpv_set_option_string(mpv, "vd-lavc-threads", "6");
+#elif defined(__PSV__)
+    mpv_set_option_string(mpv, "vd-lavc-dr", "no");
+    mpv_set_option_string(mpv, "vd-lavc-threads", "4");
+    // Fix vo_wait_frame() cannot be wakeup
+    mpv_set_option_string(mpv, "video-latency-hacks", "yes");
 #endif
 
     // hardware decoding

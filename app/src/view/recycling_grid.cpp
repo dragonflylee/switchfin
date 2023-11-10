@@ -34,7 +34,7 @@ void SkeletonCell::draw(
     NVGcontext* vg, float x, float y, float width, float height, brls::Style style, brls::FrameContext* ctx) {
     brls::Time curTime = brls::getCPUTimeUsec() / 1000;
     float p = (curTime % 1000) * 1.0 / 1000;
-    p = fabs(0.5 - p) + 0.25;
+    p = std::fabs(0.5 - p) + 0.25;
 
     NVGcolor end = background;
     end.a = p;

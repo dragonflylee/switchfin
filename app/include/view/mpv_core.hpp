@@ -7,14 +7,6 @@
 #include "borealis.hpp"
 #include "borealis/core/singleton.hpp"
 #include <mpv/client.h>
-
-#ifdef __SDL2__
-#include <SDL2/SDL.h>
-#else
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
-#endif
-
 #ifdef MPV_SW_RENDER
 #include <mpv/render.h>
 #elif BOREALIS_USE_D3D11
