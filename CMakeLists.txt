@@ -158,6 +158,10 @@ if (BUILTIN_NSP)
     add_subdirectory(scripts/forwarder)
 endif ()
 
+if (USE_DEKO3D)
+    gen_dksh("${PROJECT_RESOURCES}/shaders")
+endif ()
+
 # building target
 program_target(${PROJECT_NAME} "${MAIN_SRC}")
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17)

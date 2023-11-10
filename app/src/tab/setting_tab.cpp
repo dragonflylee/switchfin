@@ -38,6 +38,8 @@ public:
         this->labelVersion->setText(fmt::format("v{}-{} ({})", AppVersion::getVersion(), AppVersion::getCommit(),
 #if defined(BOREALIS_USE_D3D11)
             "D3D11"
+#elif defined(BOREALIS_USE_DEKO3D)
+            "Deko3D"
 #else
             "OpenGL"
 #endif

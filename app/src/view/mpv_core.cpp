@@ -16,6 +16,8 @@ static inline void check_error(int status) {
 #ifdef BOREALIS_USE_D3D11
 #include <borealis/platforms/driver/d3d11.hpp>
 extern std::unique_ptr<brls::D3D11Context> D3D11_CONTEXT;
+#elif defined(BOREALIS_USE_DEKO3D)
+#include <borealis/platforms/switch/switch_video.hpp>
 #else
 #if defined(__PSV__) || defined(PS4)
 #include <GLES2/gl2.h>
@@ -128,8 +130,8 @@ void MPVCore::init() {
     // hardware decoding
     if (MPVCore::HARDWARE_DEC) {
 #ifdef __SWITCH__
-        mpv_set_option_string(mpv, "hwdec", "tx1-copy");
-        brls::Logger::info("MPV hardware decode: {}", "tx1-copy");
+        mpv_set_option_string(mpv, "hwdec", "auto");
+        brls::Logger::info("MPV hardware decode: {}", "auto");
 #elif defined(__PSV__)
         mpv_set_option_string(mpv, "hwdec", "vita-copy");
         brls::Logger::info("MPV hardware decode: vita-copy");
@@ -177,6 +179,14 @@ void MPVCore::init() {
     mpv_render_param params[] = {
         {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_DXGI)},
         {MPV_RENDER_PARAM_DXGI_INIT_PARAMS, &init_params},
+        {MPV_RENDER_PARAM_INVALID, nullptr},
+    };
+#elif defined(BOREALIS_USE_DEKO3D)
+    auto videoContext = dynamic_cast<brls::SwitchVideoContext *>(brls::Application::getPlatform()->getVideoContext());
+    mpv_deko3d_init_params deko_init_params{videoContext->getDeko3dDevice()};
+    mpv_render_param params[] = {
+        {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_DEKO3D)},
+        {MPV_RENDER_PARAM_DEKO3D_INIT_PARAMS, &deko_init_params},
         {MPV_RENDER_PARAM_INVALID, nullptr},
     };
 #else
@@ -343,10 +353,18 @@ void MPVCore::draw(brls::Rect rect, float alpha) {
         this->mpv_fbo.w = brls::Application::windowWidth;
         this->mpv_fbo.h = brls::Application::windowHeight;
 #endif
+#ifdef BOREALIS_USE_DEKO3D
+        static auto videoContext = dynamic_cast<brls::SwitchVideoContext *>(brls::Application::getPlatform()->getVideoContext());
+        this->mpv_fbo.tex = videoContext->getFramebuffer();
+        videoContext->queueSignalFence(&readyFence);
+        videoContext->queueFlush();
+#endif
         // 绘制视频
         mpv_render_context_render(this->mpv_context, mpv_params);
 #ifdef BOREALIS_USE_D3D11
         D3D11_CONTEXT->SetRenderTarget();
+#elif defined(BOREALIS_USE_DEKO3D)
+        videoContext->queueWaitFence(&doneFence);
 #else
         glViewport(0, 0, brls::Application::windowWidth, brls::Application::windowHeight);
 #endif

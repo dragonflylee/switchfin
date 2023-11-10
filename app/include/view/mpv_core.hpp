@@ -9,8 +9,10 @@
 #include <mpv/client.h>
 #ifdef MPV_SW_RENDER
 #include <mpv/render.h>
-#elif BOREALIS_USE_D3D11
+#elif defined(BOREALIS_USE_D3D11)
 #include <mpv/render_dxgi.h>
+#elif defined(BOREALIS_USE_DEKO3D)
+#include <mpv/render_dk3d.h>
 #else
 #include <mpv/render_gl.h>
 #endif
@@ -184,6 +186,14 @@ private:
     };
 #elif defined(BOREALIS_USE_D3D11)
     mpv_render_param mpv_params[1] = {
+        {MPV_RENDER_PARAM_INVALID, nullptr},
+    };
+#elif defined(BOREALIS_USE_DEKO3D)
+    DkFence doneFence;
+    DkFence readyFence;
+    mpv_deko3d_fbo mpv_fbo{nullptr, &readyFence, &doneFence, 1280, 720, DkImageFormat_RGBA8_Unorm};
+    mpv_render_param mpv_params[3] = {
+        {MPV_RENDER_PARAM_DEKO3D_FBO, &mpv_fbo},
         {MPV_RENDER_PARAM_INVALID, nullptr},
     };
 #else

@@ -48,36 +48,57 @@ jobs:
         name: Switchfin ${{ github.ref_name }}
         tag_name: ${{ github.ref_name }}
         generate_release_notes: true
-        files: '*/*'
+        files: |
+          switchfin-windows-*/*.7z
+          switchfin-macos-*/*.dmg
+          switchfin-switch-opengl-*/*.nro
         body: |
           ![download](https://img.shields.io/github/downloads/${{ github.repository }}/${{ github.ref_name }}/total?label=Downloads)
 
   build-nx:
     runs-on: ubuntu-latest
     if: ${{ inputs.nx || github.event_name != 'workflow_dispatch'}}
+    strategy:
+      fail-fast: false
+      matrix:
+        driver: [opengl, deko3d]
     container:
       image: devkitpro/devkita64
+    env:
+      BASE_URL: https://github.com/${{ github.repository }}/releases/download/switch-portlibs
     steps:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
-    - name: Update dependencies
-      run: |
-        for pkg in curl-7.71.1-1 harfbuzz-8.2.2-1 libass-0.17.1-1 ffmpeg-6.1-1 libmpv-0.36.0-2 nspmini-main-1; do
-          dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/switch-portlibs/switch-${pkg}-any.pkg.tar.zst
-        done
-        dkp-pacman --noconfirm -U https://github.com/${{ github.repository }}/releases/download/switch-portlibs/hacBrewPack-3.05-1-any.pkg.tar.zst
     - name: Set workspace permissions
       run: |
         chown $(id -u):$(id -g) -R "$GITHUB_WORKSPACE"
         git config --system --add safe.directory '*'
-    - name: Build nro
+    - name: Update dependencies
+      run: |
+        dkp-pacman --noconfirm -U $BASE_URL/hacBrewPack-3.05-1-any.pkg.tar.zst
+        for pkg in curl-7.71.1-1 harfbuzz-8.2.2-1 libass-0.17.1-1 ffmpeg-6.1-1 libmpv-0.36.0-2 nspmini-main-1; do
+          dkp-pacman --noconfirm -U $BASE_URL/switch-${pkg}-any.pkg.tar.zst
+        done
+    - name: Build opengl
+      if: ${{ matrix.driver == 'opengl' }}
       run: |
         cmake -B build_switch -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON -DVERSION_BUILD=${{ github.run_number }}
         make -C build_switch Switchfin.nro -j$(nproc)
+    - name: Update deko3d
+      if: ${{ matrix.driver == 'deko3d' }}
+      run: |
+        for pkg in deko3d-master-1 libuam-master-1 switch-libmpv-deko3d-0.36.0-3; do
+          dkp-pacman --noconfirm -U $BASE_URL/${pkg}-any.pkg.tar.zst
+        done
+    - name: Build deko3d
+      if: ${{ matrix.driver == 'deko3d' }}
+      run: |
+        cmake -B build_switch -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON -DUSE_DEKO3D=ON -DVERSION_BUILD=${{ github.run_number }}
+        make -C build_switch Switchfin.nro -j$(nproc)
     - name: Set outputs
       id: vars
-      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      run: echo "sha_short=${{ matrix.driver }}-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
       uses: actions/upload-artifact@v3
       with:
