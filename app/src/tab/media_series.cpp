@@ -109,7 +109,7 @@ void MediaSeries::doSeries() {
                 this->parentalRating->setText(r.OfficialRating);
                 this->parentalRating->getParent()->setVisibility(brls::Visibility::VISIBLE);
             }
-            if (this->labelRating == 0) {
+            if (r.CommunityRating == 0.f) {
                 this->labelRating->getParent()->setVisibility(brls::Visibility::GONE);
             } else {
                 this->labelRating->setText(fmt::format("{:.1f}", r.CommunityRating));
