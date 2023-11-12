@@ -12,67 +12,58 @@ url="https://curl.se/"
 license=("spdx:MIT")
 makedepends=(
   "${MINGW_PACKAGE_PREFIX}-cc"
-  "${MINGW_PACKAGE_PREFIX}-autotools"
+  "${MINGW_PACKAGE_PREFIX}-cmake"
+  "${MINGW_PACKAGE_PREFIX}-ninja"
 )
-source=(
-  "https://curl.haxx.se/download/${_realname}-${pkgver}.tar.xz"
-  "0001-skip-compiling-unnecessary-stuff.patch"
-  "0004-more-static-fixes.patch"
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-zlib"
 )
-sha256sums=(
-  '16c62a9c4af0f703d28bda6d7bbf37ba47055ad3414d70dec63e2e6336f2a82d'
-  'SKIP' 'SKIP'
-)
-
-prepare() {
-  cd "${srcdir}/${_realname}-${pkgver}"
-  patch -Nbp1 -i "${srcdir}/0001-skip-compiling-unnecessary-stuff.patch"
-  patch -Nbp1 -i "${srcdir}/0004-more-static-fixes.patch"
-
-  autoreconf -fiv
-}
+source=("https://curl.haxx.se/download/${_realname}-${pkgver}.tar.xz")
+sha256sums=('16c62a9c4af0f703d28bda6d7bbf37ba47055ad3414d70dec63e2e6336f2a82d')
 
 build() {
-  mkdir -p "${srcdir}/build-${MSYSTEM}" && cd "${srcdir}/build-${MSYSTEM}"
-  ${srcdir}/${_realname}-${pkgver}/configure \
-    --prefix=${MINGW_PREFIX} \
-    --disable-pthreads \
-    --disable-progress-meter \
-    --without-random \
-    --enable-static \
-    --enable-shared \
-    --disable-debug \
-    --with-schannel \
-    --without-ca-bundle \
-    --without-ca-path \
-    --without-librtmp \
-    --without-brotli \
-    --without-zstd \
-    --without-libgsasl \
-    --without-libpsl \
-    --without-libidn2 \
-    --without-nghttp2 \
-    --without-zlib \
-    --with-winidn=${MINGW_PREFIX} \
-    --disable-dict \
-    --disable-file \
-    --disable-ftp \
-    --disable-gopher \
-    --disable-imap \
-    --disable-ldap \
-    --disable-ldaps \
-    --disable-mqtt \
-    --disable-pop3 \
-    --disable-rtsp \
-    --disable-smb \
-    --disable-smtp \
-    --disable-telnet \
-    --disable-tftp
-  make -j4
+  msg2 "Building shared library"
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    ${MINGW_PREFIX}/bin/cmake.exe -B "build-${MSYSTEM}-shared" -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+      -DCMAKE_SHARED_LIBRARY_SUFFIX_C="-4.dll" \
+      -DBUILD_SHARED_LIBS=ON \
+      -DHTTP_ONLY=ON \
+      -DCURL_USE_SCHANNEL=ON \
+      -DCURL_DISABLE_PROGRESS_METER=ON \
+      -DBUILD_CURL_EXE=OFF \
+      -DBUILD_TESTING=OFF \
+      -DUSE_LIBIDN2=OFF \
+      -DUSE_WIN32_IDN=ON \
+      -DCURL_USE_LIBSSH2=OFF \
+      -DCURL_USE_LIBPSL=OFF \
+      "${srcdir}/${_realname}-${pkgver}"
+  ${MINGW_PREFIX}/bin/cmake.exe --build "build-${MSYSTEM}-shared"
+
+  msg2 "Building static library"
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    ${MINGW_PREFIX}/bin/cmake.exe -B "build-${MSYSTEM}-static" -G Ninja  \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+      -DBUILD_SHARED_LIBS=OFF \
+      -DZLIB_USE_STATIC_LIBS=ON \
+      -DHTTP_ONLY=ON \
+      -DCURL_USE_SCHANNEL=ON \
+      -DCURL_DISABLE_PROGRESS_METER=ON \
+      -DBUILD_CURL_EXE=OFF \
+      -DBUILD_TESTING=OFF \
+      -DUSE_LIBIDN2=OFF \
+      -DUSE_WIN32_IDN=ON \
+      -DCURL_USE_LIBSSH2=OFF \
+      -DCURL_USE_LIBPSL=OFF \
+      "${srcdir}/${_realname}-${pkgver}"
+  ${MINGW_PREFIX}/bin/cmake.exe --build "build-${MSYSTEM}-static"
 }
 
 package() {
-  make -C "${srcdir}/build-${MSYSTEM}" DESTDIR="${pkgdir}" install
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake.exe --install "build-${MSYSTEM}-shared"
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake.exe --install "build-${MSYSTEM}-static"
 
   local PREFIX_DEPS=$(cygpath -am ${MINGW_PREFIX})
   sed -s "s|${PREFIX_DEPS}|${MINGW_PREFIX}|g" -i ${pkgdir}${MINGW_PREFIX}/bin/curl-config

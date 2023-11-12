@@ -45,8 +45,6 @@ build() {
       -Dtests=false \
       -Dplain-gl=enabled \
       -Dd3d11=enabled \
-      -Degl-angle=enabled \
-      -Degl-angle-lib=disabled \
       -Dlibarchive=disabled \
       -Dlua=disabled \
       "build-${MSYSTEM}" \

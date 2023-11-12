@@ -2,7 +2,7 @@
 
 #include <borealis.hpp>
 #include "api/http.hpp"
-#include "utils/config.hpp"
+#include "config.hpp"
 
 class Image {
     using Ref = std::shared_ptr<Image>;

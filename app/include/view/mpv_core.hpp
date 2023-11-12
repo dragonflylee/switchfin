@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "borealis.hpp"
-#include "borealis/core/singleton.hpp"
+#include <borealis.hpp>
+#include <borealis/core/singleton.hpp>
 #include <mpv/client.h>
 #ifdef MPV_SW_RENDER
 #include <mpv/render.h>

@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "api/http.hpp"
-#include "utils/config.hpp"
 #include <nlohmann/json.hpp>
 #include <borealis/core/logger.hpp>
 #include <borealis/core/thread.hpp>
+#include "http.hpp"
+#include "utils/config.hpp"
 
 namespace jellyfin {
 
@@ -55,5 +55,5 @@ inline void postJSON(const nlohmann::json& data, Then then, OnError error, std::
 
 };  // namespace jellyfin
 
-#include "api/jellyfin/system.hpp"
-#include "api/jellyfin/media.hpp"
+#include "jellyfin/system.hpp"
+#include "jellyfin/media.hpp"
