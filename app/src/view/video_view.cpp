@@ -19,6 +19,8 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
     this->setHideHighlightBackground(true);
     this->setHideClickAnimation(true);
 
+    this->input = brls::Application::getPlatform()->getInputManager();
+
     float width = brls::Application::contentWidth;
     float height = brls::Application::contentHeight;
     brls::Box* container = new brls::Box();
@@ -332,7 +334,7 @@ void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::S
 
     // draw osd
     brls::Time current = brls::getCPUTimeUsec();
-    if (current < this->osdLastShowTime) {
+    if (this->osdState == OSDState::ALWAYS_ON || current < this->osdLastShowTime) {
         if (!this->isOsdShown) {
             this->isOsdShown = true;
             osdTopBox->setVisibility(brls::Visibility::VISIBLE);
@@ -352,6 +354,9 @@ void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::S
         this->hintBox->setVisibility(brls::Visibility::GONE);
         this->hintLastShowTime = 0;
     }
+
+    // hot key
+    this->buttonProcessing();
 
     // draw speed hint
     if (speedHintBox->getVisibility() == brls::Visibility::VISIBLE) {
@@ -611,6 +616,19 @@ void VideoView::reportPlay(bool isPaused) {
             {"PositionTicks", ticks},
         },
         [](...) {}, nullptr, jellyfin::apiPlaying);
+}
+
+void VideoView::buttonProcessing() {
+    // 获取按键数据
+    brls::ControllerState state;
+    input->updateUnifiedControllerState(&state);
+    // 当OSD显示时上下左右切换选择按钮，持续显示OSD
+    if (this->isOsdShown) {
+        if (state.buttons[brls::BUTTON_NAV_RIGHT] || state.buttons[brls::BUTTON_NAV_LEFT] ||
+            state.buttons[brls::BUTTON_NAV_UP] || state.buttons[brls::BUTTON_NAV_DOWN]) {
+            if (this->osdState == OSDState::SHOWN) this->showOSD(true);
+        }
+    }
 }
 
 void VideoView::registerMpvEvent() {
