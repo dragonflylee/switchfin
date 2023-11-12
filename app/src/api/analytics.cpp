@@ -26,13 +26,14 @@ public:
         user_properties = {
             {"platform", {AppVersion::getPlatform()}},
             {"version", {AppVersion::getVersion()}},
+            {"commit", {AppVersion::getCommit()}},
         };
     }
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Package, client_id, user_id, user_properties, events, timestamp_micros);
 
 Analytics::Analytics() {
-    this->client_id = AppConfig::instance().getDeviceId();
+    this->client_id = fmt::format("GA1.3.{}", AppConfig::instance().getDeviceId());
     this->url = GA_URL + "?" + HTTP::encode_form({{"api_secret", GA_KEY}, {"measurement_id", GA_ID}});
 
     this->ticker.setCallback([this]() { ThreadPool::instance().submit(&Analytics::send, this); });
@@ -73,9 +74,13 @@ void Analytics::send() {
     pkg.timestamp_micros = ms.count();
 
     try {
-        HTTP::post(this->url, nlohmann::json(pkg).dump(), HTTP::Timeout{3000},
-            HTTP::Header{"Content-Type: application/json", "Referer: " + AppConfig::instance().getUrl()});
-        brls::Logger::debug("report event: {}", pkg.events.size());
+        std::string content = nlohmann::json(pkg).dump();
+        HTTP::post(this->url, content, HTTP::Timeout{3000}, HTTP::Cookies{{"_ga", this->client_id}},
+            HTTP::Header{
+                "Content-Type: application/json",
+                "Referer: " + AppConfig::instance().getUrl(),
+            });
+        brls::Logger::debug("report event: {}", content);
     } catch (const std::exception& ex) {
         brls::Logger::warning("report failed: {}", ex.what());
     }
