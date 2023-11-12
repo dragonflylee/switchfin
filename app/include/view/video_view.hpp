@@ -100,6 +100,7 @@ private:
 
     /// @brief 延迟 200ms 触发进度跳转到 seeking_range
     void requestSeeking();
+    void buttonProcessing();
     /// @brief notify videoview closed
     static void onDismiss();
 
@@ -119,6 +120,7 @@ private:
     MPVCustomEvent::Subscription customEventSubscribeID;
     brls::VoidEvent::Subscription exitSubscribeID;
     brls::Rect oldRect = brls::Rect(-1, -1, -1, -1);
+    brls::InputManager* input;
 
     // Touch Event
     size_t speedIter = 0;

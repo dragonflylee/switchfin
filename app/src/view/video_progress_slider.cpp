@@ -10,16 +10,14 @@ using namespace brls;
 VideoProgressSlider::VideoProgressSlider() {
     input = Application::getPlatform()->getInputManager();
 
-    line        = new brls::Rectangle();
-    lineEmpty   = new brls::Rectangle();
+    line = new brls::Rectangle();
+    lineEmpty = new brls::Rectangle();
     pointerIcon = new SVGImage();
-    pointer     = new brls::Box();
+    pointer = new brls::Box();
 
     line->detach();
     lineEmpty->detach();
     pointer->detach();
-
-    setHeight(40);
 
     line->setHeight(7);
     line->setCornerRadius(3.5f);
@@ -35,6 +33,13 @@ VideoProgressSlider::VideoProgressSlider() {
     pointer->setAlignItems(brls::AlignItems::CENTER);
     pointer->setJustifyContent(brls::JustifyContent::CENTER);
     pointer->addView(pointerIcon);
+
+    this->registerFloatXMLAttribute("pointer", [this](float value) { pointer->setDimensions(value, value); });
+    this->registerFloatXMLAttribute("icon", [this](float value) { pointerIcon->setDimensions(value, value); });
+    this->registerFloatXMLAttribute("line", [this](float value) {
+        line->setHeight(value);
+        lineEmpty->setHeight(value);
+    });
 
     addView(pointer);
     addView(line);
@@ -56,8 +61,7 @@ VideoProgressSlider::VideoProgressSlider() {
                 return;
             }
 
-            else if (status.state == GestureState::INTERRUPTED ||
-                     status.state == GestureState::FAILED) {
+            else if (status.state == GestureState::INTERRUPTED || status.state == GestureState::FAILED) {
                 *soundToPlay = SOUND_TOUCH_UNFOCUS;
                 return;
             }
@@ -67,17 +71,15 @@ VideoProgressSlider::VideoProgressSlider() {
             }
 
             float paddingWidth = getWidth() - pointer->getWidth();
-            float delta        = status.position.x - status.startPosition.x;
+            float delta = status.position.x - status.startPosition.x;
 
             setProgress(lastProgress + delta / paddingWidth);
             progressEvent.fire(this->progress);
 
             if (status.state == GestureState::END) {
-                Application::getPlatform()->getAudioPlayer()->play(
-                    SOUND_SLIDER_RELEASE);
+                Application::getPlatform()->getAudioPlayer()->play(SOUND_SLIDER_RELEASE);
                 progressSetEvent.fire(this->progress);
-                Application::giveFocus(
-                    this->getParentActivity()->getContentView());
+                Application::giveFocus(this->getParentActivity()->getContentView());
             }
         },
         PanAxis::HORIZONTAL));
@@ -112,12 +114,12 @@ void VideoProgressSlider::setProgress(float progress) {
 }
 
 void VideoProgressSlider::updateUI() {
-    float paddingWidth   = getWidth() - pointer->getWidth();
-    float lineStart      = pointer->getWidth() / 2;
+    float paddingWidth = getWidth() - pointer->getWidth();
+    float lineStart = pointer->getWidth() / 2;
     float lineStartWidth = paddingWidth * progress;
-    float lineEnd        = paddingWidth * progress + pointer->getWidth() / 2;
-    float lineEndWidth   = paddingWidth * (1 - progress);
-    float lineYPos       = getHeight() / 2 - line->getHeight() / 2;
+    float lineEnd = paddingWidth * progress + pointer->getWidth() / 2;
+    float lineEndWidth = paddingWidth * (1 - progress);
+    float lineYPos = getHeight() / 2 - line->getHeight() / 2;
 
     line->setDetachedPosition(lineStart, lineYPos);
     line->setWidth(lineStartWidth);
@@ -125,8 +127,7 @@ void VideoProgressSlider::updateUI() {
     lineEmpty->setDetachedPosition(lineEnd, lineYPos);
     lineEmpty->setWidth(lineEndWidth);
 
-    pointer->setDetachedPosition(lineEnd - pointer->getWidth() / 2,
-                                 getHeight() / 2 - pointer->getHeight() / 2);
+    pointer->setDetachedPosition(lineEnd - pointer->getWidth() / 2, getHeight() / 2 - pointer->getHeight() / 2);
 }
 
 VideoProgressSlider::~VideoProgressSlider() {}
