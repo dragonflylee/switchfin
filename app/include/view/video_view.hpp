@@ -117,6 +117,7 @@ private:
 
     MPVEvent::Subscription eventSubscribeID;
     MPVCustomEvent::Subscription customEventSubscribeID;
+    brls::VoidEvent::Subscription exitSubscribeID;
     brls::Rect oldRect = brls::Rect(-1, -1, -1, -1);
 
     // Touch Event

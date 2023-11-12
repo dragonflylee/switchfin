@@ -270,13 +270,17 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
             dialog->open();
         },
         jellyfin::apiUserItem, AppConfig::instance().getUser().id, this->itemId);
+
+    // Report stop when application exit
+    this->exitSubscribeID = brls::Application::getExitEvent()->subscribe([this]() { this->reportStop(); });
 }
 
 VideoView::~VideoView() {
     brls::Logger::debug("trying delete VideoView...");
     this->unRegisterMpvEvent();
     MPVCore::instance().stop();
-    this->reportStop();
+    if (this->playSessionId.size()) this->reportStop();
+    brls::Application::getExitEvent()->unsubscribe(this->exitSubscribeID);
 }
 
 void VideoView::setTitie(const std::string& title) { this->titleLabel->setText(title); }
@@ -590,6 +594,9 @@ void VideoView::reportStop() {
             {"PositionTicks", ticks},
         },
         [](...) {}, nullptr, jellyfin::apiPlayStop);
+
+    brls::Logger::info("VideoView reportStop {}", this->playSessionId);
+    this->playSessionId.clear();
 }
 
 void VideoView::reportPlay(bool isPaused) {
