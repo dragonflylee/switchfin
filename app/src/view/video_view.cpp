@@ -299,7 +299,7 @@ void VideoView::requestSeeking() {
 
     showOSD(false);
     osdSlider->setProgress(progress);
-    leftStatusLabel->setText(sec2Time(mpv.duration * progress));
+    leftStatusLabel->setText(misc::sec2Time(mpv.duration * progress));
 
     // 延迟触发跳转进度
     brls::cancelDelay(this->seekingIter);
@@ -529,7 +529,7 @@ void VideoView::playMedia(const time_t seekTicks) {
 #endif
                 ssextra << "network-timeout=60";
                 if (seekTicks > 0) {
-                    ssextra << ",start=" << sec2Time(seekTicks / jellyfin::PLAYTICKS);
+                    ssextra << ",start=" << misc::sec2Time(seekTicks / jellyfin::PLAYTICKS);
                 }
                 if (item.SupportsDirectPlay || MPVCore::FORCE_DIRECTPLAY) {
                     std::string url = fmt::format(fmt::runtime(jellyfin::apiStream), this->itemId,
@@ -648,7 +648,7 @@ void VideoView::registerMpvEvent() {
             break;
         case MpvEventEnum::MPV_LOADED:
             if (this->seekingRange == 0) {
-                this->leftStatusLabel->setText(sec2Time(mpv.video_progress));
+                this->leftStatusLabel->setText(misc::sec2Time(mpv.video_progress));
             }
             for (auto& s : this->itemSource.MediaStreams) {
                 if (s.Type == jellyfin::streamTypeSubtitle) {
@@ -663,13 +663,13 @@ void VideoView::registerMpvEvent() {
             break;
         case MpvEventEnum::UPDATE_DURATION:
             if (this->seekingRange == 0) {
-                this->rightStatusLabel->setText(sec2Time(mpv.duration));
+                this->rightStatusLabel->setText(misc::sec2Time(mpv.duration));
                 this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
             }
             break;
         case MpvEventEnum::UPDATE_PROGRESS:
             if (this->seekingRange == 0) {
-                this->leftStatusLabel->setText(sec2Time(mpv.video_progress));
+                this->leftStatusLabel->setText(misc::sec2Time(mpv.video_progress));
                 this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
             }
             if (mpv.video_progress % 10 == 0) this->reportPlay();

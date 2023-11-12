@@ -50,8 +50,8 @@ public:
         }
 
         cell->labelDuration->setText(
-            fmt::format("{}/{}", sec2Time(item.UserData.PlaybackPositionTicks / jellyfin::PLAYTICKS),
-                sec2Time(item.RunTimeTicks / jellyfin::PLAYTICKS)));
+            fmt::format("{}/{}", misc::sec2Time(item.UserData.PlaybackPositionTicks / jellyfin::PLAYTICKS),
+                misc::sec2Time(item.RunTimeTicks / jellyfin::PLAYTICKS)));
         cell->rectProgress->setWidthPercentage(item.UserData.PlayedPercentage);
         return cell;
     }
