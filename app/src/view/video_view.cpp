@@ -262,6 +262,7 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
         [ASYNC_TOKEN](const jellyfin::MediaItem& r) {
             ASYNC_RELEASE
             this->chapters = r.Chapters;
+            MPVCore::instance().command_str("playlist-clear");
             this->playMedia(r.UserData.PlaybackPositionTicks);
         },
         [ASYNC_TOKEN](const std::string& ex) {
@@ -600,7 +601,7 @@ void VideoView::reportStop() {
         },
         [](...) {}, nullptr, jellyfin::apiPlayStop);
 
-    brls::Logger::info("VideoView reportStop {}", this->playSessionId);
+    brls::Logger::debug("VideoView reportStop {}", this->playSessionId);
     this->playSessionId.clear();
 }
 
@@ -719,6 +720,12 @@ void VideoView::registerMpvEvent() {
                     this->centerLabel->setVisibility(brls::Visibility::VISIBLE);
                 this->centerLabel->setText(MPVCore::instance().getCacheSpeed());
             }
+            break;
+        case MpvEventEnum::MPV_FILE_ERROR:
+            auto dialog = new brls::Dialog("main/player/error"_i18n);
+            dialog->addButton(
+                "hints/ok"_i18n, []() { brls::Application::popActivity(brls::TransitionAnimation::NONE, &onDismiss); });
+            dialog->open();
             break;
         }
     });

@@ -30,6 +30,7 @@ typedef enum MpvEventEnum {
     END_OF_FILE,
     CACHE_SPEED_CHANGE,
     VIDEO_SPEED_CHANGE,
+    MPV_FILE_ERROR,
 } MpvEventEnum;
 
 typedef brls::Event<MpvEventEnum> MPVEvent;
@@ -155,9 +156,6 @@ public:
 
     inline static bool FORCE_DIRECTPLAY = false;
 
-    // 此变量为真时，加载结束后自动播放视频
-    inline static bool AUTO_PLAY = true;
-
     // 触发倍速时的默认值，单位为 %
     inline static int VIDEO_SPEED = 200;
     inline static int SEEKING_STEP = 15;
@@ -167,6 +165,7 @@ public:
 private:
     mpv_handle *mpv = nullptr;
     mpv_render_context *mpv_context = nullptr;
+    bool video_stopped = true;
 #ifdef MPV_SW_RENDER
     const int PIXCEL_SIZE = 4;
     int nvg_image = 0;

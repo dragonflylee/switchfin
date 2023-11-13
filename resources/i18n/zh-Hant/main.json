@@ -23,6 +23,7 @@
     "chapter": "章節",
     "auto": "自動",
     "toggle": "播放/暫停",
+    "error": "播放錯誤",
     "speed_up": "{} 倍速播放中"
   },
   "media": {

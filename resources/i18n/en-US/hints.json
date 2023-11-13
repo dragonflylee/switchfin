@@ -13,6 +13,7 @@
   "default": "Default",
   "current": "Current",
   "success": "Success",
+  "password": "Show/Hide",
   "failed": "Failed",
   "exit_hint": "Are you going to exit the application?",
   "loading": "Loading",
