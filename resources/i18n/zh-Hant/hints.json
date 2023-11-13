@@ -13,6 +13,7 @@
   "default": "預設",
   "current": "目前",
   "success": "成功",
+  "password": "顯示/隱藏",
   "failed": "失敗",
   "exit_hint": "離開本程式？",
   "loading": "載入中",

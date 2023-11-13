@@ -13,6 +13,7 @@
   "default": "默认",
   "current": "当前",
   "success": "成功",
+  "password": "显示/隐藏",
   "failed": "失败",
   "exit_hint": "退出应用？",
   "loading": "加载中",

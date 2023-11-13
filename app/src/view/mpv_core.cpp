@@ -44,7 +44,7 @@ static void *get_proc_address(void *unused, const char *name) {
 
 void MPVCore::on_update(void *self) {
     MPVCore *mpv = reinterpret_cast<MPVCore *>(self);
-    brls::sync([mpv]() { mpv_render_context_update(mpv->getContext()); });
+    brls::sync([mpv]() { mpv_render_context_update(mpv->mpv_context); });
 }
 
 void MPVCore::on_wakeup(void *self) {
@@ -79,14 +79,9 @@ void MPVCore::init() {
     mpv_set_option_string(mpv, "config", "yes");
     mpv_set_option_string(mpv, "config-dir", conf.configDir().c_str());
     mpv_set_option_string(mpv, "ytdl", "no");
-    mpv_set_option_string(mpv, "audio-channels", "stereo");
     mpv_set_option_string(mpv, "referrer", conf.getUrl().c_str());
-    mpv_set_option_string(mpv, "idle", "yes");
-    mpv_set_option_string(mpv, "loop-file", "no");
     mpv_set_option_string(mpv, "osd-level", "0");
     mpv_set_option_string(mpv, "video-timing-offset", "0");  // 60fps
-    mpv_set_option_string(mpv, "keep-open", "yes");
-    mpv_set_option_string(mpv, "hr-seek", "yes");
     mpv_set_option_string(mpv, "reset-on-next-file", "speed,pause");
     mpv_set_option_string(mpv, "subs-fallback", "yes");
 
@@ -203,31 +198,8 @@ void MPVCore::init() {
         brls::fatal("failed to initialize mpv context");
     }
 
-    this->mpv_version = mpv_get_property_string(mpv, "mpv-version");
-    this->ffmpeg_version = mpv_get_property_string(mpv, "ffmpeg-version");
-    brls::Logger::info("version: {} ffmpeg {}", this->mpv_version, this->ffmpeg_version);
-    // check supported decoder
-    mpv_node node;
-    mpv_get_property(mpv, "decoder-list", MPV_FORMAT_NODE, &node);
-    if (node.format == MPV_FORMAT_NODE_ARRAY) {
-        mpv_node_list *codec_list = node.u.list;
-        for (int i = 0; i < codec_list->num; i++) {
-            if (codec_list->values[i].format == MPV_FORMAT_NODE_MAP) {
-                mpv_node_list *codec_map = codec_list->values[i].u.list;
-                std::string name, desc;
-                for (int n = 0; n < codec_map->num; n++) {
-                    char *key = codec_map->keys[n];
-                    if (strcmp(key, "codec") == 0) {
-                        name = codec_map->values[n].u.string;
-                    } else if (strcmp(key, "description") == 0) {
-                        desc = codec_map->values[n].u.string;
-                    }
-                }
-                support_codecs.insert(std::make_pair(name, desc));
-            }
-        }
-    }
-    mpv_free_node_contents(&node);
+    brls::Logger::info("version: {} ffmpeg {}", mpv_get_property_string(mpv, "mpv-version"),
+        mpv_get_property_string(mpv, "ffmpeg-version"));
 
     command_str("set audio-client-name {}", AppVersion::getPackageName());
     // set event callback
@@ -237,21 +209,14 @@ void MPVCore::init() {
 
     focusSubscription = brls::Application::getWindowFocusChangedEvent()->subscribe([this](bool focus) {
         static bool playing = false;
-        // save current AUTO_PLAY value to autoPlay
-        static bool autoPlay = AUTO_PLAY;
-        if (focus) {
-            // restore AUTO_PLAY
-            AUTO_PLAY = autoPlay;
-            // application is on top
-            if (playing) {
-                resume();
-            }
-        } else {
+        if (!focus) {
+            const char *cmd[] = {"set", "pause", "yes", nullptr};
             // application is sleep, save the current state
             playing = !isPaused();
-            pause();
-            // do not automatically play video
-            AUTO_PLAY = false;
+            command_async(cmd);
+        } else if (playing) {  // application is on top
+            const char *cmd[] = {"set", "pause", "no", nullptr};
+            command_async(cmd);
         }
     });
 }
@@ -279,12 +244,38 @@ void MPVCore::restart() {
     this->init();
 }
 
+MPVMap MPVCore::supportCodecs() {
+    MPVMap codecs;
+    mpv_node node;
+    mpv_get_property(mpv, "decoder-list", MPV_FORMAT_NODE, &node);
+    if (node.format == MPV_FORMAT_NODE_ARRAY) {
+        mpv_node_list *codec_list = node.u.list;
+        for (int i = 0; i < codec_list->num; i++) {
+            if (codec_list->values[i].format == MPV_FORMAT_NODE_MAP) {
+                mpv_node_list *codec_map = codec_list->values[i].u.list;
+                std::string name, desc;
+                for (int n = 0; n < codec_map->num; n++) {
+                    char *key = codec_map->keys[n];
+                    if (strcmp(key, "codec") == 0) {
+                        name = codec_map->values[n].u.string;
+                    } else if (strcmp(key, "description") == 0) {
+                        desc = codec_map->values[n].u.string;
+                    }
+                }
+                codecs.insert(std::make_pair(name, desc));
+            }
+        }
+    }
+    mpv_free_node_contents(&node);
+    return codecs;
+}
+
 void MPVCore::command_str(const char *args) {
     if (this->mpv) check_error(mpv_command_string(mpv, args));
 }
 
-void MPVCore::command_async(const char **args) {
-    if (this->mpv) check_error(mpv_command_async(mpv, 0, args));
+void MPVCore::command_async(const char **args, uint64_t reply_userdata) {
+    if (this->mpv) check_error(mpv_command_async(mpv, reply_userdata, args));
 }
 
 void MPVCore::setFrameSize(brls::Rect rect) {
@@ -421,8 +412,6 @@ void MPVCore::eventMainLoop() {
             brls::Logger::info("MPVCore => EVENT_FILE_LOADED");
             // event 8: 文件预加载结束，准备解码
             mpvCoreEvent.fire(MpvEventEnum::MPV_LOADED);
-            // 移除其他备用链接
-            command_str("playlist-clear");
             break;
         case MPV_EVENT_START_FILE:
             // event 6: 开始加载文件
@@ -438,10 +427,6 @@ void MPVCore::eventMainLoop() {
             // event 21: 开始播放文件（一般是播放或调整进度结束之后触发）
             brls::Logger::info("MPVCore => EVENT_PLAYBACK_RESTART");
             mpvCoreEvent.fire(MpvEventEnum::LOADING_END);
-            if (AUTO_PLAY)
-                this->resume();
-            else
-                this->pause();
             break;
         case MPV_EVENT_END_FILE:
             // event 7: 文件播放结束
@@ -449,6 +434,22 @@ void MPVCore::eventMainLoop() {
             brls::Logger::info("MPVCore => STOP");
             mpvCoreEvent.fire(MpvEventEnum::MPV_STOP);
             break;
+        case MPV_EVENT_COMMAND_REPLY: {
+            mpv_event_command *cmd = (mpv_event_command *)event->data;
+            if (cmd->result.format == MPV_FORMAT_NODE_MAP) {
+                mpv_node_list *node_list = cmd->result.u.list;
+                for (int i = 0; i < node_list->num; i++) {
+                    std::string key = node_list->keys[i];
+                    auto &value = node_list->values[i];
+                    if (value.format == MPV_FORMAT_INT64) {
+                        brls::Logger::info("MPVCore => COMMAND {} = {}", key, value.u.int64);
+                    } else if (value.format == MPV_FORMAT_STRING) {
+                        brls::Logger::info("MPVCore => COMMAND {} = {}", key, value.u.string);
+                    }
+                }
+            }
+            break;
+        }
         case MPV_EVENT_PROPERTY_CHANGE: {
             /// https://mpv.io/manual/stable/#property-list
             mpv_event_property *prop = (mpv_event_property *)event->data;
@@ -527,9 +528,10 @@ void MPVCore::setUrl(const std::string &url, const std::string &extra, const std
     }
 }
 
-void MPVCore::resume() { command_str("set pause no"); }
-
-void MPVCore::pause() { command_str("set pause yes"); }
+void MPVCore::togglePlay() {
+    const char *cmd[] = {"cycle", "pause", nullptr};
+    command_async(cmd);
+}
 
 void MPVCore::stop() {
     const char *cmd[] = {"stop", nullptr};
@@ -538,29 +540,21 @@ void MPVCore::stop() {
 
 void MPVCore::seek(int64_t p) { command_str("seek {} absolute", p); }
 
-int MPVCore::get_property(const char *name, mpv_format format, void *data) {
-    return mpv_get_property(mpv, name, format, data);
-}
-
-int MPVCore::set_property(const char *name, mpv_format format, void *data) {
-    return mpv_set_property(mpv, name, format, data);
-}
-
 bool MPVCore::isStopped() {
     int ret = 1;
-    get_property("playback-abort", MPV_FORMAT_FLAG, &ret);
+    mpv_get_property(mpv, "playback-abort", MPV_FORMAT_FLAG, &ret);
     return ret == 1;
 }
 
 bool MPVCore::isPaused() {
     int ret = -1;
-    get_property("pause", MPV_FORMAT_FLAG, &ret);
+    mpv_get_property(mpv, "pause", MPV_FORMAT_FLAG, &ret);
     return ret == 1;
 }
 
 double MPVCore::getSpeed() {
     double ret = 1;
-    get_property("speed", MPV_FORMAT_DOUBLE, &ret);
+    mpv_get_property(mpv, "speed", MPV_FORMAT_DOUBLE, &ret);
     return ret;
 }
 
@@ -585,8 +579,8 @@ void MPVCore::setDouble(const std::string &key, double value) {
     mpv_set_property(mpv, key.c_str(), MPV_FORMAT_DOUBLE, &value);
 }
 
-int64_t MPVCore::getInt(const std::string &key) {
-    int64_t value = 0;
+int64_t MPVCore::getInt(const std::string &key, int64_t default_value) {
+    int64_t value = default_value;
     mpv_get_property(mpv, key.c_str(), MPV_FORMAT_INT64, &value);
     return value;
 }
@@ -612,10 +606,6 @@ std::unordered_map<std::string, mpv_node> MPVCore::getNodeMap(const std::string 
     return nodeMap;
 }
 
-double MPVCore::getPlaybackTime() {
-    get_property("pause", MPV_FORMAT_DOUBLE, &this->playback_time);
-    return this->playback_time;
-}
 void MPVCore::disableDimming(bool disable) {
     brls::Application::getPlatform()->disableScreenDimming(disable, "Playing video", AppVersion::getPackageName());
     brls::Application::setAutomaticDeactivation(!disable);

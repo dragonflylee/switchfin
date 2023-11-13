@@ -46,8 +46,7 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src, std::function<voi
     }
     // 字幕选择
     if (subTrack.size() > 1) {
-        int64_t value = 0;
-        mpv.get_property("sid", MPV_FORMAT_INT64, &value);
+        int64_t value = mpv.getInt("sid");
         this->subtitleTrack->init("main/player/subtitle"_i18n, subTrack, value, [&mpv](int selected) {
             selectedSubtitle = selected;
             mpv.setInt("sid", selected);
@@ -65,8 +64,7 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src, std::function<voi
     }
     // 音轨选择
     if (audioTrack.size() > 1) {
-        int64_t value = 0;
-        if (!mpv.get_property("aid", MPV_FORMAT_INT64, &value)) value -= 1;
+        int64_t value = mpv.getInt("aid", 1) - 1;
         this->audioTrack->init("main/player/audio"_i18n, audioTrack, value, [&mpv](int selected) {
             selectedAudio = selected + 1;
             mpv.setInt("aid", selectedAudio);

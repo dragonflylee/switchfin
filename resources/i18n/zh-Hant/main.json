@@ -23,6 +23,7 @@
     "chapter": "章節",
     "auto": "自動",
     "toggle": "播放/暫停",
+    "error": "播放錯誤",
     "speed_up": "{} 倍速播放中"
   },
   "media": {
@@ -80,8 +81,10 @@
       "signin": "登入"
     },
     "playback": {
-      "bottom_bar": "顯示底部進度條",
       "header": "播放設定",
+      "bottom_bar": "顯示底部進度條",
+      "low_quality": "低畫質解碼（以畫質為代價換取更低的功耗）",
+      "in_memory_cache": "解码緩存",
       "hwdec": "硬體解碼",
       "force_directplay": "强制直接播放",
       "maxbitrate": "最高碼率",

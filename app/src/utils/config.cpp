@@ -38,6 +38,9 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {OVERCLOCK, {"overclock"}},
     {PLAYER_BOTTOM_BAR, {"player_bottom_bar"}},
     {PLAYER_SEEKING_STEP, {"player_seeking_step", {"5", "10", "15", "30"}, {5, 10, 15, 30}}},
+    {PLAYER_LOW_QUALITY, {"player_low_quality"}},
+    {PLAYER_INMEMORY_CACHE, {"player_inmemory_cache", {"0MB", "10MB", "20MB", "50MB", "100MB", "200MB", "500MB"},
+                                {0, 10, 20, 50, 100, 200, 500}}},
     {PLAYER_HWDEC, {"player_hwdec"}},
     {PLAYER_HWDEC_CUSTOM, {"player_hwdec_custom"}},
     {TEXTURE_CACHE_NUM, {"texture_cache_num"}},
@@ -65,6 +68,10 @@ void AppConfig::init() {
     // 初始化是否固定显示底部进度条
     MPVCore::BOTTOM_BAR = this->getItem(PLAYER_BOTTOM_BAR, true);
     MPVCore::OSD_ON_TOGGLE = this->getItem(PLAYER_BOTTOM_BAR, true);
+    // 初始化内存缓存大小
+    MPVCore::INMEMORY_CACHE = this->getItem(PLAYER_INMEMORY_CACHE, 10);
+    // 是否使用低质量解码
+    MPVCore::LOW_QUALITY = this->getItem(PLAYER_LOW_QUALITY, false);
 
     // 初始化是否使用硬件加速
     MPVCore::HARDWARE_DEC = this->getItem(PLAYER_HWDEC, true);

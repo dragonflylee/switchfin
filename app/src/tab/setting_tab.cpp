@@ -53,8 +53,8 @@ public:
         this->btnGithub->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnGithub));
 
         auto& mpv = MPVCore::instance();
-        std::string thirdpart = fmt::format("ffmpeg/{} {}\n{}", mpv.ffmpeg_version, mpv.mpv_version, curl_version());
-        this->labelThirdpart->setText(thirdpart);
+        this->labelThirdpart->setText(fmt::format(
+            "ffmpeg/{} {}\n{}", mpv.getString("ffmpeg-version"), mpv.getString("mpv-version"), curl_version()));
         brls::Logger::debug("dialog SettingAbout: create");
     }
 
@@ -128,6 +128,15 @@ void SettingTab::onCreate() {
         conf.getValueIndex(AppConfig::PLAYER_SEEKING_STEP, 2), [&seekingOption](int selected) {
             MPVCore::SEEKING_STEP = seekingOption.values[selected];
             AppConfig::instance().setItem(AppConfig::PLAYER_SEEKING_STEP, MPVCore::SEEKING_STEP);
+        });
+
+    auto& inmemoryOption = conf.getOptions(AppConfig::PLAYER_INMEMORY_CACHE);
+    selectorInmemory->init("main/setting/playback/in_memory_cache"_i18n, inmemoryOption.options,
+        conf.getValueIndex(AppConfig::PLAYER_INMEMORY_CACHE, 1), [&inmemoryOption](int selected) {
+            if (MPVCore::INMEMORY_CACHE == inmemoryOption.values[selected]) return;
+            MPVCore::INMEMORY_CACHE = inmemoryOption.values[selected];
+            AppConfig::instance().setItem(AppConfig::PLAYER_INMEMORY_CACHE, MPVCore::INMEMORY_CACHE);
+            MPVCore::instance().restart();
         });
 
     btnBottomBar->init(

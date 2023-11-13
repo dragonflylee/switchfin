@@ -30,12 +30,11 @@ typedef enum MpvEventEnum {
     END_OF_FILE,
     CACHE_SPEED_CHANGE,
     VIDEO_SPEED_CHANGE,
+    MPV_FILE_ERROR,
 } MpvEventEnum;
 
 typedef brls::Event<MpvEventEnum> MPVEvent;
-typedef brls::Event<std::string, void *> MPVCustomEvent;
-#define MPV_E MPVCore::instance().getEvent()
-#define MPV_CE MPVCore::instance().getCustomEvent()
+typedef std::unordered_map<std::string, std::string> MPVMap;
 
 class MPVCore : public brls::Singleton<MPVCore> {
 public:
@@ -49,10 +48,6 @@ public:
 
     void clean();
 
-    static void on_update(void *self);
-
-    static void on_wakeup(void *self);
-
     void command_str(const char *args);
 
     template <typename... T>
@@ -61,19 +56,13 @@ public:
         command_str(cmd.c_str());
     }
 
-    void command_async(const char **args);
-
-    int get_property(const char *name, mpv_format format, void *data);
-
-    int set_property(const char *name, mpv_format format, void *data);
+    void command_async(const char **args, uint64_t reply_userdata = 0);
 
     bool isStopped();
 
     bool isPaused();
 
     double getSpeed();
-
-    double getPlaybackTime();
 
     std::string getCacheSpeed() const;
 
@@ -84,14 +73,12 @@ public:
     double getDouble(const std::string &key);
     void setDouble(const std::string &key, double value);
 
-    int64_t getInt(const std::string &key);
+    int64_t getInt(const std::string &key, int64_t default_value = 0);
     void setInt(const std::string &key, int64_t value);
 
     std::unordered_map<std::string, mpv_node> getNodeMap(const std::string &key);
 
-    void resume();
-
-    void pause();
+    void togglePlay();
 
     void stop();
 
@@ -107,10 +94,6 @@ public:
 
     void draw(brls::Rect rect, float alpha = 1.0);
 
-    mpv_render_context *getContext() { return this->mpv_context; }
-
-    mpv_handle *getHandle() { return this->mpv; }
-
     /**
      * 播放器内部事件
      * 传递内容为: 事件类型
@@ -123,6 +106,8 @@ public:
 
     void clearShader(bool showHint = true);
 
+    MPVMap supportCodecs();
+
     // core states
     int64_t duration = 0;  // second
     int64_t video_progress = 0;
@@ -130,10 +115,6 @@ public:
     double video_speed = 0;
     double playback_time = 0;
     double percent_pos = 0;
-
-    std::string mpv_version;
-    std::string ffmpeg_version;
-    std::map<std::string, std::string> support_codecs;
 
     inline static bool DEBUG = false;
 
@@ -154,9 +135,6 @@ public:
     inline static std::vector<int64_t> MAX_BITRATE = {0, 10000000, 8000000, 4000000, 2000000};
 
     inline static bool FORCE_DIRECTPLAY = false;
-
-    // 此变量为真时，加载结束后自动播放视频
-    inline static bool AUTO_PLAY = true;
 
     // 触发倍速时的默认值，单位为 %
     inline static int VIDEO_SPEED = 200;
@@ -214,4 +192,7 @@ private:
 
     /// Will be called in main thread to get events from mpv core
     void eventMainLoop();
+
+    static void on_update(void *self);
+    static void on_wakeup(void *self);
 };

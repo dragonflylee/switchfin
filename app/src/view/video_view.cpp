@@ -156,7 +156,7 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
                     brls::cancelDelay(this->tapIter);
                     if (brls::getCPUTimeUsec() - this->pressTime < CHECK_TIME) {
                         // 双击切换播放状态
-                        mpv.isPaused() ? mpv.resume() : mpv.pause();
+                        mpv.togglePlay();
                         this->clickState = ClickState::IDLE;
                     } else {
                         // 单击切换 OSD，设置一个延迟用来等待双击结果
@@ -178,8 +178,8 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
         }));
 
     /// 播放/暂停 按钮
-    this->btnToggle->registerClickAction([this](...) {
-        this->togglePlay();
+    this->btnToggle->registerClickAction([](...) {
+        MPVCore::instance().togglePlay();
         return true;
     });
     this->btnToggle->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnToggle));
@@ -192,7 +192,7 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
     this->btnForward->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnForward));
 
     this->registerAction("main/player/toggle"_i18n, brls::BUTTON_A, [this](brls::View* view) {
-        this->togglePlay();
+        MPVCore::instance().togglePlay();
         if (MPVCore::OSD_ON_TOGGLE) {
             this->showOSD(true);
         }
@@ -229,7 +229,8 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
 
     /// 倍速按钮
     this->btnVideoSpeed->registerClickAction([this](...) { return this->toggleSpeed(); });
-    this->registerAction("main/player/speed"_i18n, brls::BUTTON_LSB, [this](...) { return this->toggleSpeed(); });
+    this->registerAction(
+        "main/player/speed"_i18n, brls::BUTTON_LSB, [this](...) { return this->toggleSpeed(); }, true);
     this->btnVideoSpeed->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoSpeed));
 
     /// 章节信息
@@ -256,6 +257,7 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
     });
     this->btnVideoChapter->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoChapter));
 
+    MPVCore::instance().stop();
     // request mediainfo
     ASYNC_RETAIN
     jellyfin::getJSON(
@@ -600,7 +602,7 @@ void VideoView::reportStop() {
         },
         [](...) {}, nullptr, jellyfin::apiPlayStop);
 
-    brls::Logger::info("VideoView reportStop {}", this->playSessionId);
+    brls::Logger::debug("VideoView reportStop {}", this->playSessionId);
     this->playSessionId.clear();
 }
 
@@ -720,6 +722,12 @@ void VideoView::registerMpvEvent() {
                 this->centerLabel->setText(MPVCore::instance().getCacheSpeed());
             }
             break;
+        case MpvEventEnum::MPV_FILE_ERROR:
+            auto dialog = new brls::Dialog("main/player/error"_i18n);
+            dialog->addButton(
+                "hints/ok"_i18n, []() { brls::Application::popActivity(brls::TransitionAnimation::NONE, &onDismiss); });
+            dialog->open();
+            break;
         }
     });
 }
@@ -736,11 +744,6 @@ void VideoView::showLoading() {
 }
 
 void VideoView::hideLoading() { this->osdCenterBox->setVisibility(brls::Visibility::GONE); }
-
-void VideoView::togglePlay() {
-    auto& mpv = MPVCore::instance();
-    mpv.isPaused() ? mpv.resume() : mpv.pause();
-}
 
 bool VideoView::toggleProfile() {
     if (profile->getVisibility() == brls::Visibility::VISIBLE) {

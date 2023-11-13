@@ -23,6 +23,7 @@
     "chapter": "章节",
     "auto": "自动",
     "toggle": "播放/暂停",
+    "error": "播放失败",
     "speed_up": "{} 倍速播放中"
   },
   "media": {
@@ -80,8 +81,10 @@
       "signin": "登录"
     },
     "playback": {
-      "bottom_bar": "显示底部进度条",
       "header": "播放设置",
+      "bottom_bar": "显示底部进度条",
+      "low_quality": "低画质解码（以画质为代价换取更低的功耗）",
+      "in_memory_cache": "解码缓存",
       "hwdec": "硬件解码",
       "force_directplay": "强制客户端解码",
       "osd_on_toggle": "暂停时显示控制界面",

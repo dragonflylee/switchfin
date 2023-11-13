@@ -88,7 +88,6 @@ private:
 
     void showLoading();
     void hideLoading();
-    void togglePlay();
     bool toggleProfile();
     /// OSD
     void toggleOSD();
@@ -117,7 +116,6 @@ private:
     size_t seekingIter = 0;
 
     MPVEvent::Subscription eventSubscribeID;
-    MPVCustomEvent::Subscription customEventSubscribeID;
     brls::VoidEvent::Subscription exitSubscribeID;
     brls::Rect oldRect = brls::Rect(-1, -1, -1, -1);
     brls::InputManager* input;
