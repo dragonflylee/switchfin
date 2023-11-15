@@ -83,7 +83,7 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
     osdSlider->getProgressSetEvent().subscribe([this](float progress) {
         brls::Logger::verbose("Set progress: {}", progress);
         this->showOSD(true);
-        MPVCore::instance().command_str("seek {} absolute-percent", progress * 100);
+        MPVCore::instance().seek(progress * 100, "absolute-percent");
     });
 
     osdSlider->getProgressEvent().subscribe([this](float progress) { this->showOSD(false); });
@@ -235,7 +235,7 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
             "main/player/chapter"_i18n, values,
             [this](int selected) {
                 int64_t offset = this->chapters[selected].StartPositionTicks;
-                MPVCore::instance().command_str("seek {} absolute", offset / jellyfin::PLAYTICKS);
+                MPVCore::instance().seek(offset / jellyfin::PLAYTICKS);
             },
             selectedChapter);
         brls::Application::pushActivity(new brls::Activity(dropdown));
@@ -300,7 +300,7 @@ void VideoView::requestSeeking() {
     ASYNC_RETAIN
     this->seekingIter = brls::delay(400, [ASYNC_TOKEN]() {
         ASYNC_RELEASE
-        MPVCore::instance().command_str("seek {}", this->seekingRange);
+        MPVCore::instance().seek(this->seekingRange, "relative");
         this->seekingRange = 0;
     });
 }
@@ -622,7 +622,6 @@ void VideoView::registerMpvEvent() {
     auto& mpv = MPVCore::instance();
     this->eventSubscribeID = mpv.getEvent()->subscribe([this](MpvEventEnum event) {
         auto& mpv = MPVCore::instance();
-        auto& svr = AppConfig::instance().getUrl();
         // brls::Logger::info("mpv event => : {}", event);
         switch (event) {
         case MpvEventEnum::MPV_RESUME:
@@ -658,16 +657,18 @@ void VideoView::registerMpvEvent() {
             this->showOSD(false);
             this->reportStop();
             break;
-        case MpvEventEnum::MPV_LOADED:
+        case MpvEventEnum::MPV_LOADED: {
+            auto& svr = AppConfig::instance().getUrl();
             // 移除其他备用链接
-            mpv.command_str("playlist-clear");
+            mpv.command("playlist-clear");
             if (this->seekingRange == 0) {
                 this->leftStatusLabel->setText(misc::sec2Time(mpv.video_progress));
             }
             for (auto& s : this->itemSource.MediaStreams) {
                 if (s.Type == jellyfin::streamTypeSubtitle) {
                     if (s.DeliveryUrl.size() > 0 && (s.IsExternal || this->playMethod == jellyfin::methodTranscode)) {
-                        mpv.command_str("sub-add '{}{}' auto '{}'", svr, s.DeliveryUrl, s.DisplayTitle);
+                        std::string url = svr + s.DeliveryUrl;
+                        mpv.command("sub-add", url.c_str(), "auto", s.DisplayTitle.c_str());
                     }
                 }
             }
@@ -675,6 +676,7 @@ void VideoView::registerMpvEvent() {
                 mpv.setInt("sid", PlayerSetting::selectedSubtitle);
             }
             break;
+        }
         case MpvEventEnum::UPDATE_DURATION:
             if (this->seekingRange == 0) {
                 this->rightStatusLabel->setText(misc::sec2Time(mpv.duration));

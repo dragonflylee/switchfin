@@ -7,9 +7,7 @@
 #include <fmt/ranges.h>
 
 static inline void check_error(int status) {
-    if (status < 0) {
-        brls::Logger::error("MPV ERROR ====> {}", mpv_error_string(status));
-    }
+    if (status < 0) brls::Logger::error("MPV ERROR => {}", mpv_error_string(status));
 }
 
 #ifndef MPV_SW_RENDER
@@ -199,7 +197,7 @@ void MPVCore::init() {
     brls::Logger::info("version: {} ffmpeg {}", mpv_get_property_string(mpv, "mpv-version"),
         mpv_get_property_string(mpv, "ffmpeg-version"));
 
-    command_str("set audio-client-name {}", AppVersion::getPackageName());
+    this->command("set", "audio-client-name", AppVersion::getPackageName().c_str());
     // set event callback
     mpv_set_wakeup_callback(mpv, on_wakeup, this);
     // set render callback
@@ -208,13 +206,11 @@ void MPVCore::init() {
     focusSubscription = brls::Application::getWindowFocusChangedEvent()->subscribe([this](bool focus) {
         static bool playing = false;
         if (!focus) {
-            const char *cmd[] = {"set", "pause", "yes", nullptr};
             // application is sleep, save the current state
             playing = !isPaused();
-            command_async(cmd);
+            command("set", "pause", "yes");
         } else if (playing) {  // application is on top
-            const char *cmd[] = {"set", "pause", "no", nullptr};
-            command_async(cmd);
+            command("set", "pause", "no");
         }
     });
 }
@@ -266,14 +262,6 @@ MPVMap MPVCore::supportCodecs() {
     }
     mpv_free_node_contents(&node);
     return codecs;
-}
-
-void MPVCore::command_str(const char *args) {
-    if (this->mpv) check_error(mpv_command_string(mpv, args));
-}
-
-void MPVCore::command_async(const char **args, uint64_t reply_userdata) {
-    if (this->mpv) check_error(mpv_command_async(mpv, reply_userdata, args));
 }
 
 void MPVCore::setFrameSize(brls::Rect rect) {
@@ -439,7 +427,7 @@ void MPVCore::eventMainLoop() {
             this->video_stopped = true;
             auto node = (mpv_event_end_file *)event->data;
             if (node->reason == MPV_END_FILE_REASON_ERROR) {
-                brls::Logger::error("MPVCore => ERROR: {}", mpv_error_string(node->error));
+                brls::Logger::error("MPVCore => FILE ERROR: {}", mpv_error_string(node->error));
                 mpvCoreEvent.fire(MpvEventEnum::MPV_FILE_ERROR);
             } else if (node->reason == MPV_END_FILE_REASON_EOF) {
                 brls::Logger::info("MPVCore => END_OF_FILE");
@@ -453,7 +441,7 @@ void MPVCore::eventMainLoop() {
         case MPV_EVENT_COMMAND_REPLY: {
             mpv_event_command *cmd = (mpv_event_command *)event->data;
             if (event->error) {
-                brls::Logger::error("MPVCore => ERROR: {}", mpv_error_string(event->error));
+                brls::Logger::error("MPVCore => COMMAND ERROR: {}", mpv_error_string(event->error));
                 break;
             }
             if (event->reply_userdata > 0 && cmd->result.format == MPV_FORMAT_NODE_MAP) {
@@ -542,29 +530,25 @@ void MPVCore::reset() {
     this->video_progress = 0;
 }
 
-void MPVCore::setUrl(
-    const std::string &url, const std::string &extra, const std::string &method, uint64_t reply_userdata) {
+void MPVCore::setUrl(const std::string &url, const std::string &extra, const std::string &method, uint64_t userdata) {
     brls::Logger::debug("{} Url: {}, extra: {}", method, url, extra);
     if (extra.empty()) {
         const char *cmd[] = {"loadfile", url.c_str(), method.c_str(), nullptr};
-        command_async(cmd, reply_userdata);
+        mpv_command_async(this->mpv, userdata, cmd);
     } else {
         const char *cmd[] = {"loadfile", url.c_str(), method.c_str(), extra.c_str(), nullptr};
-        command_async(cmd, reply_userdata);
+        mpv_command_async(this->mpv, userdata, cmd);
     }
 }
 
-void MPVCore::togglePlay() {
-    const char *cmd[] = {"cycle", "pause", nullptr};
-    command_async(cmd);
-}
+void MPVCore::togglePlay() { this->command("cycle", "pause"); }
 
-void MPVCore::stop() {
-    const char *cmd[] = {"stop", nullptr};
-    command_async(cmd);
-}
+void MPVCore::stop() { this->command("stop"); }
 
-void MPVCore::seek(int64_t p) { command_str("seek {} absolute", p); }
+void MPVCore::seek(int64_t value, const std::string &flags) {
+    std::string pos = std::to_string(value);
+    this->command("seek", pos.c_str(), flags.c_str());
+}
 
 bool MPVCore::isStopped() {
     int ret = 1;
@@ -584,7 +568,10 @@ double MPVCore::getSpeed() {
     return ret;
 }
 
-void MPVCore::setSpeed(double value) { this->command_str("set speed {}", value); }
+void MPVCore::setSpeed(double value) {
+    std::string speed = std::to_string(value);
+    this->command("set", "speed", speed.c_str());
+}
 
 std::string MPVCore::getString(const std::string &key) {
     char *value = nullptr;
@@ -640,12 +627,17 @@ void MPVCore::disableDimming(bool disable) {
 void MPVCore::setShader(const std::string &profile, const std::string &shaders, bool showHint) {
     brls::Logger::info("Set shader [{}]: {}", profile, shaders);
     if (shaders.empty()) return;
-    mpv_command_string(mpv, fmt::format("no-osd change-list glsl-shaders set \"{}\"", shaders).c_str());
-    if (showHint) mpv_command_string(mpv, fmt::format("show-text \"{}\" 2000", profile).c_str());
+    this->command("no-osd", "change-list", "glsl-shaders", "set", shaders.c_str());
+    if (showHint) showOsdText(profile);
 }
 
 void MPVCore::clearShader(bool showHint) {
     brls::Logger::info("Clear shader");
-    mpv_command_string(mpv, "no-osd change-list glsl-shaders clr \"\"");
-    if (showHint) mpv_command_string(mpv, "show-text \"Clear shader\" 2000");
+    this->command("no-osd", "change-list", "glsl-shaders", "clr", "");
+    if (showHint) showOsdText("Clear shader");
+}
+
+void MPVCore::showOsdText(const std::string &value, int duration) {
+    std::string d = std::to_string(duration);
+    this->command("show-text", value.c_str(), d.c_str());
 }

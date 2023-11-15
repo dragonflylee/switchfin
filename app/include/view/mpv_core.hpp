@@ -50,15 +50,11 @@ public:
 
     void clean();
 
-    void command_str(const char *args);
-
-    template <typename... T>
-    void command_str(std::string_view fmt, T &&...args) {
-        std::string cmd = fmt::format(fmt::runtime(fmt), std::forward<T>(args)...);
-        command_str(cmd.c_str());
+    template <typename... Args>
+    void command(Args &&...args) {
+        const char *cmd[] = {args..., nullptr};
+        if (mpv) mpv_command_async(mpv, 0, cmd);
     }
-
-    void command_async(const char **args, uint64_t reply_userdata = 0);
 
     bool isStopped();
 
@@ -69,7 +65,7 @@ public:
     std::string getCacheSpeed() const;
 
     void setUrl(const std::string &url, const std::string &extra = "", const std::string &method = "replace",
-        uint64_t reply_userdata = 0);
+        uint64_t userdata = 0);
 
     std::string getString(const std::string &key);
 
@@ -85,7 +81,7 @@ public:
 
     void stop();
 
-    void seek(int64_t p);
+    void seek(int64_t value, const std::string &flags = "absolute");
 
     void setSpeed(double value);
 
@@ -98,7 +94,7 @@ public:
     void draw(brls::Rect rect, float alpha = 1.0);
 
     /// @brief 播放器内部事件
-    /// @return 
+    /// @return
     MPVEvent *getEvent() { return &this->mpvCoreEvent; }
 
     /// @brief 可以用于共享自定义事件
@@ -114,6 +110,8 @@ public:
     void setShader(const std::string &profile, const std::string &shaders, bool showHint = true);
 
     void clearShader(bool showHint = true);
+
+    void showOsdText(const std::string &value, int duration = 2000);
 
     MPVMap supportCodecs();
 

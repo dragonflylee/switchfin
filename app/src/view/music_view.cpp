@@ -19,13 +19,13 @@ MusicView::MusicView() {
 
     /// 播放控制
     this->btnPrev->registerClickAction([&mpv](...) {
-        mpv.command_str("playlist-prev");
+        mpv.command("playlist-prev");
         return true;
     });
     this->btnPrev->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnPrev));
 
     this->btnNext->registerClickAction([&mpv](...) {
-        mpv.command_str("playlist-next");
+        mpv.command("playlist-next");
         return true;
     });
     this->btnNext->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnNext));
@@ -43,7 +43,7 @@ MusicView::MusicView() {
 
     osdSlider->getProgressSetEvent().subscribe([](float progress) {
         brls::Logger::verbose("Set progress: {}", progress);
-        MPVCore::instance().command_str("seek {} absolute-percent", progress * 100);
+        MPVCore::instance().seek(progress * 100, "absolute-percent");
     });
 
     // 注册播放事件回调
@@ -101,7 +101,9 @@ void MusicView::load(const std::vector<jellyfin::MusicTrack>& list) {
     });
     std::string extra = fmt::format("http-header-fields='X-Emby-Token: {}'", conf.getUser().access_token);
 
-    mpv.command_str("stop; playlist-clear");
+    mpv.stop();
+    mpv.command("playlist-clear");
+
     for (auto& item : list) {
         uint64_t userdata = reinterpret_cast<uint64_t>(&item);
         std::string url = fmt::format(jellyfin::apiAudio, item.Id, query);

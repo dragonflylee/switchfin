@@ -44,9 +44,8 @@ public:
 
     void onItemSelected(brls::View* recycler, size_t index) override {
         std::string i = std::to_string(index);
-        const char* cmd[] = {"playlist-play-index", i.c_str(), nullptr};
         MusicView::load(this->list);
-        MPVCore::instance().command_async(cmd);
+        MPVCore::instance().command("playlist-play-index", i.c_str());
     }
 
     void clearData() override { this->list.clear(); }
