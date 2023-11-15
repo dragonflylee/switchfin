@@ -9,7 +9,7 @@
 
 class PlayerSetting : public brls::Box {
 public:
-    PlayerSetting(const jellyfin::MediaSource& src, std::function<void()> reload);
+    PlayerSetting(const jellyfin::MediaSource& src);
     ~PlayerSetting() override;
 
     bool isTranslucent() override { return true; }

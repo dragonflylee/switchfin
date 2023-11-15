@@ -89,7 +89,7 @@
       "force_directplay": "Force direct play",
       "osd_on_toggle": "Show OSD when paused",
       "transcodec": "Transcodec",
-      "maxbitrate": "Max Bitrate",
+      "video_quality": "Video Quality",
       "seeking_step": "Seeking Step"
     },
     "network": {

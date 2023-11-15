@@ -49,7 +49,7 @@
                 <brls:BooleanCell
                     id="setting/video/directplay" />
                 <brls:SelectorCell
-                    id="setting/video/bitrate" />
+                    id="setting/video/quality" />
                 <brls:SelectorCell
                     id="setting/video/inmemory" />
                 <brls:SelectorCell

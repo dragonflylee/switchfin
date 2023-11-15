@@ -50,7 +50,7 @@ public:
         KEYMAP,
         TRANSCODEC,
         FORCE_DIRECTPLAY,
-        MAXBITRATE,
+        VIDEO_QUALITY,
         OSD_ON_TOGGLE,
         PLAYER_BOTTOM_BAR,
         PLAYER_SEEKING_STEP,

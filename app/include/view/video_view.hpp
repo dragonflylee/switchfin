@@ -48,6 +48,9 @@ public:
 
     void setTitie(const std::string& title);
 
+    // 用于 VideoView 可以接收的自定义事件
+    inline static const std::string QUALITY_CHANGE = "QUALITY_CHANGE";
+
 private:
     /// OSD
     BRLS_BIND(brls::Label, titleLabel, "video/osd/title");
@@ -94,6 +97,7 @@ private:
     void showOSD(bool autoHide = true);
     void hideOSD();
     bool toggleSpeed();
+    bool toggleQuality();
     void showSetting();
     void showHint(const std::string& value);
 
@@ -116,6 +120,7 @@ private:
     size_t seekingIter = 0;
 
     MPVEvent::Subscription eventSubscribeID;
+    MPVCustomEvent::Subscription customEventSubscribeID;
     brls::VoidEvent::Subscription exitSubscribeID;
     brls::Rect oldRect = brls::Rect(-1, -1, -1, -1);
     brls::InputManager* input;
@@ -133,7 +138,6 @@ private:
     /// @brief DirectPlay, Transcode
     std::string playMethod;
     std::string playSessionId;
-    inline static int selectedQuality = 0;
     size_t itemIndex = -1;
     jellyfin::MediaSource itemSource;
     std::vector<jellyfin::MediaEpisode> showEpisodes;

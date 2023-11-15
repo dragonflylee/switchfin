@@ -32,7 +32,10 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {KEYMAP, {"keymap", {"xbox", "ps", "keyboard"}}},
     {TRANSCODEC, {"transcodec", {"h264", "hevc", "av1"}}},
     {FORCE_DIRECTPLAY, {"force_directplay"}},
-    {MAXBITRATE, {"max_bitrate", {"20Mbps", "40Mbps", "80Mbps", "160Mbps"}, {20000000, 40000000, 80000000, 160000000}}},
+    {VIDEO_QUALITY, {"video_quality",
+                        {"Direct", "1080p - 60Mbps", "1080p - 40Mbps", "1080p - 20Mbps", "720p - 8Mbps", "720p - 6Mbps",
+                            "480p - 3Mbps", "480P - 1Mbps"},
+                        {0, 60, 40, 20, 8, 6, 3, 1}}},
     {FULLSCREEN, {"fullscreen"}},
     {OSD_ON_TOGGLE, {"osd_on_toggle"}},
     {OVERCLOCK, {"overclock"}},
@@ -77,8 +80,8 @@ void AppConfig::init() {
     MPVCore::HARDWARE_DEC = this->getItem(PLAYER_HWDEC, true);
     MPVCore::FORCE_DIRECTPLAY = this->getItem(FORCE_DIRECTPLAY, false);
     MPVCore::SEEKING_STEP = this->getItem(PLAYER_SEEKING_STEP, 15);
-    MPVCore::VIDEO_CODEC = this->getItem(TRANSCODEC, settingMap[TRANSCODEC].options.back());
-    MPVCore::MAX_BITRATE[0] = this->getItem(MAXBITRATE, settingMap[MAXBITRATE].values.back());
+    MPVCore::VIDEO_CODEC = this->getItem(TRANSCODEC, MPVCore::VIDEO_CODEC);
+    MPVCore::VIDEO_QUALITY = this->getItem(VIDEO_QUALITY, 0L);
 
     // 初始化自定义的硬件加速方案
     MPVCore::PLAYER_HWDEC_METHOD = this->getItem(PLAYER_HWDEC_CUSTOM, MPVCore::PLAYER_HWDEC_METHOD);

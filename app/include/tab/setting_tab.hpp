@@ -35,7 +35,7 @@ private:
     BRLS_BIND(brls::BooleanCell, btnHWDEC, "setting/video/hwdec");
     BRLS_BIND(brls::BooleanCell, btnDirectPlay, "setting/video/directplay");
     BRLS_BIND(brls::SelectorCell, selectorCodec, "setting/video/codec");
-    BRLS_BIND(brls::SelectorCell, selectorBitrate, "setting/video/bitrate");
+    BRLS_BIND(brls::SelectorCell, selectorQuality, "setting/video/quality");
     BRLS_BIND(brls::SelectorCell, selectorSeeking, "setting/player/seeking");
     BRLS_BIND(brls::SelectorCell, selectorInmemory, "setting/video/inmemory");
     BRLS_BIND(brls::BooleanCell, btnBottomBar, "setting/player/bottom_bar");

@@ -457,16 +457,18 @@ void MPVCore::eventMainLoop() {
                 break;
             }
             if (cmd->result.format == MPV_FORMAT_NODE_MAP) {
+                MPVMap m;
                 mpv_node_list *node_list = cmd->result.u.list;
                 for (int i = 0; i < node_list->num; i++) {
                     std::string key = node_list->keys[i];
                     auto &value = node_list->values[i];
                     if (value.format == MPV_FORMAT_INT64) {
-                        brls::Logger::debug("MPVCore => COMMAND: {} = {}", key, value.u.int64);
+                        m.insert(std::make_pair(key, std::to_string(value.u.int64)));
                     } else if (value.format == MPV_FORMAT_STRING) {
-                        brls::Logger::debug("MPVCore => COMMAND: {} = {}", key, value.u.string);
+                        m.insert(std::make_pair(key, value.u.string));
                     }
                 }
+                this->mpvCommandReply.fire(event->reply_userdata, m);
             }
             break;
         }
@@ -512,11 +514,11 @@ void MPVCore::eventMainLoop() {
                 break;
             case 7:  // paused-for-cache
                 if (!!*(int *)prop->data) {
-                    brls::Logger::info("MPVCore => PAUSED FOR CACHE");
+                    brls::Logger::debug("MPVCore => PAUSED FOR CACHE");
                     mpvCoreEvent.fire(MpvEventEnum::LOADING_START);
                     disableDimming(false);
                 } else {
-                    brls::Logger::info("MPVCore => RESUME FROM CACHE");
+                    brls::Logger::debug("MPVCore => RESUME FROM CACHE");
                     mpvCoreEvent.fire(MpvEventEnum::LOADING_END);
                     disableDimming(true);
                 }
@@ -530,8 +532,7 @@ void MPVCore::eventMainLoop() {
             }
             break;
         }
-        default:
-            break;
+        default:;
         }
     }
 }
@@ -545,14 +546,15 @@ void MPVCore::reset() {
     this->video_progress = 0;
 }
 
-void MPVCore::setUrl(const std::string &url, const std::string &extra, const std::string &method) {
+void MPVCore::setUrl(
+    const std::string &url, const std::string &extra, const std::string &method, uint64_t reply_userdata) {
     brls::Logger::debug("{} Url: {}, extra: {}", method, url, extra);
     if (extra.empty()) {
         const char *cmd[] = {"loadfile", url.c_str(), method.c_str(), nullptr};
-        command_async(cmd);
+        command_async(cmd, reply_userdata);
     } else {
         const char *cmd[] = {"loadfile", url.c_str(), method.c_str(), extra.c_str(), nullptr};
-        command_async(cmd);
+        command_async(cmd, reply_userdata);
     }
 }
 

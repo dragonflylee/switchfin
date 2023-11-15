@@ -87,9 +87,9 @@
       "in_memory_cache": "解码緩存",
       "hwdec": "硬體解碼",
       "force_directplay": "强制直接播放",
-      "maxbitrate": "最高碼率",
       "osd_on_toggle": "暫停時顯示控製界面",
       "transcodec": "轉碼格式",
+      "video_quality": "視頻質量",
       "seeking_step": "快進步進秒數"
     },
     "network": {

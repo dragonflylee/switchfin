@@ -1,10 +1,10 @@
 #include "view/player_setting.hpp"
-#include "view/mpv_core.hpp"
+#include "view/video_view.hpp"
 #include "utils/config.hpp"
 
 using namespace brls::literals;
 
-PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src, std::function<void()> reload) {
+PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
     this->inflateFromXMLRes("xml/view/player_setting.xml");
     brls::Logger::debug("PlayerSetting: create");
     this->audioTrack->detail->setVisibility(brls::Visibility::GONE);
@@ -55,9 +55,9 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src, std::function<voi
         int value = 0;
         for (size_t i = 0; i < subStream.size(); i++)
             if (subStream[i] == selectedSubtitle) value = i;
-        this->subtitleTrack->init("main/player/subtitle"_i18n, subSource, value, [subStream, reload](int selected) {
+        this->subtitleTrack->init("main/player/subtitle"_i18n, subSource, value, [subStream](int selected) {
             selectedSubtitle = subStream[selected];
-            reload();
+            MPVCore::instance().getCustomEvent()->fire(VideoView::QUALITY_CHANGE, nullptr);
         });
     } else {
         this->subtitleTrack->setVisibility(brls::Visibility::GONE);
@@ -74,9 +74,9 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src, std::function<voi
         int value = 0;
         for (size_t i = 0; i < audioStream.size(); i++)
             if (audioStream[i] == selectedAudio) value = i;
-        this->audioTrack->init("main/player/audio"_i18n, audioSource, value, [audioStream, reload](int selected) {
+        this->audioTrack->init("main/player/audio"_i18n, audioSource, value, [audioStream](int selected) {
             selectedAudio = audioStream[selected];
-            reload();
+            MPVCore::instance().getCustomEvent()->fire(VideoView::QUALITY_CHANGE, nullptr);
         });
     } else {
         this->audioTrack->setVisibility(brls::Visibility::GONE);

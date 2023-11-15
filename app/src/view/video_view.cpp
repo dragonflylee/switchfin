@@ -199,25 +199,11 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
         return true;
     });
 
-    static std::vector<std::string> qualities = {
-        "main/player/auto"_i18n, "1080P 10Mbps", "720P 8Mbps", "720P 4Mbps", "480P 2Mbps"};
-    this->videoQualityLabel->setText(qualities[VideoView::selectedQuality]);
-    this->btnVideoQuality->registerClickAction([this](brls::View* view) {
-        brls::Dropdown* dropdown = new brls::Dropdown(
-            "main/player/quality"_i18n, qualities,
-            [this](int selected) {
-                if (selected == VideoView::selectedQuality) return false;
-                VideoView::selectedQuality = selected;
-                this->videoQualityLabel->setText(qualities[selected]);
-                this->playMedia(MPVCore::instance().playback_time * jellyfin::PLAYTICKS);
-                return false;
-            },
-            VideoView::selectedQuality);
-        brls::Application::pushActivity(new brls::Activity(dropdown));
-        brls::sync([dropdown]() { brls::Application::giveFocus(dropdown); });
-        return true;
-    });
+    /// 视频质量
+    this->btnVideoQuality->registerClickAction([this](brls::View* view) { return this->toggleQuality(); });
     this->btnVideoQuality->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoQuality));
+    this->registerAction(
+        "main/player/quality"_i18n, brls::BUTTON_RSB, [this](...) { return this->toggleQuality(); }, true);
 
     /// 视频详情信息
     this->profile = new VideoProfile();
@@ -229,9 +215,9 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
 
     /// 倍速按钮
     this->btnVideoSpeed->registerClickAction([this](...) { return this->toggleSpeed(); });
+    this->btnVideoSpeed->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoSpeed));
     this->registerAction(
         "main/player/speed"_i18n, brls::BUTTON_LSB, [this](...) { return this->toggleSpeed(); }, true);
-    this->btnVideoSpeed->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoSpeed));
 
     /// 章节信息
     this->btnVideoChapter->registerClickAction([this](brls::View* view) {
@@ -320,8 +306,7 @@ void VideoView::requestSeeking() {
 }
 
 void VideoView::showSetting() {
-    brls::View* setting = new PlayerSetting(
-        this->itemSource, [this]() { this->playMedia(MPVCore::instance().playback_time * jellyfin::PLAYTICKS); });
+    brls::View* setting = new PlayerSetting(this->itemSource);
     brls::Application::pushActivity(new brls::Activity(setting));
     // 手动将焦点赋给设置页面
     brls::sync([setting]() { brls::Application::giveFocus(setting); });
@@ -489,7 +474,7 @@ void VideoView::playMedia(const time_t seekTicks) {
             {
                 "DeviceProfile",
                 {
-                    {"MaxStreamingBitrate", MPVCore::MAX_BITRATE[VideoView::selectedQuality]},
+                    {"MaxStreamingBitrate", MPVCore::VIDEO_QUALITY ? MPVCore::VIDEO_QUALITY << 20 : 1 << 24},
                     {
                         "DirectPlayProfiles",
                         {{
@@ -586,7 +571,7 @@ void VideoView::reportStart() {
             {"PlayMethod", this->playMethod},
             {"PlaySessionId", this->playSessionId},
             {"MediaSourceId", this->itemSource.Id},
-            {"MaxStreamingBitrate", MPVCore::MAX_BITRATE[VideoView::selectedQuality]},
+            {"MaxStreamingBitrate", MPVCore::VIDEO_QUALITY},
         },
         [](...) {}, nullptr, jellyfin::apiPlayStart);
 }
@@ -634,8 +619,8 @@ void VideoView::buttonProcessing() {
 }
 
 void VideoView::registerMpvEvent() {
-    auto& ev = MPVCore::instance().getEvent();
-    this->eventSubscribeID = ev.subscribe([this](MpvEventEnum event) {
+    auto& mpv = MPVCore::instance();
+    this->eventSubscribeID = mpv.getEvent()->subscribe([this](MpvEventEnum event) {
         auto& mpv = MPVCore::instance();
         auto& svr = AppConfig::instance().getUrl();
         // brls::Logger::info("mpv event => : {}", event);
@@ -674,6 +659,8 @@ void VideoView::registerMpvEvent() {
             this->reportStop();
             break;
         case MpvEventEnum::MPV_LOADED:
+            // 移除其他备用链接
+            mpv.command_str("playlist-clear");
             if (this->seekingRange == 0) {
                 this->leftStatusLabel->setText(misc::sec2Time(mpv.video_progress));
             }
@@ -722,19 +709,29 @@ void VideoView::registerMpvEvent() {
                 this->centerLabel->setText(MPVCore::instance().getCacheSpeed());
             }
             break;
-        case MpvEventEnum::MPV_FILE_ERROR:
+        case MpvEventEnum::MPV_FILE_ERROR: {
+            mpv.stop();
             auto dialog = new brls::Dialog("main/player/error"_i18n);
             dialog->addButton(
                 "hints/ok"_i18n, []() { brls::Application::popActivity(brls::TransitionAnimation::NONE, &onDismiss); });
             dialog->open();
             break;
         }
+        default:;
+        }
+    });
+    // 自定义的mpv事件
+    customEventSubscribeID = mpv.getCustomEvent()->subscribe([this](const std::string& event, void* data) {
+        if (event == VideoView::QUALITY_CHANGE) {
+            this->playMedia(MPVCore::instance().playback_time * jellyfin::PLAYTICKS);
+        }
     });
 }
 
 void VideoView::unRegisterMpvEvent() {
-    auto& ev = MPVCore::instance().getEvent();
-    ev.unsubscribe(eventSubscribeID);
+    auto& mpv = MPVCore::instance();
+    mpv.getEvent()->unsubscribe(eventSubscribeID);
+    mpv.getCustomEvent()->unsubscribe(customEventSubscribeID);
 }
 
 // Loading
@@ -792,6 +789,23 @@ bool VideoView::toggleSpeed() {
         "main/player/speed"_i18n, {"2.0x", "1.75x", "1.5x", "1.25x", "1.0x", "0.75x", "0.5x"},
         [](int selected) { MPVCore::instance().setSpeed((200 - selected * 25) / 100.0f); },
         int(200 - MPVCore::instance().video_speed * 100) / 25);
+    brls::Application::pushActivity(new brls::Activity(dropdown));
+    brls::sync([dropdown]() { brls::Application::giveFocus(dropdown); });
+    return true;
+}
+
+bool VideoView::toggleQuality() {
+    auto& qualityOption = AppConfig::instance().getOptions(AppConfig::VIDEO_QUALITY);
+    brls::Dropdown* dropdown = new brls::Dropdown(
+        "main/player/quality"_i18n, qualityOption.options,
+        [&qualityOption](int selected) {
+            if (MPVCore::VIDEO_QUALITY == qualityOption.values[selected]) return false;
+            MPVCore::VIDEO_QUALITY = qualityOption.values[selected];
+            AppConfig::instance().setItem(AppConfig::VIDEO_QUALITY, MPVCore::VIDEO_QUALITY);
+            MPVCore::instance().getCustomEvent()->fire(VideoView::QUALITY_CHANGE, nullptr);
+            return true;
+        },
+        AppConfig::instance().getValueIndex(AppConfig::VIDEO_QUALITY));
     brls::Application::pushActivity(new brls::Activity(dropdown));
     brls::sync([dropdown]() { brls::Application::giveFocus(dropdown); });
     return true;

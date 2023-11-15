@@ -259,6 +259,7 @@
                             focusUp="video/osd/setting"
                             focusDown="video/quality"
                             horizontalAlign="center"
+                            text="@i18n/main/player/quality"
                             hideHighlightBackground="true"
                             highlightCornerRadius="8" />
                     </brls:Box>

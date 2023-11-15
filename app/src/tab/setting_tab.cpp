@@ -116,11 +116,11 @@ void SettingTab::onCreate() {
             AppConfig::instance().setItem(AppConfig::TRANSCODEC, MPVCore::VIDEO_CODEC);
         });
 
-    auto& bitRateOption = conf.getOptions(AppConfig::MAXBITRATE);
-    selectorBitrate->init("main/setting/playback/maxbitrate"_i18n, bitRateOption.options,
-        conf.getValueIndex(AppConfig::MAXBITRATE, bitRateOption.values.size() - 1), [&bitRateOption](int selected) {
-            MPVCore::MAX_BITRATE[0] = bitRateOption.values[selected];
-            AppConfig::instance().setItem(AppConfig::MAXBITRATE, bitRateOption.values[selected]);
+    auto& qualityOption = conf.getOptions(AppConfig::VIDEO_QUALITY);
+    selectorQuality->init("main/setting/playback/video_quality"_i18n, qualityOption.options,
+        conf.getValueIndex(AppConfig::VIDEO_QUALITY), [&qualityOption](int selected) {
+            MPVCore::VIDEO_QUALITY = qualityOption.values[selected];
+            AppConfig::instance().setItem(AppConfig::VIDEO_QUALITY, MPVCore::VIDEO_QUALITY);
         });
 
     auto& seekingOption = conf.getOptions(AppConfig::PLAYER_SEEKING_STEP);

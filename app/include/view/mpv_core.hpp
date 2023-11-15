@@ -34,7 +34,9 @@ typedef enum MpvEventEnum {
 } MpvEventEnum;
 
 typedef brls::Event<MpvEventEnum> MPVEvent;
+typedef brls::Event<std::string, void *> MPVCustomEvent;
 typedef std::unordered_map<std::string, std::string> MPVMap;
+typedef brls::Event<uint64_t, MPVMap> MPVCommandReply;
 
 class MPVCore : public brls::Singleton<MPVCore> {
 public:
@@ -66,7 +68,8 @@ public:
 
     std::string getCacheSpeed() const;
 
-    void setUrl(const std::string &url, const std::string &extra = "", const std::string &method = "replace");
+    void setUrl(const std::string &url, const std::string &extra = "", const std::string &method = "replace",
+        uint64_t reply_userdata = 0);
 
     std::string getString(const std::string &key);
 
@@ -94,11 +97,17 @@ public:
 
     void draw(brls::Rect rect, float alpha = 1.0);
 
-    /**
-     * 播放器内部事件
-     * 传递内容为: 事件类型
-     */
-    MPVEvent &getEvent() { return this->mpvCoreEvent; }
+    /// @brief 播放器内部事件
+    /// @return 
+    MPVEvent *getEvent() { return &this->mpvCoreEvent; }
+
+    /// @brief 可以用于共享自定义事件
+    /// @return
+    MPVCustomEvent *getCustomEvent() { return &this->mpvCoreCustomEvent; }
+
+    /// @brief 异步命令回调
+    /// @return
+    MPVCommandReply *getCommandReply() { return &this->mpvCommandReply; }
 
     void reset();
 
@@ -132,7 +141,7 @@ public:
     inline static bool HARDWARE_DEC = false;
     inline static std::string PLAYER_HWDEC_METHOD = "auto";
     inline static std::string VIDEO_CODEC = "h264";
-    inline static std::vector<int64_t> MAX_BITRATE = {0, 10000000, 8000000, 4000000, 2000000};
+    inline static int64_t VIDEO_QUALITY = 0;
 
     inline static bool FORCE_DIRECTPLAY = false;
 
@@ -187,6 +196,10 @@ private:
 
     // MPV 内部事件，传递内容为: 事件类型
     MPVEvent mpvCoreEvent;
+    // 自定义的事件，传递内容为: string类型的事件名与一个任意类型的指针
+    MPVCustomEvent mpvCoreCustomEvent;
+    // 命令异步回调
+    MPVCommandReply mpvCommandReply;
 
     // 当前软件是否在前台的回调
     brls::Event<bool>::Subscription focusSubscription;

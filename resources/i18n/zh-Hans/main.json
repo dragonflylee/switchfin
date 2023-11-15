@@ -89,7 +89,7 @@
       "force_directplay": "强制客户端解码",
       "osd_on_toggle": "暂停时显示控制界面",
       "transcodec": "转码格式",
-      "maxbitrate": "最高码率",
+      "video_quality": "视频质量",
       "seeking_step": "快进步进"
     },
     "network": {
