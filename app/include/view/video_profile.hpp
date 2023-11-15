@@ -40,5 +40,6 @@ private:
 
     void onRequest();
 
+    bool inited = false;
     brls::RepeatingTimer ticker;
 };

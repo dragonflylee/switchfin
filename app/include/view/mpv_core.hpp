@@ -118,10 +118,8 @@ public:
     // core states
     int64_t duration = 0;  // second
     int64_t video_progress = 0;
-    int64_t cache_speed = 0;  // Bps
     double video_speed = 0;
     double playback_time = 0;
-    double percent_pos = 0;
 
     inline static bool DEBUG = false;
 
@@ -153,6 +151,8 @@ private:
     mpv_handle *mpv = nullptr;
     mpv_render_context *mpv_context = nullptr;
     bool video_stopped = true;
+    int64_t cache_speed = 0;  // Bps
+
 #ifdef MPV_SW_RENDER
     const int PIXCEL_SIZE = 4;
     int nvg_image = 0;

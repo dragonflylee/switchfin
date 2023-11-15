@@ -155,7 +155,6 @@ void MPVCore::init() {
     check_error(mpv_observe_property(mpv, 3, "duration", MPV_FORMAT_INT64));
     check_error(mpv_observe_property(mpv, 4, "playback-time", MPV_FORMAT_DOUBLE));
     check_error(mpv_observe_property(mpv, 5, "cache-speed", MPV_FORMAT_INT64));
-    check_error(mpv_observe_property(mpv, 6, "percent-pos", MPV_FORMAT_DOUBLE));
     check_error(mpv_observe_property(mpv, 7, "paused-for-cache", MPV_FORMAT_FLAG));
     check_error(mpv_observe_property(mpv, 9, "speed", MPV_FORMAT_DOUBLE));
 
@@ -355,7 +354,7 @@ void MPVCore::draw(brls::Rect rect, float alpha) {
         bottomBarColor.a = alpha;
         nvgFillColor(vg, bottomBarColor);
         nvgBeginPath(vg);
-        nvgRect(vg, rect.getMinX(), rect.getMaxY() - 2, rect.getWidth() * percent_pos / 100, 2);
+        nvgRect(vg, rect.getMinX(), rect.getMaxY() - 2, rect.getWidth() * (playback_time / duration), 2);
         nvgFill(vg);
     }
 }
@@ -493,9 +492,6 @@ void MPVCore::eventMainLoop() {
                 this->cache_speed = *(int64_t *)prop->data;
                 mpvCoreEvent.fire(MpvEventEnum::CACHE_SPEED_CHANGE);
                 break;
-            case 6:  // percent-pos
-                this->percent_pos = *(double *)prop->data;
-                break;
             case 7:  // paused-for-cache
                 if (!!*(int *)prop->data) {
                     brls::Logger::debug("MPVCore => PAUSED FOR CACHE");
@@ -523,7 +519,7 @@ void MPVCore::eventMainLoop() {
 
 void MPVCore::reset() {
     brls::Logger::debug("MPVCore::reset");
-    this->percent_pos = 0;
+    this->video_stopped = true;
     this->duration = 0;     // second
     this->cache_speed = 0;  // Bps
     this->playback_time = 0;

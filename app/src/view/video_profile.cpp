@@ -23,18 +23,31 @@ VideoProfile::~VideoProfile() {
 
 void VideoProfile::init(const std::string& title, const std::string& method) {
     auto& mpv = MPVCore::instance();
+    int64_t fileSize = mpv.getInt("file-size");
     labelUrl->setText(title);
     labelMethod->setText(method);
     labelFormat->setText(mpv.getString("file-format"));
-    labelSize->setText(fmt::format("{:.2f}MB", mpv.getInt("file-size") / 1048576.0));
+
+    if (fileSize >> 30 > 0) {
+        labelSize->setText(fmt::format("{:.2f}GB", (fileSize >> 20) / 1024.0f));
+    } else if (fileSize >> 20 > 0) {
+        labelSize->setText(fmt::format("{:.2f}MB", (fileSize >> 10) / 1024.0f));
+    } else {
+        labelSize->setText(fmt::format("{:.2f}KB", fileSize / 1024.0f));
+    }
+
     if (method == jellyfin::methodTranscode)
         ticker.start(2000);
     else
         this->ticker.stop();
+
+    this->inited = true;
     this->update();
 }
 
 void VideoProfile::update() {
+    if (!this->inited) return;
+
     auto& mpv = MPVCore::instance();
     // video
     labelVideoRes->setText(
@@ -46,8 +59,8 @@ void VideoProfile::update() {
     labelVideoHW->setText(mpv.getString("hwdec-current"));
 
     auto cache = mpv.getNodeMap("demuxer-cache-state");
-    labelCache->setText(fmt::format(
-        "{:.2f}MB ({:.1f} sec)", cache["fw-bytes"].u.int64 / 1048576.0f, mpv.getDouble("demuxer-cache-duration")));
+    double duration = mpv.getDouble("demuxer-cache-duration");
+    labelCache->setText(fmt::format("{:.2f}MB ({:.1f} sec)", cache["fw-bytes"].u.int64 / 1048576.0f, duration));
     labelVideoBitrate->setText(fmt::format("{} kbps", mpv.getInt("video-bitrate") / 1024));
     labelVideoDrop->setText(fmt::format(
         "{} (decoder) {} (output)", mpv.getInt("decoder-frame-drop-count"), mpv.getInt("frame-drop-count")));

@@ -103,6 +103,7 @@ void MusicView::load(const std::vector<jellyfin::MusicTrack>& list) {
 
     mpv.stop();
     mpv.command("playlist-clear");
+    playList.clear();
 
     for (auto& item : list) {
         uint64_t userdata = reinterpret_cast<uint64_t>(&item);
