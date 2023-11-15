@@ -1,6 +1,7 @@
 #include "tab/music_album.hpp"
 #include "view/mpv_core.hpp"
 #include "view/recycling_grid.hpp"
+#include "view/music_view.hpp"
 #include "api/jellyfin.hpp"
 #include "utils/image.hpp"
 #include "utils/misc.hpp"
@@ -17,7 +18,8 @@ public:
     BRLS_BIND(brls::Label, trackIndex, "music/track/index");
     BRLS_BIND(brls::Label, trackName, "music/track/name");
     BRLS_BIND(brls::Label, trackArtists, "music/track/artists");
-    BRLS_BIND(brls::Label, tracDuration, "music/track/duration");
+    BRLS_BIND(brls::Label, trackDuration, "music/track/duration");
+    BRLS_BIND(brls::Box, trackFavorite, "music/track/favorite");
 };
 
 class TracksDataSource : public RecyclingGridDataSource {
@@ -34,21 +36,17 @@ public:
         cell->trackIndex->setText(std::to_string(item.IndexNumber));
         cell->trackName->setText(item.Name);
         cell->trackArtists->setText(fmt::format("{}", fmt::join(item.Artists, " ")));
-        cell->tracDuration->setText(sec2Time(item.RunTimeTicks / jellyfin::PLAYTICKS));
+        cell->trackDuration->setText(misc::sec2Time(item.RunTimeTicks / jellyfin::PLAYTICKS));
+        cell->trackFavorite->setVisibility(
+            item.UserData.IsFavorite ? brls::Visibility::VISIBLE : brls::Visibility::INVISIBLE);
         return cell;
     }
 
     void onItemSelected(brls::View* recycler, size_t index) override {
-        auto& conf = AppConfig::instance();
-        const auto ts = std::chrono::system_clock::now().time_since_epoch();
-        const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(ts);
-        std::string query = HTTP::encode_form({
-            {"static", "true"},
-            {"api_key", conf.getUser().access_token},
-            {"PlaySessionId", std::to_string(ms.count())},
-        });
-
-        MPVCore::instance().setUrl(fmt::format("{}/Audio/{}/stream?{}", conf.getUrl(), this->list[index].Id, query));
+        std::string i = std::to_string(index);
+        const char* cmd[] = {"playlist-play-index", i.c_str(), nullptr};
+        MusicView::load(this->list);
+        MPVCore::instance().command_async(cmd);
     }
 
     void clearData() override { this->list.clear(); }
@@ -74,7 +72,9 @@ void MusicAlbum::doAlbum() {
     jellyfin::getJSON(
         [ASYNC_TOKEN](const jellyfin::MusicAlbum& r) {
             ASYNC_RELEASE
-            this->albumTitle->setTitle(r.Name);
+            this->albumTitle->setText(r.Name);
+            this->albumAritst->setText(r.AlbumArtist);
+            if (r.ProductionYear) this->albumYear->setText(std::to_string(r.ProductionYear));
             // loading cover
             auto cover = r.ImageTags.find(jellyfin::imageTypePrimary);
             if (cover != r.ImageTags.end()) {

@@ -26,10 +26,12 @@ private:
     BRLS_BIND(brls::Header, headerLatest, "home/header/latest");
     BRLS_BIND(HRecyclerFrame, userResume, "home/user/resume");
     BRLS_BIND(HRecyclerFrame, showNextup, "home/show/nextup");
-    BRLS_BIND(HRecyclerFrame, userLatest, "home/user/latest");
+    BRLS_BIND(HRecyclerFrame, videoLatest, "home/video/latest");
+    BRLS_BIND(HRecyclerFrame, musicLatest, "home/music/latest");
 
     void doResume();
-    void doLatest();
+    void doVideoLatest();
+    void doMusicLatest();
     void doNextup();
 
     size_t pageSize = 6;

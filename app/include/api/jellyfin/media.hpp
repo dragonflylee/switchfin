@@ -24,6 +24,7 @@ const std::string apiLogoImage = "/Items/{}/Images/Logo?format=Png&{}";
 
 const std::string apiPlayback = "/Items/{}/PlaybackInfo";
 const std::string apiStream = "/Videos/{}/stream?{}";
+const std::string apiAudio = "/Audio/{}/stream?{}";
 const std::string apiPlayStart = "/Sessions/Playing";
 const std::string apiPlayStop = "/Sessions/Playing/Stopped";
 const std::string apiPlaying = "/Sessions/Playing/Progress";
@@ -170,7 +171,7 @@ struct MusicTrack : public MediaItem {
     std::vector<std::string> Artists;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
-    MusicTrack, Id, Name, Type, IndexNumber, ParentIndexNumber, RunTimeTicks, Artists);
+    MusicTrack, Id, Name, Type, IndexNumber, ParentIndexNumber, RunTimeTicks, Artists, UserData);
 
 template <typename T>
 struct MediaQueryResult {

@@ -9,19 +9,49 @@
     <brls:Box
         axis="column"
         padding="5"
-        marginRight="30"
         width="300"
-        borderColor="@theme/brls/text"
-        borderThickness="1">
+        borderColor="@theme/brls/text">
 
-        <brls:Image
-            id="album/image/cover"
-            scalingType="fill"
-            backgroundColor="@theme/brls/header/border"
-            image="@res/img/video-card-bg.png" />
+        <brls:Box
+            width="100%"
+            height="350"
+            axis="column"
+            alignItems="center"
+            paddingTop="15"
+            justifyContent="spaceBetween"
+            focusable="true">
 
-        <brls:Header
-            id="album/header/title" />
+            <brls:Image
+                id="album/image/cover"
+                scalingType="fit"
+                width="240"
+                height="240"
+                marginBottom="15"
+                backgroundColor="@theme/brls/header/border"
+                image="@res/img/video-card-bg.png" />
+
+            <brls:Label
+                fontSize="18"
+                wireframe="false"
+                singleLine="true"
+                id="album/label/title" />
+            <brls:Label
+                id="album/label/artist"
+                textColor="#FFFFFF"
+                fontSize="16" />
+            <brls:Label
+                id="album/label/year"
+                fontSize="13"
+                textColor="@theme/font/grey" />
+        </brls:Box>
+
+        <brls:Padding />
+
+        <brls:Box>
+            <MusicView
+                id="music/view"
+                width="100%" />
+        </brls:Box>
     </brls:Box>
 
     <RecyclingGrid
@@ -30,7 +60,8 @@
         paddingLeft="30"
         paddingRight="30"
         spanCount="1"
-        flowMode="true"
+        itemHeight="35"
+        itemSpace="5"
         id="album/tracks"
         focusable="true" />
 

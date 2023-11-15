@@ -1,5 +1,4 @@
 #include "view/media_filter.hpp"
-#include "tab/media_collection.hpp"
 
 using namespace brls::literals;
 

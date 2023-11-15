@@ -1,12 +1,25 @@
 <brls:Box
     highlightCornerRadius="8"
-    lineBottom="1px"
+    alignItems="center"
+    lineBottom="1"
     lineColor="@theme/brls/header/border">
 
     <brls:Label
         id="music/track/index"
         fontSize="@style/brls/header/font_size"
         width="30" />
+
+    <brls:Box
+        id="music/track/favorite"
+        visibility="invisible"
+        hideHighlightBackground="true"
+        highlightCornerRadius="100"
+        marginRight="10">
+        <SVGImage
+            height="20"
+            width="20"
+            svg="@res/icon/ico-heart.svg" />
+    </brls:Box>
 
     <brls:Box
         grow="1.0">

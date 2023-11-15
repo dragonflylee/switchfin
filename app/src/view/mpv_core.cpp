@@ -456,19 +456,15 @@ void MPVCore::eventMainLoop() {
                 brls::Logger::error("MPVCore => ERROR: {}", mpv_error_string(event->error));
                 break;
             }
-            if (cmd->result.format == MPV_FORMAT_NODE_MAP) {
-                MPVMap m;
+            if (event->reply_userdata > 0 && cmd->result.format == MPV_FORMAT_NODE_MAP) {
                 mpv_node_list *node_list = cmd->result.u.list;
                 for (int i = 0; i < node_list->num; i++) {
                     std::string key = node_list->keys[i];
                     auto &value = node_list->values[i];
-                    if (value.format == MPV_FORMAT_INT64) {
-                        m.insert(std::make_pair(key, std::to_string(value.u.int64)));
-                    } else if (value.format == MPV_FORMAT_STRING) {
-                        m.insert(std::make_pair(key, value.u.string));
+                    if (key == "playlist_entry_id" && value.format == MPV_FORMAT_INT64) {
+                        this->mpvCommandReply.fire(event->reply_userdata, value.u.int64);
                     }
                 }
-                this->mpvCommandReply.fire(event->reply_userdata, m);
             }
             break;
         }

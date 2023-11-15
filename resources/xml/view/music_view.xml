@@ -1,0 +1,94 @@
+<brls:Box
+    axis="column"
+    justifyContent="spaceBetween"
+    height="120">
+
+    <brls:Box
+        width="100%"
+        justifyContent="center">
+        <brls:Label
+            wireframe="false"
+            horizontalAlign="right"
+            id="music/left/status"
+            textColor="#FFFFFF"
+            text="00:00" />
+        <brls:Label
+            horizontalAlign="center"
+            textColor="#FFFFFF"
+            text="/" />
+        <brls:Label
+            wireframe="false"
+            horizontalAlign="left"
+            id="music/right/status"
+            textColor="#FFFFFF"
+            text="00:00" />
+    </brls:Box>
+
+    <VideoProgressSlider
+        focusable="false"
+        id="music/progress"
+        width="100%"
+        height="10"
+        pointer="10" />
+
+    <brls:Box
+        width="100%"
+        alignItems="center"
+        justifyContent="spaceAround">
+        <brls:Box
+            id="music/prev"
+            focusable="true"
+            hideHighlightBackground="true"
+            highlightCornerRadius="100"
+            alignItems="center"
+            justifyContent="center"
+            height="40"
+            width="40">
+            <SVGImage
+                id="music/prev/icon"
+                height="30"
+                width="30"
+                svg="@res/icon/ico-backward.svg" />
+        </brls:Box>
+        <brls:Box
+            id="music/toggle"
+            focusable="true"
+            hideHighlightBackground="true"
+            highlightCornerRadius="100"
+            alignItems="center"
+            justifyContent="center"
+            height="40"
+            width="40">
+            <SVGImage
+                id="music/toggle/icon"
+                height="30"
+                width="30"
+                svg="@res/icon/ico-play.svg" />
+        </brls:Box>
+        <brls:Box
+            id="music/next"
+            focusable="true"
+            hideHighlightBackground="true"
+            highlightCornerRadius="100"
+            alignItems="center"
+            justifyContent="center"
+            height="40"
+            width="40">
+            <SVGImage
+                id="video/osd/forward/icon"
+                height="30"
+                width="30"
+                svg="@res/icon/ico-forward.svg" />
+        </brls:Box>
+
+    </brls:Box>
+
+    <brls:Box
+        width="100%"
+        justifyContent="center">
+        <brls:Label
+            id="music/play/title"
+            textColor="#FFFFFF"
+            text="-" />
+    </brls:Box>
+</brls:Box>
