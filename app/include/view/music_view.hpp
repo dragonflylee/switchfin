@@ -5,38 +5,49 @@
 #pragma once
 
 #include <borealis.hpp>
+#include <borealis/core/singleton.hpp>
+
 #include <api/jellyfin/media.hpp>
-#include <vector>
 #include "view/mpv_core.hpp"
 
 class VideoProgressSlider;
 class SVGImage;
 
-class MusicView : public brls::Box {
+class MusicView : public brls::Box, public brls::Singleton<MusicView> {
 public:
     MusicView();
     ~MusicView() override;
 
     bool isTranslucent() override { return true; }
 
-    static void load(const std::vector<jellyfin::MusicTrack>& list);
+    void registerViewAction(brls::View* view);
 
-    static View* create();
+    void load(const std::vector<jellyfin::MusicTrack>& list);
 
 private:
     BRLS_BIND(brls::Box, btnPrev, "music/prev");
     BRLS_BIND(brls::Box, btnNext, "music/next");
     BRLS_BIND(brls::Box, btnToggle, "music/toggle");
+    BRLS_BIND(brls::Box, btnSuffle, "music/shuffle");
+    BRLS_BIND(brls::Box, btnRepeat, "music/repeat");
     BRLS_BIND(SVGImage, btnToggleIcon, "music/toggle/icon");
     BRLS_BIND(VideoProgressSlider, osdSlider, "music/progress");
     BRLS_BIND(brls::Label, leftStatusLabel, "music/left/status");
     BRLS_BIND(brls::Label, rightStatusLabel, "music/right/status");
     BRLS_BIND(brls::Label, playTitle, "music/play/title");
 
+    bool toggleShuffle();
+
+    bool toggleLoop();
+
+    void registerMpvEvent();
+
+    void unregisterMpvEvent();
+
     MPVEvent::Subscription eventSubscribeID;
     MPVCommandReply::Subscription replySubscribeID;
 
     using MusicList = std::unordered_map<int64_t, jellyfin::MusicTrack>;
-    inline static int64_t playSession = 0;
-    inline static MusicList playList;
+    int64_t playSession = 0;
+    MusicList playList;
 };

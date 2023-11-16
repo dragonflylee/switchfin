@@ -23,6 +23,8 @@
     "chapter": "Chapter",
     "auto": "Auto",
     "toggle": "Play/Pause",
+    "prev": "Prev",
+    "next": "Next",
     "error": "Play error",
     "speed_up": "Current speed {}"
   },

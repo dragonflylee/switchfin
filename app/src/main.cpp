@@ -12,7 +12,6 @@
 #include "view/gallery_view.hpp"
 #include "view/search_list.hpp"
 #include "view/video_view.hpp"
-#include "view/music_view.hpp"
 
 #include "activity/main_activity.hpp"
 #include "activity/server_list.hpp"
@@ -62,7 +61,6 @@ int main(int argc, char* argv[]) {
     brls::Application::registerXMLView("HRecyclerFrame", HRecyclerFrame::create);
     brls::Application::registerXMLView("GalleryView", GalleryView::create);
     brls::Application::registerXMLView("SearchList", SearchList::create);
-    brls::Application::registerXMLView("MusicView", MusicView::create);
     brls::Application::registerXMLView("VideoProgressSlider", VideoProgressSlider::create);
 
     brls::Application::registerXMLView("HomeTab", HomeTab::create);

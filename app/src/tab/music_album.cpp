@@ -44,7 +44,7 @@ public:
 
     void onItemSelected(brls::View* recycler, size_t index) override {
         std::string i = std::to_string(index);
-        MusicView::load(this->list);
+        MusicView::instance().load(this->list);
         MPVCore::instance().command("playlist-play-index", i.c_str());
     }
 
@@ -62,9 +62,18 @@ MusicAlbum::MusicAlbum(const std::string& itemId) : albumId(itemId) {
 
     this->doAlbum();
     this->doTracks();
+
+    auto& stats = MusicView::instance();
+    this->albumStats->addView(&stats);
+    stats.registerViewAction(this);
 }
 
-MusicAlbum::~MusicAlbum() { brls::Logger::debug("Tab MusicAlbum: delete"); }
+MusicAlbum::~MusicAlbum() {
+    brls::Logger::debug("Tab MusicAlbum: delete");
+    /// 通知 MusicView 已关闭
+    MusicView::instance().setParent(nullptr);
+    this->albumStats->clearViews(false);
+}
 
 void MusicAlbum::doAlbum() {
     ASYNC_RETAIN

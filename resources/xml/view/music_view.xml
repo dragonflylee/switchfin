@@ -36,6 +36,23 @@
         alignItems="center"
         justifyContent="spaceAround">
         <brls:Box
+            id="music/shuffle"
+            focusable="true"
+            hideHighlightBackground="true"
+            highlightCornerRadius="100"
+            cornerRadius="100"
+            borderColor="@theme/font/grey"
+            alignItems="center"
+            justifyContent="center"
+            height="40"
+            width="40">
+            <SVGImage
+                id="music/shuffle/icon"
+                height="30"
+                width="30"
+                svg="@res/icon/ico-shuffle.svg" />
+        </brls:Box>
+        <brls:Box
             id="music/prev"
             focusable="true"
             hideHighlightBackground="true"
@@ -80,7 +97,23 @@
                 width="30"
                 svg="@res/icon/ico-forward.svg" />
         </brls:Box>
-
+        <brls:Box
+            id="music/repeat"
+            focusable="true"
+            hideHighlightBackground="true"
+            highlightCornerRadius="100"
+            cornerRadius="100"
+            borderColor="@theme/font/grey"
+            alignItems="center"
+            justifyContent="center"
+            height="40"
+            width="40">
+            <SVGImage
+                id="music/repeat/icon"
+                height="30"
+                width="30"
+                svg="@res/icon/ico-repeat.svg" />
+        </brls:Box>
     </brls:Box>
 
     <brls:Box
@@ -88,7 +121,7 @@
         justifyContent="center">
         <brls:Label
             id="music/play/title"
-            textColor="#FFFFFF"
+            singleLine="true"
             text="-" />
     </brls:Box>
 </brls:Box>

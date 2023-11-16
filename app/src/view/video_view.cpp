@@ -243,6 +243,7 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
     });
     this->btnVideoChapter->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoChapter));
 
+    // 停止正在播放的音乐
     MPVCore::instance().stop();
     // request mediainfo
     ASYNC_RETAIN

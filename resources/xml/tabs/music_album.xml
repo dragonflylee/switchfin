@@ -18,8 +18,7 @@
             axis="column"
             alignItems="center"
             paddingTop="15"
-            justifyContent="spaceBetween"
-            focusable="true">
+            justifyContent="spaceBetween">
 
             <brls:Image
                 id="album/image/cover"
@@ -36,9 +35,8 @@
                 singleLine="true"
                 id="album/label/title" />
             <brls:Label
-                id="album/label/artist"
-                textColor="#FFFFFF"
-                fontSize="16" />
+                fontSize="16"
+                id="album/label/artist" />
             <brls:Label
                 id="album/label/year"
                 fontSize="13"
@@ -47,10 +45,8 @@
 
         <brls:Padding />
 
-        <brls:Box>
-            <MusicView
-                id="music/view"
-                width="100%" />
+        <brls:Box
+        id="album/stats">
         </brls:Box>
     </brls:Box>
 

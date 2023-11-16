@@ -6,18 +6,24 @@
 #include "utils/misc.hpp"
 #include "api/http.hpp"
 
+using namespace brls::literals;
+
 MusicView::MusicView() {
     this->inflateFromXMLRes("xml/view/music_view.xml");
     brls::Logger::debug("MusicView: create");
 
-    if (!playSession) {
-        const auto ts = std::chrono::system_clock::now().time_since_epoch();
-        playSession = std::chrono::duration_cast<std::chrono::milliseconds>(ts).count();
-    }
-
     auto& mpv = MPVCore::instance();
 
     /// 播放控制
+    this->btnToggle->registerClickAction([&mpv](...) {
+        if (mpv.isStopped())
+            mpv.command("playlist-play-index", "current");
+        else
+            mpv.togglePlay();
+        return true;
+    });
+    this->btnToggle->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnToggle));
+
     this->btnPrev->registerClickAction([&mpv](...) {
         mpv.command("playlist-prev");
         return true;
@@ -30,22 +36,25 @@ MusicView::MusicView() {
     });
     this->btnNext->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnNext));
 
-    // 获取当前播放
-    int pos = mpv.getInt("playlist-playing-pos");
-    if (pos > 0) {
-        std::string key = fmt::format("playlist/{}/id", pos);
-        auto it = playList.find(mpv.getInt(key));
-        this->playTitle->setText(it->second.Name);
-        this->leftStatusLabel->setText(misc::sec2Time(mpv.video_progress));
-        this->rightStatusLabel->setText(misc::sec2Time(mpv.duration));
-        this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
-    }
+    this->btnSuffle->registerClickAction([this](...) { return this->toggleShuffle(); });
+    this->btnSuffle->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnSuffle));
+
+    this->btnRepeat->registerClickAction([this](...) { return this->toggleLoop(); });
+    this->btnRepeat->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnRepeat));
 
     osdSlider->getProgressSetEvent().subscribe([](float progress) {
         brls::Logger::verbose("Set progress: {}", progress);
         MPVCore::instance().seek(progress * 100, "absolute-percent");
     });
+}
 
+MusicView::~MusicView() { brls::Logger::debug("MusicView: delete"); }
+
+void MusicView::registerMpvEvent() {
+    auto& mpv = MPVCore::instance();
+    // 生成播放 ID
+    const auto ts = std::chrono::system_clock::now().time_since_epoch();
+    this->playSession = std::chrono::duration_cast<std::chrono::milliseconds>(ts).count();
     // 注册播放事件回调
     this->eventSubscribeID = mpv.getEvent()->subscribe([this](MpvEventEnum event) {
         auto& mpv = MPVCore::instance();
@@ -71,26 +80,56 @@ MusicView::MusicView() {
             this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
             break;
         case MpvEventEnum::END_OF_FILE:
+        case MpvEventEnum::MPV_STOP:
             this->btnToggleIcon->setImageFromSVGRes("icon/ico-play.svg");
+            if (this->getParent() == nullptr) this->unregisterMpvEvent();
             break;
         default:;
         }
     });
     // 注冊命令回調
-    replySubscribeID = mpv.getCommandReply()->subscribe([](uint64_t userdata, int64_t entryId) {
+    replySubscribeID = mpv.getCommandReply()->subscribe([this](uint64_t userdata, int64_t entryId) {
         auto item = reinterpret_cast<jellyfin::MusicTrack*>(userdata);
         playList.insert(std::make_pair(entryId, *item));
     });
+
+    brls::Logger::info("MusicView: registerMpvEvent {}", this->playSession);
 }
 
-MusicView::~MusicView() {
-    brls::Logger::debug("MusicView: delete");
+void MusicView::unregisterMpvEvent() {
     auto& mpv = MPVCore::instance();
     mpv.getEvent()->unsubscribe(eventSubscribeID);
     mpv.getCommandReply()->unsubscribe(replySubscribeID);
+
+    brls::Logger::info("MusicView: unregisterMpvEvent {}", this->playSession);
+    // 清空播放ID
+    this->playSession = 0;
 }
 
-brls::View* MusicView::create() { return new MusicView(); }
+void MusicView::registerViewAction(brls::View* view) {
+    auto& mpv = MPVCore::instance();
+
+    view->registerAction(
+        "main/player/toggle"_i18n, brls::BUTTON_Y,
+        [&mpv](brls::View* view) {
+            if (mpv.isStopped())
+                mpv.command("playlist-play-index", "current");
+            else
+                mpv.togglePlay();
+            return true;
+        },
+        true);
+
+    view->registerAction("main/player/prev"_i18n, brls::BUTTON_LB, [&mpv](brls::View* view) {
+        mpv.command("playlist-prev");
+        return true;
+    });
+
+    view->registerAction("main/player/next"_i18n, brls::BUTTON_RB, [&mpv](brls::View* view) {
+        mpv.command("playlist-next");
+        return true;
+    });
+}
 
 void MusicView::load(const std::vector<jellyfin::MusicTrack>& list) {
     auto& conf = AppConfig::instance();
@@ -101,6 +140,8 @@ void MusicView::load(const std::vector<jellyfin::MusicTrack>& list) {
     });
     std::string extra = fmt::format("http-header-fields='X-Emby-Token: {}'", conf.getUser().access_token);
 
+    if (!this->playSession) this->registerMpvEvent();
+
     mpv.stop();
     mpv.command("playlist-clear");
     playList.clear();
@@ -110,4 +151,28 @@ void MusicView::load(const std::vector<jellyfin::MusicTrack>& list) {
         std::string url = fmt::format(jellyfin::apiAudio, item.Id, query);
         mpv.setUrl(conf.getUrl() + url, extra, "append", userdata);
     }
+}
+
+bool MusicView::toggleShuffle() {
+    auto& mpv = MPVCore::instance();
+    if (this->btnSuffle->getBorderThickness() > 0) {
+        mpv.command("playlist-unshuffle");
+        this->btnSuffle->setBorderThickness(0);
+    } else {
+        mpv.command("playlist-shuffle");
+        this->btnSuffle->setBorderThickness(2.0f);
+    }
+    return true;
+}
+
+bool MusicView::toggleLoop() {
+    auto& mpv = MPVCore::instance();
+    if (this->btnRepeat->getBorderThickness() > 0) {
+        mpv.command("loop-file", "no");
+        this->btnRepeat->setBorderThickness(0);
+    } else {
+        mpv.command("loop-file", "inf");
+        this->btnRepeat->setBorderThickness(2.0f);
+    }
+    return true;
 }
