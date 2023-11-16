@@ -89,8 +89,6 @@ public:
 
     bool isValid();
 
-    static void disableDimming(bool disable);
-
     void draw(brls::Rect rect, float alpha = 1.0);
 
     /// @brief 播放器内部事件

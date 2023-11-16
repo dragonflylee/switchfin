@@ -269,6 +269,8 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
 VideoView::~VideoView() {
     brls::Logger::debug("trying delete VideoView...");
     this->unRegisterMpvEvent();
+    disableDimming(false);
+
     MPVCore::instance().stop();
     if (this->playSessionId.size()) this->reportStop();
     brls::Application::getExitEvent()->unsubscribe(this->exitSubscribeID);
@@ -638,6 +640,7 @@ void VideoView::registerMpvEvent() {
             if (MPVCore::OSD_ON_TOGGLE) {
                 this->showOSD(false);
             }
+            disableDimming(false);
             this->btnToggleIcon->setImageFromSVGRes("icon/ico-play.svg");
             this->reportPlay(true);
             break;
@@ -700,6 +703,7 @@ void VideoView::registerMpvEvent() {
             break;
         case MpvEventEnum::END_OF_FILE:
             // 播放结束
+            disableDimming(false);
             this->showOSD(false);
             this->btnToggleIcon->setImageFromSVGRes("icon/ico-play.svg");
             this->playNext();
@@ -741,9 +745,13 @@ void VideoView::unRegisterMpvEvent() {
 void VideoView::showLoading() {
     this->centerLabel->setVisibility(brls::Visibility::INVISIBLE);
     this->osdCenterBox->setVisibility(brls::Visibility::VISIBLE);
+    disableDimming(false);
 }
 
-void VideoView::hideLoading() { this->osdCenterBox->setVisibility(brls::Visibility::GONE); }
+void VideoView::hideLoading() {
+    this->osdCenterBox->setVisibility(brls::Visibility::GONE);
+    disableDimming(true);
+}
 
 bool VideoView::toggleProfile() {
     if (profile->getVisibility() == brls::Visibility::VISIBLE) {
@@ -820,4 +828,9 @@ void VideoView::onDismiss() {
         Presenter* p = dynamic_cast<Presenter*>(applet->getContentView());
         if (p != nullptr) p->doRequest();
     }
+}
+
+void VideoView::disableDimming(bool disable) {
+    brls::Application::getPlatform()->disableScreenDimming(disable, "Playing video", AppVersion::getPackageName());
+    brls::Application::setAutomaticDeactivation(!disable);
 }

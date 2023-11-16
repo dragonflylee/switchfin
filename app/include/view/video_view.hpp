@@ -106,6 +106,7 @@ private:
     void buttonProcessing();
     /// @brief notify videoview closed
     static void onDismiss();
+    static void disableDimming(bool disable);
 
     // OSD
     bool isOsdShown = false;
