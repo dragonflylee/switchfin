@@ -103,7 +103,9 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: switchfin-switch-${{ steps.vars.outputs.sha_short }}
-        path: build_switch/*.nro
+        path: |
+          build_switch/Switchfin.nro
+          build_switch/Switchfin.elf
 
   build-snap:
     runs-on: ubuntu-latest
