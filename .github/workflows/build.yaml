@@ -8,6 +8,8 @@ on:
     paths-ignore:
     - scripts/mingw64/*/*
     - scripts/switch/*/*
+    - images/*
+    - README.md
     branches: [ dev ]
   pull_request:
     paths-ignore:
