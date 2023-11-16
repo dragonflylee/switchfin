@@ -140,10 +140,18 @@ void HomeTab::doVideoLatest() {
     jellyfin::getJSON(
         [ASYNC_TOKEN](const std::vector<jellyfin::MediaEpisode>& r) {
             ASYNC_RELEASE
-            this->videoLatest->setDataSource(new VideoDataSource(r));
+            if (r.empty()) {
+                this->headerVideo->setVisibility(brls::Visibility::GONE);
+                this->videoLatest->setVisibility(brls::Visibility::GONE);
+            } else {
+                this->headerVideo->setVisibility(brls::Visibility::VISIBLE);
+                this->videoLatest->setVisibility(brls::Visibility::VISIBLE);
+                this->videoLatest->setDataSource(new VideoDataSource(r));
+            }
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
+            this->headerVideo->setVisibility(brls::Visibility::GONE);
             this->videoLatest->setVisibility(brls::Visibility::GONE);
         },
         jellyfin::apiUserLatest, AppConfig::instance().getUser().id, query);
@@ -160,10 +168,18 @@ void HomeTab::doMusicLatest() {
     jellyfin::getJSON(
         [ASYNC_TOKEN](const std::vector<jellyfin::MediaEpisode>& r) {
             ASYNC_RELEASE
-            this->musicLatest->setDataSource(new VideoDataSource(r));
+            if (r.empty()) {
+                this->headerMusic->setVisibility(brls::Visibility::GONE);
+                this->musicLatest->setVisibility(brls::Visibility::GONE);
+            } else {
+                this->headerMusic->setVisibility(brls::Visibility::VISIBLE);
+                this->musicLatest->setVisibility(brls::Visibility::VISIBLE);
+                this->musicLatest->setDataSource(new VideoDataSource(r));
+            }
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
+            this->headerMusic->setVisibility(brls::Visibility::GONE);
             this->musicLatest->setVisibility(brls::Visibility::GONE);
         },
         jellyfin::apiUserLatest, AppConfig::instance().getUser().id, query);
