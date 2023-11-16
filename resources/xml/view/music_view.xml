@@ -11,7 +11,7 @@
             horizontalAlign="right"
             id="music/left/status"
             textColor="#FFFFFF"
-            text="00:00" />
+            text="--:--" />
         <brls:Label
             horizontalAlign="center"
             textColor="#FFFFFF"
@@ -21,7 +21,7 @@
             horizontalAlign="left"
             id="music/right/status"
             textColor="#FFFFFF"
-            text="00:00" />
+            text="--:--" />
     </brls:Box>
 
     <VideoProgressSlider

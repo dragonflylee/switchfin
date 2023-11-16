@@ -81,8 +81,7 @@ void MusicView::registerMpvEvent() {
             break;
         case MpvEventEnum::END_OF_FILE:
         case MpvEventEnum::MPV_STOP:
-            this->btnToggleIcon->setImageFromSVGRes("icon/ico-play.svg");
-            if (this->getParent() == nullptr) this->unregisterMpvEvent();
+            this->reset();
             break;
         default:;
         }
@@ -151,6 +150,20 @@ void MusicView::load(const std::vector<jellyfin::MusicTrack>& list) {
         std::string url = fmt::format(jellyfin::apiAudio, item.Id, query);
         mpv.setUrl(conf.getUrl() + url, extra, "append", userdata);
     }
+}
+
+void MusicView::stop() {
+    if (this->playSession) this->unregisterMpvEvent();
+    MPVCore::instance().stop();
+    this->reset();
+}
+
+void MusicView::reset() {
+    this->btnToggleIcon->setImageFromSVGRes("icon/ico-play.svg");
+    this->playTitle->setText("-");
+    this->rightStatusLabel->setText("--:--");
+    this->leftStatusLabel->setText("--:--");
+    this->osdSlider->setProgress(0);
 }
 
 bool MusicView::toggleShuffle() {
