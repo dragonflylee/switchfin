@@ -3,7 +3,6 @@
 #include "view/video_progress_slider.hpp"
 #include "view/player_setting.hpp"
 #include "view/video_profile.hpp"
-#include "view/music_view.hpp"
 #include "view/presenter.h"
 #include "api/jellyfin.hpp"
 #include "utils/dialog.hpp"
@@ -21,7 +20,7 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
     this->setHideClickAnimation(true);
 
     // 停止正在播放的音乐
-    MusicView::instance().stop();
+    MPVCore::instance().stop();
 
     this->input = brls::Application::getPlatform()->getInputManager();
 

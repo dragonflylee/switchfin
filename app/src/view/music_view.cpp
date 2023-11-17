@@ -62,7 +62,7 @@ void MusicView::registerMpvEvent() {
         case MpvEventEnum::START_FILE: {
             std::string key = fmt::format("playlist/{}/id", mpv.getInt("playlist-playing-pos"));
             auto it = playList.find(mpv.getInt(key));
-            this->playTitle->setText(it->second.Name);
+            if (it != playList.end()) this->playTitle->setText(it->second.Name);
             break;
         }
         case MpvEventEnum::MPV_RESUME:
@@ -82,6 +82,7 @@ void MusicView::registerMpvEvent() {
         case MpvEventEnum::END_OF_FILE:
         case MpvEventEnum::MPV_STOP:
             this->reset();
+            if (!this->getParent()) brls::sync([this]() { this->unregisterMpvEvent(); });
             break;
         default:;
         }
@@ -89,7 +90,7 @@ void MusicView::registerMpvEvent() {
     // 注冊命令回調
     replySubscribeID = mpv.getCommandReply()->subscribe([this](uint64_t userdata, int64_t entryId) {
         auto item = reinterpret_cast<jellyfin::MusicTrack*>(userdata);
-        playList.insert(std::make_pair(entryId, *item));
+        if (item) playList.insert(std::make_pair(entryId, *item));
     });
 
     brls::Logger::info("MusicView: registerMpvEvent {}", this->playSession);
@@ -150,12 +151,6 @@ void MusicView::load(const std::vector<jellyfin::MusicTrack>& list) {
         std::string url = fmt::format(jellyfin::apiAudio, item.Id, query);
         mpv.setUrl(conf.getUrl() + url, extra, "append", userdata);
     }
-}
-
-void MusicView::stop() {
-    if (this->playSession) this->unregisterMpvEvent();
-    MPVCore::instance().stop();
-    this->reset();
 }
 
 void MusicView::reset() {

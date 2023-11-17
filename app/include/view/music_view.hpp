@@ -24,8 +24,6 @@ public:
 
     void load(const std::vector<jellyfin::MusicTrack>& list);
 
-    void stop();
-
 private:
     BRLS_BIND(brls::Box, btnPrev, "music/prev");
     BRLS_BIND(brls::Box, btnNext, "music/next");
