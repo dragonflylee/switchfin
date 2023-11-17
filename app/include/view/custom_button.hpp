@@ -24,7 +24,7 @@ public:
 
     void onFocusLost() override;
 
-    void subscribe(std::function<void(bool)> cb);
+    brls::Event<bool> *getFocusEvent();
 
     View *getNextFocus(brls::FocusDirection direction, View *currentView) override;
 

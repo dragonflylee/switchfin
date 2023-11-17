@@ -12,6 +12,7 @@
 #include "view/gallery_view.hpp"
 #include "view/search_list.hpp"
 #include "view/video_view.hpp"
+#include "view/selector_cell.hpp"
 
 #include "activity/main_activity.hpp"
 #include "activity/server_list.hpp"
@@ -56,6 +57,7 @@ int main(int argc, char* argv[]) {
     // Register custom views (including tabs, which are views)
     brls::Application::registerXMLView("SVGImage", SVGImage::create);
     brls::Application::registerXMLView("CustomButton", CustomButton::create);
+    brls::Application::registerXMLView("SelectorCell", SelectorCell::create);
     brls::Application::registerXMLView("AutoTabFrame", AutoTabFrame::create);
     brls::Application::registerXMLView("RecyclingGrid", RecyclingGrid::create);
     brls::Application::registerXMLView("HRecyclerFrame", HRecyclerFrame::create);

@@ -111,12 +111,15 @@
                     id="setting/fullscreen" />
                 <brls:BooleanCell
                     id="setting/overclock" />
-                <brls:SelectorCell
-                    id="setting/keymap" />
-                <brls:SelectorCell
-                    id="setting/ui/theme" />
-                <brls:SelectorCell
-                    id="setting/language" />
+                <SelectorCell
+                    id="setting/keymap"
+                    quitApp="true" />
+                <SelectorCell
+                    id="setting/ui/theme"
+                    quitApp="true" />
+                <SelectorCell
+                    id="setting/language"
+                    quitApp="true" />
                 <brls:BooleanCell
                     id="setting/debug" />
                 <brls:RadioCell

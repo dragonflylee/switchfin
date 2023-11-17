@@ -18,10 +18,10 @@
 #include "activity/server_list.hpp"
 #include "activity/hint_activity.hpp"
 #include "utils/config.hpp"
-#include "utils/dialog.hpp"
 #include "utils/thread.hpp"
 #include <curl/curl.h>
 #include "view/mpv_core.hpp"
+#include "view/selector_cell.hpp"
 #include "api/analytics.hpp"
 #ifdef __SWITCH__
 #include "utils/overclock.hpp"
@@ -190,29 +190,25 @@ void SettingTab::onCreate() {
 
 #if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
     int keyIndex = conf.getOptionIndex(AppConfig::KEYMAP);
-    selectorKeymap->init(
-        "main/setting/others/keymap/header"_i18n,
+    selectorKeymap->init("main/setting/others/keymap/header"_i18n,
         {
             "main/setting/others/keymap/xbox"_i18n,
             "main/setting/others/keymap/ps"_i18n,
             "main/setting/others/keymap/keyboard"_i18n,
         },
-        keyIndex,
-        [keyIndex](int selected) {
+        keyIndex, [keyIndex](int selected) {
             if (keyIndex == selected) return;
             auto& conf = AppConfig::instance();
             auto& keyOptions = conf.getOptions(AppConfig::KEYMAP);
             conf.setItem(AppConfig::KEYMAP, keyOptions.options[selected]);
-        },
-        [](...) { Dialog::quitApp(); });
+        });
 #else
     selectorKeymap->setVisibility(brls::Visibility::GONE);
 #endif
 
     // App language
     int langIndex = conf.getOptionIndex(AppConfig::APP_LANG);
-    selectorLang->init(
-        "main/setting/others/language/header"_i18n,
+    selectorLang->init("main/setting/others/language/header"_i18n,
         {
             "main/setting/others/language/auto"_i18n,
             "main/setting/others/language/english"_i18n,
@@ -220,32 +216,27 @@ void SettingTab::onCreate() {
             "main/setting/others/language/chinese_t"_i18n,
             "main/setting/others/language/german"_i18n,
         },
-        langIndex,
-        [langIndex](int selected) {
+        langIndex, [langIndex](int selected) {
             if (langIndex == selected) return;
             auto& conf = AppConfig::instance();
             auto& langOptions = conf.getOptions(AppConfig::APP_LANG);
             conf.setItem(AppConfig::APP_LANG, langOptions.options[selected]);
-        },
-        [](...) { Dialog::quitApp(); });
+        });
 
     // App theme
     int themeIndex = conf.getOptionIndex(AppConfig::APP_THEME);
-    selectorTheme->init(
-        "main/setting/others/theme/header"_i18n,
+    selectorTheme->init("main/setting/others/theme/header"_i18n,
         {
             "main/setting/others/theme/1"_i18n,
             "main/setting/others/theme/2"_i18n,
             "main/setting/others/theme/3"_i18n,
         },
-        themeIndex,
-        [themeIndex](int selected) {
+        themeIndex, [themeIndex](int selected) {
             if (themeIndex == selected) return;
             auto& conf = AppConfig::instance();
             auto& themeOptions = conf.getOptions(AppConfig::APP_THEME);
             conf.setItem(AppConfig::APP_THEME, themeOptions.options[selected]);
-        },
-        [](...) { Dialog::quitApp(); });
+        });
 
     inputThreads->init(
         "main/setting/network/threads"_i18n, ThreadPool::instance().size(),

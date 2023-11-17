@@ -34,7 +34,7 @@ void CustomButton::onFocusGained() {
     Box::onFocusGained();
 }
 
-void CustomButton::subscribe(std::function<void(bool)> cb) { this->focusEvent.subscribe(cb); }
+brls::Event<bool>* CustomButton::getFocusEvent() { return &this->focusEvent; }
 
 brls::View* CustomButton::getNextFocus(brls::FocusDirection direction, brls::View* currentView) {
     brls::View* next = nullptr;

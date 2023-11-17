@@ -16,7 +16,9 @@
 
 #pragma once
 
-#include "view/auto_tab_frame.hpp"
+#include <view/auto_tab_frame.hpp>
+
+class SelectorCell;
 
 class SettingTab : public AttachedView {
 public:
@@ -45,9 +47,9 @@ private:
     BRLS_BIND(brls::BooleanCell, btnDebug, "setting/debug");
     BRLS_BIND(brls::InputNumericCell, inputThreads, "setting/network/threads");
     BRLS_BIND(brls::SelectorCell, selectorTimeout, "setting/network/timeout");
-    BRLS_BIND(brls::SelectorCell, selectorKeymap, "setting/keymap");
-    BRLS_BIND(brls::SelectorCell, selectorLang, "setting/language");
-    BRLS_BIND(brls::SelectorCell, selectorTheme, "setting/ui/theme");
+    BRLS_BIND(SelectorCell, selectorKeymap, "setting/keymap");
+    BRLS_BIND(SelectorCell, selectorLang, "setting/language");
+    BRLS_BIND(SelectorCell, selectorTheme, "setting/ui/theme");
     BRLS_BIND(brls::RadioCell, btnReleaseChecker, "setting/release_checker");
     BRLS_BIND(brls::DetailCell, btnAbout, "setting/about");
 };
