@@ -84,6 +84,15 @@ VideoProgressSlider::VideoProgressSlider() {
         },
         PanAxis::HORIZONTAL));
 
+    this->addGestureRecognizer(
+        new TapGestureRecognizer([this](brls::TapGestureStatus status, brls::Sound* soundToPlay) {
+            float paddingWidth = getWidth() - pointer->getWidth();
+            float delta = status.position.x - pointer->getWidth() / 2 - pointer->getX();
+            setProgress(progress + delta / paddingWidth);
+            progressSetEvent.fire(this->progress);
+            Application::giveFocus(this->getParentActivity()->getContentView());
+        }));
+
     progress = 0;
 }
 
