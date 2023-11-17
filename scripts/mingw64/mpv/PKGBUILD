@@ -56,5 +56,6 @@ build() {
 package() {
   meson install -C "build-${MSYSTEM}" --destdir "${pkgdir}"
 
+  sed -s "/private/d" -i ${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/mpv.pc
   sed -s "s|$(cygpath -am ${MINGW_PREFIX})|${MINGW_PREFIX}|g" -i ${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/mpv.pc
 }
