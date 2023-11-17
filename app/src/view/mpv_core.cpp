@@ -155,7 +155,6 @@ void MPVCore::init() {
     check_error(mpv_observe_property(mpv, 3, "duration", MPV_FORMAT_INT64));
     check_error(mpv_observe_property(mpv, 4, "playback-time", MPV_FORMAT_DOUBLE));
     check_error(mpv_observe_property(mpv, 5, "cache-speed", MPV_FORMAT_INT64));
-    check_error(mpv_observe_property(mpv, 7, "paused-for-cache", MPV_FORMAT_FLAG));
     check_error(mpv_observe_property(mpv, 9, "speed", MPV_FORMAT_DOUBLE));
 
     // init renderer params
@@ -401,20 +400,13 @@ void MPVCore::eventMainLoop() {
         case MPV_EVENT_START_FILE:
             // event 6: 开始加载文件
             brls::Logger::info("MPVCore => EVENT_START_FILE");
-            // show osd for a really long time
             mpvCoreEvent.fire(MpvEventEnum::START_FILE);
-            mpvCoreEvent.fire(MpvEventEnum::LOADING_START);
             break;
         case MPV_EVENT_PLAYBACK_RESTART:
             // event 21: 开始播放文件（一般是播放或调整进度结束之后触发）
             brls::Logger::info("MPVCore => EVENT_PLAYBACK_RESTART");
             this->video_stopped = false;
-            mpvCoreEvent.fire(MpvEventEnum::LOADING_END);
             mpvCoreEvent.fire(MpvEventEnum::MPV_RESUME);
-            break;
-        case MPV_EVENT_SEEK:
-            brls::Logger::info("MPVCore => SEEKING");
-            mpvCoreEvent.fire(MpvEventEnum::LOADING_START);
             break;
         case MPV_EVENT_END_FILE: {
             // event 7: 文件播放结束
@@ -422,6 +414,7 @@ void MPVCore::eventMainLoop() {
             auto node = (mpv_event_end_file *)event->data;
             if (node->reason == MPV_END_FILE_REASON_ERROR) {
                 brls::Logger::error("MPVCore => FILE ERROR: {}", mpv_error_string(node->error));
+                this->stop();
                 mpvCoreEvent.fire(MpvEventEnum::MPV_FILE_ERROR);
             } else if (node->reason == MPV_END_FILE_REASON_EOF) {
                 brls::Logger::info("MPVCore => END_OF_FILE");
@@ -457,6 +450,12 @@ void MPVCore::eventMainLoop() {
 
             switch (event->reply_userdata) {
             case 1:  // core-idle
+                if (!*(int *)prop->data) {
+                    mpvCoreEvent.fire(MpvEventEnum::LOADING_END);
+                } else if (!this->video_stopped) {
+                    brls::Logger::info("MPVCore => IDLE");
+                    mpvCoreEvent.fire(MpvEventEnum::LOADING_START);
+                }
                 break;
             case 2:  // pause
                 if (!!*(int *)prop->data) {
@@ -481,18 +480,9 @@ void MPVCore::eventMainLoop() {
                     mpvCoreEvent.fire(MpvEventEnum::UPDATE_PROGRESS);
                 }
                 break;
-            case 5:  //cache-speed
+            case 5:  // cache-speed
                 this->cache_speed = *(int64_t *)prop->data;
                 mpvCoreEvent.fire(MpvEventEnum::CACHE_SPEED_CHANGE);
-                break;
-            case 7:  // paused-for-cache
-                if (!!*(int *)prop->data) {
-                    brls::Logger::debug("MPVCore => PAUSED FOR CACHE");
-                    mpvCoreEvent.fire(MpvEventEnum::LOADING_START);
-                } else {
-                    brls::Logger::debug("MPVCore => RESUME FROM CACHE");
-                    mpvCoreEvent.fire(MpvEventEnum::LOADING_END);
-                }
                 break;
             case 9:  // speed
                 this->video_speed = *(double *)prop->data;
@@ -537,11 +527,7 @@ void MPVCore::seek(int64_t value, const std::string &flags) {
     this->command("seek", pos.c_str(), flags.c_str());
 }
 
-bool MPVCore::isStopped() {
-    int ret = 1;
-    mpv_get_property(mpv, "playback-abort", MPV_FORMAT_FLAG, &ret);
-    return ret == 1;
-}
+bool MPVCore::isStopped() const { return video_stopped; }
 
 bool MPVCore::isPaused() {
     int ret = -1;
@@ -549,11 +535,7 @@ bool MPVCore::isPaused() {
     return ret == 1;
 }
 
-double MPVCore::getSpeed() {
-    double ret = 1;
-    mpv_get_property(mpv, "speed", MPV_FORMAT_DOUBLE, &ret);
-    return ret;
-}
+double MPVCore::getSpeed() const { return video_speed; }
 
 void MPVCore::setSpeed(double value) {
     std::string speed = std::to_string(value);

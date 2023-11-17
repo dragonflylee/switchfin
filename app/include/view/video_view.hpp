@@ -105,7 +105,7 @@ private:
     void requestSeeking();
     void buttonProcessing();
     /// @brief notify videoview closed
-    static void onDismiss();
+    static bool popActivity();
     static void disableDimming(bool disable);
 
     // OSD

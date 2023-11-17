@@ -37,9 +37,7 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
     brls::Application::pushActivity(new brls::Activity(container), brls::TransitionAnimation::NONE);
 
     this->registerAction(
-        "hints/back"_i18n, brls::BUTTON_B,
-        [](brls::View* view) { return brls::Application::popActivity(brls::TransitionAnimation::NONE, &onDismiss); },
-        true);
+        "hints/back"_i18n, brls::BUTTON_B, [](brls::View* view) { return popActivity(); }, true);
 
     this->registerAction(
         "\uE08F", brls::BUTTON_LB,
@@ -257,10 +255,7 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            auto dialog = new brls::Dialog(ex);
-            dialog->addButton(
-                "hints/ok"_i18n, []() { brls::Application::popActivity(brls::TransitionAnimation::NONE, &onDismiss); });
-            dialog->open();
+            Dialog::show(ex, popActivity);
         },
         jellyfin::apiUserItem, AppConfig::instance().getUser().id, this->itemId);
 
@@ -450,7 +445,7 @@ void VideoView::setSeries(const std::string& seriesId) {
 bool VideoView::playNext(int off) {
     this->itemIndex += off;
     if (this->itemIndex < 0 || this->itemIndex >= this->showEpisodes.size()) {
-        return brls::Application::popActivity(brls::TransitionAnimation::NONE, &onDismiss);
+        return popActivity();
     }
     MPVCore::instance().reset();
 
@@ -554,17 +549,11 @@ void VideoView::playMedia(const time_t seekTicks) {
                 }
             }
 
-            auto dialog = new brls::Dialog("Unsupport video format");
-            dialog->addButton(
-                "hints/ok"_i18n, []() { brls::Application::popActivity(brls::TransitionAnimation::NONE, &onDismiss); });
-            dialog->open();
+            Dialog::show("Unsupport video format", popActivity);
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            auto dialog = new brls::Dialog(ex);
-            dialog->addButton(
-                "hints/ok"_i18n, []() { brls::Application::popActivity(brls::TransitionAnimation::NONE, &onDismiss); });
-            dialog->open();
+            Dialog::show(ex, popActivity);
         },
         jellyfin::apiPlayback, this->itemId);
 }
@@ -633,7 +622,6 @@ void VideoView::registerMpvEvent() {
             if (MPVCore::OSD_ON_TOGGLE) {
                 this->showOSD(true);
             }
-            this->hideLoading();
             this->btnToggleIcon->setImageFromSVGRes("icon/ico-pause.svg");
             this->reportPlay();
             this->profile->init(itemSource.Name, this->playMethod);
@@ -659,7 +647,6 @@ void VideoView::registerMpvEvent() {
             this->reportStart();
             break;
         case MpvEventEnum::MPV_STOP:
-            this->hideLoading();
             this->showOSD(false);
             this->reportStop();
             break;
@@ -713,17 +700,11 @@ void VideoView::registerMpvEvent() {
         case MpvEventEnum::CACHE_SPEED_CHANGE:
             // 仅当加载圈已经开始转起的情况显示缓存
             if (this->osdCenterBox->getVisibility() != brls::Visibility::GONE) {
-                if (this->centerLabel->getVisibility() != brls::Visibility::VISIBLE)
-                    this->centerLabel->setVisibility(brls::Visibility::VISIBLE);
                 this->centerLabel->setText(MPVCore::instance().getCacheSpeed());
             }
             break;
         case MpvEventEnum::MPV_FILE_ERROR: {
-            mpv.stop();
-            auto dialog = new brls::Dialog("main/player/error"_i18n);
-            dialog->addButton(
-                "hints/ok"_i18n, []() { brls::Application::popActivity(brls::TransitionAnimation::NONE, &onDismiss); });
-            dialog->open();
+            Dialog::show("main/player/error"_i18n, popActivity);
             break;
         }
         default:;
@@ -824,12 +805,14 @@ bool VideoView::toggleQuality() {
     return true;
 }
 
-void VideoView::onDismiss() {
-    auto applet = brls::Application::getCurrentFocus()->getAppletFrame();
-    if (applet != nullptr) {
-        Presenter* p = dynamic_cast<Presenter*>(applet->getContentView());
-        if (p != nullptr) p->doRequest();
-    }
+bool VideoView::popActivity() {
+    return brls::Application::popActivity(brls::TransitionAnimation::NONE, []() {
+        auto applet = brls::Application::getCurrentFocus()->getAppletFrame();
+        if (applet != nullptr) {
+            Presenter* p = dynamic_cast<Presenter*>(applet->getContentView());
+            if (p != nullptr) p->doRequest();
+        }
+    });
 }
 
 void VideoView::disableDimming(bool disable) {

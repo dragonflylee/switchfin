@@ -56,11 +56,11 @@ public:
         if (mpv) mpv_command_async(mpv, 0, cmd);
     }
 
-    bool isStopped();
+    bool isStopped() const;
 
     bool isPaused();
 
-    double getSpeed();
+    double getSpeed() const;
 
     std::string getCacheSpeed() const;
 
