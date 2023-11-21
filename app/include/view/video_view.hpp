@@ -64,6 +64,7 @@ private:
     BRLS_BIND(brls::Box, btnVideoQuality, "video/quality/box");
     BRLS_BIND(brls::Box, btnVideoChapter, "video/chapter/box");
     BRLS_BIND(brls::Box, btnVideoSpeed, "video/speed/box");
+    BRLS_BIND(brls::Box, btnVolume, "video/osd/volume");
     BRLS_BIND(SVGImage, btnToggleIcon, "video/osd/toggle/icon");
     BRLS_BIND(brls::Box, osdTopBox, "video/osd/top/box");
     BRLS_BIND(brls::Box, osdBottomBox, "video/osd/bottom/box");
@@ -98,6 +99,7 @@ private:
     void hideOSD();
     bool toggleSpeed();
     bool toggleQuality();
+    bool toggleVolume(brls::View* view);
     void showSetting();
     void showHint(const std::string& value);
 

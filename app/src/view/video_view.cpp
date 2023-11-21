@@ -79,6 +79,10 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
         },
         true);
 
+    /// 音量按钮
+    this->btnVolume->registerClickAction([this](brls::View* view) { return this->toggleVolume(view); });
+    this->btnVolume->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVolume));
+
     this->registerMpvEvent();
 
     osdSlider->getProgressSetEvent().subscribe([this](float progress) {
@@ -801,6 +805,59 @@ bool VideoView::toggleQuality() {
         AppConfig::instance().getValueIndex(AppConfig::VIDEO_QUALITY));
     brls::Application::pushActivity(new brls::Activity(dropdown));
     brls::sync([dropdown]() { brls::Application::giveFocus(dropdown); });
+    return true;
+}
+
+bool VideoView::toggleVolume(brls::View* view) {
+    // 一直显示 OSD
+    this->showOSD(false);
+    auto theme = brls::Application::getTheme();
+    auto container = new brls::Box();
+    container->setHideClickAnimation(true);
+    container->registerAction("hints/back"_i18n, brls::BUTTON_B, [this](brls::View* view) {
+        // 几秒后自动关闭 OSD
+        this->showOSD(true);
+        view->dismiss();
+        // 保存结果
+        return true;
+    });
+    container->addGestureRecognizer(new brls::TapGestureRecognizer(container, [this, container]() {
+        // 几秒后自动关闭 OSD
+        this->showOSD(true);
+        container->dismiss();
+        // 保存结果
+        return true;
+    }));
+    // 滑动条背景
+    auto sliderBox = new brls::Box();
+    sliderBox->setAlignItems(brls::AlignItems::CENTER);
+    sliderBox->setHeight(40);
+    sliderBox->setCornerRadius(4);
+    sliderBox->setBackgroundColor(theme.getColor("color/grey_1"));
+    float sliderX = view->getX() - 120;
+    if (sliderX < 0) sliderX = 20;
+    if (sliderX > brls::Application::ORIGINAL_WINDOW_WIDTH - 332)
+        sliderX = brls::Application::ORIGINAL_WINDOW_WIDTH - 332;
+    sliderBox->setTranslationX(sliderX);
+    sliderBox->setTranslationY(view->getY() - 70);
+    // 滑动条
+    auto slider = new brls::Slider();
+    slider->setMargins(8, 16, 8, 16);
+    slider->setWidth(300);
+    slider->setHeight(20);
+    slider->setProgress(MPVCore::instance().getInt("volume") / 100.0f);
+    slider->getProgressEvent()->subscribe([](float progress) { MPVCore::instance().setInt("volume", progress * 100); });
+    sliderBox->addView(slider);
+    container->addView(sliderBox);
+    auto frame = new brls::AppletFrame(container);
+    frame->setInFadeAnimation(true);
+    frame->setHeaderVisibility(brls::Visibility::GONE);
+    frame->setFooterVisibility(brls::Visibility::GONE);
+    frame->setBackgroundColor(theme.getColor("brls/backdrop"));
+    brls::Application::pushActivity(new brls::Activity(frame));
+
+    // 手动将焦点赋给音量组件
+    brls::sync([container]() { brls::Application::giveFocus(container); });
     return true;
 }
 

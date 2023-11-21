@@ -226,6 +226,24 @@
                     positionType="absolute"
                     positionRight="20">
                     <brls:Box
+                        id="video/osd/volume"
+                        hideClickAnimation="true"
+                        alignItems="center"
+                        justifyContent="center"
+                        height="60"
+                        width="60">
+                        <SVGImage
+                            focusable="true"
+                            focusUp="video/osd/setting"
+                            focusDown="video/osd/volume"
+                            hideHighlightBackground="true"
+                            highlightCornerRadius="30"
+                            wireframe="false"
+                            height="30"
+                            width="30"
+                            svg="@res/icon/ico-volume.svg" />
+                    </brls:Box>
+                    <brls:Box
                         id="video/chapter/box"
                         hideClickAnimation="true"
                         marginLeft="10"

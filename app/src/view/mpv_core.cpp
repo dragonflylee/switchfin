@@ -558,7 +558,7 @@ double MPVCore::getDouble(const std::string &key) {
 }
 
 void MPVCore::setDouble(const std::string &key, double value) {
-    mpv_set_property(mpv, key.c_str(), MPV_FORMAT_DOUBLE, &value);
+    mpv_set_property_async(mpv, 0, key.c_str(), MPV_FORMAT_DOUBLE, &value);
 }
 
 int64_t MPVCore::getInt(const std::string &key, int64_t default_value) {
@@ -568,7 +568,7 @@ int64_t MPVCore::getInt(const std::string &key, int64_t default_value) {
 }
 
 void MPVCore::setInt(const std::string &key, int64_t value) {
-    mpv_set_property(mpv, key.c_str(), MPV_FORMAT_INT64, &value);
+    mpv_set_property_async(mpv, 0, key.c_str(), MPV_FORMAT_INT64, &value);
 }
 
 std::unordered_map<std::string, mpv_node> MPVCore::getNodeMap(const std::string &key) {
