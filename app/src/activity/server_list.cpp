@@ -127,6 +127,10 @@ void ServerList::onContentAvailable() {
         view->present(new ServerAdd([this]() { this->onLoad(); }));
         return true;
     });
+    this->registerAction("main/setting/server/connect_new"_i18n, brls::BUTTON_Y, [this](brls::View* view) {
+        view->present(new ServerAdd([this]() { this->onLoad(); }));
+        return true;
+    });
 
     this->sidebarServers->registerAction("hints/delete"_i18n, brls::BUTTON_X, [this](brls::View* view) {
         Dialog::cancelable("hints/delete"_i18n, [this]() {

@@ -199,7 +199,10 @@ void HomeTab::doNextup() {
             this->startNextup = r.StartIndex + this->pageSize;
             if (r.TotalRecordCount == 0) {
                 this->showNextup->setVisibility(brls::Visibility::GONE);
+                this->headerNextup->setVisibility(brls::Visibility::GONE);
             } else if (r.StartIndex == 0) {
+                this->showNextup->setVisibility(brls::Visibility::VISIBLE);
+                this->headerNextup->setVisibility(brls::Visibility::VISIBLE);
                 this->showNextup->setDataSource(new VideoDataSource(r.Items));
                 this->headerNextup->setSubtitle(std::to_string(r.TotalRecordCount));
             } else if (r.Items.size() > 0) {

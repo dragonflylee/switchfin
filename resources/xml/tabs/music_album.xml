@@ -46,8 +46,7 @@
         <brls:Padding />
 
         <brls:Box
-        id="album/stats">
-        </brls:Box>
+            id="album/stats" />
     </brls:Box>
 
     <RecyclingGrid
