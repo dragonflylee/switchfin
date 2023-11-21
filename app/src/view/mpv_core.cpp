@@ -164,7 +164,7 @@ void MPVCore::init() {
         {MPV_RENDER_PARAM_INVALID, nullptr},
     };
 #elif defined(BOREALIS_USE_D3D11)
-    mpv_dxgi_init_params init_params{D3D11_CONTEXT->GetDevice(), D3D11_CONTEXT->GetSwapChain()};
+    mpv_dxgi_init_params init_params{D3D11_CONTEXT->getDevice(), D3D11_CONTEXT->getSwapChain()};
     mpv_render_param params[] = {
         {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_DXGI)},
         {MPV_RENDER_PARAM_DXGI_INIT_PARAMS, &init_params},
@@ -338,7 +338,7 @@ void MPVCore::draw(brls::Rect rect, float alpha) {
         // 绘制视频
         mpv_render_context_render(this->mpv_context, mpv_params);
 #ifdef BOREALIS_USE_D3D11
-        D3D11_CONTEXT->SetRenderTarget();
+        D3D11_CONTEXT->beginFrame();
 #elif defined(BOREALIS_USE_DEKO3D)
         videoContext->queueWaitFence(&doneFence);
 #else

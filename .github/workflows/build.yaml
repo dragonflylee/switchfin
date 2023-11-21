@@ -184,7 +184,7 @@ jobs:
         submodules: recursive
     - name: Install dependency
       run: |
-        for pkg in curl-8.4.0-1 mpv-0.36.0-4 libwebp-1.3.2-1; do
+        for pkg in glfw-3.4.0-1 curl-8.4.0-1 mpv-0.36.0-4 libwebp-1.3.2-1; do
           curl -sLO https://github.com/${{ github.repository }}/releases/download/mingw-packages/${MINGW_PACKAGE_PREFIX}-${pkg}-any.pkg.tar.zst
         done
         pacman -U --noconfirm *.pkg.tar.zst
@@ -199,6 +199,7 @@ jobs:
           -DPLATFORM_DESKTOP=ON \
           -DWIN32_TERMINAL=OFF \
           -DZLIB_USE_STATIC_LIBS=ON \
+          -DUSE_SYSTEM_GLFW=ON \
           -DUSE_${{ matrix.driver }}=ON \
           -DVERSION_BUILD=${{ github.run_number }}
         cmake --build build_mingw

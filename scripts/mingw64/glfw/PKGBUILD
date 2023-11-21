@@ -1,0 +1,46 @@
+# Maintainer: Martell Malone <martellmalone@gmail.com>
+
+_realname=glfw
+pkgbase=mingw-w64-${_realname}
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+pkgver=3.4.0
+pkgrel=1
+pkgref=switchfin
+pkgdesc="A free, open source, portable framework for OpenGL application development (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw32' 'mingw64' 'clangarm64')
+msys2_references=(
+  'archlinux: glfw-x11'
+)
+url='https://www.glfw.org/'
+license=('spdx:Zlib')
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "${MINGW_PACKAGE_PREFIX}-cmake"
+  "${MINGW_PACKAGE_PREFIX}-ninja"
+)
+source=("${_realname}-${pkgref}.tar.gz"::"https://github.com/dragonflylee/glfw/archive/${pkgref}.tar.gz")
+sha256sums=('SKIP')
+
+prepare() {
+  cd "${srcdir}/${_realname}-${pkgref}"
+  ${MINGW_PREFIX}/bin/cmake.exe -P CMake/GenerateMappings.cmake \
+    src/mappings.h.in src/mappings.h
+}
+
+build() {
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    ${MINGW_PREFIX}/bin/cmake.exe -B "build-${MSYSTEM}" -G Ninja \
+      -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}" \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DBUILD_SHARED_LIBS=OFF \
+      -DGLFW_BUILD_EXAMPLES=OFF \
+      -DGLFW_BUILD_TESTS=OFF \
+      -DGLFW_BUILD_DOCS=OFF \
+      "${srcdir}/${_realname}-${pkgref}"
+    ${MINGW_PREFIX}/bin/cmake.exe --build "build-${MSYSTEM}"
+}
+
+package() {
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake.exe --install "build-${MSYSTEM}"
+}

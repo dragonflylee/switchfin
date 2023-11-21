@@ -40,7 +40,7 @@ jobs:
     - name: Build packages
       run: |
         cd scripts/mingw64
-        for pkg in libwebp freetype harfbuzz libass ffmpeg spirv-cross shaderc mpv curl; do
+        for pkg in libwebp freetype harfbuzz libass ffmpeg spirv-cross shaderc mpv glfw curl; do
           echo building $pkg
           cd $pkg; makepkg-mingw -sciCf --noconfirm; cd ..
         done
@@ -58,6 +58,7 @@ jobs:
         prerelease: true
         files: |
           scripts/mingw64/curl/*.pkg.tar.zst
+          scripts/mingw64/glfw/*.pkg.tar.zst
           scripts/mingw64/libwebp/*.pkg.tar.zst
           scripts/mingw64/mpv/*.pkg.tar.zst
           mpv-*.7z
