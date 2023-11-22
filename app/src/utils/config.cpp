@@ -20,6 +20,7 @@ namespace fs = std::filesystem;
 #include "api/http.hpp"
 #include "api/jellyfin/system.hpp"
 #include "utils/config.hpp"
+#include "utils/misc.hpp"
 #include "view/mpv_core.hpp"
 
 constexpr uint32_t MINIMUM_WINDOW_WIDTH = 640;
@@ -51,7 +52,34 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {REQUEST_TIMEOUT, {"request_timeout", {"1000", "2000", "3000", "5000"}, {1000, 2000, 3000, 5000}}},
 };
 
-AppConfig::AppConfig() = default;
+static std::string generateDeviceId() {
+#ifdef __SWITCH__
+    SetSysSerialNumber serial;
+    if (R_SUCCEEDED(setsysGetSerialNumber(&serial))) {
+        return serial.number;
+    }
+#elif _WIN32
+    HW_PROFILE_INFOW profile;
+    if (GetCurrentHwProfileW(&profile)) {
+        std::vector<char> deviceId(HW_PROFILE_GUIDLEN);
+        WideCharToMultiByte(CP_UTF8, 0, profile.szHwProfileGuid, std::wcslen(profile.szHwProfileGuid), deviceId.data(),
+            deviceId.size(), nullptr, nullptr);
+        return deviceId.data();
+    }
+#elif __APPLE__
+    io_registry_entry_t ioRegistryRoot = IORegistryEntryFromPath(kIOMasterPortDefault, "IOService:/");
+    if (ioRegistryRoot) {
+        CFStringRef uuidCf = (CFStringRef)IORegistryEntryCreateCFProperty(
+            ioRegistryRoot, CFSTR(kIOPlatformUUIDKey), kCFAllocatorDefault, 0);
+        std::vector<char> deviceId(CFStringGetLength(uuidCf) + 1);
+        CFStringGetCString(uuidCf, deviceId.data(), deviceId.size(), kCFStringEncodingMacRoman);
+        CFRelease(uuidCf);
+        IOObjectRelease(ioRegistryRoot);
+        return deviceId.data();
+    }
+#endif
+    return misc::randHex(16);
+}
 
 void AppConfig::init() {
     const std::string path = this->configDir() + "/config.json";
@@ -87,30 +115,7 @@ void AppConfig::init() {
     MPVCore::PLAYER_HWDEC_METHOD = this->getItem(PLAYER_HWDEC_CUSTOM, MPVCore::PLAYER_HWDEC_METHOD);
 
     // 初始化 deviceId
-    if (this->device.empty()) {
-#ifdef __SWITCH__
-        SetSysSerialNumber serial;
-        setsysGetSerialNumber(&serial);
-        this->device = serial.number;
-#elif _WIN32
-        HW_PROFILE_INFOW profile;
-        GetCurrentHwProfileW(&profile);
-        this->device.resize(HW_PROFILE_GUIDLEN - 1);
-        WideCharToMultiByte(CP_UTF8, 0, profile.szHwProfileGuid, this->device.size(), this->device.data(),
-            this->device.size(), nullptr, nullptr);
-#elif __APPLE__
-        io_registry_entry_t ioRegistryRoot = IORegistryEntryFromPath(kIOMasterPortDefault, "IOService:/");
-        CFStringRef uuidCf = (CFStringRef)IORegistryEntryCreateCFProperty(
-            ioRegistryRoot, CFSTR(kIOPlatformUUIDKey), kCFAllocatorDefault, 0);
-        this->device.resize(CFStringGetLength(uuidCf));
-        CFStringGetCString(uuidCf, this->device.data(), this->device.size() + 1, kCFStringEncodingMacRoman);
-        CFRelease(uuidCf);
-        IOObjectRelease(ioRegistryRoot);
-#elif __linux__
-        std::ifstream mid("/etc/machine-id");
-        if (mid.is_open()) std::getline(mid, this->device);
-#endif
-    }
+    if (this->device.empty()) this->device = generateDeviceId();
 
     // 初始化i18n
     brls::Platform::APP_LOCALE_DEFAULT = this->getItem(APP_LANG, brls::LOCALE_AUTO);

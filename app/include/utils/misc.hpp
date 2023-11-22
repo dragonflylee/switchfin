@@ -7,6 +7,6 @@ namespace misc {
 
 std::string sec2Time(int64_t t);
 
-std::string md5hash(const std::string& data);
+std::string randHex(const int len);
 
 }

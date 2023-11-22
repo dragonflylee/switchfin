@@ -63,7 +63,7 @@ public:
         REQUEST_TIMEOUT,
     };
 
-    AppConfig();
+    AppConfig() = default;
 
     void init();
     void save();
