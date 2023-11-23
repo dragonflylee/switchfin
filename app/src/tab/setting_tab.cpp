@@ -23,6 +23,7 @@
 #include "view/mpv_core.hpp"
 #include "view/selector_cell.hpp"
 #include "api/analytics.hpp"
+#include "api/http.hpp"
 #ifdef __SWITCH__
 #include "utils/overclock.hpp"
 #endif
@@ -249,7 +250,8 @@ void SettingTab::onCreate() {
     auto& timeoutOption = conf.getOptions(AppConfig::REQUEST_TIMEOUT);
     selectorTimeout->init("main/setting/network/timeout"_i18n, timeoutOption.options,
         conf.getValueIndex(AppConfig::REQUEST_TIMEOUT), [&timeoutOption](int selected) {
-            AppConfig::instance().setItem(AppConfig::REQUEST_TIMEOUT, timeoutOption.values[selected]);
+            HTTP::TIMEOUT = timeoutOption.values[selected];
+            AppConfig::instance().setItem(AppConfig::REQUEST_TIMEOUT, HTTP::TIMEOUT);
         });
 
     btnDebug->init("main/setting/others/debug"_i18n, brls::Application::isDebuggingViewEnabled(), [](bool value) {

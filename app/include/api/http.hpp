@@ -27,7 +27,7 @@ public:
     };
 
     struct Timeout {
-        long timeout = -1;
+        long timeout = TIMEOUT;
     };
 
     struct Cookie {
@@ -83,6 +83,8 @@ public:
         set_option(s, std::forward<Ts>(ts)...);
         return s.post(url, s.encode_form(form));
     }
+
+    inline static long TIMEOUT = 3000L;
 
 private:
     static size_t easy_write_cb(char* ptr, size_t size, size_t nmemb, void* userdata);

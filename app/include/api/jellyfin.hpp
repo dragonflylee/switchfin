@@ -20,10 +20,9 @@ inline void getJSON(Then then, OnError error, std::string_view fmt, Args&&... ar
     brls::async([then, error, url]() {
         auto& c = AppConfig::instance();
         HTTP::Header header = {"X-Emby-Token: " + c.getUser().access_token};
-        const long timeout = c.getItem(AppConfig::REQUEST_TIMEOUT, default_timeout);
 
         try {
-            auto resp = HTTP::get(c.getUrl() + url, header, HTTP::Timeout{timeout});
+            auto resp = HTTP::get(c.getUrl() + url, header, HTTP::Timeout{});
             if (resp.empty()) return;
             nlohmann::json j = nlohmann::json::parse(resp);
             brls::sync(std::bind(std::move(then), std::move(j)));
@@ -42,10 +41,9 @@ inline void postJSON(const nlohmann::json& data, Then then, OnError error, std::
             "Content-Type: application/json",
             "X-Emby-Token: " + c.getUser().access_token,
         };
-        const long timeout = c.getItem(AppConfig::REQUEST_TIMEOUT, default_timeout);
 
         try {
-            auto resp = HTTP::post(c.getUrl() + url, data.dump(), header, HTTP::Timeout{timeout});
+            auto resp = HTTP::post(c.getUrl() + url, data.dump(), header, HTTP::Timeout{});
             if (resp.empty()) return;
             nlohmann::json j = nlohmann::json::parse(resp);
             brls::sync(std::bind(std::move(then), std::move(j)));

@@ -31,5 +31,14 @@
             padding="12.5"
             id="server/quick_connect" />
 
+        <brls:Box
+            marginTop="10"
+            padding="10"
+            width="100%"
+            alignItems="center"
+            justifyContent="center">
+            <brls:Label
+                id="login/disclaimer" />
+        </brls:Box>
     </brls:Box>
 </brls:Box>

@@ -19,6 +19,8 @@ const std::string apiQuickInitiate = "/QuickConnect/Initiate";
 const std::string apiQuickConnect = "/QuickConnect/Connect?secret={}";
 const std::string apiAuthWithQuickConnect = "/Users/AuthenticateWithQuickConnect";
 
+const std::string apiBranding = "/Branding/Configuration";
+
 struct PublicSystemInfo {
     std::string Id;
     std::string LocalAddress;
@@ -91,5 +93,10 @@ struct SessionInfo {
     TranscodeInfo TranscodingInfo;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(SessionInfo, Id, PlayState, TranscodingInfo);
+
+struct BrandingConfig {
+    std::string LoginDisclaimer;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(BrandingConfig, LoginDisclaimer);
 
 }

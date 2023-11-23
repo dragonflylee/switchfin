@@ -60,7 +60,7 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
     ThreadPool::instance().submit([showUpToDateDialog]() {
         try {
             std::string url = fmt::format("https://api.github.com/repos/{}/releases/latest", git_repo);
-            auto resp = HTTP::get(url, HTTP::Timeout{default_timeout});
+            auto resp = HTTP::get(url, HTTP::Timeout{});
             nlohmann::json j = nlohmann::json::parse(resp);
             std::string latest_ver = j.at("tag_name").get<std::string>();
             if (latest_ver.compare(getVersion()) <= 0) {

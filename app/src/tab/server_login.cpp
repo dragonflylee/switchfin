@@ -112,15 +112,24 @@ ServerLogin::ServerLogin(const std::string& name, const std::string& url, const 
     });
 
     brls::async([this]() {
-        const long timeout = AppConfig::instance().getItem(AppConfig::REQUEST_TIMEOUT, default_timeout);
         try {
-            std::string resp = HTTP::get(this->url + jellyfin::apiQuickEnabled, HTTP::Timeout{timeout});
+            std::string resp = HTTP::get(this->url + jellyfin::apiQuickEnabled, HTTP::Timeout{});
             if (resp.compare("true") == 0)
                 brls::sync([this]() { this->btnQuickConnect->setVisibility(brls::Visibility::VISIBLE); });
         } catch (const std::exception& ex) {
             brls::Logger::warning("query quickconnect: {}", ex.what());
         }
     });
+
+    this->labelDisclaimer->setVisibility(brls::Visibility::INVISIBLE);
+    jellyfin::getJSON(
+        [this](const jellyfin::BrandingConfig& r) {
+            if (!r.LoginDisclaimer.empty()) {
+                this->labelDisclaimer->setText(r.LoginDisclaimer);
+                this->labelDisclaimer->setVisibility(brls::Visibility::VISIBLE);
+            }
+        },
+        nullptr, jellyfin::apiBranding);
 }
 
 ServerLogin::~ServerLogin() { brls::Logger::debug("ServerLogin Activity: delete"); }

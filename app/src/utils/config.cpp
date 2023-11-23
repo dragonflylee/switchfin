@@ -93,6 +93,8 @@ void AppConfig::init() {
         }
     }
 
+    HTTP::TIMEOUT = this->getItem(REQUEST_TIMEOUT, HTTP::TIMEOUT);
+
     // 初始化是否全屏，必须在创建窗口前设置此值
     VideoContext::FULLSCREEN = this->getItem(FULLSCREEN, false);
 
@@ -183,9 +185,8 @@ bool AppConfig::checkLogin() {
     for (auto& u : this->users) {
         if (u.id == this->user_id) {
             HTTP::Header header = {this->getDevice(u.access_token)};
-            const long timeout = this->getItem(AppConfig::REQUEST_TIMEOUT, default_timeout);
             try {
-                HTTP::get(this->server_url + jellyfin::apiInfo, header, HTTP::Timeout{timeout});
+                HTTP::get(this->server_url + jellyfin::apiInfo, header, HTTP::Timeout{});
                 this->user = u;
                 return true;
             } catch (const std::exception& ex) {

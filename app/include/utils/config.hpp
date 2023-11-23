@@ -5,9 +5,6 @@
 #include <nlohmann/json.hpp>
 #include <atomic>
 
-const long default_timeout = 3000L;
-const int default_seekstep = 15;
-
 class AppVersion {
 public:
     static std::string getVersion();
