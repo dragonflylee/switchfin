@@ -12,7 +12,7 @@
 
 using namespace brls::literals;
 
-VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
+VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
     this->inflateFromXMLRes("xml/view/video_view.xml");
     brls::Logger::debug("VideoView: create with item {}", itemId);
     this->setHideHighlightBorder(true);
@@ -248,20 +248,8 @@ VideoView::VideoView(const std::string& itemId) : itemId(itemId) {
     });
     this->btnVideoChapter->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoChapter));
 
-    // request mediainfo
-    ASYNC_RETAIN
-    jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MediaItem& r) {
-            ASYNC_RELEASE
-            this->chapters = r.Chapters;
-            this->playMedia(r.UserData.PlaybackPositionTicks);
-        },
-        [ASYNC_TOKEN](const std::string& ex) {
-            ASYNC_RELEASE
-            Dialog::show(ex, popActivity);
-        },
-        jellyfin::apiUserItem, AppConfig::instance().getUser().id, this->itemId);
-
+    this->chapters = item.Chapters;
+    this->playMedia(item.UserData.PlaybackPositionTicks);
     // Report stop when application exit
     this->exitSubscribeID = brls::Application::getExitEvent()->subscribe([this]() { this->reportStop(); });
 }

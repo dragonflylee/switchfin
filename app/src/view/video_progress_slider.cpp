@@ -25,10 +25,10 @@ VideoProgressSlider::VideoProgressSlider() {
     lineEmpty->setHeight(7);
     lineEmpty->setCornerRadius(3.5f);
 
-    pointerIcon->setDimensions(24, 24);
+    pointerIcon->setDimensions(22, 22);
     pointerIcon->setImageFromSVGRes("icon/ico-circle.svg");
 
-    pointer->setDimensions(60, 60);
+    pointer->setDimensions(30, 30);
     pointer->setFocusable(false);
     pointer->setAlignItems(brls::AlignItems::CENTER);
     pointer->setJustifyContent(brls::JustifyContent::CENTER);

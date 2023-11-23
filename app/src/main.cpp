@@ -93,8 +93,8 @@ int main(int argc, char* argv[]) {
     } else if (itemId.empty()) {
         brls::Application::pushActivity(new MainActivity());
     } else {
-        brls::View* view = new VideoView(itemId);
-        brls::sync([view]() { brls::Application::giveFocus(view); });
+        //brls::View* view = new VideoView(itemId);
+        //brls::sync([view]() { brls::Application::giveFocus(view); });
     }
 
     AppVersion::checkUpdate();

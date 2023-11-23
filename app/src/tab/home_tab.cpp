@@ -99,7 +99,7 @@ void HomeTab::doResume() {
     std::string query = HTTP::encode_form({
         {"enableImageTypes", "Primary"},
         {"mediaTypes", "Video"},
-        {"fields", "BasicSyncInfo"},
+        {"fields", "BasicSyncInfo,Chapters"},
         {"limit", std::to_string(this->pageSize)},
         {"startIndex", std::to_string(this->startResume)},
     });
@@ -133,7 +133,7 @@ void HomeTab::doVideoLatest() {
     std::string query = HTTP::encode_form({
         {"enableImageTypes", "Primary"},
         {"includeItemTypes", "Series,Movie"},
-        {"fields", "BasicSyncInfo"},
+        {"fields", "BasicSyncInfo,Chapters"},
         {"limit", std::to_string(this->latestSize)},
     });
     ASYNC_RETAIN
@@ -188,7 +188,7 @@ void HomeTab::doMusicLatest() {
 void HomeTab::doNextup() {
     std::string query = HTTP::encode_form({
         {"userId", AppConfig::instance().getUser().id},
-        {"fields", "BasicSyncInfo"},
+        {"fields", "BasicSyncInfo,Chapters"},
         {"limit", std::to_string(this->pageSize)},
         {"startIndex", std::to_string(this->startNextup)},
     });

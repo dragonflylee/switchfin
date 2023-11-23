@@ -122,7 +122,6 @@ ServerList::ServerList() { brls::Logger::debug("ServerList: create"); }
 ServerList::~ServerList() { brls::Logger::debug("ServerList Activity: delete"); }
 
 void ServerList::onContentAvailable() {
-    this->recyclerUsers->registerCell("Cell", []() { return new UserCell(); });
     this->btnServerAdd->registerClickAction([this](brls::View* view) {
         view->present(new ServerAdd([this]() { this->onLoad(); }));
         return true;
@@ -133,19 +132,22 @@ void ServerList::onContentAvailable() {
     });
 
     this->sidebarServers->registerAction("hints/delete"_i18n, brls::BUTTON_X, [this](brls::View* view) {
-        Dialog::cancelable("hints/delete"_i18n, [this]() {
-            ServerCell* cell = dynamic_cast<ServerCell*>(brls::Application::getCurrentFocus());
+        Dialog::cancelable("hints/delete"_i18n, [this, view]() {
+            ServerCell* cell = dynamic_cast<ServerCell*>(view);
             if (cell != nullptr && AppConfig::instance().removeServer(cell->serverId)) this->onLoad();
         });
         return true;
     });
 
-    this->recyclerUsers->registerAction("hints/delete"_i18n, brls::BUTTON_X, [this](brls::View* view) {
-        Dialog::cancelable("hints/delete"_i18n, [this]() {
-            UserCell* cell = dynamic_cast<UserCell*>(brls::Application::getCurrentFocus());
-            if (cell != nullptr && AppConfig::instance().removeUser(cell->userId)) this->onLoad();
+    this->recyclerUsers->registerCell("Cell", [this]() {
+        UserCell* cell = new UserCell();
+        cell->registerAction("hints/delete"_i18n, brls::BUTTON_X, [this, cell](brls::View* view) {
+            Dialog::cancelable("hints/delete"_i18n, [this, cell]() {
+                if (AppConfig::instance().removeUser(cell->userId)) this->onLoad();
+            });
+            return true;
         });
-        return true;
+        return cell;
     });
 
     this->onLoad();

@@ -63,7 +63,7 @@ void MediaCollection::doRequest() {
         {"parentId", this->itemId},
         {"sortBy", sortBy[MediaFilter::selectedSort]},
         {"sortOrder", MediaFilter::selectedOrder ? "Descending" : "Ascending"},
-        {"fields", "PrimaryImageAspectRatio,BasicSyncInfo"},
+        {"fields", "PrimaryImageAspectRatio,Chapters,BasicSyncInfo"},
         {"EnableImageTypes", "Primary"},
         {"filters", fmt::format("{}", fmt::join(filters, ","))},
         {"limit", std::to_string(this->pageSize)},
