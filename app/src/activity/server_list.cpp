@@ -82,7 +82,9 @@ public:
         auto& u = this->list.at(index);
         cell->userId = u.id;
         cell->labelName->setText(u.name);
-        // Image::with(cell->picture, this->parent->getUrl() + fmt::format(fmt::runtime(jellyfin::apiUserImage), u.id, ""));
+
+        std::string url = fmt::format(fmt::runtime(jellyfin::apiUserImage), u.id, "");
+        Image::with(cell->picture, this->parent->getUrl() + url);
         return cell;
     }
 
@@ -131,23 +133,22 @@ void ServerList::onContentAvailable() {
         return true;
     });
 
-    this->sidebarServers->registerAction("hints/delete"_i18n, brls::BUTTON_X, [this](brls::View* view) {
-        Dialog::cancelable("hints/delete"_i18n, [this, view]() {
-            ServerCell* cell = dynamic_cast<ServerCell*>(view);
-            if (cell != nullptr && AppConfig::instance().removeServer(cell->serverId)) this->onLoad();
-        });
-        return true;
-    });
-
     this->recyclerUsers->registerCell("Cell", [this]() {
         UserCell* cell = new UserCell();
         cell->registerAction("hints/delete"_i18n, brls::BUTTON_X, [this, cell](brls::View* view) {
-            Dialog::cancelable("hints/delete"_i18n, [this, cell]() {
-                if (AppConfig::instance().removeUser(cell->userId)) this->onLoad();
+            Dialog::cancelable("main/setting/server/delete"_i18n, [this, cell]() {
+                if (AppConfig::instance().removeUser(cell->userId)) {
+                    brls::sync([this]() { this->onLoad(); });
+                }
             });
             return true;
         });
         return cell;
+    });
+
+    this->btnSignin->registerClickAction([this](brls::View* view) {
+        view->present(new ServerLogin("", this->getUrl()));
+        return true;
     });
 
     this->onLoad();
@@ -161,8 +162,6 @@ void ServerList::onLoad() {
         return;
     }
     this->mainframe->setActionAvailable(brls::BUTTON_B, true);
-
-    this->items.clear();
     this->sidebarServers->clearViews();
 
     for (auto& s : list) {
@@ -172,12 +171,20 @@ void ServerList::onLoad() {
             this->onSelect(s);
         });
 
+        item->registerAction("hints/delete"_i18n, brls::BUTTON_X, [this, item](brls::View* view) {
+            Dialog::cancelable("main/setting/server/delete"_i18n, [this, item]() {
+                if (AppConfig::instance().removeServer(item->serverId)) {
+                    brls::sync([this]() { this->onLoad(); });
+                }
+            });
+            return true;
+        });
+
         if (s.urls.front() == AppConfig::instance().getUrl()) {
             item->setActive(true);
             this->onSelect(s);
         }
 
-        this->items.push_back(item);
         this->sidebarServers->addView(item);
     }
 }
@@ -185,13 +192,15 @@ void ServerList::onLoad() {
 void ServerList::onSelect(const AppServer& s) {
     this->serverVersion->setDetailText(s.version);
     this->serverOS->setDetailText(s.os.empty() ? "-" : s.os);
-    this->selectorUrl->init("main/setting/url"_i18n, s.urls, 0, [](size_t selected) {
-
-    });
-
-    this->btnSignin->registerClickAction([this, s](brls::View* view) {
-        view->present(new ServerLogin(s.name, this->getUrl()));
-        return true;
+    this->selectorUrl->init("main/setting/url"_i18n, s.urls, 0, [this, s](size_t selected) {
+        AppConfig::instance().addServer({
+            .name = s.name,
+            .id = s.id,
+            .version = s.version,
+            .os = s.os,
+            .urls = {s.urls[selected]},
+        });
+        brls::sync([this]() { this->onLoad(); });
     });
 
     if (s.users.empty()) {
@@ -205,10 +214,8 @@ void ServerList::onSelect(const AppServer& s) {
 std::string ServerList::getUrl() { return this->selectorUrl->detail->getFullText(); }
 
 void ServerList::setActive(brls::View* active) {
-    for (ServerCell* item : this->items) {
-        if (item == active)
-            item->setActive(true);
-        else
-            item->setActive(false);
+    for (auto item : this->sidebarServers->getChildren()) {
+        ServerCell* cell = dynamic_cast<ServerCell*>(item);
+        if (cell) cell->setActive(item == active);
     }
 }

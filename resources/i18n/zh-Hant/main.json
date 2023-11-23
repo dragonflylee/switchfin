@@ -77,6 +77,7 @@
       "connect_to": "連線到Jellyfin伺服器",
       "invalid": "伺服器URL無效！",
       "connect": "連線",
+      "delete": "是否刪除？",
       "local": "本地伺服器",
       "users": "{} 個使用者",
       "sigin_to": "登入到 {}",

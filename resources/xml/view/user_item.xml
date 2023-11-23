@@ -14,7 +14,7 @@
             scalingType="fill"
             grow="1.0f"
             image="@res/img/video-card-bg.png"
-            cornerRadius="30" />
+            cornerRadius="10" />
     </brls:Box>
 
     <brls:Box

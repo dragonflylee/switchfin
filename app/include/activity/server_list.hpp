@@ -33,6 +33,4 @@ private:
 
     void setActive(brls::View *active);
     void onLoad();
-
-    std::vector<ServerCell *> items;
 };
