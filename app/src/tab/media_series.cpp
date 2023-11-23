@@ -19,6 +19,7 @@ public:
     BRLS_BIND(brls::Label, labelName, "episode/card/name");
     BRLS_BIND(brls::Label, labelOverview, "episode/card/overview");
     BRLS_BIND(SVGImage, badgeTopRight, "video/card/badge/top");
+    BRLS_BIND(brls::Rectangle, rectProgress, "video/card/progress");
 };
 
 class EpisodeDataSource : public RecyclingGridDataSource {
@@ -53,6 +54,11 @@ public:
 
         if (item.UserData.Played) {
             cell->badgeTopRight->setImageFromSVGRes("icon/ico-checkmark.svg");
+        } else if (item.UserData.PlaybackPositionTicks) {
+            cell->rectProgress->setWidthPercentage(item.UserData.PlayedPercentage);
+            cell->rectProgress->getParent()->setVisibility(brls::Visibility::VISIBLE);
+        } else {
+            cell->rectProgress->getParent()->setVisibility(brls::Visibility::GONE);
         }
 
         return cell;

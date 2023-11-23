@@ -4,6 +4,7 @@
 #include "tab/media_series.hpp"
 #include "tab/media_collection.hpp"
 #include "tab/music_album.hpp"
+#include "utils/misc.hpp"
 
 VideoDataSource::VideoDataSource(const MediaList& r) : list(std::move(r)) {}
 
@@ -27,6 +28,16 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
         if (it != item.ImageTags.end())
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
                 HTTP::encode_form({{"tag", it->second}, {"maxWidth", "200"}}));
+    }
+
+    if (item.UserData.PlaybackPositionTicks) {
+        cell->labelRating->setText(
+            fmt::format("{}/{}", misc::sec2Time(item.UserData.PlaybackPositionTicks / jellyfin::PLAYTICKS),
+                misc::sec2Time(item.RunTimeTicks / jellyfin::PLAYTICKS)));
+        cell->rectProgress->setWidthPercentage(item.UserData.PlayedPercentage);
+        cell->rectProgress->getParent()->setVisibility(brls::Visibility::VISIBLE);
+    } else {
+        cell->rectProgress->getParent()->setVisibility(brls::Visibility::GONE);
     }
     return cell;
 }

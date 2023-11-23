@@ -25,4 +25,5 @@ public:
     BRLS_BIND(brls::Label, labelTitle, "video/card/label/title");
     BRLS_BIND(brls::Label, labelExt, "video/card/label/ext");
     BRLS_BIND(brls::Label, labelRating, "video/card/label/rating");
+    BRLS_BIND(brls::Rectangle, rectProgress, "video/card/progress");
 };

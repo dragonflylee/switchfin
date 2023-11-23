@@ -20,6 +20,21 @@
                 positionRight="8"
                 height="24" />
         </brls:Box>
+
+        <brls:Box
+            wireframe="false"
+            positionType="absolute"
+            positionBottom="0"
+            visibility="gone"
+            width="100%"
+            height="2"
+            backgroundColor="#353535">
+            <brls:Rectangle
+                id="video/card/progress"
+                height="2"
+                width="50%"
+                color="@theme/color/app" />
+        </brls:Box>
     </brls:Box>
 
     <brls:Box
