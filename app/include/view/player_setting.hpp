@@ -5,7 +5,7 @@
 #pragma once
 
 #include <borealis.hpp>
-#include "api/jellyfin/media.hpp"
+#include <api/jellyfin/media.hpp>
 
 class PlayerSetting : public brls::Box {
 public:

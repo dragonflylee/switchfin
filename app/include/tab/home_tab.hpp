@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "view/auto_tab_frame.hpp"
-#include "view/presenter.h"
+#include <view/auto_tab_frame.hpp>
+#include <view/presenter.hpp>
 
 class HRecyclerFrame;
 

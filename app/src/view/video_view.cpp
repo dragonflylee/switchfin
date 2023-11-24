@@ -3,7 +3,6 @@
 #include "view/video_progress_slider.hpp"
 #include "view/player_setting.hpp"
 #include "view/video_profile.hpp"
-#include "view/presenter.h"
 #include "api/jellyfin.hpp"
 #include "utils/dialog.hpp"
 #include "utils/config.hpp"
@@ -540,11 +539,11 @@ void VideoView::playMedia(const time_t seekTicks) {
                 }
             }
 
-            Dialog::show("Unsupport video format", popActivity);
+            Dialog::show("Unsupport video format", []() { popActivity(); });
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            Dialog::show(ex, popActivity);
+            Dialog::show(ex, []() { popActivity(); });
         },
         jellyfin::apiPlayback, this->itemId);
 }
@@ -695,7 +694,7 @@ void VideoView::registerMpvEvent() {
             }
             break;
         case MpvEventEnum::MPV_FILE_ERROR: {
-            Dialog::show("main/player/error"_i18n, popActivity);
+            Dialog::show("main/player/error"_i18n, []() { popActivity(); });
             break;
         }
         default:;
@@ -851,11 +850,8 @@ bool VideoView::toggleVolume(brls::View* view) {
 
 bool VideoView::popActivity() {
     return brls::Application::popActivity(brls::TransitionAnimation::NONE, []() {
-        auto applet = brls::Application::getCurrentFocus()->getAppletFrame();
-        if (applet != nullptr) {
-            Presenter* p = dynamic_cast<Presenter*>(applet->getContentView());
-            if (p != nullptr) p->doRequest();
-        }
+        auto mpvce = MPVCore::instance().getCustomEvent();
+        mpvce->fire(VIDEO_CLOSE, nullptr);
     });
 }
 

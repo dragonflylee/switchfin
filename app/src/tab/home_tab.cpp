@@ -31,16 +31,18 @@ HomeTab::HomeTab() {
 HomeTab::~HomeTab() { brls::Logger::debug("View HomeTab: delete"); }
 
 void HomeTab::doRequest() {
+    this->startNextup = 0;
+    this->startResume = 0;
+
     this->doResume();
     this->doVideoLatest();
     this->doMusicLatest();
     this->doNextup();
+    brls::Logger::info("Presenter doRequest");
 }
 
 void HomeTab::onCreate() {
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
-        this->startNextup = 0;
-        this->startResume = 0;
         this->doRequest();
         return true;
     });

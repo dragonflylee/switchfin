@@ -453,7 +453,7 @@ void MPVCore::eventMainLoop() {
                 if (!*(int *)prop->data) {
                     mpvCoreEvent.fire(MpvEventEnum::LOADING_END);
                 } else if (!this->video_stopped) {
-                    brls::Logger::info("MPVCore => IDLE");
+                    brls::Logger::debug("MPVCore => IDLE");
                     mpvCoreEvent.fire(MpvEventEnum::LOADING_START);
                 }
                 break;

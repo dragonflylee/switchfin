@@ -1,7 +1,7 @@
 #pragma once
 
-#include "view/recycling_grid.hpp"
-#include "api/jellyfin/media.hpp"
+#include <view/recycling_grid.hpp>
+#include <api/jellyfin/media.hpp>
 
 class VideoDataSource : public RecyclingGridDataSource {
 public:

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "view/auto_tab_frame.hpp"
+#include <view/auto_tab_frame.hpp>
 
 class RecyclingGrid;
 

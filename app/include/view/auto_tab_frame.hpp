@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "borealis.hpp"
+#include <borealis.hpp>
 
 typedef std::function<brls::View*(void)> TabViewCreator;
 

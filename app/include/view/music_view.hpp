@@ -8,7 +8,7 @@
 #include <borealis/core/singleton.hpp>
 
 #include <api/jellyfin/media.hpp>
-#include "view/mpv_core.hpp"
+#include <view/mpv_core.hpp>
 
 class VideoProgressSlider;
 class SVGImage;

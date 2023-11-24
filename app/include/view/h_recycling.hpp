@@ -1,6 +1,6 @@
 #pragma once
 
-#include "view/recycling_grid.hpp"
+#include <view/recycling_grid.hpp>
 
 class HRecyclerContentBox;
 

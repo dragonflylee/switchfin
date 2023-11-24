@@ -1,9 +1,8 @@
 #pragma once
 
-#include <borealis.hpp>
-#include "view/recycling_grid.hpp"
-#include "api/jellyfin/media.hpp"
-#include "utils/image.hpp"
+#include <view/recycling_grid.hpp>
+#include <api/jellyfin/media.hpp>
+#include <utils/image.hpp>
 
 class BaseVideoCard : public RecyclingGridItem {
 public:

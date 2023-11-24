@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include <cstring>
+
 #include <borealis.hpp>
 #include <lunasvg.h>
 

@@ -5,8 +5,8 @@
 #pragma once
 
 #include <borealis.hpp>
-#include "view/mpv_core.hpp"
-#include "api/jellyfin/media.hpp"
+#include <view/mpv_core.hpp>
+#include <api/jellyfin/media.hpp>
 
 class VideoProgressSlider;
 class SVGImage;
@@ -50,6 +50,7 @@ public:
 
     // 用于 VideoView 可以接收的自定义事件
     inline static const std::string QUALITY_CHANGE = "QUALITY_CHANGE";
+    inline static const std::string VIDEO_CLOSE = "VIDEO_CLOSE";
 
 private:
     /// OSD
