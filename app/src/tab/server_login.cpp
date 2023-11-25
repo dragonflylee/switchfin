@@ -97,7 +97,7 @@ ServerLogin::ServerLogin(const std::string& name, const std::string& url, const 
     this->inflateFromXMLRes("xml/tabs/server_login.xml");
     brls::Logger::debug("ServerLogin: create");
 
-    this->hdrSigin->setTitle(fmt::format(fmt::runtime("main/setting/server/sigin_to"_i18n), name));
+    this->hdrSigin->setTitle(brls::getStr("main/setting/server/sigin_to", name));
     this->inputUser->init("main/setting/username"_i18n, user);
     this->inputPass->init(
         "main/setting/password"_i18n, "", [](std::string text) {}, "", "", 256);

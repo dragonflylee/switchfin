@@ -32,7 +32,7 @@ public:
         this->serverId = s.id;
         this->labelName->setText(s.name);
         this->labelUrl->setText(s.urls.front());
-        this->labelUsers->setText(fmt::format(fmt::runtime("main/setting/server/users"_i18n), s.users.size()));
+        this->labelUsers->setText(brls::getStr("main/setting/server/users", s.users.size()));
     }
 
     void setActive(bool active) {

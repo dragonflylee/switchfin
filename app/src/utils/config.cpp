@@ -34,7 +34,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {TRANSCODEC, {"transcodec", {"h264", "hevc", "av1"}}},
     {FORCE_DIRECTPLAY, {"force_directplay"}},
     {VIDEO_QUALITY, {"video_quality",
-                        {"Direct", "1080p - 60Mbps", "1080p - 40Mbps", "1080p - 20Mbps", "720p - 8Mbps", "720p - 6Mbps",
+                        {"Auto", "1080p - 60Mbps", "1080p - 40Mbps", "1080p - 20Mbps", "720p - 8Mbps", "720p - 6Mbps",
                             "480p - 3Mbps", "480P - 1Mbps"},
                         {0, 60, 40, 20, 8, 6, 3, 1}}},
     {FULLSCREEN, {"fullscreen"}},
@@ -139,6 +139,9 @@ void AppConfig::init() {
         // 设置窗口最小尺寸
         brls::Application::getPlatform()->setWindowSizeLimits(MINIMUM_WINDOW_WIDTH, MINIMUM_WINDOW_HEIGHT, 0, 0);
 #endif
+
+        // i18n 相关
+        settingMap[VIDEO_QUALITY].options[0] = brls::getStr("main/player/auto");
     });
 
 #ifdef __SWITCH__

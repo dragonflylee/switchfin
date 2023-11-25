@@ -17,7 +17,7 @@ std::string AppVersion::getVersion() { return STR(APP_VERSION); }
 
 std::string AppVersion::getPackageName() { return STR(BUILD_PACKAGE_NAME); }
 
-std::string AppVersion::getCommit()  { return STR(BUILD_TAG_SHORT); }
+std::string AppVersion::getCommit() { return STR(BUILD_TAG_SHORT); }
 
 std::string AppVersion::getPlatform() {
 #if __SWITCH__
@@ -70,7 +70,7 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
             }
 
             brls::sync([latest_ver]() {
-                std::string title = fmt::format(fmt::runtime("main/setting/others/upgrade"_i18n), latest_ver);
+                std::string title = brls::getStr("main/setting/others/upgrade", latest_ver);
 #ifdef __SWITCH__
                 Dialog::cancelable(title, [latest_ver]() {
                     AppVersion::updating->store(false);
