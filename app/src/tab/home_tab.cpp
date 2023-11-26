@@ -38,7 +38,6 @@ void HomeTab::doRequest() {
     this->doVideoLatest();
     this->doMusicLatest();
     this->doNextup();
-    brls::Logger::info("Presenter doRequest");
 }
 
 void HomeTab::onCreate() {

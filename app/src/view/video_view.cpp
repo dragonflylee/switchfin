@@ -637,7 +637,6 @@ void VideoView::registerMpvEvent() {
             this->reportStart();
             break;
         case MpvEventEnum::MPV_STOP:
-            this->showOSD(false);
             this->reportStop();
             break;
         case MpvEventEnum::MPV_LOADED: {
@@ -683,7 +682,6 @@ void VideoView::registerMpvEvent() {
         case MpvEventEnum::END_OF_FILE:
             // 播放结束
             disableDimming(false);
-            this->showOSD(false);
             this->btnToggleIcon->setImageFromSVGRes("icon/ico-play.svg");
             this->playNext();
             break;
@@ -832,8 +830,8 @@ bool VideoView::toggleVolume(brls::View* view) {
     slider->setMargins(8, 16, 8, 16);
     slider->setWidth(300);
     slider->setHeight(20);
-    slider->setProgress(MPVCore::instance().getInt("volume") / 100.0f);
-    slider->getProgressEvent()->subscribe([](float progress) { MPVCore::instance().setInt("volume", progress * 100); });
+    slider->setProgress(MPVCore::instance().getInt("volume") / 200.0f);
+    slider->getProgressEvent()->subscribe([](float progress) { MPVCore::instance().setInt("volume", progress * 200); });
     sliderBox->addView(slider);
     container->addView(sliderBox);
     auto frame = new brls::AppletFrame(container);
