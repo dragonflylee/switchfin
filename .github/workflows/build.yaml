@@ -9,6 +9,7 @@ on:
     - scripts/mingw64/*/*
     - scripts/switch/*/*
     - images/*
+    - CHANGELOG.md
     - README.md
     branches: [ dev ]
   pull_request:
