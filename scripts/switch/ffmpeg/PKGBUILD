@@ -6,7 +6,7 @@
 
 pkgname=switch-ffmpeg
 pkgver=6.1
-pkgrel=1
+pkgrel=2
 pkgdesc='ffmpeg port (for Nintendo Switch homebrew development)'
 arch=('any')
 url='https://ffmpeg.org/'
@@ -43,7 +43,7 @@ build() {
     --enable-swscale --enable-swresample --enable-network  \
     --disable-protocols --enable-protocol=file,http,tcp,udp,rtmp,hls,https,tls,ftp \
     --enable-zlib --enable-bzlib --enable-libass --enable-libfreetype --enable-libfribidi --enable-libdav1d \
-    --enable-mbedtls --enable-version3 --enable-demuxer=hls --enable-tx1
+    --enable-mbedtls --enable-version3 --enable-demuxer=hls --enable-nvtegra
 
   make -j$(nproc)
 }

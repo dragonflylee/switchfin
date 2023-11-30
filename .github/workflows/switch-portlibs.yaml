@@ -41,7 +41,7 @@ jobs:
         chown -R builder:builder ${GITHUB_WORKSPACE}/scripts/switch
         sudo -u builder -i bash -s << EOF
           cd ${GITHUB_WORKSPACE}/scripts/switch
-          for pkg in hacbrewpack curl harfbuzz libass ffmpeg libmpv deko3d libuam nspmini; do
+          for pkg in hacbrewpack curl harfbuzz libass dav1d ffmpeg mpv deko3d libuam nspmini; do
             echo building \$pkg
             cd \$pkg; dkp-makepkg -sciCf --noconfirm; cd ..
           done

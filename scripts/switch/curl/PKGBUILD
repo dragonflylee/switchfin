@@ -29,7 +29,7 @@ build() {
   ./buildconf
 
   ./configure --prefix=$PORTLIBS_PREFIX --host=aarch64-none-elf \
-    --disable-shared --enable-static --disable-ipv6 --disable-unix-sockets \
+    --disable-shared --enable-static --enable-ipv6 --disable-unix-sockets \
     --disable-manual --disable-ntlm-wb --disable-threaded-resolver \
     --without-ssl --without-polar-ssl --without-cyassl --without-wolfssl \
     --without-mbedtls --disable-progress-meter \

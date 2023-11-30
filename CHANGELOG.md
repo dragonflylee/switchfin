@@ -1,20 +1,29 @@
 # Changelog
 
+## [0.4.2]
+
+### Fixed
+
+* auto hide osd on loading end
+
 ## [0.4.1]
 
 ### Added
+
 * add tap control for progress slider
 * add volume control for video
 * add login disclaimer display
 * add play progress on more page
 
 ### Fixed
+
 * server selection by joystick
 * fix home tab auto refresh
 
 ## [0.4.0]
 
 ### Added
+
 * **add music album support**
 * add option of player_inmemory_cache
 * add experimental support for deko3d backend

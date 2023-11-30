@@ -1,0 +1,73 @@
+From 2e73db6d2af91fad8ef749bbbf3b5c60b9a1d418 Mon Sep 17 00:00:00 2001
+From: averne <averne381@gmail.com>
+Date: Sat, 3 Dec 2022 16:09:14 +0100
+Subject: [PATCH] Add all nintendo fonts to libass
+
+---
+ sub/osd.c    |  4 ++++
+ sub/sd_ass.c | 29 +++++++++++++++++++++++++++++
+ 2 files changed, 33 insertions(+)
+
+diff --git a/sub/osd.c b/sub/osd.c
+index 811b6c821b..4e0f8c9475 100644
+--- a/sub/osd.c
++++ b/sub/osd.c
+@@ -95,7 +95,11 @@ const struct m_sub_options sub_style_conf = {
+     .opts = style_opts,
+     .size = sizeof(struct osd_style_opts),
+     .defaults = &(const struct osd_style_opts){
++#ifdef __SWITCH__
++        .font = "nintendo_udsg-r_std_003",
++#else
+         .font = "sans-serif",
++#endif
+         .font_size = 55,
+         .color = {255, 255, 255, 255},
+         .border_color = {0, 0, 0, 255},
+diff --git a/sub/sd_ass.c b/sub/sd_ass.c
+index e4e5652875..978d8703f9 100644
+--- a/sub/sd_ass.c
++++ b/sub/sd_ass.c
+@@ -21,6 +21,10 @@
+ #include <math.h>
+ #include <limits.h>
+ 
++#ifdef __SWITCH__
++#include <switch.h>
++#endif
++
+ #include <libavutil/common.h>
+ #include <ass/ass.h>
+ 
+@@ -198,6 +202,31 @@ static void enable_output(struct sd *sd, bool enable)
+     } else {
+         ctx->ass_renderer = ass_renderer_init(ctx->ass_library);
+ 
++#ifdef __SWITCH__
++        static char * const pl_font_names[] = {
++            [PlSharedFontType_Standard]             = "nintendo_udsg-r_std_003",
++            [PlSharedFontType_ChineseSimplified]    = "nintendo_udsg-r_org_zh-cn_003",
++            [PlSharedFontType_ExtChineseSimplified] = "nintendo_udsg-r_ext_zh-cn_003",
++            [PlSharedFontType_ChineseTraditional]   = "nintendo_udjxh-db_zh-tw_003",
++            [PlSharedFontType_KO]                   = "nintendo_udsg-r_ko_003",
++            [PlSharedFontType_NintendoExt]          = "NintendoExt003",
++        };
++
++        Result rc = plInitialize(PlServiceType_User);
++        if (R_SUCCEEDED(rc)) {
++            PlFontData font;
++            for (int i = 0; i < PlSharedFontType_Total; ++i) {
++                rc = plGetSharedFontByType(&font, i);
++                if (R_SUCCEEDED(rc))
++                    ass_add_font(ctx->ass_library, pl_font_names[font.type],
++                        font.address, font.size);
++                else
++                    MP_ERR(sd, "Failed to add font %s from pl: %#x\n", pl_font_names[i], rc);
++            }
++            plExit();
++        }
++#endif
++
+         mp_ass_configure_fonts(ctx->ass_renderer, sd->opts->sub_style,
+                                sd->global, sd->log);
+     }

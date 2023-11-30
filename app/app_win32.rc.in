@@ -28,4 +28,4 @@ BEGIN
     END
 END
 
-IDI_ICON ICON ${CMAKE_SOURCE_DIR}/app/app.ico
+IDI_ICON ICON "${CMAKE_SOURCE_DIR}/app/app.ico"

@@ -28,10 +28,15 @@ using namespace brls::literals;  // for _i18n
 int main(int argc, char* argv[]) {
     std::string itemId;
     for (int i = 1; i < argc; i++) {
-        if (std::strcmp(argv[i], "--debug") == 0) {
+        if (std::strcmp(argv[i], "-d") == 0) {
             brls::Logger::setLogLevel(brls::LogLevel::LOG_DEBUG);
-        } else if (std::strcmp(argv[i], "--verbose") == 0) {
+        } else if (std::strcmp(argv[i], "-v") == 0) {
+            brls::Application::enableDebuggingView(true);
+        } else if (std::strcmp(argv[i], "-t") == 0) {
             MPVCore::DEBUG = true;
+        } else if (std::strcmp(argv[i], "-o") == 0) {
+            const char* path = (i + 1 < argc) ? argv[++i] : "switchfin.log";
+            brls::Logger::setLogOutput(std::fopen(path, "w+"));
         } else if (std::strcmp(argv[i], "-i") == 0) {
             if (i + 1 < argc) itemId = argv[++i];
         }

@@ -9,7 +9,7 @@ build*/
 /resources/shaders/*.dksh
 /scripts/switch/*/*.tar.*
 /scripts/switch/*/src
-/scripts/switch/libmpv/deko3d.patch
+/scripts/switch/mpv-deko3d/deko3d.patch
 /scripts/mingw64/*/*.tar.*
 /scripts/mingw64/*/src
 /scripts/parts/*

@@ -63,7 +63,7 @@ sudo dkp-pacman -S switch-dev switch-glfw switch-libwebp switch-curl
 cmake -B build_switch -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON
 make -C build_switch Switchfin.nro -j$(nproc)
 # for debug
-nxlink -a <YOUR IP> -p Switchfin/Switchfin.nro -s Switchfin.nro --args --debug
+nxlink -a <YOUR IP> -p Switchfin/Switchfin.nro -s Switchfin.nro --args -d -v
 ```
 
 ### Building for MinGW64

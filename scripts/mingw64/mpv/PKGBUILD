@@ -15,6 +15,7 @@ makedepends=(
   "${MINGW_PACKAGE_PREFIX}-cc"
   "${MINGW_PACKAGE_PREFIX}-meson"
   "${MINGW_PACKAGE_PREFIX}-ninja"
+  "${MINGW_PACKAGE_PREFIX}-pkgconf"
   "${MINGW_PACKAGE_PREFIX}-ffmpeg"
   "${MINGW_PACKAGE_PREFIX}-libass"
   "${MINGW_PACKAGE_PREFIX}-shaderc"
@@ -33,8 +34,13 @@ prepare() {
 }
 
 build() {
+  if [[ ${MSYSTEM} == CLANG* ]]; then
+    LDFLAGS="-lc++ -static-libgcc -static"
+  else
+    LDFLAGS="-lstdc++ -static-libgcc -static-libstdc++ -static"
+  fi
+
   MSYS2_ARG_CONV_EXCL="--prefix=" \
-  LDFLAGS="-lstdc++ -static-libgcc -static-libstdc++ -static" \
     meson setup \
       --prefix="${MINGW_PREFIX}" \
       --buildtype=release \
@@ -43,7 +49,8 @@ build() {
       -Dlibmpv=true \
       -Dcplayer=false \
       -Dtests=false \
-      -Dplain-gl=enabled \
+      -Dgl-win32=disabled \
+      -Degl-angle-lib=disabled \
       -Dd3d11=enabled \
       -Dlibarchive=disabled \
       -Dlua=disabled \

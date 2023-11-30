@@ -51,6 +51,7 @@ jobs:
         name: Switchfin ${{ github.ref_name }}
         tag_name: ${{ github.ref_name }}
         generate_release_notes: true
+        draft: true
         files: |
           switchfin-windows-*/*.7z
           switchfin-macos-*/*.dmg
@@ -80,7 +81,7 @@ jobs:
     - name: Update dependencies
       run: |
         dkp-pacman --noconfirm -U $BASE_URL/hacBrewPack-3.05-1-any.pkg.tar.zst
-        for pkg in curl-7.71.1-1 harfbuzz-8.3.0-1 libass-0.17.1-1 ffmpeg-6.1-1 libmpv-0.36.0-2 nspmini-main-1; do
+        for pkg in curl-7.71.1-1 harfbuzz-8.3.0-1 libass-0.17.1-1 dav1d-1.3.0-1 ffmpeg-6.1-2 libmpv-0.36.0-2 nspmini-main-1; do
           dkp-pacman --noconfirm -U $BASE_URL/switch-${pkg}-any.pkg.tar.zst
         done
     - name: Build opengl
@@ -91,7 +92,7 @@ jobs:
     - name: Update deko3d
       if: ${{ matrix.driver == 'deko3d' }}
       run: |
-        for pkg in deko3d-master-1 libuam-master-1 switch-libmpv-deko3d-0.36.0-3; do
+        for pkg in deko3d-0.5.0-1 libuam-master-1 switch-libmpv-deko3d-0.36.0-3; do
           dkp-pacman --noconfirm -U $BASE_URL/${pkg}-any.pkg.tar.zst
         done
     - name: Build deko3d
@@ -108,7 +109,6 @@ jobs:
         name: switchfin-switch-${{ steps.vars.outputs.sha_short }}
         path: |
           build_switch/Switchfin.nro
-          build_switch/Switchfin.elf
 
   build-snap:
     runs-on: ubuntu-latest
@@ -169,8 +169,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        msystem: [ MINGW64 ]
-        driver: [ GL3, D3D11 ]
+        include:
+        - { msystem: MINGW64, driver: GL3 }
+        - { msystem: MINGW64, driver: D3D11 }
+        - { msystem: MINGW32, driver: D3D11 }
     runs-on: windows-latest
     env:
       MSYSTEM: ${{ matrix.msystem }}
@@ -185,7 +187,7 @@ jobs:
         submodules: recursive
     - name: Install dependency
       run: |
-        for pkg in glfw-3.4.0-1 curl-8.4.0-1 mpv-0.36.0-4 libwebp-1.3.2-1; do
+        for pkg in glfw-3.4.0-1 curl-8.5.0-1 mpv-0.36.0-4 libwebp-1.3.2-1; do
           curl -sLO https://github.com/${{ github.repository }}/releases/download/mingw-packages/${MINGW_PACKAGE_PREFIX}-${pkg}-any.pkg.tar.zst
         done
         pacman -U --noconfirm *.pkg.tar.zst
@@ -207,7 +209,7 @@ jobs:
         cd build_mingw
         strip Switchfin.exe
         7z a -mx=9 Switchfin-windows-${MSYSTEM_CARCH}-${DRIVER,,}.7z \
-            Switchfin.exe ${MINGW_PREFIX}/bin/libmpv-2.dll
+            Switchfin.exe ${MINGW_PREFIX}/bin/libmpv-2.dll ../README.md
     - name: Set outputs
       id: vars
       run: echo "sha_short=${MSYSTEM_CARCH}-${DRIVER,,}-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT

@@ -4,9 +4,13 @@
 #include <condition_variable>
 #include <functional>
 #include <mutex>
-#include <thread>
 #include <list>
 #include <atomic>
+#ifdef BOREALIS_USE_STD_THREAD
+#include <thread>
+#else
+#include <pthread.h>
+#endif
 #include <borealis/core/singleton.hpp>
 
 class ThreadPool : public brls::Singleton<ThreadPool> {

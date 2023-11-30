@@ -5,7 +5,7 @@ pkgbase=mingw-w64-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
 pkgver=3.4.0
 pkgrel=1
-pkgref=switchfin
+pkgref=master
 pkgdesc="A free, open source, portable framework for OpenGL application development (mingw-w64)"
 arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'clangarm64')
@@ -19,11 +19,16 @@ makedepends=(
   "${MINGW_PACKAGE_PREFIX}-cmake"
   "${MINGW_PACKAGE_PREFIX}-ninja"
 )
-source=("${_realname}-${pkgref}.tar.gz"::"https://github.com/dragonflylee/glfw/archive/${pkgref}.tar.gz")
-sha256sums=('SKIP')
+source=(
+  "${_realname}-${pkgref}.tar.gz"::"https://github.com/glfw/glfw/archive/${pkgref}.tar.gz"
+  "0001-ime-support.patch"
+)
+sha256sums=('SKIP' 'SKIP')
 
 prepare() {
   cd "${srcdir}/${_realname}-${pkgref}"
+  patch -Nbp1 -i "${srcdir}/0001-ime-support.patch"
+
   ${MINGW_PREFIX}/bin/cmake.exe -P CMake/GenerateMappings.cmake \
     src/mappings.h.in src/mappings.h
 }
