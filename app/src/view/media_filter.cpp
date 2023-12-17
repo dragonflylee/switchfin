@@ -11,6 +11,12 @@ MediaFilter::MediaFilter(std::function<void(void)> cb) {
         return true;
     });
 
+     this->cancel->registerClickAction([cb](...) {
+        brls::Application::popActivity(brls::TransitionAnimation::NONE, cb);
+        return true;
+    });
+    this->cancel->addGestureRecognizer(new brls::TapGestureRecognizer(this->cancel));
+
     this->sortBy->init("main/media/sort_by"_i18n,
         {
             "main/media/name"_i18n,

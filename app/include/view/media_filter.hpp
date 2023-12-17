@@ -19,6 +19,7 @@ public:
     inline static bool selectedUnplayed = false;
 
 private:
+    BRLS_BIND(brls::Box, cancel, "filter/cancel");
     BRLS_BIND(brls::SelectorCell, sortBy, "media/sort/by");
     BRLS_BIND(brls::SelectorCell, sortOrder, "media/sort/order");
     BRLS_BIND(brls::BooleanCell, filterPlayed, "media/filter/played");

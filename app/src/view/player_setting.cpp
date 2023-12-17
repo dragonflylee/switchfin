@@ -1,5 +1,6 @@
 #include "view/player_setting.hpp"
 #include "view/video_view.hpp"
+#include "view/button_close.hpp"
 #include "utils/config.hpp"
 
 using namespace brls::literals;
@@ -14,6 +15,12 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
         brls::Application::popActivity();
         return true;
     });
+
+    this->cancel->registerClickAction([](...) {
+        brls::Application::popActivity();
+        return true;
+    });
+    this->cancel->addGestureRecognizer(new brls::TapGestureRecognizer(this->cancel));
 
     auto& mpv = MPVCore::instance();
 

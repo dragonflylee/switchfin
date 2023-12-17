@@ -2,6 +2,10 @@
 
 ## [0.4.2]
 
+### Added
+
+* add close button for 
+
 ### Fixed
 
 * auto hide osd on loading end

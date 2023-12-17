@@ -148,7 +148,7 @@ void MusicView::load(const std::vector<jellyfin::MusicTrack>& list) {
 
     for (auto& item : list) {
         uint64_t userdata = reinterpret_cast<uint64_t>(&item);
-        std::string url = fmt::format(jellyfin::apiAudio, item.Id, query);
+        std::string url = fmt::format(fmt::runtime(jellyfin::apiAudio), item.Id, query);
         mpv.setUrl(conf.getUrl() + url, extra, "append", userdata);
     }
 }

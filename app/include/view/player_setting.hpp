@@ -7,6 +7,8 @@
 #include <borealis.hpp>
 #include <api/jellyfin/media.hpp>
 
+class ButtonClose;
+
 class PlayerSetting : public brls::Box {
 public:
     PlayerSetting(const jellyfin::MediaSource& src);
@@ -21,6 +23,8 @@ public:
 
 private:
     BRLS_BIND(brls::ScrollingFrame, settings, "player/settings");
+    BRLS_BIND(brls::Box, cancel, "player/cancel");
+
     BRLS_BIND(brls::SelectorCell, subtitleTrack, "setting/track/subtitle");
     BRLS_BIND(brls::SelectorCell, audioTrack, "setting/track/audio");
     BRLS_BIND(brls::SelectorCell, seekingStep, "setting/player/seeking");

@@ -15,8 +15,7 @@ ServerAdd::ServerAdd(std::function<void(void)> cb) : cbConnected(cb) {
     this->inflateFromXMLRes("xml/tabs/server_add.xml");
     brls::Logger::debug("ServerAdd: create");
 
-    inputUrl->init(
-        "URL", "https://", [](...) {}, "", "", 255);
+    inputUrl->init("URL", "https://", [](std::string) {}, "", "", 255);
 
     btnConnect->registerClickAction([this](...) { return this->onConnect(); });
 }
