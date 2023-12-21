@@ -16,3 +16,4 @@ build*/
 /scripts/prime/*
 /scripts/stage/*
 /switchfin
+.DS_Store

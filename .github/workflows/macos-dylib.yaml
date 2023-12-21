@@ -1,0 +1,247 @@
+name: macos-dylib
+
+on:
+  push:
+    tags: [ macos-dylib ]
+    paths: [ scripts/macos/* ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - tag: silicon
+          arch: arm64
+          target: "11.0"
+          meson: --cross-file $GITHUB_WORKSPACE/scripts/macos/macos_arm64.txt
+          autoconf: --host=x86_64-apple-darwin --target=arm64-apple-darwin
+          b2: architecture=arm address-model=64 -s NO_LZMA=1 -s NO_ZSTD=1 abi=aapcs
+        - tag: intel
+          arch: x86_64
+          target: "10.11"
+          b2: architecture=x86
+        tag: [ silicon, intel ]
+    runs-on: macos-latest
+    env:
+      CFLAGS: -arch ${{ matrix.arch }} -mmacosx-version-min=${{ matrix.target }}
+      LDFLAGS: -arch ${{ matrix.arch }} -mmacosx-version-min=${{ matrix.target }}
+      CXXFLAGS: -arch ${{ matrix.arch }} -mmacosx-version-min=${{ matrix.target }}
+      CMAKE_OSX_ARCHITECTURES: ${{ matrix.arch }}
+      MACOSX_DEPLOYMENT_TARGET: ${{ matrix.target }}
+      CMAKE_PREFIX_PATH: ${{ github.workspace }}
+      PKG_CONFIG_PATH: ${{ github.workspace }}/lib/pkgconfig
+      LIBRARY_PATH: ${{ github.workspace }}/lib
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        sparse-checkout: scripts/macos
+    - name: Remove stray upstream python binary symlinks under /usr/local
+      run: |
+        find /usr/local/bin -lname '*/Library/Frameworks/Python.framework/*' -delete -print
+        brew unlink python && brew link --overwrite python
+    - name: Install dependency
+      run: brew install ninja pkg-config nasm meson python
+    - name: Build bootstrap
+      if: ${{ matrix.arch != 'arm64' }}
+      run: |
+        curl -sSL https://boostorg.jfrog.io/artifactory/main/release/1.74.0/source/boost_1_74_0.tar.gz | tar zxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/boost_1_74_0
+        ./bootstrap.sh --with-libraries=filesystem --without-icu -prefix=$CMAKE_PREFIX_PATH
+        ./b2 install target-os=darwin ${{ matrix.b2 }}
+    - name: Build zlib
+      run: |
+        curl -sSL https://zlib.net/zlib-1.3.tar.gz | tar zxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/zlib-1.3
+        cmake -B build -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
+          -DBUILD_SHARED_LIBS=ON
+        cmake --build build
+        cmake --install build
+    - name: Build mbedtls
+      run: |
+        curl -sSL https://github.com/Mbed-TLS/mbedtls/archive/v3.5.1.tar.gz | tar zxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/mbedtls-3.5.1
+        cmake -B build -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
+          -DUSE_STATIC_MBEDTLS_LIBRARY=OFF \
+          -DUSE_SHARED_MBEDTLS_LIBRARY=ON \
+          -DENABLE_PROGRAMS=OFF \
+          -DENABLE_TESTING=OFF \
+          -DGEN_FILES=OFF
+        cmake --build build
+        cmake --install build
+    - name: Build curl
+      run: |
+        curl -sSL https://curl.se/download/curl-8.5.0.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/curl-8.5.0
+        cmake -B build -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
+          -DCMAKE_INSTALL_NAME_DIR=$LIBRARY_PATH \
+          -DBUILD_SHARED_LIBS=ON \
+          -DHTTP_ONLY=ON \
+          -DCURL_USE_MBEDTLS=ON \
+          -DCURL_DISABLE_PROGRESS_METER=ON \
+          -DBUILD_CURL_EXE=OFF \
+          -DBUILD_TESTING=OFF \
+          -DUSE_LIBIDN2=OFF \
+          -DCURL_USE_LIBSSH2=OFF \
+          -DCURL_USE_LIBPSL=OFF
+        cmake --build build
+        cmake --install build
+    - name: Build glfw
+      run: |
+        curl -sSL https://github.com/dragonflylee/glfw/archive/switchfin.tar.gz | tar zxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/glfw-switchfin
+        cmake -B build -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
+          -DCMAKE_INSTALL_NAME_DIR=$LIBRARY_PATH \
+          -DBUILD_SHARED_LIBS=ON \
+          -DGLFW_BUILD_EXAMPLES=OFF \
+          -DGLFW_BUILD_TESTS=OFF \
+          -DGLFW_BUILD_DOCS=OFF
+        cmake --build build
+        cmake --install build  
+    - name: Build png
+      run: |
+        curl -sSL https://downloads.sourceforge.net/project/libpng/libpng16/1.6.40/libpng-1.6.40.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/libpng-1.6.40
+        cmake -B build -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
+          -DPNG_SHARED=ON -DPNG_STATIC=OFF \
+          -DPNG_EXECUTABLES=OFF -DPNG_TESTS=OFF
+        cmake --build build
+        cmake --install build
+    - name: Build freetype
+      run: |
+        curl -sSL https://downloads.sourceforge.net/project/freetype/freetype2/2.13.2/freetype-2.13.2.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/freetype-2.13.2
+        cmake -B build -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
+          -DBUILD_SHARED_LIBS=ON \
+          -DFT_DISABLE_HARFBUZZ=ON \
+          -DFT_DISABLE_BROTLI=ON
+        cmake --build build
+        cmake --install build
+    - name: Build harfbuzz
+      run: |
+        curl -sSL https://github.com/harfbuzz/harfbuzz/releases/download/8.3.0/harfbuzz-8.3.0.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/harfbuzz-8.3.0
+        meson setup build ${{ matrix.meson }} \
+          --prefix=$CMAKE_PREFIX_PATH \
+          --buildtype=release \
+          --default-library=shared \
+          -Dtests=disabled \
+          -Ddocs=disabled \
+          -Dicu=disabled \
+          -Dcairo=disabled \
+          -Dglib=disabled \
+          -Dgobject=disabled \
+          -Dbenchmark=disabled
+        meson compile -C build
+        meson install -C build
+    - name: Build fribidi
+      run: |
+        curl -sSL https://github.com/fribidi/fribidi/releases/download/v1.0.13/fribidi-1.0.13.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/fribidi-1.0.13
+        ./configure --enable-shared --disable-static --prefix=$CMAKE_PREFIX_PATH ${{ matrix.autoconf }}
+        make install -j$(sysctl -n hw.ncpu)
+    - name: Build libunibreak
+      run: |
+        curl -sSL https://github.com/adah1972/libunibreak/releases/download/libunibreak_5_1/libunibreak-5.1.tar.gz | tar zxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/libunibreak-5.1
+        ./configure --enable-shared --disable-static --prefix=$CMAKE_PREFIX_PATH ${{ matrix.autoconf }}
+        make install -j$(sysctl -n hw.ncpu)
+    - name: Build libass
+      run: |
+        curl -sSL https://github.com/libass/libass/releases/download/0.17.1/libass-0.17.1.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/libass-0.17.1
+        ./configure --enable-shared --disable-static --disable-fontconfig --disable-asm --prefix=$CMAKE_PREFIX_PATH ${{ matrix.autoconf }}
+        make install -j$(sysctl -n hw.ncpu)
+    - name: Build dav1d
+      run: |
+        curl -sSL https://downloads.videolan.org/pub/videolan/dav1d/1.3.0/dav1d-1.3.0.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/dav1d-1.3.0
+        meson setup build ${{ matrix.meson }} \
+          --prefix=$CMAKE_PREFIX_PATH \
+          --buildtype=release \
+          --default-library=shared \
+          -Denable_tools=false \
+          -Denable_examples=false \
+          -Denable_tests=false \
+          -Denable_docs=false
+        meson compile -C build
+        meson install -C build
+    - name: Build libwebp
+      run: |
+        curl -sSL https://github.com/webmproject/libwebp/archive/v1.3.2.tar.gz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/libwebp-1.3.2
+        cmake -B build -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
+          -DCMAKE_INSTALL_NAME_DIR=$LIBRARY_PATH \
+          -DBUILD_SHARED_LIBS=ON \
+          -DWEBP_BUILD_EXTRAS=OFF \
+          -DWEBP_BUILD_ANIM_UTILS=OFF \
+          -DWEBP_BUILD_CWEBP=OFF \
+          -DWEBP_BUILD_DWEBP=OFF \
+          -DWEBP_BUILD_GIF2WEBP=OFF \
+          -DWEBP_BUILD_IMG2WEBP=OFF \
+          -DWEBP_BUILD_VWEBP=OFF \
+          -DWEBP_BUILD_WEBPINFO=OFF \
+          -DWEBP_BUILD_WEBPMUX=OFF \
+          -DWEBP_BUILD_LIBWEBPMUX=OFF
+        cmake --build build
+        cmake --install build
+    - name: Build ffmpeg
+      run: |
+        curl -sSL https://ffmpeg.org/releases/ffmpeg-6.1.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/ffmpeg-6.1
+        ./configure --enable-shared --disable-static --enable-pthreads --prefix=$CMAKE_PREFIX_PATH \
+          --cc=clang --enable-cross-compile --target-os=darwin --arch=${{ matrix.arch }} \
+          --disable-autodetect --disable-encoders --enable-pic --disable-asm \
+          --disable-programs --disable-doc --disable-debug --disable-avdevice --disable-muxers \
+          --disable-libjack --disable-indev=jack --disable-postproc --enable-demuxer=hls \
+          --enable-libdav1d --enable-libass --enable-libfreetype --enable-zlib --enable-bzlib \
+          --enable-network --enable-mbedtls --enable-version3 --enable-gpl \
+          --enable-videotoolbox --enable-audiotoolbox
+        make install
+    - name: Build mpv
+      run: |
+        curl -sSL https://github.com/mpv-player/mpv/archive/v0.36.0.tar.gz | tar zxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/mpv-0.36.0
+        patch -Np1 -i ${{ github.workspace }}/scripts/macos/mpv.patch
+        meson setup build ${{ matrix.meson }} \
+          --prefix=$CMAKE_PREFIX_PATH \
+          --buildtype=release \
+          --default-library=shared \
+          -Dlibmpv=true \
+          -Dcplayer=false \
+          -Dtests=false \
+          -Dswift-build=disabled \
+          -Dmacos-cocoa-cb=disabled \
+          -Dmacos-media-player=disabled \
+          -Dmacos-touchbar=disabled \
+          -Dlibarchive=disabled \
+          -Dlua=disabled \
+          -Dlcms2=disabled \
+          -Djpeg=disabled \
+          -Dmanpage-build=disabled \
+          -Dhtml-build=disabled 
+        meson compile -C build
+        meson install -C build
+    - name: Build packages
+      run: |
+        tar zcf dylib-${{ matrix.tag }}.tar.gz \
+          include lib/pkgconfig lib/cmake lib/*.dylib 
+    - name: Upload packages
+      uses: softprops/action-gh-release@v1
+      with:
+        name: macos-dylib
+        tag_name: macos-dylib
+        prerelease: true
+        files: dylib-*.tar.gz
+        body: |
+          ![download](https://img.shields.io/github/downloads/${{ github.repository }}/macos-dylib/total?label=Downloads)

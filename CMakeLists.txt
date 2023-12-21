@@ -24,7 +24,7 @@ if (MPV_SW_RENDER)
 endif ()
 
 if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+    set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
 elseif (CMAKE_BUILD_TYPE STREQUAL Debug)
     list(APPEND APP_PLATFORM_OPTION -D_DEBUG -D_GLIBCXX_ASSERTIONS)
 endif()
@@ -99,6 +99,8 @@ else ()
     )
     if (WIN32)
         set(CURL_USE_SCHANNEL ON)
+        set(USE_WIN32_IDN ON)
+        set(ZLIB_USE_STATIC_LIBS ON)
     else ()
         find_package(OpenSSL REQUIRED)
         set(CURL_USE_OPENSSL ON)
@@ -108,11 +110,9 @@ else ()
     set(BUILD_TESTING OFF)
     set(BUILD_SHARED_LIBS OFF)
     set(USE_LIBIDN2 OFF)
-    set(USE_WIN32_IDN ON)
     set(CURL_USE_LIBSSH2 OFF)
     set(CURL_USE_LIBPSL OFF)
     set(CURL_DISABLE_PROGRESS_METER ON)
-    set(ZLIB_USE_STATIC_LIBS ON)
     FetchContent_MakeAvailable(curl)
 endif ()
 list(APPEND APP_PLATFORM_LIB CURL::libcurl)
@@ -126,6 +126,14 @@ endif ()
 
 find_package(Threads REQUIRED)
 list(APPEND APP_PLATFORM_LIB ${CMAKE_THREAD_LIBS_INIT})
+
+if (USE_BOOST_FILESYSTEM)
+    find_package(Boost 1.44 REQUIRED COMPONENTS filesystem)
+    if(Boost_FOUND)
+        list(APPEND APP_PLATFORM_LIB Boost::filesystem)
+        list(APPEND APP_PLATFORM_OPTION -DUSE_BOOST_FILESYSTEM)
+    endif()
+endif ()
 
 if (PLATFORM_DESKTOP)
     find_package(MPV REQUIRED)
@@ -142,14 +150,6 @@ else ()
     list(APPEND APP_PLATFORM_LIB ${MPV_STATIC_LIBRARIES} )
     list(APPEND APP_PLATFORM_LINK_OPTION -L${MPV_LIBRARY_DIRS})
 endif()
-
-if (USE_BOOST_FILESYSTEM)
-    find_package(Boost 1.44 REQUIRED COMPONENTS filesystem)
-    if(Boost_FOUND)
-        list(APPEND APP_PLATFORM_LIB Boost::filesystem)
-        list(APPEND APP_PLATFORM_OPTION -DUSE_BOOST_FILESYSTEM)
-    endif()
-endif ()
 
 if (BUILTIN_NSP)
     list(APPEND APP_PLATFORM_LIB nsp)
@@ -178,9 +178,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 # building release file
 if (PLATFORM_DESKTOP)
     if (APPLE)
-        set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Architectures" FORCE)
-        set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "" FORCE)
-        set(CMAKE_XCODE_ATTRIBUTE_MACOSX_DEPLOYMENT_TARGET[arch=arm64] "11.0" CACHE STRING "arm 64 minimum deployment target" FORCE)
         message(STATUS "CMAKE_OSX_ARCHITECTURES: ${CMAKE_OSX_ARCHITECTURES}")
 
         set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -194,10 +191,15 @@ if (PLATFORM_DESKTOP)
             RESOURCE "${CMAKE_SOURCE_DIR}/app/app.icns"
         )
 
+        if (CMAKE_PREFIX_PATH)
+            set(BUNDLE_ARG -s ${CMAKE_PREFIX_PATH}/lib)
+        endif ()
+
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND "${CMAKE_COMMAND}" -E copy_directory ${PROJECT_RESOURCES} Resources/resources
-            COMMAND dylibbundler -cd -b -x MacOS/${PROJECT_NAME} -d Library/ -p @executable_path/../Library/
-            COMMAND codesign --sign - --force Library/*
+            COMMAND otool -L MacOS/${PROJECT_NAME}
+            COMMAND dylibbundler -cd -b ${BUNDLE_ARG} -x MacOS/${PROJECT_NAME} -d Frameworks/ -p "@executable_path/../Frameworks/"
+            COMMAND codesign --sign - --force Frameworks/*
             WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/${PROJECT_NAME}.app/Contents"
         )
     elseif (CMAKE_INSTALL)

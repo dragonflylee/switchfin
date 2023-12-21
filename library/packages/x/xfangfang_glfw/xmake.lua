@@ -1,13 +1,11 @@
 package("xfangfang_glfw")
-    set_homepage("https://github.com/xfangfang/glfw")
-    set_description("glfw")
-    set_license("MIT")
-    set_urls("https://github.com/xfangfang/glfw/archive/$(version).tar.gz", {
-        version = function(version)
-            return "288235ec228582bf2bc9cf7765261e4d12426cfb"
-        end 
-    })
-    add_versions("latest", "ec99f7a754be6e41de39ff4260ff2b3488691917abe9cdaef7fd818acd078165")
+    set_homepage("https://www.glfw.org/")
+    set_description("GLFW is an Open Source, multi-platform library for OpenGL, OpenGL ES and Vulkan application development.")
+    set_license("zlib")
+
+    set_urls("https://github.com/xfangfang/glfw.git")
+    add_versions("latest", "288235ec228582bf2bc9cf7765261e4d12426cfb")
+
     add_deps("cmake")
     add_deps("opengl", {optional = true})
     if is_plat("macosx") then

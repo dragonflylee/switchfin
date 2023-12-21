@@ -27,8 +27,8 @@ add_repositories("local-repo library")
 add_requires("borealis")
 add_requires("lunasvg")
 add_requires("libcurl")
-add_requires("webp")
-add_requires("mpv", {configs={shared=true}})
+add_requires("libwebp v1.3.2")
+add_requires("mpv", { configs = { shared = true }, verify = false })
 
 target("Switchfin")
     add_includedirs("app/include")
@@ -56,7 +56,7 @@ target("Switchfin")
     if get_config("sw") then
         add_defines("MPV_SW_RENDER=1")
     end
-    add_packages("borealis", "lunasvg", "libcurl", "webp", "mpv")
+    add_packages("borealis", "lunasvg", "libcurl", "libwebp", "mpv")
     if is_plat("windows", "mingw") then
         add_files("$(buildir)/app_win32.rc")
         add_defines("BOREALIS_USE_STD_THREAD")
