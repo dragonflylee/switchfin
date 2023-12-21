@@ -1,4 +1,4 @@
-package("webp")
+package("libwebp")
     set_homepage("https://chromium.googlesource.com/webm/libwebp")
     set_description("WebP codec is a library to encode and decode images in WebP format.")
     set_license("BSD-3")

@@ -42,10 +42,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/app/include",
-                "${workspaceFolder}/library/**",
-                "/opt/switchfin/include",
-                "/usr/include/dbus-1.0",
-                "/usr/lib/x86_64-linux-gnu/dbus-1.0/include"
+                "${workspaceFolder}/library/**"
             ],
             "defines": [
                 "BOREALIS_USE_OPENGL",

@@ -37,7 +37,8 @@ build() {
   ${srcdir}/${_realname}-${pkgver}/configure \
     --prefix=${MINGW_PREFIX} \
     --disable-shared \
-    --enable-static
+    --enable-static \
+    --disable-fontconfig
   make
 }
 

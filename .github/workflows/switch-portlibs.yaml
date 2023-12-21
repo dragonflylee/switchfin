@@ -19,7 +19,7 @@ jobs:
     - uses: actions/checkout@v3
       with:
         sparse-checkout: scripts/switch
-    - name: Install depends
+    - name: Install dependency
       run: |
         apt-get update
         apt-get install -y fakeroot zstd ninja-build libtool python3-distutils manpages-
