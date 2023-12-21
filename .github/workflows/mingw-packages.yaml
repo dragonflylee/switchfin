@@ -14,7 +14,6 @@ jobs:
       fail-fast: false
       matrix:
         msystem: [ MINGW64, MINGW32 ]
-    name: ${{ matrix.msystem }}
     runs-on: windows-latest
     env:
       MSYSTEM: ${{ matrix.msystem }}

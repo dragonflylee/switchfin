@@ -24,19 +24,6 @@ if (PKG_CONFIG_FOUND)
     pkg_check_modules(PC_MPV QUIET mpv)
 endif (PKG_CONFIG_FOUND)
 
-# Used for macOS
-# brew tap xfangfang/wiliwili && brew install mpv-wiliwili
-if (APPLE)
-    execute_process(COMMAND brew --prefix mpv-wiliwili
-            TIMEOUT 5
-            OUTPUT_VARIABLE HOMEBREW_MPV
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-            )
-    if (NOT HOMEBREW_MPV)
-        message(AUTHOR_WARNING "You can install mpv-wiliwili to reduce the size of dependencies, this is very useful when used with dylibbundler to package as a standalone app:\nbrew tap xfangfang/wiliwili && brew install mpv-wiliwili\nPlease refer to: https://github.com/xfangfang/wiliwili/discussions/151 for more information")
-    endif()
-endif ()
-
 #
 ### Look for the include files.
 #
@@ -44,7 +31,7 @@ find_path(
     MPV_INCLUDE_DIR
     NAMES mpv/client.h
     HINTS
-        ${HOMEBREW_MPV}/include
+        ${CMAKE_PREFIX_PATH}/include
         ${PC_MPV_INCLUDEDIR}
         ${PC_MPV_INCLUDE_DIRS} # Unused for MPV but anyway
     DOC "MPV include directory"
@@ -63,7 +50,7 @@ foreach(l ${_MPV_LIBRARY_NAMES})
         MPV_LIBRARY_${l}
         NAMES ${l}
         HINTS
-            ${HOMEBREW_MPV}/lib
+            ${CMAKE_PREFIX_PATH}/lib
             ${PC_MPV_LIBDIR}
             ${PC_MPV_LIBRARY_DIRS} # Unused for MPV but anyway
         PATH_SUFFIXES lib${LIB_SUFFIX}

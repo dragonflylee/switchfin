@@ -32,6 +32,7 @@ build() {
       --default-library=static \
       -Dicu=disabled \
       -Dglib=disabled \
+      -Dcairo=disabled \
       -Dgobject=disabled \
       -Dtests=disabled \
       -Ddocs=disabled \
