@@ -4,7 +4,8 @@
 
 ### Added
 
-* add close button for 
+* add close button for series/collection
+* add lock button for player view
 
 ### Fixed
 

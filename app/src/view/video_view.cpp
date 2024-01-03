@@ -11,6 +11,17 @@
 
 using namespace brls::literals;
 
+#define CHECK_OSD(shake)                                                              \
+    if (this->isOsdLock) {                                                            \
+        if (this->isOsdShown) {                                                       \
+            brls::Application::giveFocus(this->osdLockBox);                           \
+            if (shake) this->osdLockBox->shakeHighlight(brls::FocusDirection::RIGHT); \
+        } else {                                                                      \
+            this->showOSD(true);                                                      \
+        }                                                                             \
+        return true;                                                                  \
+    }
+
 VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
     this->inflateFromXMLRes("xml/view/video_view.xml");
     brls::Logger::debug("VideoView: create with item {}", itemId);
@@ -35,11 +46,20 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
     brls::Application::pushActivity(new brls::Activity(container), brls::TransitionAnimation::NONE);
 
     this->registerAction(
-        "hints/back"_i18n, brls::BUTTON_B, [](brls::View* view) { return popActivity(); }, true);
+        "hints/back"_i18n, brls::BUTTON_B,
+        [this](brls::View* view) {
+            if (isOsdLock) {
+                this->toggleOSD();
+                return true;
+            }
+            return popActivity();
+        },
+        true);
 
     this->registerAction(
         "\uE08F", brls::BUTTON_LB,
         [this](brls::View* view) -> bool {
+            CHECK_OSD(true);
             this->seekingRange -= MPVCore::SEEKING_STEP;
             this->requestSeeking();
             return true;
@@ -49,6 +69,7 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
     this->registerAction(
         "\uE08E", brls::BUTTON_RB,
         [this](brls::View* view) -> bool {
+            CHECK_OSD(true);
             this->seekingRange += MPVCore::SEEKING_STEP;
             this->requestSeeking();
             return true;
@@ -103,6 +124,7 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
             // 当长按时已经加速，则忽视此次加速
             switch (status.state) {
             case brls::GestureState::UNSURE: {
+                if (isOsdLock) break;
                 // 长按加速
                 if (std::fabs(mpv.getSpeed() - 1) > 10e-2) {
                     this->ignoreSpeed = true;
@@ -141,6 +163,11 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
                         // 正在加速时抬起手指，不触发后面 OSD 相关内容，直接结束此次事件
                         break;
                     }
+                }
+                // 当 osd 锁定时直接切换 osd 即可
+                if (isOsdLock) {
+                    this->toggleOSD();
+                    break;
                 }
                 // 处理点击事件
                 const int CHECK_TIME = 200000;
@@ -187,6 +214,10 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
         return true;
     });
     this->btnToggle->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnToggle));
+
+    /// OSD 锁定按钮
+    this->osdLockBox->registerClickAction([this](...) { return this->toggleOSDLock(); });
+    this->osdLockBox->addGestureRecognizer(new brls::TapGestureRecognizer(this->osdLockBox));
 
     /// 播放控制
     this->btnBackward->registerClickAction([this](...) { return this->playNext(-1); });
@@ -312,19 +343,27 @@ void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::S
     // draw osd
     brls::Time current = brls::getCPUTimeUsec();
     if (this->osdState == OSDState::ALWAYS_ON || current < this->osdLastShowTime) {
-        if (!this->isOsdShown) {
-            this->isOsdShown = true;
-            osdTopBox->setVisibility(brls::Visibility::VISIBLE);
-            osdBottomBox->setVisibility(brls::Visibility::VISIBLE);
+        // 当 osd 锁定时，只显示锁定按钮
+        if (!isOsdLock) {
+            if (!this->isOsdShown) {
+                this->isOsdShown = true;
+                osdTopBox->setVisibility(brls::Visibility::VISIBLE);
+                osdBottomBox->setVisibility(brls::Visibility::VISIBLE);
+            }
+            osdBottomBox->frame(ctx);
+            osdTopBox->frame(ctx);
         }
-        osdBottomBox->frame(ctx);
-        osdTopBox->frame(ctx);
+
+        osdLockBox->setVisibility(brls::Visibility::VISIBLE);
+        osdLockBox->frame(ctx);
+
     } else if (this->isOsdShown) {
         this->isOsdShown = false;
         // 当焦点位于video组件内部重新赋予焦点，用来隐藏屏幕上的高亮框
         if (isChildFocused()) brls::Application::giveFocus(this);
         osdTopBox->setVisibility(brls::Visibility::INVISIBLE);
         osdBottomBox->setVisibility(brls::Visibility::INVISIBLE);
+        osdLockBox->setVisibility(brls::Visibility::INVISIBLE);
     }
 
     if (current > this->hintLastShowTime) {
@@ -391,6 +430,10 @@ void VideoView::onLayout() {
 
 void VideoView::onChildFocusGained(View* directChild, View* focusedView) {
     Box::onChildFocusGained(directChild, focusedView);
+    if (isOsdLock) {
+        brls::Application::giveFocus(this->osdLockBox);
+        return;
+    }
     // 只有在全屏显示OSD时允许OSD组件获取焦点
     if (this->isOsdShown) {
         // 当弹幕按钮隐藏时不可获取焦点
@@ -764,6 +807,24 @@ void VideoView::showHint(const std::string& value) {
     this->hintBox->setVisibility(brls::Visibility::VISIBLE);
     this->hintLastShowTime = brls::getCPUTimeUsec() + VideoView::OSD_SHOW_TIME;
     this->showOSD();
+}
+
+bool VideoView::toggleOSDLock() {
+    this->isOsdLock = !this->isOsdLock;
+    if (this->isOsdLock) {
+        this->osdLockIcon->setImageFromSVGRes("icon/player-lock.svg");
+        osdTopBox->setVisibility(brls::Visibility::GONE);
+        osdBottomBox->setVisibility(brls::Visibility::GONE);
+        // 锁定时上下按键不可用
+        osdLockBox->setCustomNavigationRoute(brls::FocusDirection::UP, "video/osd/lock/box");
+        osdLockBox->setCustomNavigationRoute(brls::FocusDirection::DOWN, "video/osd/lock/box");
+    } else {
+        this->osdLockIcon->setImageFromSVGRes("icon/player-unlock.svg");
+        // 手动设置上下按键的导航路线
+        osdLockBox->setCustomNavigationRoute(brls::FocusDirection::UP, "video/osd/setting");
+        osdLockBox->setCustomNavigationRoute(brls::FocusDirection::DOWN, "video/osd/icon/box");
+    }
+    return true;
 }
 
 bool VideoView::toggleSpeed() {

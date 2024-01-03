@@ -66,6 +66,8 @@ private:
     BRLS_BIND(brls::Box, btnVideoChapter, "video/chapter/box");
     BRLS_BIND(brls::Box, btnVideoSpeed, "video/speed/box");
     BRLS_BIND(brls::Box, btnVolume, "video/osd/volume");
+    BRLS_BIND(brls::Box, osdLockBox, "video/osd/lock/box");
+    BRLS_BIND(SVGImage, osdLockIcon, "video/osd/lock/icon");
     BRLS_BIND(SVGImage, btnToggleIcon, "video/osd/toggle/icon");
     BRLS_BIND(brls::Box, osdTopBox, "video/osd/top/box");
     BRLS_BIND(brls::Box, osdBottomBox, "video/osd/bottom/box");
@@ -98,6 +100,7 @@ private:
     void toggleOSD();
     void showOSD(bool autoHide = true);
     void hideOSD();
+    bool toggleOSDLock();
     bool toggleSpeed();
     bool toggleQuality();
     bool toggleVolume(brls::View* view);
@@ -113,6 +116,7 @@ private:
 
     // OSD
     bool isOsdShown = false;
+    bool isOsdLock = false;
     time_t osdLastShowTime = 0;
     time_t hintLastShowTime = 0;
     time_t profileLastShowTime = 0;
