@@ -10,6 +10,7 @@
 ### Fixed
 
 * auto hide osd on loading end
+* fix login disclaimer after switch server
 
 ## [0.4.1]
 

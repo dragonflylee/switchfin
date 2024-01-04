@@ -95,7 +95,7 @@ private:
 ServerLogin::ServerLogin(const std::string& name, const std::string& url, const std::string& user) : url(url) {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/server_login.xml");
-    brls::Logger::debug("ServerLogin: create");
+    brls::Logger::debug("ServerLogin: create {}", url);
 
     this->hdrSigin->setTitle(brls::getStr("main/setting/server/sigin_to", name));
     this->inputUser->init("main/setting/username"_i18n, user);
@@ -122,14 +122,20 @@ ServerLogin::ServerLogin(const std::string& name, const std::string& url, const 
     });
 
     this->labelDisclaimer->setVisibility(brls::Visibility::INVISIBLE);
-    jellyfin::getJSON(
-        [this](const jellyfin::BrandingConfig& r) {
+    brls::async([this]() {
+        try {
+            auto resp = HTTP::get(this->url + jellyfin::apiBranding, HTTP::Timeout{});
+            jellyfin::BrandingConfig r = nlohmann::json::parse(resp);
             if (!r.LoginDisclaimer.empty()) {
-                this->labelDisclaimer->setText(r.LoginDisclaimer);
-                this->labelDisclaimer->setVisibility(brls::Visibility::VISIBLE);
+                brls::sync([this, r]() {
+                    this->labelDisclaimer->setText(r.LoginDisclaimer);
+                    this->labelDisclaimer->setVisibility(brls::Visibility::VISIBLE);
+                });
             }
-        },
-        nullptr, jellyfin::apiBranding);
+        } catch (const std::exception& ex) {
+            brls::Logger::warning("get login disclaimer: {}", ex.what());
+        }
+    });
 }
 
 ServerLogin::~ServerLogin() { brls::Logger::debug("ServerLogin Activity: delete"); }
