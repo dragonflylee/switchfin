@@ -29,6 +29,9 @@ on:
       snap:
         description: build linux snap
         type: boolean
+      flatpak:
+        description: build linux flatpak
+        type: boolean
       mingw64:
         description: build win64 mingw64
         type: boolean
@@ -96,7 +99,7 @@ jobs:
         done
     - name: Build nro
       run: |
-        cmake -B build_switch -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON -DVERSION_BUILD=${{ github.run_number }} ${{ matrix.cmake }}
+        cmake -B build_switch -DCMAKE_BUILD_TYPE=MinSizeRel -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON -DVERSION_BUILD=${{ github.run_number }} ${{ matrix.cmake }}
         make -C build_switch Switchfin.nro -j$(nproc)
     - name: Set outputs
       id: vars
@@ -117,7 +120,7 @@ jobs:
         submodules: recursive
     - name: Build snap
       run: |
-        docker run --rm --tty -v $PWD:/data -w /data/scripts --privileged diddledani/snapcraft:core20
+        docker run --rm --tty --network host -v $PWD:/data -w /data/scripts --privileged diddledani/snapcraft:core20
     - name: Set outputs
       id: vars
       run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -126,6 +129,25 @@ jobs:
       with:
         name: switchfin-snap-${{ steps.vars.outputs.sha_short }}
         path: scripts/*.snap
+
+  build-flatpak:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.flatpak }}
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:freedesktop-22.08
+      options: --privileged
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Set outputs
+      id: vars
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      with:
+        bundle: switchfin-flatpak-${{ steps.vars.outputs.sha_short }}.flatpak
+        manifest-path: scripts/flatpak.yaml
+        cache-key: flatpak-builder-${{ hashFiles('scripts/flatpak.yaml') }}
 
   build-macos:
     runs-on: macos-latest
@@ -156,6 +178,7 @@ jobs:
       run: |
         cmake -B build ${{ matrix.cmake }} \
           -DCMAKE_PREFIX_PATH=${{ github.workspace }} \
+          -DCMAKE_BUILD_TYPE=MinSizeRel \
           -DPLATFORM_DESKTOP=ON \
           -DUSE_SYSTEM_GLFW=ON \
           -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
@@ -218,11 +241,12 @@ jobs:
     - name: Build
       run: |
         cmake -B build_mingw -G Ninja \
-          -DUSE_LIBROMFS=ON \
+          -DCMAKE_BUILD_TYPE=MinSizeRel \
           -DPLATFORM_DESKTOP=ON \
           -DWIN32_TERMINAL=OFF \
           -DZLIB_USE_STATIC_LIBS=ON \
           -DUSE_SYSTEM_GLFW=ON \
+          -DUSE_LIBROMFS=ON \
           -DVERSION_BUILD=${{ github.run_number }} ${{ matrix.cmake }}
         cmake --build build_mingw
         cd build_mingw

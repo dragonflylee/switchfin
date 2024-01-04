@@ -2,7 +2,7 @@ name: switchfin
 summary: switchfin
 description: |
   third-party PC player for Jellyfin
-version: "0.1.0"
+version: "0.4.2"
 grade: stable
 icon: ../resources/icon/icon.png
 base: core20
@@ -11,17 +11,14 @@ license: Apache-2.0
 
 apps:
   switchfin:
-    command: usr/bin/Switchfin
+    command: bin/desktop-launch $SNAP/usr/bin/Switchfin
     plugs:
       - desktop
-      - wayland
       - x11
       - opengl
       - network
 
 layout:
-  /usr/lib/dri:
-    bind: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/dri
   /usr/resources:
     bind: $SNAP/usr/resources
 
@@ -38,6 +35,7 @@ parts:
       - -Dlibmpv=true
       - -Dtests=false
       - -Dplain-gl=enabled
+      - -Dlibarchive=disabled
       - -Dalsa=disabled
       - -Dlua=disabled
     stage-packages:
@@ -53,7 +51,7 @@ parts:
       - libass
 
   ffmpeg:
-    source: https://ffmpeg.org/releases/ffmpeg-5.1.3.tar.gz
+    source: https://ffmpeg.org/releases/ffmpeg-6.1.tar.xz
     source-type: tar
     plugin: autotools
     autotools-configure-parameters:
@@ -65,32 +63,27 @@ parts:
       - --disable-programs
       - --disable-encoders
       - --disable-muxers
+      - --enable-demuxer=hls
+      - --enable-runtime-cpudetect
       - --enable-gpl
-      - --enable-gnutls
-      - --enable-encoder=png,libwebp
+      - --enable-version3
+      - --enable-mbedtls
       - --enable-libdav1d
       - --enable-libfontconfig
       - --enable-libfreetype
-      - --enable-libopus
-      - --enable-librsvg
       - --enable-libwebp
     build-packages:
       - nasm
       - libfontconfig1-dev
-      - libfreetype6-dev
-      - libopus-dev
-      - librsvg2-dev
       - libwebp-dev
-      - libgnutls28-dev
     stage-packages:
       - libfontconfig1
-      - libfreetype6
-      - libopus0
-      - librsvg2-2
       - libwebp6
       - libxv1
     after:
       - dav1d
+      - libass
+      - mbedtls
     prime:
       - -etc
       - -usr/bin
@@ -100,9 +93,8 @@ parts:
 
   dav1d:
     plugin: meson
-    source: https://code.videolan.org/videolan/dav1d.git
-    source-tag: 1.2.1
-    source-depth: 1
+    source: https://downloads.videolan.org/pub/videolan/dav1d/1.3.0/dav1d-1.3.0.tar.xz
+    source-type: tar
     meson-parameters:
       - --prefix=/usr
       - --buildtype=release
@@ -129,13 +121,94 @@ parts:
     build-packages:
       - libfribidi-dev
       - libharfbuzz-dev
+      - libfontconfig1-dev
     stage-packages:
       - libfribidi0
       - libharfbuzz0b
+      - libfontconfig1
     prime:
       - -usr/include
       - -usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pkgconfig
       - -usr/share
+
+  glfw:
+    plugin: cmake
+    source: https://github.com/dragonflylee/glfw/archive/switchfin.tar.gz
+    source-type: tar
+    cmake-parameters:
+      - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DBUILD_SHARED_LIBS=ON
+      - -DGLFW_BUILD_EXAMPLES=OFF
+      - -DGLFW_BUILD_TESTS=OFF
+      - -DGLFW_BUILD_DOCS=OFF
+    build-packages:
+      - xorg-dev
+      - libdbus-1-dev
+    stage-packages:
+      - libx11-6
+    prime:
+      - -usr/include
+      - -usr/lib/$SNAPCRAFT_ARCH_TRIPLET/cmake
+      - -usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pkgconfig
+      - -usr/share
+    after:
+      - desktop-glib-only
+
+  desktop-glib-only:
+    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
+    source-subdir: glib-only
+    plugin: make
+    build-packages:
+      - libglib2.0-dev
+    stage-packages:
+      - libglib2.0-bin
+    prime:
+      - -usr/share
+
+  curl:
+    source: https://curl.se/download/curl-8.5.0.tar.xz
+    source-type: tar
+    plugin: cmake
+    cmake-parameters:
+      - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DBUILD_SHARED_LIBS=ON
+      - -DHTTP_ONLY=ON
+      - -DCURL_USE_MBEDTLS=ON
+      - -DCURL_DISABLE_PROGRESS_METER=ON
+      - -DCURL_USE_OPENSSL=OFF
+      - -DBUILD_CURL_EXE=OFF
+      - -DBUILD_TESTING=OFF
+      - -DUSE_LIBIDN2=OFF
+      - -DCURL_USE_LIBSSH2=OFF
+      - -DCURL_USE_LIBPSL=OFF
+    build-environment:
+      - CMAKE_PREFIX_PATH: $SNAPCRAFT_STAGE/usr
+    after:
+      - mbedtls
+    prime:
+      - -usr/bin
+      - -usr/include
+      - -usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pkgconfig
+      - -usr/lib/$SNAPCRAFT_ARCH_TRIPLET/cmake
+
+  mbedtls:
+    plugin: cmake
+    source: https://github.com/Mbed-TLS/mbedtls/archive/v3.5.1.tar.gz
+    source-type: tar
+    cmake-parameters:
+      - -DCMAKE_INSTALL_PREFIX=/usr
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DUSE_STATIC_MBEDTLS_LIBRARY=OFF
+      - -DUSE_SHARED_MBEDTLS_LIBRARY=ON
+      - -DENABLE_PROGRAMS=OFF
+      - -DENABLE_TESTING=OFF
+      - -DGEN_FILES=OFF
+    prime:
+      - -usr/bin
+      - -usr/include
+      - -usr/lib/$SNAPCRAFT_ARCH_TRIPLET/cmake
 
   switchfin:
     plugin: cmake
@@ -144,22 +217,19 @@ parts:
     cmake-parameters:
       - -DPLATFORM_DESKTOP=ON
       - -DCMAKE_BUILD_TYPE=Release
+      - -DUSE_SYSTEM_GLFW=ON
       - -DCMAKE_INSTALL=ON
       - -DCMAKE_INSTALL_PREFIX=/usr
       - -DCUSTOM_RESOURCES_DIR=/usr
     build-environment:
-      - LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAPCRAFT_STAGE/usr/lib/$SNAPCRAFT_ARCH_TRIPLET
+      - CMAKE_PREFIX_PATH: $SNAPCRAFT_STAGE/usr
+      - LD_LIBRARY_PATH: $SNAPCRAFT_STAGE/usr/lib/$SNAPCRAFT_ARCH_TRIPLET
     build-packages:
       - g++
-      - xorg-dev
-      - libdbus-1-dev
-      - libcurl4-gnutls-dev
-    stage-packages:
-      - libgl1-mesa-glx
-      - libcurl3-gnutls
     after:
+      - glfw
+      - curl
       - libmpv
     prime:
       - -etc
       - -usr/bin/fc-*
-      - -usr/share
