@@ -2,6 +2,8 @@
 #ifdef __SWITCH__
 #include <switch.h>
 #include <filesystem>
+#elif defined(__APPLE__)
+#include <SystemConfiguration/SystemConfiguration.h>
 #endif
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
@@ -20,34 +22,47 @@ std::string AppVersion::getPackageName() { return STR(BUILD_PACKAGE_NAME); }
 std::string AppVersion::getCommit() { return STR(BUILD_TAG_SHORT); }
 
 std::string AppVersion::getPlatform() {
-#if __SWITCH__
+#ifdef __SWITCH__
     return "NX";
-#elif __APPLE__
+#elif defined(__APPLE__)
     return "macOS";
-#elif __linux__
+#elif defined(__linux__)
     return "Linux";
-#elif _WIN32
+#elif defined(_WIN32)
     return "Windows";
 #endif
 }
 
 std::string AppVersion::getDeviceName() {
-    std::string name;
-#if __SWITCH__
+#ifdef __SWITCH__
     SetSysDeviceNickName nick;
     if (R_SUCCEEDED(setsysGetDeviceNickname(&nick))) {
-        name = nick.nickname;
+        return nick.nickname;
     }
-#elif _WIN32
+#elif defined(_WIN32)
     DWORD nSize = 128;
     std::vector<WCHAR> buf(nSize);
-    GetComputerNameW(buf.data(), &nSize);
-    name.resize(nSize);
-    WideCharToMultiByte(CP_UTF8, 0, buf.data(), nSize, name.data(), name.size(), nullptr, nullptr);
+    if (GetComputerNameW(buf.data(), &nSize)) {
+        std::string name;
+        name.resize(nSize);
+        WideCharToMultiByte(CP_UTF8, 0, buf.data(), nSize, name.data(), name.size(), nullptr, nullptr);
+        return name;
+    }
+#elif defined(__APPLE__)
+    CFStringRef nameRef = SCDynamicStoreCopyComputerName(nullptr, nullptr);
+    if (nameRef) {
+        std::vector<char> name(CFStringGetLength(nameRef) * 3);
+        CFStringGetCString(nameRef, name.data(), name.size(), kCFStringEncodingUTF8);
+        CFRelease(nameRef);
+        return name.data();
+    }
 #else
-    gethostname(name.data(), name.size());
+    std::vector<char> buf(128);
+    if (gethostname(buf.data(), buf.size()) > 0) {
+        return buf.data();
+    }
 #endif
-    return std::string(name.data());
+    return getPackageName();
 }
 
 bool AppVersion::needUpdate(std::string latestVersion) { return false; }

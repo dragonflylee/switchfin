@@ -53,12 +53,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
 };
 
 static std::string generateDeviceId() {
-#ifdef __SWITCH__
-    SetSysSerialNumber serial;
-    if (R_SUCCEEDED(setsysGetSerialNumber(&serial))) {
-        return serial.number;
-    }
-#elif _WIN32
+#if defined(_WIN32)
     HW_PROFILE_INFOW profile;
     if (GetCurrentHwProfileW(&profile)) {
         std::vector<char> deviceId(HW_PROFILE_GUIDLEN);
@@ -66,7 +61,7 @@ static std::string generateDeviceId() {
             deviceId.size(), nullptr, nullptr);
         return deviceId.data();
     }
-#elif __APPLE__
+#elif defined(__APPLE__)
     io_registry_entry_t ioRegistryRoot = IORegistryEntryFromPath(kIOMasterPortDefault, "IOService:/");
     if (ioRegistryRoot) {
         CFStringRef uuidCf = (CFStringRef)IORegistryEntryCreateCFProperty(

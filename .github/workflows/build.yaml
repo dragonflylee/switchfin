@@ -96,7 +96,7 @@ jobs:
         done
     - name: Build nro
       run: |
-        cmake -B build_switch -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON -DVERSION_BUILD=${{ github.run_number }} ${{ matrix.cmake }}
+        cmake -B build_switch -DCMAKE_BUILD_TYPE=Release -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON -DVERSION_BUILD=${{ github.run_number }} ${{ matrix.cmake }}
         make -C build_switch Switchfin.nro -j$(nproc)
     - name: Set outputs
       id: vars
@@ -156,6 +156,7 @@ jobs:
       run: |
         cmake -B build ${{ matrix.cmake }} \
           -DCMAKE_PREFIX_PATH=${{ github.workspace }} \
+          -DCMAKE_BUILD_TYPE=Release \
           -DPLATFORM_DESKTOP=ON \
           -DUSE_SYSTEM_GLFW=ON \
           -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
@@ -218,17 +219,18 @@ jobs:
     - name: Build
       run: |
         cmake -B build_mingw -G Ninja \
-          -DUSE_LIBROMFS=ON \
+          -DCMAKE_BUILD_TYPE=Release \
           -DPLATFORM_DESKTOP=ON \
           -DWIN32_TERMINAL=OFF \
           -DZLIB_USE_STATIC_LIBS=ON \
           -DUSE_SYSTEM_GLFW=ON \
+          -DUSE_LIBROMFS=ON \
           -DVERSION_BUILD=${{ github.run_number }} ${{ matrix.cmake }}
         cmake --build build_mingw
-        cd build_mingw
-        strip Switchfin.exe
+
+        strip build_mingw/Switchfin.exe
         7z a -mx=9 Switchfin-windows-${{ matrix.arch }}-${{ matrix.driver }}.7z \
-            Switchfin.exe ${MINGW_PREFIX}/bin/libmpv-2.dll ../README.md
+            ./build_mingw/Switchfin.exe ${MINGW_PREFIX}/bin/libmpv-2.dll README.md
     - name: Set outputs
       id: vars
       run: echo "sha_short=${{ matrix.arch }}-${{ matrix.driver }}-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -236,7 +238,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: switchfin-windows-${{ steps.vars.outputs.sha_short }}
-        path: build_mingw/Switchfin-*.7z
+        path: Switchfin-*.7z
 
   build-msvc:
     runs-on: windows-latest
