@@ -127,14 +127,15 @@ struct MediaSource {
     int DefaultSubtitleStreamIndex;
     bool SupportsDirectPlay;
     bool SupportsTranscoding;
+    std::string DirectStreamUrl;
     std::string TranscodingUrl;
     std::string ETag;
     std::vector<MediaStream> MediaStreams;
     std::vector<MediaAttachment> MediaAttachments;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaSource, Id, Name, Container, DefaultAudioStreamIndex,
-    DefaultSubtitleStreamIndex, SupportsDirectPlay, SupportsTranscoding, TranscodingUrl, ETag, MediaStreams,
-    MediaAttachments);
+    DefaultSubtitleStreamIndex, SupportsDirectPlay, SupportsTranscoding, DirectStreamUrl, TranscodingUrl, ETag,
+    MediaStreams, MediaAttachments);
 
 struct PlaybackResult {
     std::vector<MediaSource> MediaSources;

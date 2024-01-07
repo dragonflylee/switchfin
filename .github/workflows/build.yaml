@@ -96,7 +96,7 @@ jobs:
         done
     - name: Build nro
       run: |
-        cmake -B build_switch -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON -DVERSION_BUILD=${{ github.run_number }} ${{ matrix.cmake }}
+        cmake -B build_switch -DCMAKE_BUILD_TYPE=Release -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON -DVERSION_BUILD=${{ github.run_number }} ${{ matrix.cmake }}
         make -C build_switch Switchfin.nro -j$(nproc)
     - name: Set outputs
       id: vars
@@ -156,6 +156,7 @@ jobs:
       run: |
         cmake -B build ${{ matrix.cmake }} \
           -DCMAKE_PREFIX_PATH=${{ github.workspace }} \
+          -DCMAKE_BUILD_TYPE=Release \
           -DPLATFORM_DESKTOP=ON \
           -DUSE_SYSTEM_GLFW=ON \
           -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
@@ -218,11 +219,12 @@ jobs:
     - name: Build
       run: |
         cmake -B build_mingw -G Ninja \
-          -DUSE_LIBROMFS=ON \
+          -DCMAKE_BUILD_TYPE=Release \
           -DPLATFORM_DESKTOP=ON \
           -DWIN32_TERMINAL=OFF \
           -DZLIB_USE_STATIC_LIBS=ON \
           -DUSE_SYSTEM_GLFW=ON \
+          -DUSE_LIBROMFS=ON \
           -DVERSION_BUILD=${{ github.run_number }} ${{ matrix.cmake }}
         cmake --build build_mingw
         cd build_mingw
