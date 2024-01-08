@@ -11,6 +11,7 @@
 
 * auto hide osd on loading end
 * fix login disclaimer after switch server
+* fix cannot trigger loading next page after refresh
 
 ## [0.4.1]
 
