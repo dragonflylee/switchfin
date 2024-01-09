@@ -326,6 +326,28 @@
                             hideHighlightBackground="true"
                             highlightCornerRadius="8" />
                     </brls:Box>
+                    <brls:Box
+                        id="video/close/box"
+                        hideClickAnimation="true"
+                        marginLeft="10"
+                        marginRight="10"
+                        alignItems="center"
+                        justifyContent="center"
+                        height="60">
+                        <brls:Label
+                            id="video/close"
+                            marginTop="7"
+                            marginLeft="1"
+                            focusable="true"
+                            focusUp="video/osd/lock/box"
+                            focusDown="video/close"
+                            focusRight="video/close"
+                            horizontalAlign="center"
+                            verticalAlign="center"
+                            lineHeight="1"
+                            fontSize="32"
+                            text="" />
+                    </brls:Box>
                 </brls:Box>
             </brls:Box>
             <brls:Box

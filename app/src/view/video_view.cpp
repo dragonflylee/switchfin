@@ -219,6 +219,9 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
     this->osdLockBox->registerClickAction([this](...) { return this->toggleOSDLock(); });
     this->osdLockBox->addGestureRecognizer(new brls::TapGestureRecognizer(this->osdLockBox));
 
+    this->btnClose->registerClickAction([](...) { return popActivity(); });
+    this->btnClose->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnClose));
+
     /// 播放控制
     this->btnBackward->registerClickAction([this](...) { return this->playNext(-1); });
     this->btnBackward->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnBackward));
