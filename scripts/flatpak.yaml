@@ -1,0 +1,110 @@
+app-id: org.switchfin.player
+runtime: org.freedesktop.Platform
+runtime-version: '23.08'
+sdk: org.freedesktop.Sdk
+command: Switchfin
+finish-args:
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  # This program is designed for controller
+  - --device=all
+  - --share=network
+  - --socket=pulseaudio
+  # inhibiting screen saver
+  - --talk-name=org.freedesktop.ScreenSaver
+  - --talk-name=org.freedesktop.PowerManagement
+  - --talk-name=org.gnome.SessionManager
+  - --talk-name=org.mate.SessionManager
+  # https://github.com/mpv-player/mpv/blob/master/libmpv/client.h#L147-L149
+  # will remove it when next version release
+  - --env=LC_NUMERIC=C
+cleanup-commands:
+  - mkdir -p /app/lib/ffmpeg
+cleanup:
+  - '*.a'
+  - '*.la'
+  - /include
+  - /lib/cmake
+  - /lib/pkgconfig
+  - /man
+  - /share/man
+  - /share/gtk-doc
+add-extensions:
+  org.freedesktop.Platform.ffmpeg-full:
+    directory: lib/ffmpeg
+    version: '23.08'
+    add-ld-path: "."
+
+modules:
+  - name: libmpv
+    buildsystem: meson
+    config-opts:
+      - -Dlibmpv=true
+      - -Dlua=disabled
+      - -Ddebug=false
+      - -Dcplayer=false
+      - -Dtests=false
+      - -Dlibarchive=disabled
+      - -Dmanpage-build=disabled
+    sources:
+      - type: archive
+        url: https://github.com/mpv-player/mpv/archive/v0.36.0.tar.gz
+        sha256: 29abc44f8ebee013bb2f9fe14d80b30db19b534c679056e4851ceadf5a5e8bf6
+        x-checker-data:
+          type: anitya
+          project-id: 5348
+          stable-only: true
+          url-template: https://github.com/mpv-player/mpv/archive/v$version.tar.gz
+    modules:
+      - name: libXpresent
+        buildsystem: autotools
+        sources:
+          - type: archive
+            url: https://xorg.freedesktop.org/archive/individual/lib/libXpresent-1.0.1.tar.xz
+            sha256: b964df9e5a066daa5e08d2dc82692c57ca27d00b8cc257e8e960c9f1cf26231b
+            x-checker-data:
+              type: anitya
+              project-id: 17166
+              stable-only: true
+              url-template: https://xorg.freedesktop.org/archive/individual/lib/libXpresent-$version.tar.xz
+
+      - name: libass
+        config-opts:
+          - --disable-static
+        sources:
+          - type: archive
+            url: 'https://github.com/libass/libass/releases/download/0.17.1/libass-0.17.1.tar.gz'
+            sha256: 'd653be97198a0543c69111122173c41a99e0b91426f9e17f06a858982c2fb03d'
+            x-checker-data:
+              type: anitya
+              project-id: 1560
+              stable-only: true
+              url-template: https://github.com/libass/libass/releases/download/$version/libass-$version.tar.gz
+
+  - name: glfw
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DGLFW_BUILD_EXAMPLES=OFF
+      - -DGLFW_BUILD_TESTS=OFF
+      - -DGLFW_BUILD_DOCS=OFF
+      - -DBUILD_SHARED_LIBS=ON
+      - -DGLFW_BUILD_WAYLAND=ON
+      - -DGLFW_BUILD_X11=ON
+    sources:
+      - type: git
+        url: https://github.com/dragonflylee/glfw.git
+        branch: switchfin
+  
+  - name: switchfin
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DPLATFORM_DESKTOP=ON
+      - -DUSE_SYSTEM_GLFW=ON
+      - -DCMAKE_INSTALL=ON
+    builddir: true
+    sources:
+      - type: dir
+        path: '..'

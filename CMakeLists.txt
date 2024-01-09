@@ -50,7 +50,7 @@ include(${BOREALIS_LIBRARY}/cmake/toolchain.cmake)
 project(Switchfin)
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "4")
-set(VERSION_ALTER "1")
+set(VERSION_ALTER "2")
 set(PROJECT_TITLEID "010ff000ffff0003")
 set(PROJECT_AUTHOR "dragonflylee")
 set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon.jpg)
@@ -198,7 +198,7 @@ if (PLATFORM_DESKTOP)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND "${CMAKE_COMMAND}" -E copy_directory ${PROJECT_RESOURCES} Resources/resources
             COMMAND otool -L MacOS/${PROJECT_NAME}
-            COMMAND dylibbundler -cd -b ${BUNDLE_ARG} -x MacOS/${PROJECT_NAME} -d Frameworks/ -p "@executable_path/../Frameworks/"
+            COMMAND dylibbundler -cd -ns -b ${BUNDLE_ARG} -x MacOS/${PROJECT_NAME} -d Frameworks/ -p "@executable_path/../Frameworks/"
             COMMAND codesign --sign - --force Frameworks/*
             WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/${PROJECT_NAME}.app/Contents"
         )

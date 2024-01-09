@@ -29,6 +29,9 @@ on:
       snap:
         description: build linux snap
         type: boolean
+      flatpak:
+        description: build linux flatpak
+        type: boolean
       mingw64:
         description: build win64 mingw64
         type: boolean
@@ -117,7 +120,7 @@ jobs:
         submodules: recursive
     - name: Build snap
       run: |
-        docker run --rm --tty -v $PWD:/data -w /data/scripts --privileged diddledani/snapcraft:core20
+        docker run --rm --tty --network host -v $PWD:/data -w /data/scripts --privileged diddledani/snapcraft:core20
     - name: Set outputs
       id: vars
       run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -126,6 +129,33 @@ jobs:
       with:
         name: switchfin-snap-${{ steps.vars.outputs.sha_short }}
         path: scripts/*.snap
+
+  build-flatpak:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.flatpak }}
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [ x86_64 ]
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:freedesktop-22.08
+      options: --privileged
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Set workspace permissions
+      run: git config --system --add safe.directory '*'
+    - name: Set outputs
+      id: vars
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      with:
+        bundle: switchfin-flatpak-${{ steps.vars.outputs.sha_short }}.flatpak
+        manifest-path: scripts/flatpak.yaml
+        cache-key: flatpak-builder-${{ hashFiles('scripts/flatpak.yaml') }}
+        verbose: true
+        arch: ${{ matrix.arch }}
 
   build-macos:
     runs-on: macos-latest
