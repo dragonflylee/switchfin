@@ -3,7 +3,7 @@
 # Contributor: Cpasjuste <cpasjuste@gmail.com>
 
 pkgbasename=libmpv
-pkgname=switch-${pkgbasename}
+pkgname=switch-${pkgbasename}-deko3d
 pkgver=0.36.0
 pkgrel=3
 pkgdesc='Command line video player (library only)'
@@ -43,8 +43,7 @@ build() {
     --prefix="${PORTLIBS_PREFIX}" --disable-libmpv-shared \
     --enable-libmpv-static --disable-cplayer --disable-sdl2 --disable-lua \
     --disable-iconv --disable-jpeg --disable-libavdevice --disable-debug-build \
-    --disable-gl --disable-plain-gl \
-    --enable-deko3d --enable-hos-video --enable-hos-audio
+    --disable-gl --disable-plain-gl --enable-deko3d --enable-hos-audio
   sed -i 's/#define HAVE_POSIX 1/#define HAVE_POSIX 0/' build/config.h
   ./waf build
 }

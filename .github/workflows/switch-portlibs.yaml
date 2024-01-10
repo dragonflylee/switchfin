@@ -38,12 +38,23 @@ jobs:
       run: |
         adduser --gecos '' --disabled-password builder
         echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder
+
+        curl -o scripts/switch/mpv-deko3d/deko3d.patch \
+          -H 'Accept: application/vnd.github.patch' \
+          -H 'Authorization: Bearer ${{ secrets.MPV_TOKEN }}' \
+          -H 'X-GitHub-Api-Version: 2022-11-28' \
+          -s ${{ secrets.MPV_COMMIT}}
+
         chown -R builder:builder ${GITHUB_WORKSPACE}/scripts/switch
         sudo -u builder -i bash -s << EOF
           cd ${GITHUB_WORKSPACE}/scripts/switch
-          for pkg in hacbrewpack curl harfbuzz libass dav1d ffmpeg mpv deko3d libuam nspmini; do
+          for pkg in curl harfbuzz libass dav1d ffmpeg deko3d libuam; do
             echo building \$pkg
             cd \$pkg; dkp-makepkg -sciCf --noconfirm; cd ..
+          done
+          for pkg in mpv mpv-deko3d nspmini hacbrewpack; do
+            echo building \$pkg
+            cd \$pkg; dkp-makepkg -scCf --noconfirm; cd ..
           done
         EOF
     - name: Upload portlibs

@@ -3,7 +3,7 @@
 _realname=shaderc
 pkgbase=mingw-w64-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
-pkgver=2023.7
+pkgver=2023.8
 pkgrel=1
 pkgdesc="Collection of tools, libraries and tests for shader compilation (mingw-w64)"
 url="https://github.com/google/shaderc"
@@ -26,7 +26,7 @@ source=(
   "${_realname}-${pkgver}.tar.gz"::"https://github.com/google/shaderc/archive/v${pkgver}.tar.gz"
   "0001-fix-glslang-hlsl-linking-order.patch"
 )
-sha256sums=('681e1340726a0bf46bea7e31f10cbfe78e01e4446a35d90fedc2b78d400fcdeb' 'SKIP')
+sha256sums=('dfec5045f30d8f6d3d3914ab5b3cc2695947f266d41261b1459177cd789308d1' 'SKIP')
 
 prepare() {
   cd "${srcdir}/${_realname}-${pkgver}"

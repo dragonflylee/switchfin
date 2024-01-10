@@ -25,7 +25,6 @@
                 marginBottom="30px">
                 <brls:DetailCell
                     title="@i18n/main/setting/user"
-                    focusable="false"
                     id="setting/user" />
                 <brls:DetailCell
                     title="@i18n/main/setting/server/header"

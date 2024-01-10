@@ -1,7 +1,7 @@
-From 049c3d1e07206c3765687b18f100b9f222eae4f6 Mon Sep 17 00:00:00 2001
+From f56902a4cf743134aee163bd6d051720cdc416b8 Mon Sep 17 00:00:00 2001
 From: dragonflylee <dragonflylee@outlook.com>
 Date: Thu, 7 Sep 2023 06:02:20 +0000
-Subject: [PATCH] switch specific fix for tx1 hwdec
+Subject: [PATCH] switch specific fix mp_image
 
 ---
  osdep/io.c              |  2 +-
@@ -73,7 +73,7 @@ index 8e299918ce..c7b08f5273 100644
  #include "common/common.h"
  #include "common/msg.h"
 diff --git a/video/mp_image.c b/video/mp_image.c
-index 40678d10bd..d30b2d8057 100644
+index 40678d10bd..0baddd3e78 100644
 --- a/video/mp_image.c
 +++ b/video/mp_image.c
 @@ -176,7 +176,7 @@ static bool mp_image_alloc_planes(struct mp_image *mpi)
@@ -81,7 +81,7 @@ index 40678d10bd..d30b2d8057 100644
  
      // Note: mp_image_pool assumes this creates only 1 AVBufferRef.
 -    mpi->bufs[0] = av_buffer_alloc(size + align);
-+    mpi->bufs[0] = av_buffer_aligned_alloc(size + align, 0x100); // Aligmnent required for plane offsets
++    mpi->bufs[0] = av_buffer_aligned_alloc(size + align, 0x100); // Alignment required for plane offsets
      if (!mpi->bufs[0])
          return false;
  

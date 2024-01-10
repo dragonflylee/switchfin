@@ -25,7 +25,7 @@ makedepends=(
   "${MINGW_PACKAGE_PREFIX}-cc"
 )
 options=('staticlibs' '!strip')
-source=(https://download-mirror.savannah.gnu.org/releases/freetype/freetype-${pkgver}.tar.xz)
+source=("https://downloads.sourceforge.net/project/freetype/freetype2/${pkgver}/freetype-${pkgver}.tar.xz")
 sha256sums=('12991c4e55c506dd7f9b765933e62fd2be2e06d421505d7950a132e4f1bb484d')
 
 build() {

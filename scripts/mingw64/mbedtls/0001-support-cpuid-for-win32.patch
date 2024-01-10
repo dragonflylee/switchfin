@@ -1,0 +1,324 @@
+From 308cb232bf30316105e3419930e385649eeba384 Mon Sep 17 00:00:00 2001
+From: Pengyu Lv <pengyu.lv@arm.com>
+Date: Tue, 10 Oct 2023 17:56:12 +0800
+Subject: [PATCH 1/9] aesni: support cpuid on WIN32
+
+`__cpuid` has two kinds of signatures in different
+headers depending on the target OS. We make it
+consistent between the usages ang the included header.
+
+Signed-off-by: Pengyu Lv <pengyu.lv@arm.com>
+---
+ library/aesni.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/library/aesni.c b/library/aesni.c
+index 5f25a8249ff4..7eb11aff5542 100644
+--- a/library/aesni.c
++++ b/library/aesni.c
+@@ -53,7 +53,7 @@ int mbedtls_aesni_has_support(unsigned int what)
+     if (!done) {
+ #if MBEDTLS_AESNI_HAVE_CODE == 2
+         static unsigned info[4] = { 0, 0, 0, 0 };
+-#if defined(_MSC_VER)
++#if defined(_WIN32)
+         __cpuid(info, 1);
+ #else
+         __cpuid(1, info[0], info[1], info[2], info[3]);
+
+From e8c4bf180b9ab6631d80e138bcf57fd8f3019a6a Mon Sep 17 00:00:00 2001
+From: Pengyu Lv <pengyu.lv@arm.com>
+Date: Tue, 10 Oct 2023 18:12:43 +0800
+Subject: [PATCH 2/9] aesni: declare cpuinfo as int
+
+Change the type of array that stores the cpuinfo
+data to int[4] to match the signature of `__cpuinfo`
+in `intrin.h` header file.
+
+Signed-off-by: Pengyu Lv <pengyu.lv@arm.com>
+---
+ library/aesni.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/library/aesni.c b/library/aesni.c
+index 7eb11aff5542..322a2553354f 100644
+--- a/library/aesni.c
++++ b/library/aesni.c
+@@ -52,7 +52,7 @@ int mbedtls_aesni_has_support(unsigned int what)
+ 
+     if (!done) {
+ #if MBEDTLS_AESNI_HAVE_CODE == 2
+-        static unsigned info[4] = { 0, 0, 0, 0 };
++        static int info[4] = { 0, 0, 0, 0 };
+ #if defined(_WIN32)
+         __cpuid(info, 1);
+ #else
+
+From 0ecb635ca5a41fee0af01f5cd5aeb85622a0a1f3 Mon Sep 17 00:00:00 2001
+From: Pengyu Lv <pengyu.lv@arm.com>
+Date: Wed, 11 Oct 2023 10:36:55 +0800
+Subject: [PATCH 3/9] aesni: select `__cpuid` impl based on compiler type
+
+MinGW provides both kinds of implementations of `__cpuid`,
+but since `cpuid.h` is provided by GNUC, so we should choose
+the implementation by the compiler type instead of OS type.
+
+Signed-off-by: Pengyu Lv <pengyu.lv@arm.com>
+---
+ library/aesni.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/library/aesni.c b/library/aesni.c
+index 322a2553354f..b90e7f9a3ca5 100644
+--- a/library/aesni.c
++++ b/library/aesni.c
+@@ -33,10 +33,12 @@
+ #if defined(MBEDTLS_AESNI_HAVE_CODE)
+ 
+ #if MBEDTLS_AESNI_HAVE_CODE == 2
+-#if !defined(_WIN32)
++#if defined(__GNUC__)
+ #include <cpuid.h>
+-#else
++#elif defined(_MSC_VER)
+ #include <intrin.h>
++#else
++#error "`__cpuid` required by MBEDTLS_AESNI_C is not supported by the compiler"
+ #endif
+ #include <immintrin.h>
+ #endif
+@@ -53,7 +55,7 @@ int mbedtls_aesni_has_support(unsigned int what)
+     if (!done) {
+ #if MBEDTLS_AESNI_HAVE_CODE == 2
+         static int info[4] = { 0, 0, 0, 0 };
+-#if defined(_WIN32)
++#if defined(_MSC_VER)
+         __cpuid(info, 1);
+ #else
+         __cpuid(1, info[0], info[1], info[2], info[3]);
+
+From 64cca2f3eadfbf9665f50d82348bc254f35932fe Mon Sep 17 00:00:00 2001
+From: Pengyu Lv <pengyu.lv@arm.com>
+Date: Tue, 10 Oct 2023 18:22:24 +0800
+Subject: [PATCH 4/9] all.sh: Re-enable MBEDTLS_AESNI_C in some components
+
+Signed-off-by: Pengyu Lv <pengyu.lv@arm.com>
+---
+ tests/scripts/all.sh | 18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
+
+diff --git a/tests/scripts/all.sh b/tests/scripts/all.sh
+index 7e6c95c62c71..ca84040491cf 100755
+--- a/tests/scripts/all.sh
++++ b/tests/scripts/all.sh
+@@ -4626,8 +4626,7 @@ component_test_m32_o0 () {
+     # build) and not the i386-specific inline assembly.
+     msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
+     scripts/config.py full
+-    scripts/config.py unset MBEDTLS_AESNI_C # AESNI depends on cpu modifiers
+-    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O0" LDFLAGS="-m32 $ASAN_CFLAGS"
++    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O0 -maes -msse2 -mpclmul" LDFLAGS="-m32 $ASAN_CFLAGS"
+ 
+     msg "test: i386, make, gcc -O0 (ASan build)"
+     make test
+@@ -4644,8 +4643,7 @@ component_test_m32_o2 () {
+     # and go faster for tests.
+     msg "build: i386, make, gcc -O2 (ASan build)" # ~ 30s
+     scripts/config.py full
+-    scripts/config.py unset MBEDTLS_AESNI_C # AESNI depends on cpu modifiers
+-    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
++    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2 -maes -msse2 -mpclmul" LDFLAGS="-m32 $ASAN_CFLAGS"
+ 
+     msg "test: i386, make, gcc -O2 (ASan build)"
+     make test
+@@ -4660,8 +4658,7 @@ support_test_m32_o2 () {
+ component_test_m32_everest () {
+     msg "build: i386, Everest ECDH context (ASan build)" # ~ 6 min
+     scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+-    scripts/config.py unset MBEDTLS_AESNI_C # AESNI depends on cpu modifiers
+-    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
++    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2 -maes -msse2 -mpclmul" LDFLAGS="-m32 $ASAN_CFLAGS"
+ 
+     msg "test: i386, Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
+     make test
+@@ -5114,16 +5111,15 @@ component_test_tls13_only_record_size_limit () {
+ 
+ component_build_mingw () {
+     msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
+-    scripts/config.py unset MBEDTLS_AESNI_C # AESNI depends on cpu modifiers
+-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs
++    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra -maes -msse2 -mpclmul' WINDOWS_BUILD=1 lib programs
+ 
+     # note Make tests only builds the tests, but doesn't run them
+-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror' WINDOWS_BUILD=1 tests
++    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -maes -msse2 -mpclmul' WINDOWS_BUILD=1 tests
+     make WINDOWS_BUILD=1 clean
+ 
+     msg "build: Windows cross build - mingw64, make (DLL)" # ~ 30s
+-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 lib programs
+-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 tests
++    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra -maes -msse2 -mpclmul' WINDOWS_BUILD=1 SHARED=1 lib programs
++    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra -maes -msse2 -mpclmul' WINDOWS_BUILD=1 SHARED=1 tests
+     make WINDOWS_BUILD=1 clean
+ }
+ support_build_mingw() {
+
+From 132261345d1fec20f629138cf74c8cf5fb5a744c Mon Sep 17 00:00:00 2001
+From: Pengyu Lv <pengyu.lv@arm.com>
+Date: Mon, 16 Oct 2023 14:03:29 +0800
+Subject: [PATCH 5/9] all.sh: revert changes in test_m32*
+
+AESNI for x86 (32-bit) have been tested in
+a seperate component, we don't need to test
+twice.
+
+Signed-off-by: Pengyu Lv <pengyu.lv@arm.com>
+---
+ tests/scripts/all.sh | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/tests/scripts/all.sh b/tests/scripts/all.sh
+index ca84040491cf..64bde15fd342 100755
+--- a/tests/scripts/all.sh
++++ b/tests/scripts/all.sh
+@@ -4626,7 +4626,8 @@ component_test_m32_o0 () {
+     # build) and not the i386-specific inline assembly.
+     msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
+     scripts/config.py full
+-    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O0 -maes -msse2 -mpclmul" LDFLAGS="-m32 $ASAN_CFLAGS"
++    scripts/config.py unset MBEDTLS_AESNI_C # AESNI for 32-bit is tested in test_aesni_m32
++    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O0" LDFLAGS="-m32 $ASAN_CFLAGS"
+ 
+     msg "test: i386, make, gcc -O0 (ASan build)"
+     make test
+@@ -4643,7 +4644,8 @@ component_test_m32_o2 () {
+     # and go faster for tests.
+     msg "build: i386, make, gcc -O2 (ASan build)" # ~ 30s
+     scripts/config.py full
+-    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2 -maes -msse2 -mpclmul" LDFLAGS="-m32 $ASAN_CFLAGS"
++    scripts/config.py unset MBEDTLS_AESNI_C # AESNI for 32-bit is tested in test_aesni_m32
++    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
+ 
+     msg "test: i386, make, gcc -O2 (ASan build)"
+     make test
+@@ -4658,7 +4660,8 @@ support_test_m32_o2 () {
+ component_test_m32_everest () {
+     msg "build: i386, Everest ECDH context (ASan build)" # ~ 6 min
+     scripts/config.py set MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+-    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2 -maes -msse2 -mpclmul" LDFLAGS="-m32 $ASAN_CFLAGS"
++    scripts/config.py unset MBEDTLS_AESNI_C # AESNI for 32-bit is tested in test_aesni_m32
++    make CC=gcc CFLAGS="$ASAN_CFLAGS -m32 -O2" LDFLAGS="-m32 $ASAN_CFLAGS"
+ 
+     msg "test: i386, Everest ECDH context - main suites (inc. selftests) (ASan build)" # ~ 50s
+     make test
+
+From bb4f63cbb222994c35c061c9785289de3e7b0599 Mon Sep 17 00:00:00 2001
+From: Pengyu Lv <pengyu.lv@arm.com>
+Date: Thu, 19 Oct 2023 10:38:58 +0800
+Subject: [PATCH 6/9] all.sh: build_mingw: test default config without
+ MBEDTLS_AESNI_C
+
+Signed-off-by: Pengyu Lv <pengyu.lv@arm.com>
+---
+ tests/scripts/all.sh | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/tests/scripts/all.sh b/tests/scripts/all.sh
+index 64bde15fd342..c197ee10bc1e 100755
+--- a/tests/scripts/all.sh
++++ b/tests/scripts/all.sh
+@@ -5124,6 +5124,17 @@ component_build_mingw () {
+     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra -maes -msse2 -mpclmul' WINDOWS_BUILD=1 SHARED=1 lib programs
+     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra -maes -msse2 -mpclmul' WINDOWS_BUILD=1 SHARED=1 tests
+     make WINDOWS_BUILD=1 clean
++
++    msg "build: Windows cross build - mingw64, make (Link Library, default config without MBEDTLS_AESNI_C)" # ~ 30s
++    ./scripts/config.py unset MBEDTLS_AESNI_C #
++    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs
++    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror' WINDOWS_BUILD=1 tests
++    make WINDOWS_BUILD=1 clean
++
++    msg "build: Windows cross build - mingw64, make (DLL, default config without MBEDTLS_AESNI_C)" # ~ 30s
++    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 lib programs
++    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 tests
++    make WINDOWS_BUILD=1 clean
+ }
+ support_build_mingw() {
+     case $(i686-w64-mingw32-gcc -dumpversion 2>/dev/null) in
+
+From 158eead001677307d4731f1a4dacb4f38245dc6d Mon Sep 17 00:00:00 2001
+From: Pengyu Lv <pengyu.lv@arm.com>
+Date: Thu, 19 Oct 2023 11:27:05 +0800
+Subject: [PATCH 7/9] all.sh: build_mingw: only test build lib without
+ MBEDTLS_AESNI_C
+
+Signed-off-by: Pengyu Lv <pengyu.lv@arm.com>
+---
+ tests/scripts/all.sh | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
+
+diff --git a/tests/scripts/all.sh b/tests/scripts/all.sh
+index c197ee10bc1e..81084a9ee8e0 100755
+--- a/tests/scripts/all.sh
++++ b/tests/scripts/all.sh
+@@ -5125,15 +5125,9 @@ component_build_mingw () {
+     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra -maes -msse2 -mpclmul' WINDOWS_BUILD=1 SHARED=1 tests
+     make WINDOWS_BUILD=1 clean
+ 
+-    msg "build: Windows cross build - mingw64, make (Link Library, default config without MBEDTLS_AESNI_C)" # ~ 30s
++    msg "build: Windows cross build - mingw64, make (Library only, default config without MBEDTLS_AESNI_C)" # ~ 30s
+     ./scripts/config.py unset MBEDTLS_AESNI_C #
+-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs
+-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror' WINDOWS_BUILD=1 tests
+-    make WINDOWS_BUILD=1 clean
+-
+-    msg "build: Windows cross build - mingw64, make (DLL, default config without MBEDTLS_AESNI_C)" # ~ 30s
+-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 lib programs
+-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 tests
++    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib
+     make WINDOWS_BUILD=1 clean
+ }
+ support_build_mingw() {
+
+From 74f2c15ea3894ca52fef5d32047cedccec4af3ed Mon Sep 17 00:00:00 2001
+From: Pengyu Lv <pengyu.lv@arm.com>
+Date: Thu, 19 Oct 2023 11:39:17 +0800
+Subject: [PATCH 8/9] Add a changelog entry
+
+Signed-off-by: Pengyu Lv <pengyu.lv@arm.com>
+---
+ ChangeLog.d/fix-mingw32-build.txt | 4 ++++
+ 1 file changed, 4 insertions(+)
+ create mode 100644 ChangeLog.d/fix-mingw32-build.txt
+
+diff --git a/ChangeLog.d/fix-mingw32-build.txt b/ChangeLog.d/fix-mingw32-build.txt
+new file mode 100644
+index 000000000000..c657f23e28f3
+--- /dev/null
++++ b/ChangeLog.d/fix-mingw32-build.txt
+@@ -0,0 +1,4 @@
++Bugfix
++  * Fix an inconsistency between implementations and usages of `__cpuid`,
++    which mainly causes failures when building Windows target using
++    mingw or clang. Fix #8334 & #8332.
+
+From d2d3d6374ec0df38dca7d6bd35d9bb4fad54681f Mon Sep 17 00:00:00 2001
+From: Pengyu Lv <pengyu.lv@arm.com>
+Date: Thu, 19 Oct 2023 16:50:45 +0800
+Subject: [PATCH 9/9] Reword the changelog entry
+
+Signed-off-by: Pengyu Lv <pengyu.lv@arm.com>
+---
+ ChangeLog.d/fix-mingw32-build.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ChangeLog.d/fix-mingw32-build.txt b/ChangeLog.d/fix-mingw32-build.txt
+index c657f23e28f3..feef0a2c517f 100644
+--- a/ChangeLog.d/fix-mingw32-build.txt
++++ b/ChangeLog.d/fix-mingw32-build.txt
+@@ -1,4 +1,4 @@
+ Bugfix
+   * Fix an inconsistency between implementations and usages of `__cpuid`,
+     which mainly causes failures when building Windows target using
+-    mingw or clang. Fix #8334 & #8332.
++    mingw or clang. Fixes #8334 & #8332.

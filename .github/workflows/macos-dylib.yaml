@@ -197,8 +197,8 @@ jobs:
         cmake --install build
     - name: Build ffmpeg
       run: |
-        curl -sSL https://ffmpeg.org/releases/ffmpeg-6.1.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/ffmpeg-6.1
+        curl -sSL https://ffmpeg.org/releases/ffmpeg-6.1.1.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/ffmpeg-6.1.1
         ./configure --enable-shared --disable-static --enable-pthreads --prefix=$CMAKE_PREFIX_PATH \
           --cc=clang --enable-cross-compile --target-os=darwin --arch=${{ matrix.arch }} \
           --disable-autodetect --disable-encoders --enable-pic --disable-asm \

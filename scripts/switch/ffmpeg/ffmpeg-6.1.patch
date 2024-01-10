@@ -506,7 +506,7 @@ index 97aec68981..fe65ecb7df 100644
                             },
 diff --git a/libavcodec/nvtegra_decode.c b/libavcodec/nvtegra_decode.c
 new file mode 100644
-index 0000000000..2fb9633931
+index 0000000000..74a9ba83d9
 --- /dev/null
 +++ b/libavcodec/nvtegra_decode.c
 @@ -0,0 +1,414 @@
@@ -573,7 +573,7 @@ index 0000000000..2fb9633931
 +    if (err < 0)
 +        return NULL;
 +
-+    buffer = av_buffer_create((uint8_t *)map, sizeof(map), nvtegra_input_map_free, ctx, 0);
++    buffer = av_buffer_create((uint8_t *)map, sizeof(*map), nvtegra_input_map_free, ctx, 0);
 +    if (!buffer)
 +        goto fail;
 +
@@ -3201,10 +3201,10 @@ index 0000000000..cf6e537178
 +#endif
 diff --git a/libavcodec/nvtegra_vc1.c b/libavcodec/nvtegra_vc1.c
 new file mode 100644
-index 0000000000..e04fe689f0
+index 0000000000..caa6761654
 --- /dev/null
 +++ b/libavcodec/nvtegra_vc1.c
-@@ -0,0 +1,480 @@
+@@ -0,0 +1,460 @@
 +/*
 + * Copyright (c) 2023 averne <averne381@gmail.com>
 + *
@@ -3291,8 +3291,8 @@ index 0000000000..e04fe689f0
 +
 +    av_log(avctx, AV_LOG_DEBUG, "Initializing NVTEGRA VC1 decoder\n");
 +
-+    width_in_mbs   = FFALIGN(avctx->coded_width,  MB_SIZE) / MB_SIZE;
-+    height_in_mbs  = FFALIGN(avctx->coded_height, MB_SIZE) / MB_SIZE;
++    width_in_mbs  = FFALIGN(avctx->coded_width,  MB_SIZE) / MB_SIZE;
++    height_in_mbs = FFALIGN(avctx->coded_height, MB_SIZE) / MB_SIZE;
 +
 +    num_slices = width_in_mbs * height_in_mbs;
 +
@@ -3317,14 +3317,14 @@ index 0000000000..e04fe689f0
 +    if (err < 0)
 +        goto fail;
 +
-+    coloc_size   = FFALIGN(FFALIGN(height_in_mbs, 2) * (width_in_mbs * 64) - 63, 0x100);
-+    history_size = FFALIGN(width_in_mbs, 2) * 768;
++    coloc_size   = 3 * FFALIGN(width_in_mbs * FFALIGN(height_in_mbs, 2) * 64 - 63, FF_NVTEGRA_MAP_ALIGN);
++    history_size = FFALIGN(width_in_mbs, 2) * 0x300;
 +    scratch_size = 0x400;
 +
 +    ctx->coloc_off   = 0;
 +    ctx->history_off = FFALIGN(ctx->coloc_off   + coloc_size,   FF_NVTEGRA_MAP_ALIGN);
 +    ctx->scratch_off = FFALIGN(ctx->history_off + history_size, FF_NVTEGRA_MAP_ALIGN);
-+    common_map_size  = FFALIGN(ctx->scratch_off  + scratch_size, 0x1000);
++    common_map_size  = FFALIGN(ctx->scratch_off + scratch_size, 0x1000);
 +
 +#ifdef __SWITCH__
 +    hw_device_ctx = (AVHWDeviceContext *)ctx->core.hw_device_ref->data;
@@ -3358,11 +3358,14 @@ index 0000000000..e04fe689f0
 +{
 +    VC1Context     *v = avctx->priv_data;
 +    MpegEncContext *s = &v->s;
-+    AVFrame    *frame = s->current_picture.f;
++    AVFrame    *frame = s->current_picture_ptr->f;
 +
 +    /*
-+     * Note: a lot of fields in this structure are unused by official software,
-+     * here we only set those used by official code
++     * Notes:
++     * - s->current_picture.f->linesize is unconsistently doubled for interlaced content
++     *   between I-frames and others, so s->current_pic_ptr is used
++     * - a lot of fields in this structure are unused by official software,
++     *   here we only set those
 +     */
 +    *setup = (nvdec_vc1_pic_s){
 +        .scratch_pic_buffer_size = ctx->scratch_size,
@@ -3376,7 +3379,6 @@ index 0000000000..e04fe689f0
 +            frame->linesize[1],
 +        },
 +
-+        // TODO: Set these for interlaced content
 +        .luma_top_offset         = 0,
 +        .luma_bot_offset         = 0,
 +        .luma_frame_offset       = 0,
@@ -3425,44 +3427,28 @@ index 0000000000..e04fe689f0
 +        .panscan_flag            = v->panscanflag,
 +        .dquant                  = v->dquant,
 +        .refdist_flag            = v->refdist_flag,
-+        .refdist                 = v->refdist,
 +        .quantizer               = v->quantizer_mode,
 +        .overlap                 = v->overlap,
 +        .vstransform             = v->vstransform,
-+        .transacfrm              = v->c_ac_table_index,
-+        .transacfrm2             = v->y_ac_table_index,
-+        .transdctab              = v->s.dc_table_index,
 +        .extended_mv             = v->extended_mv,
-+        .mvrange                 = v->mvrange,
 +        .extended_dmv            = v->extended_dmv,
-+        .dmvrange                = v->dmvrange,
-+        .fcm                     = (v->fcm == 0) ? 0 : v->fcm + 1,
-+        .pquantizer              = v->pquantizer,
-+        .dqprofile               = v->dqprofile,
-+        .dqsbedge                = (v->dqprofile == DQPROFILE_SINGLE_EDGE)  ? v->dqsbedge : 0,
-+        .dqdbedge                = (v->dqprofile == DQPROFILE_DOUBLE_EDGES) ? v->dqsbedge : 0,
-+        .dqbilevel               = v->dqbilevel,
 +    };
 +
-+    setup->displayPara.enableTFOutput = 1;
 +    if (v->profile == PROFILE_ADVANCED) {
++        setup->displayPara.enableTFOutput = 1;
 +        setup->displayPara.VC1MapYFlag    = v->range_mapy_flag;
 +        setup->displayPara.MapYValue      = v->range_mapy;
 +        setup->displayPara.VC1MapUVFlag   = v->range_mapuv_flag;
 +        setup->displayPara.MapUVValue     = v->range_mapuv;
-+    } else {
-+        if ((v->rangered == 0) || (v->rangeredfrm == 0)) {
-+            setup->displayPara.enableTFOutput = false;
-+        } else {
-+            setup->displayPara.VC1MapYFlag    = 1;
-+            setup->displayPara.MapYValue      = 7;
-+            setup->displayPara.VC1MapUVFlag   = 1;
-+            setup->displayPara.MapUVValue     = 7;
-+        }
++    } else if (v->rangered && v->rangeredfrm) {
++        setup->displayPara.enableTFOutput = 1;
++        setup->displayPara.VC1MapYFlag    = 1;
++        setup->displayPara.MapYValue      = 7;
++        setup->displayPara.VC1MapUVFlag   = 1;
++        setup->displayPara.MapUVValue     = 7;
 +    }
 +
-+    if ((v->range_mapy_flag != 0) || (v->range_mapuv_flag != 0)) {
-+        // TODO: Set these
++    if (v->range_mapy_flag || v->range_mapuv_flag) {
 +        setup->displayPara.OutputBottom[0] = 0;
 +        setup->displayPara.OutputBottom[1] = 0;
 +        setup->displayPara.OutputStructure = v->interlace & 1;
@@ -3473,9 +3459,9 @@ index 0000000000..e04fe689f0
 +static int nvtegra_vc1_prepare_cmdbuf(AVNVTegraCmdbuf *cmdbuf, VC1Context *v, NVTegraVC1DecodeContext *ctx,
 +                                      AVFrame *cur_frame, AVFrame *prev_frame, AVFrame *next_frame)
 +{
-+    FrameDecodeData     *fdd = (FrameDecodeData *)cur_frame->private_ref->data;
-+    NVTegraFrame         *tf = fdd->hwaccel_priv;
-+    AVNVTegraMap  *input_map = (AVNVTegraMap *)tf->input_map_ref->data;
++    FrameDecodeData    *fdd = (FrameDecodeData *)cur_frame->private_ref->data;
++    NVTegraFrame        *tf = fdd->hwaccel_priv;
++    AVNVTegraMap *input_map = (AVNVTegraMap *)tf->input_map_ref->data;
 +
 +    int err;
 +
@@ -3525,9 +3511,9 @@ index 0000000000..e04fe689f0
 +    if (((v->profile != PROFILE_ADVANCED) && ((v->rangered != 0) || (v->rangeredfrm != 0))) ||
 +            ((v->range_mapy_flag != 0) || (v->range_mapuv_flag != 0))) {
 +        FF_NVTEGRA_PUSH_RELOC(cmdbuf, NVC5B0_SET_DISPLAY_BUF_LUMA_OFFSET,
-+                          &rangeMappedOutput.luma, 0, NVHOST_RELOC_TYPE_DEFAULT);
++                              &output.luma, 0, NVHOST_RELOC_TYPE_DEFAULT);
 +        FF_NVTEGRA_PUSH_RELOC(cmdbuf, NVC5B0_SET_DISPLAY_BUF_CHROMA_OFFSET,
-+                          &rangeMappedOutput.chroma, 0, NVHOST_RELOC_TYPE_DEFAULT);
++                              &output.chroma, 0, NVHOST_RELOC_TYPE_DEFAULT);
 +    }
 +     */
 +
@@ -3555,12 +3541,6 @@ index 0000000000..e04fe689f0
 +
 +    av_log(avctx, AV_LOG_DEBUG, "Starting VC1-NVTEGRA frame with pixel format %s\n",
 +           av_get_pix_fmt_name(avctx->sw_pix_fmt));
-+
-+    /*
-+     * TODO: Set top/bottom fields offsets
-+    if (v->fcm == ILACE_FIELD)
-+        return AVERROR_PATCHWELCOME;
-+     */
 +
 +    ctx->is_first_slice = true;
 +
@@ -3638,9 +3618,9 @@ index 0000000000..e04fe689f0
 +            startcode = VC1_CODE_FIELD;
 +
 +        /*
-+        * Skip a word if the bitstream already contains the startcode
-+        * We could probably just not insert our startcode but this is what official code does
-+        */
++         * Skip a dword if the bitstream already contains the startcode
++         * We could probably just not insert our startcode but this is what official code does
++         */
 +        if ((buf_size >= 4) && (AV_RB32(buf) == startcode))
 +            setup->bitstream_offset = 1;
 +
@@ -5857,10 +5837,10 @@ index e6266494ac..d0fab2a950 100644
  #endif /* AVUTIL_HWCONTEXT_INTERNAL_H */
 diff --git a/libavutil/hwcontext_nvtegra.c b/libavutil/hwcontext_nvtegra.c
 new file mode 100644
-index 0000000000..343eb72084
+index 0000000000..2eef9a9715
 --- /dev/null
 +++ b/libavutil/hwcontext_nvtegra.c
-@@ -0,0 +1,1132 @@
+@@ -0,0 +1,1136 @@
 +/*
 + * Copyright (c) 2023 averne <averne381@gmail.com>
 + *
@@ -5882,8 +5862,6 @@ index 0000000000..343eb72084
 + */
 +
 +#include <stdbool.h>
-+#include <fcntl.h>
-+#include <unistd.h>
 +
 +#include "config.h"
 +#include "pixdesc.h"
@@ -5903,9 +5881,22 @@ index 0000000000..343eb72084
 +
 +#include "hwcontext_nvtegra.h"
 +
-+#ifndef __SWITCH__
-+int g_nvmap_fd = 0, g_nvhost_fd = 0;
-+#endif
++typedef struct NVTegraDevicePriv {
++    AVBufferRef *driver_state_ref;
++
++    AVNVTegraMap vic_map;
++    AVNVTegraCmdbuf vic_cmdbuf;
++    uint32_t vic_setup_off, vic_cmdbuf_off, vic_filter_off;
++    uint32_t vic_max_cmdbuf_size;
++
++    double framerate;
++    uint32_t dfs_lowcorner;
++    double dfs_decode_cycles_ema;
++    double dfs_ema_damping;
++    int dfs_bitrate_sum;
++    int dfs_cur_sample, dfs_num_samples;
++    int64_t dfs_sampling_start_ts, dfs_last_ts_delta;
++} NVTegraDevicePriv;
 +
 +/* 3x3 color conversion matrix plus 1x3 color offsets */
 +static float mat_rgb_to_ycbcr_bt601lim[3][4] = {
@@ -5942,7 +5933,7 @@ index 0000000000..343eb72084
 +static float mat_rgb_to_ycbcr_bt2020full[3][4] = {
 +    { 0.2627,      0.678,       0.0593,     0.0       },
 +    {-0.13963006, -0.36036994,  0.5,        0.50196075},
-+    { 0.5       , -0.4597857,  -0.0402143,  0.50196075},
++    { 0.5,        -0.4597857,  -0.0402143,  0.50196075},
 +};
 +
 +static float mat_ycbcr_bt601lim_to_rgb[3][4] = {
@@ -6079,12 +6070,13 @@ index 0000000000..343eb72084
 +
 +static void nvtegra_device_uninit(AVHWDeviceContext *ctx) {
 +    AVNVTegraDeviceContext *hwctx = ctx->hwctx;
++    NVTegraDevicePriv       *priv = ctx->internal->priv;
 +
 +    av_log(ctx, AV_LOG_DEBUG, "Deinitializing NVTEGRA device\n");
 +
-+    ff_nvtegra_cmdbuf_deinit(&hwctx->vic_cmdbuf);
++    ff_nvtegra_cmdbuf_deinit(&priv->vic_cmdbuf);
 +
-+    ff_nvtegra_map_destroy(&hwctx->vic_map);
++    ff_nvtegra_map_destroy(&priv->vic_map);
 +
 +    if (hwctx->has_nvdec)
 +        ff_nvtegra_channel_close(&hwctx->nvdec_channel);
@@ -6092,34 +6084,20 @@ index 0000000000..343eb72084
 +        ff_nvtegra_channel_close(&hwctx->nvjpg_channel);
 +    ff_nvtegra_channel_close(&hwctx->vic_channel);
 +
-+#ifndef __SWITCH__
-+    if (g_nvmap_fd > 0)
-+        close(g_nvmap_fd);
-+
-+    if (g_nvhost_fd > 0)
-+        close(g_nvhost_fd);
-+#else
-+    nvFenceExit();
-+    nvMapExit();
-+    nvExit();
-+    if (hwctx->has_nvdec)
-+        mmuRequestFinalize(&hwctx->nvdec_channel.mmu_request);
-+    if (hwctx->has_nvjpg)
-+        mmuRequestFinalize(&hwctx->nvjpg_channel.mmu_request);
-+    mmuExit();
-+#endif
++    av_buffer_unref(&priv->driver_state_ref);
 +}
 +
 +/*
 + * Hardware modules on the Tegra X1 (see t210.c in l4t kernel sources)
-+ *  - nvdec v2.0
-+ *  - nvenc v5.0
-+ *  - nvjpg v1.0
-+ *  - vic   v4.0
++ * - nvdec v2.0
++ * - nvenc v5.0
++ * - nvjpg v1.0
++ * - vic   v4.0
 + */
 +
 +static int nvtegra_device_init(AVHWDeviceContext *ctx) {
 +    AVNVTegraDeviceContext *hwctx = ctx->hwctx;
++    NVTegraDevicePriv       *priv = ctx->internal->priv;
 +
 +    uint32_t vic_map_size;
 +    int err;
@@ -6150,29 +6128,29 @@ index 0000000000..343eb72084
 +    }
 +
 +#ifdef __SWITCH__
-+    hwctx->vic_map.owner = hwctx->vic_channel.channel.fd;
++    priv->vic_map.owner = hwctx->vic_channel.channel.fd;
 +#endif
 +
-+    hwctx->vic_setup_off  = 0;
-+    hwctx->vic_cmdbuf_off = FFALIGN(hwctx->vic_setup_off  + sizeof(VicConfigStruct),
-+                                    FF_NVTEGRA_MAP_ALIGN);
-+    hwctx->vic_filter_off = FFALIGN(hwctx->vic_cmdbuf_off + FF_NVTEGRA_MAP_ALIGN,
-+                                    FF_NVTEGRA_MAP_ALIGN);
-+    vic_map_size          = FFALIGN(hwctx->vic_filter_off + 0x3000,
-+                                    0x1000);
++    priv->vic_setup_off  = 0;
++    priv->vic_cmdbuf_off = FFALIGN(priv->vic_setup_off  + sizeof(VicConfigStruct),
++                                   FF_NVTEGRA_MAP_ALIGN);
++    priv->vic_filter_off = FFALIGN(priv->vic_cmdbuf_off + FF_NVTEGRA_MAP_ALIGN,
++                                   FF_NVTEGRA_MAP_ALIGN);
++    vic_map_size         = FFALIGN(priv->vic_filter_off + 0x3000,
++                                   0x1000);
 +
-+    hwctx->vic_max_cmdbuf_size = hwctx->vic_filter_off - hwctx->vic_cmdbuf_off;
++    priv->vic_max_cmdbuf_size = priv->vic_filter_off - priv->vic_cmdbuf_off;
 +
-+    err = ff_nvtegra_map_create(&hwctx->vic_map, vic_map_size, 0x100, NVMAP_CACHE_OP_INV);
++    err = ff_nvtegra_map_create(&priv->vic_map, vic_map_size, 0x100, NVMAP_CACHE_OP_INV);
 +    if (err < 0)
 +        goto fail;
 +
-+    err = ff_nvtegra_cmdbuf_init(&hwctx->vic_cmdbuf);
++    err = ff_nvtegra_cmdbuf_init(&priv->vic_cmdbuf);
 +    if (err < 0)
 +        goto fail;
 +
-+    err = ff_nvtegra_cmdbuf_add_memory(&hwctx->vic_cmdbuf, &hwctx->vic_map,
-+                                       hwctx->vic_cmdbuf_off, hwctx->vic_max_cmdbuf_size);
++    err = ff_nvtegra_cmdbuf_add_memory(&priv->vic_cmdbuf, &priv->vic_map,
++                                       priv->vic_cmdbuf_off, priv->vic_max_cmdbuf_size);
 +    if (err < 0)
 +        goto fail;
 +
@@ -6207,41 +6185,27 @@ index 0000000000..343eb72084
 +static int nvtegra_device_create(AVHWDeviceContext *ctx, const char *device,
 +                                 AVDictionary *opts, int flags)
 +{
-+    int err;
++    NVTegraDevicePriv *priv = ctx->internal->priv;
 +
 +    av_log(ctx, AV_LOG_DEBUG, "Creating NVTEGRA device\n");
 +
-+#ifndef __SWITCH__
-+    if (!g_nvmap_fd) {
-+        err = open("/dev/nvmap", O_RDWR | O_SYNC);
-+        if (err < 0)
-+            return AVERROR(errno);
-+        g_nvmap_fd = err;
-+    }
++    priv->driver_state_ref = ff_nvtegra_driver_init();
++    if (!priv->driver_state_ref)
++        return AVERROR(ENOSYS);
 +
-+    if (!g_nvhost_fd) {
-+        err = open("/dev/nvhost-ctrl", O_RDWR | O_SYNC);
-+        if (err < 0)
-+            return AVERROR(errno);
-+        g_nvhost_fd = err;
-+    }
-+#else
-+    err = AVERROR(nvInitialize());
-+    if (err < 0)
-+        return err;
++    return 0;
++}
 +
-+    err = AVERROR(nvMapInit());
-+    if (err < 0)
-+        return err;
++static int nvtegra_device_derive(AVHWDeviceContext *dst_ctx,
++                                 AVHWDeviceContext *src_ctx,
++                                 AVDictionary *opts, int flags)
++{
 +
-+    err = AVERROR(nvFenceInit());
-+    if (err < 0)
-+        return err;
++    NVTegraDevicePriv *src_priv = src_ctx->internal->priv, *dst_priv = dst_ctx->internal->priv;
 +
-+    err = AVERROR(mmuInitialize());
-+    if (err < 0)
-+        return err;
-+#endif
++    dst_priv->driver_state_ref = av_buffer_ref(src_priv->driver_state_ref);
++    if (!dst_priv->driver_state_ref)
++        return AVERROR(ENOMEM);
 +
 +    return 0;
 +}
@@ -6290,7 +6254,7 @@ index 0000000000..343eb72084
 +#endif
 +
 +    AVBufferRef *buffer;
-+    AVNVTegraMap    *map;
++    AVNVTegraMap *map;
 +    int err;
 +
 +    av_log(ctx, AV_LOG_DEBUG, "Creating surface from NVTEGRA device\n");
@@ -6307,7 +6271,7 @@ index 0000000000..343eb72084
 +    if (err < 0)
 +        goto fail;
 +
-+    buffer = av_buffer_create((uint8_t *)map, sizeof(map), nvtegra_buffer_free, ctx, 0);
++    buffer = av_buffer_create((uint8_t *)map, sizeof(*map), nvtegra_buffer_free, ctx, 0);
 +    if (!buffer)
 +        goto fail;
 +
@@ -6388,15 +6352,16 @@ index 0000000000..343eb72084
 + *   422.4, 441.6, 499.2, 518.4, 537.6, 556.8, 576.0, 595.2, 614.4, 633.6, 652.8
 + */
 +
-+int ff_nvtegra_dfs_init(AVHWDeviceContext *ctx, AVNVTegraChannel *channel, int width, int height, double framerate_hz) {
-+    AVNVTegraDeviceContext *hwctx = ctx->hwctx;
++int ff_nvtegra_dfs_init(AVHWDeviceContext *ctx, AVNVTegraChannel *channel, int width, int height,
++                        double framerate_hz)
++{
++    NVTegraDevicePriv *priv = ctx->internal->priv;
 +
 +    uint32_t max_freq, lowcorner;
 +    int num_mbs, err;
 +
-+    hwctx->dfs_num_samples        = 20;
-+    hwctx->dfs_decode_ema_damping = 0.1;
-+    hwctx->dfs_sampling_start_ts  = av_gettime_relative();
++    priv->dfs_num_samples = 20;
++    priv->dfs_ema_damping = 0.1;
 +
 +    /*
 +     * Initialize low-corner frequency (reproduces official code)
@@ -6415,14 +6380,11 @@ index 0000000000..343eb72084
 +    if (framerate_hz >= 0.1 && isfinite(framerate_hz))
 +        lowcorner = FFMIN(lowcorner, lowcorner * framerate_hz / 30.0);
 +
-+    hwctx->dfs_lowcorner = lowcorner;
-+
-+    hwctx->dfs_bitrate_samples = av_malloc_array(hwctx->dfs_num_samples, sizeof(*hwctx->dfs_bitrate_samples));
-+    if (!hwctx->dfs_bitrate_samples)
-+        return AVERROR(ENOMEM);
++    priv->framerate     = framerate_hz;
++    priv->dfs_lowcorner = lowcorner;
 +
 +    av_log(ctx, AV_LOG_DEBUG, "DFS: Initializing lowcorner to %d Hz, using %u samples\n",
-+           hwctx->dfs_lowcorner, hwctx->dfs_num_samples);
++           priv->dfs_lowcorner, priv->dfs_num_samples);
 +
 +    /*
 +     * Initialize channel to the max possible frequency (the kernel driver will clamp to an allowed value)
@@ -6435,16 +6397,22 @@ index 0000000000..343eb72084
 +    if (err < 0)
 +        return err;
 +
++    priv->dfs_decode_cycles_ema = 0.0;
++    priv->dfs_bitrate_sum       = 0;
++    priv->dfs_cur_sample        = 0;
++    priv->dfs_sampling_start_ts = av_gettime_relative();
++    priv->dfs_last_ts_delta     = 0;
++
 +    return 0;
 +}
 +
 +int ff_nvtegra_dfs_update(AVHWDeviceContext *ctx, AVNVTegraChannel *channel, int bitstream_len, int decode_cycles) {
-+    AVNVTegraDeviceContext *hwctx = ctx->hwctx;
++    NVTegraDevicePriv *priv = ctx->internal->priv;
 +
-+    double avg;
-+    uint32_t sum, clock;
-+    int64_t time;
-+    int i, err;
++    double frame_time, avg;
++    int64_t now, wl_dt;
++    uint32_t clock;
++    int err;
 +
 +    /*
 +     * Official software implements DFS using a flat average of the decoder pool occupancy.
@@ -6457,44 +6425,55 @@ index 0000000000..343eb72084
 +    /* Convert to bits */
 +    bitstream_len *= 8;
 +
-+    /* Exponential moving average of decode cycles per bitstream bit */
-+    hwctx->dfs_decode_cycles_ema = hwctx->dfs_decode_ema_damping * (double)decode_cycles/bitstream_len +
-+        (1.0 - hwctx->dfs_decode_ema_damping) * hwctx->dfs_decode_cycles_ema;
++    /* Exponential moving average of decode cycles per frame */
++    priv->dfs_decode_cycles_ema = priv->dfs_ema_damping * (double)decode_cycles/bitstream_len +
++        (1.0 - priv->dfs_ema_damping) * priv->dfs_decode_cycles_ema;
 +
-+    hwctx->dfs_cur_sample = (hwctx->dfs_cur_sample + 1) % hwctx->dfs_num_samples;
-+    hwctx->dfs_bitrate_samples[hwctx->dfs_cur_sample] = bitstream_len;
++    priv->dfs_bitrate_sum += bitstream_len;
++    priv->dfs_cur_sample   = (priv->dfs_cur_sample + 1) % priv->dfs_num_samples;
++
++    err = 0;
 +
 +    /* Reclock if we collected enough samples */
-+    if (hwctx->dfs_cur_sample == 0) {
-+        /* Flat average of bitstream bits per time interval */
-+        for (sum = i = 0; i < hwctx->dfs_num_samples; ++i)
-+            sum += hwctx->dfs_bitrate_samples[i];
++    if (priv->dfs_cur_sample == 0) {
++        now   = av_gettime_relative();
++        wl_dt = now - priv->dfs_sampling_start_ts;
 +
-+        time = av_gettime_relative();
-+        avg = sum * 1e6 / (time - hwctx->dfs_sampling_start_ts);
++        /*
++         * Try to filter bad sample sets caused by eg. pausing the video playback.
++         * We reject if one of these conditions is met:
++         * - the wall time is over 1.5x the framerate (10Hz is used as fallback if no framerate information is available)
++         * - the wall time is over 1.5x the ema-damped previous values
++         */
 +
-+        clock = hwctx->dfs_decode_cycles_ema * avg * 1.2;
-+        clock = FFMAX(clock, hwctx->dfs_lowcorner);
++        if (priv->framerate >= 0.1 && isfinite(priv->framerate))
++            frame_time = 1.0e6 / priv->framerate;
++        else
++            frame_time = 0.1e6;
 +
-+        err = nvtegra_channel_set_freq(channel, clock);
-+        if (err < 0)
-+            return err;
++        if ((wl_dt < 1.5 * priv->dfs_num_samples * frame_time) ||
++                ((priv->dfs_last_ts_delta) && (wl_dt < 1.5 * priv->dfs_last_ts_delta))) {
++            avg   = priv->dfs_bitrate_sum * 1e6 / wl_dt;
++            clock = priv->dfs_decode_cycles_ema * avg * 1.2;
++            clock = FFMAX(clock, priv->dfs_lowcorner);
 +
-+        av_log(ctx, AV_LOG_DEBUG, "DFS: %.0f cycles/b (ema), %.0f b/s -> clock %u Hz (lowcorner %u Hz)\n",
-+               hwctx->dfs_decode_cycles_ema, avg, clock, hwctx->dfs_lowcorner);
++            av_log(ctx, AV_LOG_DEBUG, "DFS: %.0f cycles/b (ema), %.0f b/s -> clock %u Hz (lowcorner %u Hz)\n",
++                priv->dfs_decode_cycles_ema, avg, clock, priv->dfs_lowcorner);
 +
-+        hwctx->dfs_sampling_start_ts = time;
++            err = nvtegra_channel_set_freq(channel, clock);
++
++            priv->dfs_last_ts_delta = wl_dt;
++        }
++
++        priv->dfs_bitrate_sum       = 0;
++        priv->dfs_sampling_start_ts = now;
 +    }
 +
-+    return 0;
++    return err;
 +}
 +
 +int ff_nvtegra_dfs_uninit(AVHWDeviceContext *ctx, AVNVTegraChannel *channel) {
-+    AVNVTegraDeviceContext *hwctx = ctx->hwctx;
-+
-+    av_free(hwctx->dfs_bitrate_samples);
-+
-+    return 0;
++    return nvtegra_channel_set_freq(channel, 0);
 +}
 +
 +static int nvtegra_transfer_get_formats(AVHWFramesContext *ctx,
@@ -6685,11 +6664,14 @@ index 0000000000..343eb72084
 +    }
 +}
 +
-+static int nvtegra_vic_prepare_cmdbuf(AVNVTegraDeviceContext *hwctx, AVNVTegraMap *map,
++static int nvtegra_vic_prepare_cmdbuf(AVHWFramesContext *ctx, AVNVTegraMap *map,
 +                                      uint32_t *map_offsets, int num_comps,
 +                                      const AVFrame *src, enum AVPixelFormat fmt)
 +{
-+    AVNVTegraCmdbuf *cmdbuf = &hwctx->vic_cmdbuf;
++    AVNVTegraDeviceContext *hwctx = ctx->device_ctx->hwctx;
++    NVTegraDevicePriv       *priv = ctx->device_ctx->internal->priv;
++
++    AVNVTegraCmdbuf *cmdbuf = &priv->vic_cmdbuf;
 +
 +    AVNVTegraMap *src_map;
 +    int input_reloc_type, err;
@@ -6709,9 +6691,9 @@ index 0000000000..343eb72084
 +                          FF_NVTEGRA_VALUE(NVB0B6_VIDEO_COMPOSITOR_SET_CONTROL_PARAMS, CONFIG_STRUCT_SIZE, sizeof(VicConfigStruct) >> 4) |
 +                          FF_NVTEGRA_VALUE(NVB0B6_VIDEO_COMPOSITOR_SET_CONTROL_PARAMS, GPTIMER_ON,         1));
 +    FF_NVTEGRA_PUSH_RELOC(cmdbuf, NVB0B6_VIDEO_COMPOSITOR_SET_CONFIG_STRUCT_OFFSET,
-+                          &hwctx->vic_map, hwctx->vic_setup_off,  NVHOST_RELOC_TYPE_DEFAULT);
++                          &priv->vic_map, priv->vic_setup_off,  NVHOST_RELOC_TYPE_DEFAULT);
 +    FF_NVTEGRA_PUSH_RELOC(cmdbuf, NVB0B6_VIDEO_COMPOSITOR_SET_FILTER_STRUCT_OFFSET,
-+                          &hwctx->vic_map, hwctx->vic_filter_off, NVHOST_RELOC_TYPE_DEFAULT);
++                          &priv->vic_map, priv->vic_filter_off, NVHOST_RELOC_TYPE_DEFAULT);
 +
 +    for (int i = 0; i < num_comps; ++i)
 +        FF_NVTEGRA_PUSH_RELOC(cmdbuf, NVB0B6_VIDEO_COMPOSITOR_SET_OUTPUT_SURFACE_LUMA_OFFSET + i * sizeof(uint32_t),
@@ -6775,22 +6757,23 @@ index 0000000000..343eb72084
 +                                     int num_planes, bool is_chroma)
 +{
 +    AVNVTegraDeviceContext *hwctx = ctx->device_ctx->hwctx;
-+    AVNVTegraCmdbuf       *cmdbuf = &hwctx->vic_cmdbuf;
++    NVTegraDevicePriv       *priv = ctx->device_ctx->internal->priv;
++    AVNVTegraCmdbuf       *cmdbuf = &priv->vic_cmdbuf;
 +
 +    uint32_t render_fence;
 +    uint8_t *mem;
 +    int err;
 +
-+    mem = ff_nvtegra_map_get_addr(&hwctx->vic_map);
++    mem = ff_nvtegra_map_get_addr(&priv->vic_map);
 +
-+    nvtegra_vic_preprare_config((VicConfigStruct *)(mem + hwctx->vic_setup_off),
++    nvtegra_vic_preprare_config((VicConfigStruct *)(mem + priv->vic_setup_off),
 +                                dst, src, fmt, is_chroma);
 +
 +    err = ff_nvtegra_cmdbuf_clear(cmdbuf);
 +    if (err < 0)
 +        return err;
 +
-+    err = nvtegra_vic_prepare_cmdbuf(hwctx, map, plane_offsets, num_planes, src, fmt);
++    err = nvtegra_vic_prepare_cmdbuf(ctx, map, plane_offsets, num_planes, src, fmt);
 +    if (err < 0)
 +        goto fail;
 +
@@ -6971,12 +6954,13 @@ index 0000000000..343eb72084
 +    .name                   = "nvtegra",
 +
 +    .device_hwctx_size      = sizeof(AVNVTegraDeviceContext),
-+    .device_priv_size       = 0,
++    .device_priv_size       = sizeof(NVTegraDevicePriv),
 +    .device_hwconfig_size   = 0,
 +    .frames_hwctx_size      = 0,
 +    .frames_priv_size       = 0,
 +
 +    .device_create          = &nvtegra_device_create,
++    .device_derive          = &nvtegra_device_derive,
 +    .device_init            = &nvtegra_device_init,
 +    .device_uninit          = &nvtegra_device_uninit,
 +
@@ -6995,10 +6979,10 @@ index 0000000000..343eb72084
 +};
 diff --git a/libavutil/hwcontext_nvtegra.h b/libavutil/hwcontext_nvtegra.h
 new file mode 100644
-index 0000000000..6aea71d8c0
+index 0000000000..e72221f61f
 --- /dev/null
 +++ b/libavutil/hwcontext_nvtegra.h
-@@ -0,0 +1,62 @@
+@@ -0,0 +1,64 @@
 +/*
 + * Copyright (c) 2023 averne <averne381@gmail.com>
 + *
@@ -7030,32 +7014,34 @@ index 0000000000..6aea71d8c0
 +
 +#include "nvtegra.h"
 +
++/**
++ * @file
++ * API-specific header for AV_HWDEVICE_TYPE_NVTEGRA.
++ *
++ * For user-allocated pools, AVHWFramesContext.pool must return AVBufferRefs
++ * with the data pointer set to an AVNVTegraMap.
++ */
++
 +typedef struct AVNVTegraDeviceContext {
++    /*
++     * Hardware multimedia engines
++     */
 +    AVNVTegraChannel nvdec_channel, nvjpg_channel, vic_channel;
 +    bool has_nvdec, has_nvjpg;
-+
-+    AVNVTegraMap vic_map;
-+    uint32_t vic_setup_off, vic_cmdbuf_off, vic_filter_off;
-+    uint32_t vic_max_cmdbuf_size;
-+
-+    AVNVTegraCmdbuf vic_cmdbuf;
-+
-+    uint32_t dfs_lowcorner;
-+
-+    double dfs_decode_cycles_ema;
-+    double dfs_decode_ema_damping;
-+
-+    int *dfs_bitrate_samples;
-+    int dfs_cur_sample, dfs_num_samples;
-+    int64_t dfs_sampling_start_ts;
 +} AVNVTegraDeviceContext;
 +
 +static inline AVNVTegraMap *ff_nvtegra_frame_get_fbuf_map(const AVFrame *frame) {
 +    return (AVNVTegraMap *)frame->buf[0]->data;
 +}
 +
++/*
++ * Helper to retrieve a map object from the corresponding frame
++ */
 +int ff_nvtegra_map_vic_pic_fmt(enum AVPixelFormat fmt);
 +
++/*
++ * Dynamic frequency scaling routines
++ */
 +int ff_nvtegra_dfs_init(AVHWDeviceContext *ctx, AVNVTegraChannel *channel, int width, int height, double framerate_hz);
 +int ff_nvtegra_dfs_update(AVHWDeviceContext *ctx, AVNVTegraChannel *channel, int bitstream_len, int decode_cycles);
 +int ff_nvtegra_dfs_uninit(AVHWDeviceContext *ctx, AVNVTegraChannel *channel);
@@ -9303,10 +9289,10 @@ index 0000000000..a239476a71
 +#endif /* __UAPI_LINUX_NVMAP_H */
 diff --git a/libavutil/nvtegra.c b/libavutil/nvtegra.c
 new file mode 100644
-index 0000000000..e07fcfa934
+index 0000000000..69c00988df
 --- /dev/null
 +++ b/libavutil/nvtegra.c
-@@ -0,0 +1,750 @@
+@@ -0,0 +1,878 @@
 +/*
 + * Copyright (c) 2023 averne <averne381@gmail.com>
 + *
@@ -9339,9 +9325,11 @@ index 0000000000..e07fcfa934
 +
 +#include <string.h>
 +
-+#include "libavutil/log.h"
-+#include "libavutil/error.h"
-+#include "libavutil/mem.h"
++#include "buffer.h"
++#include "log.h"
++#include "error.h"
++#include "mem.h"
++#include "thread.h"
 +
 +#include "nvhost_ioctl.h"
 +#include "nvmap_ioctl.h"
@@ -9349,9 +9337,136 @@ index 0000000000..e07fcfa934
 +
 +#include "nvtegra.h"
 +
++struct DriverState {
++    int nvmap_fd, nvhost_fd;
++};
++
++static AVMutex g_driver_init_mtx = AV_MUTEX_INITIALIZER;
++static struct DriverState *g_driver_state = NULL;
++static AVBufferRef *g_driver_state_ref = NULL;
++
++static void free_driver_fds(void *opaque, uint8_t *data) {
++    if (!g_driver_state)
++        return;
++
 +#ifndef __SWITCH__
-+extern int g_nvmap_fd, g_nvhost_fd;
++    if (g_driver_state->nvmap_fd > 0)
++        close(g_driver_state->nvmap_fd);
++
++    if (g_driver_state->nvhost_fd > 0)
++        close(g_driver_state->nvhost_fd);
++#else
++    nvFenceExit();
++    nvMapExit();
++    nvExit();
 +#endif
++
++    g_driver_init_mtx  = (AVMutex)AV_MUTEX_INITIALIZER;
++    g_driver_state_ref = NULL;
++    av_freep(&g_driver_state);
++}
++
++static int init_driver_fds(void) {
++    AVBufferRef *ref;
++    struct DriverState *state;
++    int err;
++
++    state = av_mallocz(sizeof(*state));
++    if (!state)
++        return AVERROR(ENOMEM);
++
++    ref = av_buffer_create((uint8_t *)state, sizeof(*state), free_driver_fds, NULL, 0);
++    if (!state)
++        return AVERROR(ENOMEM);
++
++    g_driver_state     = state;
++    g_driver_state_ref = ref;
++
++#ifndef __SWITCH__
++    err = open("/dev/nvmap", O_RDWR | O_SYNC);
++    if (err < 0)
++        return AVERROR(errno);
++    state->nvmap_fd = err;
++
++    err = open("/dev/nvhost-ctrl", O_RDWR | O_SYNC);
++    if (err < 0)
++        return AVERROR(errno);
++    state->nvhost_fd = err;
++#else
++    err = nvInitialize();
++    if (R_FAILED(err))
++        return AVERROR(err);
++
++    err = nvMapInit();
++    if (R_FAILED(err))
++        return AVERROR(err);
++    state->nvmap_fd = nvMapGetFd();
++
++    err = nvFenceInit();
++    if (R_FAILED(err))
++        return AVERROR(err);
++    /* libnx doesn't export the nvhost-ctrl file descriptor */
++
++    err = mmuInitialize();
++    if (R_FAILED(err))
++        return AVERROR(err);
++#endif
++
++    return 0;
++}
++
++static inline int get_nvmap_fd(void) {
++    if (!g_driver_state)
++        return AVERROR_UNKNOWN;
++
++    if (!g_driver_state->nvmap_fd)
++        return AVERROR_UNKNOWN;
++
++    return g_driver_state->nvmap_fd;
++}
++
++static inline int get_nvhost_fd(void) {
++    if (!g_driver_state)
++        return AVERROR_UNKNOWN;
++
++    if (!g_driver_state->nvhost_fd)
++        return AVERROR_UNKNOWN;
++
++    return g_driver_state->nvhost_fd;
++}
++
++AVBufferRef *ff_nvtegra_driver_init(void) {
++    AVBufferRef *out = NULL;
++    int err;
++
++    /*
++     * We have to do this overly complex dance of putting driver fds in a refcounted struct,
++     * otherwise initializing multiple hwcontexts would leak fds
++     */
++
++    err = ff_mutex_lock(&g_driver_init_mtx);
++    if (err != 0)
++        goto exit;
++
++    if (g_driver_state_ref) {
++        out = av_buffer_ref(g_driver_state_ref);
++        goto exit;
++    }
++
++    err = init_driver_fds();
++    if (err < 0) {
++        // In case memory allocations failed, call the destructor ourselves
++        av_buffer_unref(&g_driver_state_ref);
++        free_driver_fds(NULL, NULL);
++        goto exit;
++    }
++
++    out = g_driver_state_ref;
++
++exit:
++    ff_mutex_unlock(&g_driver_init_mtx);
++    return out;
++}
 +
 +int ff_nvtegra_channel_open(AVNVTegraChannel *channel, const char *dev) {
 +    int err;
@@ -9524,7 +9639,7 @@ index 0000000000..e07fcfa934
 +        .timeout = timeout,
 +    };
 +
-+    return (ioctl(g_nvhost_fd, NVHOST_IOCTL_CTRL_SYNCPT_WAITEX, &args) < 0) ? AVERROR(errno) : 0;
++    return (ioctl(get_nvhost_fd(), NVHOST_IOCTL_CTRL_SYNCPT_WAITEX, &args) < 0) ? AVERROR(errno) : 0;
 +#else
 +    NvFence fence;
 +
@@ -9556,7 +9671,7 @@ index 0000000000..e07fcfa934
 +        .size   = size,
 +    };
 +
-+    err = ioctl(g_nvmap_fd, NVMAP_IOC_CREATE, &create_args);
++    err = ioctl(get_nvmap_fd(), NVMAP_IOC_CREATE, &create_args);
 +    if (err < 0)
 +        return AVERROR(errno);
 +
@@ -9570,7 +9685,7 @@ index 0000000000..e07fcfa934
 +        .align     = align,
 +    };
 +
-+    err = ioctl(g_nvmap_fd, NVMAP_IOC_ALLOC, &alloc_args);
++    err = ioctl(get_nvmap_fd(), NVMAP_IOC_ALLOC, &alloc_args);
 +    if (err < 0)
 +        goto fail;
 +
@@ -9600,7 +9715,7 @@ index 0000000000..e07fcfa934
 +    if (!map->handle)
 +        return 0;
 +
-+    err = ioctl(g_nvmap_fd, NVMAP_IOC_FREE, map->handle);
++    err = ioctl(get_nvmap_fd(), NVMAP_IOC_FREE, map->handle);
 +    if (err < 0)
 +        return AVERROR(errno);
 +
@@ -9630,7 +9745,7 @@ index 0000000000..e07fcfa934
 +        .flags = flags,
 +    };
 +
-+    err = ioctl(g_nvmap_fd, NVMAP_IOC_FROM_VA, &args);
++    err = ioctl(get_nvmap_fd(), NVMAP_IOC_FROM_VA, &args);
 +    if (err < 0)
 +        return AVERROR(errno);
 +
@@ -10035,7 +10150,6 @@ index 0000000000..e07fcfa934
 +#ifndef __SWITCH__
 +    uint8_t *mem;
 +    void *tmp;
-+    int err;
 +
 +    mem = ff_nvtegra_map_get_addr(cmdbuf->map);
 +
@@ -10059,10 +10173,10 @@ index 0000000000..e07fcfa934
 +}
 diff --git a/libavutil/nvtegra.h b/libavutil/nvtegra.h
 new file mode 100644
-index 0000000000..b13f76ed23
+index 0000000000..50f241cbe2
 --- /dev/null
 +++ b/libavutil/nvtegra.h
-@@ -0,0 +1,194 @@
+@@ -0,0 +1,198 @@
 +/*
 + * Copyright (c) 2023 averne <averne381@gmail.com>
 + *
@@ -10088,6 +10202,8 @@ index 0000000000..b13f76ed23
 +
 +#include <stdint.h>
 +#include <stdbool.h>
++
++#include "buffer.h"
 +
 +#include "nvhost_ioctl.h"
 +#include "nvmap_ioctl.h"
@@ -10153,6 +10269,8 @@ index 0000000000..b13f76ed23
 +    uint32_t num_waitchks;
 +#endif
 +} AVNVTegraCmdbuf;
++
++AVBufferRef *ff_nvtegra_driver_init(void);
 +
 +int ff_nvtegra_channel_open(AVNVTegraChannel *channel, const char *dev);
 +int ff_nvtegra_channel_close(AVNVTegraChannel *channel);
@@ -10373,17 +10491,17 @@ index 6ded9467b0..1321c6fe58 100644
  
  static const char * const color_range_names[] = {
 diff --git a/libavutil/pixfmt.h b/libavutil/pixfmt.h
-index a26c72d56b..e1d3a3f99d 100644
+index a26c72d56b..b09cd28afd 100644
 --- a/libavutil/pixfmt.h
 +++ b/libavutil/pixfmt.h
-@@ -375,6 +375,8 @@ enum AVPixelFormat {
-      */
-     AV_PIX_FMT_VULKAN,
+@@ -429,6 +429,8 @@ enum AVPixelFormat {
+     AV_PIX_FMT_GBRAP14BE,  ///< planar GBR 4:4:4:4 56bpp, big-endian
+     AV_PIX_FMT_GBRAP14LE,  ///< planar GBR 4:4:4:4 56bpp, little-endian
  
 +    AV_PIX_FMT_NVTEGRA,   ///< Tegra X1 pixel format, data[3] contains nothing
 +
-     AV_PIX_FMT_Y210BE,    ///< packed YUV 4:2:2 like YUYV422, 20bpp, data in the high bits, big-endian
-     AV_PIX_FMT_Y210LE,    ///< packed YUV 4:2:2 like YUYV422, 20bpp, data in the high bits, little-endian
+     AV_PIX_FMT_NB         ///< number of pixel formats, DO NOT USE THIS if you want to link with shared libav* because the number of formats might differ between versions
+ };
  
 diff --git a/libavutil/vic_drv.h b/libavutil/vic_drv.h
 new file mode 100644

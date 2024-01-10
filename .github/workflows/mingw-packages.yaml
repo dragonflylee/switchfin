@@ -39,9 +39,15 @@ jobs:
     - name: Build packages
       run: |
         cd scripts/mingw64
-        for pkg in libwebp freetype harfbuzz libass ffmpeg spirv-cross shaderc mpv glfw curl; do
+
+        for pkg in mbedtls libwebp freetype harfbuzz libass dav1d ffmpeg spirv-cross shaderc mpv; do
           echo building $pkg
           cd $pkg; makepkg-mingw -sciCf --noconfirm; cd ..
+        done
+
+        for pkg in glfw curl; do
+          echo building $pkg
+          cd $pkg; makepkg-mingw -scCf --noconfirm; cd ..
         done
 
         cd ${MINGW_PREFIX}
