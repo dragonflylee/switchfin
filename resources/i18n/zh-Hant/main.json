@@ -148,6 +148,7 @@
         "ps": "PlayStation",
         "keyboard": "鍵盤"
       },
+      "logout": "退出登入當前的賬號 (應用將會退出)",
       "up2date": "程式已經是最新版",
       "upgrade": "發現新版本 {}，是否更新？",
       "updating": "更新進行中，是否取消更新？",

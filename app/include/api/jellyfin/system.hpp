@@ -11,6 +11,7 @@ namespace jellyfin {
 const std::string apiInfo = "/System/Info";
 const std::string apiPublicInfo = "/System/Info/Public";
 const std::string apiAuthByName = "/Users/authenticatebyname";
+const std::string apiLogout = "/Sessions/Logout";
 
 const std::string apiSessionList = "/Sessions?{}";
 // apiQuickConnect

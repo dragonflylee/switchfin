@@ -1,5 +1,11 @@
 # Changelog
 
+## [next]
+
+### Added
+
+* add logout from setting tab
+
 ## [0.4.2]
 
 ### Added

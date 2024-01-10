@@ -23,7 +23,8 @@
 #include "view/mpv_core.hpp"
 #include "view/selector_cell.hpp"
 #include "api/analytics.hpp"
-#include "api/http.hpp"
+#include "api/jellyfin.hpp"
+#include "utils/dialog.hpp"
 #ifdef __SWITCH__
 #include "utils/overclock.hpp"
 #endif
@@ -85,6 +86,22 @@ void SettingTab::onCreate() {
     });
 
     btnUser->setDetailText(conf.getUser().name);
+    btnUser->registerClickAction([](...) {
+        Dialog::cancelable("main/setting/others/logout"_i18n, []() {
+            brls::async([]() {
+                auto& c = AppConfig::instance();
+                HTTP::Header header = {"X-Emby-Token: " + c.getUser().access_token};
+                try {
+                    HTTP::post(c.getUrl() + jellyfin::apiLogout, "", header, HTTP::Timeout{});
+                    c.removeUser(c.getUser().id);
+                } catch (const std::exception& ex) {
+                    brls::Logger::warning("Logout failed: {}", ex.what());
+                }
+                brls::sync([]() { brls::Application::quit(); });
+            });
+        });
+        return true;
+    });
 
 /// Hardware decode
 #ifdef __SWITCH__
