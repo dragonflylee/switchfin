@@ -5,6 +5,7 @@
 ### Added
 
 * add logout from setting tab
+* player view add touch gesture
 
 ## [0.4.2]
 

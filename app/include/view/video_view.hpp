@@ -55,8 +55,6 @@ public:
 private:
     /// OSD
     BRLS_BIND(brls::Label, titleLabel, "video/osd/title");
-    BRLS_BIND(brls::ProgressSpinner, osdSpinner, "video/osd/loading");
-    BRLS_BIND(VideoProgressSlider, osdSlider, "video/osd/bottom/progress");
     BRLS_BIND(brls::Box, btnForward, "video/osd/forward");
     BRLS_BIND(brls::Box, btnBackward, "video/osd/backward");
     BRLS_BIND(brls::Box, btnSetting, "video/osd/setting");
@@ -72,8 +70,16 @@ private:
     BRLS_BIND(SVGImage, btnToggleIcon, "video/osd/toggle/icon");
     BRLS_BIND(brls::Box, osdTopBox, "video/osd/top/box");
     BRLS_BIND(brls::Box, osdBottomBox, "video/osd/bottom/box");
+    // 用于显示缓冲组件
     BRLS_BIND(brls::Box, osdCenterBox, "video/osd/center/box");
     BRLS_BIND(brls::Label, centerLabel, "video/osd/center/label");
+    BRLS_BIND(brls::ProgressSpinner, osdSpinner, "video/osd/loading");
+    // 用于通用的提示信息
+    BRLS_BIND(brls::Box, osdInfoBox, "video/osd/info/box");
+    BRLS_BIND(brls::Label, infoLabel, "video/osd/info/label");
+    BRLS_BIND(SVGImage, infoIcon, "video/osd/info/icon");
+    // 用于显示和控制视频时长
+    BRLS_BIND(VideoProgressSlider, osdSlider, "video/osd/bottom/progress");
     BRLS_BIND(brls::Label, leftStatusLabel, "video/left/status");
     BRLS_BIND(brls::Label, rightStatusLabel, "video/right/status");
     BRLS_BIND(brls::Label, videoChapterLabel, "video/chapter");
@@ -109,7 +115,7 @@ private:
     void showHint(const std::string& value);
 
     /// @brief 延迟 200ms 触发进度跳转到 seeking_range
-    void requestSeeking();
+    void requestSeeking(int seek, int delay = 400);
     void buttonProcessing();
     /// @brief notify videoview closed
     static bool popActivity();

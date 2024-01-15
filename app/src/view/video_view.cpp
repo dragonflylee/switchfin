@@ -4,10 +4,13 @@
 #include "view/player_setting.hpp"
 #include "view/video_profile.hpp"
 #include "api/jellyfin.hpp"
+#include "utils/gesture.hpp"
 #include "utils/dialog.hpp"
 #include "utils/config.hpp"
 #include "utils/misc.hpp"
 #include <sstream>
+
+const int VIDEO_SEEK_NODELAY = 0;
 
 using namespace brls::literals;
 
@@ -61,7 +64,7 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
         [this](brls::View* view) -> bool {
             CHECK_OSD(true);
             this->seekingRange -= MPVCore::SEEKING_STEP;
-            this->requestSeeking();
+            this->requestSeeking(seekingRange);
             return true;
         },
         false, true);
@@ -71,7 +74,7 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
         [this](brls::View* view) -> bool {
             CHECK_OSD(true);
             this->seekingRange += MPVCore::SEEKING_STEP;
-            this->requestSeeking();
+            this->requestSeeking(seekingRange);
             return true;
         },
         false, true);
@@ -208,6 +211,29 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
             }
         }));
 
+    /// 滑动调整进度
+    this->addGestureRecognizer(new OsdGestureRecognizer(
+        [this](brls::PanGestureStatus state, brls::Sound* soundToPlay) {
+            if (state.state == brls::GestureState::FAILED || state.state == brls::GestureState::UNSURE ||
+                state.state == brls::GestureState::INTERRUPTED) {
+                return;
+            }
+            if (state.delta.x != 0) {
+                this->seekingRange -= state.delta.x;
+                this->requestSeeking(seekingRange);
+            }
+        },
+        brls::PanAxis::HORIZONTAL));
+
+    /// 滑动调整音量
+    this->addGestureRecognizer(new brls::ScrollGestureRecognizer(
+        [this](brls::PanGestureStatus state, brls::Sound* soundToPlay) {
+            if (state.state == brls::GestureState::FAILED || state.state == brls::GestureState::UNSURE ||
+                state.state == brls::GestureState::INTERRUPTED)
+                return;
+        },
+        brls::PanAxis::VERTICAL));
+
     /// 播放/暂停 按钮
     this->btnToggle->registerClickAction([](...) {
         MPVCore::instance().togglePlay();
@@ -302,7 +328,7 @@ VideoView::~VideoView() {
 
 void VideoView::setTitie(const std::string& title) { this->titleLabel->setText(title); }
 
-void VideoView::requestSeeking() {
+void VideoView::requestSeeking(int seek, int delay) {
     auto& mpv = MPVCore::instance();
     if (mpv.duration <= 0) {
         this->seekingRange = 0;
@@ -319,17 +345,31 @@ void VideoView::requestSeeking() {
     }
 
     showOSD(false);
+    if (osdInfoBox->getVisibility() != brls::Visibility::VISIBLE) {
+        osdInfoBox->setVisibility(brls::Visibility::VISIBLE);
+        infoIcon->setImageFromSVGRes("icon/ico-seeking.svg");
+    }
+    infoLabel->setText(fmt::format("{:+d} s", seek));
     osdSlider->setProgress(progress);
     leftStatusLabel->setText(misc::sec2Time(mpv.duration * progress));
 
     // 延迟触发跳转进度
     brls::cancelDelay(this->seekingIter);
-    ASYNC_RETAIN
-    this->seekingIter = brls::delay(400, [ASYNC_TOKEN]() {
-        ASYNC_RELEASE
+    if (delay == VIDEO_SEEK_NODELAY) {
+        osdInfoBox->setVisibility(brls::Visibility::GONE);
+        if (seek == 0) return;
         MPVCore::instance().seek(this->seekingRange, "relative");
         this->seekingRange = 0;
-    });
+    } else if (delay > 0) {
+        ASYNC_RETAIN
+        this->seekingIter = brls::delay(delay, [ASYNC_TOKEN, seek]() {
+            ASYNC_RELEASE
+            osdInfoBox->setVisibility(brls::Visibility::GONE);
+            if (seek == 0) return;
+            MPVCore::instance().seek(this->seekingRange, "relative");
+            this->seekingRange = 0;
+        });
+    }
 }
 
 void VideoView::showSetting() {
@@ -407,6 +447,9 @@ void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::S
 
     // cache info
     osdCenterBox->frame(ctx);
+
+    // center hint
+    osdInfoBox->frame(ctx);
 
     // draw video profile
     if (profile->getVisibility() == brls::Visibility::VISIBLE) {

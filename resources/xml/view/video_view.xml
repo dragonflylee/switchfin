@@ -15,7 +15,7 @@
         focusable="true"
         focusUp="video/osd/setting/icon"
         focusDown="video/osd/icon/box"
-        focusRight="video/osd/lock/box"
+        focusRight="video/osd/backward/icon"
         focusLeft="video/osd/lock/box"
         cornerRadius="8"
         positionTop="45%"
@@ -38,6 +38,31 @@
         backgroundStartColor="#000000CC"
         backgroundEndColor="#00000000"
         background="vertical_linear">
+
+        <brls:Box
+            id="video/close/box"
+            hideClickAnimation="true"
+            marginLeft="10"
+            marginRight="10"
+            alignItems="center"
+            justifyContent="center"
+            height="60">
+            <brls:Label
+                id="video/close"
+                marginTop="7"
+                marginLeft="1"
+                focusable="true"
+                focusUp="video/close"
+                focusRight="video/osd/backward/icon"
+                focusDown="video/osd/bottom/box"
+                focusLeft="video/close"
+                horizontalAlign="center"
+                verticalAlign="center"
+                lineHeight="1"
+                fontSize="32"
+                text="" />
+        </brls:Box>
+
         <brls:Label
             id="video/osd/title"
             height="100%"
@@ -62,7 +87,7 @@
                     id="video/osd/backward/icon"
                     focusable="true"
                     focusUp="video/osd/backward/icon"
-                    focusLeft="video/osd/backward/icon"
+                    focusLeft="video/close"
                     focusRight="video/osd/forward/icon"
                     focusDown="video/osd/bottom/box"
                     hideHighlightBackground="true"
@@ -157,6 +182,30 @@
                     id="video/speed/hint/label" />
             </brls:Box>
         </brls:Box>
+    </brls:Box>
+
+    <brls:Box
+        axis="column"
+        alignItems="center"
+        justifyContent="center"
+        visibility="gone"
+        cornerRadius="4"
+        width="100"
+        height="100"
+        backgroundColor="#303030A0"
+        id="video/osd/info/box">
+        <SVGImage
+            id="video/osd/info/icon"
+            height="30"
+            width="30"
+            marginBottom="20" />
+        <brls:Label
+            id="video/osd/info/label"
+            textColor="#FFFFFF"
+            fontSize="24"
+            height="16"
+            horizontalAlign="center"
+            verticalAlign="center" />
     </brls:Box>
 
     <brls:Box
@@ -325,28 +374,6 @@
                             text="@i18n/main/player/speed"
                             hideHighlightBackground="true"
                             highlightCornerRadius="8" />
-                    </brls:Box>
-                    <brls:Box
-                        id="video/close/box"
-                        hideClickAnimation="true"
-                        marginLeft="10"
-                        marginRight="10"
-                        alignItems="center"
-                        justifyContent="center"
-                        height="60">
-                        <brls:Label
-                            id="video/close"
-                            marginTop="7"
-                            marginLeft="1"
-                            focusable="true"
-                            focusUp="video/osd/lock/box"
-                            focusDown="video/close"
-                            focusRight="video/close"
-                            horizontalAlign="center"
-                            verticalAlign="center"
-                            lineHeight="1"
-                            fontSize="32"
-                            text="" />
                     </brls:Box>
                 </brls:Box>
             </brls:Box>
