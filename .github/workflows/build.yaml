@@ -186,7 +186,7 @@ jobs:
     - name: Install deps
       run: |
         brew install create-dmg dylibbundler
-        curl -sSL https://github.com/dragonflylee/switchfin/releases/download/macos-dylib/dylib-${{ matrix.tag }}.tar.gz | tar zxf - -C ${{ github.workspace }}
+        curl -sSL https://github.com/dragonflylee/switchfin/releases/download/macos-dylib/dylib-0.36.0-${{ matrix.tag }}.tar.gz | tar zxf - -C ${{ github.workspace }}
     - name: Build App
       env:
         DYLD_LIBRARY_PATH: ${{ github.workspace }}/lib

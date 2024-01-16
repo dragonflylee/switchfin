@@ -6,6 +6,7 @@
 
 * add logout from setting tab
 * player view add touch gesture
+* upgrade ffmpeg 6.1.1
 
 ## [0.4.2]
 

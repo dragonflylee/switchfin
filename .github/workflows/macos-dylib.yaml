@@ -20,6 +20,7 @@ jobs:
           meson: --cross-file $GITHUB_WORKSPACE/scripts/macos/macos_arm64.txt
           autoconf: --host=x86_64-apple-darwin --target=arm64-apple-darwin
           b2: architecture=arm address-model=64 -s NO_LZMA=1 -s NO_ZSTD=1 abi=aapcs
+          ffmpeg: --disable-asm
         - tag: intel
           arch: x86_64
           target: "10.11"
@@ -59,6 +60,19 @@ jobs:
         cmake -B build -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
           -DBUILD_SHARED_LIBS=ON
+        cmake --build build
+        cmake --install build
+    - name: Build bzip2
+      run: |
+        curl -sSL https://gitlab.com/bzip2/bzip2/-/archive/master/bzip2-master.tar.gz | tar zxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/bzip2-master
+        cmake -B build -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
+          -DENABLE_LIB_ONLY=ON \
+          -DENABLE_SHARED_LIB=ON \
+          -DENABLE_STATIC_LIB=OFF \
+          -DENABLE_TESTS=OFF \
+          -DENABLE_DOCS=OFF
         cmake --build build
         cmake --install build
     - name: Build mbedtls
@@ -147,8 +161,15 @@ jobs:
       run: |
         curl -sSL https://github.com/fribidi/fribidi/releases/download/v1.0.13/fribidi-1.0.13.tar.xz | tar Jxf - -C ${{ runner.temp }}
         cd ${{ runner.temp }}/fribidi-1.0.13
-        ./configure --enable-shared --disable-static --prefix=$CMAKE_PREFIX_PATH ${{ matrix.autoconf }}
-        make install -j$(sysctl -n hw.ncpu)
+        meson setup build ${{ matrix.meson }} \
+          --prefix=$CMAKE_PREFIX_PATH \
+          --buildtype=release \
+          --default-library=shared \
+          -Ddocs=false \
+          -Dbin=false \
+          -Dtests=false
+        meson compile -C build
+        meson install -C build
     - name: Build libunibreak
       run: |
         curl -sSL https://github.com/adah1972/libunibreak/releases/download/libunibreak_5_1/libunibreak-5.1.tar.gz | tar zxf - -C ${{ runner.temp }}
@@ -201,7 +222,7 @@ jobs:
         cd ${{ runner.temp }}/ffmpeg-6.1.1
         ./configure --enable-shared --disable-static --enable-pthreads --prefix=$CMAKE_PREFIX_PATH \
           --cc=clang --enable-cross-compile --target-os=darwin --arch=${{ matrix.arch }} \
-          --disable-autodetect --disable-encoders --enable-pic --disable-asm \
+          --disable-autodetect --disable-encoders --enable-pic ${{ matrix.ffmpeg }} \
           --disable-programs --disable-doc --disable-debug --disable-avdevice --disable-muxers \
           --disable-libjack --disable-indev=jack --disable-postproc --enable-demuxer=hls \
           --enable-libdav1d --enable-libass --enable-libfreetype --enable-zlib --enable-bzlib \
@@ -234,7 +255,7 @@ jobs:
         meson install -C build
     - name: Build packages
       run: |
-        tar zcf dylib-${{ matrix.tag }}.tar.gz \
+        tar zcf dylib-0.36.0-${{ matrix.tag }}.tar.gz \
           include lib/pkgconfig lib/cmake lib/*.dylib 
     - name: Upload packages
       uses: softprops/action-gh-release@v1
