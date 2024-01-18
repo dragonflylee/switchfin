@@ -54,10 +54,13 @@ public:
 
         if (item.UserData.Played) {
             cell->badgeTopRight->setImageFromSVGRes("icon/ico-checkmark.svg");
+            cell->badgeTopRight->setVisibility(brls::Visibility::VISIBLE);
         } else if (item.UserData.PlaybackPositionTicks) {
             cell->rectProgress->setWidthPercentage(item.UserData.PlayedPercentage);
             cell->rectProgress->getParent()->setVisibility(brls::Visibility::VISIBLE);
+            cell->badgeTopRight->setVisibility(brls::Visibility::GONE);
         } else {
+            cell->badgeTopRight->setVisibility(brls::Visibility::GONE);
             cell->rectProgress->getParent()->setVisibility(brls::Visibility::GONE);
         }
 

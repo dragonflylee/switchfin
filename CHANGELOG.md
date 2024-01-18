@@ -8,6 +8,10 @@
 * player view add touch gesture
 * upgrade ffmpeg 6.1.1
 
+### Fixed
+
+* series tab: viewd badge
+
 ## [0.4.2]
 
 ### Added
