@@ -48,7 +48,13 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
-    - uses: actions/download-artifact@v3
+    - name: Download Assets
+      uses: actions/download-artifact@v3
+    - name: Package Assets
+      run: |
+        for p in switchfin-windows-*; do
+          [[ -d $p ]] && 7z a -mx=9 $p.7z ./$p/*
+        done
     - name: Release and Upload Assets
       uses: softprops/action-gh-release@v1
       with:
@@ -57,9 +63,9 @@ jobs:
         generate_release_notes: true
         draft: true
         files: |
-          switchfin-windows-*/*.7z
+          switchfin-windows-*.7z
           switchfin-macos-*/*.dmg
-          switchfin-switch-opengl-*/*.nro
+          switchfin-switch-deko3d-*/*.nro
         body: |
           ![download](https://img.shields.io/github/downloads/${{ github.repository }}/${{ github.ref_name }}/total?label=Downloads)
 
@@ -225,13 +231,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - { arch: x64, driver: opengl, msystem: MINGW64 }
         - { arch: x64, driver: d3d11, msystem: MINGW64, cmake: "-DUSE_D3D11=ON" }
         - { arch: x86, driver: opengl, msystem: MINGW32, cmake: "-DUSE_GL2=ON" }
-        exclude:
-        - { arch: x86, driver: d3d11 }
         arch: [ x64, x86 ]
-        driver: [ opengl, d3d11 ]
     runs-on: windows-latest
     env:
       MSYSTEM: ${{ matrix.msystem }}
@@ -266,16 +268,19 @@ jobs:
         cmake --build build_mingw
 
         strip build_mingw/Switchfin.exe
-        7z a -mx=9 Switchfin-windows-${{ matrix.arch }}-${{ matrix.driver }}.7z \
-            ./build_mingw/Switchfin.exe ${MINGW_PREFIX}/bin/libmpv-2.dll README.md
+        mv build_mingw/Switchfin.exe .
+        cp ${MINGW_PREFIX}/bin/libmpv-2.dll .
     - name: Set outputs
       id: vars
-      run: echo "sha_short=${{ matrix.arch }}-${{ matrix.driver }}-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      run: echo "sha_short=${{ matrix.arch }}-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
       uses: actions/upload-artifact@v3
       with:
         name: switchfin-windows-${{ steps.vars.outputs.sha_short }}
-        path: Switchfin-*.7z
+        path: |
+          Switchfin.exe
+          libmpv-2.dll
+          README.md
 
   build-msvc:
     runs-on: windows-latest

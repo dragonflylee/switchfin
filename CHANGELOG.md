@@ -1,6 +1,6 @@
 # Changelog
 
-## [next]
+## [0.4.2]
 
 ### Added
 
@@ -11,6 +11,7 @@
 ### Fixed
 
 * series tab: viewd badge
+* device name under macOS
 
 ## [0.4.2]
 
