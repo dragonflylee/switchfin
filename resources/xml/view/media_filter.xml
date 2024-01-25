@@ -5,7 +5,7 @@
     backgroundColor="@theme/brls/backdrop">
 
     <brls:Box
-        id="filters/cancel"
+        id="filter/cancel"
         height="100%"
         hideClickAnimation="true"
         grow="1" />

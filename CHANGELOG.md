@@ -5,6 +5,7 @@
 ### Fixed
 
 * os lock touch gesture
+* media filter of collection tab
 
 ## [0.4.2]
 
