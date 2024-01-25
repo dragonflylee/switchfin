@@ -27,6 +27,7 @@ build() {
       --prefix=${MINGW_PREFIX} \
       --default-library=static \
       --buildtype=release \
+      -Ddebug=false \
       -Denable_tests=false \
       -Denable_docs=false \
       -Denable_tools=false \

@@ -30,6 +30,7 @@ build() {
       --prefix="${MINGW_PREFIX}" \
       --buildtype=release \
       --default-library=static \
+      -Ddebug=false \
       -Dicu=disabled \
       -Dglib=disabled \
       -Dcairo=disabled \

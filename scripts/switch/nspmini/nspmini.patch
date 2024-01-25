@@ -1,3 +1,94 @@
+diff --git a/include/nspmini/install/hfs0.hpp b/include/nspmini/install/hfs0.hpp
+index d886d27..9c02325 100644
+--- a/include/nspmini/install/hfs0.hpp
++++ b/include/nspmini/install/hfs0.hpp
+@@ -14,7 +14,7 @@ namespace tin::install
+         u32 hashedSize;
+         u64 padding;
+         unsigned char hash[0x20];
+-    } PACKED;
++    } NX_PACKED;
+ 
+     static_assert(sizeof(HFS0FileEntry) == 0x40, "HFS0FileEntry must be 0x18");
+ 
+@@ -24,7 +24,7 @@ namespace tin::install
+         u32 numFiles;
+         u32 stringTableSize;
+         u32 reserved;
+-    } PACKED;
++    } NX_PACKED;
+ 
+     static_assert(sizeof(HFS0BaseHeader) == 0x10, "HFS0BaseHeader must be 0x10");
+ 
+diff --git a/include/nspmini/install/nca.hpp b/include/nspmini/install/nca.hpp
+index 7a8674d..e8768a0 100644
+--- a/include/nspmini/install/nca.hpp
++++ b/include/nspmini/install/nca.hpp
+@@ -29,7 +29,7 @@ namespace tin::install
+             };
+         };
+         u8 _0x148[0xB8]; /* Padding. */
+-    } PACKED;
++    } NX_PACKED;
+ 
+     static_assert(sizeof(NcaFsHeader) == 0x200, "NcaFsHeader must be 0x200");
+ 
+@@ -38,7 +38,7 @@ namespace tin::install
+         u32 media_start_offset;
+         u32 media_end_offset;
+         u8 _0x8[0x8]; /* Padding. */
+-    } PACKED;
++    } NX_PACKED;
+ 
+     static_assert(sizeof(NcaSectionEntry) == 0x10, "NcaSectionEntry must be 0x10");
+ 
+@@ -71,7 +71,7 @@ namespace tin::install
+         u8 m_keys[4 * 0x10]; /* Encrypted key area. */
+         u8 _0x340[0xC0]; /* Padding. */
+         NcaFsHeader fs_headers[4]; /* FS section headers. */
+-    } PACKED;
++    } NX_PACKED;
+ 
+     static_assert(sizeof(NcaHeader) == 0xc00, "NcaHeader must be 0xc00");
+ }
+\ No newline at end of file
+diff --git a/include/nspmini/install/pfs0.hpp b/include/nspmini/install/pfs0.hpp
+index ed0c8b1..dec76e5 100644
+--- a/include/nspmini/install/pfs0.hpp
++++ b/include/nspmini/install/pfs0.hpp
+@@ -32,7 +32,7 @@ namespace tin::install
+         u64 fileSize;
+         u32 stringTableOffset;
+         u32 padding;
+-    } PACKED;
++    } NX_PACKED;
+ 
+     static_assert(sizeof(PFS0FileEntry) == 0x18, "PFS0FileEntry must be 0x18");
+ 
+@@ -42,7 +42,7 @@ namespace tin::install
+         u32 numFiles;
+         u32 stringTableSize;
+         u32 reserved;
+-    } PACKED;
++    } NX_PACKED;
+ 
+     static_assert(sizeof(PFS0BaseHeader) == 0x10, "PFS0BaseHeader must be 0x10");
+-}
+\ No newline at end of file
++}
+diff --git a/include/nspmini/nx/content_meta.hpp b/include/nspmini/nx/content_meta.hpp
+index ef9f76c..dd32fe3 100644
+--- a/include/nspmini/nx/content_meta.hpp
++++ b/include/nspmini/nx/content_meta.hpp
+@@ -34,7 +34,7 @@ namespace nx::ncm
+     {
+         u8 hash[0x20];
+         NcmContentInfo content_info;
+-    } PACKED;
++    } NX_PACKED;
+ 
+     struct PackagedContentMetaHeader
+     {
 diff --git a/source/nspmini/install/nsp.cpp b/source/nspmini/install/nsp.cpp
 index a5fa00a..ec5d9b4 100644
 --- a/source/nspmini/install/nsp.cpp
@@ -25,3 +116,25 @@ index 23676e6..b0e7cd4 100644
  
          if (rc == 0x236e02)
              errorMsg = "File " + path + " is unreadable! You may have a bad dump, fs_mitm may need to be removed, or your firmware version may be too low to decrypt it.";
+diff --git a/source/nspmini/nx/nca_writer.cpp b/source/nspmini/nx/nca_writer.cpp
+index 5025695..08e34a5 100644
+--- a/source/nspmini/nx/nca_writer.cpp
++++ b/source/nspmini/nx/nca_writer.cpp
+@@ -75,7 +75,7 @@ public:
+           u64 padding2;
+           u8 cryptoKey[0x10];
+           u8 cryptoCounter[0x10];
+-     } PACKED;
++     } NX_PACKED;
+ 
+      class SectionContext : public Section
+      {
+@@ -137,7 +137,7 @@ protected:
+      u64 m_magic;
+      u64 m_sectionCount;
+      Section m_sections[1];
+-} PACKED;
++} NX_PACKED;
+ 
+ class NczBodyWriter : public NcaBodyWriter
+ {

@@ -1,0 +1,31 @@
+name: switchroot-ubuntu
+
+on:
+  push:
+    tags: [ switch-portlibs ]
+    paths: [ scripts/l4t/* ]
+
+permissions:
+  contents: write
+
+jobs:
+  build-deps:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        sparse-checkout: scripts/l4t
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+    - name: Build deps
+      run: docker run --rm -u $(id -u):$(id -g) -v $PWD:/opt -w /opt dragonflylee/ubuntu:l4t bash scripts/l4t/build_deps.sh
+    - name: Package deps
+      run: tar zcf switchroot-ubuntu-nvv4l2.tar.gz switchfin/include switchfin/lib 
+    - name: Upload deps
+      uses: softprops/action-gh-release@v1
+      with:
+        name: switch-portlibs
+        tag_name: switch-portlibs
+        prerelease: true
+        files: switchroot-ubuntu-*.tar.gz

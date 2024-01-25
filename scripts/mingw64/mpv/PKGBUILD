@@ -49,6 +49,7 @@ build() {
       -Dlibmpv=true \
       -Dcplayer=false \
       -Dtests=false \
+      -Ddebug=false \
       -Dgl-win32=disabled \
       -Degl-angle-lib=disabled \
       -Dd3d11=enabled \

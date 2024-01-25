@@ -53,6 +53,7 @@ set(VERSION_MINOR "4")
 set(VERSION_ALTER "3")
 set(PROJECT_TITLEID "010ff000ffff0003")
 set(PROJECT_AUTHOR "dragonflylee")
+set(PACKAGE_NAME "switchfin")
 set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon.jpg)
 set(PROJECT_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/resources)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
@@ -94,7 +95,7 @@ if (USE_SYSTEM_CURL)
 else ()
     include(FetchContent)
     FetchContent_Declare(curl
-        URL https://github.com/curl/curl/releases/download/curl-8_5_0/curl-8.5.0.tar.xz
+        URL https://curl.se/download/curl-8.5.0.tar.xz
         DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     )
     if (WIN32)
@@ -203,9 +204,12 @@ if (PLATFORM_DESKTOP)
             WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/${PROJECT_NAME}.app/Contents"
         )
     elseif (CMAKE_INSTALL)
-        install(TARGETS ${PROJECT_NAME})
-        install(DIRECTORY ${PROJECT_RESOURCES} DESTINATION ${BRLS_RESOURCES_DIR}
-            FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+        linux_install(
+            "${PROJECT_RESOURCES}" "${BRLS_RESOURCES_DIR}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/${PACKAGE_NAME}.svg"
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/icons" ""
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/${PACKAGE_NAME}.appdata.xml"
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/${PACKAGE_NAME}.desktop"
         )
     elseif (NOT USE_LIBROMFS)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD

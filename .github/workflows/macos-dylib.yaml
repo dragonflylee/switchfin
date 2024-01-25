@@ -14,18 +14,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - tag: silicon
+        - tag: Silicon
           arch: arm64
           target: "11.0"
           meson: --cross-file $GITHUB_WORKSPACE/scripts/macos/macos_arm64.txt
           autoconf: --host=x86_64-apple-darwin --target=arm64-apple-darwin
           b2: architecture=arm address-model=64 -s NO_LZMA=1 -s NO_ZSTD=1 abi=aapcs
           ffmpeg: --disable-asm
-        - tag: intel
+        - tag: Intel
           arch: x86_64
           target: "10.11"
           b2: architecture=x86
-        tag: [ silicon, intel ]
+        tag: [ Silicon, Intel ]
     runs-on: macos-latest
     env:
       CFLAGS: -arch ${{ matrix.arch }} -mmacosx-version-min=${{ matrix.target }}
@@ -33,6 +33,7 @@ jobs:
       CXXFLAGS: -arch ${{ matrix.arch }} -mmacosx-version-min=${{ matrix.target }}
       CMAKE_OSX_ARCHITECTURES: ${{ matrix.arch }}
       MACOSX_DEPLOYMENT_TARGET: ${{ matrix.target }}
+      CMAKE_BUILD_TYPE: Release
       CMAKE_PREFIX_PATH: ${{ github.workspace }}
       PKG_CONFIG_PATH: ${{ github.workspace }}/lib/pkgconfig
       LIBRARY_PATH: ${{ github.workspace }}/lib
@@ -55,18 +56,18 @@ jobs:
         ./b2 install target-os=darwin ${{ matrix.b2 }}
     - name: Build zlib
       run: |
-        curl -sSL https://zlib.net/zlib-1.3.tar.gz | tar zxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/zlib-1.3
-        cmake -B build -DCMAKE_BUILD_TYPE=Release \
+        curl -sSL https://zlib.net/zlib-1.3.1.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/zlib-1.3.1
+        cmake -B build -G Ninja \
           -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
           -DBUILD_SHARED_LIBS=ON
         cmake --build build
-        cmake --install build
+        cmake --install build --strip
     - name: Build bzip2
       run: |
         curl -sSL https://gitlab.com/bzip2/bzip2/-/archive/master/bzip2-master.tar.gz | tar zxf - -C ${{ runner.temp }}
         cd ${{ runner.temp }}/bzip2-master
-        cmake -B build -DCMAKE_BUILD_TYPE=Release \
+        cmake -B build -G Ninja \
           -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
           -DENABLE_LIB_ONLY=ON \
           -DENABLE_SHARED_LIB=ON \
@@ -74,12 +75,12 @@ jobs:
           -DENABLE_TESTS=OFF \
           -DENABLE_DOCS=OFF
         cmake --build build
-        cmake --install build
+        cmake --install build --strip
     - name: Build mbedtls
       run: |
         curl -sSL https://github.com/Mbed-TLS/mbedtls/archive/v3.5.1.tar.gz | tar zxf - -C ${{ runner.temp }}
         cd ${{ runner.temp }}/mbedtls-3.5.1
-        cmake -B build -DCMAKE_BUILD_TYPE=Release \
+        cmake -B build -G Ninja \
           -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
           -DUSE_STATIC_MBEDTLS_LIBRARY=OFF \
           -DUSE_SHARED_MBEDTLS_LIBRARY=ON \
@@ -87,12 +88,12 @@ jobs:
           -DENABLE_TESTING=OFF \
           -DGEN_FILES=OFF
         cmake --build build
-        cmake --install build
+        cmake --install build --strip
     - name: Build curl
       run: |
         curl -sSL https://curl.se/download/curl-8.5.0.tar.xz | tar Jxf - -C ${{ runner.temp }}
         cd ${{ runner.temp }}/curl-8.5.0
-        cmake -B build -DCMAKE_BUILD_TYPE=Release \
+        cmake -B build -G Ninja \
           -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
           -DCMAKE_INSTALL_NAME_DIR=$LIBRARY_PATH \
           -DBUILD_SHARED_LIBS=ON \
@@ -105,12 +106,12 @@ jobs:
           -DCURL_USE_LIBSSH2=OFF \
           -DCURL_USE_LIBPSL=OFF
         cmake --build build
-        cmake --install build
+        cmake --install build --strip
     - name: Build glfw
       run: |
         curl -sSL https://github.com/dragonflylee/glfw/archive/switchfin.tar.gz | tar zxf - -C ${{ runner.temp }}
         cd ${{ runner.temp }}/glfw-switchfin
-        cmake -B build -DCMAKE_BUILD_TYPE=Release \
+        cmake -B build -G Ninja \
           -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
           -DCMAKE_INSTALL_NAME_DIR=$LIBRARY_PATH \
           -DBUILD_SHARED_LIBS=ON \
@@ -118,28 +119,28 @@ jobs:
           -DGLFW_BUILD_TESTS=OFF \
           -DGLFW_BUILD_DOCS=OFF
         cmake --build build
-        cmake --install build  
+        cmake --install build --strip
     - name: Build png
       run: |
         curl -sSL https://downloads.sourceforge.net/project/libpng/libpng16/1.6.40/libpng-1.6.40.tar.xz | tar Jxf - -C ${{ runner.temp }}
         cd ${{ runner.temp }}/libpng-1.6.40
-        cmake -B build -DCMAKE_BUILD_TYPE=Release \
+        cmake -B build -G Ninja \
           -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
           -DPNG_SHARED=ON -DPNG_STATIC=OFF \
           -DPNG_EXECUTABLES=OFF -DPNG_TESTS=OFF
         cmake --build build
-        cmake --install build
+        cmake --install build --strip
     - name: Build freetype
       run: |
         curl -sSL https://downloads.sourceforge.net/project/freetype/freetype2/2.13.2/freetype-2.13.2.tar.xz | tar Jxf - -C ${{ runner.temp }}
         cd ${{ runner.temp }}/freetype-2.13.2
-        cmake -B build -DCMAKE_BUILD_TYPE=Release \
+        cmake -B build -G Ninja \
           -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
           -DBUILD_SHARED_LIBS=ON \
           -DFT_DISABLE_HARFBUZZ=ON \
           -DFT_DISABLE_BROTLI=ON
         cmake --build build
-        cmake --install build
+        cmake --install build --strip
     - name: Build harfbuzz
       run: |
         curl -sSL https://github.com/harfbuzz/harfbuzz/releases/download/8.3.0/harfbuzz-8.3.0.tar.xz | tar Jxf - -C ${{ runner.temp }}
@@ -148,6 +149,7 @@ jobs:
           --prefix=$CMAKE_PREFIX_PATH \
           --buildtype=release \
           --default-library=shared \
+          -Ddebug=false \
           -Dtests=disabled \
           -Ddocs=disabled \
           -Dicu=disabled \
@@ -165,6 +167,7 @@ jobs:
           --prefix=$CMAKE_PREFIX_PATH \
           --buildtype=release \
           --default-library=shared \
+          -Ddebug=false \
           -Ddocs=false \
           -Dbin=false \
           -Dtests=false
@@ -190,6 +193,7 @@ jobs:
           --prefix=$CMAKE_PREFIX_PATH \
           --buildtype=release \
           --default-library=shared \
+          -Ddebug=false \
           -Denable_tools=false \
           -Denable_examples=false \
           -Denable_tests=false \
@@ -200,7 +204,7 @@ jobs:
       run: |
         curl -sSL https://github.com/webmproject/libwebp/archive/v1.3.2.tar.gz | tar Jxf - -C ${{ runner.temp }}
         cd ${{ runner.temp }}/libwebp-1.3.2
-        cmake -B build -DCMAKE_BUILD_TYPE=Release \
+        cmake -B build -G Ninja \
           -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
           -DCMAKE_INSTALL_NAME_DIR=$LIBRARY_PATH \
           -DBUILD_SHARED_LIBS=ON \
@@ -215,7 +219,7 @@ jobs:
           -DWEBP_BUILD_WEBPMUX=OFF \
           -DWEBP_BUILD_LIBWEBPMUX=OFF
         cmake --build build
-        cmake --install build
+        cmake --install build --strip
     - name: Build ffmpeg
       run: |
         curl -sSL https://ffmpeg.org/releases/ffmpeg-6.1.1.tar.xz | tar Jxf - -C ${{ runner.temp }}
@@ -241,6 +245,7 @@ jobs:
           -Dlibmpv=true \
           -Dcplayer=false \
           -Dtests=false \
+          -Ddebug=false \
           -Dswift-build=disabled \
           -Dmacos-cocoa-cb=disabled \
           -Dmacos-media-player=disabled \
@@ -266,3 +271,4 @@ jobs:
         files: dylib-*.tar.gz
         body: |
           ![download](https://img.shields.io/github/downloads/${{ github.repository }}/macos-dylib/total?label=Downloads)
+

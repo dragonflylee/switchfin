@@ -506,7 +506,7 @@ index 97aec68981..fe65ecb7df 100644
                             },
 diff --git a/libavcodec/nvtegra_decode.c b/libavcodec/nvtegra_decode.c
 new file mode 100644
-index 0000000000..74a9ba83d9
+index 0000000000..08d1623b21
 --- /dev/null
 +++ b/libavcodec/nvtegra_decode.c
 @@ -0,0 +1,414 @@
@@ -774,7 +774,7 @@ index 0000000000..74a9ba83d9
 +    NVTegraFrame          *tf = fdd->hwaccel_priv;
 +    AVNVTegraMap   *input_map = (AVNVTegraMap *)tf->input_map_ref->data;
 +
-+    bool need_bitstream_move;
++    bool need_bitstream_move = false;
 +    uint32_t old_bitstream_off, startcode_size;
 +    uint8_t *mem;
 +    int err;
@@ -5837,10 +5837,10 @@ index e6266494ac..d0fab2a950 100644
  #endif /* AVUTIL_HWCONTEXT_INTERNAL_H */
 diff --git a/libavutil/hwcontext_nvtegra.c b/libavutil/hwcontext_nvtegra.c
 new file mode 100644
-index 0000000000..2eef9a9715
+index 0000000000..9fe2dff720
 --- /dev/null
 +++ b/libavutil/hwcontext_nvtegra.c
-@@ -0,0 +1,1136 @@
+@@ -0,0 +1,1146 @@
 +/*
 + * Copyright (c) 2023 averne <averne381@gmail.com>
 + *
@@ -6078,10 +6078,20 @@ index 0000000000..2eef9a9715
 +
 +    ff_nvtegra_map_destroy(&priv->vic_map);
 +
-+    if (hwctx->has_nvdec)
++    if (hwctx->has_nvdec) {
 +        ff_nvtegra_channel_close(&hwctx->nvdec_channel);
-+    if (hwctx->has_nvjpg)
++#ifdef __SWITCH__
++        mmuRequestFinalize(&hwctx->nvdec_channel.mmu_request);
++#endif
++    }
++
++    if (hwctx->has_nvjpg) {
 +        ff_nvtegra_channel_close(&hwctx->nvjpg_channel);
++#ifdef __SWITCH__
++        mmuRequestFinalize(&hwctx->nvjpg_channel.mmu_request);
++#endif
++    }
++
 +    ff_nvtegra_channel_close(&hwctx->vic_channel);
 +
 +    av_buffer_unref(&priv->driver_state_ref);
@@ -9289,10 +9299,10 @@ index 0000000000..a239476a71
 +#endif /* __UAPI_LINUX_NVMAP_H */
 diff --git a/libavutil/nvtegra.c b/libavutil/nvtegra.c
 new file mode 100644
-index 0000000000..69c00988df
+index 0000000000..d7e43c6054
 --- /dev/null
 +++ b/libavutil/nvtegra.c
-@@ -0,0 +1,878 @@
+@@ -0,0 +1,879 @@
 +/*
 + * Copyright (c) 2023 averne <averne381@gmail.com>
 + *
@@ -9359,6 +9369,7 @@ index 0000000000..69c00988df
 +    nvFenceExit();
 +    nvMapExit();
 +    nvExit();
++    mmuExit();
 +#endif
 +
 +    g_driver_init_mtx  = (AVMutex)AV_MUTEX_INITIALIZER;
@@ -9455,7 +9466,7 @@ index 0000000000..69c00988df
 +
 +    err = init_driver_fds();
 +    if (err < 0) {
-+        // In case memory allocations failed, call the destructor ourselves
++        /* In case memory allocations failed, call the destructor ourselves */
 +        av_buffer_unref(&g_driver_state_ref);
 +        free_driver_fds(NULL, NULL);
 +        goto exit;

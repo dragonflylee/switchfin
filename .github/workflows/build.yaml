@@ -9,6 +9,7 @@ on:
     paths-ignore:
     - scripts/mingw64/*/*
     - scripts/switch/*/*
+    - scripts/l4t/*
     - images/*
     - CHANGELOG.md
     - README.md
@@ -26,11 +27,11 @@ on:
       macos:
         description: build macos dmg
         type: boolean
-      snap:
-        description: build linux snap
-        type: boolean
       flatpak:
         description: build linux flatpak
+        type: boolean
+      l4t:
+        description: build switchroot ubuntu
         type: boolean
       mingw64:
         description: build win64 mingw64
@@ -52,7 +53,7 @@ jobs:
       uses: actions/download-artifact@v3
     - name: Package Assets
       run: |
-        for p in switchfin-windows-*; do
+        for p in Switchfin-windows-*; do
           [[ -d $p ]] && 7z a -mx=9 $p.7z ./$p/*
         done
     - name: Release and Upload Assets
@@ -63,9 +64,9 @@ jobs:
         generate_release_notes: true
         draft: true
         files: |
-          switchfin-windows-*.7z
-          switchfin-macos-*/*.dmg
-          switchfin-switch-deko3d-*/*.nro
+          Switchfin-windows-*.7z
+          Switchfin-macos-*/*.dmg
+          Switchfin-deko3d-*/*.nro
         body: |
           ![download](https://img.shields.io/github/downloads/${{ github.repository }}/${{ github.ref_name }}/total?label=Downloads)
 
@@ -120,28 +121,9 @@ jobs:
     - name: Upload Assets
       uses: actions/upload-artifact@v3
       with:
-        name: switchfin-switch-${{ steps.vars.outputs.sha_short }}
+        name: Switchfin-${{ steps.vars.outputs.sha_short }}
         path: |
           build_switch/Switchfin.nro
-
-  build-snap:
-    runs-on: ubuntu-latest
-    if: ${{ inputs.snap }}
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-    - name: Build snap
-      run: |
-        docker run --rm --tty --network host -v $PWD:/data -w /data/scripts --privileged diddledani/snapcraft:core20
-    - name: Set outputs
-      id: vars
-      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-    - name: Upload Assets
-      uses: actions/upload-artifact@v3
-      with:
-        name: switchfin-snap-${{ steps.vars.outputs.sha_short }}
-        path: scripts/*.snap
 
   build-flatpak:
     runs-on: ubuntu-latest
@@ -164,11 +146,33 @@ jobs:
       run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
-        bundle: switchfin-flatpak-${{ steps.vars.outputs.sha_short }}.flatpak
+        bundle: Switchfin-flatpak-${{ steps.vars.outputs.sha_short }}.flatpak
         manifest-path: scripts/flatpak.yaml
         cache-key: flatpak-builder-${{ hashFiles('scripts/flatpak.yaml') }}
         verbose: true
         arch: ${{ matrix.arch }}
+
+  build-l4t:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.l4t }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+    - name: Download deps
+      run: curl -sSL https://github.com/dragonflylee/switchfin/releases/download/switch-portlibs/switchroot-ubuntu-nvv4l2.tar.gz | tar zxf -
+    - name: Build deb
+      run: docker run --rm -u $(id -u):$(id -g) -v $PWD:/opt -w /opt dragonflylee/ubuntu:l4t bash scripts/l4t/build_l4t.sh
+    - name: Set outputs
+      id: vars
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+    - name: Upload Assets
+      uses: actions/upload-artifact@v3
+      with:
+        name: Switchfin-switchroot-ubuntu-${{ steps.vars.outputs.sha_short }}
+        path: Switchfin-*.deb
 
   build-macos:
     runs-on: macos-latest
@@ -177,14 +181,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - tag: silicon
+        - tag: Silicon
           arch: arm64
           target: "11.0"
-        - tag: intel
+        - tag: Intel
           arch: x86_64
           target: "10.11"
           cmake: -DUSE_BOOST_FILESYSTEM=ON
-        tag: [ silicon, intel ]
+        tag: [ Silicon, Intel ]
     steps:
     - uses: actions/checkout@v3
       with:
@@ -222,7 +226,7 @@ jobs:
     - name: Upload Assets
       uses: actions/upload-artifact@v3
       with:
-        name: switchfin-macos-${{ matrix.tag }}-${{ steps.vars.outputs.sha_short }}
+        name: Switchfin-macos-${{ matrix.tag }}-${{ steps.vars.outputs.sha_short }}
         path: Switchfin-*.dmg
 
   build-mingw:
@@ -276,7 +280,7 @@ jobs:
     - name: Upload Assets
       uses: actions/upload-artifact@v3
       with:
-        name: switchfin-windows-${{ steps.vars.outputs.sha_short }}
+        name: Switchfin-windows-${{ steps.vars.outputs.sha_short }}
         path: |
           Switchfin.exe
           libmpv-2.dll
@@ -319,5 +323,5 @@ jobs:
     - name: Upload Assets
       uses: actions/upload-artifact@v3
       with:
-        name: switchfin-msvc-${{ matrix.arch }}-${{ steps.vars.outputs.sha_short }}
+        name: Switchfin-msvc-${{ matrix.arch }}-${{ steps.vars.outputs.sha_short }}
         path: Switchfin-*.7z
