@@ -1,5 +1,11 @@
 # Changelog
 
+## [next]
+
+### Fixed
+
+* os lock touch gesture
+
 ## [0.4.2]
 
 ### Added

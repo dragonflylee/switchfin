@@ -218,7 +218,9 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
                 state.state == brls::GestureState::INTERRUPTED) {
                 return;
             }
-            if (state.delta.x != 0) {
+            if (isOsdLock) {
+                this->toggleOSD();
+            } else if (state.delta.x != 0) {
                 this->seekingRange -= state.delta.x;
                 this->requestSeeking(seekingRange);
             }
@@ -229,8 +231,12 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
     this->addGestureRecognizer(new brls::ScrollGestureRecognizer(
         [this](brls::PanGestureStatus state, brls::Sound* soundToPlay) {
             if (state.state == brls::GestureState::FAILED || state.state == brls::GestureState::UNSURE ||
-                state.state == brls::GestureState::INTERRUPTED)
+                state.state == brls::GestureState::INTERRUPTED) {
                 return;
+            }
+            if (isOsdLock) {
+                this->toggleOSD();
+            }
         },
         brls::PanAxis::VERTICAL));
 
