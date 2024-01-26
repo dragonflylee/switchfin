@@ -58,6 +58,9 @@ public:
         TEXTURE_CACHE_NUM,
         REQUEST_THREADS,
         REQUEST_TIMEOUT,
+        HTTP_PROXY_STATUS,
+        HTTP_PROXY_HOST,
+        HTTP_PROXY_PORT,
     };
 
     AppConfig() = default;

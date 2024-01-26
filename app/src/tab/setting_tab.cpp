@@ -256,13 +256,13 @@ void SettingTab::onCreate() {
             conf.setItem(AppConfig::APP_THEME, themeOptions.options[selected]);
         });
 
-    inputThreads->init(
-        "main/setting/network/threads"_i18n, ThreadPool::instance().size(),
-        [](long threads) {
+    auto& threadOpt = conf.getOptions(AppConfig::REQUEST_THREADS);
+    inputThreads->init("main/setting/network/threads"_i18n, threadOpt.options,
+        conf.getValueIndex(AppConfig::REQUEST_THREADS, 3), [&threadOpt](int selected) {
+            long threads = threadOpt.values[selected];
             ThreadPool::instance().start(threads);
             AppConfig::instance().setItem(AppConfig::REQUEST_THREADS, threads);
-        },
-        "", 1);
+        });
 
     auto& timeoutOption = conf.getOptions(AppConfig::REQUEST_TIMEOUT);
     selectorTimeout->init("main/setting/network/timeout"_i18n, timeoutOption.options,
@@ -270,6 +270,25 @@ void SettingTab::onCreate() {
             HTTP::TIMEOUT = timeoutOption.values[selected];
             AppConfig::instance().setItem(AppConfig::REQUEST_TIMEOUT, HTTP::TIMEOUT);
         });
+
+    bool proxyStatus = conf.getItem(AppConfig::HTTP_PROXY_STATUS, false);
+    btnProxy->init("main/setting/network/proxy"_i18n, proxyStatus, [this](bool value) {
+        inputProxyHost->setVisibility(value ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
+        inputProxyPort->setVisibility(value ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
+        HTTP::PROXY_STATUS = value;
+        AppConfig::instance().setItem(AppConfig::HTTP_PROXY_STATUS, value);
+    });
+
+    inputProxyHost->init("main/setting/network/host"_i18n, HTTP::PROXY_HOST, [](std::string value) {
+        HTTP::PROXY_HOST = value;
+        AppConfig::instance().setItem(AppConfig::HTTP_PROXY_HOST, value);
+    });
+    inputProxyHost->setVisibility(proxyStatus ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
+    inputProxyPort->init("main/setting/network/port"_i18n, HTTP::PROXY_PORT, [](long value) {
+        HTTP::PROXY_PORT = value;
+        AppConfig::instance().setItem(AppConfig::HTTP_PROXY_PORT, value);
+    });
+    inputProxyPort->setVisibility(proxyStatus ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
 
     btnDebug->init("main/setting/others/debug"_i18n, brls::Application::isDebuggingViewEnabled(), [](bool value) {
         brls::Application::enableDebuggingView(value);

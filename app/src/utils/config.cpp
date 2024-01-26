@@ -50,6 +50,9 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {TEXTURE_CACHE_NUM, {"texture_cache_num"}},
     {REQUEST_THREADS, {"request_threads", {"1", "2", "4", "8"}, {1, 2, 4, 8}}},
     {REQUEST_TIMEOUT, {"request_timeout", {"1000", "2000", "3000", "5000"}, {1000, 2000, 3000, 5000}}},
+    {HTTP_PROXY_STATUS, {"http_proxy_status"}},
+    {HTTP_PROXY_HOST, {"http_proxy_host"}},
+    {HTTP_PROXY_PORT, {"http_proxy_port"}}
 };
 
 static std::string generateDeviceId() {
@@ -89,6 +92,9 @@ void AppConfig::init() {
     }
 
     HTTP::TIMEOUT = this->getItem(REQUEST_TIMEOUT, HTTP::TIMEOUT);
+    HTTP::PROXY_STATUS = this->getItem(HTTP_PROXY_STATUS, HTTP::PROXY_STATUS);
+    HTTP::PROXY_HOST = this->getItem(HTTP_PROXY_HOST, HTTP::PROXY_HOST);
+    HTTP::PROXY_PORT = this->getItem(HTTP_PROXY_PORT, HTTP::PROXY_PORT);
 
     // 初始化是否全屏，必须在创建窗口前设置此值
     VideoContext::FULLSCREEN = this->getItem(FULLSCREEN, false);
@@ -235,7 +241,7 @@ int AppConfig::getValueIndex(const Item item, int default_index) const {
     auto it = settingMap.find(item);
     if (setting.contains(it->second.key)) {
         try {
-            int value = this->setting.at(it->second.key);
+            long value = this->setting.at(it->second.key);
             for (size_t i = 0; i < it->second.values.size(); ++i)
                 if (it->second.values[i] == value) return i;
         } catch (const std::exception& e) {

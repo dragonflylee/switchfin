@@ -2,6 +2,10 @@
 
 ## [next]
 
+### Added
+
+* http proxy option for request
+
 ### Fixed
 
 * os lock touch gesture

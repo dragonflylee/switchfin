@@ -45,8 +45,12 @@ private:
     BRLS_BIND(brls::BooleanCell, btnFullscreen, "setting/fullscreen");
     BRLS_BIND(brls::BooleanCell, btnOverClock, "setting/overclock");
     BRLS_BIND(brls::BooleanCell, btnDebug, "setting/debug");
-    BRLS_BIND(brls::InputNumericCell, inputThreads, "setting/network/threads");
+    BRLS_BIND(brls::SelectorCell, inputThreads, "setting/network/threads");
     BRLS_BIND(brls::SelectorCell, selectorTimeout, "setting/network/timeout");
+    BRLS_BIND(brls::BooleanCell, btnProxy, "setting/network/proxy");
+    BRLS_BIND(brls::InputCell, inputProxyHost, "setting/network/proxy_host");
+    BRLS_BIND(brls::InputNumericCell, inputProxyPort, "setting/network/proxy_port");
+
     BRLS_BIND(SelectorCell, selectorKeymap, "setting/keymap");
     BRLS_BIND(SelectorCell, selectorLang, "setting/language");
     BRLS_BIND(SelectorCell, selectorTheme, "setting/ui/theme");

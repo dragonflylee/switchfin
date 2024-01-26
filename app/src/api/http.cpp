@@ -50,6 +50,11 @@ HTTP::HTTP() : chunk(nullptr) {
     curl_easy_setopt(this->easy, CURLOPT_ACCEPT_ENCODING, "");
     curl_easy_setopt(this->easy, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(this->easy, CURLOPT_VERBOSE, 0L);
+
+    if (PROXY_STATUS) {
+        std::string value = fmt::format("{}:{}", PROXY_HOST, PROXY_PORT);
+        curl_easy_setopt(this->easy, CURLOPT_PROXY, value.c_str());
+    }
 }
 
 HTTP::~HTTP() {

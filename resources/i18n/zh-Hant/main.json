@@ -98,7 +98,10 @@
     "network": {
       "header": "網路設定",
       "threads": "載入圖片執行緒數量",
-      "timeout": "請求逾時時長 (毫秒)"
+      "timeout": "請求逾時時長 (毫秒)",
+      "proxy": "代理伺服器",
+      "host": "位址",
+      "port": "端口"
     },
     "tutorial": {
       "header": "使用教學",

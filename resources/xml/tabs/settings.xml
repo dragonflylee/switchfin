@@ -69,10 +69,18 @@
                 height="auto"
                 axis="column"
                 marginBottom="30px">
-                <brls:InputNumericCell
+                <brls:SelectorCell
                     id="setting/network/threads" />
                 <brls:SelectorCell
                     id="setting/network/timeout" />
+                <brls:BooleanCell
+                    id="setting/network/proxy" />
+                <brls:InputCell
+                    id="setting/network/proxy_host"
+                    visibility="gone" />
+                <brls:InputNumericCell
+                    id="setting/network/proxy_port"
+                    visibility="gone" />
             </brls:Box>
 
             <brls:Header
