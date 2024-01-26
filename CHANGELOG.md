@@ -6,6 +6,7 @@
 
 * os lock touch gesture
 * media filter of collection tab
+* wrong toggle icon after seek when paused
 
 ## [0.4.2]
 

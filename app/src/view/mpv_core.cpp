@@ -406,7 +406,10 @@ void MPVCore::eventMainLoop() {
             // event 21: 开始播放文件（一般是播放或调整进度结束之后触发）
             brls::Logger::info("MPVCore => EVENT_PLAYBACK_RESTART");
             this->video_stopped = false;
-            mpvCoreEvent.fire(MpvEventEnum::MPV_RESUME);
+            if (this->isPaused())
+                mpvCoreEvent.fire(MpvEventEnum::MPV_PAUSE);
+            else
+                mpvCoreEvent.fire(MpvEventEnum::MPV_RESUME);
             break;
         case MPV_EVENT_END_FILE: {
             // event 7: 文件播放结束
