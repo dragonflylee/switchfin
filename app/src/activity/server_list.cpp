@@ -128,10 +128,11 @@ void ServerList::onContentAvailable() {
         view->present(new ServerAdd([this]() { this->onLoad(); }));
         return true;
     });
-    this->registerAction("main/setting/server/connect_new"_i18n, brls::BUTTON_Y, [this](brls::View* view) {
-        view->present(new ServerAdd([this]() { this->onLoad(); }));
-        return true;
-    });
+    this->sidebarServers->registerAction(
+        "main/setting/server/connect_new"_i18n, brls::BUTTON_Y, [this](brls::View* view) {
+            view->present(new ServerAdd([this]() { this->onLoad(); }));
+            return true;
+        });
 
     this->recyclerUsers->registerCell("Cell", [this]() {
         UserCell* cell = new UserCell();

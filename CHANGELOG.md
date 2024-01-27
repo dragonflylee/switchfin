@@ -5,6 +5,7 @@
 ### Added
 
 * http proxy option for request
+* setting entry from server add tab
 
 ### Fixed
 

@@ -73,7 +73,7 @@
     "server": {
       "header": "服务器",
       "detail": "服务器详情",
-      "connect_new": "连接至新服务器",
+      "connect_new": "新服务器",
       "connect_to": "连接至Jellyfin服务器",
       "invalid": "服务器地址无效！",
       "connect": "连接",
