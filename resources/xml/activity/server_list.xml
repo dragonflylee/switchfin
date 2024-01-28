@@ -46,6 +46,7 @@
             wireframe="false"
             paddingLeft="@style/brls/sidebar/padding_left"
             axis="column"
+            id="server/detail"
             grow="1">
 
             <brls:Header

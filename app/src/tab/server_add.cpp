@@ -16,14 +16,15 @@ ServerAdd::ServerAdd(std::function<void(void)> cb) : cbConnected(cb) {
     this->inflateFromXMLRes("xml/tabs/server_add.xml");
     brls::Logger::debug("ServerAdd: create");
 
-    this->registerAction(
-        "main/tabs/setting"_i18n, brls::BUTTON_Y, [this](...) {
-            SettingTab *view = new SettingTab();
+    if (brls::Application::getActivitiesStack().size() <= 1) {
+        this->registerAction("main/tabs/setting"_i18n, brls::BUTTON_Y, [this](...) {
+            SettingTab* view = new SettingTab();
             view->hideStatus();
             view->onCreate();
             this->present(view);
             return true;
         });
+    }
 
     inputUrl->init("URL", "https://", [](std::string) {}, "", "", 255);
 

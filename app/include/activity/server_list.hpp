@@ -24,6 +24,7 @@ public:
 private:
     BRLS_BIND(brls::Button, btnServerAdd, "btn/server/add");
     BRLS_BIND(brls::Box, sidebarServers, "server/sidebar");
+    BRLS_BIND(brls::Box, serverDetail, "server/detail");
     BRLS_BIND(RecyclingGrid, recyclerUsers, "user/recycler");
     BRLS_BIND(brls::DetailCell, serverVersion, "server/version");
     BRLS_BIND(brls::DetailCell, serverOS, "server/os");
