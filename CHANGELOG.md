@@ -1,6 +1,6 @@
 # Changelog
 
-## [next]
+## [0.4.4]
 
 ### Added
 
@@ -11,11 +11,11 @@
 
 ### Fixed
 
-* os lock touch gesture
+* osd lock touch gesture
 * media filter of collection tab
 * wrong toggle icon after seek when paused
 
-## [0.4.2]
+## [0.4.3]
 
 ### Added
 

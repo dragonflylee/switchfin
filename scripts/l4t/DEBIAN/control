@@ -1,7 +1,7 @@
 Section: video
 Priority: optional
 Maintainer: dragonflylee <dragonflylee@outlook.com>
-Version: 0.4.3-1
+Version: 0.4.4-1
 Vcs-Git: https://github.com/dragonflylee/switchfin.git
 Package: switchfin
 Architecture: arm64

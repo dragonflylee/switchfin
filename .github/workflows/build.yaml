@@ -50,7 +50,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     steps:
     - name: Download Assets
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
     - name: Package Assets
       run: |
         for p in Switchfin-windows-*; do
@@ -85,7 +85,7 @@ jobs:
     env:
       BASE_URL: https://github.com/dragonflylee/switchfin/releases/download/switch-portlibs
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: Set workspace permissions
@@ -98,6 +98,7 @@ jobs:
         for pkg in curl-7.71.1-1 harfbuzz-8.3.0-1 libass-0.17.1-1 dav1d-1.3.0-1 ffmpeg-6.1-2 nspmini-main-1; do
           dkp-pacman --noconfirm -U $BASE_URL/switch-${pkg}-any.pkg.tar.zst
         done
+        dkp-pacman --noconfirm -R switch-libmpv
     - name: Update mpv opengl
       if: ${{ matrix.driver == 'opengl' }}
       run: |
@@ -107,8 +108,7 @@ jobs:
     - name: Update mpv deko3d
       if: ${{ matrix.driver == 'deko3d' }}
       run: |
-        dkp-pacman --noconfirm -R switch-libmpv
-        for pkg in deko3d-0.5.0-1 libuam-master-1 switch-libmpv-deko3d-0.36.0-3; do
+        for pkg in libuam-master-1 switch-libmpv-deko3d-0.36.0-3; do
           dkp-pacman --noconfirm -U $BASE_URL/${pkg}-any.pkg.tar.zst
         done
     - name: Build nro
@@ -119,7 +119,7 @@ jobs:
       id: vars
       run: echo "sha_short=${{ matrix.driver }}-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Switchfin-${{ steps.vars.outputs.sha_short }}
         path: |
@@ -136,7 +136,7 @@ jobs:
       image: bilelmoussaoui/flatpak-github-actions:freedesktop-22.08
       options: --privileged
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: Set workspace permissions
@@ -156,7 +156,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ inputs.l4t }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: Set up QEMU
@@ -169,7 +169,7 @@ jobs:
       id: vars
       run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Switchfin-switchroot-ubuntu-${{ steps.vars.outputs.sha_short }}
         path: Switchfin-*.deb
@@ -190,7 +190,7 @@ jobs:
           cmake: -DUSE_BOOST_FILESYSTEM=ON
         tag: [ Silicon, Intel ]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: Install deps
@@ -224,7 +224,7 @@ jobs:
       id: vars
       run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Switchfin-macos-${{ matrix.tag }}-${{ steps.vars.outputs.sha_short }}
         path: Switchfin-*.dmg
@@ -246,7 +246,7 @@ jobs:
       run:
         shell: C:\shells\msys2bash.cmd {0}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: Install dependency
@@ -278,7 +278,7 @@ jobs:
       id: vars
       run: echo "sha_short=${{ matrix.arch }}-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Switchfin-windows-${{ steps.vars.outputs.sha_short }}
         path: |
@@ -298,7 +298,7 @@ jobs:
       shell: powershell
       run: |
         Invoke-Expression (Invoke-Webrequest 'https://xmake.io/psget.text' -UseBasicParsing).Content
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: Cache xmake packages
@@ -321,7 +321,7 @@ jobs:
       shell: bash
       run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Switchfin-msvc-${{ matrix.arch }}-${{ steps.vars.outputs.sha_short }}
         path: Switchfin-*.7z

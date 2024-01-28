@@ -137,7 +137,7 @@ void ServerList::onContentAvailable() {
         });
 
     if (brls::Application::getActivitiesStack().empty()) {
-        this->serverDetail->registerAction("main/tabs/setting"_i18n, brls::BUTTON_Y, [this](brls::View* view) {
+        this->serverDetail->registerAction("main/tabs/setting"_i18n, brls::BUTTON_Y, [](brls::View* view) {
             SettingTab* setting = new SettingTab();
             setting->hideStatus();
             setting->onCreate();

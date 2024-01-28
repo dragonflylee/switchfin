@@ -38,7 +38,7 @@ jobs:
       PKG_CONFIG_PATH: ${{ github.workspace }}/lib/pkgconfig
       LIBRARY_PATH: ${{ github.workspace }}/lib
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         sparse-checkout: scripts/macos
     - name: Remove stray upstream python binary symlinks under /usr/local
