@@ -19,6 +19,7 @@ const std::string apiQuickEnabled = "/QuickConnect/Enabled";
 const std::string apiQuickInitiate = "/QuickConnect/Initiate";
 const std::string apiQuickConnect = "/QuickConnect/Connect?secret={}";
 const std::string apiAuthWithQuickConnect = "/Users/AuthenticateWithQuickConnect";
+const std::string apiUserSetting = "/DisplayPreferences/usersettings?userId={}&client=emby";
 
 const std::string apiBranding = "/Branding/Configuration";
 
@@ -77,6 +78,14 @@ struct SessionInfo {
     TranscodeInfo TranscodingInfo;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(SessionInfo, Id, PlayState, TranscodingInfo);
+
+struct DisplayPreferences {
+    std::string Id;
+    std::map<std::string, std::string> CustomPrefs;
+    std::string SortBy;
+    std::string SortOrder;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(DisplayPreferences, Id, CustomPrefs, SortBy, SortOrder);
 
 struct BrandingConfig {
     std::string LoginDisclaimer;

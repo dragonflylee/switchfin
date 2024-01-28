@@ -22,15 +22,22 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
         this->recyclerSeries->estimatedRowHeight = 240;
     }
 
-    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](brls::View* view) {
+    std::string serverUrl = AppConfig::instance().getUrl();
+    this->prefKey = fmt::format("{}/web/index.html{}", serverUrl, itemType);
+    std::transform(this->prefKey.begin(), this->prefKey.end(), this->prefKey.begin(),
+        [](unsigned char c) { return std::tolower(c); });
+
+    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
         this->startIndex = 0;
         this->doRequest();
         return true;
     });
-    this->registerAction("main/media/sort"_i18n, brls::BUTTON_Y, [this](brls::View* view) {
-        brls::View* filter = new MediaFilter([this]() {
+    this->registerAction("main/media/sort"_i18n, brls::BUTTON_Y, [this](...) {
+        MediaFilter* filter = new MediaFilter();
+        filter->getEvent()->subscribe([this]() {
             this->startIndex = 0;
             this->doRequest();
+            this->saveFilter();
         });
         brls::Application::pushActivity(new brls::Activity(filter));
         brls::sync([filter]() { brls::Application::giveFocus(filter); });
@@ -39,29 +46,76 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
     this->recyclerSeries->registerCell("Cell", VideoCardCell::create);
     this->recyclerSeries->onNextPage([this]() { this->doRequest(); });
 
-    this->doRequest();
+    this->doPreferences();
 }
 
 brls::View* MediaCollection::getDefaultFocus() { return this->recyclerSeries; }
 
-void MediaCollection::doRequest() {
-    static std::string sortBy[] = {
-        "SortName",
-        "DateCreated",
-        "DatePlayed",
-        "PremiereDate",
-        "PlayCount",
-        "CommunityRating",
-        "Random",
-    };
+void MediaCollection::doPreferences() {
+    ASYNC_RETAIN
+    jellyfin::getJSON(
+        [ASYNC_TOKEN](const jellyfin::DisplayPreferences& r) {
+            ASYNC_RELEASE
+            this->prefId = std::move(r.Id);
+            this->customPrefs = std::move(r.CustomPrefs);
 
+            this->loadFilter();
+            this->doRequest();
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            this->recyclerSeries->setError(ex);
+        },
+        jellyfin::apiUserSetting, AppConfig::instance().getUser().id);
+}
+
+struct DisplaySort {
+    std::string SortBy;
+    std::string SortOrder;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(DisplaySort, SortBy, SortOrder);
+
+void MediaCollection::loadFilter() {
+    auto it = this->customPrefs.find(this->prefKey);
+    if (it == this->customPrefs.end()) return;
+
+    try {
+        DisplaySort s = nlohmann::json::parse(it->second);
+        MediaFilter::selectedOrder = s.SortOrder == "Ascending" ? 0 : 1;
+        for (size_t i = 0; i < std::size(MediaFilter::sortList); i++) {
+            if (MediaFilter::sortList[i] == s.SortBy) {
+                MediaFilter::selectedSort = i;
+            }
+        }
+    } catch (...) {
+    }
+}
+
+void MediaCollection::saveFilter() {
+    nlohmann::json value = {
+        {"SortBy", MediaFilter::sortList[MediaFilter::selectedSort]},
+        {"SortOrder", MediaFilter::selectedOrder ? "Descending" : "Ascending"},
+    };
+    this->customPrefs[this->prefKey] = value.dump();
+
+    jellyfin::postJSON(
+        {
+            {"Id", this->prefId},
+            {"CustomPrefs", this->customPrefs},
+            {"Client", "emby"},
+        },
+        [](...) {}, [](const std::string& ex) { brls::Logger::warning("usersettings upload: {}", ex); },
+        jellyfin::apiUserSetting, AppConfig::instance().getUser().id);
+}
+
+void MediaCollection::doRequest() {
     std::vector<std::string> filters;
     if (MediaFilter::selectedPlayed) filters.push_back("IsPlayed");
     if (MediaFilter::selectedUnplayed) filters.push_back("IsUnplayed");
 
     HTTP::Form query = {
         {"parentId", this->itemId},
-        {"sortBy", sortBy[MediaFilter::selectedSort]},
+        {"sortBy", MediaFilter::sortList[MediaFilter::selectedSort]},
         {"sortOrder", MediaFilter::selectedOrder ? "Descending" : "Ascending"},
         {"fields", "PrimaryImageAspectRatio,Chapters,BasicSyncInfo"},
         {"EnableImageTypes", "Primary"},

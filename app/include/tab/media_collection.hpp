@@ -7,6 +7,7 @@
 #include <borealis.hpp>
 
 class RecyclingGrid;
+class MediaFilter;
 
 class MediaCollection : public brls::Box {
 public:
@@ -17,10 +18,19 @@ public:
 private:
     BRLS_BIND(RecyclingGrid, recyclerSeries, "media/series");
 
+    /// @brief 获取显示配置
+    void doPreferences();
     void doRequest();
+    
+    void loadFilter();
+    void saveFilter();
 
     std::string itemId;
     std::string itemType;
     size_t pageSize;
     size_t startIndex;
+
+    std::string prefId;
+    std::string prefKey;
+    std::map<std::string, std::string> customPrefs;
 };

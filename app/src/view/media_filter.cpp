@@ -1,18 +1,19 @@
 #include "view/media_filter.hpp"
+#include "api/jellyfin.hpp"
 
 using namespace brls::literals;
 
-MediaFilter::MediaFilter(std::function<void(void)> cb) {
+MediaFilter::MediaFilter() {
     this->inflateFromXMLRes("xml/view/media_filter.xml");
     brls::Logger::debug("MediaFilter: create");
 
-    this->registerAction("hints/cancel"_i18n, brls::BUTTON_B, [cb](...) {
-        brls::Application::popActivity(brls::TransitionAnimation::NONE, cb);
+    this->registerAction("hints/cancel"_i18n, brls::BUTTON_B, [this](...) {
+        brls::Application::popActivity(brls::TransitionAnimation::NONE, [this]() { this->event.fire(); });
         return true;
     });
 
-     this->cancel->registerClickAction([cb](...) {
-        brls::Application::popActivity(brls::TransitionAnimation::NONE, cb);
+    this->cancel->registerClickAction([this](...) {
+        brls::Application::popActivity(brls::TransitionAnimation::NONE, [this]() { this->event.fire(); });
         return true;
     });
     this->cancel->addGestureRecognizer(new brls::TapGestureRecognizer(this->cancel));
@@ -36,10 +37,9 @@ MediaFilter::MediaFilter(std::function<void(void)> cb) {
         },
         selectedOrder, [](int selected) { selectedOrder = selected; });
 
-    this->filterPlayed->init("main/media/played"_i18n, selectedPlayed,
-        [](bool value) { selectedPlayed = value; });
-    this->filterUnplayed->init( "main/media/unplayed"_i18n, selectedUnplayed,
-        [](bool value) { selectedUnplayed = value; });
+    this->filterPlayed->init("main/media/played"_i18n, selectedPlayed, [](bool value) { selectedPlayed = value; });
+    this->filterUnplayed->init(
+        "main/media/unplayed"_i18n, selectedUnplayed, [](bool value) { selectedUnplayed = value; });
 }
 
 MediaFilter::~MediaFilter() { brls::Logger::debug("MediaFilter: delete"); }
