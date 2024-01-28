@@ -17,11 +17,11 @@
             image="@res/img/video-card-bg.png"
             cornerRadius="4" />
 
-        <brls:Label
+        <SVGImage
             id="video/card/badge/top"
             positionType="absolute"
             positionTop="8"
-            positionRight="0"
+            positionRight="8"
             height="24" />
 
         <brls:Box

@@ -1,6 +1,7 @@
 #include "view/video_source.hpp"
 #include "view/video_card.hpp"
 #include "view/video_view.hpp"
+#include "view/svg_image.hpp"
 #include "tab/media_series.hpp"
 #include "tab/media_collection.hpp"
 #include "tab/music_album.hpp"
@@ -30,14 +31,19 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
                 HTTP::encode_form({{"tag", it->second}, {"maxWidth", "200"}}));
     }
 
-    if (item.UserData.PlaybackPositionTicks) {
+    if (item.UserData.Played) {
+        cell->badgeTopRight->setImageFromSVGRes("icon/ico-checkmark.svg");
+        cell->badgeTopRight->setVisibility(brls::Visibility::VISIBLE);
+    } else if (item.UserData.PlaybackPositionTicks) {
         cell->labelRating->setText(
             fmt::format("{}/{}", misc::sec2Time(item.UserData.PlaybackPositionTicks / jellyfin::PLAYTICKS),
                 misc::sec2Time(item.RunTimeTicks / jellyfin::PLAYTICKS)));
         cell->rectProgress->setWidthPercentage(item.UserData.PlayedPercentage);
         cell->rectProgress->getParent()->setVisibility(brls::Visibility::VISIBLE);
+        cell->badgeTopRight->setVisibility(brls::Visibility::GONE);
     } else {
         cell->rectProgress->getParent()->setVisibility(brls::Visibility::GONE);
+        cell->badgeTopRight->setVisibility(brls::Visibility::GONE);
     }
     return cell;
 }

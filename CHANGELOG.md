@@ -7,6 +7,7 @@
 * http proxy option for request
 * sync filter setting with official media player
 * setting entry from server add tab
+* add more viewd badge
 
 ### Fixed
 
