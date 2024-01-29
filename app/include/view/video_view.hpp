@@ -124,10 +124,10 @@ private:
     // OSD
     bool isOsdShown = false;
     bool isOsdLock = false;
-    time_t osdLastShowTime = 0;
-    time_t hintLastShowTime = 0;
-    time_t profileLastShowTime = 0;
-    const time_t OSD_SHOW_TIME = 5000000;  //默认5秒
+    brls::Time osdLastShowTime = 0;
+    brls::Time hintLastShowTime = 0;
+    brls::Time profileLastShowTime = 0;
+    const brls::Time OSD_SHOW_TIME = 5000000;  //默认5秒
     OSDState osdState = OSDState::HIDDEN;
     VideoProfile* profile;
 

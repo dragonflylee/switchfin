@@ -394,7 +394,8 @@ void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::S
 
     // draw osd
     brls::Time current = brls::getCPUTimeUsec();
-    if (this->osdState == OSDState::ALWAYS_ON || current < this->osdLastShowTime) {
+    if ((this->osdState == OSDState::SHOWN && current < this->osdLastShowTime) ||
+        this->osdState == OSDState::ALWAYS_ON) {
         // 当 osd 锁定时，只显示锁定按钮
         if (!isOsdLock) {
             if (!this->isOsdShown) {
