@@ -24,6 +24,9 @@ public:
 
     brls::View* getDefaultFocus() override;
 
+    void draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style,
+        brls::FrameContext* ctx) override;
+
     void setProgress(float progress);
 
     [[nodiscard]] float getProgress() const { return this->progress; }
@@ -34,6 +37,11 @@ public:
     // Manual dragging is over
     brls::Event<float>& getProgressSetEvent() { return this->progressSetEvent; }
 
+    // Clear all the points
+    void clearClipPoint();
+
+    void setClipPoint(const std::vector<float>& data);
+
 private:
     brls::InputManager* input;
     brls::Rectangle* line;
@@ -43,6 +51,7 @@ private:
 
     brls::Event<float> progressEvent;
     brls::Event<float> progressSetEvent;
+    std::vector<float> clipPointList;
 
     float progress = 1;
 

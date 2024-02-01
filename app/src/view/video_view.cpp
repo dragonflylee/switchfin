@@ -294,12 +294,12 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
 
     /// 章节信息
     this->btnVideoChapter->registerClickAction([this](brls::View* view) {
-        if (this->chapters.empty()) return false;
+        if (this->videoChapters.empty()) return false;
 
         int selectedChapter = -1;
         time_t ticks = MPVCore::instance().video_progress * jellyfin::PLAYTICKS;
         std::vector<std::string> values;
-        for (auto& item : this->chapters) {
+        for (auto& item : this->videoChapters) {
             values.push_back(item.Name);
             if (item.StartPositionTicks <= ticks) selectedChapter++;
         }
@@ -307,7 +307,7 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
         brls::Dropdown* dropdown = new brls::Dropdown(
             "main/player/chapter"_i18n, values,
             [this](int selected) {
-                int64_t offset = this->chapters[selected].StartPositionTicks;
+                int64_t offset = this->videoChapters[selected].StartPositionTicks;
                 MPVCore::instance().seek(offset / jellyfin::PLAYTICKS);
             },
             selectedChapter);
@@ -316,7 +316,7 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
     });
     this->btnVideoChapter->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoChapter));
 
-    this->chapters = item.Chapters;
+    this->setChapters(item.Chapters, item.RunTimeTicks);
     this->playMedia(item.UserData.PlaybackPositionTicks);
     // Report stop when application exit
     this->exitSubscribeID = brls::Application::getExitEvent()->subscribe([this]() { this->reportStop(); });
@@ -540,7 +540,7 @@ bool VideoView::playNext(int off) {
 
     auto item = this->showEpisodes.at(this->itemIndex);
     this->itemId = item.Id;
-    this->chapters = item.Chapters;
+    this->setChapters(item.Chapters, item.RunTimeTicks);
     this->playMedia(0);
     this->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
     this->btnBackward->setVisibility(this->itemIndex > 0 ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
@@ -550,8 +550,6 @@ bool VideoView::playNext(int off) {
 }
 
 void VideoView::playMedia(const time_t seekTicks) {
-    this->btnVideoChapter->setVisibility(this->chapters.empty() ? brls::Visibility::GONE : brls::Visibility::VISIBLE);
-
     ASYNC_RETAIN
     jellyfin::postJSON(
         {
@@ -973,4 +971,20 @@ bool VideoView::popActivity() {
 void VideoView::disableDimming(bool disable) {
     brls::Application::getPlatform()->disableScreenDimming(disable, "Playing video", AppVersion::getPackageName());
     brls::Application::setAutomaticDeactivation(!disable);
+}
+
+void VideoView::setChapters(const std::vector<jellyfin::MediaChapter>& chaps, time_t duration) {
+    if (chaps.empty()) {
+        this->btnVideoChapter->setVisibility(brls::Visibility::GONE);
+        this->osdSlider->clearClipPoint();
+        return;
+    }
+
+    std::vector<float> clips;
+    for (auto& c : chaps) {
+        clips.push_back(float(c.StartPositionTicks) / float(duration));
+    }
+    this->videoChapters = chaps;
+    this->osdSlider->setClipPoint(clips);
+    this->btnVideoChapter->setVisibility(brls::Visibility::VISIBLE);
 }

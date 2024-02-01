@@ -1,5 +1,11 @@
 # Changelog
 
+## [next]
+
+### Added
+
+* add chapter point on progress bar
+
 ## [0.4.4]
 
 ### Added

@@ -113,6 +113,7 @@ private:
     bool toggleVolume(brls::View* view);
     void showSetting();
     void showHint(const std::string& value);
+    void setChapters(const std::vector<jellyfin::MediaChapter>& chaps, time_t duration);
 
     /// @brief 延迟 200ms 触发进度跳转到 seeking_range
     void requestSeeking(int seek, int delay = 400);
@@ -149,7 +150,7 @@ private:
 
     // Playinfo
     std::string itemId;
-    std::vector<jellyfin::MediaChapter> chapters;
+    std::vector<jellyfin::MediaChapter> videoChapters;
     /// @brief DirectPlay, Transcode
     std::string playMethod;
     std::string playSessionId;

@@ -74,11 +74,12 @@ struct MediaItem {
     bool IsFolder = false;
     long ProductionYear = 0;
     float CommunityRating = 0.0f;
+    time_t RunTimeTicks = 0;
     UserDataResult UserData;
     std::vector<MediaChapter> Chapters;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
-    MediaItem, Id, Name, Type, ImageTags, IsFolder, ProductionYear, CommunityRating, UserData, Chapters);
+    MediaItem, Id, Name, Type, ImageTags, IsFolder, ProductionYear, CommunityRating, RunTimeTicks, UserData, Chapters);
 
 struct MediaCollection : public MediaItem {
     std::string CollectionType;
@@ -145,7 +146,6 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlaybackResult, MediaSources, PlaySessionId);
 
 struct MediaEpisode : public MediaSeason {
     int ParentIndexNumber = 0;
-    time_t RunTimeTicks = 0;
     std::string Overview;
     std::string SeriesId;
     std::string SeriesName;
