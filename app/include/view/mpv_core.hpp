@@ -30,6 +30,9 @@ typedef enum MpvEventEnum {
     END_OF_FILE,
     CACHE_SPEED_CHANGE,
     VIDEO_SPEED_CHANGE,
+    VIDEO_VOLUME_CHANGE,
+    VIDEO_MUTE,
+    VIDEO_UNMUTE,
     MPV_FILE_ERROR,
 } MpvEventEnum;
 
@@ -116,6 +119,7 @@ public:
     // core states
     int64_t duration = 0;  // second
     int64_t video_progress = 0;
+    int64_t volume = 0;
     double video_speed = 0;
     double playback_time = 0;
 

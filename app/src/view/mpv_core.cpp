@@ -156,6 +156,7 @@ void MPVCore::init() {
     check_error(mpv_observe_property(mpv, 4, "playback-time", MPV_FORMAT_DOUBLE));
     check_error(mpv_observe_property(mpv, 5, "cache-speed", MPV_FORMAT_INT64));
     check_error(mpv_observe_property(mpv, 9, "speed", MPV_FORMAT_DOUBLE));
+    check_error(mpv_observe_property(mpv, 10, "volume", MPV_FORMAT_INT64));
 
     // init renderer params
 #ifdef MPV_SW_RENDER
@@ -491,6 +492,13 @@ void MPVCore::eventMainLoop() {
                 this->video_speed = *(double *)prop->data;
                 mpvCoreEvent.fire(VIDEO_SPEED_CHANGE);
                 break;
+            case 10:  // volume
+                if (*(int64_t *)prop->data > 0 && this->volume == 0) {
+                    mpvCoreEvent.fire(VIDEO_UNMUTE);
+                } else if (*(int64_t *)prop->data == 0 && this->volume > 0) {
+                    mpvCoreEvent.fire(VIDEO_MUTE);
+                }
+                this->volume = *(int64_t *)prop->data;
             default:
                 brls::Logger::debug("MPVCore => PROPERTY_CHANGE `{}` type {}", prop->name, int(prop->format));
             }

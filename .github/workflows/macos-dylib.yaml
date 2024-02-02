@@ -78,8 +78,8 @@ jobs:
         cmake --install build --strip
     - name: Build mbedtls
       run: |
-        curl -sSL https://github.com/Mbed-TLS/mbedtls/archive/v3.5.1.tar.gz | tar zxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/mbedtls-3.5.1
+        curl -sSL https://github.com/Mbed-TLS/mbedtls/archive/v3.5.2.tar.gz | tar zxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/mbedtls-3.5.2
         cmake -B build -G Ninja \
           -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
           -DUSE_STATIC_MBEDTLS_LIBRARY=OFF \

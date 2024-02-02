@@ -187,6 +187,7 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
                     break;
                 }
                 case ClickState::CLICK_DOUBLE: {
+                    if (isOsdLock) break;
                     brls::cancelDelay(this->tapIter);
                     if (brls::getCPUTimeUsec() - this->pressTime < CHECK_TIME) {
                         // 双击切换播放状态
@@ -228,7 +229,7 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
         brls::PanAxis::HORIZONTAL));
 
     /// 滑动调整音量
-    this->addGestureRecognizer(new brls::ScrollGestureRecognizer(
+    this->addGestureRecognizer(new OsdGestureRecognizer(
         [this](brls::PanGestureStatus state, brls::Sound* soundToPlay) {
             if (state.state == brls::GestureState::FAILED || state.state == brls::GestureState::UNSURE ||
                 state.state == brls::GestureState::INTERRUPTED) {
@@ -236,6 +237,22 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
             }
             if (isOsdLock) {
                 this->toggleOSD();
+            } else if (state.state == brls::GestureState::END) {
+                osdInfoBox->setVisibility(brls::Visibility::GONE);
+            } else if (state.startPosition.x < this->getFrame().getMidX()) {
+                if (state.state == brls::GestureState::START) {
+                    this->volumeInit = MPVCore::instance().volume;
+                } else {
+                    this->volumeInit += state.delta.y;
+                    this->requestVolume(this->volumeInit);
+                }
+            } else {
+                if (state.state == brls::GestureState::START) {
+                    this->brightnessInit = brls::Application::getPlatform()->getBacklightBrightness() * 100.f;
+                } else {
+                    this->brightnessInit += state.delta.y;
+                    this->requestBrightness(this->brightnessInit);
+                }
             }
         },
         brls::PanAxis::VERTICAL));
@@ -376,6 +393,36 @@ void VideoView::requestSeeking(int seek, int delay) {
             this->seekingRange = 0;
         });
     }
+}
+
+void VideoView::requestVolume(int value, int delay) {
+    if (value < 0) value = 0;
+    if (value > 200) value = 200;
+    MPVCore::instance().setInt("volume", value);
+    infoLabel->setText(fmt::format("{:+d} %", value));
+
+    if (delay == 0) return;
+    if (this->volumeIter == 0) {
+        osdInfoBox->setVisibility(brls::Visibility::VISIBLE);
+        infoIcon->setImageFromSVGRes("icon/ico-volume.svg");
+    } else {
+        brls::cancelDelay(this->volumeIter);
+    }
+    ASYNC_RETAIN
+    volumeIter = brls::delay(delay, [ASYNC_TOKEN]() {
+        ASYNC_RELEASE
+        osdInfoBox->setVisibility(brls::Visibility::GONE);
+        this->volumeIter = 0;
+    });
+}
+
+void VideoView::requestBrightness(float value) {
+    if (value < 0) value = 0;
+    if (value > 100.0f) value = 100.0f;
+    brls::Application::getPlatform()->setBacklightBrightness(value / 100.0f);
+    infoLabel->setText(fmt::format("{} %", (int)value));
+    infoIcon->setImageFromSVGRes("icon/ico-sun-fill.svg");
+    osdInfoBox->setVisibility(brls::Visibility::VISIBLE);
 }
 
 void VideoView::showSetting() {
@@ -787,6 +834,12 @@ void VideoView::registerMpvEvent() {
             if (this->osdCenterBox->getVisibility() != brls::Visibility::GONE) {
                 this->centerLabel->setText(MPVCore::instance().getCacheSpeed());
             }
+            break;
+        case MpvEventEnum::VIDEO_MUTE:
+            this->btnVolumeIcon->setImageFromSVGRes("icon/ico-volume-off.svg");
+            break;
+        case MpvEventEnum::VIDEO_UNMUTE:
+            this->btnVolumeIcon->setImageFromSVGRes("icon/ico-volume.svg");
             break;
         case MpvEventEnum::MPV_FILE_ERROR: {
             Dialog::show("main/player/error"_i18n, []() { popActivity(); });

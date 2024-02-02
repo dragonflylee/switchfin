@@ -68,6 +68,7 @@ private:
     BRLS_BIND(brls::Box, osdLockBox, "video/osd/lock/box");
     BRLS_BIND(SVGImage, osdLockIcon, "video/osd/lock/icon");
     BRLS_BIND(SVGImage, btnToggleIcon, "video/osd/toggle/icon");
+    BRLS_BIND(SVGImage, btnVolumeIcon, "video/osd/volume/icon");
     BRLS_BIND(brls::Box, osdTopBox, "video/osd/top/box");
     BRLS_BIND(brls::Box, osdBottomBox, "video/osd/bottom/box");
     // 用于显示缓冲组件
@@ -117,6 +118,8 @@ private:
 
     /// @brief 延迟 200ms 触发进度跳转到 seeking_range
     void requestSeeking(int seek, int delay = 400);
+    void requestVolume(int value, int delay = 400);
+    void requestBrightness(float value);
     void buttonProcessing();
     /// @brief notify videoview closed
     static bool popActivity();
@@ -147,6 +150,9 @@ private:
     ClickState clickState = ClickState::IDLE;
     brls::Time pressTime;
     size_t tapIter = 0;
+    size_t volumeIter = 0;   // 音量UI关闭的延迟函数 handle
+    int volumeInit = 0;
+    float brightnessInit = 0;
 
     // Playinfo
     std::string itemId;

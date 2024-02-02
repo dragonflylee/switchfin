@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
     brls::Theme::getDarkTheme().addColor("color/grey_3", nvgRGBA(160, 160, 160, 160));
     // 分割线颜色
     brls::Theme::getLightTheme().addColor("color/line", nvgRGB(208, 208, 208));
-    brls::Theme::getDarkTheme().addColor("color/line", nvgRGB(208, 208, 208));
+    brls::Theme::getDarkTheme().addColor("color/line", nvgRGB(100, 100, 100));
     // 深浅配色通用的灰色字体颜色
     brls::Theme::getLightTheme().addColor("font/grey", nvgRGB(148, 153, 160));
     brls::Theme::getDarkTheme().addColor("font/grey", nvgRGB(148, 153, 160));

@@ -3,7 +3,7 @@
 _realname=mbedtls
 pkgbase="mingw-w64-${_realname}"
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=3.5.1
+pkgver=3.5.2
 pkgrel=1
 pkgdesc="Portable cryptographic and SSL/TLS library, aka polarssl (mingw-w64)"
 arch=('any')
@@ -27,7 +27,7 @@ source=(
   "https://github.com/Mbed-TLS/mbedtls/archive/v${pkgver}/${_realname}-${pkgver}.tar.gz"
   "0001-support-cpuid-for-win32.patch"
 )
-sha256sums=('2597419f1a4a79dd28e6f5edc5180aff7e83bd85548437e07dcf9f808ceccb76' 'SKIP')
+sha256sums=('35890edf1a2c7a7e29eac3118d43302c3e1173e0df0ebaf5db56126dabe5bb05' 'SKIP')
 
 prepare() {
   cd "${srcdir}/${_realname}-${pkgver}"

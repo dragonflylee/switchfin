@@ -5,6 +5,7 @@
 ### Added
 
 * add chapter point on progress bar
+* touch gesture for volume/brightness
 
 ## [0.4.4]
 

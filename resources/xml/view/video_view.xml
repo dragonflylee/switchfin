@@ -311,6 +311,7 @@
                             focusable="true"
                             focusUp="video/osd/setting"
                             focusDown="video/osd/volume"
+                            id="video/osd/volume/icon"
                             hideHighlightBackground="true"
                             highlightCornerRadius="30"
                             wireframe="false"
