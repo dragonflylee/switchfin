@@ -35,12 +35,13 @@ make install
 cd /tmp/mpv
 ./bootstrap.py
 LIBDIR=$CMAKE_PREFIX_PATH/lib RPATH=$CMAKE_PREFIX_PATH/lib ./waf configure --prefix=$CMAKE_PREFIX_PATH \
-  --disable-libmpv-static --enable-libmpv-shared --disable-debug-build --disable-libavdevice --disable-cplayer
+  --disable-libmpv-static --enable-libmpv-shared --disable-debug-build --disable-libavdevice \
+  --disable-cplayer --disable-libarchive --disable-lua
 ./waf install
 
 cd /tmp/glfw
 cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
-  -DCMAKE_INSTALL_RPATH=$CMAKE_PREFIX_PATH/lib -DBUILD_SHARED_LIBS=ON \
+  -DCMAKE_INSTALL_RPATH=$CMAKE_PREFIX_PATH/lib -DBUILD_SHARED_LIBS=ON -DGLFW_BUILD_WAYLAND=OFF \
   -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_DOCS=OFF
 cmake --build build
 cmake --install build --strip

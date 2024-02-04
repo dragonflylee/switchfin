@@ -5,7 +5,7 @@
 # Contributor: jakibaki <jakibaki live com>
 
 pkgname=switch-ffmpeg
-pkgver=6.1
+pkgver=6.1.1
 pkgrel=2
 pkgdesc='ffmpeg port (for Nintendo Switch homebrew development)'
 arch=('any')
@@ -15,19 +15,19 @@ options=(!strip staticlibs)
 makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
 depends=('switch-zlib' 'switch-bzip2' 'switch-libass' 'switch-libfribidi'
          'switch-freetype' 'switch-mbedtls' 'switch-dav1d')
-source=("ffmpeg-${pkgver}.tar.gz"::"https://github.com/FFmpeg/FFmpeg/archive/release/${pkgver}.tar.gz" "ffmpeg-${pkgver}.patch" "getnameinfo.patch")
-sha256sums=('SKIP' 'SKIP' 'SKIP')
+source=("https://ffmpeg.org/releases/ffmpeg-${pkgver}.tar.xz" "ffmpeg-${pkgver}.patch" "getnameinfo.patch")
+sha256sums=('8684f4b00f94b85461884c3719382f1261f0d9eb3d59640a1f4ac0873616f968' 'SKIP' 'SKIP')
 
 groups=('switch-portlibs')
 
 prepare() {
-  cd FFmpeg-release-$pkgver
+  cd ffmpeg-$pkgver
   patch -Np1 -i "$srcdir/ffmpeg-${pkgver}.patch"
   patch -Np1 -i "$srcdir/getnameinfo.patch"
 }
 
 build() {
-  cd FFmpeg-release-$pkgver
+  cd ffmpeg-$pkgver
 
   source /opt/devkitpro/switchvars.sh
 
@@ -49,7 +49,7 @@ build() {
 }
 
 package() {
-  cd FFmpeg-release-$pkgver
+  cd ffmpeg-$pkgver
 
   source /opt/devkitpro/switchvars.sh
 

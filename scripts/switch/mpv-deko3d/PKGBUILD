@@ -40,9 +40,9 @@ build() {
   ./bootstrap.py
   export CFLAGS="$CFLAGS -D_POSIX_VERSION=200809L -DNDEBUG -I`pwd`/osdep/switch"
   LIBDIR=${PORTLIBS_PREFIX}/lib TARGET=aarch64-none-elf ./waf configure \
-    --prefix="${PORTLIBS_PREFIX}" --disable-libmpv-shared \
+    --prefix="${PORTLIBS_PREFIX}" --disable-libmpv-shared --disable-debug-build \
     --enable-libmpv-static --disable-cplayer --disable-sdl2 --disable-lua \
-    --disable-iconv --disable-jpeg --disable-libavdevice --disable-debug-build \
+    --disable-iconv --disable-jpeg --disable-libavdevice --disable-libarchive \
     --disable-gl --disable-plain-gl --enable-deko3d --enable-hos-audio
   sed -i 's/#define HAVE_POSIX 1/#define HAVE_POSIX 0/' build/config.h
   ./waf build
