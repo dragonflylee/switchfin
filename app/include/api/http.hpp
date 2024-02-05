@@ -9,6 +9,8 @@
 #include <unordered_map>
 #include <memory>
 #include <atomic>
+#include <fstream>
+#include <sstream>
 #include <curl/curl.h>
 
 #include <borealis/core/event.hpp>
@@ -49,9 +51,8 @@ public:
     ~HTTP();
 
     static std::string encode_form(const Form& form);
-    std::string get(const std::string& url);
-    void download(const std::string& url, const std::string& path);
-    std::string post(const std::string& url, const std::string& data);
+    void _get(const std::string& url, std::ostream* out);
+    std::string _post(const std::string& url, const std::string& data);
 
     template <typename... Ts>
     static void set_option(HTTP& s, Ts&&... ts) {
@@ -62,15 +63,18 @@ public:
     template <typename... Ts>
     static std::string get(const std::string& url, Ts&&... ts) {
         HTTP s;
+        std::ostringstream body;
         set_option(s, std::forward<Ts>(ts)...);
-        return s.get(url);
+        s._get(url, &body);
+        return body.str();
     }
 
     template <typename... Ts>
     static void download(const std::string& url, const std::string& path, Ts&&... ts) {
         HTTP s;
+        std::ofstream of(path);
         set_option(s, std::forward<Ts>(ts)...);
-        s.download(url, path);
+        s._get(url, &of);
     }
 
     // Post methods
@@ -78,14 +82,14 @@ public:
     static std::string post(const std::string& url, const std::string& data, Ts&&... ts) {
         HTTP s;
         set_option(s, std::forward<Ts>(ts)...);
-        return s.post(url, data);
+        return s._post(url, data);
     }
 
     template <typename... Ts>
     static std::string post(const std::string& url, const Form& form, Ts&&... ts) {
         HTTP s;
         set_option(s, std::forward<Ts>(ts)...);
-        return s.post(url, s.encode_form(form));
+        return s._post(url, s.encode_form(form));
     }
 
     inline static long TIMEOUT = 3000L;

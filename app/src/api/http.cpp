@@ -1,8 +1,6 @@
 #include "api/http.hpp"
 #include "utils/config.hpp"
 #include <borealis/core/logger.hpp>
-#include <sstream>
-#include <fstream>
 
 #ifndef CURL_PROGRESSFUNC_CONTINUE
 #define CURL_PROGRESSFUNC_CONTINUE 0x10000001
@@ -150,24 +148,14 @@ std::string HTTP::encode_form(const Form& form) {
     return ss.str();
 }
 
-std::string HTTP::get(const std::string& url) {
-    std::ostringstream body;
+void HTTP::_get(const std::string& url, std::ostream* out) {
     curl_easy_setopt(this->easy, CURLOPT_URL, url.c_str());
     curl_easy_setopt(this->easy, CURLOPT_HTTPGET, 1L);
-    int status_code = this->perform(&body);
-    if (status_code >= 400) throw curl_status_code(status_code);
-    return body.str();
-}
-
-void HTTP::download(const std::string& url, const std::string& path) {
-    std::ofstream of(path);
-    curl_easy_setopt(this->easy, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(this->easy, CURLOPT_HTTPGET, 1L);
-    int status_code = this->perform(&of);
+    int status_code = this->perform(out);
     if (status_code >= 400) throw curl_status_code(status_code);
 }
 
-std::string HTTP::post(const std::string& url, const std::string& data) {
+std::string HTTP::_post(const std::string& url, const std::string& data) {
     std::ostringstream body;
     curl_easy_setopt(this->easy, CURLOPT_URL, url.c_str());
     curl_easy_setopt(this->easy, CURLOPT_POSTFIELDS, data.c_str());
