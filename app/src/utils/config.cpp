@@ -56,7 +56,21 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
 };
 
 static std::string generateDeviceId() {
-#if defined(_WIN32)
+#ifdef __SWITCH__
+    AccountUid uid;
+    accountInitialize(AccountServiceType_Administrator);
+    if (R_FAILED(accountGetPreselectedUser(&uid))) {
+        if (R_FAILED(accountTrySelectUserWithoutInteraction(&uid, false))) {
+            accountGetLastOpenedUser(&uid);
+        }
+    }
+    accountExit();
+    if (accountUidIsValid(&uid)) {
+        uint8_t digest[32];
+        sha256CalculateHash(digest, &uid, sizeof(uid));
+        return misc::hexEncode(digest, sizeof(digest));
+    }
+#elif defined(_WIN32)
     HW_PROFILE_INFOW profile;
     if (GetCurrentHwProfileW(&profile)) {
         std::vector<char> deviceId(HW_PROFILE_GUIDLEN);

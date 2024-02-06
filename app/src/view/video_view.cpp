@@ -239,7 +239,7 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
                 this->toggleOSD();
             } else if (state.state == brls::GestureState::END) {
                 osdInfoBox->setVisibility(brls::Visibility::GONE);
-            } else if (state.startPosition.x < this->getFrame().getMidX()) {
+            } else if (state.startPosition.x > this->getFrame().getMidX()) {
                 if (state.state == brls::GestureState::START) {
                     this->volumeInit = MPVCore::instance().volume;
                 } else {

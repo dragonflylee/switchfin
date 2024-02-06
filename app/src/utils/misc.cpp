@@ -26,4 +26,12 @@ std::string randHex(const int len) {
     return ss.str();
 }
 
+std::string hexEncode(const unsigned char* data, size_t len) {
+    std::stringstream ss;
+    for (size_t i = 0; i < len; i++) {
+        ss << std::hex << std::setw(2) << std::setfill('0') << (int)data[i];
+    }
+    return ss.str();
+}
+
 }  // namespace misc
