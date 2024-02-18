@@ -10,28 +10,22 @@ license=(LGPL)
 options=(!strip libtool staticlibs)
 source=("https://github.com/harfbuzz/harfbuzz/releases/download/${pkgver}/harfbuzz-${pkgver}.tar.xz")
 sha256sums=('109501eaeb8bde3eadb25fab4164e993fbace29c3d775bcaa1c1e58e2f15f847')
-makedepends=('switch-pkg-config' 'switch-cmake' 'switch-freetype')
+makedepends=('dkp-toolchain-vars' 'dkp-meson-scripts' 'switch-freetype')
 depends=('switch-freetype')
 
 groups=('switch-portlibs')
 
 build() {
-  mkdir harfbuzz-${pkgver}/build
-  cd harfbuzz-${pkgver}/build
-
-  source "${DEVKITPRO}/switchvars.sh"
-
-  aarch64-none-elf-cmake -G"Unix Makefiles" \
-    -DCMAKE_INSTALL_PREFIX="${PORTLIBS_PREFIX}"  \
-    -DHB_HAVE_FREETYPE=ON \
-    ../
-
-  make
+  cd harfbuzz-${pkgver}
+  /opt/devkitpro/meson-cross.sh switch ../crossfile.txt build -Dc_std=gnu11 -Db_ndebug=true \
+    -Dicu=disabled -Dglib=disabled -Dcairo=disabled -Dgobject=disabled -Dtests=disabled \
+    -Ddocs=disabled -Dbenchmark=disabled
+  meson compile -C build
 }
 
 package() {
 
-  cd harfbuzz-${pkgver}/build
-  make install DESTDIR="${pkgdir}"
+  cd harfbuzz-${pkgver}
+  DESTDIR="${pkgdir}" meson install -C build
 
 }

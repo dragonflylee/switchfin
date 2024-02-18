@@ -6,12 +6,12 @@ export CMAKE_PREFIX_PATH=/opt/switchfin
 export PKG_CONFIG_PATH=$CMAKE_PREFIX_PATH/lib/pkgconfig
 export LD_LIBRARY_PATH=$CMAKE_PREFIX_PATH/lib:/usr/lib/aarch64-linux-gnu/tegra
 
-wget -qO- https://curl.se/download/curl-8.5.0.tar.xz | tar Jxf - -C /tmp
+wget -qO- https://curl.se/download/curl-8.6.0.tar.xz | tar Jxf - -C /tmp
 git clone https://gitlab.com/switchroot/switch-l4t-multimedia/FFmpeg.git --depth=1 /tmp/ffmpeg
 git clone https://gitlab.com/switchroot/switch-l4t-multimedia/mpv.git --depth=1 /tmp/mpv
 git clone https://github.com/dragonflylee/glfw.git -b switchfin --depth=1 /tmp/glfw
 
-cd /tmp/curl-8.5.0
+cd /tmp/curl-8.6.0
 cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
   -DCMAKE_INSTALL_RPATH=$CMAKE_PREFIX_PATH/lib -DBUILD_SHARED_LIBS=ON -DCURL_USE_OPENSSL=ON \
   -DHTTP_ONLY=ON -DCURL_DISABLE_PROGRESS_METER=ON -DBUILD_CURL_EXE=OFF -DBUILD_TESTING=OFF \

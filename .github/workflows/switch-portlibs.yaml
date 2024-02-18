@@ -22,18 +22,11 @@ jobs:
     - name: Install dependency
       run: |
         apt-get update
-        apt-get install -y fakeroot zstd ninja-build libtool python3-distutils manpages-
+        apt-get install -y fakeroot zstd ninja-build bison flex libtool python3-distutils manpages-
         curl -sL https://bootstrap.pypa.io/get-pip.py | python3 -
         pip3 install meson mako
 
         dkp-pacman --noconfirm -U scripts/switch/dkp-*.zst
-    - name: Build dekotools
-      run: |
-        apt-get install -y bison flex g++ manpages-
-        git clone https://github.com/fincs/dekotools.git --depth 1
-        cd dekotools
-        meson setup build
-        ninja -C build install
     - name: Build portlibs
       run: |
         adduser --gecos '' --disabled-password builder
@@ -47,12 +40,13 @@ jobs:
 
         chown -R builder:builder ${GITHUB_WORKSPACE}/scripts/switch
         sudo -u builder -i bash -s << EOF
+          set -x
           cd ${GITHUB_WORKSPACE}/scripts/switch
-          for pkg in curl harfbuzz libass dav1d ffmpeg deko3d libuam; do
+          for pkg in libass dav1d ffmpeg libuam; do
             echo building \$pkg
             cd \$pkg; dkp-makepkg -sciCf --noconfirm; cd ..
           done
-          for pkg in mpv mpv-deko3d nspmini hacbrewpack; do
+          for pkg in mpv mpv-deko3d nspmini curl hacbrewpack; do
             echo building \$pkg
             cd \$pkg; dkp-makepkg -scCf --noconfirm; cd ..
           done
