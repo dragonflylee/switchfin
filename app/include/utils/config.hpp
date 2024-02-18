@@ -49,6 +49,8 @@ public:
         FORCE_DIRECTPLAY,
         VIDEO_QUALITY,
         OSD_ON_TOGGLE,
+        TOUCH_GESTURE,
+        CLIP_POINT,
         PLAYER_BOTTOM_BAR,
         PLAYER_SEEKING_STEP,
         PLAYER_LOW_QUALITY,

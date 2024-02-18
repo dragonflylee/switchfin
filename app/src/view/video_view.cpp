@@ -212,50 +212,52 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
             }
         }));
 
-    /// 滑动调整进度
-    this->addGestureRecognizer(new OsdGestureRecognizer(
-        [this](brls::PanGestureStatus state, brls::Sound* soundToPlay) {
-            if (state.state == brls::GestureState::FAILED || state.state == brls::GestureState::UNSURE ||
-                state.state == brls::GestureState::INTERRUPTED) {
-                return;
-            }
-            if (isOsdLock) {
-                this->toggleOSD();
-            } else if (state.delta.x != 0) {
-                this->seekingRange -= state.delta.x;
-                this->requestSeeking(seekingRange);
-            }
-        },
-        brls::PanAxis::HORIZONTAL));
+    if (MPVCore::TOUCH_GESTURE) {
+        /// 滑动调整进度
+        this->addGestureRecognizer(new OsdGestureRecognizer(
+            [this](brls::PanGestureStatus state, brls::Sound* soundToPlay) {
+                if (state.state == brls::GestureState::FAILED || state.state == brls::GestureState::UNSURE ||
+                    state.state == brls::GestureState::INTERRUPTED) {
+                    return;
+                }
+                if (isOsdLock) {
+                    this->toggleOSD();
+                } else if (state.delta.x != 0) {
+                    this->seekingRange -= state.delta.x;
+                    this->requestSeeking(seekingRange);
+                }
+            },
+            brls::PanAxis::HORIZONTAL));
 
-    /// 滑动调整音量
-    this->addGestureRecognizer(new OsdGestureRecognizer(
-        [this](brls::PanGestureStatus state, brls::Sound* soundToPlay) {
-            if (state.state == brls::GestureState::FAILED || state.state == brls::GestureState::UNSURE ||
-                state.state == brls::GestureState::INTERRUPTED) {
-                return;
-            }
-            if (isOsdLock) {
-                this->toggleOSD();
-            } else if (state.state == brls::GestureState::END) {
-                osdInfoBox->setVisibility(brls::Visibility::GONE);
-            } else if (state.startPosition.x > this->getFrame().getMidX()) {
-                if (state.state == brls::GestureState::START) {
-                    this->volumeInit = MPVCore::instance().volume;
-                } else {
-                    this->volumeInit += state.delta.y;
-                    this->requestVolume(this->volumeInit);
+        /// 滑动调整音量
+        this->addGestureRecognizer(new OsdGestureRecognizer(
+            [this](brls::PanGestureStatus state, brls::Sound* soundToPlay) {
+                if (state.state == brls::GestureState::FAILED || state.state == brls::GestureState::UNSURE ||
+                    state.state == brls::GestureState::INTERRUPTED) {
+                    return;
                 }
-            } else {
-                if (state.state == brls::GestureState::START) {
-                    this->brightnessInit = brls::Application::getPlatform()->getBacklightBrightness() * 100.f;
+                if (isOsdLock) {
+                    this->toggleOSD();
+                } else if (state.state == brls::GestureState::END) {
+                    osdInfoBox->setVisibility(brls::Visibility::GONE);
+                } else if (state.startPosition.x > this->getFrame().getMidX()) {
+                    if (state.state == brls::GestureState::START) {
+                        this->volumeInit = MPVCore::instance().volume;
+                    } else {
+                        this->volumeInit += state.delta.y;
+                        this->requestVolume(this->volumeInit);
+                    }
                 } else {
-                    this->brightnessInit += state.delta.y;
-                    this->requestBrightness(this->brightnessInit);
+                    if (state.state == brls::GestureState::START) {
+                        this->brightnessInit = brls::Application::getPlatform()->getBacklightBrightness() * 100.f;
+                    } else {
+                        this->brightnessInit += state.delta.y;
+                        this->requestBrightness(this->brightnessInit);
+                    }
                 }
-            }
-        },
-        brls::PanAxis::VERTICAL));
+            },
+            brls::PanAxis::VERTICAL));
+    }
 
     /// 播放/暂停 按钮
     this->btnToggle->registerClickAction([](...) {
@@ -1038,6 +1040,8 @@ void VideoView::setChapters(const std::vector<jellyfin::MediaChapter>& chaps, ti
         clips.push_back(float(c.StartPositionTicks) / float(duration));
     }
     this->videoChapters = chaps;
-    this->osdSlider->setClipPoint(clips);
+    if (MPVCore::CLIP_POINT) {
+        this->osdSlider->setClipPoint(clips);
+    }
     this->btnVideoChapter->setVisibility(brls::Visibility::VISIBLE);
 }

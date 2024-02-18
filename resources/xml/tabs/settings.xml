@@ -58,6 +58,10 @@
                     id="setting/player/bottom_bar" />
                 <brls:BooleanCell
                     id="setting/player/osd_on_toggle" />
+                <brls:BooleanCell
+                    id="setting/player/touch_gesture" />
+                <brls:BooleanCell
+                    id="setting/player/clip_point" />
             </brls:Box>
 
             <brls:Header

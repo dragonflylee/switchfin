@@ -173,6 +173,18 @@ void SettingTab::onCreate() {
             conf.setItem(AppConfig::OSD_ON_TOGGLE, value);
         });
 
+    btnTouchGesture->init(
+        "main/setting/playback/touch_gesture"_i18n, conf.getItem(AppConfig::TOUCH_GESTURE, true), [&conf](bool value) {
+            MPVCore::TOUCH_GESTURE = value;
+            conf.setItem(AppConfig::TOUCH_GESTURE, value);
+        });
+
+    btnClipPoint->init(
+        "main/setting/playback/clip_point"_i18n, conf.getItem(AppConfig::CLIP_POINT, true), [&conf](bool value) {
+            MPVCore::CLIP_POINT = value;
+            conf.setItem(AppConfig::CLIP_POINT, value);
+        });
+
 #ifdef __SWITCH__
     btnTutorialOpenApp->registerClickAction([](...) -> bool {
         brls::Application::pushActivity(new HintActivity());

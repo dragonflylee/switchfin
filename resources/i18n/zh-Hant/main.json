@@ -89,8 +89,10 @@
       "low_quality": "低畫質解碼（以畫質為代價換取更低的功耗）",
       "in_memory_cache": "解码緩存",
       "hwdec": "硬體解碼",
-      "force_directplay": "强制直接播放",
+      "force_directplay": "強制直接播放",
       "osd_on_toggle": "暫停時顯示控製界面",
+      "touch_gesture": "啟用播放進度手勢",
+      "clip_point": "進度條顯示章節位置",
       "transcodec": "轉碼格式",
       "video_quality": "視頻質量",
       "seeking_step": "快進步進秒數"

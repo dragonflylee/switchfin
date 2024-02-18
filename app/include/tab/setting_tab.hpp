@@ -45,6 +45,8 @@ private:
     BRLS_BIND(brls::SelectorCell, selectorInmemory, "setting/video/inmemory");
     BRLS_BIND(brls::BooleanCell, btnBottomBar, "setting/player/bottom_bar");
     BRLS_BIND(brls::BooleanCell, btnOSDOnToggle, "setting/player/osd_on_toggle");
+    BRLS_BIND(brls::BooleanCell, btnTouchGesture, "setting/player/touch_gesture");
+    BRLS_BIND(brls::BooleanCell, btnClipPoint, "setting/player/clip_point");
     BRLS_BIND(brls::BooleanCell, btnFullscreen, "setting/fullscreen");
     BRLS_BIND(brls::BooleanCell, btnOverClock, "setting/overclock");
     BRLS_BIND(brls::BooleanCell, btnDebug, "setting/debug");

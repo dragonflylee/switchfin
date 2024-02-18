@@ -39,6 +39,8 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
                         {0, 60, 40, 20, 8, 6, 3, 1}}},
     {FULLSCREEN, {"fullscreen"}},
     {OSD_ON_TOGGLE, {"osd_on_toggle"}},
+    {TOUCH_GESTURE, {"touch_gesture"}},
+    {CLIP_POINT,{"clip_point"}},
     {OVERCLOCK, {"overclock"}},
     {PLAYER_BOTTOM_BAR, {"player_bottom_bar"}},
     {PLAYER_SEEKING_STEP, {"player_seeking_step", {"5", "10", "15", "30"}, {5, 10, 15, 30}}},
@@ -116,6 +118,8 @@ void AppConfig::init() {
     // 初始化是否固定显示底部进度条
     MPVCore::BOTTOM_BAR = this->getItem(PLAYER_BOTTOM_BAR, true);
     MPVCore::OSD_ON_TOGGLE = this->getItem(PLAYER_BOTTOM_BAR, true);
+    MPVCore::TOUCH_GESTURE = this->getItem(TOUCH_GESTURE, true);
+    MPVCore::CLIP_POINT = this->getItem(CLIP_POINT, true);
     // 初始化内存缓存大小
     MPVCore::INMEMORY_CACHE = this->getItem(PLAYER_INMEMORY_CACHE, 10);
     // 是否使用低质量解码

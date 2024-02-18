@@ -91,6 +91,8 @@
       "hwdec": "Hardware decode",
       "force_directplay": "Force direct play",
       "osd_on_toggle": "Show OSD when paused",
+      "touch_gesture": "Touch gesture for seeking step",
+      "clip_point": "Show clip point of chapter",
       "transcodec": "Transcodec",
       "video_quality": "Video Quality",
       "seeking_step": "Seeking Step"

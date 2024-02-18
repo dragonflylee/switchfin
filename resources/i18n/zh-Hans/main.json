@@ -91,6 +91,8 @@
       "hwdec": "硬件解码",
       "force_directplay": "强制客户端解码",
       "osd_on_toggle": "暂停时显示控制界面",
+      "touch_gesture": "启用播放进度手势",
+      "clip_point": "进度条显示章节位置",
       "transcodec": "转码格式",
       "video_quality": "视频质量",
       "seeking_step": "快进步进"
