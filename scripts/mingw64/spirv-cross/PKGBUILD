@@ -42,6 +42,7 @@ build() {
     cmake -B "build-${MSYSTEM}" -G Ninja \
       -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
       -DCMAKE_BUILD_TYPE=Release \
+      -DBUILD_SHARED_LIBS=OFF \
       -DSPIRV_CROSS_SHARED=ON \
       -DSPIRV_CROSS_CLI=OFF \
       -DSPIRV_CROSS_ENABLE_TESTS=OFF \

@@ -10,9 +10,14 @@
 #ifdef USE_BOOST_FILESYSTEM
 #include <boost/filesystem.hpp>
 namespace fs = boost::filesystem;
-#else
+#elif __has_include(<filesystem>)
 #include <filesystem>
 namespace fs = std::filesystem;
+#elif __has_include("experimental/filesystem")
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#elif !defined(USE_LIBROMFS)
+#error "Failed to include <filesystem> header!"
 #endif
 #include <set>
 #include <borealis.hpp>
@@ -102,8 +107,8 @@ void AppConfig::init() {
         try {
             nlohmann::json::parse(readFile).get_to(*this);
             brls::Logger::info("Load config from: {}", path);
-        } catch (const std::exception& e) {
-            brls::Logger::error("AppConfig::load: {}", e.what());
+        } catch (const std::exception& ex) {
+            brls::Logger::error("AppConfig::load: {}", ex.what());
         }
     }
 

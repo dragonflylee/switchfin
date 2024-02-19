@@ -42,7 +42,7 @@ jobs:
         sudo -u builder -i bash -s << EOF
           set -x
           cd ${GITHUB_WORKSPACE}/scripts/switch
-          for pkg in libass dav1d ffmpeg libuam; do
+          for pkg in libnx libass dav1d ffmpeg libuam; do
             echo building \$pkg
             cd \$pkg; dkp-makepkg -sciCf --noconfirm; cd ..
           done

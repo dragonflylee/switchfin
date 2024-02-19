@@ -24,7 +24,7 @@ if (MPV_SW_RENDER)
 endif ()
 
 if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
 elseif (CMAKE_BUILD_TYPE STREQUAL Debug)
     list(APPEND APP_PLATFORM_OPTION -D_DEBUG -D_GLIBCXX_ASSERTIONS)
 endif()
@@ -95,7 +95,7 @@ if (USE_SYSTEM_CURL)
 else ()
     include(FetchContent)
     FetchContent_Declare(curl
-        URL https://curl.se/download/curl-8.5.0.tar.xz
+        URL https://curl.se/download/curl-8.6.0.tar.xz
         DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     )
     if (WIN32)
@@ -110,6 +110,7 @@ else ()
     set(BUILD_CURL_EXE OFF)
     set(BUILD_TESTING OFF)
     set(BUILD_SHARED_LIBS OFF)
+    set(BUILD_LIBCURL_DOCS OFF)
     set(USE_LIBIDN2 OFF)
     set(CURL_USE_LIBSSH2 OFF)
     set(CURL_USE_LIBPSL OFF)

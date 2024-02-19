@@ -5,7 +5,7 @@
 pkgbasename=libmpv
 pkgname=switch-${pkgbasename}-deko3d
 pkgver=0.36.0
-pkgrel=3
+pkgrel=4
 pkgdesc='Command line video player (library only)'
 arch=('any')
 url='https://mpv.io/'

@@ -283,7 +283,14 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
     this->btnForward->registerClickAction([this](...) { return this->playNext(); });
     this->btnForward->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnForward));
 
-    this->registerAction("main/player/toggle"_i18n, brls::BUTTON_A, [this](brls::View* view) {
+    this->registerAction("main/player/toggle"_i18n, brls::BUTTON_SPACE, [this](brls::View* view) -> bool {
+        MPVCore::instance().togglePlay();
+        if (MPVCore::OSD_ON_TOGGLE) {
+            this->showOSD(true);
+        }
+        return true;
+    });
+    this->registerAction("main/player/toggle"_i18n, brls::BUTTON_A, [this](brls::View* view) -> bool {
         MPVCore::instance().togglePlay();
         if (MPVCore::OSD_ON_TOGGLE) {
             this->showOSD(true);
