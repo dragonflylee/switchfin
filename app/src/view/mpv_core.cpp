@@ -4,6 +4,7 @@
 
 #include "view/mpv_core.hpp"
 #include "utils/config.hpp"
+#include "utils/misc.hpp"
 #include <fmt/ranges.h>
 
 static inline void check_error(int status) {
@@ -192,7 +193,9 @@ void MPVCore::init() {
         mpv_terminate_destroy(mpv);
         brls::fatal("failed to initialize mpv context");
     }
-
+#ifdef BOREALIS_USE_D3D11
+    misc::initCrashDump();
+#endif
     brls::Logger::info("version: {} ffmpeg {}", mpv_get_property_string(mpv, "mpv-version"),
         mpv_get_property_string(mpv, "ffmpeg-version"));
 

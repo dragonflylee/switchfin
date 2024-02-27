@@ -112,6 +112,8 @@ void AppConfig::init() {
         }
     }
 
+    misc::initCrashDump();
+
     HTTP::TIMEOUT = this->getItem(REQUEST_TIMEOUT, HTTP::TIMEOUT);
     HTTP::PROXY_STATUS = this->getItem(HTTP_PROXY_STATUS, HTTP::PROXY_STATUS);
     HTTP::PROXY_HOST = this->getItem(HTTP_PROXY_HOST, HTTP::PROXY_HOST);

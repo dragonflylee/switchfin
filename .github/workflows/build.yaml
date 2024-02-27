@@ -257,14 +257,16 @@ jobs:
           curl -sLO https://github.com/dragonflylee/switchfin/releases/download/mingw-packages/${MINGW_PACKAGE_PREFIX}-${pkg}-any.pkg.tar.zst
         done
         pacman -U --noconfirm *.pkg.tar.zst
-
         pacman -S --needed --noconfirm --noprogressbar \
           ${MINGW_PACKAGE_PREFIX}-cc \
-          ${MINGW_PACKAGE_PREFIX}-ninja
+          ${MINGW_PACKAGE_PREFIX}-ninja unzip
+
+        curl -sLO https://github.com/rainers/cv2pdb/releases/download/v0.52/cv2pdb-0.52.zip
+        unzip cv2pdb-0.52.zip cv2pdb64.exe -d /usr/bin
     - name: Build
       run: |
         cmake -B build_mingw -G Ninja \
-          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo \
           -DPLATFORM_DESKTOP=ON \
           -DWIN32_TERMINAL=OFF \
           -DZLIB_USE_STATIC_LIBS=ON \
@@ -272,10 +274,8 @@ jobs:
           -DUSE_LIBROMFS=ON \
           -DVERSION_BUILD=${{ github.run_number }} ${{ matrix.cmake }}
         cmake --build build_mingw
-
-        strip build_mingw/Switchfin.exe
-        mv build_mingw/Switchfin.exe .
-        cp ${MINGW_PREFIX}/bin/libmpv-2.dll .
+        cv2pdb64 build_mingw/Switchfin.exe
+        cp -a README.md ${MINGW_PREFIX}/bin/libmpv-2.dll build_mingw
     - name: Set outputs
       id: vars
       run: echo "sha_short=${{ matrix.arch }}-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -284,9 +284,10 @@ jobs:
       with:
         name: Switchfin-windows-${{ steps.vars.outputs.sha_short }}
         path: |
-          Switchfin.exe
-          libmpv-2.dll
-          README.md
+          build_mingw/Switchfin.exe
+          build_mingw/Switchfin.pdb
+          build_mingw/libmpv-2.dll
+          build_mingw/README.md
 
   build-msvc:
     runs-on: windows-latest
