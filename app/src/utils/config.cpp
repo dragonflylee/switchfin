@@ -233,6 +233,8 @@ std::string AppConfig::configDir() {
 #elif _WIN32
     return fmt::format("{}\\{}", getenv("LOCALAPPDATA"), AppVersion::getPackageName());
 #elif __linux__
+    char* config_home = getenv("XDG_CONFIG_HOME");
+    if (config_home) return fmt::format("{}/{}", config_home, AppVersion::getPackageName());
     return fmt::format("{}/.config/{}", getenv("HOME"), AppVersion::getPackageName());
 #elif __APPLE__
     return fmt::format("{}/Library/Application Support/{}", getenv("HOME"), AppVersion::getPackageName());

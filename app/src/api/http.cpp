@@ -131,7 +131,7 @@ int HTTP::perform(std::ostream* body) {
     CURLcode res = curl_easy_perform(this->easy);
     if (res != CURLE_OK) throw curl_error(res);
 
-    int status_code = 0;
+    long status_code = 0;
     curl_easy_getinfo(this->easy, CURLINFO_RESPONSE_CODE, &status_code);
     return status_code;
 }

@@ -13,9 +13,10 @@ LDFLAGS="-framework CoreFoundation -framework Carbon" ./configure --with-interna
 ### generate icons
 
 ```shell
+sudo apt-get install -y librsvg2-bin
 for size in 32 48 64 128 256; do
     icon_path="icons/${size}x${size}"
     mkdir -p ${icon_path}
-    rsvg-convert -w ${size} -h ${size} -o ${icon_path}/switchfin.png switchfin.svg
+    rsvg-convert -w ${size} -h ${size} -o ${icon_path}/org.player.switchfin.png org.player.switchfin.svg
 done
 ```

@@ -43,7 +43,8 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/app/include",
-                "${workspaceFolder}/library/**"
+                "${workspaceFolder}/library/**",
+                "/opt/switchfin/include"
             ],
             "defines": [
                 "BOREALIS_USE_OPENGL",

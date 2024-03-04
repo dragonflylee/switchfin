@@ -7,7 +7,7 @@ export PKG_CONFIG_PATH=$CMAKE_PREFIX_PATH/lib/pkgconfig
 export LD_LIBRARY_PATH=$CMAKE_PREFIX_PATH/lib:/usr/lib/aarch64-linux-gnu/tegra
 
 mkdir -p /tmp/deb/usr /tmp/deb/opt/switchfin/lib
-sed -i 's|Exec=Switchfin|Exec=/opt/switchfin/bin/Switchfin|' scripts/switchfin.desktop
+sed -i 's|Exec=Switchfin|Exec=/opt/switchfin/bin/Switchfin|' scripts/org.player.switchfin.desktop
 
 cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH  \
   -DPLATFORM_DESKTOP=ON -DUSE_SYSTEM_CURL=ON -DUSE_SYSTEM_GLFW=ON -DCMAKE_INSTALL=ON \

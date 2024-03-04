@@ -53,7 +53,7 @@ set(VERSION_MINOR "4")
 set(VERSION_ALTER "4")
 set(PROJECT_TITLEID "010ff000ffff0003")
 set(PROJECT_AUTHOR "dragonflylee")
-set(PACKAGE_NAME "switchfin")
+set(PACKAGE_NAME "org.player.switchfin")
 set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon.jpg)
 set(PROJECT_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/resources)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
@@ -205,10 +205,11 @@ if (PLATFORM_DESKTOP)
             WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/${PROJECT_NAME}.app/Contents"
         )
     elseif (CMAKE_INSTALL)
+        set(icon_dirs 32x32 48x48 64x64 128x128 256x256)
         linux_install(
             "${PROJECT_RESOURCES}" "${BRLS_RESOURCES_DIR}"
             "${CMAKE_CURRENT_SOURCE_DIR}/scripts/${PACKAGE_NAME}.svg"
-            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/icons" ""
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/icons" "${icon_dirs}"
             "${CMAKE_CURRENT_SOURCE_DIR}/scripts/${PACKAGE_NAME}.appdata.xml"
             "${CMAKE_CURRENT_SOURCE_DIR}/scripts/${PACKAGE_NAME}.desktop"
         )

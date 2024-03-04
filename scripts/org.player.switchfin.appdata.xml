@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop">
-    <id>switchfin</id>
+    <id>org.player.switchfin</id>
     <metadata_license>CC0-1.0</metadata_license>
-    <name>switchfin</name>
+    <name>Switchfin</name>
     <developer_name>dragonflylee</developer_name>
     <summary>Third-party native Jellyfin client designed specifically for controller users</summary>
-    <launchable type="desktop-id">switchfin.desktop</launchable>
+    <launchable type="desktop-id">org.player.switchfin.desktop</launchable>
     <description>
         <p>Switchfin is third-party PC player for Jellyfin that provides a native user interface to browse and play movies and series.</p>
         <p>Features:</p>
@@ -17,6 +17,15 @@
             <li>Search: TV style, Videos and Movie...</li>
         </ul>
     </description>
+    <releases>
+        <release date="2024-01-28" version="0.4.4">
+            <description>
+                <p>
+                    Please See Official Changelog at github.com/dragonflylee/switchfin/releases
+                </p>
+            </description>
+        </release>
+    </releases>
     <screenshots>
         <screenshot>
             <image>https://github.com/dragonflylee/switchfin/raw/dev/images/home.jpg</image>
