@@ -2,7 +2,7 @@
 
 set -e
 
-export CMAKE_PREFIX_PATH=/opt/switchfin
+: "${CMAKE_PREFIX_PATH:="/opt/switchfin"}"
 export PKG_CONFIG_PATH=$CMAKE_PREFIX_PATH/lib/pkgconfig
 export LD_LIBRARY_PATH=$CMAKE_PREFIX_PATH/lib:/usr/lib/aarch64-linux-gnu/tegra
 
@@ -26,7 +26,7 @@ cd /tmp/ffmpeg
   --extra-libs='-lpthread -lm -lnvbuf_utils -lv4l2' \
   --ld=g++ --enable-nonfree --enable-openssl --enable-libv4l2 --enable-nvv4l2 \
   --enable-opengl --disable-doc --enable-asm --enable-neon --disable-debug \
-  --enable-zlib --enable-demuxer=hls --disable-muxers --disable-avdevice \
+  --enable-libass --enable-demuxer=hls --disable-muxers --disable-avdevice \
   --disable-protocols --enable-protocol='file,http,tcp,rtmp,hls,https,tls' \
   --disable-encoders --disable-programs --enable-rpath
 make -j$(nproc)

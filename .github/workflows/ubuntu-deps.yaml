@@ -1,0 +1,36 @@
+name: switchroot-ubuntu
+
+on:
+  push:
+    tags: [ switch-portlibs ]
+    branches: [ ubuntu ]
+    paths: [ scripts/switchroot-*/* ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        release: [ switchroot-bionic, ubuntu-focal, kylin-v10 ]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: scripts
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+    - name: Build deps
+      run: docker run --rm -u $(id -u):$(id -g) -v $PWD:/opt -w /opt dragonflylee/build:${{ matrix.release }} bash scripts/deb/${{ matrix.release }}/deps.sh
+    - name: Package deps
+      run: tar zcf ${{ matrix.release }}.tar.gz switchfin/include switchfin/lib 
+    - name: Upload deps
+      uses: softprops/action-gh-release@v1
+      with:
+        name: switch-portlibs
+        tag_name: switch-portlibs
+        prerelease: true
+        files: ${{ matrix.release }}.tar.gz

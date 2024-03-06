@@ -13,7 +13,7 @@ on:
     - images/*
     - CHANGELOG.md
     - README.md
-    branches: [ "*" ]
+    branches: [ dev ]
   pull_request:
     paths-ignore:
     - scripts/mingw64/*/*
@@ -30,7 +30,7 @@ on:
       flatpak:
         description: build linux flatpak
         type: boolean
-      l4t:
+      switchroot:
         description: build switchroot ubuntu
         type: boolean
       mingw64:
@@ -154,9 +154,13 @@ jobs:
         verbose: true
         arch: ${{ matrix.arch }}
 
-  build-l4t:
+  build-deb:
+    strategy:
+      fail-fast: false
+      matrix:
+        release: [ switchroot-bionic, ubuntu-focal, kylin-v10 ]
     runs-on: ubuntu-latest
-    if: ${{ inputs.l4t }}
+    if: ${{ inputs.switchroot }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -164,16 +168,16 @@ jobs:
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
     - name: Download deps
-      run: curl -sSL https://github.com/dragonflylee/switchfin/releases/download/switch-portlibs/switchroot-ubuntu-nvv4l2.tar.gz | tar zxf -
+      run: curl -sSL https://github.com/dragonflylee/switchfin/releases/download/switch-portlibs/${{ matrix.release }}.tar.gz | tar zxf -
     - name: Build deb
-      run: docker run --rm -u $(id -u):$(id -g) -v $PWD:/opt -w /opt dragonflylee/ubuntu:l4t bash scripts/l4t/build_l4t.sh
+      run: docker run --rm -u $(id -u):$(id -g) -v $PWD:/opt -w /opt -e VERSION_BUILD=${{ github.run_number }} dragonflylee/build:${{ matrix.release }} bash scripts/deb/${{ matrix.release }}/build.sh
     - name: Set outputs
       id: vars
       run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
       uses: actions/upload-artifact@v4
       with:
-        name: Switchfin-switchroot-ubuntu-${{ steps.vars.outputs.sha_short }}
+        name: Switchfin-${{ matrix.release }}-${{ steps.vars.outputs.sha_short }}
         path: Switchfin-*.deb
 
   build-macos:

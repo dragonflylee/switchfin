@@ -1,0 +1,17 @@
+Section: video
+Priority: optional
+Maintainer: dragonflylee <dragonflylee@outlook.com>
+Version: 0.4.4-1
+Vcs-Git: https://github.com/dragonflylee/switchfin.git
+Package: switchfin
+Architecture: amd64
+Depends: libdbus-1-3,
+         libass5,
+         libpulse0,
+         libssl1.0.0,
+         libuchardet0,
+         libv4l-0,
+         libva-drm1,
+         libva-glx1,
+         libx11-6
+Description: Third-party native Jellyfin client for Nintendo Switch
