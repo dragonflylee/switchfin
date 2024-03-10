@@ -841,6 +841,8 @@ void VideoView::registerMpvEvent() {
         case MpvEventEnum::CACHE_SPEED_CHANGE:
             // 仅当加载圈已经开始转起的情况显示缓存
             if (this->osdCenterBox->getVisibility() != brls::Visibility::GONE) {
+                if (this->centerLabel->getVisibility() != brls::Visibility::VISIBLE)
+                    this->centerLabel->setVisibility(brls::Visibility::VISIBLE);
                 this->centerLabel->setText(MPVCore::instance().getCacheSpeed());
             }
             break;
