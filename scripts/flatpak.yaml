@@ -19,8 +19,6 @@ finish-args:
   # https://github.com/mpv-player/mpv/blob/master/libmpv/client.h#L147-L149
   # will remove it when next version release
   - --env=LC_NUMERIC=C
-cleanup-commands:
-  - mkdir -p /app/lib/ffmpeg
 cleanup:
   - '*.a'
   - '*.la'
@@ -81,6 +79,45 @@ modules:
               project-id: 1560
               stable-only: true
               url-template: https://github.com/libass/libass/releases/download/$version/libass-$version.tar.gz
+
+      - name: uchardet
+        buildsystem: cmake-ninja
+        config-opts:
+          - -DCMAKE_BUILD_TYPE=Release
+          - -DBUILD_STATIC=0
+        sources:
+          - type: archive
+            url: https://www.freedesktop.org/software/uchardet/releases/uchardet-0.0.8.tar.xz
+            sha256: e97a60cfc00a1c147a674b097bb1422abd9fa78a2d9ce3f3fdcc2e78a34ac5f0
+            x-checker-data:
+              type: anitya
+              project-id: 9265
+              stable-only: true
+              url-template: https://www.freedesktop.org/software/uchardet/releases/uchardet-$version.tar.xz
+
+      - name: ffmpeg
+        cleanup:
+          - /include
+          - /lib/pkgconfig
+          - /share/ffmpeg/examples
+        config-opts:
+          - --enable-shared
+          - --disable-static
+          - --enable-gnutls
+          - --enable-gpl
+          - --disable-doc
+          - --disable-programs
+          - --disable-encoders
+          - --disable-muxers
+          - --enable-demuxer=hls
+          - --enable-libv4l2
+          - --enable-libdav1d
+          - --enable-libfontconfig
+          - --enable-libfreetype
+        sources:
+          - type: archive
+            url: https://ffmpeg.org/releases/ffmpeg-6.1.1.tar.xz
+            sha256: 8684f4b00f94b85461884c3719382f1261f0d9eb3d59640a1f4ac0873616f968
 
   - name: glfw
     buildsystem: cmake-ninja

@@ -263,7 +263,7 @@ jobs:
         tar zcf dylib-0.36.0-${{ matrix.tag }}.tar.gz \
           include lib/pkgconfig lib/cmake lib/*.dylib 
     - name: Upload packages
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         name: macos-dylib
         tag_name: macos-dylib

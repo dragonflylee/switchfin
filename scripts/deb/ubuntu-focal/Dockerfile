@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install -y gnupg wget \
   && apt-get remove -y gnupg python3-pip && apt-get autoremove -y \
   && rm -rf /var/lib/apt/lists/* /usr/share/man/*
 
-RUN apt-get update && apt-get install -y --no-install-recommends xorg-dev libdbus-1-dev \
-    libass-dev libwebp-dev libssl-dev libv4l-dev libpulse-dev libuchardet-dev libva-dev \
+RUN apt-get update && apt-get install -y --no-install-recommends xorg-dev libdbus-1-dev libssl-dev \
+    libass-dev libwebp-dev libv4l-dev libpulse-dev libuchardet-dev libva-dev libvdpau-dev \
   && rm -rf /var/lib/apt/lists/* /usr/share/man/* /usr/src/tensorrt/*
 
 RUN adduser --gecos '' --disabled-password ubuntu \

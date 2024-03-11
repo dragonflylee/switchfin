@@ -52,7 +52,7 @@ jobs:
           done
         EOF
     - name: Upload portlibs
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         name: switch-portlibs
         tag_name: switch-portlibs

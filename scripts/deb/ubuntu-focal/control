@@ -13,6 +13,7 @@ Depends: libdbus-1-3,
          libv4l-0,
          libva-drm2,
          libva-glx2,
+         libvdpau1,
          libwebp6,
          libx11-6
 Recommends: va-driver-all

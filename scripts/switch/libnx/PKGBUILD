@@ -19,7 +19,7 @@ groups=('switch-dev')
 build() {
 
   cd ${srcdir}/${pkgname}-${pkgver}/nx
-  make
+  make -j$(nproc)
 
 }
 

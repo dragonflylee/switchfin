@@ -14,8 +14,8 @@ RUN apt-get update && apt-get install -y wget apt-transport-https \
   && apt-get remove -y apt-transport-https && apt-get autoremove -y \
   && rm -rf /var/lib/apt/lists/* /usr/share/man/* /etc/apt/sources.list.d/kitware.list
 
-RUN apt-get update && apt-get install -y --no-install-recommends xorg-dev libdbus-1-dev \
-    libass-dev libssl-dev libv4l-dev libpulse-dev libuchardet-dev libva-dev libgl1-mesa-dev \
+RUN apt-get update && apt-get install -y --no-install-recommends xorg-dev libdbus-1-dev libssl-dev \
+    libass-dev libv4l-dev libpulse-dev libuchardet-dev libva-dev libvdpau-dev libgl1-mesa-dev \
   && rm -rf /var/lib/apt/lists/* /usr/share/man/*
 
 RUN adduser --gecos '' --disabled-password kylin \

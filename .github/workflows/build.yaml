@@ -30,8 +30,8 @@ on:
       flatpak:
         description: build linux flatpak
         type: boolean
-      switchroot:
-        description: build switchroot ubuntu
+      deb:
+        description: build ubuntu deb
         type: boolean
       mingw64:
         description: build win64 mingw64
@@ -57,7 +57,7 @@ jobs:
           [[ -d $p ]] && 7z a -mx=9 $p.7z ./$p/*
         done
     - name: Release and Upload Assets
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         name: Switchfin ${{ github.ref_name }}
         tag_name: ${{ github.ref_name }}
@@ -160,7 +160,7 @@ jobs:
       matrix:
         release: [ switchroot-bionic, ubuntu-focal, kylin-v10 ]
     runs-on: ubuntu-latest
-    if: ${{ inputs.switchroot }}
+    if: ${{ inputs.deb }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -257,7 +257,7 @@ jobs:
         submodules: recursive
     - name: Install dependency
       run: |
-        for pkg in glfw-3.4.0-1 curl-8.6.0-1 mpv-0.36.0-4 libwebp-1.3.2-1; do
+        for pkg in glfw-3.5.0-1 curl-8.6.0-1 mpv-0.36.0-4 libwebp-1.3.2-1; do
           curl -sLO https://github.com/dragonflylee/switchfin/releases/download/mingw-packages/${MINGW_PACKAGE_PREFIX}-${pkg}-any.pkg.tar.zst
         done
         pacman -U --noconfirm *.pkg.tar.zst

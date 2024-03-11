@@ -1,12 +1,12 @@
 diff --git a/configure b/configure
-index f494da204c..ac2da3a74c 100755
+index f494da204c..99e9916302 100755
 --- a/configure
 +++ b/configure
 @@ -351,6 +351,7 @@ External library support:
    --disable-vdpau          disable Nvidia Video Decode and Presentation API for Unix code [autodetect]
    --disable-videotoolbox   disable VideoToolbox code [autodetect]
    --disable-vulkan         disable Vulkan code [autodetect]
-+  --enable-nvtegra         enable nvtegra video decoding
++  --enable-nvtegra         enable nvtegra video decoding [no]
  
  Toolchain options:
    --arch=ARCH              select architecture [$arch]
@@ -506,10 +506,10 @@ index 97aec68981..fe65ecb7df 100644
                             },
 diff --git a/libavcodec/nvtegra_decode.c b/libavcodec/nvtegra_decode.c
 new file mode 100644
-index 0000000000..8a20969b6d
+index 0000000000..7ad838f6ae
 --- /dev/null
 +++ b/libavcodec/nvtegra_decode.c
-@@ -0,0 +1,448 @@
+@@ -0,0 +1,437 @@
 +/*
 + * Copyright (c) 2024 averne <averne381@gmail.com>
 + *
@@ -869,26 +869,15 @@ index 0000000000..8a20969b6d
 +    if (end_sequence_size)
 +        memcpy(mem + ctx->bitstream_off + ctx->bitstream_len, end_sequence, end_sequence_size);
 +
-+    /* Insert syncpt increment to signal the end of the decoding */
 +    err = av_nvtegra_cmdbuf_begin(&ctx->cmdbuf, !ctx->is_nvjpg ? HOST1X_CLASS_NVDEC : HOST1X_CLASS_NVJPG);
 +    if (err < 0)
 +        return err;
 +
-+    err = av_nvtegra_cmdbuf_push_word(&ctx->cmdbuf, host1x_opcode_nonincr(NV_THI_INCR_SYNCPT, 1));
-+    if (err < 0)
-+        return err;
-+
-+    err = av_nvtegra_cmdbuf_push_word(&ctx->cmdbuf,
-+                                      AV_NVTEGRA_VALUE(NV_THI_INCR_SYNCPT, INDX, ctx->channel->syncpt) |
-+                                      AV_NVTEGRA_ENUM (NV_THI_INCR_SYNCPT, COND, OP_DONE));
++    err = av_nvtegra_cmdbuf_add_syncpt_incr(&ctx->cmdbuf, ctx->channel->syncpt, 0);
 +    if (err < 0)
 +        return err;
 +
 +    err = av_nvtegra_cmdbuf_end(&ctx->cmdbuf);
-+    if (err < 0)
-+        return err;
-+
-+    err = av_nvtegra_cmdbuf_add_syncpt_incr(&ctx->cmdbuf, ctx->channel->syncpt, 1, 0);
 +    if (err < 0)
 +        return err;
 +
@@ -1059,7 +1048,7 @@ index 0000000000..4835439c89
 +#endif /* AVCODEC_NVTEGRA_H */
 diff --git a/libavcodec/nvtegra_h264.c b/libavcodec/nvtegra_h264.c
 new file mode 100644
-index 0000000000..90ea346443
+index 0000000000..753d3635f4
 --- /dev/null
 +++ b/libavcodec/nvtegra_h264.c
 @@ -0,0 +1,509 @@
@@ -1249,7 +1238,7 @@ index 0000000000..90ea346443
 +}
 +
 +static inline int find_slot(uint64_t *mask) {
-+    int slot = __builtin_ctzll(~*mask);
++    int slot = ff_ctzll(~*mask);
 +    *mask |= (1 << slot);
 +    return slot;
 +}
@@ -1574,7 +1563,7 @@ index 0000000000..90ea346443
 +#endif
 diff --git a/libavcodec/nvtegra_hevc.c b/libavcodec/nvtegra_hevc.c
 new file mode 100644
-index 0000000000..c3dd68e668
+index 0000000000..9d543deb0d
 --- /dev/null
 +++ b/libavcodec/nvtegra_hevc.c
 @@ -0,0 +1,633 @@
@@ -1795,7 +1784,7 @@ index 0000000000..c3dd68e668
 +}
 +
 +static inline int find_slot(uint64_t *mask) {
-+    int slot = __builtin_ctzll(~*mask);
++    int slot = ff_ctzll(~*mask);
 +    *mask |= (1 << slot);
 +    return slot;
 +}
@@ -5777,7 +5766,7 @@ index 0000000000..cefa634164
 +#endif
 +#endif // _cle7d0_h
 diff --git a/libavutil/cpu.c b/libavutil/cpu.c
-index 1e0607d581..c5023d7295 100644
+index 1e0607d581..0fdef1e8e8 100644
 --- a/libavutil/cpu.c
 +++ b/libavutil/cpu.c
 @@ -48,6 +48,9 @@
@@ -5797,7 +5786,7 @@ index 1e0607d581..c5023d7295 100644
 +#ifdef __SWITCH__
 +    u64 core_mask = 0;
 +    Result rc = svcGetInfo(&core_mask, InfoType_CoreMask, CUR_PROCESS_HANDLE, 0);
-+    nb_cpus = R_SUCCEEDED(rc) ? __builtin_popcountll(core_mask) : 3;
++    nb_cpus = R_SUCCEEDED(rc) ? av_popcount64(core_mask) : 3;
 +#endif
 +
      if (!atomic_exchange_explicit(&printed, 1, memory_order_relaxed))
@@ -5850,10 +5839,10 @@ index e6266494ac..d0fab2a950 100644
  #endif /* AVUTIL_HWCONTEXT_INTERNAL_H */
 diff --git a/libavutil/hwcontext_nvtegra.c b/libavutil/hwcontext_nvtegra.c
 new file mode 100644
-index 0000000000..e553c1bea9
+index 0000000000..c381af1cdb
 --- /dev/null
 +++ b/libavutil/hwcontext_nvtegra.c
-@@ -0,0 +1,1244 @@
+@@ -0,0 +1,1043 @@
 +/*
 + * Copyright (c) 2024 averne <averne381@gmail.com>
 + *
@@ -5907,94 +5896,6 @@ index 0000000000..e553c1bea9
 +    int dfs_cur_sample, dfs_num_samples;
 +    int64_t dfs_sampling_start_ts, dfs_last_ts_delta;
 +} NVTegraDevicePriv;
-+
-+/* 3x3 color conversion matrix plus 1x3 color offsets */
-+static float mat_rgb_to_ycbcr_bt601lim[3][4] = {
-+    { 0.25678825,  0.5041294,   0.09790588, 0.0627451 },
-+    {-0.1482229,  -0.2909928,   0.4392157,  0.50196075},
-+    { 0.4392157,  -0.3677883,  -0.07142737, 0.50196075},
-+};
-+
-+static float mat_rgb_to_ycbcr_bt601full[3][4] = {
-+    { 0.29899999,  0.587,       0.114,      0.0       },
-+    {-0.16873589, -0.3312641,   0.5,        0.50196075},
-+    { 0.5,        -0.41868758, -0.08131241, 0.50196075},
-+};
-+
-+static float mat_rgb_to_ycbcr_bt709lim[3][4] = {
-+    { 0.18258588,  0.6142306,   0.06200706, 0.0627451 },
-+    {-0.10064201, -0.33856615,  0.43920815, 0.50196075},
-+    { 0.4392148,  -0.39894137, -0.04027344, 0.50196075},
-+};
-+
-+static float mat_rgb_to_ycbcr_bt709full[3][4] = {
-+    { 0.21259999,  0.7152,      0.0722,     0.0       },
-+    {-0.11457014, -0.38542128,  0.49999142, 0.50196075},
-+    { 0.49999899, -0.45415199, -0.04584699, 0.50196075},
-+};
-+
-+static float mat_rgb_to_ycbcr_bt2020lim[3][4] = {
-+    { 0.22561294,  0.58228236,  0.05092824, 0.0627451 },
-+    {-0.12265543, -0.31656027,  0.4392157,  0.50196075},
-+    { 0.4392157,  -0.4038902,  -0.0353255,  0.50196075},
-+};
-+
-+/* Note: not dumped from official code */
-+static float mat_rgb_to_ycbcr_bt2020full[3][4] = {
-+    { 0.2627,      0.678,       0.0593,     0.0       },
-+    {-0.13963006, -0.36036994,  0.5,        0.50196075},
-+    { 0.5,        -0.4597857,  -0.0402143,  0.50196075},
-+};
-+
-+static float mat_ycbcr_bt601lim_to_rgb[3][4] = {
-+    {1.1643835,  0.0,         1.5960268,  -0.8742022},
-+    {1.1643835, -0.3917623,  -0.81296766,  0.5316678},
-+    {1.1643835,  2.0172322,   0.0,        -1.0856308},
-+};
-+
-+static float mat_ycbcr_bt601full_to_rgb[3][4] = {
-+    {1.0,        0.0,         1.402,      -0.703749 },
-+    {1.0,       -0.3441363,  -0.7141363,   0.5312113},
-+    {1.0,        1.772,       0.0,        -0.8894745},
-+};
-+
-+static float mat_ycbcr_bt709lim_to_rgb[3][4] = {
-+    {1.1643835,  0.0,         1.7927446,  -0.9729469},
-+    {1.1643835, -0.21325228, -0.5329104,   0.3014850},
-+    {1.1643835,  2.112438,    0.0,        -1.1334205},
-+};
-+
-+static float mat_ycbcr_bt709full_to_rgb[3][4] = {
-+    {1.0,        0.0,         1.5748031,  -0.7904894},
-+    {1.0,       -0.18732749, -0.46812522,  0.3290116},
-+    {1.0,        1.8556318,   0.0,        -0.9314544},
-+};
-+
-+static float mat_ycbcr_bt2020lim_to_rgb[3][4] = {
-+    {1.1643835,  0.0,         1.6786741,  -0.9156879},
-+    {1.1643835, -0.1873261,  -0.6504243,   0.3474585},
-+    {1.1643835,  2.1417723,   0.0,        -1.1481451},
-+};
-+
-+/* Note: not dumped from official code */
-+static float mat_ycbcr_bt2020full_to_rgb[3][4] = {
-+    {1.0,        0.0,         1.4746,     -0.7401914},
-+    {1.0,       -0.16455313, -0.57135313,  0.3693961},
-+    {1.0,        1.8814,      0.0,        -0.9443890},
-+};
-+
-+/* Colorspace rotation matrices */
-+static float mat_colorgamut_bt709_to_2020[3][4] = {
-+    { 0.6274039,   0.32928303, 0.04331307, 0.0},
-+    { 0.06909729,  0.9195404,  0.01136232, 0.0},
-+    { 0.01639144,  0.08801331, 0.89559525, 0.0},
-+};
-+
-+static float mat_colorgamut_bt2020_to_bt709[3][4] = {
-+    { 1.660491,   -0.5876411, -0.07284986, 0.0},
-+    {-0.12455047,  1.1328999, -0.00834942, 0.0},
-+    {-0.01815076, -0.1005789,  1.1187297,  0.0},
-+};
 +
 +static const enum AVPixelFormat supported_sw_formats[] = {
 +    AV_PIX_FMT_GRAY8,
@@ -6196,22 +6097,11 @@ index 0000000000..e553c1bea9
 +    av_log(ctx, AV_LOG_DEBUG, "Creating NVTEGRA device\n");
 +
 +    priv->driver_state_ref = av_nvtegra_driver_init();
-+    if (!priv->driver_state_ref)
++    if (!priv->driver_state_ref) {
++        av_log(ctx, AV_LOG_ERROR, "Failed to create driver context, "
++                                  "make sure you are using a Tegra device\n");
 +        return AVERROR(ENOSYS);
-+
-+    return 0;
-+}
-+
-+static int nvtegra_device_derive(AVHWDeviceContext *dst_ctx,
-+                                 AVHWDeviceContext *src_ctx,
-+                                 AVDictionary *opts, int flags)
-+{
-+
-+    NVTegraDevicePriv *src_priv = src_ctx->internal->priv, *dst_priv = dst_ctx->internal->priv;
-+
-+    dst_priv->driver_state_ref = av_buffer_ref(src_priv->driver_state_ref);
-+    if (!dst_priv->driver_state_ref)
-+        return AVERROR(ENOMEM);
++    }
 +
 +    return 0;
 +}
@@ -6622,30 +6512,6 @@ index 0000000000..e553c1bea9
 +    return 0;
 +}
 +
-+static inline int pack_to_fixed_point(float val, bool sign, int integer, int fractional) {
-+    return (int)(val * (1 << fractional) + 0.5f) &
-+        ((1 << sign + integer + fractional) - 1);
-+}
-+
-+static void set_matrix_struct(VicMatrixStruct *dst, float src[3][4],
-+                              bool sign, int integer, int fractional)
-+{
-+    dst->matrix_enable  = 1;
-+    dst->matrix_r_shift = fractional - 8;
-+    dst->matrix_coeff00 = pack_to_fixed_point(src[0][0], sign, integer, fractional);
-+    dst->matrix_coeff10 = pack_to_fixed_point(src[1][0], sign, integer, fractional);
-+    dst->matrix_coeff20 = pack_to_fixed_point(src[2][0], sign, integer, fractional);
-+    dst->matrix_coeff01 = pack_to_fixed_point(src[0][1], sign, integer, fractional);
-+    dst->matrix_coeff11 = pack_to_fixed_point(src[1][1], sign, integer, fractional);
-+    dst->matrix_coeff21 = pack_to_fixed_point(src[2][1], sign, integer, fractional);
-+    dst->matrix_coeff02 = pack_to_fixed_point(src[0][2], sign, integer, fractional);
-+    dst->matrix_coeff12 = pack_to_fixed_point(src[1][2], sign, integer, fractional);
-+    dst->matrix_coeff22 = pack_to_fixed_point(src[2][2], sign, integer, fractional);
-+    dst->matrix_coeff03 = (int)(src[0][3] * 0x3ff00 + 0.5f);
-+    dst->matrix_coeff13 = (int)(src[1][3] * 0x3ff00 + 0.5f);
-+    dst->matrix_coeff23 = (int)(src[2][3] * 0x3ff00 + 0.5f);
-+}
-+
 +static void nvtegra_vic_preprare_config(VicConfigStruct *config, const AVFrame *src, const AVFrame *dst,
 +                                        enum AVPixelFormat fmt, bool is_16b_chroma)
 +{
@@ -6737,64 +6603,6 @@ index 0000000000..e553c1bea9
 +            },
 +        },
 +    };
-+
-+    /* Disabled for now, applications will handle colorspace conversion themselves */
-+    if (false && ((desc->flags & AV_PIX_FMT_FLAG_RGB) || (src->colorspace != dst->colorspace))) {
-+        float (*src_mat)[4] = NULL, (*dst_mat)[4] = NULL, (*src_gamut_mat)[4] = NULL;
-+
-+        switch (src->colorspace) {
-+            case AVCOL_SPC_SMPTE170M:
-+            default:
-+                /* Assume bt601 */
-+                src_mat = (src->color_range == AVCOL_RANGE_MPEG) ?
-+                    mat_ycbcr_bt601lim_to_rgb  : mat_ycbcr_bt601full_to_rgb;
-+                break;
-+            case AVCOL_SPC_BT709:
-+                config->slotStruct[0].slotConfig.DegammaMode =
-+                    config->outputConfig.RegammaMode = 2; /* bt709 gamma curve */
-+                src_mat = (src->color_range == AVCOL_RANGE_MPEG) ?
-+                    mat_ycbcr_bt709lim_to_rgb  : mat_ycbcr_bt709full_to_rgb;
-+                break;
-+            case AVCOL_SPC_BT2020_CL:
-+            case AVCOL_SPC_BT2020_NCL:
-+                config->slotStruct[0].slotConfig.DegammaMode =
-+                    config->outputConfig.RegammaMode = 2; /* Nothing available for bt2020 */
-+                src_mat = (src->color_range == AVCOL_RANGE_MPEG) ?
-+                    mat_ycbcr_bt2020lim_to_rgb : mat_ycbcr_bt2020full_to_rgb;
-+                src_gamut_mat = mat_colorgamut_bt2020_to_bt709;
-+                break;
-+        }
-+
-+        switch (dst->colorspace) {
-+            case AVCOL_SPC_SMPTE170M:
-+            default:
-+                dst_mat = (dst->color_range == AVCOL_RANGE_MPEG) ?
-+                    mat_rgb_to_ycbcr_bt601lim  : mat_rgb_to_ycbcr_bt601full;
-+                break;
-+            case AVCOL_SPC_BT709:
-+                dst_mat = (dst->color_range == AVCOL_RANGE_MPEG) ?
-+                    mat_rgb_to_ycbcr_bt709lim  : mat_rgb_to_ycbcr_bt709full;
-+                break;
-+            case AVCOL_SPC_BT2020_CL:
-+            case AVCOL_SPC_BT2020_NCL:
-+                dst_mat = (dst->color_range == AVCOL_RANGE_MPEG) ?
-+                    mat_rgb_to_ycbcr_bt2020lim : mat_rgb_to_ycbcr_bt2020full;
-+                src_gamut_mat = mat_colorgamut_bt709_to_2020;
-+                break;
-+        }
-+
-+        if (desc->flags & AV_PIX_FMT_FLAG_RGB)
-+            dst_mat = NULL;
-+
-+        if (src_mat)
-+            set_matrix_struct(&config->slotStruct[0].colorMatrixStruct, src_mat, true, 2, 17);
-+
-+        if (src_gamut_mat)
-+            set_matrix_struct(&config->slotStruct[0].gamutMatrixStruct, src_gamut_mat, true, 1, 18);
-+
-+        if (dst_mat)
-+            set_matrix_struct(&config->outColorMatrixStruct, dst_mat, true, 0, 19);
-+    }
 +}
 +
 +static int nvtegra_vic_prepare_cmdbuf(AVHWFramesContext *ctx, AVNVTegraJobPool *pool, AVNVTegraJob *job,
@@ -6874,30 +6682,11 @@ index 0000000000..e553c1bea9
 +    AV_NVTEGRA_PUSH_VALUE(cmdbuf, NVB0B6_VIDEO_COMPOSITOR_EXECUTE,
 +                          AV_NVTEGRA_ENUM(NVB0B6_VIDEO_COMPOSITOR_EXECUTE, AWAKEN, ENABLE));
 +
-+    err = av_nvtegra_cmdbuf_end(cmdbuf);
-+    if (err < 0)
-+        return err;
-+
-+    /* Insert syncpt increment to signal the end of the transfer */
-+    err = av_nvtegra_cmdbuf_begin(cmdbuf, HOST1X_CLASS_VIC);
-+    if (err < 0)
-+        return err;
-+
-+    err = av_nvtegra_cmdbuf_push_word(cmdbuf, host1x_opcode_nonincr(NV_THI_INCR_SYNCPT, 1));
-+    if (err < 0)
-+        return err;
-+
-+    err = av_nvtegra_cmdbuf_push_word(cmdbuf,
-+                                      AV_NVTEGRA_VALUE(NV_THI_INCR_SYNCPT, INDX, pool->channel->syncpt) |
-+                                      AV_NVTEGRA_ENUM (NV_THI_INCR_SYNCPT, COND, OP_DONE));
++    err = av_nvtegra_cmdbuf_add_syncpt_incr(cmdbuf, pool->channel->syncpt, 0);
 +    if (err < 0)
 +        return err;
 +
 +    err = av_nvtegra_cmdbuf_end(cmdbuf);
-+    if (err < 0)
-+        return err;
-+
-+    err = av_nvtegra_cmdbuf_add_syncpt_incr(cmdbuf, pool->channel->syncpt, 1, 0);
 +    if (err < 0)
 +        return err;
 +
@@ -7080,7 +6869,6 @@ index 0000000000..e553c1bea9
 +    .frames_priv_size       = 0,
 +
 +    .device_create          = &nvtegra_device_create,
-+    .device_derive          = &nvtegra_device_derive,
 +    .device_init            = &nvtegra_device_init,
 +    .device_uninit          = &nvtegra_device_uninit,
 +
@@ -10231,10 +10019,10 @@ index 0000000000..bc9b67dfcf
 +#endif /* __UAPI_LINUX_NVMAP_H */
 diff --git a/libavutil/nvtegra.c b/libavutil/nvtegra.c
 new file mode 100644
-index 0000000000..38c11d82c4
+index 0000000000..ad0bbbdfaa
 --- /dev/null
 +++ b/libavutil/nvtegra.c
-@@ -0,0 +1,1020 @@
+@@ -0,0 +1,1035 @@
 +/*
 + * Copyright (c) 2024 averne <averne381@gmail.com>
 + *
@@ -11022,7 +10810,7 @@ index 0000000000..38c11d82c4
 +int av_nvtegra_cmdbuf_push_value(AVNVTegraCmdbuf *cmdbuf, uint32_t offset, uint32_t word) {
 +    int err;
 +
-+    err = av_nvtegra_cmdbuf_push_word(cmdbuf, host1x_opcode_incr(NV_THI_METHOD0/4, 2));
++    err = av_nvtegra_cmdbuf_push_word(cmdbuf, host1x_opcode_incr(NV_THI_METHOD0>>2, 2));
 +    if (err < 0)
 +        return err;
 +
@@ -11086,6 +10874,22 @@ index 0000000000..38c11d82c4
 +#endif
 +}
 +
++int av_nvtegra_cmdbuf_push_syncpt_incr(AVNVTegraCmdbuf *cmdbuf, uint32_t syncpt) {
++    int err;
++
++    err = av_nvtegra_cmdbuf_push_word(cmdbuf, host1x_opcode_nonincr(NV_THI_INCR_SYNCPT>>2, 1));
++    if (err < 0)
++        return err;
++
++    err = av_nvtegra_cmdbuf_push_word(cmdbuf,
++                                      AV_NVTEGRA_VALUE(NV_THI_INCR_SYNCPT, INDX, syncpt) |
++                                      AV_NVTEGRA_ENUM (NV_THI_INCR_SYNCPT, COND, OP_DONE));
++    if (err < 0)
++        return err;
++
++    return 0;
++}
++
 +int av_nvtegra_cmdbuf_push_wait(AVNVTegraCmdbuf *cmdbuf, uint32_t syncpt, uint32_t fence) {
 +    int err;
 +
@@ -11093,7 +10897,7 @@ index 0000000000..38c11d82c4
 +    if (err < 0)
 +        return err;
 +
-+    err = av_nvtegra_cmdbuf_push_word(cmdbuf, host1x_opcode_mask(NV_CLASS_HOST_LOAD_SYNCPT_PAYLOAD,
++    err = av_nvtegra_cmdbuf_push_word(cmdbuf, host1x_opcode_mask(NV_CLASS_HOST_LOAD_SYNCPT_PAYLOAD>>2,
 +                                      (1<<(NV_CLASS_HOST_LOAD_SYNCPT_PAYLOAD - NV_CLASS_HOST_LOAD_SYNCPT_PAYLOAD)) |
 +                                      (1<<(NV_CLASS_HOST_WAIT_SYNCPT         - NV_CLASS_HOST_LOAD_SYNCPT_PAYLOAD))));
 +    if (err < 0)
@@ -11110,8 +10914,7 @@ index 0000000000..38c11d82c4
 +    return 0;
 +}
 +
-+int av_nvtegra_cmdbuf_add_syncpt_incr(AVNVTegraCmdbuf *cmdbuf, uint32_t syncpt,
-+                                      uint32_t num_incrs, uint32_t fence)
++int av_nvtegra_cmdbuf_add_syncpt_incr(AVNVTegraCmdbuf *cmdbuf, uint32_t syncpt, uint32_t fence)
 +{
 +    void *tmp1;
 +#ifndef __SWITCH__
@@ -11137,7 +10940,7 @@ index 0000000000..38c11d82c4
 +
 +    cmdbuf->syncpt_incrs[cmdbuf->num_syncpt_incrs] = (struct nvhost_syncpt_incr){
 +        .syncpt_id    = syncpt,
-+        .syncpt_incrs = num_incrs,
++        .syncpt_incrs = 1,
 +    };
 +
 +#ifndef __SWITCH__
@@ -11146,7 +10949,7 @@ index 0000000000..38c11d82c4
 +
 +    cmdbuf->num_syncpt_incrs++;
 +
-+    return 0;
++    return av_nvtegra_cmdbuf_push_syncpt_incr(cmdbuf, syncpt);
 +}
 +
 +int av_nvtegra_cmdbuf_add_waitchk(AVNVTegraCmdbuf *cmdbuf, uint32_t syncpt, uint32_t fence) {
@@ -11257,7 +11060,7 @@ index 0000000000..38c11d82c4
 +}
 diff --git a/libavutil/nvtegra.h b/libavutil/nvtegra.h
 new file mode 100644
-index 0000000000..fa325c93fd
+index 0000000000..3b63335d6c
 --- /dev/null
 +++ b/libavutil/nvtegra.h
 @@ -0,0 +1,258 @@
@@ -11452,9 +11255,9 @@ index 0000000000..fa325c93fd
 +int av_nvtegra_cmdbuf_push_value(AVNVTegraCmdbuf *cmdbuf, uint32_t offset, uint32_t word);
 +int av_nvtegra_cmdbuf_push_reloc(AVNVTegraCmdbuf *cmdbuf, uint32_t offset, AVNVTegraMap *target, uint32_t target_offset,
 +                                 int reloc_type, int shift);
++int av_nvtegra_cmdbuf_push_syncpt_incr(AVNVTegraCmdbuf *cmdbuf, uint32_t syncpt);
 +int av_nvtegra_cmdbuf_push_wait(AVNVTegraCmdbuf *cmdbuf, uint32_t syncpt, uint32_t fence);
-+int av_nvtegra_cmdbuf_add_syncpt_incr(AVNVTegraCmdbuf *cmdbuf, uint32_t syncpt, uint32_t
-+                                      num_incrs, uint32_t fence);
++int av_nvtegra_cmdbuf_add_syncpt_incr(AVNVTegraCmdbuf *cmdbuf, uint32_t syncpt, uint32_t fence);
 +int av_nvtegra_cmdbuf_add_waitchk(AVNVTegraCmdbuf *cmdbuf, uint32_t syncpt, uint32_t fence);
 +
 +/*
@@ -11521,7 +11324,7 @@ index 0000000000..fa325c93fd
 +#endif /* AVUTIL_NVTEGRA_H */
 diff --git a/libavutil/nvtegra_host1x.h b/libavutil/nvtegra_host1x.h
 new file mode 100644
-index 0000000000..87139d3e90
+index 0000000000..25e37eae61
 --- /dev/null
 +++ b/libavutil/nvtegra_host1x.h
 @@ -0,0 +1,94 @@
@@ -11587,8 +11390,8 @@ index 0000000000..87139d3e90
 +    return (4 << 28) | (offset << 16) | value;
 +}
 +
-+#define NV_CLASS_HOST_LOAD_SYNCPT_PAYLOAD                                  (0x0000004e)
-+#define NV_CLASS_HOST_WAIT_SYNCPT                                          (0x00000050)
++#define NV_CLASS_HOST_LOAD_SYNCPT_PAYLOAD                                  (0x00000138)
++#define NV_CLASS_HOST_WAIT_SYNCPT                                          (0x00000140)
 +
 +#define NV_THI_INCR_SYNCPT                                                 (0x00000000)
 +#define NV_THI_INCR_SYNCPT_INDX                                            7:0

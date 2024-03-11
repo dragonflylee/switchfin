@@ -13,5 +13,6 @@ Depends: libdbus-1-3,
          libv4l-0,
          libva-drm1,
          libva-glx1,
+         libvdpau1,
          libx11-6
 Description: Third-party native Jellyfin client for Nintendo Switch

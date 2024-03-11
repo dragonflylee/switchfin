@@ -28,7 +28,7 @@ jobs:
     - name: Package deps
       run: tar zcf ${{ matrix.release }}.tar.gz switchfin/include switchfin/lib 
     - name: Upload deps
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         name: switch-portlibs
         tag_name: switch-portlibs

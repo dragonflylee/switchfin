@@ -11,6 +11,7 @@ wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.4.0/dav1d-1.4.0.ta
 wget -qO- https://ffmpeg.org/releases/ffmpeg-6.1.1.tar.xz | tar Jxf - -C /tmp
 wget -qO- https://github.com/mpv-player/mpv/archive/v0.36.0.tar.gz | tar zxf - -C /tmp
 git clone https://github.com/dragonflylee/glfw.git -b switchfin --depth=1 /tmp/glfw
+git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git -b n12.1.14.0 --depth=1 /tmp/nv-codec-headers
 
 cd /tmp/curl-8.6.0
 cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
@@ -25,6 +26,8 @@ meson setup build --prefix=$CMAKE_PREFIX_PATH --libdir=lib --buildtype=release -
   -Ddebug=false -Denable_tools=false -Denable_examples=false -Denable_tests=false -Denable_docs=false
 meson compile -C build
 meson install -C build
+
+make PREFIX=$CMAKE_PREFIX_PATH -C /tmp/nv-codec-headers install
 
 cd /tmp/ffmpeg-6.1.1
 ./configure --prefix=$CMAKE_PREFIX_PATH --enable-shared --disable-static \
