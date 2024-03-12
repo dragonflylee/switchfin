@@ -14,6 +14,7 @@
 #include "view/video_view.hpp"
 #include "view/selector_cell.hpp"
 #include "view/button_close.hpp"
+#include "view/text_box.hpp"
 
 #include "activity/main_activity.hpp"
 #include "activity/server_list.hpp"
@@ -64,6 +65,7 @@ int main(int argc, char* argv[]) {
     brls::Application::registerXMLView("SVGImage", SVGImage::create);
     brls::Application::registerXMLView("CustomButton", CustomButton::create);
     brls::Application::registerXMLView("SelectorCell", SelectorCell::create);
+    brls::Application::registerXMLView("TextBox", TextBox::create);
     brls::Application::registerXMLView("ButtonClose", ButtonClose::create);
     brls::Application::registerXMLView("AutoTabFrame", AutoTabFrame::create);
     brls::Application::registerXMLView("RecyclingGrid", RecyclingGrid::create);

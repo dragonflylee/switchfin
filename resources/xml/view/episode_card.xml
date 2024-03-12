@@ -39,6 +39,7 @@
 
     <brls:Box
         axis="column"
+        width="530"
         marginLeft="20">
         <brls:Label
             id="episode/card/name"
@@ -46,10 +47,9 @@
             singleLine="true"
             fontSize="18" />
 
-        <brls:Label
+        <TextBox
             id="episode/card/overview"
             fontSize="15"
-            animated="false"
             textColor="@theme/font/grey" />
     </brls:Box>
 
