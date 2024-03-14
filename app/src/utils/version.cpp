@@ -4,6 +4,8 @@
 #include <filesystem>
 #elif defined(__APPLE__)
 #include <SystemConfiguration/SystemConfiguration.h>
+#elif defined(__linux__)
+#include <borealis/platforms/desktop/steam_deck.hpp>
 #endif
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
@@ -27,6 +29,7 @@ std::string AppVersion::getPlatform() {
 #elif defined(__APPLE__)
     return "macOS";
 #elif defined(__linux__)
+    if (getenv("SteamDeck")) return "SteamDeck";
     return "Linux";
 #elif defined(_WIN32)
     return "Windows";

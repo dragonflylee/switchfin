@@ -2,7 +2,7 @@ name: build
 
 on:
   push:
-    tags-ignore: 
+    tags-ignore:
     - switch-portlibs
     - mingw-packages
     - macos-dylib
@@ -27,8 +27,8 @@ on:
       macos:
         description: build macos dmg
         type: boolean
-      flatpak:
-        description: build linux flatpak
+      arm_flatpak:
+        description: build flatpak (aarch64)
         type: boolean
       deb:
         description: build ubuntu deb
@@ -129,18 +129,24 @@ jobs:
 
   build-flatpak:
     runs-on: ubuntu-latest
-    if: ${{ inputs.flatpak || github.event_name != 'workflow_dispatch' }}
     strategy:
       fail-fast: false
       matrix:
-        arch: [ x86_64 ]
+        arch: [ x86_64, aarch64 ]
     container:
       image: bilelmoussaoui/flatpak-github-actions:freedesktop-22.08
       options: --privileged
+    if: ${{ inputs.arm_flatpak }}
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
+    - name: Install docker
+      if: ${{ matrix.arch == 'aarch64' }}
+      run: dnf -y install docker
+    - name: Set up QEMU
+      if: ${{ matrix.arch == 'aarch64' }}
+      uses: docker/setup-qemu-action@v3
     - name: Set workspace permissions
       run: git config --system --add safe.directory '*'
     - name: Set outputs
@@ -166,6 +172,7 @@ jobs:
       with:
         submodules: recursive
     - name: Set up QEMU
+      if: ${{ matrix.release != 'ubuntu-focal' }}
       uses: docker/setup-qemu-action@v3
     - name: Download deps
       run: curl -sSL https://github.com/dragonflylee/switchfin/releases/download/switch-portlibs/${{ matrix.release }}.tar.gz | tar zxf -

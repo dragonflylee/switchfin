@@ -1,6 +1,6 @@
 app-id: org.player.switchfin
 runtime: org.freedesktop.Platform
-runtime-version: '23.08'
+runtime-version: "23.08"
 sdk: org.freedesktop.Sdk
 command: Switchfin
 finish-args:
@@ -19,9 +19,11 @@ finish-args:
   # https://github.com/mpv-player/mpv/blob/master/libmpv/client.h#L147-L149
   # will remove it when next version release
   - --env=LC_NUMERIC=C
+  # control steam client
+  - --filesystem=~/.steam
 cleanup:
-  - '*.a'
-  - '*.la'
+  - "*.a"
+  - "*.la"
   - /include
   - /lib/cmake
   - /lib/pkgconfig
@@ -31,7 +33,7 @@ cleanup:
 add-extensions:
   org.freedesktop.Platform.ffmpeg-full:
     directory: lib/ffmpeg
-    version: '23.08'
+    version: "23.08"
     add-ld-path: "."
 
 modules:
@@ -72,8 +74,8 @@ modules:
           - --disable-static
         sources:
           - type: archive
-            url: 'https://github.com/libass/libass/releases/download/0.17.1/libass-0.17.1.tar.gz'
-            sha256: 'd653be97198a0543c69111122173c41a99e0b91426f9e17f06a858982c2fb03d'
+            url: https://github.com/libass/libass/releases/download/0.17.1/libass-0.17.1.tar.gz
+            sha256: d653be97198a0543c69111122173c41a99e0b91426f9e17f06a858982c2fb03d
             x-checker-data:
               type: anitya
               project-id: 1560
@@ -118,6 +120,22 @@ modules:
           - type: archive
             url: https://ffmpeg.org/releases/ffmpeg-6.1.1.tar.xz
             sha256: 8684f4b00f94b85461884c3719382f1261f0d9eb3d59640a1f4ac0873616f968
+        modules:
+          - name: nv-codec-headers
+            cleanup:
+              - "*"
+            no-autogen: true
+            make-install-args:
+              - PREFIX=/app
+            sources:
+              - type: archive
+                url: https://github.com/FFmpeg/nv-codec-headers/archive/n12.1.14.0.tar.gz
+                sha256: 2fefaa227d2a3b4170797796425a59d1dd2ed5fd231db9b4244468ba327acd0b
+                x-checker-data:
+                  type: anitya
+                  project-id: 223796
+                  stable-only: true
+                  url-template: https://github.com/FFmpeg/nv-codec-headers/archive/n$version.tar.gz
 
   - name: glfw
     buildsystem: cmake-ninja
@@ -133,7 +151,7 @@ modules:
       - type: git
         url: https://github.com/dragonflylee/glfw.git
         branch: switchfin
-  
+
   - name: switchfin
     buildsystem: cmake-ninja
     config-opts:
@@ -144,4 +162,4 @@ modules:
     builddir: true
     sources:
       - type: dir
-        path: '..'
+        path: ".."

@@ -22,6 +22,7 @@ jobs:
       with:
         sparse-checkout: scripts
     - name: Set up QEMU
+      if: ${{ matrix.release != 'ubuntu-focal' }}
       uses: docker/setup-qemu-action@v3
     - name: Build deps
       run: docker run --rm -u $(id -u):$(id -g) -v $PWD:/opt -w /opt dragonflylee/build:${{ matrix.release }} bash scripts/deb/${{ matrix.release }}/deps.sh
