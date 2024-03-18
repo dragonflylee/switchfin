@@ -51,7 +51,7 @@ brls::View* HomeTab::create() { return new HomeTab(); }
 
 void HomeTab::doResume() {
     std::string query = HTTP::encode_form({
-        {"enableImageTypes", "Primary"},
+        {"enableImageTypes", "Primary,Backdrop,Thumb"},
         {"mediaTypes", "Video"},
         {"fields", "BasicSyncInfo,Chapters"},
         {"limit", std::to_string(this->pageSize)},

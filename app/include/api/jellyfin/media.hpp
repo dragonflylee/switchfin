@@ -16,10 +16,12 @@ const std::string apiShowEpisodes = "/Shows/{}/Episodes?{}";
 const std::string apiUserImage = "/Users/{}/Images/Primary?format=Webp&{}";
 const std::string apiPrimaryImage = "/Items/{}/Images/Primary?format=Webp&{}";
 const std::string apiLogoImage = "/Items/{}/Images/Logo?format=Webp&{}";
+const std::string apiBackdropImage = "/Items/{}/Images/Backdrop?format=Webp&{}";
 #else
 const std::string apiUserImage = "/Users/{}/Images/Primary?format=Png&{}";
 const std::string apiPrimaryImage = "/Items/{}/Images/Primary?format=Png&{}";
 const std::string apiLogoImage = "/Items/{}/Images/Logo?format=Png&{}";
+const std::string apiBackdropImage = "/Items/{}/Images/Backdrop?format=Png&{}";
 #endif
 
 const std::string apiPlayback = "/Items/{}/PlaybackInfo";
@@ -150,11 +152,13 @@ struct MediaEpisode : public MediaSeason {
     std::string SeriesId;
     std::string SeriesName;
     std::string SeriesPrimaryImageTag;
+    std::string ParentBackdropItemId;
+    std::vector<std::string> ParentBackdropImageTags;
     std::vector<MediaSource> MediaSources;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaEpisode, Id, Name, Type, ImageTags, IsFolder, ProductionYear,
     UserData, Chapters, RunTimeTicks, IndexNumber, ParentIndexNumber, Overview, SeriesId, SeriesName,
-    SeriesPrimaryImageTag, MediaSources);
+    SeriesPrimaryImageTag, ParentBackdropItemId, ParentBackdropImageTags, MediaSources);
 
 struct MusicAlbum : public MediaItem {
     std::string AlbumArtist;
