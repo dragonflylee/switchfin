@@ -65,7 +65,6 @@ bool ServerAdd::onConnect() {
                 brls::Application::unblockInputs();
                 this->dismiss(this->cbConnected);
                 this->present(view);
-                brls::sync([view]() { brls::Application::giveFocus(view); });
             });
         } catch (const std::exception& ex) {
             std::string msg = ex.what();

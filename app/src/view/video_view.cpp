@@ -122,7 +122,6 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
     /// 长按加速
     this->addGestureRecognizer(
         new brls::TapGestureRecognizer([this](brls::TapGestureStatus status, brls::Sound* soundToPlay) {
-            brls::Application::giveFocus(this);
             auto& mpv = MPVCore::instance();
             // 当长按时已经加速，则忽视此次加速
             switch (status.state) {
@@ -437,8 +436,6 @@ void VideoView::requestBrightness(float value) {
 void VideoView::showSetting() {
     brls::View* setting = new PlayerSetting(this->itemSource);
     brls::Application::pushActivity(new brls::Activity(setting));
-    // 手动将焦点赋给设置页面
-    brls::sync([setting]() { brls::Application::giveFocus(setting); });
 }
 
 void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::Style style, brls::FrameContext* ctx) {
@@ -951,7 +948,6 @@ bool VideoView::toggleSpeed() {
         [](int selected) { MPVCore::instance().setSpeed((200 - selected * 25) / 100.0f); },
         int(200 - MPVCore::instance().video_speed * 100) / 25);
     brls::Application::pushActivity(new brls::Activity(dropdown));
-    brls::sync([dropdown]() { brls::Application::giveFocus(dropdown); });
     return true;
 }
 
@@ -968,7 +964,6 @@ bool VideoView::toggleQuality() {
         },
         AppConfig::instance().getValueIndex(AppConfig::VIDEO_QUALITY));
     brls::Application::pushActivity(new brls::Activity(dropdown));
-    brls::sync([dropdown]() { brls::Application::giveFocus(dropdown); });
     return true;
 }
 
@@ -1019,9 +1014,6 @@ bool VideoView::toggleVolume(brls::View* view) {
     frame->setFooterVisibility(brls::Visibility::GONE);
     frame->setBackgroundColor(theme.getColor("brls/backdrop"));
     brls::Application::pushActivity(new brls::Activity(frame));
-
-    // 手动将焦点赋给音量组件
-    brls::sync([container]() { brls::Application::giveFocus(container); });
     return true;
 }
 

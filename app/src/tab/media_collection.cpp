@@ -40,7 +40,6 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
             this->saveFilter();
         });
         brls::Application::pushActivity(new brls::Activity(filter));
-        brls::sync([filter]() { brls::Application::giveFocus(filter); });
         return true;
     });
     this->recyclerSeries->registerCell("Cell", VideoCardCell::create);

@@ -58,7 +58,7 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
             selectedSubtitle = selected;
             mpv.setInt("sid", selected);
         });
-    } else if (subSource.size() > 0) {
+    } else if (subSource.size() > 1) {
         int value = 0;
         for (size_t i = 0; i < subStream.size(); i++)
             if (subStream[i] == selectedSubtitle) value = i;
