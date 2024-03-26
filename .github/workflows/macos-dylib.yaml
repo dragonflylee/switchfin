@@ -143,8 +143,8 @@ jobs:
         cmake --install build --strip
     - name: Build harfbuzz
       run: |
-        curl -sSL https://github.com/harfbuzz/harfbuzz/releases/download/8.3.0/harfbuzz-8.3.0.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/harfbuzz-8.3.0
+        curl -sSL https://github.com/harfbuzz/harfbuzz/releases/download/8.3.1/harfbuzz-8.3.1.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/harfbuzz-8.3.1
         meson setup build ${{ matrix.meson }} \
           --prefix=$CMAKE_PREFIX_PATH \
           --buildtype=release \
@@ -187,8 +187,8 @@ jobs:
         make install -j$(sysctl -n hw.ncpu)
     - name: Build dav1d
       run: |
-        curl -sSL https://downloads.videolan.org/pub/videolan/dav1d/1.4.0/dav1d-1.4.0.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/dav1d-1.4.0
+        curl -sSL https://downloads.videolan.org/pub/videolan/dav1d/1.4.1/dav1d-1.4.1.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/dav1d-1.4.1
         meson setup build ${{ matrix.meson }} \
           --prefix=$CMAKE_PREFIX_PATH \
           --buildtype=release \

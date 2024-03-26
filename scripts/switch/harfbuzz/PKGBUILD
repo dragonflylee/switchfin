@@ -1,7 +1,7 @@
 # Maintainer:  Mary Strodl <ipadlover8322@gmail.com>
 # Update the lib to 8.0.1
 pkgname=switch-harfbuzz
-pkgver=8.3.0
+pkgver=8.3.1
 pkgrel=1
 pkgdesc='HarfBuzz is a text shaping library. Using the HarfBuzz library allows programs to convert a sequence of Unicode input into properly formatted and positioned glyph output—for any writing system and language.'
 arch=('any')
@@ -9,7 +9,7 @@ url='https://harfbuzz.github.io/'
 license=(LGPL)
 options=(!strip libtool staticlibs)
 source=("https://github.com/harfbuzz/harfbuzz/releases/download/${pkgver}/harfbuzz-${pkgver}.tar.xz")
-sha256sums=('109501eaeb8bde3eadb25fab4164e993fbace29c3d775bcaa1c1e58e2f15f847')
+sha256sums=('f73e1eacd7e2ffae687bc3f056bb0c705b7a05aee86337686e09da8fc1c2030c')
 makedepends=('dkp-toolchain-vars' 'dkp-meson-scripts' 'switch-freetype')
 depends=('switch-freetype')
 
