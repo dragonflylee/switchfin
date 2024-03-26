@@ -3,7 +3,7 @@
 _realname=curl
 pkgbase=mingw-w64-${_realname}
 pkgname=${MINGW_PACKAGE_PREFIX}-${_realname}
-pkgver=8.6.0
+pkgver=8.7.1
 pkgrel=1
 pkgdesc="library for transferring data with URLs (mingw-w64)"
 arch=('any')
@@ -19,7 +19,7 @@ depends=(
   "${MINGW_PACKAGE_PREFIX}-zlib"
 )
 source=("https://curl.haxx.se/download/${_realname}-${pkgver}.tar.xz")
-sha256sums=('3ccd55d91af9516539df80625f818c734dc6f2ecf9bada33c76765e99121db15')
+sha256sums=('6fea2aac6a4610fbd0400afb0bcddbe7258a64c63f1f68e5855ebc0c659710cd')
 
 build() {
   msg2 "Building shared library"

@@ -1048,10 +1048,10 @@ index 0000000000..4835439c89
 +#endif /* AVCODEC_NVTEGRA_H */
 diff --git a/libavcodec/nvtegra_h264.c b/libavcodec/nvtegra_h264.c
 new file mode 100644
-index 0000000000..753d3635f4
+index 0000000000..63073c44a6
 --- /dev/null
 +++ b/libavcodec/nvtegra_h264.c
-@@ -0,0 +1,509 @@
+@@ -0,0 +1,506 @@
 +/*
 + * Copyright (c) 2024 averne <averne381@gmail.com>
 + *
@@ -1206,11 +1206,8 @@ index 0000000000..753d3635f4
 +    return err;
 +}
 +
-+static int field_poc(int flags, int poc[2], bool top) {
-+    if (top)
-+        return ((flags & PICT_TOP_FIELD)    && poc[0] != INT_MAX) ? poc[0] : 0;
-+    else
-+        return ((flags & PICT_BOTTOM_FIELD) && poc[1] != INT_MAX) ? poc[1] : 0;
++static inline int field_poc(int poc[2], bool top) {
++    return (poc[!top] != INT_MAX) ? poc[!top] : 0;
 +}
 +
 +static void dpb_add(H264Context *h, nvdec_dpb_entry_s *dst,
@@ -1230,8 +1227,8 @@ index 0000000000..753d3635f4
 +        .bottom_field_marking = (src->reference & PICT_BOTTOM_FIELD) ? marking : 0,
 +        .output_memory_layout = 0, /* NV12 */
 +        .FieldOrderCnt        = {
-+            field_poc(src->reference, src->field_poc, true),
-+            field_poc(src->reference, src->field_poc, false),
++            field_poc(src->field_poc, true),
++            field_poc(src->field_poc, false),
 +        },
 +        .FrameIdx             = src->long_ref ? src->pic_id : src->frame_num,
 +    };
@@ -1308,8 +1305,8 @@ index 0000000000..753d3635f4
 +        .output_memory_layout                   = 0, /* NV12 */
 +
 +        .CurrFieldOrderCnt                      = {
-+            field_poc(h->picture_structure, h->cur_pic_ptr->field_poc, true),
-+            field_poc(h->picture_structure, h->cur_pic_ptr->field_poc, false),
++            field_poc(h->cur_pic_ptr->field_poc, true),
++            field_poc(h->cur_pic_ptr->field_poc, false),
 +        },
 +
 +        .lossless_ipred8x8_filter_enable        = true,

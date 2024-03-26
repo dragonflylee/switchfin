@@ -91,8 +91,8 @@ jobs:
         cmake --install build --strip
     - name: Build curl
       run: |
-        curl -sSL https://curl.se/download/curl-8.6.0.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/curl-8.6.0
+        curl -sSL https://curl.se/download/curl-8.7.1.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/curl-8.7.1
         cmake -B build -G Ninja \
           -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
           -DCMAKE_INSTALL_NAME_DIR=$LIBRARY_PATH \
@@ -102,6 +102,7 @@ jobs:
           -DCURL_DISABLE_PROGRESS_METER=ON \
           -DBUILD_CURL_EXE=OFF \
           -DBUILD_TESTING=OFF \
+          -DBUILD_LIBCURL_DOCS=OFF \
           -DUSE_LIBIDN2=OFF \
           -DCURL_USE_LIBSSH2=OFF \
           -DCURL_USE_LIBPSL=OFF
@@ -143,13 +144,12 @@ jobs:
         cmake --install build --strip
     - name: Build harfbuzz
       run: |
-        curl -sSL https://github.com/harfbuzz/harfbuzz/releases/download/8.3.0/harfbuzz-8.3.0.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/harfbuzz-8.3.0
+        curl -sSL https://github.com/harfbuzz/harfbuzz/releases/download/8.3.1/harfbuzz-8.3.1.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/harfbuzz-8.3.1
         meson setup build ${{ matrix.meson }} \
           --prefix=$CMAKE_PREFIX_PATH \
           --buildtype=release \
           --default-library=shared \
-          -Ddebug=false \
           -Dtests=disabled \
           -Ddocs=disabled \
           -Dicu=disabled \
@@ -167,7 +167,6 @@ jobs:
           --prefix=$CMAKE_PREFIX_PATH \
           --buildtype=release \
           --default-library=shared \
-          -Ddebug=false \
           -Ddocs=false \
           -Dbin=false \
           -Dtests=false
@@ -187,13 +186,12 @@ jobs:
         make install -j$(sysctl -n hw.ncpu)
     - name: Build dav1d
       run: |
-        curl -sSL https://downloads.videolan.org/pub/videolan/dav1d/1.4.0/dav1d-1.4.0.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/dav1d-1.4.0
+        curl -sSL https://downloads.videolan.org/pub/videolan/dav1d/1.4.1/dav1d-1.4.1.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/dav1d-1.4.1
         meson setup build ${{ matrix.meson }} \
           --prefix=$CMAKE_PREFIX_PATH \
           --buildtype=release \
           --default-library=shared \
-          -Ddebug=false \
           -Denable_tools=false \
           -Denable_examples=false \
           -Denable_tests=false \
@@ -245,7 +243,6 @@ jobs:
           -Dlibmpv=true \
           -Dcplayer=false \
           -Dtests=false \
-          -Ddebug=false \
           -Dswift-build=disabled \
           -Dmacos-cocoa-cb=disabled \
           -Dmacos-media-player=disabled \
