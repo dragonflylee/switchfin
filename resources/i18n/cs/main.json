@@ -1,87 +1,87 @@
 {
   "tabs": {
-    "home": "Home",
-    "setting": "Setting"
+    "home": "Domů",
+    "setting": "Nastavení"
   },
   "home": {
-    "resume": "Continue Watching",
-    "nextup": "Next Up",
-    "latest": "Recently Added"
+    "resume": "Pokračovat ve sledování",
+    "nextup": "Další",
+    "latest": "Nedávno přidané"
   },
   "about": {
-    "header": "About",
-    "brief": "Yet another third-party jellyfin client",
-    "repo_header": "Repository"
+    "header": "O Aplikaci",
+    "brief": "Jen další Jellyfin klient třetí strany",
+    "repo_header": "Repozitář"
   },
   "player": {
-    "subtitle": "Subtitle",
-    "none": "None",
-    "audio": "Audio track",
-    "common": "Common",
-    "speed": "Playback Speed",
-    "quality": "Video Quality",
-    "chapter": "Chapter",
-    "auto": "Auto",
-    "toggle": "Play/Pause",
-    "prev": "Prev",
-    "next": "Next",
-    "error": "Play error",
-    "speed_up": "Current speed {}"
+    "subtitle": "Titulky",
+    "none": "Žádné",
+    "audio": "Audio stopa",
+    "common": "Běžný",
+    "speed": "Rychlost přehrávání",
+    "quality": "Kvalita obrazu",
+    "chapter": "Kapitola",
+    "auto": "Automaticky",
+    "toggle": "Přehrát/Pozastavit",
+    "prev": "Předchozí",
+    "next": "Další",
+    "error": "Chyba přehrávání",
+    "speed_up": "Aktuální rychlost {}"
   },
   "media": {
-    "sort": "Sort",
-    "sort_by": "Sort By",
-    "filter": "Filter",
-    "order": "Order",
-    "ascending": "Ascending",
-    "descending": "Descending",
-    "name": "Name",
-    "date_add": "Date Add",
-    "date_played": "Date Played",
-    "premiere_date": "Premiere Date",
-    "play_count": "Play Count",
-    "rating": "Community Rating",
-    "random": "Random",
-    "played": "Played",
-    "unplayed": "Unplayed"
+    "sort": "Řadit",
+    "sort_by": "Řadit podle",
+    "filter": "Filtrovat",
+    "order": "Pořadí",
+    "ascending": "Vzestupně",
+    "descending": "Sestupně",
+    "name": "Jména",
+    "date_add": "Data přidání",
+    "date_played": "Data přehrání",
+    "premiere_date": "Data premiéry",
+    "play_count": "Počtu přehrání",
+    "rating": "Komunitního hodnocení",
+    "random": "Náhodně",
+    "played": "Přehrané",
+    "unplayed": "Nepřehrané"
   },
   "search": {
     "tv": {
-      "hint": "Support keywords and their initial letters",
-      "clear": "Clear",
-      "delete": "Delete",
-      "search": "Search",
-      "history": "History",
-      "suggest": "Suggest"
+      "hint": "Podpora klíčových slov a jejich počátečních písmen",
+      "clear": "Vyčistit",
+      "delete": "Smazat",
+      "search": "Vyhledat",
+      "history": "Historie",
+      "suggest": "Návrh"
     },
-    "clear_history": "Confirm to clear search histroy?",
+    "clear_history": "Potvrzením vymazat historii vyhledávání?",
     "genres": {
-      "movie": "Movie",
-      "series": "Series",
-      "episode": "Episode"
+      "movie": "Film",
+      "series": "Seriál",
+      "episode": "Epizoda"
     }
   },
   "setting": {
-    "quit_hint": "You are about to exit the application. The settings will take effect after the next startup",
-    "name": "Name",
-    "version": "Version",
-    "os": "Operating System",
-    "url": "URL",
-    "user": "User",
-    "username": "Username",
-    "password": "Password",
+    "quit_hint": "Chystáte se ukončit aplikaci. Nastavení se projeví po příštím spuštění",
+    "name": "Jméno",
+    "version": "Verze",
+    "os": "Operční Systém",
+    "url": "Odkaz",
+    "user": "Uživatel",
+    "username": "Jméno uživatele",
+    "password": "Heslo",
     "server": {
       "header": "Server",
-      "detail": "Server Details",
-      "connect_new": "New Server",
-      "connect_to": "Connect to a Jellyfin server",
-      "invalid": "Invalid Server Address!",
-      "connect": "Connect",
-      "delete": "Confirm to delete?",
-      "local": "Local Servers",
-      "users": "{} users",
-      "sigin_to": "Sign In to  {}",
-      "signin": "Sign In"
+      "detail": "Detaily Serveru",
+      "connect_new": "Nový Server",
+      "connect_to": "Připojit se k Jellyfin serveru",
+      "invalid": "Neplatná adresa serveru!",
+      "connect": "Připojit",
+      "delete": "Potvrdit smazání?",
+      "local": "Místní Servery",
+      "users": "{} uživatelé",
+      "sigin_to": "Přihlásit se do  {}",
+      "signin": "Přihlásit se"
     },
     "playback": {
       "header": "Playback",
