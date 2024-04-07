@@ -56,8 +56,11 @@ void MediaCollection::doPreferences() {
         [ASYNC_TOKEN](const jellyfin::DisplayPreferences& r) {
             ASYNC_RELEASE
             this->prefId = std::move(r.Id);
-            this->customPrefs = std::move(r.CustomPrefs);
-
+            for (const auto& item : r.CustomPrefs.items()) {
+                if (item.value().is_string()) {
+                    this->customPrefs[item.key()] = item.value().get<std::string>();
+                }
+            }
             this->loadFilter();
             this->doRequest();
         },
@@ -86,7 +89,8 @@ void MediaCollection::loadFilter() {
                 MediaFilter::selectedSort = i;
             }
         }
-    } catch (...) {
+    } catch (const std::exception& ex) {
+        brls::Logger::warning("MediaCollection loadFilter: {}", ex.what());
     }
 }
 

@@ -81,7 +81,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(SessionInfo, Id, PlayState, Tran
 
 struct DisplayPreferences {
     std::string Id;
-    std::map<std::string, std::string> CustomPrefs;
+    nlohmann::json CustomPrefs;
     std::string SortBy;
     std::string SortOrder;
 };

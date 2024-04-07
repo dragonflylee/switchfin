@@ -7,6 +7,10 @@
 * add chapter point on progress bar
 * touch gesture for volume/brightness
 
+### Fixed
+
+* collection display on new created user
+
 ## [0.4.4]
 
 ### Added
