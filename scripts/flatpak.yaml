@@ -56,6 +56,8 @@ modules:
           project-id: 5348
           stable-only: true
           url-template: https://github.com/mpv-player/mpv/archive/v$version.tar.gz
+      - type: patch
+        path: mingw64/mpv/0002-lavfi-channel-layout.patch
     modules:
       - name: libXpresent
         buildsystem: autotools
@@ -121,8 +123,8 @@ modules:
           - --enable-libfreetype
         sources:
           - type: archive
-            url: https://ffmpeg.org/releases/ffmpeg-6.1.1.tar.xz
-            sha256: 8684f4b00f94b85461884c3719382f1261f0d9eb3d59640a1f4ac0873616f968
+            url: https://ffmpeg.org/releases/ffmpeg-7.0.tar.xz
+            sha256: 4426a94dd2c814945456600c8adfc402bee65ec14a70e8c531ec9a2cd651da7b
         modules:
           - name: nv-codec-headers
             cleanup:
@@ -132,8 +134,8 @@ modules:
               - PREFIX=/app
             sources:
               - type: archive
-                url: https://github.com/FFmpeg/nv-codec-headers/archive/n12.1.14.0.tar.gz
-                sha256: 2fefaa227d2a3b4170797796425a59d1dd2ed5fd231db9b4244468ba327acd0b
+                url: https://github.com/FFmpeg/nv-codec-headers/archive/n12.2.72.0.tar.gz
+                sha256: dbeaec433d93b850714760282f1d0992b1254fc3b5a6cb7d76fc1340a1e47563
                 x-checker-data:
                   type: anitya
                   project-id: 223796

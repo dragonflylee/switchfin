@@ -8,6 +8,7 @@
 * video equalizer setting
 * add episode selector on player view
 * add new option `Always on top` for desktop platform
+* upgrade ffmpeg 7.0
 
 ## [0.4.5]
 

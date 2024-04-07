@@ -29,7 +29,7 @@ jobs:
         sparse-checkout: scripts/mingw64
     - name: Install dependency
       run: |
-        pacman -S --needed --noconfirm --noprogressbar \
+        pacman -S --needed --noconfirm \
           ${MINGW_PACKAGE_PREFIX}-make \
           ${MINGW_PACKAGE_PREFIX}-autotools \
           ${MINGW_PACKAGE_PREFIX}-cmake \
@@ -40,7 +40,7 @@ jobs:
       run: |
         cd scripts/mingw64
 
-        for pkg in mbedtls libwebp freetype harfbuzz libass dav1d ffmpeg spirv-cross shaderc mpv; do
+        for pkg in mbedtls libwebp freetype harfbuzz libass dav1d ffmpeg mpv-opengl spirv-cross shaderc mpv; do
           echo building $pkg
           cd $pkg; makepkg-mingw -sciCf --noconfirm; cd ..
         done
@@ -66,6 +66,7 @@ jobs:
           scripts/mingw64/glfw/*.pkg.tar.zst
           scripts/mingw64/libwebp/*.pkg.tar.zst
           scripts/mingw64/mpv/*.pkg.tar.zst
+          scripts/mingw64/mpv-opengl/*.pkg.tar.zst
           mpv-*.7z
         body: |
           ![download](https://img.shields.io/github/downloads/${{ github.repository }}/mingw-packages/total?label=Downloads)
