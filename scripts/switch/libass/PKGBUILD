@@ -3,7 +3,7 @@
 # Update the lib to 0.17.1
 
 pkgname=switch-libass
-pkgver=0.17.1
+pkgver=0.17.2
 pkgrel=1
 pkgdesc='A portable subtitle renderer (Nintendo Switch port)'
 arch=('any')
@@ -13,7 +13,7 @@ options=(!strip staticlibs)
 depends=('switch-freetype' 'switch-libfribidi' 'switch-harfbuzz')
 makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
 source=("https://github.com/libass/libass/releases/download/$pkgver/libass-$pkgver.tar.xz")
-sha256sums=('SKIP')
+sha256sums=('e8261b51d66ba933fe99248c6fdd8767ed96c5a7e5363c83992c735a2c2fbf74')
 groups=('switch-portlibs')
 
 build() {

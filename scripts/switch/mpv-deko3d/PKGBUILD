@@ -5,7 +5,7 @@
 pkgbasename=libmpv
 pkgname=switch-${pkgbasename}-deko3d
 pkgver=0.36.0
-pkgrel=4
+pkgrel=6
 pkgdesc='Command line video player (library only)'
 arch=('any')
 url='https://mpv.io/'
@@ -13,11 +13,11 @@ license=('GPL')
 options=(!strip libtool staticlibs)
 source=(
   "${pkgbasename}-${pkgver}.tar.gz::https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz" 
-  "hos-audio.patch" "ass-fonts.patch" "mp-image.patch" "deko3d.patch"
+  "hos-audio.patch" "ass-fonts.patch" "mp-image.patch" "deko3d.patch" "lavfi-channel.patch"
 )
 sha256sums=(
   '29abc44f8ebee013bb2f9fe14d80b30db19b534c679056e4851ceadf5a5e8bf6'
-  'SKIP' 'SKIP' 'SKIP' 'SKIP'
+  'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
 )
 makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
 depends=('switch-ffmpeg' 'switch-mesa')
@@ -30,6 +30,7 @@ prepare() {
   patch -Np1 -i "$srcdir/ass-fonts.patch"
   patch -Np1 -i "$srcdir/mp-image.patch"
   patch -Np1 -i "$srcdir/deko3d.patch"
+  patch -Np1 -i "$srcdir/lavfi-channel.patch"
 }
 
 build() {
