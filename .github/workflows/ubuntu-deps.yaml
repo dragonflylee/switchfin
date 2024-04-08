@@ -2,9 +2,9 @@ name: switchroot-ubuntu
 
 on:
   push:
-    tags: [ switch-portlibs ]
     branches: [ ubuntu ]
     paths: [ scripts/switchroot-*/* ]
+  workflow_dispatch: {}
 
 permissions:
   contents: write

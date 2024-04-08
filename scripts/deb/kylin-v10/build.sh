@@ -15,8 +15,8 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_P
 cmake --build build -j$(nproc)
 DESTDIR="/tmp/deb" cmake --install build --strip
 
-cp -d /usr/lib/aarch64-linux-gnu/libstdc++.so.* /opt/switchfin/lib/*.so.* /tmp/deb/opt/switchfin/lib
+cp -d /usr/lib/$(uname -m)-linux-gnu/libstdc++.so.* /opt/switchfin/lib/*.so.* /tmp/deb/opt/switchfin/lib
 mv /tmp/deb/opt/switchfin/share /tmp/deb/usr
 sed -i 's|Exec=Switchfin|Exec=/opt/switchfin/bin/Switchfin|' /tmp/deb/usr/share/applications/org.player.switchfin.desktop
 cp scripts/deb/kylin-v10/control /tmp/deb/DEBIAN
-dpkg --build /tmp/deb Switchfin-kylin-v10-aarch64.deb
+dpkg --build /tmp/deb Switchfin-kylin-v10-$(uname -m).deb

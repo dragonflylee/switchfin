@@ -19,4 +19,4 @@ cp -d /opt/switchfin/lib/*.so.* /tmp/deb/opt/switchfin/lib
 mv /tmp/deb/opt/switchfin/share /tmp/deb/usr
 sed -i 's|Exec=Switchfin|Exec=/opt/switchfin/bin/Switchfin|' /tmp/deb/usr/share/applications/org.player.switchfin.desktop
 cp scripts/deb/switchroot-bionic/control /tmp/deb/DEBIAN
-dpkg --build /tmp/deb Switchfin-aarch64-switchroot-ubuntu.deb
+dpkg --build /tmp/deb Switchfin-switchroot-ubuntu-$(uname -m).deb

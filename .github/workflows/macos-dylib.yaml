@@ -225,7 +225,9 @@ jobs:
         ./configure --enable-shared --disable-static --enable-pthreads --prefix=$CMAKE_PREFIX_PATH \
           --cc=clang --enable-cross-compile --target-os=darwin --arch=${{ matrix.arch }} \
           --disable-autodetect --disable-encoders --enable-pic ${{ matrix.ffmpeg }} \
-          --disable-programs --disable-doc --disable-debug --disable-avdevice --disable-muxers \
+          --disable-programs --disable-doc --disable-debug --disable-avdevice \
+          --disable-filters --enable-filter=hflip,vflip,transpose --disable-muxers \
+          --disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,httpproxy \
           --disable-libjack --disable-indev=jack --disable-postproc --enable-demuxer=hls \
           --enable-libdav1d --enable-libass --enable-libfreetype --enable-zlib --enable-bzlib \
           --enable-network --enable-mbedtls --enable-version3 --enable-gpl \
