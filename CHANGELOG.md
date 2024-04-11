@@ -1,6 +1,6 @@
 # Changelog
 
-## [next]
+## [0.4.5]
 
 ### Added
 
@@ -10,6 +10,7 @@
 ### Fixed
 
 * collection display on new created user
+* Scroll performance improvement @xfangfang
 
 ## [0.4.4]
 

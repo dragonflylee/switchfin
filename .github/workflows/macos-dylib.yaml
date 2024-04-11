@@ -123,8 +123,8 @@ jobs:
         cmake --install build --strip
     - name: Build png
       run: |
-        curl -sSL https://downloads.sourceforge.net/project/libpng/libpng16/1.6.40/libpng-1.6.40.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/libpng-1.6.40
+        curl -sSL https://downloads.sourceforge.net/project/libpng/libpng16/1.6.43/libpng-1.6.43.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/libpng-1.6.43
         cmake -B build -G Ninja \
           -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
           -DPNG_SHARED=ON -DPNG_STATIC=OFF \
