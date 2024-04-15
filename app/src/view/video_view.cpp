@@ -664,6 +664,9 @@ void VideoView::playMedia(const time_t seekTicks) {
                 }
 #endif
                 ssextra << "network-timeout=60";
+                if (HTTP::PROXY_STATUS) {
+                    ssextra << ",http-proxy=\"http://" << HTTP::PROXY_HOST << ":" << HTTP::PROXY_PORT << "\"";
+                }
                 if (seekTicks > 0) {
                     ssextra << ",start=" << misc::sec2Time(seekTicks / jellyfin::PLAYTICKS);
                 }
