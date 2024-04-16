@@ -150,6 +150,8 @@ void MPVCore::init() {
         brls::fatal("Could not initialize mpv context");
     }
 
+    this->setAspect(VIDEO_ASPECT);
+
     // set observe properties
     check_error(mpv_observe_property(mpv, 1, "core-idle", MPV_FORMAT_FLAG));
     check_error(mpv_observe_property(mpv, 2, "pause", MPV_FORMAT_FLAG));
@@ -554,6 +556,26 @@ double MPVCore::getSpeed() const { return video_speed; }
 void MPVCore::setSpeed(double value) {
     std::string speed = std::to_string(value);
     this->command("set", "speed", speed.c_str());
+}
+
+void MPVCore::setAspect(const std::string &value) {
+    if (value == "auto") { 
+        this->command("set", "keepaspect", "yes");
+        this->command("set", "video-aspect-override", "no");
+        this->command("set", "panscan", "0.0");
+    } else if (value == "stretch") {  // 拉伸全屏
+        this->command("set", "keepaspect", "no");
+        this->command("set", "video-aspect-override", "-1");
+        this->command("set", "panscan", "0.0");
+    } else if (value == "crop") {  // 裁剪填充
+        this->command("set", "keepaspect", "yes");
+        this->command("set", "video-aspect-override", "-1");
+        this->command("set", "panscan", "1.0");
+    } else if (!value.empty()) {
+        this->command("set", "keepaspect", "yes");
+        this->command("set", "video-aspect-override", value.c_str());
+        this->command("set", "panscan", "0.0");
+    }
 }
 
 std::string MPVCore::getString(const std::string &key) {

@@ -47,6 +47,12 @@
                         id="setting/track/subtitle" />
                     <brls:SelectorCell
                         id="setting/player/seeking" />
+                    <SelectorCell
+                        id="setting/video/mirror" />
+                    <SelectorCell
+                        id="setting/video/aspect" />
+                    <brls:SliderCell
+                        id="setting/video/subsync" />
                 </brls:Box>
 
                 <brls:Header
@@ -61,6 +67,8 @@
                     marginBottom="30px">
                     <brls:BooleanCell
                         id="setting/fullscreen" />
+                    <brls:BooleanCell
+                        id="setting/always_on_top" />
                     <brls:BooleanCell
                         id="setting/player/bottom_bar" />
                     <brls:BooleanCell

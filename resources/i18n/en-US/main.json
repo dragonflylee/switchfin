@@ -95,7 +95,19 @@
       "clip_point": "Show clip point of chapter",
       "transcodec": "Transcodec",
       "video_quality": "Video Quality",
-      "seeking_step": "Seeking Step"
+      "seeking_step": "Seeking Step",
+      "subsync": "Subtitle Sync"
+    },
+    "filter": {
+      "mirror": "Video flip",
+      "hflip": "Horizontally flip",
+      "vflip": "Vertically flip"
+    },
+    "aspect": {
+      "header": "Video aspect",
+      "crop": "Crop",
+      "stretch": "Stretch",
+      "auto": "Auto"
     },
     "network": {
       "header": "Network",

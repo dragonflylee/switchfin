@@ -7,6 +7,7 @@ namespace jellyfin {
 const std::string apiUserViews = "/Users/{}/Views";
 const std::string apiUserLibrary = "/Users/{}/Items?{}";
 const std::string apiUserItem = "/Users/{}/Items/{}";
+const std::string apiItemSpecial = "/Users/{}/Items/{}/SpecialFeatures";
 const std::string apiUserResume = "/Users/{}/Items/Resume?{}";
 const std::string apiUserLatest = "/Users/{}/Items/Latest?{}";
 const std::string apiShowNextUp = "/Shows/NextUp?{}";

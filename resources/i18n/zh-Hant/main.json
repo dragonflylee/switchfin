@@ -95,7 +95,19 @@
       "clip_point": "進度條顯示章節位置",
       "transcodec": "轉碼格式",
       "video_quality": "視頻質量",
-      "seeking_step": "快進步進秒數"
+      "seeking_step": "快進步進秒數",
+      "subsync": "字幕同步"
+    },
+    "filter": {
+      "mirror": "鏡像畫面",
+      "hflip": "水平鏡像",
+      "vflip": "垂直鏡像"
+    },
+    "aspect": {
+      "header": "影片比例",
+      "crop": "填充",
+      "stretch": "拉伸",
+      "auto": "自動"
     },
     "network": {
       "header": "網路設定",

@@ -105,8 +105,15 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
             // 设置当前状态
             brls::Application::getPlatform()->getVideoContext()->fullScreen(value);
         });
+
+    btnAlwaysOnTop->init(
+        "main/setting/others/always_on_top"_i18n, conf.getItem(AppConfig::ALWAYS_ON_TOP, false), [](bool value) {
+            AppConfig::instance().setItem(AppConfig::ALWAYS_ON_TOP, value);
+            brls::Application::getPlatform()->setWindowAlwaysOnTop(value);
+        });
 #else
     btnFullscreen->setVisibility(brls::Visibility::GONE);
+    btnAlwaysOnTop->setVisibility(brls::Visibility::GONE);
 #endif
 
     btnBottomBar->init(
@@ -120,6 +127,64 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
             MPVCore::OSD_ON_TOGGLE = value;
             conf.setItem(AppConfig::OSD_ON_TOGGLE, value);
         });
+
+    /// Player mirror
+    btnVideoMirror->init("main/setting/filter/mirror"_i18n,
+        {
+            "hints/off"_i18n,
+            "main/setting/filter/hflip"_i18n,
+            "main/setting/filter/vflip"_i18n,
+        },
+        MPVCore::VIDEO_FILTER, [&mpv](int value) {
+            MPVCore::VIDEO_FILTER = value;
+            switch (value) {
+            case 1:
+                mpv.command("set", "vf", "hflip");
+                break;
+            case 2:
+                mpv.command("set", "vf", "vflip");
+                break;
+            default:
+                mpv.command("set", "vf", "");
+            }
+            // 如果正在使用硬解，那么将硬解更新为 auto-copy，避免直接硬解因为不经过 cpu 处理导致镜像翻转无效
+            if (MPVCore::HARDWARE_DEC) {
+                const char* hwdec = value > 0 ? "auto-copy" : MPVCore::PLAYER_HWDEC_METHOD.c_str();
+                mpv.command("set", "hwdec", hwdec);
+                brls::Logger::info("MPV hardware decode: {}", hwdec);
+            }
+        });
+
+    /// Player aspect
+    btnVideoAspect->init("main/setting/aspect/header"_i18n,
+        {
+            "main/setting/aspect/auto"_i18n,
+            "main/setting/aspect/stretch"_i18n,
+            "main/setting/aspect/crop"_i18n,
+            "4:3",
+            "16:9",
+        },
+        conf.getOptionIndex(AppConfig::PLAYER_ASPECT), [&mpv, &conf](int value) {
+            auto& opt = conf.getOptions(AppConfig::PLAYER_ASPECT);
+            MPVCore::VIDEO_ASPECT = opt.options.at(value);
+            mpv.setAspect(MPVCore::VIDEO_ASPECT);
+            conf.setItem(AppConfig::PLAYER_ASPECT, MPVCore::VIDEO_ASPECT);
+        });
+
+    /// Subsync
+    double subDelay = mpv.getDouble("sub-delay");
+    btnSubsync->setDetailText(fmt::format("{:.1f}", subDelay));
+    btnSubsync->detail->setWidth(50);
+    btnSubsync->title->setWidth(116);
+    btnSubsync->title->setMarginRight(0);
+    btnSubsync->slider->setStep(0.05f);
+    btnSubsync->slider->setMarginRight(0);
+    btnSubsync->slider->setPointerSize(20);
+    btnSubsync->init("main/setting/playback/subsync"_i18n, (subDelay + 10) * 0.05f, [this](float value) {
+        float data = value * 20 - 10.f;
+        MPVCore::instance().setDouble("sub-delay", data);
+        btnSubsync->setDetailText(fmt::format("{:.1f}", data));
+    });
 }
 
 PlayerSetting::~PlayerSetting() { brls::Logger::debug("PlayerSetting: delete"); }

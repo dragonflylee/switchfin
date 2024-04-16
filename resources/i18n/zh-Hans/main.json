@@ -95,7 +95,19 @@
       "clip_point": "进度条显示章节位置",
       "transcodec": "转码格式",
       "video_quality": "视频质量",
-      "seeking_step": "快进步进"
+      "seeking_step": "快进步进",
+      "subsync": "字幕同步"
+    },
+    "filter": {
+      "mirror": "镜像画面",
+      "hflip": "水平镜像",
+      "vflip": "垂直镜像"
+    },
+    "aspect": {
+      "header": "视频比例",
+      "crop": "填充",
+      "stretch": "拉伸",
+      "auto": "自动"
     },
     "network": {
       "header": "网络设置",
@@ -133,6 +145,7 @@
     "others": {
       "header": "其他",
       "fullscreen": "全屏显示",
+      "always_on_top": "窗口置顶",
       "overclock": "CPU超频",
       "debug": "调试窗口",
       "theme": {

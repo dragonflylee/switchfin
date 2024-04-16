@@ -1,5 +1,12 @@
 # Changelog
 
+## [next]
+
+### Added
+
+* video flip and subtitle sync support for player
+* add new option `Always on top` for desktop platform
+
 ## [0.4.5]
 
 ### Added

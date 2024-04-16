@@ -88,6 +88,12 @@ public:
 
     void setSpeed(double value);
 
+    /**
+     * 强制设置视频比例
+     * @param value auto 为自动, 可设置 16:9 或 1.333 这两种形式的字符串
+     */
+    void setAspect(const std::string &value);
+
     void setFrameSize(brls::Rect rect);
 
     bool isValid();
@@ -148,6 +154,11 @@ public:
     // 触发倍速时的默认值，单位为 %
     inline static int VIDEO_SPEED = 200;
     inline static int SEEKING_STEP = 15;
+
+    // 是否镜像视频
+    inline static int VIDEO_FILTER = 0;
+    // 强制的视频比例 (-1 为自动)
+    inline static std::string VIDEO_ASPECT = "auto";
 
     NVGcolor bottomBarColor = brls::Application::getTheme().getColor("color/app");
 
