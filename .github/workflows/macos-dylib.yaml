@@ -127,7 +127,7 @@ jobs:
         cd ${{ runner.temp }}/libpng-1.6.43
         cmake -B build -G Ninja \
           -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
-          -DPNG_SHARED=ON -DPNG_STATIC=OFF \
+          -DPNG_SHARED=ON -DPNG_STATIC=OFF -DPNG_FRAMEWORK=OFF \
           -DPNG_EXECUTABLES=OFF -DPNG_TESTS=OFF
         cmake --build build
         cmake --install build --strip

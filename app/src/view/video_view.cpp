@@ -296,7 +296,17 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
         }
         return true;
     });
-
+#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
+    this->registerAction(
+        "", brls::BUTTON_F,
+        [](...) {
+            VideoContext::FULLSCREEN = !AppConfig::instance().getItem(AppConfig::FULLSCREEN, VideoContext::FULLSCREEN);
+            AppConfig::instance().setItem(AppConfig::FULLSCREEN, VideoContext::FULLSCREEN);
+            brls::Application::getPlatform()->getVideoContext()->fullScreen(VideoContext::FULLSCREEN);
+            return true;
+        },
+        true);
+#endif
     /// 视频质量
     this->btnVideoQuality->registerClickAction([this](brls::View* view) { return this->toggleQuality(); });
     this->btnVideoQuality->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoQuality));
@@ -351,11 +361,7 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
         }
 
         brls::Dropdown* dropdown = new brls::Dropdown(
-            "main/player/episode"_i18n, values,
-            [this](int selected) {
-                this->playIndex(selected);
-            },
-            this->itemIndex);
+            "main/player/episode"_i18n, values, [this](int selected) { this->playIndex(selected); }, this->itemIndex);
         brls::Application::pushActivity(new brls::Activity(dropdown));
         return true;
     });

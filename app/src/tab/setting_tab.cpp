@@ -214,8 +214,8 @@ void SettingTab::onCreate() {
 #if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
     btnFullscreen->init(
         "main/setting/others/fullscreen"_i18n, conf.getItem(AppConfig::FULLSCREEN, false), [](bool value) {
+            VideoContext::FULLSCREEN = value;
             AppConfig::instance().setItem(AppConfig::FULLSCREEN, value);
-            // 设置当前状态
             brls::Application::getPlatform()->getVideoContext()->fullScreen(value);
         });
 
