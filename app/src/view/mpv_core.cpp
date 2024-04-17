@@ -145,6 +145,12 @@ void MPVCore::init() {
         mpv_request_log_messages(mpv, "info");
     }
 
+#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
+    if (conf.getItem(AppConfig::SINGLE, false)) {
+        mpv_set_option_string(mpv, "input-ipc-server", conf.ipcSocket().c_str());
+    }
+#endif
+
     if (mpv_initialize(mpv) < 0) {
         mpv_terminate_destroy(mpv);
         brls::fatal("Could not initialize mpv context");
@@ -559,7 +565,7 @@ void MPVCore::setSpeed(double value) {
 }
 
 void MPVCore::setAspect(const std::string &value) {
-    if (value == "auto") { 
+    if (value == "auto") {
         this->command("set", "keepaspect", "yes");
         this->command("set", "video-aspect-override", "no");
         this->command("set", "panscan", "0.0");

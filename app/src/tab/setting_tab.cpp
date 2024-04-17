@@ -211,7 +211,7 @@ void SettingTab::onCreate() {
 #endif
 
 /// Fullscreen
-#if defined(__linux__) || defined(_WIN32)
+#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
     btnFullscreen->init(
         "main/setting/others/fullscreen"_i18n, conf.getItem(AppConfig::FULLSCREEN, false), [](bool value) {
             AppConfig::instance().setItem(AppConfig::FULLSCREEN, value);
@@ -224,9 +224,15 @@ void SettingTab::onCreate() {
             AppConfig::instance().setItem(AppConfig::ALWAYS_ON_TOP, value);
             brls::Application::getPlatform()->setWindowAlwaysOnTop(value);
         });
+
+    btnSingle->init("main/setting/others/single"_i18n, conf.getItem(AppConfig::SINGLE, false), [](bool value) {
+        AppConfig::instance().setItem(AppConfig::SINGLE, value);
+        MPVCore::instance().restart();
+    });
 #else
     btnFullscreen->setVisibility(brls::Visibility::GONE);
     btnAlwaysOnTop->setVisibility(brls::Visibility::GONE);
+    btnSingle->setVisibility(brls::Visibility::GONE);
 #endif
 
 #if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)

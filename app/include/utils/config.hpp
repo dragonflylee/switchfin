@@ -70,11 +70,12 @@ public:
 
     AppConfig() = default;
 
-    void init();
+    bool init();
     void save();
     bool checkLogin();
 
     std::string configDir();
+    std::string ipcSocket();
     void checkRestart(char* argv[]);
 
     template <typename T>

@@ -154,6 +154,8 @@
     "others": {
       "header": "其他",
       "fullscreen": "全螢幕顯示",
+      "always_on_top": "總在最上層",
+      "single": "單例模式",
       "overclock": "CPU超頻",
       "debug": "調試窗口",
       "theme": {

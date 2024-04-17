@@ -110,7 +110,7 @@ static std::string generateDeviceId() {
     return misc::randHex(16);
 }
 
-void AppConfig::init() {
+bool AppConfig::init() {
     const std::string path = this->configDir() + "/config.json";
     std::ifstream readFile(path);
     if (readFile.is_open()) {
@@ -119,10 +119,18 @@ void AppConfig::init() {
             brls::Logger::info("Load config from: {}", path);
         } catch (const std::exception& ex) {
             brls::Logger::error("AppConfig::load: {}", ex.what());
+            return false;
         }
     }
 
+#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
     misc::initCrashDump();
+
+    if (this->getItem(AppConfig::SINGLE, false) && misc::sendIPC(this->ipcSocket(), "{}")) {
+        brls::Logger::warning("AppConfig single instance");
+        return false;
+    }
+#endif
 
     HTTP::TIMEOUT = this->getItem(REQUEST_TIMEOUT, HTTP::TIMEOUT);
     HTTP::PROXY_STATUS = this->getItem(HTTP_PROXY_STATUS, HTTP::PROXY_STATUS);
@@ -210,6 +218,7 @@ void AppConfig::init() {
 
     brls::Logger::info("init {} v{}-{} device {} from {}", AppVersion::getPlatform(), AppVersion::getVersion(),
         AppVersion::getCommit(), this->device, path);
+    return true;
 }
 
 void AppConfig::save() {
@@ -254,6 +263,14 @@ std::string AppConfig::configDir() {
     return fmt::format("{}/.config/{}", getenv("HOME"), AppVersion::getPackageName());
 #elif __APPLE__
     return fmt::format("{}/Library/Application Support/{}", getenv("HOME"), AppVersion::getPackageName());
+#endif
+}
+
+std::string AppConfig::ipcSocket() {
+#ifdef _WIN32
+    return "\\\\.\\pipe\\" + AppVersion::getPackageName();
+#else
+    return fmt::format("{}/{}.sock", configDir(), AppVersion::getPackageName());
 #endif
 }
 
