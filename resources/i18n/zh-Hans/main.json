@@ -26,6 +26,7 @@
     "prev": "上一个",
     "next": "下一个",
     "error": "播放失败",
+    "episode": "选集",
     "speed_up": "{} 倍速播放中"
   },
   "media": {

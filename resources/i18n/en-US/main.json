@@ -26,6 +26,7 @@
     "prev": "Prev",
     "next": "Next",
     "error": "Play error",
+    "episode": "Episode",
     "speed_up": "Current speed {}"
   },
   "media": {
