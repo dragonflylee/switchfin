@@ -109,6 +109,15 @@
       "stretch": "拉伸",
       "auto": "自动"
     },
+    "equalizer": {
+      "header": "均衡器",
+      "brightness": "亮度",
+      "contrast": "对比度",
+      "saturation": "饱和度",
+      "gamma": "伽马值",
+      "hue": "色调",
+      "reset": "重置"
+    },
     "network": {
       "header": "网络设置",
       "threads": "图片加载线程数",

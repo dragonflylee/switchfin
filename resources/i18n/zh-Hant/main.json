@@ -109,6 +109,15 @@
       "stretch": "拉伸",
       "auto": "自動"
     },
+    "equalizer": {
+      "header": "等化器",
+      "brightness": "亮度",
+      "contrast": "對比度",
+      "saturation": "飽和度",
+      "gamma": "伽馬值",
+      "hue": "色調",
+      "reset": "重置"
+    },
     "network": {
       "header": "網路設定",
       "threads": "載入圖片執行緒數量",

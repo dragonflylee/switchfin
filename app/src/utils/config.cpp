@@ -177,6 +177,9 @@ void AppConfig::init() {
 #if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
         // 设置窗口最小尺寸
         brls::Application::getPlatform()->setWindowSizeLimits(MINIMUM_WINDOW_WIDTH, MINIMUM_WINDOW_HEIGHT, 0, 0);
+        if (this->getItem(ALWAYS_ON_TOP, false)) {
+            brls::Application::getPlatform()->setWindowAlwaysOnTop(true);
+        }
 #endif
 
         // i18n 相关

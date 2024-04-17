@@ -173,18 +173,78 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
 
     /// Subsync
     double subDelay = mpv.getDouble("sub-delay");
-    btnSubsync->setDetailText(fmt::format("{:.1f}", subDelay));
-    btnSubsync->detail->setWidth(50);
-    btnSubsync->title->setWidth(116);
     btnSubsync->title->setMarginRight(0);
-    btnSubsync->slider->setStep(0.05f);
     btnSubsync->slider->setMarginRight(0);
     btnSubsync->slider->setPointerSize(20);
+    btnSubsync->setDetailText(fmt::format("{:.1f}", subDelay));
     btnSubsync->init("main/setting/playback/subsync"_i18n, (subDelay + 10) * 0.05f, [this](float value) {
         float data = value * 20 - 10.f;
         MPVCore::instance().setDouble("sub-delay", data);
         btnSubsync->setDetailText(fmt::format("{:.1f}", data));
     });
+
+    btnEqualizerReset->registerClickAction([this](View* view) {
+        btnEqualizerBrightness->slider->setProgress(0.5f);
+        btnEqualizerContrast->slider->setProgress(0.5f);
+        btnEqualizerSaturation->slider->setProgress(0.5f);
+        btnEqualizerGamma->slider->setProgress(0.5f);
+        btnEqualizerHue->slider->setProgress(0.5f);
+        return true;
+    });
+    registerHideBackground(btnEqualizerReset);
+    setupEqualizer(btnEqualizerBrightness, "main/setting/equalizer/brightness"_i18n, Equalizer::BRIGHTNESS,
+        mpv.getDouble("brightness"));
+    setupEqualizer(
+        btnEqualizerContrast, "main/setting/equalizer/contrast"_i18n, Equalizer::CONTRAST, mpv.getDouble("contrast"));
+    setupEqualizer(btnEqualizerSaturation, "main/setting/equalizer/saturation"_i18n, Equalizer::SATURATION,
+        mpv.getDouble("saturation"));
+    setupEqualizer(btnEqualizerGamma, "main/setting/equalizer/gamma"_i18n, Equalizer::GAMMA, mpv.getDouble("hue"));
+    setupEqualizer(btnEqualizerHue, "main/setting/equalizer/hue"_i18n, Equalizer::HUE, mpv.getDouble("gamma"));
 }
 
 PlayerSetting::~PlayerSetting() { brls::Logger::debug("PlayerSetting: delete"); }
+
+void PlayerSetting::setupEqualizer(brls::SliderCell* cell, const std::string& title, Equalizer item, double initValue) {
+    if (initValue < -100)
+        initValue = -100;
+    else if (initValue > 100)
+        initValue = 100;
+
+    cell->detail->setWidth(50);
+    cell->title->setWidth(116);
+    cell->title->setMarginRight(0);
+    cell->slider->setStep(0.05f);
+    cell->slider->setMarginRight(0);
+    cell->slider->setPointerSize(20);
+    cell->setDetailText(fmt::format("{:.0f}", initValue));
+    cell->init(title, (initValue + 100) * 0.005f, [cell, item](float value) {
+        auto& mpv = MPVCore::instance();
+        int data = (int)(value * 200 - 100);
+        cell->setDetailText(std::to_string(data));
+        switch (item) {
+        case Equalizer::BRIGHTNESS:
+            mpv.setInt("brightness", data);
+            break;
+        case Equalizer::CONTRAST:
+            mpv.setInt("contrast", data);
+            break;
+        case Equalizer::SATURATION:
+            mpv.setInt("saturation", data);
+            break;
+        case Equalizer::GAMMA:
+            mpv.setInt("hue", data);
+            break;
+        case Equalizer::HUE:
+            mpv.setInt("gamma", data);
+            break;
+        default:;
+        }
+    });
+    registerHideBackground(cell->getDefaultFocus());
+}
+
+void PlayerSetting::registerHideBackground(brls::View* view) {
+    view->getFocusEvent()->subscribe([this](...) { this->setBackgroundColor(nvgRGBAf(0.0f, 0.0f, 0.0f, 0.0f)); });
+    view->getFocusLostEvent()->subscribe(
+        [this](...) { this->setBackgroundColor(brls::Application::getTheme().getColor("brls/backdrop")); });
+}

@@ -122,6 +122,8 @@
                 <brls:BooleanCell
                     id="setting/fullscreen" />
                 <brls:BooleanCell
+                    id="setting/always_on_top" />
+                <brls:BooleanCell
                     id="setting/overclock" />
                 <SelectorCell
                     id="setting/keymap"

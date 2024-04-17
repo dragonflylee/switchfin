@@ -109,6 +109,15 @@
       "stretch": "Stretch",
       "auto": "Auto"
     },
+    "equalizer": {
+      "header": "Equalizer",
+      "brightness": "Brightness",
+      "contrast": "Contrast",
+      "saturation": "Saturation",
+      "gamma": "Gamma",
+      "hue": "Hue",
+      "reset": "Reset"
+    },
     "network": {
       "header": "Network",
       "threads": "Number of image loading threads",

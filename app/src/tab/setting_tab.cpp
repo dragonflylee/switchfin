@@ -218,8 +218,15 @@ void SettingTab::onCreate() {
             // 设置当前状态
             brls::Application::getPlatform()->getVideoContext()->fullScreen(value);
         });
+
+    btnAlwaysOnTop->init(
+        "main/setting/others/always_on_top"_i18n, conf.getItem(AppConfig::ALWAYS_ON_TOP, false), [](bool value) {
+            AppConfig::instance().setItem(AppConfig::ALWAYS_ON_TOP, value);
+            brls::Application::getPlatform()->setWindowAlwaysOnTop(value);
+        });
 #else
     btnFullscreen->setVisibility(brls::Visibility::GONE);
+    btnAlwaysOnTop->setVisibility(brls::Visibility::GONE);
 #endif
 
 #if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)

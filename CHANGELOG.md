@@ -5,6 +5,7 @@
 ### Added
 
 * video flip and subtitle sync support for player
+* video equalizer setting
 * add new option `Always on top` for desktop platform
 
 ## [0.4.5]
