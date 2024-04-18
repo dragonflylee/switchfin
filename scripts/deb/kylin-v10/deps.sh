@@ -9,7 +9,7 @@ export LD_LIBRARY_PATH=$CMAKE_PREFIX_PATH/lib
 wget -qO- https://curl.se/download/curl-8.7.1.tar.xz | tar Jxf - -C /tmp
 wget -qO- https://ffmpeg.org/releases/ffmpeg-6.1.1.tar.xz | tar Jxf - -C /tmp
 wget -qO- https://github.com/mpv-player/mpv/archive/v0.36.0.tar.gz | tar zxf - -C /tmp
-wget -qO- https://github.com/webmproject/libwebp/archive/v1.3.2.tar.gz | tar zxf - -C /tmp
+wget -qO- https://github.com/webmproject/libwebp/archive/v1.4.0.tar.gz | tar zxf - -C /tmp
 git clone https://github.com/dragonflylee/glfw.git -b switchfin --depth=1 /tmp/glfw
 
 cd /tmp/curl-8.7.1
@@ -37,7 +37,7 @@ LIBDIR=$CMAKE_PREFIX_PATH/lib RPATH=$CMAKE_PREFIX_PATH/lib ./waf configure --pre
   --disable-cplayer --disable-libarchive --disable-lua
 ./waf install
 
-cd /tmp/libwebp-1.3.2
+cd /tmp/libwebp-1.4.0
 cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
   -DCMAKE_INSTALL_RPATH=$CMAKE_PREFIX_PATH/lib -DBUILD_SHARED_LIBS=ON -DWEBP_BUILD_EXTRAS=OFF \
   -DWEBP_BUILD_ANIM_UTILS=OFF -DWEBP_BUILD_CWEBP=OFF -DWEBP_BUILD_DWEBP=OFF \

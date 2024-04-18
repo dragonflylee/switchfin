@@ -200,8 +200,8 @@ jobs:
         meson install -C build
     - name: Build libwebp
       run: |
-        curl -sSL https://github.com/webmproject/libwebp/archive/v1.3.2.tar.gz | tar zxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/libwebp-1.3.2
+        curl -sSL https://github.com/webmproject/libwebp/archive/v1.4.0.tar.gz | tar zxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/libwebp-1.4.0
         cmake -B build -G Ninja \
           -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
           -DCMAKE_INSTALL_NAME_DIR=$LIBRARY_PATH \

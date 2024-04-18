@@ -83,6 +83,7 @@ void MPVCore::init() {
     mpv_set_option_string(mpv, "video-timing-offset", "0");  // 60fps
     mpv_set_option_string(mpv, "reset-on-next-file", "speed,pause");
     mpv_set_option_string(mpv, "subs-fallback", "yes");
+    mpv_set_option_string(mpv, "vo", "libmpv");
 
     if (MPVCore::LOW_QUALITY) {
         // Less cpu cost
@@ -531,8 +532,8 @@ void MPVCore::reset() {
 
 void MPVCore::setUrl(const std::string &url, const std::string &extra, const std::string &method, uint64_t userdata) {
     brls::Logger::debug("{} Url: {}, extra: {}", method, url, extra);
-    if (extra.empty()) {
-        const char *cmd[] = {"loadfile", url.c_str(), method.c_str(), nullptr};
+    if (mpv_client_api_version() >= MPV_MAKE_VERSION(2, 3)) {
+        const char *cmd[] = {"loadfile", url.c_str(), method.c_str(), "0", extra.c_str(), nullptr};
         mpv_command_async(this->mpv, userdata, cmd);
     } else {
         const char *cmd[] = {"loadfile", url.c_str(), method.c_str(), extra.c_str(), nullptr};
