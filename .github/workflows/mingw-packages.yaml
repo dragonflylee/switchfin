@@ -29,7 +29,7 @@ jobs:
         sparse-checkout: scripts/mingw64
     - name: Install dependency
       run: |
-        pacman -S --needed --noconfirm --noprogressbar \
+        pacman -S --needed --noconfirm \
           ${MINGW_PACKAGE_PREFIX}-make \
           ${MINGW_PACKAGE_PREFIX}-autotools \
           ${MINGW_PACKAGE_PREFIX}-cmake \
@@ -40,7 +40,7 @@ jobs:
       run: |
         cd scripts/mingw64
 
-        for pkg in mbedtls libwebp freetype harfbuzz libass dav1d ffmpeg spirv-cross shaderc mpv; do
+        for pkg in libwebp freetype harfbuzz libass dav1d ffmpeg spirv-cross shaderc mpv; do
           echo building $pkg
           cd $pkg; makepkg-mingw -sciCf --noconfirm; cd ..
         done

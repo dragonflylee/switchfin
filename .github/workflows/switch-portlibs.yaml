@@ -22,8 +22,7 @@ jobs:
     - name: Install dependency
       run: |
         apt-get update
-        apt-get install -y fakeroot zstd ninja-build bison flex libtool python3-distutils manpages-
-        curl -sL https://bootstrap.pypa.io/get-pip.py | python3 -
+        apt-get install -y fakeroot zstd ninja-build bison flex libtool python3-pip manpages-
         pip3 install meson mako
 
         dkp-pacman --noconfirm -U scripts/switch/dkp-*.zst
