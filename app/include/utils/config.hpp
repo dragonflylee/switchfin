@@ -63,6 +63,7 @@ public:
         TEXTURE_CACHE_NUM,
         REQUEST_THREADS,
         REQUEST_TIMEOUT,
+        TLS_VERIFY,
         HTTP_PROXY_STATUS,
         HTTP_PROXY_HOST,
         HTTP_PROXY_PORT,

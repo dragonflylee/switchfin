@@ -300,7 +300,14 @@ void SettingTab::onCreate() {
             AppConfig::instance().setItem(AppConfig::REQUEST_TIMEOUT, HTTP::TIMEOUT);
         });
 
-    bool proxyStatus = conf.getItem(AppConfig::HTTP_PROXY_STATUS, false);
+    /// TLS verify
+    bool tlsVerify = conf.getItem(AppConfig::TLS_VERIFY, HTTP::TLS_VERIFY);
+    btnTls->init("main/setting/network/tls"_i18n, tlsVerify, [](bool value) {
+        HTTP::TLS_VERIFY = value;
+        AppConfig::instance().setItem(AppConfig::TLS_VERIFY, value);
+    });
+
+    bool proxyStatus = conf.getItem(AppConfig::HTTP_PROXY_STATUS, HTTP::PROXY_STATUS);
     btnProxy->init("main/setting/network/proxy"_i18n, proxyStatus, [this](bool value) {
         inputProxyHost->setVisibility(value ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
         inputProxyPort->setVisibility(value ? brls::Visibility::VISIBLE : brls::Visibility::GONE);

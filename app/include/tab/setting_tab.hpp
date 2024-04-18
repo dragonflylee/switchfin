@@ -54,6 +54,7 @@ private:
     BRLS_BIND(brls::BooleanCell, btnDebug, "setting/debug");
     BRLS_BIND(brls::SelectorCell, inputThreads, "setting/network/threads");
     BRLS_BIND(brls::SelectorCell, selectorTimeout, "setting/network/timeout");
+    BRLS_BIND(brls::BooleanCell, btnTls, "setting/network/tls");
     BRLS_BIND(brls::BooleanCell, btnProxy, "setting/network/proxy");
     BRLS_BIND(brls::InputCell, inputProxyHost, "setting/network/proxy_host");
     BRLS_BIND(brls::InputNumericCell, inputProxyPort, "setting/network/proxy_port");

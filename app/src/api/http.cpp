@@ -46,8 +46,11 @@ HTTP::HTTP() : chunk(nullptr) {
     curl_easy_setopt(this->easy, CURLOPT_FOLLOWLOCATION, 1L);
     // enable all supported built-in compressions
     curl_easy_setopt(this->easy, CURLOPT_ACCEPT_ENCODING, "");
-    curl_easy_setopt(this->easy, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(this->easy, CURLOPT_VERBOSE, 0L);
+    if (!TLS_VERIFY) {
+        curl_easy_setopt(this->easy, CURLOPT_SSL_VERIFYPEER, 0L);
+        curl_easy_setopt(this->easy, CURLOPT_SSL_VERIFYHOST, 0L);
+    }
 
     if (PROXY_STATUS) {
         std::string value = fmt::format("{}:{}", PROXY_HOST, PROXY_PORT);

@@ -67,6 +67,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {TEXTURE_CACHE_NUM, {"texture_cache_num"}},
     {REQUEST_THREADS, {"request_threads", {"1", "2", "4", "8"}, {1, 2, 4, 8}}},
     {REQUEST_TIMEOUT, {"request_timeout", {"1000", "2000", "3000", "5000"}, {1000, 2000, 3000, 5000}}},
+    {TLS_VERIFY, {"tls_verify"}},
     {HTTP_PROXY_STATUS, {"http_proxy_status"}},
     {HTTP_PROXY_HOST, {"http_proxy_host"}},
     {HTTP_PROXY_PORT, {"http_proxy_port"}},

@@ -26,6 +26,7 @@ public:
     inline static bool PROXY_STATUS = false;
     inline static std::string PROXY_HOST = "192.168.1.1";
     inline static int PROXY_PORT = 1080;
+    inline static bool TLS_VERIFY = true;
 
     struct Range {
         int start = 0;
