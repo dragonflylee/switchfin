@@ -26,6 +26,7 @@
     "prev": "上一个",
     "next": "下一个",
     "error": "播放失败",
+    "episode": "选集",
     "speed_up": "{} 倍速播放中"
   },
   "media": {
@@ -95,12 +96,34 @@
       "clip_point": "进度条显示章节位置",
       "transcodec": "转码格式",
       "video_quality": "视频质量",
-      "seeking_step": "快进步进"
+      "seeking_step": "快进步进",
+      "subsync": "字幕同步"
+    },
+    "filter": {
+      "mirror": "镜像画面",
+      "hflip": "水平镜像",
+      "vflip": "垂直镜像"
+    },
+    "aspect": {
+      "header": "视频比例",
+      "crop": "填充",
+      "stretch": "拉伸",
+      "auto": "自动"
+    },
+    "equalizer": {
+      "header": "均衡器",
+      "brightness": "亮度",
+      "contrast": "对比度",
+      "saturation": "饱和度",
+      "gamma": "伽马值",
+      "hue": "色调",
+      "reset": "重置"
     },
     "network": {
       "header": "网络设置",
       "threads": "图片加载线程数",
       "timeout": "请求超时时间 (毫秒)",
+      "tls": "TLS 验证",
       "proxy": "代理服务器",
       "host": "地址",
       "port": "端口"
@@ -118,7 +141,9 @@
       "font_q1": "如何设置自定义字体或键位图标",
       "font_a1": "1. 下载你想要的字体或图标字体文件\n2. 字体重命名为：font.ttf  图标重命名为：icon.ttf\n3. 将重命名后的文件放置在应用的配置目录\n4. 重启应用",
       "font_q2": "常见问题",
-      "font_a2": "1. 软件优先显示自定义字体，以内置字体作为后备\n2. 「应用设置 - 使用教程」 提供了快速打开配置目录的菜单项\n3. 在 Linux 上，Switchfin 使用 xdg-open 来打开目录，如果无法正确打开配置目录，可以考虑安装此工具"
+      "font_a2": "1. 软件优先显示自定义字体，以内置字体作为后备\n2. 「应用设置 - 使用教程」 提供了快速打开配置目录的菜单项\n3. 在 Linux 上，Switchfin 使用 xdg-open 来打开目录，如果无法正确打开配置目录，可以考虑安装此工具",
+      "error_q3": "字幕无法正常显示",
+      "error_a3": "将合适的 ttf 字体文件复制到 /switch/Switchfin/subfont.ttf"
     },
     "quick_connect": {
       "header": "快速连接",
@@ -131,6 +156,8 @@
     "others": {
       "header": "其他",
       "fullscreen": "全屏显示",
+      "always_on_top": "窗口置顶",
+      "single": "单实例模式",
       "overclock": "CPU超频",
       "debug": "调试窗口",
       "theme": {

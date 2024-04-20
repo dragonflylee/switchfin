@@ -320,6 +320,26 @@
                             svg="@res/icon/ico-volume.svg" />
                     </brls:Box>
                     <brls:Box
+                        id="show/episode/box"
+                        hideClickAnimation="true"
+                        marginLeft="10"
+                        marginRight="10"
+                        visibility="gone"
+                        alignItems="center"
+                        justifyContent="center"
+                        height="60">
+                        <brls:Label
+                            id="show/episode"
+                            textColor="#FFFFFF"
+                            focusable="true"
+                            focusUp="video/osd/setting"
+                            focusDown="show/episode"
+                            horizontalAlign="center"
+                            text="@i18n/main/player/episode"
+                            hideHighlightBackground="true"
+                            highlightCornerRadius="8" />
+                    </brls:Box>
+                    <brls:Box
                         id="video/chapter/box"
                         hideClickAnimation="true"
                         marginLeft="10"

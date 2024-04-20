@@ -79,6 +79,8 @@
                 <brls:SelectorCell
                     id="setting/network/timeout" />
                 <brls:BooleanCell
+                    id="setting/network/tls" />
+                <brls:BooleanCell
                     id="setting/network/proxy" />
                 <brls:InputCell
                     id="setting/network/proxy_host"
@@ -121,6 +123,10 @@
                 marginBottom="30px">
                 <brls:BooleanCell
                     id="setting/fullscreen" />
+                <brls:BooleanCell
+                    id="setting/always_on_top" />
+                <brls:BooleanCell
+                    id="setting/single" />
                 <brls:BooleanCell
                     id="setting/overclock" />
                 <SelectorCell

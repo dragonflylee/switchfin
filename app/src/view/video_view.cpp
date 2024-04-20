@@ -276,10 +276,10 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
     this->btnClose->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnClose));
 
     /// 播放控制
-    this->btnBackward->registerClickAction([this](...) { return this->playNext(-1); });
+    this->btnBackward->registerClickAction([this](...) { return this->playIndex(this->itemIndex - 1); });
     this->btnBackward->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnBackward));
 
-    this->btnForward->registerClickAction([this](...) { return this->playNext(); });
+    this->btnForward->registerClickAction([this](...) { return this->playIndex(this->itemIndex + 1); });
     this->btnForward->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnForward));
 
     this->registerAction("main/player/toggle"_i18n, brls::BUTTON_SPACE, [this](brls::View* view) -> bool {
@@ -296,7 +296,17 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
         }
         return true;
     });
-
+#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
+    this->registerAction(
+        "", brls::BUTTON_F,
+        [](...) {
+            VideoContext::FULLSCREEN = !AppConfig::instance().getItem(AppConfig::FULLSCREEN, VideoContext::FULLSCREEN);
+            AppConfig::instance().setItem(AppConfig::FULLSCREEN, VideoContext::FULLSCREEN);
+            brls::Application::getPlatform()->getVideoContext()->fullScreen(VideoContext::FULLSCREEN);
+            return true;
+        },
+        true);
+#endif
     /// 视频质量
     this->btnVideoQuality->registerClickAction([this](brls::View* view) { return this->toggleQuality(); });
     this->btnVideoQuality->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoQuality));
@@ -340,6 +350,22 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
         return true;
     });
     this->btnVideoChapter->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoChapter));
+
+    // 选集
+    this->btnEpisode->registerClickAction([this](brls::View* view) {
+        if (this->showEpisodes.empty()) return false;
+
+        std::vector<std::string> values;
+        for (auto& item : this->showEpisodes) {
+            values.push_back(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
+        }
+
+        brls::Dropdown* dropdown = new brls::Dropdown(
+            "main/player/episode"_i18n, values, [this](int selected) { this->playIndex(selected); }, this->itemIndex);
+        brls::Application::pushActivity(new brls::Activity(dropdown));
+        return true;
+    });
+    this->btnEpisode->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnEpisode));
 
     this->setChapters(item.Chapters, item.RunTimeTicks);
     this->playMedia(item.UserData.PlaybackPositionTicks);
@@ -576,6 +602,7 @@ void VideoView::setSeries(const std::string& seriesId) {
             this->btnBackward->setVisibility(this->itemIndex > 0 ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
             this->btnForward->setVisibility(
                 this->itemIndex + 1 < this->showEpisodes.size() ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
+            this->btnEpisode->setVisibility(brls::Visibility::VISIBLE);
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
@@ -584,11 +611,11 @@ void VideoView::setSeries(const std::string& seriesId) {
         jellyfin::apiShowEpisodes, seriesId, query);
 }
 
-bool VideoView::playNext(int off) {
-    this->itemIndex += off;
-    if (this->itemIndex < 0 || this->itemIndex >= this->showEpisodes.size()) {
+bool VideoView::playIndex(int index) {
+    if (index < 0 || index >= (int)this->showEpisodes.size()) {
         return popActivity();
     }
+    this->itemIndex = index;
     MPVCore::instance().reset();
 
     auto item = this->showEpisodes.at(this->itemIndex);
@@ -664,6 +691,9 @@ void VideoView::playMedia(const time_t seekTicks) {
                 }
 #endif
                 ssextra << "network-timeout=60";
+                if (HTTP::PROXY_STATUS) {
+                    ssextra << ",http-proxy=\"http://" << HTTP::PROXY_HOST << ":" << HTTP::PROXY_PORT << "\"";
+                }
                 if (seekTicks > 0) {
                     ssextra << ",start=" << misc::sec2Time(seekTicks / jellyfin::PLAYTICKS);
                 }
@@ -833,7 +863,7 @@ void VideoView::registerMpvEvent() {
             // 播放结束
             disableDimming(false);
             this->btnToggleIcon->setImageFromSVGRes("icon/ico-play.svg");
-            this->playNext();
+            this->playIndex(this->itemIndex + 1);
             break;
         case MpvEventEnum::CACHE_SPEED_CHANGE:
             // 仅当加载圈已经开始转起的情况显示缓存

@@ -63,6 +63,7 @@ private:
     BRLS_BIND(brls::Box, btnVideoQuality, "video/quality/box");
     BRLS_BIND(brls::Box, btnVideoChapter, "video/chapter/box");
     BRLS_BIND(brls::Box, btnVideoSpeed, "video/speed/box");
+    BRLS_BIND(brls::Box, btnEpisode, "show/episode/box");
     BRLS_BIND(brls::Box, btnVolume, "video/osd/volume");
     BRLS_BIND(brls::Box, btnClose, "video/close/box");
     BRLS_BIND(brls::Box, osdLockBox, "video/osd/lock/box");
@@ -83,8 +84,6 @@ private:
     BRLS_BIND(VideoProgressSlider, osdSlider, "video/osd/bottom/progress");
     BRLS_BIND(brls::Label, leftStatusLabel, "video/left/status");
     BRLS_BIND(brls::Label, rightStatusLabel, "video/right/status");
-    BRLS_BIND(brls::Label, videoChapterLabel, "video/chapter");
-    BRLS_BIND(brls::Label, videoQualityLabel, "video/quality");
     BRLS_BIND(brls::Label, videoSpeedLabel, "video/speed");
     BRLS_BIND(brls::Label, speedHintLabel, "video/speed/hint/label");
     BRLS_BIND(brls::Box, speedHintBox, "video/speed/hint/box");
@@ -93,7 +92,7 @@ private:
 
     /// @brief get video url
     void playMedia(const time_t seekTicks);
-    bool playNext(int off = 1);
+    bool playIndex(int index);
     void reportStart();
     void reportStop();
     void reportPlay(bool isPaused = false);

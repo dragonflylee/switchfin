@@ -83,6 +83,7 @@ void MPVCore::init() {
     mpv_set_option_string(mpv, "video-timing-offset", "0");  // 60fps
     mpv_set_option_string(mpv, "reset-on-next-file", "speed,pause");
     mpv_set_option_string(mpv, "subs-fallback", "yes");
+    mpv_set_option_string(mpv, "vo", "libmpv");
 
     if (MPVCore::LOW_QUALITY) {
         // Less cpu cost
@@ -145,10 +146,18 @@ void MPVCore::init() {
         mpv_request_log_messages(mpv, "info");
     }
 
+#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
+    if (conf.getItem(AppConfig::SINGLE, false)) {
+        mpv_set_option_string(mpv, "input-ipc-server", conf.ipcSocket().c_str());
+    }
+#endif
+
     if (mpv_initialize(mpv) < 0) {
         mpv_terminate_destroy(mpv);
         brls::fatal("Could not initialize mpv context");
     }
+
+    this->setAspect(VIDEO_ASPECT);
 
     // set observe properties
     check_error(mpv_observe_property(mpv, 1, "core-idle", MPV_FORMAT_FLAG));
@@ -523,8 +532,8 @@ void MPVCore::reset() {
 
 void MPVCore::setUrl(const std::string &url, const std::string &extra, const std::string &method, uint64_t userdata) {
     brls::Logger::debug("{} Url: {}, extra: {}", method, url, extra);
-    if (extra.empty()) {
-        const char *cmd[] = {"loadfile", url.c_str(), method.c_str(), nullptr};
+    if (mpv_client_api_version() >= MPV_MAKE_VERSION(2, 3)) {
+        const char *cmd[] = {"loadfile", url.c_str(), method.c_str(), "0", extra.c_str(), nullptr};
         mpv_command_async(this->mpv, userdata, cmd);
     } else {
         const char *cmd[] = {"loadfile", url.c_str(), method.c_str(), extra.c_str(), nullptr};
@@ -554,6 +563,26 @@ double MPVCore::getSpeed() const { return video_speed; }
 void MPVCore::setSpeed(double value) {
     std::string speed = std::to_string(value);
     this->command("set", "speed", speed.c_str());
+}
+
+void MPVCore::setAspect(const std::string &value) {
+    if (value == "auto") {
+        this->command("set", "keepaspect", "yes");
+        this->command("set", "video-aspect-override", "no");
+        this->command("set", "panscan", "0.0");
+    } else if (value == "stretch") {  // 拉伸全屏
+        this->command("set", "keepaspect", "no");
+        this->command("set", "video-aspect-override", "-1");
+        this->command("set", "panscan", "0.0");
+    } else if (value == "crop") {  // 裁剪填充
+        this->command("set", "keepaspect", "yes");
+        this->command("set", "video-aspect-override", "-1");
+        this->command("set", "panscan", "1.0");
+    } else if (!value.empty()) {
+        this->command("set", "keepaspect", "yes");
+        this->command("set", "video-aspect-override", value.c_str());
+        this->command("set", "panscan", "0.0");
+    }
 }
 
 std::string MPVCore::getString(const std::string &key) {

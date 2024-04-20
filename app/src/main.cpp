@@ -45,7 +45,9 @@ int main(int argc, char* argv[]) {
     }
 
     // Load cookies and settings
-    AppConfig::instance().init();
+    if (!AppConfig::instance().init()) {
+        return 0;
+    }
 
     // Init the app and i18n
     if (!brls::Application::init()) {

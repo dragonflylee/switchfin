@@ -1,28 +1,171 @@
+diff --git a/TOOLS/macos-sdk-version.py b/TOOLS/macos-sdk-version.py
+index e3a973e857..12e1071d75 100755
+--- a/TOOLS/macos-sdk-version.py
++++ b/TOOLS/macos-sdk-version.py
+@@ -1,14 +1,13 @@
+ #!/usr/bin/env python3
+ 
+-# Logic copied from compiler_swift.py in the waf build. This checks for the sdk
+-# path, the sdk version, and the sdk build version. The sdk path is returned
+-# along with what is selected as the sdk version.
++# This checks for the sdk path, the sdk version, and
++# the sdk build version.
+ 
+ import re
+ import os
+ import string
++import subprocess
+ import sys
+-from distutils.version import StrictVersion
+ from shutil import which
+ from subprocess import check_output
+ 
+@@ -16,6 +15,7 @@ def find_macos_sdk():
+     sdk = os.environ.get('MACOS_SDK', '')
+     sdk_version = os.environ.get('MACOS_SDK_VERSION', '0.0')
+     xcrun = which('xcrun')
++    xcodebuild = which('xcodebuild')
+ 
+     if not xcrun:
+         return sdk,sdk_version
+@@ -26,42 +26,20 @@ def find_macos_sdk():
+ 
+     # find macOS SDK paths and version
+     if sdk_version == '0.0':
+-        # show-sdk-build-version: is not available on older command line tools, but returns a build version (eg 17A360)
+-        # show-sdk-version: is always available, but on older dev tools it's only the major version
+-        sdk_build_version = check_output([xcrun, '--sdk', 'macosx',
+-                                          '--show-sdk-build-version'], encoding="UTF-8")
+-
+         sdk_version = check_output([xcrun, '--sdk', 'macosx', '--show-sdk-version'],
+                                     encoding="UTF-8")
+ 
+-    if sdk:
+-        build_version = '10.10.0'
+-
+-    # convert build version to a version string
+-    # first 2 two digits are the major version, starting with 15 which is 10.11 (offset of 4)
+-    # 1 char is the minor version, A => 0, B => 1 and ongoing
+-    # last digits are bugfix version, which are not relevant for us
+-    # eg 16E185 => 10.12.4, 17A360 => 10.13, 18B71 => 10.14.1
+-    if sdk_build_version and isinstance(sdk_build_version, str):
+-        verRe = re.compile("(\d+)(\D+)(\d+)")
+-        version_parts = verRe.search(sdk_build_version)
+-        major = int(version_parts.group(1)) - 4
+-        minor = string.ascii_lowercase.index(version_parts.group(2).lower())
+-        build_version = '10.' + str(major) + '.' + str(minor)
+-        # from 20 onwards macOS 11.0 starts
+-        if int(version_parts.group(1)) >= 20:
+-            build_version = '11.' + str(minor)
++        # use xcode tools when installed, still necessary for xcode versions <12.0
++        try:
++            sdk_version = check_output([xcodebuild, '-sdk', 'macosx', '-version', 'ProductVersion'],
++                                        encoding="UTF-8", stderr=subprocess.DEVNULL)
++        except:
++            pass
+ 
+     if not isinstance(sdk_version, str):
+         sdk_version = '10.10.0'
+ 
+-    # pick the higher version, always pick sdk over build if newer
+-    if StrictVersion(build_version) > StrictVersion(sdk_version):
+-        return sdk,build_version
+-    else:
+-        return sdk,sdk_version
+-
+-    return sdk,sdk_version
++    return sdk.strip(),sdk_version.strip()
+ 
+ if __name__ == "__main__":
+     sdk_info = find_macos_sdk()
+diff --git a/filters/f_lavfi.c b/filters/f_lavfi.c
+index 597cf91fc0..8bd96486ca 100644
+--- a/filters/f_lavfi.c
++++ b/filters/f_lavfi.c
+@@ -1024,7 +1024,11 @@ static const char *get_avopt_type_name(enum AVOptionType type)
+     case AV_OPT_TYPE_VIDEO_RATE:        return "fps";
+     case AV_OPT_TYPE_DURATION:          return "duration";
+     case AV_OPT_TYPE_COLOR:             return "color";
++#if LIBAVUTIL_VERSION_MAJOR < 59
+     case AV_OPT_TYPE_CHANNEL_LAYOUT:    return "channellayout";
++#else
++    case AV_OPT_TYPE_CHLAYOUT:          return "ch_layout";
++#endif
+     case AV_OPT_TYPE_BOOL:              return "bool";
+     case AV_OPT_TYPE_CONST: // fallthrough
+     default:
+diff --git a/filters/f_swresample.c b/filters/f_swresample.c
+index fb1ef05194..09148b5f88 100644
+--- a/filters/f_swresample.c
++++ b/filters/f_swresample.c
+@@ -23,6 +23,7 @@
+ #include <libswresample/swresample.h>
+ 
+ #include "audio/aframe.h"
++#include "audio/chmap_avchannel.h"
+ #include "audio/fmt-conversion.h"
+ #include "audio/format.h"
+ #include "common/common.h"
+@@ -269,14 +270,28 @@ static bool configure_lavrr(struct priv *p, bool verbose)
+ 
+     out_ch_layout = fudge_layout_conversion(p, in_ch_layout, out_ch_layout);
+ 
++#if HAVE_AV_CHANNEL_LAYOUT
+     // Real conversion; output is input to avrctx_out.
++    AVChannelLayout in_layout, out_layout;
++    mp_chmap_to_av_layout(&in_layout, &in_lavc);
++    mp_chmap_to_av_layout(&out_layout, &out_lavc);
++    av_opt_set_chlayout(p->avrctx, "in_chlayout",  &in_layout, 0);
++    av_opt_set_chlayout(p->avrctx, "out_chlayout", &out_layout, 0);
++#else
+     av_opt_set_int(p->avrctx, "in_channel_layout",  in_ch_layout, 0);
+     av_opt_set_int(p->avrctx, "out_channel_layout", out_ch_layout, 0);
++#endif
+     av_opt_set_int(p->avrctx, "in_sample_rate",     p->in_rate, 0);
+     av_opt_set_int(p->avrctx, "out_sample_rate",    p->out_rate, 0);
+     av_opt_set_int(p->avrctx, "in_sample_fmt",      in_samplefmt, 0);
+     av_opt_set_int(p->avrctx, "out_sample_fmt",     out_samplefmtp, 0);
+ 
++#if HAVE_AV_CHANNEL_LAYOUT
++    AVChannelLayout fake_layout;
++    av_channel_layout_default(&fake_layout, map_out.num);
++    av_opt_set_chlayout(p->avrctx_out, "in_chlayout", &fake_layout, 0);
++    av_opt_set_chlayout(p->avrctx_out, "out_chlayout", &fake_layout, 0);
++#else
+     // Just needs the correct number of channels for deplanarization.
+     struct mp_chmap fake_chmap;
+     mp_chmap_set_unknown(&fake_chmap, map_out.num);
+@@ -285,6 +300,7 @@ static bool configure_lavrr(struct priv *p, bool verbose)
+         goto error;
+     av_opt_set_int(p->avrctx_out, "in_channel_layout",  fake_out_ch_layout, 0);
+     av_opt_set_int(p->avrctx_out, "out_channel_layout", fake_out_ch_layout, 0);
++#endif
+ 
+     av_opt_set_int(p->avrctx_out, "in_sample_fmt",      out_samplefmtp, 0);
+     av_opt_set_int(p->avrctx_out, "out_sample_fmt",     out_samplefmt, 0);
 diff --git a/meson.build b/meson.build
-index f9fe4e7263..5eaea21968 100644
+index 75a3e500c3..7694e94ca5 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -1473,16 +1473,16 @@ endif
+@@ -1474,13 +1474,17 @@ endif
  
  
  # macOS features
 -macos_sdk_version_py = find_program(join_paths(source_root, 'TOOLS', 'macos-sdk-version.py'),
 -                                    required: get_option('swift-build').require(darwin))
--macos_sdk_path = ''
--macos_sdk_version = '0.0'
--if macos_sdk_version_py.found()
-+macos_sdk_version_py = find_program(join_paths(source_root, 'TOOLS',
-+                                    'macos-sdk-version.py'))
-+macos_sdk_info = ['', '0.0']
++macos_sdk_version_py = ''
 +if darwin
++    macos_sdk_version_py = find_program(join_paths(source_root, 'TOOLS', 'macos-sdk-version.py'),
++                                                   required: true)
++endif
++
+ macos_sdk_path = ''
+ macos_sdk_version = '0.0'
+-if macos_sdk_version_py.found()
++if darwin and macos_sdk_version_py.found()
      macos_sdk_info = run_command(macos_sdk_version_py, check: true).stdout().split(',')
 -    macos_sdk_path = macos_sdk_info[0].strip()
--    macos_sdk_version = macos_sdk_info[1]
++    macos_sdk_path = macos_sdk_info[0]
+     macos_sdk_version = macos_sdk_info[1]
  endif
  
-+macos_sdk_path = macos_sdk_info[0].strip()
-+macos_sdk_version = macos_sdk_info[1]
-+
- if macos_sdk_path != ''
-     message('Detected macOS sdk path: ' + macos_sdk_path)
- endif

@@ -96,20 +96,20 @@ jobs:
       run: |
         dkp-pacman --noconfirm -U $BASE_URL/hacBrewPack-3.05-1-any.pkg.tar.zst
         dkp-pacman --noconfirm -U $BASE_URL/libnx-master-1-any.pkg.tar.zst
-        for pkg in curl-7.71.1-1 libass-0.17.1-1 dav1d-1.4.1-1 ffmpeg-6.1.1-3 nspmini-main-1; do
+        for pkg in curl-7.71.1-1 libass-0.17.1-1 dav1d-1.4.1-1 ffmpeg-7.0-1 nspmini-main-1; do
           dkp-pacman --noconfirm -U $BASE_URL/switch-${pkg}-any.pkg.tar.zst
         done
         dkp-pacman --noconfirm -R switch-libmpv
     - name: Update mpv opengl
       if: ${{ matrix.driver == 'opengl' }}
       run: |
-        for pkg in switch-libmpv-0.36.0-2; do
+        for pkg in switch-libmpv-0.36.0-5; do
           dkp-pacman --noconfirm -U $BASE_URL/${pkg}-any.pkg.tar.zst
         done
     - name: Update mpv deko3d
       if: ${{ matrix.driver == 'deko3d' }}
       run: |
-        for pkg in libuam-master-1 switch-libmpv-deko3d-0.36.0-4; do
+        for pkg in libuam-master-1 switch-libmpv-deko3d-0.36.0-6; do
           dkp-pacman --noconfirm -U $BASE_URL/${pkg}-any.pkg.tar.zst
         done
     - name: Build nro
@@ -264,11 +264,11 @@ jobs:
         submodules: recursive
     - name: Install dependency
       run: |
-        for pkg in glfw-3.5.0-1 curl-8.7.1-1 mpv-0.36.0-4 libwebp-1.3.2-1; do
+        for pkg in glfw-3.5.0-1 curl-8.7.1-1 mpv-0.36.0-4 libwebp-1.4.0-1; do
           curl -sLO https://github.com/dragonflylee/switchfin/releases/download/mingw-packages/${MINGW_PACKAGE_PREFIX}-${pkg}-any.pkg.tar.zst
         done
         pacman -U --noconfirm *.pkg.tar.zst
-        pacman -S --needed --noconfirm --noprogressbar \
+        pacman -S --needed --noconfirm \
           ${MINGW_PACKAGE_PREFIX}-cc \
           ${MINGW_PACKAGE_PREFIX}-ninja unzip
 

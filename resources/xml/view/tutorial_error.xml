@@ -15,4 +15,11 @@
         marginLeft="20"
         marginBottom="20"
         text="@i18n/main/setting/tutorial/error_a2" />
+    <brls:Header
+        title="@i18n/main/setting/tutorial/error_q3"
+        marginBottom="20" />
+    <brls:Label
+        marginLeft="20"
+        marginBottom="20"
+        text="@i18n/main/setting/tutorial/error_a3" />
 </brls:Box>

@@ -40,6 +40,10 @@ Switchfin is third-party PC player for Jellyfin that provides a native user inte
 - R Stick Button Toggle Video Quality Select
 - \+ Show video profile
 
+## FAQ
+
+1. Q: Subtitles didn't display? A: Put any ttf file at `/switch/Switchfin/subfont.ttf`
+
 ## TODO list
 
 - [ ] Movie view

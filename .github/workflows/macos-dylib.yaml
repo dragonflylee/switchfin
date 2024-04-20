@@ -123,11 +123,11 @@ jobs:
         cmake --install build --strip
     - name: Build png
       run: |
-        curl -sSL https://downloads.sourceforge.net/project/libpng/libpng16/1.6.40/libpng-1.6.40.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/libpng-1.6.40
+        curl -sSL https://downloads.sourceforge.net/project/libpng/libpng16/1.6.43/libpng-1.6.43.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/libpng-1.6.43
         cmake -B build -G Ninja \
           -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
-          -DPNG_SHARED=ON -DPNG_STATIC=OFF \
+          -DPNG_SHARED=ON -DPNG_STATIC=OFF -DPNG_FRAMEWORK=OFF \
           -DPNG_EXECUTABLES=OFF -DPNG_TESTS=OFF
         cmake --build build
         cmake --install build --strip
@@ -200,8 +200,8 @@ jobs:
         meson install -C build
     - name: Build libwebp
       run: |
-        curl -sSL https://github.com/webmproject/libwebp/archive/v1.3.2.tar.gz | tar zxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/libwebp-1.3.2
+        curl -sSL https://github.com/webmproject/libwebp/archive/v1.4.0.tar.gz | tar zxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/libwebp-1.4.0
         cmake -B build -G Ninja \
           -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
           -DCMAKE_INSTALL_NAME_DIR=$LIBRARY_PATH \
@@ -220,12 +220,14 @@ jobs:
         cmake --install build --strip
     - name: Build ffmpeg
       run: |
-        curl -sSL https://ffmpeg.org/releases/ffmpeg-6.1.1.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/ffmpeg-6.1.1
+        curl -sSL https://ffmpeg.org/releases/ffmpeg-7.0.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/ffmpeg-7.0
         ./configure --enable-shared --disable-static --enable-pthreads --prefix=$CMAKE_PREFIX_PATH \
           --cc=clang --enable-cross-compile --target-os=darwin --arch=${{ matrix.arch }} \
           --disable-autodetect --disable-encoders --enable-pic ${{ matrix.ffmpeg }} \
-          --disable-programs --disable-doc --disable-debug --disable-avdevice --disable-muxers \
+          --disable-programs --disable-doc --disable-debug --disable-avdevice \
+          --disable-filters --enable-filter=hflip,vflip,transpose --disable-muxers \
+          --disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,httpproxy \
           --disable-libjack --disable-indev=jack --disable-postproc --enable-demuxer=hls \
           --enable-libdav1d --enable-libass --enable-libfreetype --enable-zlib --enable-bzlib \
           --enable-network --enable-mbedtls --enable-version3 --enable-gpl \

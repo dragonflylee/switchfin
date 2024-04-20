@@ -6,8 +6,8 @@
 _realname=ffmpeg
 pkgbase="mingw-w64-${_realname}"
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=6.1.1
-pkgrel=9
+pkgver=7.0
+pkgrel=1
 pkgdesc="Complete solution to record, convert and stream audio and video (mingw-w64)"
 arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'clangarm64')
@@ -32,7 +32,7 @@ makedepends=(
 )
 options=('staticlibs' '!strip')
 source=("https://ffmpeg.org/releases/${_realname}-${pkgver}.tar.xz")
-sha256sums=('8684f4b00f94b85461884c3719382f1261f0d9eb3d59640a1f4ac0873616f968')
+sha256sums=('4426a94dd2c814945456600c8adfc402bee65ec14a70e8c531ec9a2cd651da7b')
 
 build() {
   mkdir -p "${srcdir}/build-${MSYSTEM}" && cd "${srcdir}/build-${MSYSTEM}"
@@ -52,14 +52,15 @@ build() {
     --disable-avdevice \
     --disable-encoders \
     --disable-muxers \
+    --disable-filters \
     --enable-swscale \
     --enable-swresample \
     --enable-network  \
     --disable-protocols \
     --enable-dxva2 \
     --enable-d3d11va \
-    --enable-protocol=file,http,tcp,udp,hls,https,tls \
-    --enable-demuxer=hls \
+    --enable-protocol=file,http,tcp,udp,hls,https,tls,httpproxy \
+    --enable-filter=hflip,vflip,transpose \
     --enable-zlib \
     --enable-bzlib \
     --enable-libass \

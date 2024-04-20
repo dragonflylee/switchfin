@@ -47,6 +47,12 @@
                         id="setting/track/subtitle" />
                     <brls:SelectorCell
                         id="setting/player/seeking" />
+                    <SelectorCell
+                        id="setting/video/mirror" />
+                    <SelectorCell
+                        id="setting/video/aspect" />
+                    <brls:SliderCell
+                        id="setting/video/subsync" />
                 </brls:Box>
 
                 <brls:Header
@@ -62,9 +68,36 @@
                     <brls:BooleanCell
                         id="setting/fullscreen" />
                     <brls:BooleanCell
+                        id="setting/always_on_top" />
+                    <brls:BooleanCell
                         id="setting/player/bottom_bar" />
                     <brls:BooleanCell
                         id="setting/player/osd_on_toggle" />
+                </brls:Box>
+
+                <brls:Header
+                    width="auto"
+                    height="auto"
+                    title="@i18n/main/setting/equalizer/header"
+                    marginBottom="0px" />
+                <brls:Box
+                    width="100%"
+                    height="auto"
+                    axis="column"
+                    marginBottom="30px">
+                    <brls:SliderCell
+                        id="setting/equalizer/brightness" />
+                    <brls:SliderCell
+                        id="setting/equalizer/contrast" />
+                    <brls:SliderCell
+                        id="setting/equalizer/saturation" />
+                    <brls:SliderCell
+                        id="setting/equalizer/gamma" />
+                    <brls:SliderCell
+                        id="setting/equalizer/hue" />
+                    <brls:RadioCell
+                        id="setting/equalizer/reset"
+                        title="@i18n/main/setting/equalizer/reset" />
                 </brls:Box>
 
             </brls:Box>

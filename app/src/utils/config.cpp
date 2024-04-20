@@ -38,28 +38,39 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {KEYMAP, {"keymap", {"xbox", "ps", "keyboard"}}},
     {TRANSCODEC, {"transcodec", {"h264", "hevc", "av1"}}},
     {FORCE_DIRECTPLAY, {"force_directplay"}},
-    {VIDEO_QUALITY, {"video_quality",
-                        {"Auto", "1080p - 60Mbps", "1080p - 40Mbps", "1080p - 20Mbps", "720p - 8Mbps", "720p - 6Mbps",
-                            "480p - 3Mbps", "480P - 1Mbps"},
-                        {0, 60, 40, 20, 8, 6, 3, 1}}},
+    {VIDEO_QUALITY,
+        {
+            "video_quality",
+            {"Auto", "1080p - 60Mbps", "1080p - 40Mbps", "1080p - 20Mbps", "720p - 8Mbps", "720p - 6Mbps",
+                "480p - 3Mbps", "480P - 1Mbps"},
+            {0, 60, 40, 20, 8, 6, 3, 1},
+        }},
     {FULLSCREEN, {"fullscreen"}},
     {OSD_ON_TOGGLE, {"osd_on_toggle"}},
     {TOUCH_GESTURE, {"touch_gesture"}},
-    {CLIP_POINT,{"clip_point"}},
+    {CLIP_POINT, {"clip_point"}},
     {OVERCLOCK, {"overclock"}},
     {PLAYER_BOTTOM_BAR, {"player_bottom_bar"}},
     {PLAYER_SEEKING_STEP, {"player_seeking_step", {"5", "10", "15", "30"}, {5, 10, 15, 30}}},
     {PLAYER_LOW_QUALITY, {"player_low_quality"}},
-    {PLAYER_INMEMORY_CACHE, {"player_inmemory_cache", {"0MB", "10MB", "20MB", "50MB", "100MB", "200MB", "500MB"},
-                                {0, 10, 20, 50, 100, 200, 500}}},
+    {PLAYER_INMEMORY_CACHE,
+        {
+            "player_inmemory_cache",
+            {"0MB", "10MB", "20MB", "50MB", "100MB", "200MB", "500MB"},
+            {0, 10, 20, 50, 100, 200, 500},
+        }},
     {PLAYER_HWDEC, {"player_hwdec"}},
     {PLAYER_HWDEC_CUSTOM, {"player_hwdec_custom"}},
+    {PLAYER_ASPECT, {"player_aspect", {"auto", "stretch", "crop", "4:3", "16:9"}}},
+    {ALWAYS_ON_TOP, {"always_on_top"}},
+    {SINGLE, {"single"}},
     {TEXTURE_CACHE_NUM, {"texture_cache_num"}},
     {REQUEST_THREADS, {"request_threads", {"1", "2", "4", "8"}, {1, 2, 4, 8}}},
     {REQUEST_TIMEOUT, {"request_timeout", {"1000", "2000", "3000", "5000"}, {1000, 2000, 3000, 5000}}},
+    {TLS_VERIFY, {"tls_verify"}},
     {HTTP_PROXY_STATUS, {"http_proxy_status"}},
     {HTTP_PROXY_HOST, {"http_proxy_host"}},
-    {HTTP_PROXY_PORT, {"http_proxy_port"}}
+    {HTTP_PROXY_PORT, {"http_proxy_port"}},
 };
 
 static std::string generateDeviceId() {
@@ -100,7 +111,7 @@ static std::string generateDeviceId() {
     return misc::randHex(16);
 }
 
-void AppConfig::init() {
+bool AppConfig::init() {
     const std::string path = this->configDir() + "/config.json";
     std::ifstream readFile(path);
     if (readFile.is_open()) {
@@ -109,10 +120,18 @@ void AppConfig::init() {
             brls::Logger::info("Load config from: {}", path);
         } catch (const std::exception& ex) {
             brls::Logger::error("AppConfig::load: {}", ex.what());
+            return false;
         }
     }
 
+#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
     misc::initCrashDump();
+
+    if (this->getItem(AppConfig::SINGLE, false) && misc::sendIPC(this->ipcSocket(), "{}")) {
+        brls::Logger::warning("AppConfig single instance");
+        return false;
+    }
+#endif
 
     HTTP::TIMEOUT = this->getItem(REQUEST_TIMEOUT, HTTP::TIMEOUT);
     HTTP::PROXY_STATUS = this->getItem(HTTP_PROXY_STATUS, HTTP::PROXY_STATUS);
@@ -142,6 +161,9 @@ void AppConfig::init() {
     // 初始化自定义的硬件加速方案
     MPVCore::PLAYER_HWDEC_METHOD = this->getItem(PLAYER_HWDEC_CUSTOM, MPVCore::PLAYER_HWDEC_METHOD);
 
+    // 初始化视频比例
+    MPVCore::VIDEO_ASPECT = this->getItem(PLAYER_ASPECT, MPVCore::VIDEO_ASPECT);
+
     // 初始化 deviceId
     if (this->device.empty()) this->device = generateDeviceId();
 
@@ -164,6 +186,9 @@ void AppConfig::init() {
 #if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
         // 设置窗口最小尺寸
         brls::Application::getPlatform()->setWindowSizeLimits(MINIMUM_WINDOW_WIDTH, MINIMUM_WINDOW_HEIGHT, 0, 0);
+        if (this->getItem(ALWAYS_ON_TOP, false)) {
+            brls::Application::getPlatform()->setWindowAlwaysOnTop(true);
+        }
 #endif
 
         // i18n 相关
@@ -194,6 +219,7 @@ void AppConfig::init() {
 
     brls::Logger::info("init {} v{}-{} device {} from {}", AppVersion::getPlatform(), AppVersion::getVersion(),
         AppVersion::getCommit(), this->device, path);
+    return true;
 }
 
 void AppConfig::save() {
@@ -238,6 +264,14 @@ std::string AppConfig::configDir() {
     return fmt::format("{}/.config/{}", getenv("HOME"), AppVersion::getPackageName());
 #elif __APPLE__
     return fmt::format("{}/Library/Application Support/{}", getenv("HOME"), AppVersion::getPackageName());
+#endif
+}
+
+std::string AppConfig::ipcSocket() {
+#ifdef _WIN32
+    return "\\\\.\\pipe\\" + AppVersion::getPackageName();
+#else
+    return fmt::format("{}/{}.sock", configDir(), AppVersion::getPackageName());
 #endif
 }
 

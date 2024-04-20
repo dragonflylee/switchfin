@@ -211,15 +211,28 @@ void SettingTab::onCreate() {
 #endif
 
 /// Fullscreen
-#if defined(__linux__) || defined(_WIN32)
+#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
     btnFullscreen->init(
         "main/setting/others/fullscreen"_i18n, conf.getItem(AppConfig::FULLSCREEN, false), [](bool value) {
+            VideoContext::FULLSCREEN = value;
             AppConfig::instance().setItem(AppConfig::FULLSCREEN, value);
-            // 设置当前状态
             brls::Application::getPlatform()->getVideoContext()->fullScreen(value);
         });
+
+    btnAlwaysOnTop->init(
+        "main/setting/others/always_on_top"_i18n, conf.getItem(AppConfig::ALWAYS_ON_TOP, false), [](bool value) {
+            AppConfig::instance().setItem(AppConfig::ALWAYS_ON_TOP, value);
+            brls::Application::getPlatform()->setWindowAlwaysOnTop(value);
+        });
+
+    btnSingle->init("main/setting/others/single"_i18n, conf.getItem(AppConfig::SINGLE, false), [](bool value) {
+        AppConfig::instance().setItem(AppConfig::SINGLE, value);
+        MPVCore::instance().restart();
+    });
 #else
     btnFullscreen->setVisibility(brls::Visibility::GONE);
+    btnAlwaysOnTop->setVisibility(brls::Visibility::GONE);
+    btnSingle->setVisibility(brls::Visibility::GONE);
 #endif
 
 #if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
@@ -287,7 +300,14 @@ void SettingTab::onCreate() {
             AppConfig::instance().setItem(AppConfig::REQUEST_TIMEOUT, HTTP::TIMEOUT);
         });
 
-    bool proxyStatus = conf.getItem(AppConfig::HTTP_PROXY_STATUS, false);
+    /// TLS verify
+    bool tlsVerify = conf.getItem(AppConfig::TLS_VERIFY, HTTP::TLS_VERIFY);
+    btnTls->init("main/setting/network/tls"_i18n, tlsVerify, [](bool value) {
+        HTTP::TLS_VERIFY = value;
+        AppConfig::instance().setItem(AppConfig::TLS_VERIFY, value);
+    });
+
+    bool proxyStatus = conf.getItem(AppConfig::HTTP_PROXY_STATUS, HTTP::PROXY_STATUS);
     btnProxy->init("main/setting/network/proxy"_i18n, proxyStatus, [this](bool value) {
         inputProxyHost->setVisibility(value ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
         inputProxyPort->setVisibility(value ? brls::Visibility::VISIBLE : brls::Visibility::GONE);

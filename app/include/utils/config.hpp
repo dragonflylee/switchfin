@@ -57,9 +57,13 @@ public:
         PLAYER_INMEMORY_CACHE,
         PLAYER_HWDEC,
         PLAYER_HWDEC_CUSTOM,
+        PLAYER_ASPECT,
+        ALWAYS_ON_TOP,
+        SINGLE,
         TEXTURE_CACHE_NUM,
         REQUEST_THREADS,
         REQUEST_TIMEOUT,
+        TLS_VERIFY,
         HTTP_PROXY_STATUS,
         HTTP_PROXY_HOST,
         HTTP_PROXY_PORT,
@@ -67,11 +71,12 @@ public:
 
     AppConfig() = default;
 
-    void init();
+    bool init();
     void save();
     bool checkLogin();
 
     std::string configDir();
+    std::string ipcSocket();
     void checkRestart(char* argv[]);
 
     template <typename T>

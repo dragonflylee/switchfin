@@ -4,8 +4,23 @@
 
 ### Added
 
+* video flip and subtitle sync support for player
+* video equalizer setting
+* add episode selector on player view
+* add new option `Always on top` for desktop platform
+* upgrade ffmpeg 7.0
+
+## [0.4.5]
+
+### Added
+
 * add chapter point on progress bar
 * touch gesture for volume/brightness
+
+### Fixed
+
+* collection display on new created user
+* Scroll performance improvement @xfangfang
 
 ## [0.4.4]
 

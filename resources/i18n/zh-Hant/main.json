@@ -26,6 +26,7 @@
     "prev": "上一個",
     "next": "下一個",
     "error": "播放錯誤",
+    "episode": "选集",
     "speed_up": "{} 倍速播放中"
   },
   "media": {
@@ -95,12 +96,34 @@
       "clip_point": "進度條顯示章節位置",
       "transcodec": "轉碼格式",
       "video_quality": "視頻質量",
-      "seeking_step": "快進步進秒數"
+      "seeking_step": "快進步進秒數",
+      "subsync": "字幕同步"
+    },
+    "filter": {
+      "mirror": "鏡像畫面",
+      "hflip": "水平鏡像",
+      "vflip": "垂直鏡像"
+    },
+    "aspect": {
+      "header": "影片比例",
+      "crop": "填充",
+      "stretch": "拉伸",
+      "auto": "自動"
+    },
+    "equalizer": {
+      "header": "等化器",
+      "brightness": "亮度",
+      "contrast": "對比度",
+      "saturation": "飽和度",
+      "gamma": "伽馬值",
+      "hue": "色調",
+      "reset": "重置"
     },
     "network": {
       "header": "網路設定",
       "threads": "載入圖片執行緒數量",
       "timeout": "請求逾時時長 (毫秒)",
+      "tls": "TLS 驗證",
       "proxy": "代理伺服器",
       "host": "位址",
       "port": "端口"
@@ -118,7 +141,9 @@
       "font_q1": "如何設定自訂字型或按鍵圖示",
       "font_a1": "1. 下載你想要的字型或圖示檔案\n2. 字型重新命名為：font.ttf  圖示重新命名為：icon.ttf\n3. 將重新命名後的檔案放在本程式的設定檔目錄\n4. 重新啟動本程式",
       "font_q2": "常見問題",
-      "font_a2": "1. 本程式優先顯示自訂字型，以內建字型作為後備\n2. 「程式設定 - 使用教學」 提供快速打開設定目錄的選單\n3. 在 Linux 上，Switchfin 使用 xdg-open 來打開目錄，如果無法正常開啟設定檔目錄，可以考慮安裝此工具"
+      "font_a2": "1. 本程式優先顯示自訂字型，以內建字型作為後備\n2. 「程式設定 - 使用教學」 提供快速打開設定目錄的選單\n3. 在 Linux 上，Switchfin 使用 xdg-open 來打開目錄，如果無法正常開啟設定檔目錄，可以考慮安裝此工具",
+      "error_q3": "字幕無法顯示",
+      "error_a3": "將合適的 ttf 字形複製到 /switch/Switchfin/subfont.ttf"
     },
     "quick_connect": {
       "header": "快速連接",
@@ -131,6 +156,8 @@
     "others": {
       "header": "其他",
       "fullscreen": "全螢幕顯示",
+      "always_on_top": "總在最上層",
+      "single": "單例模式",
       "overclock": "CPU超頻",
       "debug": "調試窗口",
       "theme": {
