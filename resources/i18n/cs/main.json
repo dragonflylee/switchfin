@@ -100,50 +100,50 @@
       "subsync": "Synchronizace titulků"
     },
     "filter": {
-      "mirror": "Video flip",
-      "hflip": "Horizontally flip",
-      "vflip": "Vertically flip"
+      "mirror": "Překlopení videa",
+      "hflip": "Vodorovně převrátit",
+      "vflip": "Vertikálně převrátit"
     },
     "aspect": {
-      "header": "Video aspect",
-      "crop": "Crop",
-      "stretch": "Stretch",
-      "auto": "Auto"
+      "header": "Aspekt videa",
+      "crop": "Oříznout",
+      "stretch": "Natáhnout",
+      "auto": "Automaticky"
     },
     "equalizer": {
-      "header": "Equalizer",
-      "brightness": "Brightness",
-      "contrast": "Contrast",
-      "saturation": "Saturation",
-      "gamma": "Gamma",
-      "hue": "Hue",
-      "reset": "Reset"
+      "header": "Ekvalizér",
+      "brightness": "Jas",
+      "contrast": "Kontrast",
+      "saturation": "Saturace",
+      "gamma": "Gama",
+      "hue": "Odstín",
+      "reset": "Resetovat"
     },
     "network": {
-      "header": "Network",
-      "threads": "Number of image loading threads",
-      "timeout": "Request timeout (ms)",
-      "tls": "TLS verify",
-      "proxy": "Proxy Setting",
-      "host": "Host",
+      "header": "Síť",
+      "threads": "Počet vláken pro načítání obrázku",
+      "timeout": "Časový limit požadavku (ms)",
+      "tls": "Ověření TLS",
+      "proxy": "Nastavení proxy",
+      "host": "Hostitel",
       "port": "Port"
     },
     "tutorial": {
-      "header": "Tutorial",
-      "open": "How to install desktop icon",
-      "error": "If you encounter a bug",
-      "hot_key": "Hot keys",
-      "font": "Set custom font",
-      "error_q1": "Unable to access the network",
-      "error_a1": "1. Ensure the atmosphere and system firmware are up to date\n2. Confirm that the system time is correct\n3. Restore the default network settings, including IP, DNS, etc\n4.Using in China",
-      "error_q2": "Exits with random error",
-      "error_a2": "1. Using a Fat32 format memory card\n2. Ensure the atmosphere and system firmware are up to date\n3. Waiting for developers to repair",
-      "font_q1": "How to set custom font or keymap icon",
-      "font_a1": "1. Download the font or icon font you want\n2. Rename font to: font.ttf; Rename icon to: icon.ttf\n3. Place font files in the config directory\n4. Restart the application",
-      "font_q2": "FAQ",
-      "font_a2": "1. Switchfin prioritizes the display of custom fonts, with built-in fonts as a fallback\n2. \"Settings - Tutorial\" provides a menu item to quickly open the config directory\n3. On Linux, Switchfin uses xdg-open to open the directory. If the configuration directory cannot be opened correctly, you can consider installing this tool",
-      "error_q3": "Subtitles didn't display",
-      "error_a3": "Put any ttf file at /switch/Switchfin/subfont.ttf"
+      "header": "Výukový program",
+      "open": "Jak nainstalovat ikonu na plochu",
+      "error": "Pokud narazíte na chybu",
+      "hot_key": "Klávesové zkratky",
+      "font": "Nastavit vlastní písmo",
+      "error_q1": "Nelze získat přístup k síti",
+      "error_a1": "1. Ujistěte se, že Atmosphere a firmware systému jsou aktuální\n2. Potvrďte, že systémový čas je správný\n3. Obnovte výchozí nastavení sítě, včetně IP, DNS atd\n4. Použití v Číně",
+      "error_q2": "Ukončeno s náhodnou chybou",
+      "error_a2": "1. Použijte paměťovou kartu s formátem Fat32\n2. Ujistěte se, že Atmosphere a firmware systému jsou aktuální\n3. Počkejte až to vývojáři opraví",
+      "font_q1": "Jak nastavit vlastní písmo nebo ikonu mapy kláves",
+      "font_a1": "1. Stáhněte si požadované písmo nebo písmo ikon\n2. Přejmenujte písmo na: font.ttf; Přejmenujte ikony na: icon.ttf\n3. Umístěte soubory písem do adresáře config\n4. Restartujte aplikaci",
+      "font_q2": "Často kladené otázky",
+      "font_a2": "1. Switchfin upřednostňuje zobrazení vlastních písem, s vestavěnými fonty jako záložní\n2. \"Nastavení – výukový program\" poskytuje položku nabídky pro rychlé otevření konfiguračního adresáře\n3. V Linuxu používá Switchfin k otevření adresáře xdg-open. Pokud konfigurační adresář nelze správně otevřít, můžete zvážit instalaci tohoto nástroje",
+      "error_q3": "Titulky se nezobrazily",
+      "error_a3": "Vložte libovolný soubor ttf do /switch/Switchfin/subfont.ttf"
     },
     "quick_connect": {
       "header": "Quick Connect",
