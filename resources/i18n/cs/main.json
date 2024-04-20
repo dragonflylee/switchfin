@@ -26,6 +26,7 @@
     "prev": "Předchozí",
     "next": "Další",
     "error": "Chyba přehrávání",
+    "episode": "Epizoda",
     "speed_up": "Aktuální rychlost {}"
   },
   "media": {
@@ -95,12 +96,34 @@
       "clip_point": "Show clip point of chapter",
       "transcodec": "Transcodec",
       "video_quality": "Video Quality",
-      "seeking_step": "Seeking Step"
+      "seeking_step": "Seeking Step",
+      "subsync": "Subtitle Sync"
+    },
+    "filter": {
+      "mirror": "Video flip",
+      "hflip": "Horizontally flip",
+      "vflip": "Vertically flip"
+    },
+    "aspect": {
+      "header": "Video aspect",
+      "crop": "Crop",
+      "stretch": "Stretch",
+      "auto": "Auto"
+    },
+    "equalizer": {
+      "header": "Equalizer",
+      "brightness": "Brightness",
+      "contrast": "Contrast",
+      "saturation": "Saturation",
+      "gamma": "Gamma",
+      "hue": "Hue",
+      "reset": "Reset"
     },
     "network": {
       "header": "Network",
       "threads": "Number of image loading threads",
       "timeout": "Request timeout (ms)",
+      "tls": "TLS verify",
       "proxy": "Proxy Setting",
       "host": "Host",
       "port": "Port"
@@ -118,7 +141,9 @@
       "font_q1": "How to set custom font or keymap icon",
       "font_a1": "1. Download the font or icon font you want\n2. Rename font to: font.ttf; Rename icon to: icon.ttf\n3. Place font files in the config directory\n4. Restart the application",
       "font_q2": "FAQ",
-      "font_a2": "1. Switchfin prioritizes the display of custom fonts, with built-in fonts as a fallback\n2. \"Settings - Tutorial\" provides a menu item to quickly open the config directory\n3. On Linux, Switchfin uses xdg-open to open the directory. If the configuration directory cannot be opened correctly, you can consider installing this tool"
+      "font_a2": "1. Switchfin prioritizes the display of custom fonts, with built-in fonts as a fallback\n2. \"Settings - Tutorial\" provides a menu item to quickly open the config directory\n3. On Linux, Switchfin uses xdg-open to open the directory. If the configuration directory cannot be opened correctly, you can consider installing this tool",
+      "error_q3": "Subtitles didn't display",
+      "error_a3": "Put any ttf file at /switch/Switchfin/subfont.ttf"
     },
     "quick_connect": {
       "header": "Quick Connect",
@@ -131,6 +156,8 @@
     "others": {
       "header": "Others",
       "fullscreen": "Fullscreen",
+      "always_on_top": "Always on top",
+      "single": "Single instance",
       "overclock": "CPU Overclock",
       "debug": "Debug View",
       "theme": {
