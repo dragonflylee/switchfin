@@ -1,0 +1,200 @@
+{
+  "tabs": {
+    "home": "Domů",
+    "setting": "Nastavení"
+  },
+  "home": {
+    "resume": "Pokračovat ve sledování",
+    "nextup": "Další",
+    "latest": "Nedávno přidané"
+  },
+  "about": {
+    "header": "O Aplikaci",
+    "brief": "Jen další Jellyfin klient třetí strany",
+    "repo_header": "Repozitář"
+  },
+  "player": {
+    "subtitle": "Titulky",
+    "none": "Žádné",
+    "audio": "Audio stopa",
+    "common": "Běžný",
+    "speed": "Rychlost přehrávání",
+    "quality": "Kvalita obrazu",
+    "chapter": "Kapitola",
+    "auto": "Automaticky",
+    "toggle": "Přehrát/Pozastavit",
+    "prev": "Předchozí",
+    "next": "Další",
+    "error": "Chyba přehrávání",
+    "episode": "Epizoda",
+    "speed_up": "Aktuální rychlost {}"
+  },
+  "media": {
+    "sort": "Řadit",
+    "sort_by": "Řadit podle",
+    "filter": "Filtrovat",
+    "order": "Pořadí",
+    "ascending": "Vzestupně",
+    "descending": "Sestupně",
+    "name": "Jména",
+    "date_add": "Data přidání",
+    "date_played": "Data přehrání",
+    "premiere_date": "Data premiéry",
+    "play_count": "Počtu přehrání",
+    "rating": "Komunitního hodnocení",
+    "random": "Náhodně",
+    "played": "Přehrané",
+    "unplayed": "Nepřehrané"
+  },
+  "search": {
+    "tv": {
+      "hint": "Podpora klíčových slov a jejich počátečních písmen",
+      "clear": "Vyčistit",
+      "delete": "Smazat",
+      "search": "Vyhledat",
+      "history": "Historie",
+      "suggest": "Návrh"
+    },
+    "clear_history": "Potvrzením vymazat historii vyhledávání?",
+    "genres": {
+      "movie": "Film",
+      "series": "Seriál",
+      "episode": "Epizoda"
+    }
+  },
+  "setting": {
+    "quit_hint": "Chystáte se ukončit aplikaci. Nastavení se projeví po příštím spuštění",
+    "name": "Jméno",
+    "version": "Verze",
+    "os": "Operační Systém",
+    "url": "Odkaz",
+    "user": "Uživatel",
+    "username": "Jméno uživatele",
+    "password": "Heslo",
+    "server": {
+      "header": "Server",
+      "detail": "Detaily Serveru",
+      "connect_new": "Nový Server",
+      "connect_to": "Připojit se k Jellyfin serveru",
+      "invalid": "Neplatná adresa serveru!",
+      "connect": "Připojit",
+      "delete": "Potvrdit smazání?",
+      "local": "Místní Servery",
+      "users": "{} uživatelé",
+      "sigin_to": "Přihlásit se do  {}",
+      "signin": "Přihlásit se"
+    },
+    "playback": {
+      "header": "Přehrávání",
+      "bottom_bar": "Zobrazit spodní indikátor průběhu",
+      "low_quality": "Nízká kvalita dekódování (s menším využitím CPU)",
+      "in_memory_cache": "Ve vyrovnávací paměti",
+      "hwdec": "Hardwarové dekódování",
+      "force_directplay": "Vynutit přímé přehrávání",
+      "osd_on_toggle": "Zobrazit OSD při pozastavení",
+      "touch_gesture": "Dotykové gesto pro hledání kroku",
+      "clip_point": "Zobrazit bod klipu kapitoly",
+      "transcodec": "Transcodec",
+      "video_quality": "Kvalita videa",
+      "seeking_step": "Krok hledání",
+      "subsync": "Synchronizace titulků"
+    },
+    "filter": {
+      "mirror": "Překlopení videa",
+      "hflip": "Vodorovně převrátit",
+      "vflip": "Vertikálně převrátit"
+    },
+    "aspect": {
+      "header": "Aspekt videa",
+      "crop": "Oříznout",
+      "stretch": "Natáhnout",
+      "auto": "Automaticky"
+    },
+    "equalizer": {
+      "header": "Ekvalizér",
+      "brightness": "Jas",
+      "contrast": "Kontrast",
+      "saturation": "Saturace",
+      "gamma": "Gama",
+      "hue": "Odstín",
+      "reset": "Resetovat"
+    },
+    "network": {
+      "header": "Síť",
+      "threads": "Počet vláken pro načítání obrázku",
+      "timeout": "Časový limit požadavku (ms)",
+      "tls": "Ověření TLS",
+      "proxy": "Nastavení proxy",
+      "host": "Hostitel",
+      "port": "Port"
+    },
+    "tutorial": {
+      "header": "Výukový program",
+      "open": "Jak nainstalovat ikonu na plochu",
+      "error": "Pokud narazíte na chybu",
+      "hot_key": "Klávesové zkratky",
+      "font": "Nastavit vlastní písmo",
+      "error_q1": "Nelze získat přístup k síti",
+      "error_a1": "1. Ujistěte se, že Atmosphere a firmware systému jsou aktuální\n2. Potvrďte, že systémový čas je správný\n3. Obnovte výchozí nastavení sítě, včetně IP, DNS atd\n4. Použití v Číně",
+      "error_q2": "Ukončeno s náhodnou chybou",
+      "error_a2": "1. Použijte paměťovou kartu s formátem Fat32\n2. Ujistěte se, že Atmosphere a firmware systému jsou aktuální\n3. Počkejte až to vývojáři opraví",
+      "font_q1": "Jak nastavit vlastní písmo nebo ikonu mapy kláves",
+      "font_a1": "1. Stáhněte si požadované písmo nebo písmo ikon\n2. Přejmenujte písmo na: font.ttf; Přejmenujte ikony na: icon.ttf\n3. Umístěte soubory písem do adresáře config\n4. Restartujte aplikaci",
+      "font_q2": "Často kladené otázky",
+      "font_a2": "1. Switchfin upřednostňuje zobrazení vlastních písem, s vestavěnými fonty jako záložní\n2. \"Nastavení – výukový program\" poskytuje položku nabídky pro rychlé otevření konfiguračního adresáře\n3. V Linuxu používá Switchfin k otevření adresáře xdg-open. Pokud konfigurační adresář nelze správně otevřít, můžete zvážit instalaci tohoto nástroje",
+      "error_q3": "Titulky se nezobrazily",
+      "error_a3": "Vložte libovolný soubor ttf do /switch/Switchfin/subfont.ttf"
+    },
+    "quick_connect": {
+      "header": "Rychlé připojení",
+      "code": "Kód rychlého připojení",
+      "invalid": "Neplatný kód rychlého připojení",
+      "success": "Autorizace rychlého připojení byla úspěšná. Pokračujte prosím na svém druhém zařízení.",
+      "steps": "1. Otevřete aplikaci Jellyfin v telefonu nebo webovém prohlížeči a přihlaste se pomocí svého účtu\n2. Otevřete uživatelskou nabídku a přejděte na stránku Rychlé připojení\n3. Zadejte následující kód:",
+      "disabled": "Poznámka: Rychlé připojení není povoleno"
+    },
+    "others": {
+      "header": "Ostatní",
+      "fullscreen": "Celá obrazovka",
+      "always_on_top": "Vždy nahoře",
+      "single": "Jediná instance",
+      "overclock": "Přetaktování CPU",
+      "debug": "Zobrazení ladění",
+      "theme": {
+        "header": "Motiv (vyžaduje restart)",
+        "1": "Automaticky",
+        "2": "Světlý",
+        "3": "Tmavý"
+      },
+      "language": {
+        "header": "Jazyk (vyžaduje restart)",
+        "auto": "Automaticky",
+        "chinese_s": "Čínsky (Zjednodušně)",
+        "chinese_t": "Čínsky (Tradičně)",
+        "czech": "Česky",
+        "english": "Anglicky",
+        "german": "Německy"
+      },
+      "keymap": {
+        "header": "Styl mapy kláves",
+        "xbox": "Xbox",
+        "ps": "PlayStation",
+        "keyboard": "Klávesnice"
+      },
+      "logout": "Odhlásit z aktuálního účtu \n(aplikace se ukončí)",
+      "up2date": "Aplikace je aktuální",
+      "upgrade": "{} je nyní k dispozici! Jste připraveni aktualizovat?",
+      "updating": "Probíhá aktualizace, zrušit nyní?",
+      "release": "Zkontrolovat aktualizace"
+    }
+  },
+  "hints": {
+    "hint1": "Vyberte hru z domovské obrazovky",
+    "hint2": "Podržte klávesu \uE0E5 a kliknutím na \uE0E0 přejděte do nabídky homebrew",
+    "hint3": "V nabídce homebrew vyberte Switchfin",
+    "hint4": "Volitelné: Odeslat Switchfin NSP na domovskou obrazovku",
+    "hint_nsp": "Kliknutím na \uE0E0 odešlete Switchfin NSP na domovskou obrazovku",
+    "hint_confirm": "Pokud odešlete NSP na domovskou obrazovku může to vést k banu\nProsím potvrďte znovu",
+    "hint_right": "Obrázky jsou z internetu a autorská práva patří společnosti Nintendo Co., Ltd"
+  }
+}
