@@ -157,6 +157,17 @@ std::string misc::hexEncode(const unsigned char* data, size_t len) {
     return ss.str();
 }
 
+std::vector<std::string> misc::split(const std::string& data, char seq) {
+    std::string s;
+    std::vector<std::string> result;
+    std::stringstream ss(data);
+
+    while (std::getline(ss, s, ',')) {
+        result.push_back(s);
+    }
+    return result;
+}
+
 bool misc::sendIPC(const std::string& sock, const std::string& payload) {
 #ifdef _WIN32
     HANDLE hPipe = CreateFile(sock.c_str(), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);

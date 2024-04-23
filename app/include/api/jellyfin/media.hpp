@@ -25,6 +25,9 @@ const std::string apiLogoImage = "/Items/{}/Images/Logo?format=Png&{}";
 const std::string apiBackdropImage = "/Items/{}/Images/Backdrop?format=Png&{}";
 #endif
 
+// danmu plugin
+const std::string apiDanmuku = "/api/danmu/{}/raw";
+
 const std::string apiPlayback = "/Items/{}/PlaybackInfo";
 const std::string apiStream = "/Videos/{}/stream?{}";
 const std::string apiAudio = "/Audio/{}/stream?{}";

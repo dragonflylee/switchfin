@@ -3,6 +3,8 @@
 #include "view/video_progress_slider.hpp"
 #include "view/player_setting.hpp"
 #include "view/video_profile.hpp"
+#include "view/danmaku_core.hpp"
+#include "view/danmaku_setting.hpp"
 #include "api/jellyfin.hpp"
 #include "utils/gesture.hpp"
 #include "utils/dialog.hpp"
@@ -34,6 +36,7 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
 
     // 停止正在播放的音乐
     MPVCore::instance().stop();
+    MPVCore::instance().reset();
 
     this->input = brls::Application::getPlatform()->getInputManager();
 
@@ -105,6 +108,20 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
     /// 音量按钮
     this->btnVolume->registerClickAction([this](brls::View* view) { return this->toggleVolume(view); });
     this->btnVolume->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVolume));
+
+    /// 弹幕切换按钮
+    this->btnDanmakuIcon->getParent()->registerClickAction([this](...) { return this->toggleDanmaku(); });
+    this->btnDanmakuIcon->getParent()->addGestureRecognizer(
+        new brls::TapGestureRecognizer(this->btnDanmakuIcon->getParent()));
+
+    /// 弹幕设置按钮
+    this->btnDanmakuSettingIcon->getParent()->registerClickAction([](...) {
+        auto setting = new DanmakuSetting();
+        brls::Application::pushActivity(new brls::Activity(setting));
+        return true;
+    });
+    this->btnDanmakuSettingIcon->getParent()->addGestureRecognizer(
+        new brls::TapGestureRecognizer(this->btnDanmakuSettingIcon->getParent()));
 
     this->registerMpvEvent();
 
@@ -471,6 +488,8 @@ void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::S
     // draw video
     mpv.draw(this->getFrame(), this->getAlpha());
 
+    if (enableDanmaku) DanmakuCore::instance().draw(vg, x, y, w, h, alpha);
+
     // draw osd
     brls::Time current = brls::getCPUTimeUsec();
     if ((this->osdState == OSDState::SHOWN && current < this->osdLastShowTime) ||
@@ -727,6 +746,8 @@ void VideoView::playMedia(const time_t seekTicks) {
             Dialog::show(ex, []() { popActivity(); });
         },
         jellyfin::apiPlayback, this->itemId);
+
+    this->requestDanmaku();
 }
 
 void VideoView::reportStart() {
@@ -1076,4 +1097,99 @@ void VideoView::setChapters(const std::vector<jellyfin::MediaChapter>& chaps, ti
         this->osdSlider->setClipPoint(clips);
     }
     this->btnVideoChapter->setVisibility(brls::Visibility::VISIBLE);
+}
+
+/// 获取视频弹幕
+void VideoView::requestDanmaku() {
+    ASYNC_RETAIN
+    brls::async([ASYNC_TOKEN]() {
+        auto& c = AppConfig::instance();
+        HTTP::Header header = {"X-Emby-Token: " + c.getUser().access_token};
+        std::string url = fmt::format(fmt::runtime(jellyfin::apiDanmuku), this->itemId);
+
+        try {
+            std::string resp = HTTP::get(c.getUrl() + url, header, HTTP::Timeout{});
+
+            ASYNC_RELEASE
+            brls::Logger::debug("DANMAKU: start decode");
+
+            // Load XML
+            tinyxml2::XMLDocument document = tinyxml2::XMLDocument();
+            tinyxml2::XMLError error = document.Parse(resp.c_str());
+
+            if (error != tinyxml2::XMLError::XML_SUCCESS) {
+                brls::Logger::error("Error decode danmaku xml[1]: {}", std::to_string(error));
+                return;
+            }
+            tinyxml2::XMLElement* element = document.RootElement();
+            if (!element) {
+                brls::Logger::error("Error decode danmaku xml[2]: no root element");
+                return;
+            }
+
+            std::vector<DanmakuItem> items;
+            for (auto child = element->FirstChildElement(); child != nullptr; child = child->NextSiblingElement()) {
+                if (child->Name()[0] != 'd') continue;  // 简易判断是不是弹幕
+                const char* content = child->GetText();
+                if (!content) continue;
+                try {
+                    items.emplace_back(content, child->Attribute("p"));
+                } catch (...) {
+                    brls::Logger::error("DANMAKU: error decode: {}", child->GetText());
+                }
+            }
+
+            brls::sync([items, this]() {
+                DanmakuCore::instance().loadDanmakuData(items);
+                this->setDanmakuEnable(brls::Visibility::VISIBLE);
+            });
+
+            brls::Logger::debug("DANMAKU: decode done: {}", items.size());
+
+        } catch (const std::exception& ex) {
+            ASYNC_RELEASE
+            brls::Logger::warning("request danmu: {}", ex.what());
+
+            brls::sync([this]() {
+                DanmakuCore::instance().reset();
+                this->setDanmakuEnable(brls::Visibility::GONE);
+            });
+        }
+    });
+}
+
+void VideoView::setDanmakuEnable(brls::Visibility v) {
+    this->enableDanmaku = (v == brls::Visibility::VISIBLE);
+    btnDanmakuIcon->setVisibility(v);
+    btnDanmakuIcon->getParent()->setVisibility(v);
+    if (enableDanmaku) {
+        this->refreshDanmakuIcon();
+    } else {
+        btnDanmakuSettingIcon->setVisibility(v);
+        btnDanmakuSettingIcon->getParent()->setVisibility(v);
+    }
+}
+
+bool VideoView::toggleDanmaku() {
+    if (!enableDanmaku) return false;
+    DanmakuCore::DANMAKU_ON = !DanmakuCore::DANMAKU_ON;
+    this->refreshDanmakuIcon();
+    AppConfig::instance().setItem(AppConfig::DANMAKU_ON, DanmakuCore::DANMAKU_ON);
+    return true;
+}
+
+void VideoView::refreshDanmakuIcon() {
+    if (DanmakuCore::DANMAKU_ON) {
+        this->btnDanmakuIcon->setImageFromSVGRes("icon/ico-danmu-switch-on.svg");
+        btnDanmakuSettingIcon->setVisibility(brls::Visibility::VISIBLE);
+        btnDanmakuSettingIcon->getParent()->setVisibility(brls::Visibility::VISIBLE);
+    } else {
+        this->btnDanmakuIcon->setImageFromSVGRes("icon/ico-danmu-switch-off.svg");
+        // 当焦点刚好位于弹幕设置按钮时，这时通过快捷键关闭弹幕设置会导致焦点不会自动切换
+        if (brls::Application::getCurrentFocus() == btnDanmakuSettingIcon) {
+            brls::Application::giveFocus(btnDanmakuIcon);
+        }
+        btnDanmakuSettingIcon->setVisibility(brls::Visibility::GONE);
+        btnDanmakuSettingIcon->getParent()->setVisibility(brls::Visibility::GONE);
+    }
 }

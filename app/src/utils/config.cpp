@@ -27,6 +27,7 @@ namespace fs = std::experimental::filesystem;
 #include "utils/config.hpp"
 #include "utils/misc.hpp"
 #include "view/mpv_core.hpp"
+#include "view/danmaku_core.hpp"
 
 constexpr uint32_t MINIMUM_WINDOW_WIDTH = 640;
 constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
@@ -62,6 +63,34 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {PLAYER_HWDEC, {"player_hwdec"}},
     {PLAYER_HWDEC_CUSTOM, {"player_hwdec_custom"}},
     {PLAYER_ASPECT, {"player_aspect", {"auto", "stretch", "crop", "4:3", "16:9"}}},
+    {DANMAKU_STYLE_AREA, {"danmaku_style_area", {"1/4", "1/2", "3/4", "1"}, {25, 50, 75, 100}}},
+    {DANMAKU_STYLE_ALPHA,
+        {
+            "danmaku_style_alpha",
+            {"10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"},
+            {10, 20, 30, 40, 50, 60, 70, 80, 90, 100},
+        }},
+    {DANMAKU_STYLE_FONTSIZE,
+        {"danmaku_style_fontsize", {"50%", "75%", "100%", "125%", "150%", "175%"}, {15, 22, 30, 37, 45, 50}}},
+    {DANMAKU_STYLE_FONT, {"danmaku_style_font", {"stroke", "incline", "shadow", "pure"}}},
+    {DANMAKU_STYLE_LINE_HEIGHT,
+        {
+            "danmaku_style_line_height",
+            {"100%", "120%", "140%", "160%", "180%", "200%"},
+            {100, 120, 140, 160, 180, 200},
+        }},
+    {DANMAKU_STYLE_SPEED,
+        {
+            "danmaku_style_speed",
+            {"0.5", "0.75", "1.0", "1.25", "1.5"},
+            {150, 125, 100, 75, 50},
+        }},
+    {DANMAKU_RENDER_QUALITY,
+        {
+            "danmaku_render_quality",
+            {"100%", "95%", "90%", "80%", "70%", "60%", "50%"},
+            {100, 95, 90, 80, 70, 60, 50},
+        }},
     {ALWAYS_ON_TOP, {"always_on_top"}},
     {SINGLE, {"single"}},
     {TEXTURE_CACHE_NUM, {"texture_cache_num"}},
@@ -164,6 +193,15 @@ bool AppConfig::init() {
     // 初始化视频比例
     MPVCore::VIDEO_ASPECT = this->getItem(PLAYER_ASPECT, MPVCore::VIDEO_ASPECT);
 
+    // 初始化弹幕相关内容
+    DanmakuCore::DANMAKU_ON = this->getItem(DANMAKU_ON, DanmakuCore::DANMAKU_ON);
+    DanmakuCore::DANMAKU_STYLE_AREA = this->getItem(DANMAKU_STYLE_AREA, DanmakuCore::DANMAKU_STYLE_AREA);
+    DanmakuCore::DANMAKU_STYLE_ALPHA = this->getItem(DANMAKU_STYLE_ALPHA, DanmakuCore::DANMAKU_STYLE_ALPHA);
+    DanmakuCore::DANMAKU_STYLE_FONTSIZE = this->getItem(DANMAKU_STYLE_FONTSIZE, DanmakuCore::DANMAKU_STYLE_FONTSIZE);
+    DanmakuCore::DANMAKU_STYLE_LINE_HEIGHT =
+        this->getItem(DANMAKU_STYLE_LINE_HEIGHT, DanmakuCore::DANMAKU_STYLE_LINE_HEIGHT);
+    DanmakuCore::DANMAKU_STYLE_SPEED = this->getItem(DANMAKU_STYLE_SPEED, DanmakuCore::DANMAKU_STYLE_SPEED);
+
     // 初始化 deviceId
     if (this->device.empty()) this->device = generateDeviceId();
 
@@ -172,6 +210,20 @@ bool AppConfig::init() {
 
     // 初始化一些在创建窗口之后才能初始化的内容
     brls::Application::getWindowCreationDoneEvent()->subscribe([this]() {
+        // 初始化弹幕字体
+        std::string danmakuFont = this->configDir() + "/danmaku.ttf";
+        // 只在应用模式下加载自定义字体 减少switch上的内存占用
+        if (brls::Application::getPlatform()->isApplicationMode() && access(danmakuFont.c_str(), F_OK) != -1 &&
+            brls::Application::loadFontFromFile("danmaku", danmakuFont)) {
+            // 自定义弹幕字体
+            int danmakuFontId = brls::Application::getFont("danmaku");
+            nvgAddFallbackFontId(
+                brls::Application::getNVGContext(), danmakuFontId, brls::Application::getDefaultFont());
+            DanmakuCore::DANMAKU_FONT = danmakuFontId;
+        } else {
+            // 使用默认弹幕字体
+            DanmakuCore::DANMAKU_FONT = brls::Application::getDefaultFont();
+        }
         // 初始化主题
         std::string appTheme = this->getItem(APP_THEME, std::string("auto"));
         if (appTheme == "light") {

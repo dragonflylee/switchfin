@@ -34,6 +34,7 @@ typedef enum MpvEventEnum {
     VIDEO_MUTE,
     VIDEO_UNMUTE,
     MPV_FILE_ERROR,
+    RESET,
 } MpvEventEnum;
 
 typedef brls::Event<MpvEventEnum> MPVEvent;

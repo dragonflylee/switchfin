@@ -320,6 +320,48 @@
                             svg="@res/icon/ico-volume.svg" />
                     </brls:Box>
                     <brls:Box
+                        id="video/osd/danmaku/box/setting"
+                        hideClickAnimation="true"
+                        alignItems="center"
+                        justifyContent="center"
+                        visibility="gone"
+                        height="60"
+                        width="60">
+                        <SVGImage
+                            id="video/osd/danmaku/setting/icon"
+                            focusable="true"
+                            focusUp="video/osd/lock/box"
+                            focusDown="video/osd/danmaku/setting/icon"
+                            hideHighlightBackground="true"
+                            highlightCornerRadius="30"
+                            visibility="gone"
+                            wireframe="false"
+                            height="30"
+                            width="30"
+                            svg="@res/icon/ico-danmu-setting.svg" />
+                    </brls:Box>
+                    <brls:Box
+                        id="video/osd/danmaku/box/toggle"
+                        hideClickAnimation="true"
+                        alignItems="center"
+                        justifyContent="center"
+                        visibility="gone"
+                        height="60"
+                        width="60">
+                        <SVGImage
+                            id="video/osd/danmaku/icon"
+                            focusable="true"
+                            focusUp="video/osd/lock/box"
+                            focusDown="video/osd/danmaku/icon"
+                            hideHighlightBackground="true"
+                            highlightCornerRadius="30"
+                            visibility="gone"
+                            wireframe="false"
+                            height="30"
+                            width="30"
+                            svg="@res/icon/ico-danmu-switch-on.svg" />
+                    </brls:Box>
+                    <brls:Box
                         id="show/episode/box"
                         hideClickAnimation="true"
                         marginLeft="10"

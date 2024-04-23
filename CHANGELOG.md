@@ -4,6 +4,7 @@
 
 ### Added
 
+* [danmu plugin](https://github.com/cxfksword/jellyfin-plugin-danmu) integration
 * video flip and subtitle sync support for player
 * video equalizer setting
 * add episode selector on player view

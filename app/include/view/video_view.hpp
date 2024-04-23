@@ -70,6 +70,8 @@ private:
     BRLS_BIND(SVGImage, osdLockIcon, "video/osd/lock/icon");
     BRLS_BIND(SVGImage, btnToggleIcon, "video/osd/toggle/icon");
     BRLS_BIND(SVGImage, btnVolumeIcon, "video/osd/volume/icon");
+    BRLS_BIND(SVGImage, btnDanmakuIcon, "video/osd/danmaku/icon");
+    BRLS_BIND(SVGImage, btnDanmakuSettingIcon, "video/osd/danmaku/setting/icon");
     BRLS_BIND(brls::Box, osdTopBox, "video/osd/top/box");
     BRLS_BIND(brls::Box, osdBottomBox, "video/osd/bottom/box");
     // 用于显示缓冲组件
@@ -97,6 +99,10 @@ private:
     void reportStart();
     void reportStop();
     void reportPlay(bool isPaused = false);
+    void requestDanmaku();
+    void setDanmakuEnable(brls::Visibility v);
+    bool toggleDanmaku();
+    void refreshDanmakuIcon();
 
     void registerMpvEvent();
     void unRegisterMpvEvent();
@@ -125,6 +131,8 @@ private:
     static bool popActivity();
     static void disableDimming(bool disable);
 
+    bool enableDanmaku = true;
+
     // OSD
     bool isOsdShown = false;
     bool isOsdLock = false;
@@ -150,7 +158,7 @@ private:
     ClickState clickState = ClickState::IDLE;
     brls::Time pressTime;
     size_t tapIter = 0;
-    size_t volumeIter = 0;   // 音量UI关闭的延迟函数 handle
+    size_t volumeIter = 0;  // 音量UI关闭的延迟函数 handle
     int volumeInit = 0;
     float brightnessInit = 0;
 

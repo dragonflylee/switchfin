@@ -29,6 +29,35 @@
     "episode": "选集",
     "speed_up": "{} 倍速播放中"
   },
+  "danmaku": {
+    "header": "弹幕设置",
+    "performance": {
+      "header": "弹幕性能",
+      "render": "渲染尺寸"
+    },
+    "style": {
+      "header": "弹幕样式",
+      "font": "描边类型",
+      "font_stroke": "描边",
+      "font_incline": "投影",
+      "font_shadow": "重墨",
+      "font_pure": "纯色",
+      "area": "显示区域",
+      "area_1_4": "1/4 屏幕",
+      "area_2_4": "1/2 屏幕",
+      "area_3_4": "3/4 屏幕",
+      "area_4_4": "全屏幕",
+      "alpha": "不透明度",
+      "fontsize": "弹幕字号",
+      "line_height": "弹幕行高",
+      "speed": "弹幕速度",
+      "speed_slow_plus": "极慢",
+      "speed_slow": "较慢",
+      "speed_fast_plus": "极快",
+      "speed_fast": "较快",
+      "speed_moderate": "适中"
+    }
+  },
   "media": {
     "sort": "排序",
     "sort_by": "排序方式",
