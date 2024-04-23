@@ -603,6 +603,7 @@ void VideoView::setSeries(const std::string& seriesId) {
             this->btnForward->setVisibility(
                 this->itemIndex + 1 < this->showEpisodes.size() ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
             this->btnEpisode->setVisibility(brls::Visibility::VISIBLE);
+            this->showEpisodeLabel->setVisibility(brls::Visibility::VISIBLE);
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE

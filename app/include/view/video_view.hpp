@@ -85,6 +85,7 @@ private:
     BRLS_BIND(brls::Label, leftStatusLabel, "video/left/status");
     BRLS_BIND(brls::Label, rightStatusLabel, "video/right/status");
     BRLS_BIND(brls::Label, videoSpeedLabel, "video/speed");
+    BRLS_BIND(brls::Label, showEpisodeLabel, "show/episode");
     BRLS_BIND(brls::Label, speedHintLabel, "video/speed/hint/label");
     BRLS_BIND(brls::Box, speedHintBox, "video/speed/hint/box");
     BRLS_BIND(brls::Label, hintLabel, "video/osd/hint/label");
