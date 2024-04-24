@@ -822,7 +822,7 @@ void VideoView::registerMpvEvent() {
             if (MPVCore::OSD_ON_TOGGLE) {
                 this->showOSD(false);
             }
-            disableDimming(false);
+            hideLoading(false);
             this->btnToggleIcon->setImageFromSVGRes("icon/ico-play.svg");
             this->reportPlay(true);
             break;
@@ -929,9 +929,9 @@ void VideoView::showLoading() {
     disableDimming(false);
 }
 
-void VideoView::hideLoading() {
+void VideoView::hideLoading(bool dimming) {
     this->osdCenterBox->setVisibility(brls::Visibility::GONE);
-    disableDimming(true);
+    disableDimming(dimming);
 }
 
 bool VideoView::toggleProfile() {

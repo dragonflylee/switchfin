@@ -108,7 +108,7 @@ private:
     void unRegisterMpvEvent();
 
     void showLoading();
-    void hideLoading();
+    void hideLoading(bool dimming = true);
     bool toggleProfile();
     /// OSD
     void toggleOSD();
