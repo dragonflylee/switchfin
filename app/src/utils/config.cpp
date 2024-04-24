@@ -22,8 +22,7 @@ namespace fs = std::experimental::filesystem;
 #include <set>
 #include <borealis.hpp>
 #include <borealis/core/cache_helper.hpp>
-#include "api/http.hpp"
-#include "api/jellyfin/system.hpp"
+#include "api/jellyfin.hpp"
 #include "utils/config.hpp"
 #include "utils/misc.hpp"
 #include "view/mpv_core.hpp"
@@ -302,6 +301,27 @@ bool AppConfig::checkLogin() {
             }
         }
     }
+    return false;
+}
+
+bool AppConfig::checkDanmuku() {
+    jellyfin::getJSON(
+        [this](const jellyfin::PluginList& plugins) {
+            for (auto& p : plugins) {
+                if (p.Name == "Danmu") {
+                    DanmakuCore::PLUGIN_ACTIVE = true;
+                    brls::Logger::info("Danmaku plugin found: {}", p.Version);
+                    return;
+                }
+            }
+            DanmakuCore::PLUGIN_ACTIVE = false;
+            brls::Logger::warning("Danmaku plugin not found");
+        },
+        [](const std::string& err) {
+            DanmakuCore::PLUGIN_ACTIVE = false;
+            brls::Logger::error("AppConfig checkDanmuku: {}", err);
+        },
+        jellyfin::apiPlugins);
     return false;
 }
 

@@ -747,7 +747,9 @@ void VideoView::playMedia(const time_t seekTicks) {
         },
         jellyfin::apiPlayback, this->itemId);
 
-    this->requestDanmaku();
+    if (DanmakuCore::PLUGIN_ACTIVE) {
+        this->requestDanmaku();
+    }
 }
 
 void VideoView::reportStart() {

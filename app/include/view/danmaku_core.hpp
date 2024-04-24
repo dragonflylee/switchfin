@@ -155,6 +155,7 @@ public:
     static inline int DANMAKU_STYLE_SPEED = 100;
 
     static inline bool DANMAKU_ON = true;
+    static inline bool PLUGIN_ACTIVE = false;
 
     // 弹幕字体 (在 config_helper 中对此初始化)
     static inline int DANMAKU_FONT = brls::FONT_INVALID;

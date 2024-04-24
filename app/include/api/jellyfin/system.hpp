@@ -22,6 +22,7 @@ const std::string apiAuthWithQuickConnect = "/Users/AuthenticateWithQuickConnect
 const std::string apiUserSetting = "/DisplayPreferences/usersettings?userId={}&client=emby";
 
 const std::string apiBranding = "/Branding/Configuration";
+const std::string apiPlugins = "/Plugins";
 
 struct PublicSystemInfo {
     std::string Id;
@@ -91,5 +92,15 @@ struct BrandingConfig {
     std::string LoginDisclaimer;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(BrandingConfig, LoginDisclaimer);
+
+struct PluginInfo {
+    std::string Name;
+    std::string Version;
+    std::string Id;
+    std::string Status;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PluginInfo, Name, Version, Id, Status);
+
+typedef std::vector<PluginInfo> PluginList;
 
 }

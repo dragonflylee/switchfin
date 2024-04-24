@@ -29,6 +29,35 @@
     "episode": "Episode",
     "speed_up": "Current speed {}"
   },
+  "danmaku": {
+    "header": "Danmaku setting",
+    "performance": {
+      "header": "Performance",
+      "render": "Rendering quality"
+    },
+    "style": {
+      "header": "Danmaku style",
+      "font": "Stroke Style",
+      "font_stroke": "Stroke",
+      "font_incline": "Incline",
+      "font_shadow": "Shadow",
+      "font_pure": "Pure",
+      "area": "Display area",
+      "area_1_4": "1/4 Screen",
+      "area_2_4": "1/2 Screen",
+      "area_3_4": "3/4 Screen",
+      "area_4_4": "Fullscreen",
+      "alpha": "Alpha",
+      "fontsize": "Fontsize",
+      "line_height": "Line Height",
+      "speed": "Speed",
+      "speed_slow_plus": "Extremely slow",
+      "speed_slow": "Slow",
+      "speed_fast_plus": "Extremely fast",
+      "speed_fast": "Fast",
+      "speed_moderate": "Moderate"
+    }
+  },
   "media": {
     "sort": "Sort",
     "sort_by": "Sort By",

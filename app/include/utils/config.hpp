@@ -82,6 +82,8 @@ public:
     bool init();
     void save();
     bool checkLogin();
+    /// @brief 检查是否安装Danmuku插件
+    bool checkDanmuku();
 
     std::string configDir();
     std::string ipcSocket();
