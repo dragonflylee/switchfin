@@ -45,7 +45,7 @@ permissions:
 
 jobs:
   upload-release:
-    needs: [ build-mingw, build-nx, build-macos ]
+    needs: [ build-mingw, build-nx, build-macos, build-flatpak ]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
@@ -67,6 +67,7 @@ jobs:
           Switchfin-windows-*.7z
           Switchfin-macos-*/*.dmg
           Switchfin-deko3d-*/*.nro
+          Switchfin-linux-*/*.flatpak
         body: |
           ![download](https://img.shields.io/github/downloads/${{ github.repository }}/${{ github.ref_name }}/total?label=Downloads)
 
@@ -136,16 +137,17 @@ jobs:
     container:
       image: bilelmoussaoui/flatpak-github-actions:freedesktop-22.08
       options: --privileged
-    if: ${{ inputs.arm_flatpak }}
+    if: ${{ inputs.arm_flatpak || github.event_name != 'workflow_dispatch' }}
     steps:
     - uses: actions/checkout@v4
+      if: ${{ matrix.arch == 'x86_64' || (matrix.arch == 'aarch64' && inputs.arm_flatpak) }}
       with:
         submodules: recursive
     - name: Install docker
-      if: ${{ matrix.arch == 'aarch64' }}
+      if: ${{ matrix.arch == 'aarch64' && inputs.arm_flatpak }}
       run: dnf -y install docker
     - name: Set up QEMU
-      if: ${{ matrix.arch == 'aarch64' }}
+      if: ${{ matrix.arch == 'aarch64' && inputs.arm_flatpak }}
       uses: docker/setup-qemu-action@v3
     - name: Set workspace permissions
       run: git config --system --add safe.directory '*'
@@ -153,8 +155,9 @@ jobs:
       id: vars
       run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      if: ${{ matrix.arch == 'x86_64' || (matrix.arch == 'aarch64' && inputs.arm_flatpak) }}
       with:
-        bundle: Switchfin-flatpak-${{ steps.vars.outputs.sha_short }}.flatpak
+        bundle: Switchfin-linux-${{ steps.vars.outputs.sha_short }}.flatpak
         manifest-path: scripts/flatpak.yaml
         cache-key: flatpak-builder-${{ hashFiles('scripts/flatpak.yaml') }}
         verbose: true
@@ -188,7 +191,7 @@ jobs:
         path: Switchfin-*.deb
 
   build-macos:
-    runs-on: macos-latest
+    runs-on: macos-13
     if: ${{ inputs.macos || github.event_name != 'workflow_dispatch' }}
     strategy:
       fail-fast: false
