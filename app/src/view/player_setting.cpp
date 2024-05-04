@@ -1,7 +1,8 @@
-#include "view/player_setting.hpp"
-#include "view/video_view.hpp"
-#include "view/button_close.hpp"
 #include "utils/config.hpp"
+#include "utils/event.hpp"
+#include "view/button_close.hpp"
+#include "view/mpv_core.hpp"
+#include "view/player_setting.hpp"
 
 using namespace brls::literals;
 
@@ -64,7 +65,7 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
             if (subStream[i] == selectedSubtitle) value = i;
         this->subtitleTrack->init("main/player/subtitle"_i18n, subSource, value, [subStream](int selected) {
             selectedSubtitle = subStream[selected];
-            MPVCore::instance().getCustomEvent()->fire(VideoView::QUALITY_CHANGE, nullptr);
+            MPVCore::instance().getCustomEvent()->fire(QUALITY_CHANGE, nullptr);
         });
     } else {
         this->subtitleTrack->setVisibility(brls::Visibility::GONE);
@@ -83,7 +84,7 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
             if (audioStream[i] == selectedAudio) value = i;
         this->audioTrack->init("main/player/audio"_i18n, audioSource, value, [audioStream](int selected) {
             selectedAudio = audioStream[selected];
-            MPVCore::instance().getCustomEvent()->fire(VideoView::QUALITY_CHANGE, nullptr);
+            MPVCore::instance().getCustomEvent()->fire(QUALITY_CHANGE, nullptr);
         });
     } else {
         this->audioTrack->setVisibility(brls::Visibility::GONE);

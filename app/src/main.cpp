@@ -15,6 +15,7 @@
 #include "view/selector_cell.hpp"
 #include "view/button_close.hpp"
 #include "view/text_box.hpp"
+#include "view/mpv_core.hpp"
 
 #include "activity/main_activity.hpp"
 #include "activity/server_list.hpp"

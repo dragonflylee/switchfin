@@ -7,6 +7,7 @@
 #include <borealis.hpp>
 #include <borealis/core/singleton.hpp>
 #include <mpv/client.h>
+#include <utils/event.hpp>
 #ifdef MPV_SW_RENDER
 #include <mpv/render.h>
 #elif defined(BOREALIS_USE_D3D11)
@@ -17,28 +18,6 @@
 #include <mpv/render_gl.h>
 #endif
 
-typedef enum MpvEventEnum {
-    MPV_LOADED,
-    MPV_PAUSE,
-    MPV_RESUME,
-    MPV_STOP,
-    LOADING_START,
-    LOADING_END,
-    UPDATE_DURATION,
-    UPDATE_PROGRESS,
-    START_FILE,
-    END_OF_FILE,
-    CACHE_SPEED_CHANGE,
-    VIDEO_SPEED_CHANGE,
-    VIDEO_VOLUME_CHANGE,
-    VIDEO_MUTE,
-    VIDEO_UNMUTE,
-    MPV_FILE_ERROR,
-    RESET,
-} MpvEventEnum;
-
-typedef brls::Event<MpvEventEnum> MPVEvent;
-typedef brls::Event<std::string, void *> MPVCustomEvent;
 typedef std::unordered_map<std::string, std::string> MPVMap;
 typedef brls::Event<uint64_t, int64_t> MPVCommandReply;
 

@@ -5,7 +5,7 @@
 #pragma once
 
 #include <borealis.hpp>
-#include <view/mpv_core.hpp>
+#include <utils/event.hpp>
 #include <api/jellyfin/media.hpp>
 
 class VideoProgressSlider;
@@ -47,10 +47,6 @@ public:
     View* getNextFocus(brls::FocusDirection direction, View* currentView) override { return this; }
 
     void setTitie(const std::string& title);
-
-    // 用于 VideoView 可以接收的自定义事件
-    inline static const std::string QUALITY_CHANGE = "QUALITY_CHANGE";
-    inline static const std::string VIDEO_CLOSE = "VIDEO_CLOSE";
 
 private:
     /// OSD
@@ -128,7 +124,7 @@ private:
     void requestBrightness(float value);
     void buttonProcessing();
     /// @brief notify videoview closed
-    static bool popActivity();
+    static bool dismiss();
     static void disableDimming(bool disable);
 
     bool enableDanmaku = true;

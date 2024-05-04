@@ -1,10 +1,10 @@
 #include <view/presenter.hpp>
-#include <view/video_view.hpp>
+#include <view/mpv_core.hpp>
 
 Presenter::Presenter() {
     auto mpvce = MPVCore::instance().getCustomEvent();
     this->customEventSubscribeID = mpvce->subscribe([this](const std::string& event, void* data) {
-        if (event == VideoView::VIDEO_CLOSE) {
+        if (event == VIDEO_CLOSE) {
             this->doRequest();
         }
     });

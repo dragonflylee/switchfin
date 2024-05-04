@@ -10,7 +10,6 @@
 #include "utils/dialog.hpp"
 #include "utils/config.hpp"
 #include "utils/misc.hpp"
-#include <sstream>
 
 const int VIDEO_SEEK_NODELAY = 0;
 
@@ -58,7 +57,7 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
                 this->toggleOSD();
                 return true;
             }
-            return popActivity();
+            return dismiss();
         },
         true);
 
@@ -137,143 +136,108 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
     /// 单击控制 OSD
     /// 双击控制播放与暂停
     /// 长按加速
-    this->addGestureRecognizer(
-        new brls::TapGestureRecognizer([this](brls::TapGestureStatus status, brls::Sound* soundToPlay) {
-            auto& mpv = MPVCore::instance();
-            // 当长按时已经加速，则忽视此次加速
-            switch (status.state) {
-            case brls::GestureState::UNSURE: {
-                if (isOsdLock) break;
-                // 长按加速
-                if (std::fabs(mpv.getSpeed() - 1) > 10e-2) {
-                    this->ignoreSpeed = true;
-                    break;
-                }
-                this->ignoreSpeed = false;
-                brls::cancelDelay(this->speedIter);
-                ASYNC_RETAIN
-                this->speedIter = brls::delay(500, [ASYNC_TOKEN]() {
-                    ASYNC_RELEASE
-                    float cur = MPVCore::VIDEO_SPEED == 100 ? 2.0 : MPVCore::VIDEO_SPEED * 0.01f;
-                    MPVCore::instance().setSpeed(cur);
-                    // 绘制临时加速标识
-                    this->speedHintLabel->setText(fmt::format(fmt::runtime("main/player/speed_up"_i18n), cur));
-                    this->speedHintBox->setVisibility(brls::Visibility::VISIBLE);
-                });
+    /// 滑动调整进度
+    /// 左右侧滑动调整音量，在支持调节背光的设备上左侧滑动调节背光亮度，右侧调节音量
+    this->addGestureRecognizer(new OsdGestureRecognizer([this](OsdGestureStatus status) {
+        auto& mpv = MPVCore::instance();
+
+        switch (status.osdGestureType) {
+        case OsdGestureType::TAP:
+            this->toggleOSD();
+            break;
+        case OsdGestureType::DOUBLE_TAP_END:
+            if (isOsdLock) {
+                this->toggleOSD();
                 break;
             }
-            case brls::GestureState::FAILED:
-            case brls::GestureState::INTERRUPTED: {
-                // 打断加速
-                if (!this->ignoreSpeed) {
-                    brls::cancelDelay(this->speedIter);
-                    mpv.setSpeed(1.0f);
-                    this->speedHintBox->setVisibility(brls::Visibility::GONE);
-                }
+            mpv.togglePlay();
+            break;
+        case OsdGestureType::LONG_PRESS_START: {
+            if (isOsdLock) break;
+            float cur = MPVCore::VIDEO_SPEED == 100 ? 2.0 : MPVCore::VIDEO_SPEED * 0.01f;
+            MPVCore::instance().setSpeed(cur);
+            // 绘制临时加速标识
+            this->speedHintLabel->setText(fmt::format(fmt::runtime("main/player/speed_up"_i18n), cur));
+            this->speedHintBox->setVisibility(brls::Visibility::VISIBLE);
+            break;
+        }
+        case OsdGestureType::LONG_PRESS_CANCEL:
+        case OsdGestureType::LONG_PRESS_END:
+            if (isOsdLock) {
+                mpv.togglePlay();
                 break;
             }
-            case brls::GestureState::END: {
-                // 打断加速
-                if (!ignoreSpeed) {
-                    brls::cancelDelay(this->speedIter);
-                    mpv.setSpeed(1.0f);
-                    if (this->speedHintBox->getVisibility() == brls::Visibility::VISIBLE) {
-                        this->speedHintBox->setVisibility(brls::Visibility::GONE);
-                        // 正在加速时抬起手指，不触发后面 OSD 相关内容，直接结束此次事件
-                        break;
-                    }
-                }
-                // 当 osd 锁定时直接切换 osd 即可
-                if (isOsdLock) {
-                    this->toggleOSD();
-                    break;
-                }
-                // 处理点击事件
-                const int CHECK_TIME = 200000;
-                switch (this->clickState) {
-                case ClickState::IDLE: {
-                    this->pressTime = brls::getCPUTimeUsec();
-                    this->clickState = ClickState::CLICK_DOUBLE;
-                    // 单击切换 OSD，设置一个延迟用来等待双击结果
-                    ASYNC_RETAIN
-                    this->tapIter = brls::delay(200, [ASYNC_TOKEN]() {
-                        ASYNC_RELEASE
-                        this->toggleOSD();
-                    });
-                    break;
-                }
-                case ClickState::CLICK_DOUBLE: {
-                    if (isOsdLock) break;
-                    brls::cancelDelay(this->tapIter);
-                    if (brls::getCPUTimeUsec() - this->pressTime < CHECK_TIME) {
-                        // 双击切换播放状态
-                        mpv.togglePlay();
-                        this->clickState = ClickState::IDLE;
-                    } else {
-                        // 单击切换 OSD，设置一个延迟用来等待双击结果
-                        this->pressTime = brls::getCPUTimeUsec();
-                        this->clickState = ClickState::CLICK_DOUBLE;
-                        ASYNC_RETAIN
-                        this->tapIter = brls::delay(200, [ASYNC_TOKEN]() {
-                            ASYNC_RELEASE
-                            this->toggleOSD();
-                        });
-                    }
-                    break;
-                }
-                default:;
-                }
+            mpv.setSpeed(1.0f);
+            this->speedHintBox->setVisibility(brls::Visibility::GONE);
+            break;
+        case OsdGestureType::HORIZONTAL_PAN_START:
+            if (isOsdLock) break;
+            infoIcon->setImageFromSVGRes("icon/ico-seeking.svg");
+            osdInfoBox->setVisibility(brls::Visibility::VISIBLE);
+            break;
+        case OsdGestureType::HORIZONTAL_PAN_UPDATE:
+            if (isOsdLock) break;
+            this->requestSeeking(fmin(120.0f, mpv.duration) * status.deltaX);
+            break;
+        case OsdGestureType::HORIZONTAL_PAN_CANCEL:
+            if (isOsdLock) break;
+            // 立即取消
+            this->requestSeeking(0, VIDEO_SEEK_NODELAY);
+            break;
+        case OsdGestureType::HORIZONTAL_PAN_END:
+            if (isOsdLock) {
+                this->toggleOSD();
+                break;
             }
-            default:;
+            // 立即跳转
+            this->requestSeeking(fmin(120.0f, mpv.duration) * status.deltaX, VIDEO_SEEK_NODELAY);
+            break;
+        case OsdGestureType::LEFT_VERTICAL_PAN_START:
+            if (isOsdLock) break;
+            if (brls::Application::getPlatform()->canSetBacklightBrightness()) {
+                this->brightnessInit = brls::Application::getPlatform()->getBacklightBrightness();
+                infoIcon->setImageFromSVGRes("icon/ico-sun-fill.svg");
+                osdInfoBox->setVisibility(brls::Visibility::VISIBLE);
+                break;
             }
-        }));
-
-    if (MPVCore::TOUCH_GESTURE) {
-        /// 滑动调整进度
-        this->addGestureRecognizer(new OsdGestureRecognizer(
-            [this](brls::PanGestureStatus state, brls::Sound* soundToPlay) {
-                if (state.state == brls::GestureState::FAILED || state.state == brls::GestureState::UNSURE ||
-                    state.state == brls::GestureState::INTERRUPTED) {
-                    return;
-                }
-                if (isOsdLock) {
-                    this->toggleOSD();
-                } else if (state.delta.x != 0) {
-                    this->seekingRange -= state.delta.x;
-                    this->requestSeeking(seekingRange);
-                }
-            },
-            brls::PanAxis::HORIZONTAL));
-
-        /// 滑动调整音量
-        this->addGestureRecognizer(new OsdGestureRecognizer(
-            [this](brls::PanGestureStatus state, brls::Sound* soundToPlay) {
-                if (state.state == brls::GestureState::FAILED || state.state == brls::GestureState::UNSURE ||
-                    state.state == brls::GestureState::INTERRUPTED) {
-                    return;
-                }
-                if (isOsdLock) {
-                    this->toggleOSD();
-                } else if (state.state == brls::GestureState::END) {
-                    osdInfoBox->setVisibility(brls::Visibility::GONE);
-                } else if (state.startPosition.x > this->getFrame().getMidX()) {
-                    if (state.state == brls::GestureState::START) {
-                        this->volumeInit = MPVCore::instance().volume;
-                    } else {
-                        this->volumeInit += state.delta.y;
-                        this->requestVolume(this->volumeInit);
-                    }
-                } else {
-                    if (state.state == brls::GestureState::START) {
-                        this->brightnessInit = brls::Application::getPlatform()->getBacklightBrightness() * 100.f;
-                    } else {
-                        this->brightnessInit += state.delta.y;
-                        this->requestBrightness(this->brightnessInit);
-                    }
-                }
-            },
-            brls::PanAxis::VERTICAL));
-    }
+        case OsdGestureType::RIGHT_VERTICAL_PAN_START:
+            if (isOsdLock) break;
+            this->volumeInit = mpv.volume;
+            infoIcon->setImageFromSVGRes("icon/ico-volume.svg");
+            osdInfoBox->setVisibility(brls::Visibility::VISIBLE);
+            break;
+        case OsdGestureType::LEFT_VERTICAL_PAN_UPDATE:
+            if (isOsdLock) break;
+            if (brls::Application::getPlatform()->canSetBacklightBrightness()) {
+                this->requestBrightness(this->brightnessInit + status.deltaY);
+                break;
+            }
+        case OsdGestureType::RIGHT_VERTICAL_PAN_UPDATE:
+            if (isOsdLock) break;
+            this->requestVolume(this->volumeInit + status.deltaY * 100);
+            break;
+        case OsdGestureType::LEFT_VERTICAL_PAN_CANCEL:
+        case OsdGestureType::LEFT_VERTICAL_PAN_END:
+            if (isOsdLock) {
+                this->toggleOSD();
+                break;
+            }
+            if (brls::Application::getPlatform()->canSetBacklightBrightness()) {
+                osdInfoBox->setVisibility(brls::Visibility::GONE);
+                break;
+            }
+        case OsdGestureType::RIGHT_VERTICAL_PAN_CANCEL:
+        case OsdGestureType::RIGHT_VERTICAL_PAN_END:
+            if (isOsdLock) {
+                this->toggleOSD();
+                break;
+            }
+            osdInfoBox->setVisibility(brls::Visibility::GONE);
+            break;
+        default:
+            break;
+        }
+    }));
 
     /// 播放/暂停 按钮
     this->btnToggle->registerClickAction([](...) {
@@ -287,7 +251,7 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
     this->osdLockBox->addGestureRecognizer(new brls::TapGestureRecognizer(this->osdLockBox));
 
     this->btnClose->registerClickAction([](...) {
-        brls::sync([]() { popActivity(); });
+        brls::sync([]() { dismiss(); });
         return true;
     });
     this->btnClose->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnClose));
@@ -408,14 +372,14 @@ void VideoView::requestSeeking(int seek, int delay) {
         this->seekingRange = 0;
         return;
     }
-    double progress = (mpv.playback_time + this->seekingRange) / mpv.duration;
+    double progress = (mpv.playback_time + seek) / mpv.duration;
 
     if (progress < 0) {
         progress = 0;
-        this->seekingRange = (int64_t)mpv.playback_time * -1;
+        seek = (int64_t)mpv.playback_time * -1;
     } else if (progress > 1) {
         progress = 1;
-        this->seekingRange = mpv.duration;
+        seek = mpv.duration;
     }
 
     showOSD(false);
@@ -429,19 +393,19 @@ void VideoView::requestSeeking(int seek, int delay) {
 
     // 延迟触发跳转进度
     brls::cancelDelay(this->seekingIter);
-    if (delay == VIDEO_SEEK_NODELAY) {
+    if (delay <= VIDEO_SEEK_NODELAY) {
         osdInfoBox->setVisibility(brls::Visibility::GONE);
-        if (seek == 0) return;
-        MPVCore::instance().seek(this->seekingRange, "relative");
         this->seekingRange = 0;
+        if (seek == 0) return;
+        MPVCore::instance().seek(seek, "relative");
     } else if (delay > 0) {
         ASYNC_RETAIN
         this->seekingIter = brls::delay(delay, [ASYNC_TOKEN, seek]() {
             ASYNC_RELEASE
             osdInfoBox->setVisibility(brls::Visibility::GONE);
-            if (seek == 0) return;
-            MPVCore::instance().seek(this->seekingRange, "relative");
             this->seekingRange = 0;
+            if (seek == 0) return;
+            MPVCore::instance().seek(seek, "relative");
         });
     }
 }
@@ -468,10 +432,10 @@ void VideoView::requestVolume(int value, int delay) {
 }
 
 void VideoView::requestBrightness(float value) {
-    if (value < 0) value = 0;
-    if (value > 100.0f) value = 100.0f;
-    brls::Application::getPlatform()->setBacklightBrightness(value / 100.0f);
-    infoLabel->setText(fmt::format("{} %", (int)value));
+    if (value < 0) value = 0.0f;
+    if (value > 1) value = 1.0f;
+    brls::Application::getPlatform()->setBacklightBrightness(value);
+    infoLabel->setText(fmt::format("{} %", (int)(value * 100)));
     infoIcon->setImageFromSVGRes("icon/ico-sun-fill.svg");
     osdInfoBox->setVisibility(brls::Visibility::VISIBLE);
 }
@@ -633,7 +597,7 @@ void VideoView::setSeries(const std::string& seriesId) {
 
 bool VideoView::playIndex(int index) {
     if (index < 0 || index >= (int)this->showEpisodes.size()) {
-        return popActivity();
+        return dismiss();
     }
     this->itemIndex = index;
     MPVCore::instance().reset();
@@ -739,11 +703,11 @@ void VideoView::playMedia(const time_t seekTicks) {
                 }
             }
 
-            Dialog::show("Unsupport video format", []() { popActivity(); });
+            Dialog::show("Unsupport video format", []() { dismiss(); });
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            Dialog::show(ex, []() { popActivity(); });
+            Dialog::show(ex, []() { dismiss(); });
         },
         jellyfin::apiPlayback, this->itemId);
 
@@ -904,7 +868,7 @@ void VideoView::registerMpvEvent() {
             this->btnVolumeIcon->setImageFromSVGRes("icon/ico-volume.svg");
             break;
         case MpvEventEnum::MPV_FILE_ERROR: {
-            Dialog::show("main/player/error"_i18n, []() { popActivity(); });
+            Dialog::show("main/player/error"_i18n, []() { dismiss(); });
             break;
         }
         default:;
@@ -912,7 +876,7 @@ void VideoView::registerMpvEvent() {
     });
     // 自定义的mpv事件
     customEventSubscribeID = mpv.getCustomEvent()->subscribe([this](const std::string& event, void* data) {
-        if (event == VideoView::QUALITY_CHANGE) {
+        if (event == QUALITY_CHANGE) {
             this->playMedia(MPVCore::instance().playback_time * jellyfin::PLAYTICKS);
         }
     });
@@ -1013,7 +977,7 @@ bool VideoView::toggleQuality() {
             if (MPVCore::VIDEO_QUALITY == qualityOption.values[selected]) return false;
             MPVCore::VIDEO_QUALITY = qualityOption.values[selected];
             AppConfig::instance().setItem(AppConfig::VIDEO_QUALITY, MPVCore::VIDEO_QUALITY);
-            MPVCore::instance().getCustomEvent()->fire(VideoView::QUALITY_CHANGE, nullptr);
+            MPVCore::instance().getCustomEvent()->fire(QUALITY_CHANGE, nullptr);
             return true;
         },
         AppConfig::instance().getValueIndex(AppConfig::VIDEO_QUALITY));
@@ -1071,7 +1035,7 @@ bool VideoView::toggleVolume(brls::View* view) {
     return true;
 }
 
-bool VideoView::popActivity() {
+bool VideoView::dismiss() {
     return brls::Application::popActivity(brls::TransitionAnimation::NONE, []() {
         auto mpvce = MPVCore::instance().getCustomEvent();
         mpvce->fire(VIDEO_CLOSE, nullptr);
