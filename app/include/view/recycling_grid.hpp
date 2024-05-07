@@ -149,6 +149,8 @@ public:
     void setPaddingBottom(float bottom) override;
     void setPaddingLeft(float left) override;
 
+    brls::View* getDefaultFocus() override;
+
     ~RecyclingGrid() override;
 
     static View* create();

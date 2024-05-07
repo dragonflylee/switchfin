@@ -153,7 +153,7 @@ RecyclingGrid::RecyclingGrid() {
         this->reloadData();
     });
 
-    this->registerCell("Skeleton", SkeletonCell::create);
+    this->registerCell("Skeleton", []() { return SkeletonCell::create(); });
     this->showSkeleton();
 }
 
@@ -180,7 +180,7 @@ void RecyclingGrid::draw(
     NVGcontext* vg, float x, float y, float width, float height, brls::Style style, brls::FrameContext* ctx) {
     // 触摸或鼠标滑动时会导致屏幕元素位置变更
     // 简单地在draw函数中调用itemsRecyclingLoop 实现动态的增删元素
-    // todo: 只在滑动过程中调用 itemsRecyclingLoop 以节省静止时的计算消耗
+    // todo：只在滑动过程中调用 itemsRecyclingLoop 以节省静止时的计算消耗
     itemsRecyclingLoop();
 
     ScrollingFrame::draw(vg, x, y, width, height, style, ctx);
@@ -328,7 +328,7 @@ void RecyclingGrid::reloadData() {
     }
 
     // 在前面的操作中，列表增加了一项，通过 selectRowAt 再精确地显示出具体选中项
-    selectRowAt(cellFocusIndex, false);
+    selectRowAt(cellFocusIndex, this->isFlowMode);
 }
 
 void RecyclingGrid::notifyDataChanged() {
@@ -347,6 +347,8 @@ void RecyclingGrid::notifyDataChanged() {
                 (estimatedRowHeight + estimatedRowSpace) * this->getRowCount() + paddingTop + paddingBottom);
         }
     }
+    // 数据增多后重新允许加载下一页
+    requestNextPage = false;
 }
 
 RecyclingGridItem* RecyclingGrid::getGridItemByIndex(size_t index) {
@@ -472,13 +474,15 @@ void RecyclingGrid::itemsRecyclingLoop() {
         addCellAt(visibleMax + 1, true);
     }
 
-    // 只有当 requestNextPage 为false时，才可以请求下一页，避免多次重复请求
-    if (visibleMax + 1 >= this->getItemCount() && !requestNextPage && nextPageCallback) {
-        // 有数据、不是骨架屏数据、数据不为空
-        if (!dynamic_cast<DataSourceSkeleton*>(dataSource) && dataSource->getItemCount() > 0) {
-            brls::Logger::debug("RecyclingGrid request next page");
-            requestNextPage = true;
-            this->nextPageCallback();
+    if (visibleMax + 1 >= this->getItemCount()) {
+        // 只有当 requestNextPage 为false时，才可以请求下一页，避免多次重复请求
+        if (!requestNextPage && nextPageCallback) {
+            // 有数据、不是骨架屏数据、数据不为空
+            if (dataSource && !dynamic_cast<DataSourceSkeleton*>(dataSource) && dataSource->getItemCount() > 0) {
+                brls::Logger::debug("RecyclingGrid request next page");
+                requestNextPage = true;
+                this->nextPageCallback();
+            }
         }
     }
 }
@@ -659,6 +663,11 @@ void RecyclingGrid::setPaddingBottom(float bottom) {
 void RecyclingGrid::setPaddingLeft(float left) {
     paddingLeft = left;
     this->reloadData();
+}
+
+brls::View* RecyclingGrid::getDefaultFocus() {
+    if (this->dataSource && this->dataSource->getItemCount() > 0) return ScrollingFrame::getDefaultFocus();
+    return nullptr;
 }
 
 brls::View* RecyclingGrid::create() { return new RecyclingGrid(); }
