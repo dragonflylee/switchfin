@@ -6,7 +6,6 @@
 
 #include <borealis.hpp>
 #include <utils/event.hpp>
-#include <api/jellyfin/media.hpp>
 
 class VideoProgressSlider;
 class SVGImage;
@@ -28,11 +27,9 @@ enum class ClickState {
 
 class VideoView : public brls::Box {
 public:
-    VideoView(const jellyfin::MediaItem& item);
+    VideoView();
 
     ~VideoView() override;
-
-    void setSeries(const std::string& seriesId);
 
     void draw(NVGcontext* vg, float x, float y, float w, float h, brls::Style style, brls::FrameContext* ctx) override;
 
@@ -48,6 +45,20 @@ public:
 
     void setTitie(const std::string& title);
 
+    void setList(const std::vector<std::string>& values, int index = -1);
+
+    void setDanmakuEnable(brls::Visibility v);
+
+    void setClipPoint(const std::vector<float>& clips);
+
+    brls::Event<int>* getPlayEvent() { return &this->playIndexEvent; }
+
+    brls::VoidEvent* getSettingEvent() { return &this->settingEvent; }
+
+    VideoProfile* getProfile() { return this->profile; }
+
+    static bool dismiss();
+
 private:
     /// OSD
     BRLS_BIND(brls::Label, titleLabel, "video/osd/title");
@@ -57,7 +68,6 @@ private:
     BRLS_BIND(brls::Box, btnCast, "video/osd/cast");
     BRLS_BIND(brls::Box, btnToggle, "video/osd/toggle");
     BRLS_BIND(brls::Box, btnVideoQuality, "video/quality/box");
-    BRLS_BIND(brls::Box, btnVideoChapter, "video/chapter/box");
     BRLS_BIND(brls::Box, btnVideoSpeed, "video/speed/box");
     BRLS_BIND(brls::Box, btnEpisode, "show/episode/box");
     BRLS_BIND(brls::Box, btnVolume, "video/osd/volume");
@@ -89,14 +99,6 @@ private:
     BRLS_BIND(brls::Label, hintLabel, "video/osd/hint/label");
     BRLS_BIND(brls::Box, hintBox, "video/osd/hint/box");
 
-    /// @brief get video url
-    void playMedia(const time_t seekTicks);
-    bool playIndex(int index);
-    void reportStart();
-    void reportStop();
-    void reportPlay(bool isPaused = false);
-    void requestDanmaku();
-    void setDanmakuEnable(brls::Visibility v);
     bool toggleDanmaku();
     void refreshDanmakuIcon();
 
@@ -114,9 +116,7 @@ private:
     bool toggleSpeed();
     bool toggleQuality();
     bool toggleVolume(brls::View* view);
-    void showSetting();
     void showHint(const std::string& value);
-    void setChapters(const std::vector<jellyfin::MediaChapter>& chaps, time_t duration);
 
     /// @brief 延迟 200ms 触发进度跳转到 seeking_range
     void requestSeeking(int seek, int delay = 400);
@@ -124,10 +124,12 @@ private:
     void requestBrightness(float value);
     void buttonProcessing();
     /// @brief notify videoview closed
-    static bool dismiss();
     static void disableDimming(bool disable);
 
+    int playIndex = -1;
     bool enableDanmaku = true;
+    brls::Event<int> playIndexEvent;
+    brls::VoidEvent settingEvent;
 
     // OSD
     bool isOsdShown = false;
@@ -143,10 +145,8 @@ private:
     size_t seekingIter = 0;
 
     MPVEvent::Subscription eventSubscribeID;
-    MPVCustomEvent::Subscription customEventSubscribeID;
-    brls::VoidEvent::Subscription exitSubscribeID;
     brls::Rect oldRect = brls::Rect(-1, -1, -1, -1);
-    brls::InputManager* input;
+    brls::InputManager* input = nullptr;
 
     // Touch Event
     size_t speedIter = 0;
@@ -157,14 +157,4 @@ private:
     size_t volumeIter = 0;  // 音量UI关闭的延迟函数 handle
     int volumeInit = 0;
     float brightnessInit = 0;
-
-    // Playinfo
-    std::string itemId;
-    std::vector<jellyfin::MediaChapter> videoChapters;
-    /// @brief DirectPlay, Transcode
-    std::string playMethod;
-    std::string playSessionId;
-    size_t itemIndex = -1;
-    jellyfin::MediaSource itemSource;
-    std::vector<jellyfin::MediaEpisode> showEpisodes;
 };

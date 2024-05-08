@@ -1,15 +1,14 @@
 #include "view/video_view.hpp"
-#include "view/svg_image.hpp"
-#include "view/video_progress_slider.hpp"
-#include "view/player_setting.hpp"
-#include "view/video_profile.hpp"
+#include "utils/config.hpp"
+#include "utils/dialog.hpp"
+#include "utils/gesture.hpp"
+#include "utils/misc.hpp"
 #include "view/danmaku_core.hpp"
 #include "view/danmaku_setting.hpp"
-#include "api/jellyfin.hpp"
-#include "utils/gesture.hpp"
-#include "utils/dialog.hpp"
-#include "utils/config.hpp"
-#include "utils/misc.hpp"
+#include "view/mpv_core.hpp"
+#include "view/svg_image.hpp"
+#include "view/video_profile.hpp"
+#include "view/video_progress_slider.hpp"
 
 const int VIDEO_SEEK_NODELAY = 0;
 
@@ -26,29 +25,14 @@ using namespace brls::literals;
         return true;                                                                  \
     }
 
-VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
+VideoView::VideoView() {
     this->inflateFromXMLRes("xml/view/video_view.xml");
-    brls::Logger::debug("VideoView: create with item {}", itemId);
+    brls::Logger::debug("VideoView: created");
     this->setHideHighlightBorder(true);
     this->setHideHighlightBackground(true);
     this->setHideClickAnimation(true);
 
-    // 停止正在播放的音乐
-    MPVCore::instance().stop();
-    MPVCore::instance().reset();
-
     this->input = brls::Application::getPlatform()->getInputManager();
-
-    float width = brls::Application::contentWidth;
-    float height = brls::Application::contentHeight;
-    brls::Box* container = new brls::Box();
-    container->setDimensions(width, height);
-    this->setDimensions(width, height);
-    this->setWidthPercentage(100);
-    this->setHeightPercentage(100);
-    this->setId("video");
-    container->addView(this);
-    brls::Application::pushActivity(new brls::Activity(container), brls::TransitionAnimation::NONE);
 
     this->registerAction(
         "hints/back"_i18n, brls::BUTTON_B,
@@ -92,14 +76,14 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
 
     /// 播放器设置按钮
     this->btnSetting->registerClickAction([this](brls::View* view) {
-        this->showSetting();
+        this->settingEvent.fire();
         return true;
     });
     this->btnSetting->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnSetting));
     this->registerAction(
         "main/player/setting"_i18n, brls::BUTTON_X,
         [this](brls::View* view) {
-            this->showSetting();
+            this->settingEvent.fire();
             return true;
         },
         true);
@@ -140,11 +124,13 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
     /// 左右侧滑动调整音量，在支持调节背光的设备上左侧滑动调节背光亮度，右侧调节音量
     this->addGestureRecognizer(new OsdGestureRecognizer([this](OsdGestureStatus status) {
         auto& mpv = MPVCore::instance();
+        if (status.osdGestureType == OsdGestureType::TAP) {
+            this->toggleOSD();
+            return;
+        }
+        if (!MPVCore::TOUCH_GESTURE) return;
 
         switch (status.osdGestureType) {
-        case OsdGestureType::TAP:
-            this->toggleOSD();
-            break;
         case OsdGestureType::DOUBLE_TAP_END:
             if (isOsdLock) {
                 this->toggleOSD();
@@ -257,10 +243,16 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
     this->btnClose->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnClose));
 
     /// 播放控制
-    this->btnBackward->registerClickAction([this](...) { return this->playIndex(this->itemIndex - 1); });
+    this->btnBackward->registerClickAction([this](...) {
+        this->playIndexEvent.fire(--this->playIndex);
+        return true;
+    });
     this->btnBackward->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnBackward));
 
-    this->btnForward->registerClickAction([this](...) { return this->playIndex(this->itemIndex + 1); });
+    this->btnForward->registerClickAction([this](...) {
+        this->playIndexEvent.fire(++this->playIndex);
+        return true;
+    });
     this->btnForward->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnForward));
 
     this->registerAction("main/player/toggle"_i18n, brls::BUTTON_SPACE, [this](brls::View* view) -> bool {
@@ -305,53 +297,7 @@ VideoView::VideoView(const jellyfin::MediaItem& item) : itemId(item.Id) {
     /// 倍速按钮
     this->btnVideoSpeed->registerClickAction([this](...) { return this->toggleSpeed(); });
     this->btnVideoSpeed->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoSpeed));
-    this->registerAction(
-        "main/player/speed"_i18n, brls::BUTTON_LSB, [this](...) { return this->toggleSpeed(); }, true);
-
-    /// 章节信息
-    this->btnVideoChapter->registerClickAction([this](brls::View* view) {
-        if (this->videoChapters.empty()) return false;
-
-        int selectedChapter = -1;
-        time_t ticks = MPVCore::instance().video_progress * jellyfin::PLAYTICKS;
-        std::vector<std::string> values;
-        for (auto& item : this->videoChapters) {
-            values.push_back(item.Name);
-            if (item.StartPositionTicks <= ticks) selectedChapter++;
-        }
-
-        brls::Dropdown* dropdown = new brls::Dropdown(
-            "main/player/chapter"_i18n, values,
-            [this](int selected) {
-                int64_t offset = this->videoChapters[selected].StartPositionTicks;
-                MPVCore::instance().seek(offset / jellyfin::PLAYTICKS);
-            },
-            selectedChapter);
-        brls::Application::pushActivity(new brls::Activity(dropdown));
-        return true;
-    });
-    this->btnVideoChapter->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoChapter));
-
-    // 选集
-    this->btnEpisode->registerClickAction([this](brls::View* view) {
-        if (this->showEpisodes.empty()) return false;
-
-        std::vector<std::string> values;
-        for (auto& item : this->showEpisodes) {
-            values.push_back(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
-        }
-
-        brls::Dropdown* dropdown = new brls::Dropdown(
-            "main/player/episode"_i18n, values, [this](int selected) { this->playIndex(selected); }, this->itemIndex);
-        brls::Application::pushActivity(new brls::Activity(dropdown));
-        return true;
-    });
-    this->btnEpisode->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnEpisode));
-
-    this->setChapters(item.Chapters, item.RunTimeTicks);
-    this->playMedia(item.UserData.PlaybackPositionTicks);
-    // Report stop when application exit
-    this->exitSubscribeID = brls::Application::getExitEvent()->subscribe([this]() { this->reportStop(); });
+    this->registerAction("main/player/speed"_i18n, brls::BUTTON_LSB, [this](...) { return this->toggleSpeed(); }, true);
 }
 
 VideoView::~VideoView() {
@@ -360,11 +306,38 @@ VideoView::~VideoView() {
     disableDimming(false);
 
     MPVCore::instance().stop();
-    if (this->playSessionId.size()) this->reportStop();
-    brls::Application::getExitEvent()->unsubscribe(this->exitSubscribeID);
 }
 
 void VideoView::setTitie(const std::string& title) { this->titleLabel->setText(title); }
+
+void VideoView::setList(const std::vector<std::string>& values, int index) {
+    // 选集
+    this->btnEpisode->registerClickAction([this, values](...) {
+        brls::Dropdown* dropdown = new brls::Dropdown(
+            "main/player/episode"_i18n, values,
+            [this](int selected) {
+                this->playIndex = selected;
+                this->playIndexEvent.fire(selected);
+            },
+            this->playIndex);
+        brls::Application::pushActivity(new brls::Activity(dropdown));
+        return true;
+    });
+    this->btnEpisode->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnEpisode));
+    this->btnEpisode->setVisibility(brls::Visibility::VISIBLE);
+    this->showEpisodeLabel->setVisibility(brls::Visibility::VISIBLE);
+    this->btnBackward->setVisibility(index > 0 ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
+    this->btnForward->setVisibility(
+        index + 1 < (int)values.size() ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
+
+    this->playIndexEvent.subscribe([this, values](int index) {
+        this->btnBackward->setVisibility(index > 0 ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
+        this->btnForward->setVisibility(
+            index + 1 < (int)values.size() ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
+    });
+
+    this->playIndex = index;
+}
 
 void VideoView::requestSeeking(int seek, int delay) {
     auto& mpv = MPVCore::instance();
@@ -438,11 +411,6 @@ void VideoView::requestBrightness(float value) {
     infoLabel->setText(fmt::format("{} %", (int)(value * 100)));
     infoIcon->setImageFromSVGRes("icon/ico-sun-fill.svg");
     osdInfoBox->setVisibility(brls::Visibility::VISIBLE);
-}
-
-void VideoView::showSetting() {
-    brls::View* setting = new PlayerSetting(this->itemSource);
-    brls::Application::pushActivity(new brls::Activity(setting));
 }
 
 void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::Style style, brls::FrameContext* ctx) {
@@ -563,200 +531,6 @@ void VideoView::onChildFocusGained(View* directChild, View* focusedView) {
     brls::Application::giveFocus(this);
 }
 
-void VideoView::setSeries(const std::string& seriesId) {
-    std::string query = HTTP::encode_form({
-        {"isVirtualUnaired", "false"},
-        {"isMissing", "false"},
-        {"userId", AppConfig::instance().getUser().id},
-        {"fields", "Chapters"},
-    });
-
-    ASYNC_RETAIN
-    jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
-            ASYNC_RELEASE
-            for (size_t i = 0; i < r.Items.size(); i++) {
-                if (r.Items[i].Id == this->itemId) {
-                    this->itemIndex = i;
-                    break;
-                }
-            }
-            this->showEpisodes = std::move(r.Items);
-            this->btnBackward->setVisibility(this->itemIndex > 0 ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
-            this->btnForward->setVisibility(
-                this->itemIndex + 1 < this->showEpisodes.size() ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
-            this->btnEpisode->setVisibility(brls::Visibility::VISIBLE);
-            this->showEpisodeLabel->setVisibility(brls::Visibility::VISIBLE);
-        },
-        [ASYNC_TOKEN](const std::string& ex) {
-            ASYNC_RELEASE
-            Dialog::show(ex);
-        },
-        jellyfin::apiShowEpisodes, seriesId, query);
-}
-
-bool VideoView::playIndex(int index) {
-    if (index < 0 || index >= (int)this->showEpisodes.size()) {
-        return dismiss();
-    }
-    this->itemIndex = index;
-    MPVCore::instance().reset();
-
-    auto item = this->showEpisodes.at(this->itemIndex);
-    this->itemId = item.Id;
-    this->setChapters(item.Chapters, item.RunTimeTicks);
-    this->playMedia(0);
-    this->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
-    this->btnBackward->setVisibility(this->itemIndex > 0 ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
-    this->btnForward->setVisibility(
-        this->itemIndex + 1 < this->showEpisodes.size() ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
-    return true;
-}
-
-void VideoView::playMedia(const time_t seekTicks) {
-    ASYNC_RETAIN
-    jellyfin::postJSON(
-        {
-            {"UserId", AppConfig::instance().getUser().id},
-            {"MediaSourceId", this->itemId},
-            {"AudioStreamIndex", PlayerSetting::selectedAudio},
-            {"SubtitleStreamIndex", PlayerSetting::selectedSubtitle},
-            {"AllowAudioStreamCopy", true},
-            {
-                "DeviceProfile",
-                {
-                    {"MaxStreamingBitrate", MPVCore::VIDEO_QUALITY ? MPVCore::VIDEO_QUALITY << 20 : 1 << 24},
-                    {
-                        "DirectPlayProfiles",
-                        {{
-                            {"Type", "Video"},
-#ifdef __SWITCH__
-                            {"VideoCodec", "h264,hevc,av1,vp9"},
-#endif
-                        }},
-                    },
-                    {
-                        "TranscodingProfiles",
-                        {{
-                            {"Container", "ts"},
-                            {"Type", "Video"},
-                            {"VideoCodec", MPVCore::VIDEO_CODEC},
-                            {"AudioCodec", "aac,mp3,ac3,opus"},
-                            {"Protocol", "hls"},
-                        }},
-                    },
-                    {
-                        "SubtitleProfiles",
-                        {
-                            {{"Format", "ass"}, {"Method", "External"}},
-                            {{"Format", "ssa"}, {"Method", "External"}},
-                            {{"Format", "srt"}, {"Method", "External"}},
-                            {{"Format", "smi"}, {"Method", "External"}},
-                            {{"Format", "sub"}, {"Method", "External"}},
-                            {{"Format", "dvdsub"}, {"Method", "Embed"}},
-                            {{"Format", "pgs"}, {"Method", "Embed"}},
-                        },
-                    },
-                },
-            },
-        },
-        [ASYNC_TOKEN, seekTicks](const jellyfin::PlaybackResult& r) {
-            ASYNC_RELEASE
-
-            auto& mpv = MPVCore::instance();
-            auto& svr = AppConfig::instance().getUrl();
-            this->playSessionId = r.PlaySessionId;
-
-            for (auto& item : r.MediaSources) {
-                std::stringstream ssextra;
-#ifdef _DEBUG
-                for (auto& s : item.MediaStreams) {
-                    brls::Logger::info("Track {} type {} => {}", s.Index, s.Type, s.DisplayTitle);
-                }
-#endif
-                ssextra << "network-timeout=60";
-                if (HTTP::PROXY_STATUS) {
-                    ssextra << ",http-proxy=\"http://" << HTTP::PROXY_HOST << ":" << HTTP::PROXY_PORT << "\"";
-                }
-                if (seekTicks > 0) {
-                    ssextra << ",start=" << misc::sec2Time(seekTicks / jellyfin::PLAYTICKS);
-                }
-                if (item.SupportsDirectPlay || MPVCore::FORCE_DIRECTPLAY) {
-                    std::string url = fmt::format(fmt::runtime(jellyfin::apiStream), this->itemId,
-                        HTTP::encode_form({
-                            {"static", "true"},
-                            {"mediaSourceId", item.Id},
-                            {"playSessionId", r.PlaySessionId},
-                            {"tag", item.ETag},
-                        }));
-                    this->playMethod = jellyfin::methodDirectPlay;
-                    mpv.setUrl(svr + url, ssextra.str());
-                    this->itemSource = std::move(item);
-                    return;
-                }
-
-                if (item.SupportsTranscoding) {
-                    this->playMethod = jellyfin::methodTranscode;
-                    mpv.setUrl(svr + item.TranscodingUrl, ssextra.str());
-                    this->itemSource = std::move(item);
-                    return;
-                }
-            }
-
-            Dialog::show("Unsupport video format", []() { dismiss(); });
-        },
-        [ASYNC_TOKEN](const std::string& ex) {
-            ASYNC_RELEASE
-            Dialog::show(ex, []() { dismiss(); });
-        },
-        jellyfin::apiPlayback, this->itemId);
-
-    if (DanmakuCore::PLUGIN_ACTIVE) {
-        this->requestDanmaku();
-    }
-}
-
-void VideoView::reportStart() {
-    jellyfin::postJSON(
-        {
-            {"ItemId", this->itemId},
-            {"PlayMethod", this->playMethod},
-            {"PlaySessionId", this->playSessionId},
-            {"MediaSourceId", this->itemSource.Id},
-            {"MaxStreamingBitrate", MPVCore::VIDEO_QUALITY},
-        },
-        [](...) {}, nullptr, jellyfin::apiPlayStart);
-}
-
-void VideoView::reportStop() {
-    time_t ticks = MPVCore::instance().playback_time * jellyfin::PLAYTICKS;
-    jellyfin::postJSON(
-        {
-            {"ItemId", this->itemId},
-            {"PlayMethod", this->playMethod},
-            {"PlaySessionId", this->playSessionId},
-            {"PositionTicks", ticks},
-        },
-        [](...) {}, nullptr, jellyfin::apiPlayStop);
-
-    brls::Logger::debug("VideoView reportStop {}", this->playSessionId);
-    this->playSessionId.clear();
-}
-
-void VideoView::reportPlay(bool isPaused) {
-    time_t ticks = MPVCore::instance().video_progress * jellyfin::PLAYTICKS;
-    jellyfin::postJSON(
-        {
-            {"ItemId", this->itemId},
-            {"PlayMethod", this->playMethod},
-            {"PlaySessionId", this->playSessionId},
-            {"MediaSourceId", this->itemSource.Id},
-            {"IsPaused", isPaused},
-            {"PositionTicks", ticks},
-        },
-        [](...) {}, nullptr, jellyfin::apiPlaying);
-}
-
 void VideoView::buttonProcessing() {
     // 获取按键数据
     brls::ControllerState state;
@@ -781,8 +555,6 @@ void VideoView::registerMpvEvent() {
                 this->showOSD(true);
             }
             this->btnToggleIcon->setImageFromSVGRes("icon/ico-pause.svg");
-            this->reportPlay();
-            this->profile->init(itemSource.Name, this->playMethod);
             break;
         case MpvEventEnum::MPV_PAUSE:
             if (MPVCore::OSD_ON_TOGGLE) {
@@ -790,7 +562,6 @@ void VideoView::registerMpvEvent() {
             }
             hideLoading(false);
             this->btnToggleIcon->setImageFromSVGRes("icon/ico-play.svg");
-            this->reportPlay(true);
             break;
         case MpvEventEnum::START_FILE:
             if (MPVCore::OSD_ON_TOGGLE) {
@@ -802,31 +573,7 @@ void VideoView::registerMpvEvent() {
             break;
         case MpvEventEnum::LOADING_END:
             this->hideLoading();
-            this->reportStart();
             break;
-        case MpvEventEnum::MPV_STOP:
-            this->reportStop();
-            break;
-        case MpvEventEnum::MPV_LOADED: {
-            auto& svr = AppConfig::instance().getUrl();
-            // 移除其他备用链接
-            mpv.command("playlist-clear");
-            if (this->seekingRange == 0) {
-                this->leftStatusLabel->setText(misc::sec2Time(mpv.video_progress));
-            }
-            for (auto& s : this->itemSource.MediaStreams) {
-                if (s.Type == jellyfin::streamTypeSubtitle) {
-                    if (s.DeliveryUrl.size() > 0 && (s.IsExternal || this->playMethod == jellyfin::methodTranscode)) {
-                        std::string url = svr + s.DeliveryUrl;
-                        mpv.command("sub-add", url.c_str(), "auto", s.DisplayTitle.c_str());
-                    }
-                }
-            }
-            if (PlayerSetting::selectedSubtitle > 0) {
-                mpv.setInt("sid", PlayerSetting::selectedSubtitle);
-            }
-            break;
-        }
         case MpvEventEnum::UPDATE_DURATION:
             if (this->seekingRange == 0) {
                 this->rightStatusLabel->setText(misc::sec2Time(mpv.duration));
@@ -838,7 +585,6 @@ void VideoView::registerMpvEvent() {
                 this->leftStatusLabel->setText(misc::sec2Time(mpv.video_progress));
                 this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
             }
-            if (mpv.video_progress % 10 == 0) this->reportPlay();
             break;
         case MpvEventEnum::VIDEO_SPEED_CHANGE:
             if (std::fabs(mpv.video_speed - 1) < 1e-5) {
@@ -851,7 +597,7 @@ void VideoView::registerMpvEvent() {
             // 播放结束
             disableDimming(false);
             this->btnToggleIcon->setImageFromSVGRes("icon/ico-play.svg");
-            this->playIndex(this->itemIndex + 1);
+            this->playIndexEvent.fire(++this->playIndex);
             break;
         case MpvEventEnum::CACHE_SPEED_CHANGE:
             // 仅当加载圈已经开始转起的情况显示缓存
@@ -874,18 +620,11 @@ void VideoView::registerMpvEvent() {
         default:;
         }
     });
-    // 自定义的mpv事件
-    customEventSubscribeID = mpv.getCustomEvent()->subscribe([this](const std::string& event, void* data) {
-        if (event == QUALITY_CHANGE) {
-            this->playMedia(MPVCore::instance().playback_time * jellyfin::PLAYTICKS);
-        }
-    });
 }
 
 void VideoView::unRegisterMpvEvent() {
     auto& mpv = MPVCore::instance();
     mpv.getEvent()->unsubscribe(eventSubscribeID);
-    mpv.getCustomEvent()->unsubscribe(customEventSubscribeID);
 }
 
 // Loading
@@ -1047,83 +786,6 @@ void VideoView::disableDimming(bool disable) {
     brls::Application::setAutomaticDeactivation(!disable);
 }
 
-void VideoView::setChapters(const std::vector<jellyfin::MediaChapter>& chaps, time_t duration) {
-    if (chaps.empty()) {
-        this->btnVideoChapter->setVisibility(brls::Visibility::GONE);
-        this->osdSlider->clearClipPoint();
-        return;
-    }
-
-    std::vector<float> clips;
-    for (auto& c : chaps) {
-        clips.push_back(float(c.StartPositionTicks) / float(duration));
-    }
-    this->videoChapters = chaps;
-    if (MPVCore::CLIP_POINT) {
-        this->osdSlider->setClipPoint(clips);
-    }
-    this->btnVideoChapter->setVisibility(brls::Visibility::VISIBLE);
-}
-
-/// 获取视频弹幕
-void VideoView::requestDanmaku() {
-    ASYNC_RETAIN
-    brls::async([ASYNC_TOKEN]() {
-        auto& c = AppConfig::instance();
-        HTTP::Header header = {"X-Emby-Token: " + c.getUser().access_token};
-        std::string url = fmt::format(fmt::runtime(jellyfin::apiDanmuku), this->itemId);
-
-        try {
-            std::string resp = HTTP::get(c.getUrl() + url, header, HTTP::Timeout{});
-
-            ASYNC_RELEASE
-            brls::Logger::debug("DANMAKU: start decode");
-
-            // Load XML
-            tinyxml2::XMLDocument document = tinyxml2::XMLDocument();
-            tinyxml2::XMLError error = document.Parse(resp.c_str());
-
-            if (error != tinyxml2::XMLError::XML_SUCCESS) {
-                brls::Logger::error("Error decode danmaku xml[1]: {}", std::to_string(error));
-                return;
-            }
-            tinyxml2::XMLElement* element = document.RootElement();
-            if (!element) {
-                brls::Logger::error("Error decode danmaku xml[2]: no root element");
-                return;
-            }
-
-            std::vector<DanmakuItem> items;
-            for (auto child = element->FirstChildElement(); child != nullptr; child = child->NextSiblingElement()) {
-                if (child->Name()[0] != 'd') continue;  // 简易判断是不是弹幕
-                const char* content = child->GetText();
-                if (!content) continue;
-                try {
-                    items.emplace_back(content, child->Attribute("p"));
-                } catch (...) {
-                    brls::Logger::error("DANMAKU: error decode: {}", child->GetText());
-                }
-            }
-
-            brls::sync([items, this]() {
-                DanmakuCore::instance().loadDanmakuData(items);
-                this->setDanmakuEnable(brls::Visibility::VISIBLE);
-            });
-
-            brls::Logger::debug("DANMAKU: decode done: {}", items.size());
-
-        } catch (const std::exception& ex) {
-            ASYNC_RELEASE
-            brls::Logger::warning("request danmu: {}", ex.what());
-
-            brls::sync([this]() {
-                DanmakuCore::instance().reset();
-                this->setDanmakuEnable(brls::Visibility::GONE);
-            });
-        }
-    });
-}
-
 void VideoView::setDanmakuEnable(brls::Visibility v) {
     this->enableDanmaku = (v == brls::Visibility::VISIBLE);
     btnDanmakuIcon->setVisibility(v);
@@ -1157,5 +819,15 @@ void VideoView::refreshDanmakuIcon() {
         }
         btnDanmakuSettingIcon->setVisibility(brls::Visibility::GONE);
         btnDanmakuSettingIcon->getParent()->setVisibility(brls::Visibility::GONE);
+    }
+}
+
+void VideoView::setClipPoint(const std::vector<float>& clips) {
+    if (clips.empty()) {
+        this->osdSlider->clearClipPoint();
+        return;
+    }
+    if (MPVCore::CLIP_POINT) {
+        this->osdSlider->setClipPoint(clips);
     }
 }

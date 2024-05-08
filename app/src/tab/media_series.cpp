@@ -2,11 +2,11 @@
     Copyright 2023 dragonflylee
 */
 
-#include "tab/media_series.hpp"
+#include "activity/player_view.hpp"
 #include "api/jellyfin.hpp"
-#include "view/video_card.hpp"
-#include "view/video_view.hpp"
+#include "tab/media_series.hpp"
 #include "view/svg_image.hpp"
+#include "view/video_card.hpp"
 
 using namespace brls::literals;  // for _i18n
 
@@ -69,7 +69,7 @@ public:
 
     void onItemSelected(brls::View* recycler, size_t index) override {
         auto& item = this->list.at(index);
-        VideoView* view = new VideoView(item);
+        PlayerView* view = new PlayerView(item);
         view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
         view->setSeries(item.SeriesId);
         brls::sync([view]() { brls::Application::giveFocus(view); });
