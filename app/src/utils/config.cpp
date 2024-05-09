@@ -306,7 +306,7 @@ bool AppConfig::checkLogin() {
 
 bool AppConfig::checkDanmuku() {
     jellyfin::getJSON(
-        [this](const jellyfin::PluginList& plugins) {
+        [](const jellyfin::PluginList& plugins) {
             for (auto& p : plugins) {
                 if (p.Name == "Danmu") {
                     DanmakuCore::PLUGIN_ACTIVE = true;

@@ -180,6 +180,11 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 # building release file
 if (PLATFORM_DESKTOP)
     if (APPLE)
+        if (NOT CMAKE_OSX_ARCHITECTURES)
+            set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
+            set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "" FORCE)
+            set(CMAKE_XCODE_ATTRIBUTE_MACOSX_DEPLOYMENT_TARGET[arch=arm64] "11.0" CACHE STRING "" FORCE)
+        endif ()
         message(STATUS "CMAKE_OSX_ARCHITECTURES: ${CMAKE_OSX_ARCHITECTURES}")
 
         set_target_properties(${PROJECT_NAME} PROPERTIES

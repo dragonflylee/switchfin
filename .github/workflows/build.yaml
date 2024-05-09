@@ -191,7 +191,7 @@ jobs:
         path: Switchfin-*.deb
 
   build-macos:
-    runs-on: macos-13
+    runs-on: macos-12
     if: ${{ inputs.macos || github.event_name != 'workflow_dispatch' }}
     strategy:
       fail-fast: false
@@ -212,13 +212,13 @@ jobs:
     - name: Install deps
       run: |
         brew install create-dmg dylibbundler
-        curl -sSL https://github.com/dragonflylee/switchfin/releases/download/macos-dylib/dylib-0.36.0-${{ matrix.tag }}.tar.gz | tar zxf - -C ${{ github.workspace }}
+        curl -sSL https://github.com/dragonflylee/switchfin/releases/download/macos-dylib/dylib-ffmpeg6-mpv36-${{ matrix.tag }}.tar.gz | tar zxf - -C /tmp
     - name: Build App
       env:
-        DYLD_LIBRARY_PATH: ${{ github.workspace }}/lib
+        DYLD_LIBRARY_PATH: /tmp/lib
       run: |
         cmake -B build ${{ matrix.cmake }} \
-          -DCMAKE_PREFIX_PATH=${{ github.workspace }} \
+          -DCMAKE_PREFIX_PATH=/tmp \
           -DCMAKE_BUILD_TYPE=Release \
           -DPLATFORM_DESKTOP=ON \
           -DUSE_SYSTEM_GLFW=ON \

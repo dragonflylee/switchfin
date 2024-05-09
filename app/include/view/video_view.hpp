@@ -148,12 +148,6 @@ private:
     brls::Rect oldRect = brls::Rect(-1, -1, -1, -1);
     brls::InputManager* input = nullptr;
 
-    // Touch Event
-    size_t speedIter = 0;
-    bool ignoreSpeed = false;
-    ClickState clickState = ClickState::IDLE;
-    brls::Time pressTime;
-    size_t tapIter = 0;
     size_t volumeIter = 0;  // 音量UI关闭的延迟函数 handle
     int volumeInit = 0;
     float brightnessInit = 0;
