@@ -7,6 +7,8 @@
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
 
+using namespace brls::literals;  // for _i18n
+
 VideoDataSource::VideoDataSource(const MediaList& r) : list(std::move(r)) {}
 
 size_t VideoDataSource::getItemCount() { return this->list.size(); }
@@ -65,16 +67,19 @@ void VideoDataSource::onItemSelected(brls::View* recycler, size_t index) {
     } else if (item.Type == jellyfin::mediaTypeMovie) {
         PlayerView* view = new PlayerView(item);
         view->setTitie(item.ProductionYear ? fmt::format("{} ({})", item.Name, item.ProductionYear) : item.Name);
-        brls::sync([view]() { brls::Application::giveFocus(view); });
+    } else if (item.Type == jellyfin::mediaTypeMusicVideo) {
+        PlayerView* view = new PlayerView(item);
+        view->setTitie(item.Name);
     } else if (item.Type == jellyfin::mediaTypeEpisode) {
         PlayerView* view = new PlayerView(item);
         view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
         view->setSeries(item.SeriesId);
-        brls::sync([view]() { brls::Application::giveFocus(view); });
     } else if (item.Type == jellyfin::mediaTypeMusicAlbum) {
         recycler->present(new MusicAlbum(item.Id));
     } else {
-        brls::Logger::warning("onItemSelected type {}", item.Type);
+        auto dialog = new brls::Dialog(fmt::format("Unknown media type: {}", item.Type));
+        dialog->addButton("hints/cancel"_i18n, []() {});
+        dialog->open();
     }
 }
 
