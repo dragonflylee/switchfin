@@ -19,7 +19,6 @@
 #endif
 
 typedef std::unordered_map<std::string, std::string> MPVMap;
-typedef brls::Event<uint64_t, int64_t> MPVCommandReply;
 
 class MPVCore : public brls::Singleton<MPVCore> {
 public:

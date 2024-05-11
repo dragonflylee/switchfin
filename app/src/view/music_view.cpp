@@ -59,12 +59,13 @@ void MusicView::registerMpvEvent() {
     this->eventSubscribeID = mpv.getEvent()->subscribe([this](MpvEventEnum event) {
         auto& mpv = MPVCore::instance();
         switch (event) {
-        case MpvEventEnum::START_FILE: {
-            std::string key = fmt::format("playlist/{}/id", mpv.getInt("playlist-playing-pos"));
-            auto it = playList.find(mpv.getInt(key));
-            if (it != playList.end()) this->playTitle->setText(it->second.Name);
+        case MpvEventEnum::START_FILE:
+            if (playList.size() > 0) {
+                std::string key = fmt::format("playlist/{}/id", mpv.getInt("playlist-playing-pos"));
+                auto it = playList.find(mpv.getInt(key));
+                if (it != playList.end()) this->playTitle->setText(it->second.Name);
+            }
             break;
-        }
         case MpvEventEnum::MPV_RESUME:
             this->btnToggleIcon->setImageFromSVGRes("icon/ico-pause.svg");
             break;
@@ -72,6 +73,7 @@ void MusicView::registerMpvEvent() {
             this->btnToggleIcon->setImageFromSVGRes("icon/ico-play.svg");
             break;
         case MpvEventEnum::UPDATE_DURATION:
+            this->leftStatusLabel->setText(misc::sec2Time(0));
             this->rightStatusLabel->setText(misc::sec2Time(mpv.duration));
             this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
             break;
@@ -131,6 +133,24 @@ void MusicView::registerViewAction(brls::View* view) {
     });
 }
 
+void MusicView::play(const jellyfin::MediaItem& item) {
+    auto& conf = AppConfig::instance();
+    auto& mpv = MPVCore::instance();
+
+    std::string query = HTTP::encode_form({
+        {"static", "true"},
+        {"PlaySessionId", std::to_string(playSession)},
+    });
+    std::string url = fmt::format(fmt::runtime(jellyfin::apiAudio), item.Id, query);
+    std::string extra = fmt::format("http-header-fields='X-Emby-Token: {}'", conf.getUser().access_token);
+
+    if (!this->playSession) this->registerMpvEvent();
+    mpv.stop();
+    mpv.setUrl(conf.getUrl() + url, extra);
+
+    this->playTitle->setText(item.Name);
+}
+
 void MusicView::load(const std::vector<jellyfin::MusicTrack>& list) {
     auto& conf = AppConfig::instance();
     auto& mpv = MPVCore::instance();
@@ -155,7 +175,6 @@ void MusicView::load(const std::vector<jellyfin::MusicTrack>& list) {
 
 void MusicView::reset() {
     this->btnToggleIcon->setImageFromSVGRes("icon/ico-play.svg");
-    this->playTitle->setText("-");
     this->rightStatusLabel->setText("--:--");
     this->leftStatusLabel->setText("--:--");
     this->osdSlider->setProgress(0);

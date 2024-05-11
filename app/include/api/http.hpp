@@ -11,7 +11,7 @@
 #include <atomic>
 #include <fstream>
 #include <sstream>
-#include <curl/curl.h>
+#include <curl/system.h>
 
 #include <borealis/core/event.hpp>
 

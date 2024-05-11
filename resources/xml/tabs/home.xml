@@ -8,8 +8,6 @@
         grow="1.0">
 
         <brls:Box
-            width="auto"
-            height="auto"
             axis="column"
             paddingLeft="@style/brls/tab_frame/content_padding_sides"
             paddingRight="@style/brls/tab_frame/content_padding_sides"
@@ -17,52 +15,43 @@
             paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
 
             <brls:Header
-                width="auto"
-                height="auto"
                 title="@i18n/main/home/resume"
-                id="home/header/resume"
-                marginBottom="0px" />
+                height="40"
+                id="home/header/resume"/>
             <HRecyclerFrame
-                width="auto"
                 height="240"
                 itemWidth="350"
                 id="home/user/resume" />
 
             <brls:Header
-                width="auto"
-                height="auto"
                 marginTop="15"
+                height="40"
                 title="@i18n/main/home/nextup"
                 id="home/header/nextup"
                 marginBottom="0px" />
             <HRecyclerFrame
-                width="auto"
                 height="240"
                 itemWidth="350"
                 id="home/show/nextup" />
 
             <brls:Header
-                width="auto"
-                height="auto"
                 marginTop="15"
+                height="40"
                 title="@i18n/main/home/latest"
                 id="home/header/video"
                 marginBottom="0px" />
             <HRecyclerFrame
-                width="auto"
                 height="300"
                 itemWidth="180"
                 id="home/video/latest" />
 
             <brls:Header
-                width="auto"
-                height="auto"
                 marginTop="15"
+                height="40"
                 title="@i18n/main/home/latest"
                 id="home/header/music"
                 marginBottom="0px" />
             <HRecyclerFrame
-                width="auto"
                 height="225"
                 itemWidth="180"
                 id="home/music/latest" />

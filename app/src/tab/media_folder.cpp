@@ -13,10 +13,15 @@ using namespace brls::literals;  // for _i18n
 
 class MediaFolderCell : public RecyclingGridItem {
 public:
-    MediaFolderCell() : picture(new brls::Image()) {
+    MediaFolderCell() {
+        auto theme = brls::Application::getTheme();
         this->picture->setGrow(1.0f);
+        this->labelTitle->setFontSize(35);
         this->setAlignItems(brls::AlignItems::CENTER);
+        this->setJustifyContent(brls::JustifyContent::CENTER);
+        this->setBackgroundColor(theme.getColor("color/grey_2"));
         this->addView(picture);
+        this->addView(labelTitle);
     }
 
     ~MediaFolderCell() override { Image::cancel(this->picture); }
@@ -27,7 +32,8 @@ public:
 
     void cacheForReuse() override { Image::cancel(this->picture); }
 
-    brls::Image* picture;
+    brls::Image* picture = new brls::Image();
+    brls::Label* labelTitle = new brls::Label();
 };
 
 class MediaFolderDataSource : public RecyclingGridDataSource {
@@ -43,18 +49,32 @@ public:
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         MediaFolderCell* cell = dynamic_cast<MediaFolderCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
+        auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
+        if (it != item.ImageTags.end()) {
+            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id, HTTP::encode_form({{"tag", it->second}}));
+            cell->labelTitle->setVisibility(brls::Visibility::GONE);
+            cell->picture->setVisibility(brls::Visibility::VISIBLE);
 
-        std::string query = HTTP::encode_form({{"tag", item.ImageTags[jellyfin::imageTypePrimary]}});
-        Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id, query);
+        } else {
+            cell->labelTitle->setText(item.Name);
+            cell->labelTitle->setVisibility(brls::Visibility::VISIBLE);
+            cell->picture->setVisibility(brls::Visibility::GONE);
+        }
         return cell;
     }
 
-    void onItemSelected(brls::View* recycler, size_t index) override {
+    void onItemSelected(brls::Box* recycler, size_t index) override {
         auto& item = this->list.at(index);
         std::string itemType;
-        if (item.CollectionType == "tvshows") itemType = jellyfin::mediaTypeSeries;
-        else if (item.CollectionType == "movies") itemType = jellyfin::mediaTypeMovie;
-        else if (item.CollectionType == "music") itemType = jellyfin::mediaTypeMusicAlbum;
+        if (item.CollectionType == "tvshows")
+            itemType = jellyfin::mediaTypeSeries;
+        else if (item.CollectionType == "movies")
+            itemType = jellyfin::mediaTypeMovie;
+        else if (item.CollectionType == "music")
+            itemType = jellyfin::mediaTypeMusicAlbum;
+        else if (item.CollectionType == "playlists")
+            itemType = jellyfin::mediaTypePlaylist;
+
         recycler->present(new MediaCollection(item.Id, itemType));
     }
 

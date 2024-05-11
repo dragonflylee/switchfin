@@ -1,12 +1,13 @@
 #pragma once
 
 #include <borealis.hpp>
+#include <api/jellyfin/media.hpp>
 
 class RecyclingGrid;
 
 class MusicAlbum : public brls::Box {
 public:
-    MusicAlbum(const std::string& itemId);
+    MusicAlbum(const jellyfin::MediaItem& item);
     ~MusicAlbum() override;
 
 private:
@@ -20,5 +21,5 @@ private:
     void doAlbum();
     void doTracks();
 
-    std::string albumId;
+    std::string itemId;
 };

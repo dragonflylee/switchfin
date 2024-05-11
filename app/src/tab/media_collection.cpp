@@ -32,20 +32,15 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
         this->doRequest();
         return true;
     });
-    this->registerAction("main/media/sort"_i18n, brls::BUTTON_Y, [this](...) {
-        MediaFilter* filter = new MediaFilter();
-        filter->getEvent()->subscribe([this]() {
-            this->startIndex = 0;
-            this->doRequest();
-            this->saveFilter();
-        });
-        brls::Application::pushActivity(new brls::Activity(filter));
-        return true;
-    });
+
     this->recyclerSeries->registerCell("Cell", VideoCardCell::create);
     this->recyclerSeries->onNextPage([this]() { this->doRequest(); });
 
-    this->doPreferences();
+    if (itemType == jellyfin::mediaTypePlaylist) {
+        this->doRequest();
+    } else {
+        this->doPreferences();
+    }
 }
 
 brls::View* MediaCollection::getDefaultFocus() { return this->recyclerSeries; }
@@ -69,6 +64,17 @@ void MediaCollection::doPreferences() {
             this->recyclerSeries->setError(ex);
         },
         jellyfin::apiUserSetting, AppConfig::instance().getUser().id);
+
+    this->registerAction("main/media/sort"_i18n, brls::BUTTON_Y, [this](...) {
+        MediaFilter* filter = new MediaFilter();
+        filter->getEvent()->subscribe([this]() {
+            this->startIndex = 0;
+            this->doRequest();
+            this->saveFilter();
+        });
+        brls::Application::pushActivity(new brls::Activity(filter));
+        return true;
+    });
 }
 
 struct DisplaySort {

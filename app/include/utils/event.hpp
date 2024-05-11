@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <stdint.h>
 #include <borealis/core/event.hpp>
 
 typedef enum MpvEventEnum {
@@ -25,6 +26,7 @@ typedef enum MpvEventEnum {
 
 typedef brls::Event<MpvEventEnum> MPVEvent;
 typedef brls::Event<std::string, void *> MPVCustomEvent;
+typedef brls::Event<uint64_t, int64_t> MPVCommandReply;
 
 // 用于 VideoView 可以接收的自定义事件
 const std::string VIDEO_CLOSE = "VIDEO_CLOSE";

@@ -1,6 +1,7 @@
 #include "api/http.hpp"
 #include "utils/config.hpp"
 #include <borealis/core/logger.hpp>
+#include <curl/curl.h>
 
 #ifndef CURL_PROGRESSFUNC_CONTINUE
 #define CURL_PROGRESSFUNC_CONTINUE 0x10000001

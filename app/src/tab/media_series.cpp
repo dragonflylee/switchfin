@@ -67,7 +67,7 @@ public:
         return cell;
     }
 
-    void onItemSelected(brls::View* recycler, size_t index) override {
+    void onItemSelected(brls::Box* recycler, size_t index) override {
         auto& item = this->list.at(index);
         PlayerView* view = new PlayerView(item);
         view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));

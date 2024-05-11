@@ -13,7 +13,7 @@ public:
 
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override;
 
-    void onItemSelected(brls::View* recycler, size_t index) override;
+    void onItemSelected(brls::Box* recycler, size_t index) override;
 
     void clearData() override;
 

@@ -65,7 +65,7 @@ public:
     /*
      * Tells the data source a row is selected.
      */
-    virtual void onItemSelected(brls::View* recycler, size_t index) {}
+    virtual void onItemSelected(brls::Box* recycler, size_t index) {}
 
     virtual void clearData() = 0;
 };

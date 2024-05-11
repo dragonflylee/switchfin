@@ -6,6 +6,9 @@
 #include <SystemConfiguration/SystemConfiguration.h>
 #elif defined(__linux__)
 #include <borealis/platforms/desktop/steam_deck.hpp>
+#elif defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #endif
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"

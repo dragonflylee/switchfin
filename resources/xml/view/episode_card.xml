@@ -11,6 +11,7 @@
                 id="video/card/picture"
                 backgroundColor="@theme/color/grey_1"
                 scalingType="fill"
+                height="180"
                 image="@res/img/video-card-bg.png" />
 
             <SVGImage

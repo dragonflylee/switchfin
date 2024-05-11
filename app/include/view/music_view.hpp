@@ -6,9 +6,8 @@
 
 #include <borealis.hpp>
 #include <borealis/core/singleton.hpp>
-
 #include <api/jellyfin/media.hpp>
-#include <view/mpv_core.hpp>
+#include <utils/event.hpp>
 
 class VideoProgressSlider;
 class SVGImage;
@@ -21,6 +20,8 @@ public:
     bool isTranslucent() override { return true; }
 
     void registerViewAction(brls::View* view);
+
+    void play(const jellyfin::MediaItem& item);
 
     void load(const std::vector<jellyfin::MusicTrack>& list);
 

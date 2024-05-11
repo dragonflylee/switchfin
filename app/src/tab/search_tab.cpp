@@ -55,7 +55,7 @@ public:
 
     size_t getItemCount() override { return list.size(); }
 
-    void onItemSelected(brls::View* recycler, size_t index) override { this->event.fire(list[index]); }
+    void onItemSelected(brls::Box* recycler, size_t index) override { this->event.fire(list[index]); }
 
     void clearData() override { this->list.clear(); }
 
@@ -109,7 +109,7 @@ public:
         return cell;
     }
 
-    void onItemSelected(brls::View* recycler, size_t index) override {
+    void onItemSelected(brls::Box* recycler, size_t index) override {
         recycler->present(new SearchResult(this->list[index]));
     }
 

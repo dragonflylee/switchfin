@@ -13,8 +13,6 @@ public:
 
     ~MusicTrackCell() override {}
 
-    static RecyclingGridItem* create() { return new MusicTrackCell(); }
-
     BRLS_BIND(brls::Label, trackIndex, "music/track/index");
     BRLS_BIND(brls::Label, trackName, "music/track/name");
     BRLS_BIND(brls::Label, trackArtists, "music/track/artists");
@@ -42,7 +40,7 @@ public:
         return cell;
     }
 
-    void onItemSelected(brls::View* recycler, size_t index) override {
+    void onItemSelected(brls::Box* recycler, size_t index) override {
         std::string i = std::to_string(index);
         MusicView::instance().load(this->list);
         MPVCore::instance().command("playlist-play-index", i.c_str());
@@ -54,11 +52,25 @@ private:
     MediaList list;
 };
 
-MusicAlbum::MusicAlbum(const std::string& itemId) : albumId(itemId) {
+MusicAlbum::MusicAlbum(const jellyfin::MediaItem& item) : itemId(item.Id) {
     this->inflateFromXMLRes("xml/tabs/music_album.xml");
     brls::Logger::debug("Tab MusicAlbum: create {}", itemId);
 
-    this->albumTracks->registerCell("Cell", MusicTrackCell::create);
+    this->albumTracks->estimatedRowHeight = 100;
+    this->albumTracks->registerCell("Cell", []() { return new MusicTrackCell(); });
+
+    this->albumTitle->setText(item.Name);
+    if (item.ProductionYear) this->albumYear->setText(std::to_string(item.ProductionYear));
+    // loading cover
+    auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
+    if (it != item.ImageTags.end()) {
+        Image::load(this->imageCover, jellyfin::apiPrimaryImage, itemId,
+            HTTP::encode_form({
+                {"tag", it->second},
+                {"maxWidth", "300"},
+            }));
+        this->imageCover->setVisibility(brls::Visibility::VISIBLE);
+    }
 
     this->doAlbum();
     this->doTracks();
@@ -80,26 +92,14 @@ void MusicAlbum::doAlbum() {
     jellyfin::getJSON(
         [ASYNC_TOKEN](const jellyfin::MusicAlbum& r) {
             ASYNC_RELEASE
-            this->albumTitle->setText(r.Name);
             this->albumAritst->setText(r.AlbumArtist);
-            if (r.ProductionYear) this->albumYear->setText(std::to_string(r.ProductionYear));
-            // loading cover
-            auto cover = r.ImageTags.find(jellyfin::imageTypePrimary);
-            if (cover != r.ImageTags.end()) {
-                Image::load(this->imageCover, jellyfin::apiPrimaryImage, r.Id,
-                    HTTP::encode_form({
-                        {"tag", cover->second},
-                        {"maxWidth", "300"},
-                    }));
-                this->imageCover->setVisibility(brls::Visibility::VISIBLE);
-            }
         },
-        [](...) {}, jellyfin::apiUserItem, AppConfig::instance().getUser().id, this->albumId);
+        nullptr, jellyfin::apiUserItem, AppConfig::instance().getUser().id, this->itemId);
 }
 
 void MusicAlbum::doTracks() {
     std::string query = HTTP::encode_form({
-        {"parentId", this->albumId},
+        {"parentId", this->itemId},
         {"fields", "ItemCounts,BasicSyncInfo"},
         {"sortBy", "ParentIndexNumber,IndexNumber,SortName"},
     });

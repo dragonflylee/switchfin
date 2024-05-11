@@ -95,7 +95,6 @@
             paddingRight="10"
             spanCount="1"
             flowMode="true"
-            itemHeight="200"
             itemSpace="10"
             id="media/episodes"
             focusable="true"

@@ -6,6 +6,7 @@ namespace jellyfin {
 
 const std::string apiUserViews = "/Users/{}/Views";
 const std::string apiUserLibrary = "/Users/{}/Items?{}";
+const std::string apiUserList = "/Playlists/{}/Items?{}";
 const std::string apiUserItem = "/Users/{}/Items/{}";
 const std::string apiItemSpecial = "/Users/{}/Items/{}/SpecialFeatures";
 const std::string apiUserResume = "/Users/{}/Items/Resume?{}";
@@ -44,8 +45,10 @@ const std::string mediaTypeSeason = "Season";
 const std::string mediaTypeEpisode = "Episode";
 const std::string mediaTypeMovie = "Movie";
 const std::string mediaTypeBoxSet = "BoxSet";
+const std::string mediaTypeAudio = "Audio";
 const std::string mediaTypeMusicAlbum = "MusicAlbum";
 const std::string mediaTypeMusicVideo = "MusicVideo";
+const std::string mediaTypePlaylist = "Playlist";
 
 const std::string streamTypeVideo = "Video";
 const std::string streamTypeAudio = "Audio";
@@ -167,21 +170,30 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaEpisode, Id, Name, Type, Im
 
 struct MusicAlbum : public MediaItem {
     std::string AlbumArtist;
-    std::string PremiereDate;
-    time_t RunTimeTicks = 0;
     long RecursiveItemCount = 0;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MusicAlbum, Id, Name, Type, ImageTags, IsFolder, ProductionYear,
-    AlbumArtist, PremiereDate, RunTimeTicks, RecursiveItemCount);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
+    MusicAlbum, Id, Name, Type, ImageTags, IsFolder, ProductionYear, AlbumArtist, RunTimeTicks, RecursiveItemCount);
 
 struct MusicTrack : public MediaItem {
     long IndexNumber = 0;
     long ParentIndexNumber = 0;
-    time_t RunTimeTicks = 0;
     std::vector<std::string> Artists;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
-    MusicTrack, Id, Name, Type, IndexNumber, ParentIndexNumber, RunTimeTicks, Artists, UserData);
+    MusicTrack, Id, Name, Type, IndexNumber, ParentIndexNumber, RunTimeTicks, ProductionYear, Artists, UserData);
+
+struct MediaPlaylist : public MediaItem {
+    long IndexNumber = 0;
+    long ParentIndexNumber = 0;
+    std::string AlbumId;
+    std::string AlbumPrimaryImageTag;
+    std::vector<std::string> Artists;
+    std::string SeriesName;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaPlaylist, Id, Name, Type, IndexNumber, ParentIndexNumber,
+    RunTimeTicks, ProductionYear, Chapters, CommunityRating, SeriesName, ImageTags, AlbumId, AlbumPrimaryImageTag,
+    Artists, UserData);
 
 template <typename T>
 struct MediaQueryResult {

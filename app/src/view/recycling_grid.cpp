@@ -10,7 +10,7 @@
 RecyclingGridItem::RecyclingGridItem() {
     this->setFocusable(true);
     this->registerClickAction([this](...) {
-        brls::View* view = this->getParent()->getParent();
+        brls::Box* view = this->getParent()->getParent();
         RecyclingView* recycler = dynamic_cast<RecyclingView*>(view);
         if (recycler) recycler->getDataSource()->onItemSelected(view, index);
         return true;

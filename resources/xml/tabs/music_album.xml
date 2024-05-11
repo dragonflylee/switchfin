@@ -55,7 +55,7 @@
         paddingLeft="30"
         paddingRight="30"
         spanCount="1"
-        itemHeight="35"
+        flowMode="true"
         itemSpace="5"
         id="album/tracks"
         focusable="true" />

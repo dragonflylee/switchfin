@@ -2,6 +2,7 @@
 #include "tab/media_collection.hpp"
 #include "tab/media_series.hpp"
 #include "tab/music_album.hpp"
+#include "tab/playlist.hpp"
 #include "utils/misc.hpp"
 #include "view/svg_image.hpp"
 #include "view/video_card.hpp"
@@ -33,9 +34,10 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
         cell->labelExt->setText(item.ProductionYear > 0 ? std::to_string(item.ProductionYear) : "");
 
         auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
-        if (it != item.ImageTags.end())
+        if (it != item.ImageTags.end()) {
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
                 HTTP::encode_form({{"tag", it->second}, {"maxWidth", "400"}}));
+        }
     }
 
     if (item.UserData.Played) {
@@ -55,27 +57,24 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
     return cell;
 }
 
-void VideoDataSource::onItemSelected(brls::View* recycler, size_t index) {
+void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
     auto& item = this->list.at(index);
 
     if (item.Type == jellyfin::mediaTypeSeries) {
         recycler->present(new MediaSeries(item.Id));
-    } else if (item.Type == jellyfin::mediaTypeFolder) {
+    } else if (item.Type == jellyfin::mediaTypeFolder || item.Type == jellyfin::mediaTypeBoxSet) {
         recycler->present(new MediaCollection(item.Id));
-    } else if (item.Type == jellyfin::mediaTypeBoxSet) {
-        recycler->present(new MediaCollection(item.Id));
-    } else if (item.Type == jellyfin::mediaTypeMovie) {
+    } else if (item.Type == jellyfin::mediaTypeMovie || item.Type == jellyfin::mediaTypeMusicVideo) {
         PlayerView* view = new PlayerView(item);
         view->setTitie(item.ProductionYear ? fmt::format("{} ({})", item.Name, item.ProductionYear) : item.Name);
-    } else if (item.Type == jellyfin::mediaTypeMusicVideo) {
-        PlayerView* view = new PlayerView(item);
-        view->setTitie(item.Name);
     } else if (item.Type == jellyfin::mediaTypeEpisode) {
         PlayerView* view = new PlayerView(item);
         view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
         view->setSeries(item.SeriesId);
     } else if (item.Type == jellyfin::mediaTypeMusicAlbum) {
-        recycler->present(new MusicAlbum(item.Id));
+        recycler->present(new MusicAlbum(item));
+    } else if (item.Type == jellyfin::mediaTypePlaylist) {
+        recycler->present(new Playlist(item));
     } else {
         auto dialog = new brls::Dialog(fmt::format("Unknown media type: {}", item.Type));
         dialog->addButton("hints/cancel"_i18n, []() {});

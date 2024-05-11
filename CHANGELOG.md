@@ -10,6 +10,10 @@
 * add episode selector on player view
 * add new option `Always on top` for desktop platform
 
+### Fixed
+
+* support `MusicView` and `PlayList`
+
 ## [0.4.5]
 
 ### Added
