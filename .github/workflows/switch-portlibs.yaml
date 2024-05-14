@@ -28,7 +28,7 @@ jobs:
         dkp-pacman --noconfirm -U scripts/switch/dkp-*.zst
     - name: Build portlibs
       run: |
-        adduser --gecos '' --disabled-password builder
+        adduser --gecos '' --home ${GITHUB_WORKSPACE} --disabled-password builder
         echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder
 
         curl -o scripts/switch/mpv-deko3d/deko3d.patch \
@@ -37,17 +37,17 @@ jobs:
           -H 'X-GitHub-Api-Version: 2022-11-28' \
           -s ${{ secrets.MPV_COMMIT}}
 
-        chown -R builder:builder ${GITHUB_WORKSPACE}/scripts/switch
+        chown -R builder:builder scripts/switch
         sudo -u builder -i bash -s << EOF
           set -x
-          cd ${GITHUB_WORKSPACE}/scripts/switch
+          cd scripts/switch
           for pkg in libnx libass dav1d ffmpeg libuam; do
             echo building \$pkg
-            cd \$pkg; dkp-makepkg -sciCf --noconfirm; cd ..
+            pushd \$pkg; dkp-makepkg -sciCf --noconfirm; popd
           done
           for pkg in mpv mpv-deko3d nspmini curl hacbrewpack; do
             echo building \$pkg
-            cd \$pkg; dkp-makepkg -scCf --noconfirm; cd ..
+            pushd \$pkg; dkp-makepkg -scCf --noconfirm; popd
           done
         EOF
     - name: Upload portlibs

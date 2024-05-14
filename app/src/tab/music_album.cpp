@@ -56,7 +56,7 @@ MusicAlbum::MusicAlbum(const jellyfin::MediaItem& item) : itemId(item.Id) {
     this->inflateFromXMLRes("xml/tabs/music_album.xml");
     brls::Logger::debug("Tab MusicAlbum: create {}", itemId);
 
-    this->albumTracks->estimatedRowHeight = 100;
+    this->albumTracks->estimatedRowHeight = 60;
     this->albumTracks->registerCell("Cell", []() { return new MusicTrackCell(); });
 
     this->albumTitle->setText(item.Name);

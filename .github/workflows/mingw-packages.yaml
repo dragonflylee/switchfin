@@ -42,12 +42,12 @@ jobs:
 
         for pkg in libwebp freetype harfbuzz libass dav1d ffmpeg spirv-cross shaderc mpv; do
           echo building $pkg
-          cd $pkg; makepkg-mingw -sciCf --noconfirm; cd ..
+          pushd $pkg; makepkg-mingw -sciCf --noconfirm; popd
         done
 
         for pkg in glfw curl; do
           echo building $pkg
-          cd $pkg; makepkg-mingw -scCf --noconfirm; cd ..
+          pushd $pkg; makepkg-mingw -scCf --noconfirm; popd
         done
 
         cd ${MINGW_PREFIX}

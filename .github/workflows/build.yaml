@@ -277,6 +277,13 @@ jobs:
 
         curl -sLO https://github.com/rainers/cv2pdb/releases/download/v0.52/cv2pdb-0.52.zip
         unzip cv2pdb-0.52.zip cv2pdb64.exe -d /usr/bin
+    - if: matrix.arch == 'x86'
+      name: Config Editbin
+      shell: powershell
+      run: |
+        $vcvarsall_path = vswhere.exe -latest -products * -find "VC\Auxiliary\Build\vcvarsall.bat"
+        $cc1_path = Get-ChildItem -Path "C:\msys64\mingw32\lib\gcc" -Filter cc1plus.exe -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
+        cmd.exe /c "call ""$vcvarsall_path"" x86_amd64 && editbin /LARGEADDRESSAWARE $cc1_path"
     - name: Build
       run: |
         cmake -B build_mingw -G Ninja \

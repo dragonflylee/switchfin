@@ -110,6 +110,7 @@ Playlist::Playlist(const jellyfin::MediaItem& item) : itemId(item.Id) {
     this->inflateFromXMLRes("xml/tabs/music_album.xml");
     brls::Logger::debug("Tab Playlist: create {}", itemId);
 
+    this->playlist->estimatedRowHeight = 100;
     this->playlist->registerCell("Cell", []() { return new PlaylistCell(); });
 
     this->title->setText(item.Name);

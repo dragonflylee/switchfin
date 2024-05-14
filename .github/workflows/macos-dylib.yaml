@@ -43,7 +43,7 @@ jobs:
         find /usr/local/bin -lname '*/Library/Frameworks/Python.framework/*' -delete -print
         brew unlink python && brew link --overwrite python
     - name: Install dependency
-      run: brew install ninja pkg-config nasm meson python
+      run: brew install ninja nasm meson python
     - name: Build bootstrap
       if: ${{ matrix.arch != 'arm64' }}
       run: |
@@ -149,8 +149,8 @@ jobs:
         meson install -C build
     - name: Build libunibreak
       run: |
-        curl -sSL https://github.com/adah1972/libunibreak/releases/download/libunibreak_5_1/libunibreak-5.1.tar.gz | tar zxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/libunibreak-5.1
+        curl -sSL https://github.com/adah1972/libunibreak/releases/download/libunibreak_6_1/libunibreak-6.1.tar.gz | tar zxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/libunibreak-6.1
         ./configure --enable-shared --disable-static --prefix=$CMAKE_PREFIX_PATH ${{ matrix.autoconf }}
         make install -j$(sysctl -n hw.ncpu)
     - name: Build libass
