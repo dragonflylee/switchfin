@@ -23,6 +23,7 @@ void Image::with(brls::Image* view, const std::string& url) {
     }
 
     Ref item;
+    std::lock_guard<std::mutex> lock(requestMutex);
 
     if (pool.empty()) {
         item = std::make_shared<Image>();
@@ -56,7 +57,7 @@ void Image::cancel(brls::Image* view) {
 
 void Image::doRequest() {
     if (this->isCancel->load()) {
-        brls::sync(std::bind(&Image::clear, this->image));
+        Image::clear(this->image);
         return;
     }
     try {
@@ -92,11 +93,13 @@ void Image::doRequest() {
         });
     } catch (const std::exception& ex) {
         brls::Logger::warning("request image {} {}", this->url, ex.what());
-        brls::sync(std::bind(&Image::clear, this->image));
+        Image::clear(this->image);
     }
 }
 
 void Image::clear(brls::Image* view) {
+    std::lock_guard<std::mutex> lock(requestMutex);
+
     auto it = requests.find(view);
     if (it == requests.end()) return;
 
@@ -104,6 +107,6 @@ void Image::clear(brls::Image* view) {
     it->second->image = nullptr;
     it->second->url.clear();
     it->second->isCancel->store(true);
-    //pool.push_back(it->second);
+    pool.push_back(it->second);
     requests.erase(it);
 }

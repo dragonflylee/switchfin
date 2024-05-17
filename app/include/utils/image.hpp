@@ -37,5 +37,6 @@ private:
 
     /// 对象池
     inline static std::list<Ref> pool;
+    inline static std::mutex requestMutex;
     inline static std::unordered_map<brls::Image*, Ref> requests;
 };
