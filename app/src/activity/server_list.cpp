@@ -61,6 +61,7 @@ private:
 class UserCell : public RecyclingGridItem {
 public:
     UserCell() { this->inflateFromXMLRes("xml/view/user_item.xml"); }
+    ~UserCell() { Image::cancel(this->picture); }
 
     void prepareForReuse() override { this->picture->setImageFromRes("img/video-card-bg.png"); }
 

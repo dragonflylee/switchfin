@@ -58,12 +58,12 @@ const std::string methodDirectPlay = "Directplay";
 const std::string methodTranscode = "Transcode";
 
 // The position, in ticks, where playback stopped. 1 tick = 10000 ms
-const time_t PLAYTICKS = 10000000;
+const uint64_t PLAYTICKS = 10000000;
 
 struct UserDataResult {
     bool IsFavorite = false;
     int PlayCount = 0;
-    time_t PlaybackPositionTicks = 0;
+    int64_t PlaybackPositionTicks = 0;
     float PlayedPercentage = 0;
     bool Played = false;
 };
@@ -72,7 +72,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
 
 struct MediaChapter {
     std::string Name;
-    time_t StartPositionTicks = 0;
+    uint64_t StartPositionTicks = 0;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaChapter, Name, StartPositionTicks);
 
@@ -84,7 +84,7 @@ struct MediaItem {
     bool IsFolder = false;
     long ProductionYear = 0;
     float CommunityRating = 0.0f;
-    time_t RunTimeTicks = 0;
+    uint64_t RunTimeTicks = 0;
     UserDataResult UserData;
     std::vector<MediaChapter> Chapters;
 };

@@ -19,9 +19,9 @@ public:
     void setTitie(const std::string& title);
 
 private:
-    void setChapters(const std::vector<jellyfin::MediaChapter>& chaps, time_t duration);
+    void setChapters(const std::vector<jellyfin::MediaChapter>& chaps, uint64_t duration);
     /// @brief get video url
-    void playMedia(const time_t seekTicks);
+    void playMedia(const uint64_t seekTicks);
     bool playIndex(int index);
     void reportStart();
     void reportStop();

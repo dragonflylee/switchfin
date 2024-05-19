@@ -1,16 +1,16 @@
 <brls:Box
     width="auto"
     height="auto"
-    paddingLeft="@style/brls/tab_frame/content_padding_sides"
-    paddingRight="@style/brls/tab_frame/content_padding_sides"
-    paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
-    paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
+    paddingLeft="@style/main/content_padding_sides"
+    paddingRight="@style/main/content_padding_sides"
+    paddingTop="@style/main/content_padding_top_bottom"
+    paddingBottom="@style/main/content_padding_top_bottom">
 
     <brls:Box
         axis="column"
         alignItems="center"
         justifyContent="center"
-        marginRight="@style/brls/tab_frame/content_padding_sides">
+        marginRight="@style/main/content_padding_sides">
 
         <brls:Box
             id="tv/search/box"

@@ -123,7 +123,7 @@ void PlayerView::setSeries(const std::string& seriesId) {
 
 void PlayerView::setTitie(const std::string& title) { this->view->setTitie(title); }
 
-void PlayerView::setChapters(const std::vector<jellyfin::MediaChapter>& chaps, time_t duration) {
+void PlayerView::setChapters(const std::vector<jellyfin::MediaChapter>& chaps, uint64_t duration) {
     std::vector<float> clips;
     for (auto& c : chaps) {
         clips.push_back(float(c.StartPositionTicks) / float(duration));
@@ -145,7 +145,7 @@ bool PlayerView::playIndex(int index) {
     return true;
 }
 
-void PlayerView::playMedia(const time_t seekTicks) {
+void PlayerView::playMedia(const uint64_t seekTicks) {
     ASYNC_RETAIN
     jellyfin::postJSON(
         {
@@ -261,7 +261,7 @@ void PlayerView::reportStart() {
 }
 
 void PlayerView::reportStop() {
-    time_t ticks = MPVCore::instance().playback_time * jellyfin::PLAYTICKS;
+    uint64_t ticks = MPVCore::instance().playback_time * jellyfin::PLAYTICKS;
     jellyfin::postJSON(
         {
             {"ItemId", this->itemId},
@@ -276,7 +276,7 @@ void PlayerView::reportStop() {
 }
 
 void PlayerView::reportPlay(bool isPaused) {
-    time_t ticks = MPVCore::instance().video_progress * jellyfin::PLAYTICKS;
+    uint64_t ticks = MPVCore::instance().video_progress * jellyfin::PLAYTICKS;
     jellyfin::postJSON(
         {
             {"ItemId", this->itemId},
