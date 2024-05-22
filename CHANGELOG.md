@@ -1,6 +1,6 @@
 # Changelog
 
-## [next]
+## [0.5.0]
 
 ### Added
 
@@ -9,10 +9,12 @@
 * video equalizer setting
 * add episode selector on player view
 * add new option `Always on top` for desktop platform
+* Czech localization
 
 ### Fixed
 
 * support `MusicView` and `PlayList`
+* forward nsp add startup logo
 
 ## [0.4.5]
 
