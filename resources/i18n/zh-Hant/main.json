@@ -206,7 +206,8 @@
         "chinese_t": "繁體中文",
         "czech": "Czech",
         "english": "English",
-        "german": "Deutsch"
+        "german": "Deutsch",
+        "ukrainian": "Українська"
       },
       "keymap": {
         "header": "按鍵圖示",

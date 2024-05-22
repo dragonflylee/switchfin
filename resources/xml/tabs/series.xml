@@ -13,6 +13,7 @@
 
         <brls:Box width="25%">
             <brls:Header
+                height="40"
                 id="series/header/title" />
         </brls:Box>
 

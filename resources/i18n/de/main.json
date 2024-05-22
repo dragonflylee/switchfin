@@ -112,7 +112,8 @@
         "chinese_t": "繁體中文",
         "czech": "Tschechisch",
         "english": "English",
-        "german": "Deutsch"
+        "german": "Deutsch",
+        "ukrainian": "Українська"
       },
       "keymap": {
         "header": "Knopfstil",

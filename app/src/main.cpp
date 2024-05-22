@@ -98,8 +98,8 @@ int main(int argc, char* argv[]) {
     brls::Theme::getLightTheme().addColor("font/grey", nvgRGB(148, 153, 160));
     brls::Theme::getDarkTheme().addColor("font/grey", nvgRGB(148, 153, 160));
 
-    brls::getStyle().addMetric("main/content_padding_sides", 25.f);
-    brls::getStyle().addMetric("main/content_padding_top_bottom", 30.f);
+    brls::getStyle().addMetric("main/content_padding_sides", 30.f);
+    brls::getStyle().addMetric("main/content_padding_top_bottom", 35.f);
 
     if (!brls::Application::getPlatform()->isApplicationMode()) {
         brls::Application::pushActivity(new HintActivity());
