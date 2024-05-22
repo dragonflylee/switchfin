@@ -7,16 +7,12 @@
   "main_thread_priority": 44,
   "default_cpu_id": 0,
   "process_category": 0,
-  "signature_key_generation": 0,
   "pool_partition": 0,
   "is_64_bit": true,
   "address_space_type": 1,
   "is_retail": true,
   "filesystem_access": {
-    "permissions": "0xFFFFFFFFFFFFFFFF",
-    "content_owner_ids": [
-      "0x0100000000001000"
-    ]
+    "permissions": "0xFFFFFFFFFFFFFFFF"
   },
   "service_host": [
     "*"
