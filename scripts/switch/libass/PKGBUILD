@@ -24,7 +24,7 @@ build() {
 
   ./configure --prefix="$PORTLIBS_PREFIX" --host=aarch64-none-elf \
     --disable-shared --enable-static \
-    --disable-asm --enable-large-tiles \
+    --enable-asm --enable-large-tiles \
     --disable-require-system-font-provider
 
   make

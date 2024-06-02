@@ -35,6 +35,7 @@ jobs:
           ${MINGW_PACKAGE_PREFIX}-cmake \
           ${MINGW_PACKAGE_PREFIX}-ninja \
           ${MINGW_PACKAGE_PREFIX}-meson \
+          ${MINGW_PACKAGE_PREFIX}-nasm \
           ${MINGW_PACKAGE_PREFIX}-cc patch p7zip
     - name: Build packages
       run: |

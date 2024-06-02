@@ -6,18 +6,10 @@ pkgdesc='easy install nsp lib'
 arch=('any')
 license=('GPL')
 options=(!strip libtool staticlibs)
-source=("${pkgbasename}-${pkgver}.tar.gz::https://github.com/StarDustCFW/nspmini/archive/${pkgver}.tar.gz" "nspmini.patch")
-sha256sums=(
-  'SKIP'
-  'SKIP'
-)
+source=("${pkgbasename}-${pkgver}.tar.gz::https://github.com/StarDustCFW/nspmini/archive/${pkgver}.tar.gz")
+sha256sums=('SKIP')
 makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
 groups=('switch-portlibs')
-
-prepare() {
-  cd nspmini-$pkgver
-  patch -Np1 -i "$srcdir/nspmini.patch"
-}
 
 build() {
   cd nspmini-main

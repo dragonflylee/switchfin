@@ -1,39 +1,33 @@
 
 # Maintainer: WinterMute <davem@devkitpro.org>
 pkgname=switch-curl
-pkgver=7.71.1
+pkgver=8.7.1
 pkgrel=1
 pkgdesc='An URL retrieval utility and library'
 arch=('any')
 url='http://www.zlib.net/'
 license=('zlib')
 options=(!strip libtool staticlibs)
-depends=('switch-zlib' 'libnx')
+depends=('switch-zlib' 'switch-mbedtls')
 makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
-source=(
-    "https://curl.haxx.se/download/curl-${pkgver}.tar.xz"
-    'switch-curl.patch'
-)
+source=("https://curl.haxx.se/download/curl-${pkgver}.tar.xz")
 groups=('switch-portlibs')
 
-sha256sums=('40f83eda27cdbeb25cd4da48cefb639af1b9395d6026d2da1825bf059239658c' 'SKIP')
+sha256sums=('6fea2aac6a4610fbd0400afb0bcddbe7258a64c63f1f68e5855ebc0c659710cd')
 
 build() {
   cd curl-$pkgver
 
-  patch -Np1 -i $srcdir/switch-curl.patch
-
   source /opt/devkitpro/switchvars.sh
   LDFLAGS="-specs=${DEVKITPRO}/libnx/switch.specs ${LDFLAGS}"
 
-  ./buildconf
+  autoreconf -fi
 
   ./configure --prefix=$PORTLIBS_PREFIX --host=aarch64-none-elf \
-    --disable-shared --enable-static --enable-ipv6 --disable-unix-sockets \
+    --disable-shared --enable-static --disable-ipv6 --disable-unix-sockets \
     --disable-manual --disable-ntlm-wb --disable-threaded-resolver \
-    --without-ssl --without-polar-ssl --without-cyassl --without-wolfssl \
-    --without-mbedtls --disable-progress-meter \
-    --with-libnx --with-default-ssl-backend=libnx
+    --without-zstd --with-mbedtls --disable-progress-meter \
+    --with-default-ssl-backend=mbedtls
 
   make -C lib
 }

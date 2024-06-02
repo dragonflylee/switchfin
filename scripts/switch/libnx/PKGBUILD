@@ -2,7 +2,7 @@
 # Maintainer: Dave Murphy <davem@devkitpro.org>
 
 pkgname=('libnx')
-pkgver=master
+pkgver=4.7.0
 pkgrel=1
 pkgdesc="Nintendo Switch AArch64-only userland library."
 arch=('any')
@@ -10,7 +10,7 @@ license=('custom')
 url="http://github.com/switchbrew"
 options=(!strip libtool staticlibs)
 source=(
-  ${pkgname}-${pkgver}.tar.gz::${url}/${pkgname}/archive/${pkgver}.tar.gz
+  ${pkgname}-${pkgver}.tar.gz::${url}/${pkgname}/archive/v${pkgver}.tar.gz
 )
 sha256sums=('SKIP')
 makedepends=('devkitA64')

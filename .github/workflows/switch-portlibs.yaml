@@ -12,7 +12,7 @@ jobs:
   build-portlibs:
     runs-on: ubuntu-latest
     container:
-      image: devkitpro/devkita64
+      image: devkitpro/devkita64:20240324
     steps:
     - name: Disable autocrlf
       run: git config --global core.autocrlf false

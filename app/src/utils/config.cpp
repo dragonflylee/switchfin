@@ -165,6 +165,7 @@ bool AppConfig::init() {
     HTTP::PROXY_STATUS = this->getItem(HTTP_PROXY_STATUS, HTTP::PROXY_STATUS);
     HTTP::PROXY_HOST = this->getItem(HTTP_PROXY_HOST, HTTP::PROXY_HOST);
     HTTP::PROXY_PORT = this->getItem(HTTP_PROXY_PORT, HTTP::PROXY_PORT);
+    HTTP::TLS_VERIFY = this->getItem(TLS_VERIFY, HTTP::TLS_VERIFY);
 
     // 初始化是否全屏，必须在创建窗口前设置此值
     VideoContext::FULLSCREEN = this->getItem(FULLSCREEN, false);

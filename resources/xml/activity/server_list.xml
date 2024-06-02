@@ -6,14 +6,14 @@
 
     <brls:Box
         axis="row"
-        paddingLeft="@style/main/content_padding_sides"
-        paddingRight="@style/main/content_padding_sides"
-        paddingTop="@style/main/content_padding_top_bottom"
-        paddingBottom="@style/main/content_padding_top_bottom">
+        paddingLeft="@style/brls/tab_frame/content_padding_sides"
+        paddingRight="@style/brls/tab_frame/content_padding_sides"
+        paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
+        paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
 
         <brls:Box
             wireframe="false"
-            width="40%"
+            width="420"
             axis="column"
             paddingRight="@style/brls/sidebar/padding_right"
             lineColor="@theme/color/line"
@@ -44,7 +44,7 @@
 
         <brls:Box
             wireframe="false"
-            paddingLeft="@style/brls/sidebar/padding_left"
+            paddingLeft="35"
             axis="column"
             id="server/detail"
             grow="1">
