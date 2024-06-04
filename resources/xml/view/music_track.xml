@@ -1,9 +1,7 @@
 <brls:Box
     highlightCornerRadius="8"
     alignItems="center"
-    lineBottom="1"
-    padding="10"
-    lineColor="@theme/brls/header/border">
+    padding="10">
 
     <brls:Label
         id="music/track/index"

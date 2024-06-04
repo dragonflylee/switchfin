@@ -21,9 +21,11 @@ public:
 
     void registerViewAction(brls::View* view);
 
+    const std::string& currentId();
+
     void play(const jellyfin::MediaItem& item);
 
-    void load(const std::vector<jellyfin::MusicTrack>& list);
+    void load(const std::vector<jellyfin::MusicTrack>& item, size_t index);
 
 private:
     BRLS_BIND(brls::Box, btnPrev, "music/prev");
@@ -52,5 +54,6 @@ private:
 
     using MusicList = std::unordered_map<int64_t, jellyfin::MusicTrack>;
     int64_t playSession = 0;
+    std::string itemId;
     MusicList playList;
 };

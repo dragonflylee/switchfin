@@ -63,7 +63,11 @@ void MusicView::registerMpvEvent() {
             if (playList.size() > 0) {
                 std::string key = fmt::format("playlist/{}/id", mpv.getInt("playlist-playing-pos"));
                 auto it = playList.find(mpv.getInt(key));
-                if (it != playList.end()) this->playTitle->setText(it->second.Name);
+                if (it != playList.end()) {
+                    this->playTitle->setText(it->second.Name);
+                    this->itemId = it->second.Id;
+                    mpv.getCustomEvent()->fire(TRACK_START, &it->second);
+                }
             }
             break;
         case MpvEventEnum::MPV_RESUME:
@@ -133,9 +137,13 @@ void MusicView::registerViewAction(brls::View* view) {
     });
 }
 
+const std::string& MusicView::currentId() { return this->itemId; }
+
 void MusicView::play(const jellyfin::MediaItem& item) {
     auto& conf = AppConfig::instance();
     auto& mpv = MPVCore::instance();
+
+    if (!this->playSession) this->registerMpvEvent();
 
     std::string query = HTTP::encode_form({
         {"static", "true"},
@@ -143,34 +151,36 @@ void MusicView::play(const jellyfin::MediaItem& item) {
     });
     std::string url = fmt::format(fmt::runtime(jellyfin::apiAudio), item.Id, query);
     std::string extra = fmt::format("http-header-fields='X-Emby-Token: {}'", conf.getUser().access_token);
-
-    if (!this->playSession) this->registerMpvEvent();
     mpv.stop();
     mpv.setUrl(conf.getUrl() + url, extra);
 
     this->playTitle->setText(item.Name);
 }
 
-void MusicView::load(const std::vector<jellyfin::MusicTrack>& list) {
+void MusicView::load(const std::vector<jellyfin::MusicTrack>& items, size_t index) {
     auto& conf = AppConfig::instance();
     auto& mpv = MPVCore::instance();
-    std::string query = HTTP::encode_form({
-        {"static", "true"},
-        {"PlaySessionId", std::to_string(playSession)},
-    });
     std::string extra = fmt::format("http-header-fields='X-Emby-Token: {}'", conf.getUser().access_token);
 
     if (!this->playSession) this->registerMpvEvent();
 
     mpv.stop();
     mpv.command("playlist-clear");
-    playList.clear();
+    this->playList.clear();
+    this->btnSuffle->setBorderThickness(0);
 
-    for (auto& item : list) {
+    std::string query = HTTP::encode_form({
+        {"static", "true"},
+        {"PlaySessionId", std::to_string(playSession)},
+    });
+
+    for (auto& item : items) {
         uint64_t userdata = reinterpret_cast<uint64_t>(&item);
         std::string url = fmt::format(fmt::runtime(jellyfin::apiAudio), item.Id, query);
         mpv.setUrl(conf.getUrl() + url, extra, "append", userdata);
     }
+
+    mpv.command("playlist-play-index", std::to_string(index).c_str());
 }
 
 void MusicView::reset() {
@@ -178,6 +188,7 @@ void MusicView::reset() {
     this->rightStatusLabel->setText("--:--");
     this->leftStatusLabel->setText("--:--");
     this->osdSlider->setProgress(0);
+    this->itemId.clear();
 }
 
 bool MusicView::toggleShuffle() {

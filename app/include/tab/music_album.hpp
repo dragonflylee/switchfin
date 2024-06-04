@@ -2,6 +2,7 @@
 
 #include <borealis.hpp>
 #include <api/jellyfin/media.hpp>
+#include <utils/event.hpp>
 
 class RecyclingGrid;
 
@@ -22,4 +23,5 @@ private:
     void doTracks();
 
     std::string itemId;
+    MPVCustomEvent::Subscription customEventSubscribeID;
 };

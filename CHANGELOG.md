@@ -5,6 +5,7 @@
 ### Add
 
 * upgrade ffmpeg 7.0.1
+* add highlight for current play track
 
 ## [0.5.0]
 
