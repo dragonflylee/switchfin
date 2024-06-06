@@ -193,6 +193,7 @@ void MusicView::reset() {
 
 bool MusicView::toggleShuffle() {
     auto& mpv = MPVCore::instance();
+
     if (this->btnSuffle->getBorderThickness() > 0) {
         mpv.command("playlist-unshuffle");
         this->btnSuffle->setBorderThickness(0);
@@ -205,12 +206,22 @@ bool MusicView::toggleShuffle() {
 
 bool MusicView::toggleLoop() {
     auto& mpv = MPVCore::instance();
-    if (this->btnRepeat->getBorderThickness() > 0) {
-        mpv.command("loop-file", "no");
-        this->btnRepeat->setBorderThickness(0);
-    } else {
-        mpv.command("loop-file", "inf");
-        this->btnRepeat->setBorderThickness(2.0f);
+    switch (this->repeat) {
+    case RepeatNone:
+        mpv.command("set", "loop-file", "inf");
+        this->repeat = RepeatOne;
+        this->btnRepeatIcon->setImageFromSVGRes("icon/ico-repeat-song.svg");
+        break;
+    case RepeatOne:
+        mpv.command("set", "loop-file", "no");
+        mpv.command("set", "loop-playlist", "inf");
+        this->repeat = RepeatAll;
+        this->btnRepeatIcon->setImageFromSVGRes("icon/ico-repeat-list.svg");
+        break;
+    default:
+        mpv.command("set", "loop-playlist", "no");
+        this->repeat = RepeatNone;
+        this->btnRepeatIcon->setImageFromSVGRes("icon/ico-playlist.svg");
     }
     return true;
 }

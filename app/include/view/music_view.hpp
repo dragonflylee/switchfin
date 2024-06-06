@@ -13,6 +13,13 @@ class VideoProgressSlider;
 class SVGImage;
 
 class MusicView : public brls::Box, public brls::Singleton<MusicView> {
+
+enum RepeatMode {
+    RepeatNone,
+    RepeatOne,
+    RepeatAll
+};
+
 public:
     MusicView();
     ~MusicView() override;
@@ -33,6 +40,7 @@ private:
     BRLS_BIND(brls::Box, btnToggle, "music/toggle");
     BRLS_BIND(brls::Box, btnSuffle, "music/shuffle");
     BRLS_BIND(brls::Box, btnRepeat, "music/repeat");
+    BRLS_BIND(SVGImage, btnRepeatIcon, "music/repeat/icon");
     BRLS_BIND(SVGImage, btnToggleIcon, "music/toggle/icon");
     BRLS_BIND(VideoProgressSlider, osdSlider, "music/progress");
     BRLS_BIND(brls::Label, leftStatusLabel, "music/left/status");
@@ -56,4 +64,6 @@ private:
     int64_t playSession = 0;
     std::string itemId;
     MusicList playList;
+
+    RepeatMode repeat = RepeatNone;
 };

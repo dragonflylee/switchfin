@@ -112,7 +112,7 @@
                 id="music/repeat/icon"
                 height="30"
                 width="30"
-                svg="@res/icon/ico-repeat.svg" />
+                svg="@res/icon/ico-playlist.svg" />
         </brls:Box>
     </brls:Box>
 
