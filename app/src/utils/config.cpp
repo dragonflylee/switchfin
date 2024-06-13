@@ -168,11 +168,11 @@ bool AppConfig::init() {
     }
 #endif
 
-    HTTP::TIMEOUT = this->getItem(REQUEST_TIMEOUT, HTTP::TIMEOUT);
-    HTTP::PROXY_STATUS = this->getItem(HTTP_PROXY_STATUS, HTTP::PROXY_STATUS);
+    HTTP::TIMEOUT = this->getItem(REQUEST_TIMEOUT, 3000L);
+    HTTP::PROXY_STATUS = this->getItem(HTTP_PROXY_STATUS, false);
     HTTP::PROXY_HOST = this->getItem(HTTP_PROXY_HOST, HTTP::PROXY_HOST);
     HTTP::PROXY_PORT = this->getItem(HTTP_PROXY_PORT, HTTP::PROXY_PORT);
-    HTTP::TLS_VERIFY = this->getItem(TLS_VERIFY, HTTP::TLS_VERIFY);
+    HTTP::TLS_VERIFY = this->getItem(TLS_VERIFY, false);
 
     // 初始化是否全屏，必须在创建窗口前设置此值
     VideoContext::FULLSCREEN = this->getItem(FULLSCREEN, false);
@@ -185,7 +185,11 @@ bool AppConfig::init() {
     // 初始化内存缓存大小
     MPVCore::INMEMORY_CACHE = this->getItem(PLAYER_INMEMORY_CACHE, 10);
     // 是否使用低质量解码
+#if defined(__PSV__) || defined(PS4)
+    MPVCore::LOW_QUALITY = this->getItem(PLAYER_LOW_QUALITY, true);
+#else
     MPVCore::LOW_QUALITY = this->getItem(PLAYER_LOW_QUALITY, false);
+#endif
 
     // 初始化是否使用硬件加速
     MPVCore::HARDWARE_DEC = this->getItem(PLAYER_HWDEC, true);
@@ -201,13 +205,12 @@ bool AppConfig::init() {
     MPVCore::VIDEO_ASPECT = this->getItem(PLAYER_ASPECT, MPVCore::VIDEO_ASPECT);
 
     // 初始化弹幕相关内容
-    DanmakuCore::DANMAKU_ON = this->getItem(DANMAKU_ON, DanmakuCore::DANMAKU_ON);
-    DanmakuCore::DANMAKU_STYLE_AREA = this->getItem(DANMAKU_STYLE_AREA, DanmakuCore::DANMAKU_STYLE_AREA);
-    DanmakuCore::DANMAKU_STYLE_ALPHA = this->getItem(DANMAKU_STYLE_ALPHA, DanmakuCore::DANMAKU_STYLE_ALPHA);
-    DanmakuCore::DANMAKU_STYLE_FONTSIZE = this->getItem(DANMAKU_STYLE_FONTSIZE, DanmakuCore::DANMAKU_STYLE_FONTSIZE);
-    DanmakuCore::DANMAKU_STYLE_LINE_HEIGHT =
-        this->getItem(DANMAKU_STYLE_LINE_HEIGHT, DanmakuCore::DANMAKU_STYLE_LINE_HEIGHT);
-    DanmakuCore::DANMAKU_STYLE_SPEED = this->getItem(DANMAKU_STYLE_SPEED, DanmakuCore::DANMAKU_STYLE_SPEED);
+    DanmakuCore::DANMAKU_ON = this->getItem(DANMAKU_ON, true);
+    DanmakuCore::DANMAKU_STYLE_AREA = this->getItem(DANMAKU_STYLE_AREA, 100);
+    DanmakuCore::DANMAKU_STYLE_ALPHA = this->getItem(DANMAKU_STYLE_ALPHA, 80);
+    DanmakuCore::DANMAKU_STYLE_FONTSIZE = this->getItem(DANMAKU_STYLE_FONTSIZE, 30);
+    DanmakuCore::DANMAKU_STYLE_LINE_HEIGHT = this->getItem(DANMAKU_STYLE_LINE_HEIGHT, 120);
+    DanmakuCore::DANMAKU_STYLE_SPEED = this->getItem(DANMAKU_STYLE_SPEED, 100);
 
     // 初始化 deviceId
     if (this->device.empty()) this->device = generateDeviceId();
@@ -240,7 +243,11 @@ bool AppConfig::init() {
         }
 
         // 初始化纹理缓存数量
+#if defined(__PSV__) || defined(PS4)
+        brls::TextureCache::instance().cache.setCapacity(1);
+#else
         brls::TextureCache::instance().cache.setCapacity(getItem(TEXTURE_CACHE_NUM, 200));
+#endif
 
 #if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
         // 设置窗口最小尺寸
@@ -266,6 +273,9 @@ bool AppConfig::init() {
     brls::FontLoader::USER_ICON_PATH = configDir() + "/icon.ttf";
     if (access(brls::FontLoader::USER_ICON_PATH.c_str(), F_OK) == -1) {
         // 自定义字体不存在，使用内置字体
+#if defined(__PSV__) || defined(PS4)
+        brls::FontLoader::USER_ICON_PATH = BRLS_ASSET("font/keymap_ps.ttf");
+#else
         std::string icon = getItem(KEYMAP, std::string("xbox"));
         if (icon == "xbox") {
             brls::FontLoader::USER_ICON_PATH = BRLS_ASSET("font/keymap_xbox.ttf");
@@ -274,6 +284,7 @@ bool AppConfig::init() {
         } else {
             brls::FontLoader::USER_ICON_PATH = BRLS_ASSET("font/keymap_keyboard.ttf");
         }
+#endif
     }
 
     brls::Logger::info("init {} v{}-{} device {} from {}", AppVersion::getPlatform(), AppVersion::getVersion(),
@@ -341,6 +352,10 @@ bool AppConfig::checkDanmuku() {
 std::string AppConfig::configDir() {
 #if __SWITCH__
     return fmt::format("sdmc:/switch/{}", AppVersion::getPackageName());
+#elif defined(PS4)
+    return fmt::format("/data/{}", AppVersion::getPackageName());
+#elif defined(__PSV__)
+    return fmt::format("ux0:/data/{}", AppVersion::getPackageName());
 #elif _WIN32
     WCHAR wpath[MAX_PATH];
     std::vector<char> lpath(MAX_PATH);
@@ -365,7 +380,7 @@ std::string AppConfig::ipcSocket() {
 }
 
 void AppConfig::checkRestart(char* argv[]) {
-#ifndef __SWITCH__
+#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
     if (brls::DesktopPlatform::RESTART_APP) {
         brls::Logger::info("Restart app {}", argv[0]);
         execv(argv[0], argv);

@@ -130,11 +130,22 @@ void misc::initCrashDump() {}
 
 #endif
 
-std::string misc::sec2Time(int64_t t) {
-    if (t < 3600) {
-        return fmt::format("{:%M:%S}", std::chrono::seconds(t));
+inline std::string pre0(size_t num, size_t length) {
+    std::string str = std::to_string(num);
+    if (length <= str.length()) {
+        return str;
     }
-    return fmt::format("{:%H:%M:%S}", std::chrono::seconds(t));
+    return std::string(length - str.length(), '0') + str;
+}
+
+std::string misc::sec2Time(int64_t t) {
+    size_t hour   = t / 3600;
+    size_t minute = t / 60 % 60;
+    size_t sec    = t % 60;
+    if (hour == 0) {
+        return pre0(minute, 2) + ":" + pre0(sec, 2);
+    }
+    return pre0(hour, 2) + ":" + pre0(minute, 2) + ":" + pre0(sec, 2);
 }
 
 std::string misc::randHex(const int len) {

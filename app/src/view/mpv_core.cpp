@@ -7,6 +7,13 @@
 #include "utils/misc.hpp"
 #include <fmt/ranges.h>
 
+#ifdef __PS4__
+extern "C" {
+extern int ps4_mpv_use_precompiled_shaders;
+extern int ps4_mpv_dump_shaders;
+}
+#endif
+
 static inline void check_error(int status) {
     if (status < 0) brls::Logger::error("MPV ERROR => {}", mpv_error_string(status));
 }
@@ -52,6 +59,10 @@ void MPVCore::on_wakeup(void *self) {
 }
 
 MPVCore::MPVCore() {
+#ifdef __PS4_
+    ps4_mpv_use_precompiled_shaders = 1;
+    ps4_mpv_dump_shaders = 0;
+#endif
     this->init();
     // Destroy mpv when application exit
     brls::Application::getExitEvent()->subscribe([this]() {

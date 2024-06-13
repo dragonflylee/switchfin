@@ -7,3 +7,8 @@ add_subdirectory(lunasvg EXCLUDE_FROM_ALL)
 
 # add borealis
 add_subdirectory(borealis/library)
+
+if (PLATFORM_PS4)
+    list(APPEND APP_PLATFORM_LIB SceNet mbedcrypto mbedtls mbedx509)
+    set(APP_PLATFORM_LIB ${APP_PLATFORM_LIB} PARENT_SCOPE)
+endif ()

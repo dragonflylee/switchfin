@@ -24,6 +24,9 @@ on:
       nx:
         description: build nintendo switch
         type: boolean
+      ps4:
+        description: build playstation 4
+        type: boolean
       macos:
         description: build macos dmg
         type: boolean
@@ -127,6 +130,29 @@ jobs:
         path: |
           build_switch/Switchfin.nro
           build_switch/Switchfin.elf
+
+  build-ps4:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.ps4 || github.event_name != 'workflow_dispatch' }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Build
+      run: |
+        docker run --rm -v $(pwd):/src -u $(id -u):$(id -g) xfangfang/wiliwili_ps4_builder \
+            "cmake -B build_ps4 -DPLATFORM_PS4=ON -DVERSION_BUILD=${{ github.run_number }} && \
+             make -C build_ps4 -j$(nproc)"
+    - name: Set outputs
+      id: vars
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+    - name: Upload Assets
+      uses: actions/upload-artifact@v4
+      with:
+        name: ps4-${{ steps.vars.outputs.sha_short }}
+        path: |
+          build_ps4/Switchfin.oelf
+          build_ps4/*.pkg
 
   build-flatpak:
     runs-on: ubuntu-latest

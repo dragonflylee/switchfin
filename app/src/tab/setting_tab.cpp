@@ -118,12 +118,17 @@ void SettingTab::onCreate() {
     btnOverClock->setVisibility(brls::Visibility::GONE);
 #endif
 
+/// Hardware decode
+#ifdef PS4
+    btnHWDEC->setVisibility(brls::Visibility::GONE);
+#else
     btnHWDEC->init("main/setting/playback/hwdec"_i18n, MPVCore::HARDWARE_DEC, [&conf](bool value) {
         if (MPVCore::HARDWARE_DEC == value) return;
         MPVCore::HARDWARE_DEC = value;
         MPVCore::instance().restart();
         conf.setItem(AppConfig::PLAYER_HWDEC, value);
     });
+#endif
 
     btnDirectPlay->init("main/setting/playback/force_directplay"_i18n, MPVCore::FORCE_DIRECTPLAY, [&conf](bool value) {
         if (MPVCore::FORCE_DIRECTPLAY == value) return;

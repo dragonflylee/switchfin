@@ -29,6 +29,8 @@ std::string AppVersion::getCommit() { return STR(BUILD_TAG_SHORT); }
 std::string AppVersion::getPlatform() {
 #ifdef __SWITCH__
     return "NX";
+#elif defined(PS4)
+    return "PS4";
 #elif defined(__APPLE__)
     return "macOS";
 #elif defined(__linux__)
