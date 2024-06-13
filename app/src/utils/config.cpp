@@ -4,6 +4,9 @@
 #else
 #include <unistd.h>
 #include <borealis/platforms/desktop/desktop_platform.hpp>
+#if defined(_WIN32)
+#include <shlobj.h>
+#endif
 #endif
 
 #include <fstream>
@@ -141,10 +144,14 @@ static std::string generateDeviceId() {
 
 bool AppConfig::init() {
     const std::string path = this->configDir() + "/config.json";
-    std::ifstream readFile(path);
-    if (readFile.is_open()) {
+#if !defined(USE_BOOST_FILESYSTEM) || defined(_WIN32)
+    std::ifstream f(fs::u8path(path));
+#else
+    std::ifstream f(path);
+#endif
+    if (f.is_open()) {
         try {
-            nlohmann::json::parse(readFile).get_to(*this);
+            nlohmann::json::parse(f).get_to(*this);
             brls::Logger::info("Load config from: {}", path);
         } catch (const std::exception& ex) {
             brls::Logger::error("AppConfig::load: {}", ex.what());
@@ -276,8 +283,13 @@ bool AppConfig::init() {
 
 void AppConfig::save() {
     try {
-        fs::create_directories(this->configDir());
-        std::ofstream f(this->configDir() + "/config.json");
+        std::string dir = this->configDir();
+        fs::create_directories(dir);
+#if !defined(USE_BOOST_FILESYSTEM) || defined(_WIN32)
+        std::ofstream f(fs::u8path(dir + "/config.json"));
+#else
+        std::ofstream f(dir + "/config.json");
+#endif
         if (f.is_open()) {
             nlohmann::json j(*this);
             f << j.dump(2);
@@ -330,7 +342,11 @@ std::string AppConfig::configDir() {
 #if __SWITCH__
     return fmt::format("sdmc:/switch/{}", AppVersion::getPackageName());
 #elif _WIN32
-    return fmt::format("{}\\{}", getenv("LOCALAPPDATA"), AppVersion::getPackageName());
+    WCHAR wpath[MAX_PATH];
+    std::vector<char> lpath(MAX_PATH);
+    SHGetSpecialFolderPathW(0, wpath, CSIDL_LOCAL_APPDATA, false);
+    WideCharToMultiByte(CP_UTF8, 0, wpath, std::wcslen(wpath), lpath.data(), lpath.size(), nullptr, nullptr);
+    return fmt::format("{}\\{}", lpath.data(), AppVersion::getPackageName());
 #elif __linux__
     char* config_home = getenv("XDG_CONFIG_HOME");
     if (config_home) return fmt::format("{}/{}", config_home, AppVersion::getPackageName());
