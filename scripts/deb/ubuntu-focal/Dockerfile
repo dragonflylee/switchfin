@@ -2,7 +2,7 @@
 
 FROM ubuntu:focal
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y gnupg wget \
+RUN apt-get update && apt-get install -y gpg wget gnupg- \
   && wget -qO- https://apt.kitware.com/keys/kitware-archive-latest.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/kitware.gpg \
   && echo > /etc/apt/sources.list.d/kitware.list "deb https://apt.kitware.com/ubuntu/ focal main" \
   && apt-get update && apt-get install -y --no-install-recommends g++ nasm make patch cmake sudo git xz-utils manpages- \

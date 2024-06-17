@@ -3,7 +3,7 @@
 # docker run --rm --name switchroot --network host -v $PWD:/opt -w /opt -it dragonflylee/build:switchroot-bionic bash -l
 
 FROM arm64v8/ubuntu:18.04
-RUN apt-get update && apt-get install -y gnupg wget \
+RUN apt-get update && apt-get install -y gpg wget gnupg- \
   && wget -qO- https://newrepo.switchroot.org/pubkey | gpg --dearmor -o /etc/apt/trusted.gpg.d/switchroot.gpg \
   && echo > /etc/apt/sources.list.d/99-switchroot-newrepo.list "deb https://newrepo.switchroot.org/ switchroot unstable" \
   && wget -qO- https://apt.kitware.com/keys/kitware-archive-latest.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/kitware.gpg \
@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y gnupg wget \
   && apt-get update && apt-get install -y --no-install-recommends gcc-8 g++-8 nasm cmake ninja-build sudo git gcc- manpages- \
   && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 60 --slave /usr/bin/cc cc /usr/bin/gcc-8 \
   && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 60 --slave /usr/bin/cpp cpp /usr/bin/g++-8 \
-  && apt-get remove -y gnupg && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* /usr/share/man/*
+  && apt-get remove -y gpg && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* /usr/share/man/*
 
 RUN apt-get update && apt-get install -y --no-install-recommends xorg-dev libdbus-1-dev libssl-dev \
     libass-dev libwebp-dev libv4l-dev libpulse-dev libuchardet-dev nvidia-l4t-jetson-multimedia-api \
