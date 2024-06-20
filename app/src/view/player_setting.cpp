@@ -6,7 +6,7 @@
 
 using namespace brls::literals;
 
-PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
+PlayerSetting::PlayerSetting(const jellyfin::MediaSource* src) {
     this->inflateFromXMLRes("xml/view/player_setting.xml");
     brls::Logger::debug("PlayerSetting: create");
     this->audioTrack->detail->setVisibility(brls::Visibility::GONE);
@@ -43,13 +43,15 @@ PlayerSetting::PlayerSetting(const jellyfin::MediaSource& src) {
             audioTrack.push_back(title);
     }
 
-    for (auto& s : src.MediaStreams) {
-        if (s.Type == jellyfin::streamTypeAudio) {
-            audioSource.push_back(s.DisplayTitle);
-            audioStream.push_back(s.Index);
-        } else if (s.Type == jellyfin::streamTypeSubtitle) {
-            subSource.push_back(s.DisplayTitle);
-            subStream.push_back(s.Index);
+    if (src != nullptr) {
+        for (auto& s : src->MediaStreams) {
+            if (s.Type == jellyfin::streamTypeAudio) {
+                audioSource.push_back(s.DisplayTitle);
+                audioStream.push_back(s.Index);
+            } else if (s.Type == jellyfin::streamTypeSubtitle) {
+                subSource.push_back(s.DisplayTitle);
+                subStream.push_back(s.Index);
+            }
         }
     }
     // 字幕选择

@@ -11,7 +11,7 @@ class ButtonClose;
 
 class PlayerSetting : public brls::Box {
 public:
-    PlayerSetting(const jellyfin::MediaSource& src);
+    PlayerSetting(const jellyfin::MediaSource* src = nullptr);
     ~PlayerSetting() override;
 
     bool isTranslucent() override { return true; }

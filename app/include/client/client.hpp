@@ -18,7 +18,7 @@ struct DirEntry {
     std::string path;
     uint64_t fileSize;
     EntryType type;
-    std::tm modified;
+    time_t modified;
 };
 
 class Client {

@@ -4,6 +4,7 @@
 #include "view/video_view.hpp"
 #include "view/video_profile.hpp"
 #include "view/mpv_core.hpp"
+#include "view/player_setting.hpp"
 #include "utils/misc.hpp"
 #include "utils/config.hpp"
 
@@ -11,9 +12,10 @@ using namespace brls::literals;
 
 class RemotePlayer : public brls::Box {
 public:
-    RemotePlayer(const remote::DirEntry& item) {
+    RemotePlayer(const DirList& list, size_t index, RemoteView::Client c) {
         float width = brls::Application::contentWidth;
         float height = brls::Application::contentHeight;
+        auto& item = list.at(index);
         view->setDimensions(width, height);
         view->setWidthPercentage(100);
         view->setHeightPercentage(100);
@@ -32,21 +34,47 @@ public:
             }
         });
 
-        playSubscribeID = view->getPlayEvent()->subscribe([this](int index) { this->playIndex(index); });
+        // 播放列表
+        std::vector<std::string> values;
+        DirList urls;
+        for (size_t i = 0; i < list.size(); i++) {
+            auto& it = list.at(i);
+            if (it.type == remote::EntryType::VIDEO) {
+                if (i == index) index = urls.size();
+                values.push_back(it.name);
+                urls.push_back(it);
+            }
+        }
+        if (values.size() > 1) view->setList(values, index);
+
+        playSubscribeID = view->getPlayEvent()->subscribe([this, urls, c](int index) {
+            if (index < 0 || index >= (int)urls.size()) {
+                return VideoView::dismiss();
+            }
+            auto& it = urls.at(index);
+            MPVCore::instance().reset();
+            MPVCore::instance().setUrl(it.path, c->extraOption());
+            view->setTitie(it.name);
+            return true;
+        });
+        settingSubscribeID = view->getSettingEvent()->subscribe([this]() {
+            brls::View* setting = new PlayerSetting();
+            brls::Application::pushActivity(new brls::Activity(setting));
+        });
     }
 
     ~RemotePlayer() override {
         auto& mpv = MPVCore::instance();
         mpv.getEvent()->unsubscribe(eventSubscribeID);
         view->getPlayEvent()->unsubscribe(playSubscribeID);
+        view->getSettingEvent()->unsubscribe(settingSubscribeID);
     }
-
-    bool playIndex(int index) { return VideoView::dismiss(); }
 
 private:
     VideoView* view = new VideoView();
     MPVEvent::Subscription eventSubscribeID;
     brls::Event<int>::Subscription playSubscribeID;
+    brls::VoidEvent::Subscription settingSubscribeID;
 };
 
 class FileCard : public RecyclingGridItem {
@@ -89,6 +117,10 @@ static std::set<std::string> imageExt = {".jpg", ".jpeg", ".png", ".bmp", ".gif"
 class FileDataSource : public RecyclingGridDataSource {
 public:
     FileDataSource(const DirList& r, RemoteView::Client c) : list(std::move(r)), client(c) {
+        std::sort(this->list.begin(), this->list.end(), [](auto i, auto j) { 
+            return i.name < j.name; 
+        });
+
         for (auto& it : this->list) {
             if (it.type == remote::EntryType::DIR) continue;
 
@@ -123,7 +155,7 @@ public:
         }
 
         if (item.type == remote::EntryType::VIDEO) {
-            RemotePlayer* view = new RemotePlayer(item);
+            RemotePlayer* view = new RemotePlayer(this->list, index, client);
             MPVCore::instance().setUrl(item.path, client->extraOption());
             brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
             return;
@@ -158,6 +190,11 @@ void RemoteView::onCreate() {
         } else {
             AutoTabFrame::focus2Sidebar(this);
         }
+        return true;
+    });
+
+    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
+        this->load();
         return true;
     });
 }
