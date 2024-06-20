@@ -91,6 +91,10 @@
       "episode": "剧集"
     }
   },
+  "remote": {
+    "local": "本地文件",
+    "folder": "文件夹"
+  },
   "setting": {
     "quit_hint": "即将退出应用, 设置内容将在下次启动后生效",
     "name": "名称",

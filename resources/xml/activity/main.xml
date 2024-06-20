@@ -38,6 +38,14 @@
 
             <Tab label=""
                 fontSize="18"
+                id="tab/remote"
+                icon="@res/icon/ico-server.svg"
+                iconActivate="@res/icon/ico-server-activate.svg">
+                <RemoteTab />
+            </Tab>
+
+            <Tab label=""
+                fontSize="18"
                 icon="@res/icon/ico-setting.svg"
                 iconActivate="@res/icon/ico-setting-activate.svg">
                 <SettingTab />

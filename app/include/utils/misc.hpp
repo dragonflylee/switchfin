@@ -20,4 +20,10 @@ bool sendIPC(const std::string& sock, const std::string& payload);
 
 void initCrashDump();
 
+}  // namespace misc
+
+namespace base64 {
+
+std::string encode(const std::string& input);
+
 }

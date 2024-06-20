@@ -1,0 +1,16 @@
+<brls:Box
+    width="auto"
+    height="auto"
+    paddingLeft="@style/main/content_padding_sides"
+    paddingRight="@style/main/content_padding_sides">
+
+    <AutoTabFrame
+        id="remote/tabFrame"
+        grow="1"
+        defaultTab="0"
+        tabHeight="70"
+        tabItemActiveTextColor="@theme/color/app"
+        sidebarPosition="top">
+
+    </AutoTabFrame>
+</brls:Box>

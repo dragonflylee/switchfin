@@ -1,0 +1,13 @@
+<brls:Box
+    width="auto"
+    height="auto">
+
+    <RecyclingGrid
+        grow="1"
+        wireframe="false"
+        spanCount="1"
+        itemHeight="48"
+        itemSpace="10"
+        id="remote/list" />
+
+</brls:Box>

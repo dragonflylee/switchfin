@@ -7,7 +7,7 @@ public:
     VideoProfile();
     ~VideoProfile() override;
 
-    void init(const std::string& title, const std::string& method);
+    void init(const std::string& title, const std::string& method = "");
     void update();
 
 private:

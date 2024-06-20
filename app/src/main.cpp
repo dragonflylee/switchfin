@@ -24,6 +24,7 @@
 #include "tab/home_tab.hpp"
 #include "tab/media_folder.hpp"
 #include "tab/search_tab.hpp"
+#include "tab/remote_tab.hpp"
 #include "tab/setting_tab.hpp"
 
 using namespace brls::literals;  // for _i18n
@@ -80,6 +81,7 @@ int main(int argc, char* argv[]) {
     brls::Application::registerXMLView("HomeTab", HomeTab::create);
     brls::Application::registerXMLView("MediaFolders", MediaFolders::create);
     brls::Application::registerXMLView("SearchTab", SearchTab::create);
+    brls::Application::registerXMLView("RemoteTab", RemoteTab::create);
     brls::Application::registerXMLView("SettingTab", SettingTab::create);
 
     brls::Theme::getLightTheme().addColor("color/app", nvgRGB(2, 176, 183));
@@ -91,6 +93,8 @@ int main(int argc, char* argv[]) {
     brls::Theme::getDarkTheme().addColor("color/grey_2", nvgRGB(51, 53, 55));
     brls::Theme::getLightTheme().addColor("color/grey_3", nvgRGBA(200, 200, 200, 16));
     brls::Theme::getDarkTheme().addColor("color/grey_3", nvgRGBA(160, 160, 160, 160));
+    brls::Theme::getLightTheme().addColor("color/pink_1", nvgRGB(252, 237, 241));
+    brls::Theme::getDarkTheme().addColor("color/pink_1", nvgRGB(44, 27, 34));
     // 分割线颜色
     brls::Theme::getLightTheme().addColor("color/line", nvgRGB(208, 208, 208));
     brls::Theme::getDarkTheme().addColor("color/line", nvgRGB(100, 100, 100));

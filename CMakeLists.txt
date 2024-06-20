@@ -139,7 +139,7 @@ if (USE_BOOST_FILESYSTEM)
     find_package(Boost 1.44 REQUIRED COMPONENTS filesystem)
     if(Boost_FOUND)
         list(APPEND APP_PLATFORM_LIB Boost::filesystem)
-        list(APPEND APP_PLATFORM_OPTION -DUSE_BOOST_FILESYSTEM)
+        list(APPEND APP_PLATFORM_OPTION -DUSE_BOOST_FILESYSTEM -DBOOST_FILESYSTEM_VERSION=4)
     endif()
 endif ()
 
