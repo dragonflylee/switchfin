@@ -91,7 +91,13 @@ MediaFolders::MediaFolders() {
     this->inflateFromXMLRes("xml/tabs/media_folder.xml");
     brls::Logger::debug("MediaFolders: create");
     this->recyclerFolders->registerCell("Cell", MediaFolderCell::create);
+}
 
+MediaFolders::~MediaFolders() { brls::Logger::debug("MediaFolders: deleted"); }
+
+brls::View* MediaFolders::create() { return new MediaFolders(); }
+
+void MediaFolders::onCreate() {
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
         this->doRequest();
         return true;
@@ -99,10 +105,6 @@ MediaFolders::MediaFolders() {
 
     this->doRequest();
 }
-
-MediaFolders::~MediaFolders() { brls::Logger::debug("MediaFolders: deleted"); }
-
-brls::View* MediaFolders::create() { return new MediaFolders(); }
 
 void MediaFolders::doRequest() {
     ASYNC_RETAIN

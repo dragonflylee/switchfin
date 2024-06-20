@@ -64,7 +64,7 @@ public:
 
     void setAttachedViewCreator(TabViewCreator creator);
 
-    ~AutoSidebarItem();
+    ~AutoSidebarItem() override;
 
     brls::GenericEvent* getActiveEvent();
 
@@ -120,7 +120,7 @@ public:
     void setTabBar(AutoSidebarItem* view);
     AutoSidebarItem* getTabBar();
 
-    ~AttachedView();
+    ~AttachedView() override;
 
     virtual void onCreate();
 
@@ -204,6 +204,9 @@ public:
 
     int getActiveIndex();
 
+
+    void setTabChangedAction(const std::function<void(size_t)>& event);
+
 private:
     BRLS_BIND(Box, sidebar, "auto_tab_frame/auto_sidebar");
 
@@ -215,6 +218,8 @@ private:
     bool isDemandMode = true;  // load pages on demand
     float itemFontSize = 22;
     float sidebarWidth = 100;
+
+    std::function<void(size_t)> tabChangedAction = nullptr;
 
     NVGcolor skeletonBackground = brls::Application::getTheme()["color/grey_3"];
     NVGcolor tabItemBackgroundColor = nvgRGBA(0, 0, 0, 0);

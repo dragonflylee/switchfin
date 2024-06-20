@@ -139,13 +139,23 @@ inline std::string pre0(size_t num, size_t length) {
 }
 
 std::string misc::sec2Time(int64_t t) {
-    size_t hour   = t / 3600;
+    size_t hour = t / 3600;
     size_t minute = t / 60 % 60;
-    size_t sec    = t % 60;
+    size_t sec = t % 60;
     if (hour == 0) {
         return pre0(minute, 2) + ":" + pre0(sec, 2);
     }
     return pre0(hour, 2) + ":" + pre0(minute, 2) + ":" + pre0(sec, 2);
+}
+
+std::string misc::formatSize(uint64_t s) {
+    if (s < (1 << 20)) {
+        return fmt::format("{:.2f}KB", s / 1024.0f);
+    }
+    if (s < (1 << 30)) {
+        return fmt::format("{:.2f}MB", (s >> 10) / 1024.0f);
+    }
+    return fmt::format("{:.2f}GB", (s >> 20) / 1024.0f);
 }
 
 std::string misc::randHex(const int len) {

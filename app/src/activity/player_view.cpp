@@ -33,7 +33,6 @@ PlayerView::PlayerView(const jellyfin::MediaItem& item) : itemId(item.Id) {
         brls::Application::pushActivity(new brls::Activity(setting));
     });
 
-    
     eventSubscribeID = mpv.getEvent()->subscribe([this](MpvEventEnum event) {
         auto& mpv = MPVCore::instance();
         // brls::Logger::info("mpv event => : {}", event);
@@ -86,6 +85,10 @@ PlayerView::~PlayerView() {
     mpv.getEvent()->unsubscribe(eventSubscribeID);
     view->getPlayEvent()->unsubscribe(playSubscribeID);
     view->getSettingEvent()->unsubscribe(settingSubscribeID);
+
+    if (DanmakuCore::PLUGIN_ACTIVE) {
+        DanmakuCore::instance().reset();
+    }
 
     if (this->playSessionId.size()) this->reportStop();
     brls::Application::getExitEvent()->unsubscribe(this->exitSubscribeID);

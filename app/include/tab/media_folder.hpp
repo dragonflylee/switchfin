@@ -13,6 +13,8 @@ public:
     MediaFolders();
     ~MediaFolders();
 
+    void onCreate() override;
+
     static brls::View* create();
 
 private:

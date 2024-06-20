@@ -149,7 +149,7 @@ jobs:
     - name: Upload Assets
       uses: actions/upload-artifact@v4
       with:
-        name: ps4-${{ steps.vars.outputs.sha_short }}
+        name: Switchfin-ps4-${{ steps.vars.outputs.sha_short }}
         path: |
           build_ps4/Switchfin.oelf
           build_ps4/*.pkg

@@ -24,7 +24,6 @@
  * auto tab frame
  */
 using namespace brls::literals;
-using namespace brls;
 
 const std::string autoTabFrameContentXML = R"xml(
     <brls:Box
@@ -49,11 +48,11 @@ AutoTabFrame::AutoTabFrame() {
     this->inflateFromXMLString(autoTabFrameContentXML);
 
     BRLS_REGISTER_ENUM_XML_ATTRIBUTE("sidebarPosition", AutoTabBarPosition, this->setSideBarPosition,
-                                     {
-                                         {"top", AutoTabBarPosition::TOP},
-                                         {"right", AutoTabBarPosition::RIGHT},
-                                         {"left", AutoTabBarPosition::LEFT},
-                                     });
+        {
+            {"top", AutoTabBarPosition::TOP},
+            {"right", AutoTabBarPosition::RIGHT},
+            {"left", AutoTabBarPosition::LEFT},
+        });
 
     // this only works with "sidebarPosition == left"
     // and It must be set before you set the sidebarPosition
@@ -63,13 +62,17 @@ AutoTabFrame::AutoTabFrame() {
 
     this->registerFloatXMLAttribute("tabHeight", [this](float value) { this->sidebar->setHeight(value); });
 
-    this->registerColorXMLAttribute("tabBackgroundColor", [this](NVGcolor value) { this->sidebar->setBackgroundColor(value); });
+    this->registerColorXMLAttribute(
+        "tabBackgroundColor", [this](NVGcolor value) { this->sidebar->setBackgroundColor(value); });
 
-    this->registerColorXMLAttribute("tabItemDefaultBackgroundColor", [this](NVGcolor value) { this->setItemDefaultBackgroundColor(value); });
+    this->registerColorXMLAttribute(
+        "tabItemDefaultBackgroundColor", [this](NVGcolor value) { this->setItemDefaultBackgroundColor(value); });
 
-    this->registerColorXMLAttribute("tabItemActiveBackgroundColor", [this](NVGcolor value) { this->setItemActiveBackgroundColor(value); });
+    this->registerColorXMLAttribute(
+        "tabItemActiveBackgroundColor", [this](NVGcolor value) { this->setItemActiveBackgroundColor(value); });
 
-    this->registerColorXMLAttribute("tabItemActiveTextColor", [this](NVGcolor value) { this->setItemActiveTextColor(value); });
+    this->registerColorXMLAttribute(
+        "tabItemActiveTextColor", [this](NVGcolor value) { this->setItemActiveTextColor(value); });
 
     // defaultTab: default is 0
     this->registerFloatXMLAttribute("defaultTab", [this](float value) { this->setDefaultTabIndex(value); });
@@ -81,9 +84,12 @@ AutoTabFrame::AutoTabFrame() {
     this->sidebar->setPadding(32, 10, 47, 10);
 }
 
+void AutoTabFrame::setTabChangedAction(const std::function<void(size_t)>& event) { this->tabChangedAction = event; }
+
 void AutoTabFrame::setDemandMode(bool value) { this->isDemandMode = value; }
 
 void AutoTabFrame::setSideBarPosition(AutoTabBarPosition position) {
+    this->tabBarPosition = position;
     switch (position) {
     case AutoTabBarPosition::TOP:
         this->setAxis(brls::Axis::COLUMN);
@@ -115,8 +121,8 @@ void AutoTabFrame::addTab(AutoSidebarItem* tab, TabViewCreator creator) {
     tab->setActiveBackgroundColor(this->tabItemActiveBackgroundColor);
     tab->setActiveTextColor(this->tabItemActiveTextColor);
 
-    this->addItem(tab, creator, [this](brls::View* view) {
-        AutoSidebarItem* sidebarItem = (AutoSidebarItem*)view;
+    this->addItem(tab, std::move(creator), [this](brls::View* view) {
+        auto* sidebarItem = (AutoSidebarItem*)view;
 
         // Only trigger when the sidebar item gains focus
         if (!view->isFocused()) return;
@@ -131,23 +137,12 @@ void AutoTabFrame::addTab(AutoSidebarItem* tab, TabViewCreator creator) {
 
         this->setTabAttachedView(newContent);
 
-        if (!newContent) return;
-
-        newContent->registerAction(
-            "hints/back"_i18n, brls::BUTTON_B,
-            [this](View* view) {
-                if (brls::Application::getInputType() == brls::InputType::TOUCH)
-                    this->dismiss();
-                else
-                    brls::Application::giveFocus(this->sidebar);
-                return true;
-            },
-            false, false, brls::SOUND_BACK);
+        if (this->tabChangedAction) this->tabChangedAction(sidebarItem->getCurrentIndex());
     });
     auto isDefaultTab = this->sidebar->getChildren().size() - 1 == this->getDefaultTabIndex();
 
     if (isDefaultTab || !isDemandMode) {
-        AutoSidebarItem* item = (AutoSidebarItem*)this->sidebar->getChildren()[this->sidebar->getChildren().size() - 1];
+        auto* item = (AutoSidebarItem*)this->sidebar->getChildren()[this->sidebar->getChildren().size() - 1];
         View* newContent = item->getAttachedView();
         if (!newContent) {
             newContent = item->createAttachedView();
@@ -296,8 +291,8 @@ AutoTabFrame::~AutoTabFrame() {
 void AutoTabFrame::setTabAttachedView(brls::View* newContent) {
     // Remove the existing tab if it exists
     if (this->activeTab) {
-        this->removeView(this->activeTab,
-                         false);  // will call willDisappear but not delete
+        // will call willDisappear but not delete
+        this->removeView(this->activeTab, false);
         this->activeTab = nullptr;
     }
     if (!newContent) {
@@ -321,8 +316,10 @@ brls::View* AutoTabFrame::getNextFocus(brls::FocusDirection direction, brls::Vie
     void* parentUserData = currentView->getParentUserData();
 
     // Return nullptr immediately if focus direction mismatches the box axis (clang-format refuses to split it in multiple lines...)
-    if ((this->getAxis() == brls::Axis::ROW && direction != brls::FocusDirection::LEFT && direction != brls::FocusDirection::RIGHT) ||
-        (this->getAxis() == brls::Axis::COLUMN && direction != brls::FocusDirection::UP && direction != brls::FocusDirection::DOWN)) {
+    if ((this->getAxis() == brls::Axis::ROW && direction != brls::FocusDirection::LEFT &&
+            direction != brls::FocusDirection::RIGHT) ||
+        (this->getAxis() == brls::Axis::COLUMN && direction != brls::FocusDirection::UP &&
+            direction != brls::FocusDirection::DOWN)) {
         View* next = getParentNavigationDecision(this, nullptr, direction);
         if (!next && hasParent()) next = getParent()->getNextFocus(direction, this);
         return next;
@@ -331,8 +328,10 @@ brls::View* AutoTabFrame::getNextFocus(brls::FocusDirection direction, brls::Vie
     // Traverse the children
     size_t offset = 1;  // which way we are going in the children list
 
-    if ((this->getAxis() == brls::Axis::ROW && direction == brls::FocusDirection::LEFT && tabBarPosition == AutoTabBarPosition::LEFT) ||
-        (this->getAxis() == brls::Axis::ROW && direction == brls::FocusDirection::RIGHT && tabBarPosition == AutoTabBarPosition::RIGHT) ||
+    if ((this->getAxis() == brls::Axis::ROW && direction == brls::FocusDirection::LEFT &&
+            tabBarPosition == AutoTabBarPosition::LEFT) ||
+        (this->getAxis() == brls::Axis::ROW && direction == brls::FocusDirection::RIGHT &&
+            tabBarPosition == AutoTabBarPosition::RIGHT) ||
         (this->getAxis() == brls::Axis::COLUMN && direction == brls::FocusDirection::UP)) {
         offset = -1;
     }
@@ -386,7 +385,9 @@ void AutoTabFrame::addItem(AutoSidebarItem* tab, TabViewCreator creator, brls::G
     this->sidebar->addView(tab);
 }
 
-AutoSidebarItem* AutoTabFrame::getItem(int position) { return dynamic_cast<AutoSidebarItem*>(this->sidebar->getChildren()[position]); }
+AutoSidebarItem* AutoTabFrame::getItem(int position) {
+    return dynamic_cast<AutoSidebarItem*>(this->sidebar->getChildren()[position]);
+}
 
 void AutoTabFrame::clearItems() {
     this->setTabAttachedView(nullptr);
@@ -395,9 +396,9 @@ void AutoTabFrame::clearItems() {
     this->setLastFocusedView(nullptr);
 }
 
-Box* AutoTabFrame::getSidebar() { return this->sidebar; }
+brls::Box* AutoTabFrame::getSidebar() { return this->sidebar; }
 
-View* AutoTabFrame::getActiveTab() { return this->activeTab; }
+brls::View* AutoTabFrame::getActiveTab() { return this->activeTab; }
 
 void AutoTabFrame::focus2Sidebar(View* tabView) {
     AutoTabFrame* frame = dynamic_cast<AutoTabFrame*>(tabView->getParent());
@@ -446,7 +447,8 @@ void AutoTabFrame::setItemActiveTextColor(NVGcolor c) {
     }
 }
 
-void AutoTabFrame::draw(NVGcontext* vg, float x, float y, float width, float height, Style style, FrameContext* ctx) {
+void AutoTabFrame::draw(
+    NVGcontext* vg, float x, float y, float width, float height, brls::Style style, brls::FrameContext* ctx) {
     //todo: 最后绘制刷新按钮
 
     if (this->sidebar && this->sidebar->getChildren().size() == 0) {
@@ -455,7 +457,7 @@ void AutoTabFrame::draw(NVGcontext* vg, float x, float y, float width, float hei
 
         brls::Time curTime = brls::getCPUTimeUsec() / 1000;
         float p = (curTime % 1000) * 1.0 / 1000;
-        p = std::fabs(0.5 - p) + 0.25;
+        p = fabs(0.5 - p) + 0.25;
 
         float padding = 20;
         auto drawWidth = width - 3 * padding;
@@ -471,7 +473,8 @@ void AutoTabFrame::draw(NVGcontext* vg, float x, float y, float width, float hei
 
         NVGcolor end = skeletonBackground;
         end.a = p;
-        NVGpaint paint = nvgLinearGradient(vg, drawX, drawY, drawX + drawWidth, drawY + drawHeight, a(skeletonBackground), a(end));
+        NVGpaint paint =
+            nvgLinearGradient(vg, drawX, drawY, drawX + drawWidth, drawY + drawHeight, a(skeletonBackground), a(end));
         nvgBeginPath(vg);
         nvgFillPaint(vg, paint);
         nvgRoundedRect(vg, drawX, drawY, drawWidth, drawHeight, 6);
@@ -487,7 +490,8 @@ void AutoTabFrame::draw(NVGcontext* vg, float x, float y, float width, float hei
         padding = 10;
 
         for (size_t i = 0; i < num; i++) {
-            paint = nvgLinearGradient(vg, drawX, drawY, drawX + itemWidth, drawY + sidebarHeight, a(skeletonBackground), a(end));
+            paint = nvgLinearGradient(
+                vg, drawX, drawY, drawX + itemWidth, drawY + sidebarHeight, a(skeletonBackground), a(end));
             nvgBeginPath(vg);
             nvgFillPaint(vg, paint);
             nvgRoundedRect(vg, drawX, drawY, itemWidth, sidebarHeight, 6);
@@ -537,6 +541,7 @@ const std::string autoSidebarItemXML = R"xml(
                 width="auto"
                 height="auto"
                 fontSize="22"
+                marginBottom="5"
                 horizontalAlign="center"/>
 
             <brls:Label
@@ -650,10 +655,10 @@ AutoSidebarItem::AutoSidebarItem() : Box(brls::Axis::ROW) {
     this->registerFilePathXMLAttribute("iconActivate", [this](std::string value) { this->iconActivate = value; });
 
     BRLS_REGISTER_ENUM_XML_ATTRIBUTE("style", AutoTabBarStyle, this->setTabStyle,
-                                     {
-                                         {"accent", AutoTabBarStyle::ACCENT},
-                                         {"plain", AutoTabBarStyle::PLAIN},
-                                     });
+        {
+            {"accent", AutoTabBarStyle::ACCENT},
+            {"plain", AutoTabBarStyle::PLAIN},
+        });
 
     this->setFocusSound(brls::SOUND_FOCUS_SIDEBAR);
 
@@ -665,27 +670,28 @@ AutoSidebarItem::AutoSidebarItem() : Box(brls::Axis::ROW) {
         },
         false, false, brls::SOUND_CLICK_SIDEBAR);
 
-    this->addGestureRecognizer(new brls::TapGestureRecognizer([this](brls::TapGestureStatus status, brls::Sound* soundToPlay) {
-        if (this->active) return;
+    this->addGestureRecognizer(
+        new brls::TapGestureRecognizer([this](brls::TapGestureStatus status, brls::Sound* soundToPlay) {
+            if (this->active) return;
 
-        this->playClickAnimation(status.state != brls::GestureState::UNSURE);
+            this->playClickAnimation(status.state != brls::GestureState::UNSURE);
 
-        switch (status.state) {
-        case brls::GestureState::UNSURE:
-            *soundToPlay = brls::SOUND_FOCUS_SIDEBAR;
-            break;
-        case brls::GestureState::FAILED:
-        case brls::GestureState::INTERRUPTED:
-            *soundToPlay = brls::SOUND_TOUCH_UNFOCUS;
-            break;
-        case brls::GestureState::END:
-            *soundToPlay = brls::SOUND_CLICK_SIDEBAR;
-            brls::Application::giveFocus(this);
-            break;
-        default:
-            break;
-        }
-    }));
+            switch (status.state) {
+            case brls::GestureState::UNSURE:
+                *soundToPlay = brls::SOUND_FOCUS_SIDEBAR;
+                break;
+            case brls::GestureState::FAILED:
+            case brls::GestureState::INTERRUPTED:
+                *soundToPlay = brls::SOUND_TOUCH_UNFOCUS;
+                break;
+            case brls::GestureState::END:
+                *soundToPlay = brls::SOUND_CLICK_SIDEBAR;
+                brls::Application::giveFocus(this);
+                break;
+            default:
+                break;
+            }
+        }));
 }
 
 void AutoSidebarItem::setTabStyle(AutoTabBarStyle style) {
@@ -776,10 +782,20 @@ brls::View* AutoSidebarItem::createAttachedView() {
     if (!this->attachedView) {
         brls::fatal("AutoSidebarItem create attached View error");
     }
+    this->attachedView->registerAction(
+        "hints/back"_i18n, brls::BUTTON_B,
+        [this](View* view) {
+            if (brls::Application::getInputType() == brls::InputType::TOUCH)
+                this->dismiss();
+            else
+                brls::Application::giveFocus(this);
+            return true;
+        },
+        false, false, brls::SOUND_BACK);
     return this->attachedView;
 }
 
-View* AutoSidebarItem::getView(std::string id) {
+brls::View* AutoSidebarItem::getView(std::string id) {
     View* v = Box::getView(id);
     if (v) return v;
     if (this->attachedView) {
@@ -847,7 +863,7 @@ AutoTabBarStyle AutoSidebarItem::getTabStyle(std::string value) {
     if (enumMap.count(value) > 0)
         return enumMap[value];
     else
-        fatal("Illegal value \"" + value + "\" for AutoSidebarItem attribute \"style\"");
+        brls::fatal("Illegal value \"" + value + "\" for AutoSidebarItem attribute \"style\"");
 }
 
 void AutoSidebarItem::setDefaultBackgroundColor(NVGcolor c) {
@@ -912,8 +928,8 @@ AutoSidebarItem* AttachedView::getTabBar() { return this->tab; }
 
 void AttachedView::onCreate() {}
 
-void AttachedView::registerTabAction(std::string hintText, enum brls::ControllerButton button, brls::ActionListener action, bool hidden,
-                                     bool allowRepeating, enum Sound sound) {
+void AttachedView::registerTabAction(std::string hintText, enum brls::ControllerButton button,
+    brls::ActionListener action, bool hidden, bool allowRepeating, enum brls::Sound sound) {
     this->registerAction(hintText, button, action, hidden, allowRepeating, sound);
     if (this->tab) this->tab->registerAction(hintText, button, action, hidden, allowRepeating, sound);
 }

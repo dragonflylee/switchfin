@@ -1,6 +1,7 @@
 #include "api/jellyfin.hpp"
 #include "view/mpv_core.hpp"
 #include "view/video_profile.hpp"
+#include "utils/misc.hpp"
 #include <fmt/ranges.h>
 
 VideoProfile::VideoProfile() {
@@ -22,18 +23,10 @@ VideoProfile::~VideoProfile() {
 
 void VideoProfile::init(const std::string& title, const std::string& method) {
     auto& mpv = MPVCore::instance();
-    int64_t fileSize = mpv.getInt("file-size");
     labelUrl->setText(title);
     labelMethod->setText(method);
     labelFormat->setText(mpv.getString("file-format"));
-
-    if (fileSize >> 30 > 0) {
-        labelSize->setText(fmt::format("{:.2f}GB", (fileSize >> 20) / 1024.0f));
-    } else if (fileSize >> 20 > 0) {
-        labelSize->setText(fmt::format("{:.2f}MB", (fileSize >> 10) / 1024.0f));
-    } else {
-        labelSize->setText(fmt::format("{:.2f}KB", fileSize / 1024.0f));
-    }
+    labelSize->setText(misc::formatSize(mpv.getInt("file-size")));
 
     if (method == jellyfin::methodTranscode)
         ticker.start(2000);
