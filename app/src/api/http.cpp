@@ -121,6 +121,13 @@ void HTTP::set_option(const Cookies& cookies) {
     curl_easy_setopt(this->easy, CURLOPT_COOKIE, ss.str().c_str());
 }
 
+void HTTP::set_option(const BasicAuth& auth)
+{
+    curl_easy_setopt(this->easy, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+    curl_easy_setopt(this->easy, CURLOPT_USERNAME, auth.user.c_str());
+    curl_easy_setopt(this->easy, CURLOPT_PASSWORD, auth.passwd.c_str());
+}
+
 size_t HTTP::easy_write_cb(char* ptr, size_t size, size_t nmemb, void* userdata) {
     std::ostream* ctx = reinterpret_cast<std::ostream*>(userdata);
     size_t count = size * nmemb;
@@ -157,6 +164,12 @@ void HTTP::_get(const std::string& url, std::ostream* out) {
     curl_easy_setopt(this->easy, CURLOPT_HTTPGET, 1L);
     int status_code = this->perform(out);
     if (status_code >= 400) throw curl_status_code(status_code);
+}
+
+int HTTP::propfind(const std::string& url, std::ostream* out, bool self) {
+    curl_easy_setopt(this->easy, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(this->easy, CURLOPT_CUSTOMREQUEST, "PROPFIND");
+    return this->perform(out);
 }
 
 std::string HTTP::_post(const std::string& url, const std::string& data) {

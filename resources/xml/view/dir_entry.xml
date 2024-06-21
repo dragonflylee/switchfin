@@ -1,0 +1,24 @@
+<brls:Box
+    highlightCornerRadius="8"
+    paddingLeft="20"
+    paddingRight="20"
+    alignItems="center">
+
+    <SVGImage
+        id="file/icon"
+        width="40"
+        height="40"
+        marginRight="10"
+        svg="@res/icon/ico-server.svg" />
+
+    <brls:Label
+        id="file/name" />
+
+    <brls:Padding />
+
+    <brls:Label
+        id="file/misc"
+        fontSize="18"
+        textColor="@theme/font/grey" />
+
+</brls:Box>

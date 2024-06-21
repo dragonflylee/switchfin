@@ -45,6 +45,11 @@ public:
         bool http_only;
     };
 
+    struct BasicAuth {
+        std::string user;
+        std::string passwd;
+    };
+
     using Cookies = std::vector<Cookie>;
 
     HTTP();
@@ -53,6 +58,7 @@ public:
 
     static std::string encode_form(const Form& form);
     void _get(const std::string& url, std::ostream* out);
+    int propfind(const std::string& url, std::ostream* out, bool self = false);
     std::string _post(const std::string& url, const std::string& data);
 
     template <typename... Ts>
@@ -107,6 +113,7 @@ private:
     void set_option(const Timeout& t);
     void set_option(const Cancel& c);
     void set_option(const Cookies& cookies);
+    void set_option(const BasicAuth& auth);
     void set_option(Progress::Callback p);
 
     template <typename CT>

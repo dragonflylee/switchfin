@@ -29,7 +29,7 @@ PlayerView::PlayerView(const jellyfin::MediaItem& item) : itemId(item.Id) {
     playSubscribeID = view->getPlayEvent()->subscribe([this](int index) { this->playIndex(index); });
 
     settingSubscribeID = view->getSettingEvent()->subscribe([this]() {
-        brls::View* setting = new PlayerSetting(this->stream);
+        brls::View* setting = new PlayerSetting(&this->stream);
         brls::Application::pushActivity(new brls::Activity(setting));
     });
 

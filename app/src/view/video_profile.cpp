@@ -24,9 +24,13 @@ VideoProfile::~VideoProfile() {
 void VideoProfile::init(const std::string& title, const std::string& method) {
     auto& mpv = MPVCore::instance();
     labelUrl->setText(title);
-    labelMethod->setText(method);
     labelFormat->setText(mpv.getString("file-format"));
     labelSize->setText(misc::formatSize(mpv.getInt("file-size")));
+
+    if (method.empty())
+        labelMethod->setVisibility(brls::Visibility::GONE);
+    else
+        labelMethod->setText(method);
 
     if (method == jellyfin::methodTranscode)
         ticker.start(2000);

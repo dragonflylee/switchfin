@@ -37,6 +37,14 @@ struct AppServer {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AppServer, id, name, version, os, urls);
 
+struct AppRemote {
+    std::string name;
+    std::string url;
+    std::string user;
+    std::string passwd;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(AppRemote, name, url, user, passwd);
+
 class AppConfig : public brls::Singleton<AppConfig> {
 public:
     enum Item {
@@ -126,9 +134,10 @@ public:
     std::string getDevice(const std::string& token = "");
     const AppUser& getUser() const { return this->user; }
     const std::string& getUrl() const { return this->server_url; }
+    const std::vector<AppRemote>& getRemotes() const { return this->remotes; }
     const std::vector<AppServer> getServers() const;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(AppConfig, user_id, server_url, device, users, servers, setting);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AppConfig, user_id, server_url, device, users, servers, setting, remotes);
 
 private:
     static std::unordered_map<Item, Option> settingMap;
@@ -139,5 +148,6 @@ private:
     std::string device;
     std::vector<AppUser> users;
     std::vector<AppServer> servers;
+    std::vector<AppRemote> remotes;
     nlohmann::json setting = {};
 };
