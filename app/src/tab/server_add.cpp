@@ -11,7 +11,7 @@
 
 using namespace brls::literals;  // for _i18n
 
-ServerAdd::ServerAdd(std::function<void(void)> cb) : cbConnected(cb) {
+ServerAdd::ServerAdd() {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/server_add.xml");
     brls::Logger::debug("ServerAdd: create");
@@ -63,7 +63,6 @@ bool ServerAdd::onConnect() {
                 brls::View* view = new ServerLogin(s.name, s.urls.front());
                 AppConfig::instance().addServer(s);
                 brls::Application::unblockInputs();
-                this->dismiss(this->cbConnected);
                 this->present(view);
             });
         } catch (const std::exception& ex) {

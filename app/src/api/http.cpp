@@ -16,15 +16,6 @@ private:
     CURLcode code;
 };
 
-class curl_status_code : public std::exception {
-public:
-    explicit curl_status_code(int s) { msg = fmt::format("http status {}", s); }
-    const char* what() const noexcept override { return msg.c_str(); }
-
-private:
-    std::string msg;
-};
-
 static std::string user_agent = fmt::format("{}/{}", AppVersion::getPackageName(), AppVersion::getVersion());
 
 /// @brief curl context
@@ -162,8 +153,8 @@ std::string HTTP::encode_form(const Form& form) {
 void HTTP::_get(const std::string& url, std::ostream* out) {
     curl_easy_setopt(this->easy, CURLOPT_URL, url.c_str());
     curl_easy_setopt(this->easy, CURLOPT_HTTPGET, 1L);
-    int status_code = this->perform(out);
-    if (status_code >= 400) throw curl_status_code(status_code);
+    int code = this->perform(out);
+    if (code >= 400) throw std::runtime_error(fmt::format("http status {}", code));
 }
 
 int HTTP::propfind(const std::string& url, std::ostream* out, bool self) {
@@ -177,7 +168,7 @@ std::string HTTP::_post(const std::string& url, const std::string& data) {
     curl_easy_setopt(this->easy, CURLOPT_URL, url.c_str());
     curl_easy_setopt(this->easy, CURLOPT_POSTFIELDS, data.c_str());
     curl_easy_setopt(this->easy, CURLOPT_POSTFIELDSIZE, data.size());
-    int status_code = this->perform(&body);
-    if (status_code >= 400) throw curl_status_code(status_code);
+    int code = this->perform(&body);
+    if (code >= 400) throw std::runtime_error(fmt::format("http status {}", code));
     return body.str();
 }

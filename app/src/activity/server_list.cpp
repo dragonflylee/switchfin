@@ -127,13 +127,13 @@ ServerList::~ServerList() { brls::Logger::debug("ServerList Activity: delete"); 
 
 void ServerList::onContentAvailable() {
     this->btnServerAdd->registerClickAction([this](brls::View* view) {
-        view->present(new ServerAdd([this]() { this->onLoad(); }));
+        view->present(new ServerAdd());
         return true;
     });
 
     this->sidebarServers->registerAction(
         "main/setting/server/connect_new"_i18n, brls::BUTTON_Y, [this](brls::View* view) {
-            view->present(new ServerAdd([this]() { this->onLoad(); }));
+            view->present(new ServerAdd());
             return true;
         });
 
@@ -152,7 +152,7 @@ void ServerList::onContentAvailable() {
         cell->registerAction("hints/delete"_i18n, brls::BUTTON_X, [this, cell](brls::View* view) {
             Dialog::cancelable("main/setting/server/delete"_i18n, [this, cell]() {
                 if (AppConfig::instance().removeUser(cell->userId)) {
-                    brls::sync([this]() { this->onLoad(); });
+                    brls::sync([this]() { this->willAppear(); });
                 }
             });
             return true;
@@ -164,14 +164,12 @@ void ServerList::onContentAvailable() {
         view->present(new ServerLogin("", this->getUrl()));
         return true;
     });
-
-    this->onLoad();
 }
 
-void ServerList::onLoad() {
+void ServerList::willAppear(bool resetState) {
     auto list = AppConfig::instance().getServers();
     if (list.empty()) {
-        this->mainframe->pushContentView(new ServerAdd([this]() { this->onLoad(); }));
+        this->mainframe->pushContentView(new ServerAdd());
         this->mainframe->setActionAvailable(brls::BUTTON_B, false);
         return;
     }
@@ -188,7 +186,7 @@ void ServerList::onLoad() {
         item->registerAction("hints/delete"_i18n, brls::BUTTON_X, [this, item](brls::View* view) {
             Dialog::cancelable("main/setting/server/delete"_i18n, [this, item]() {
                 if (AppConfig::instance().removeServer(item->serverId)) {
-                    brls::sync([this]() { this->onLoad(); });
+                    brls::sync([this]() { this->willAppear(); });
                 }
             });
             return true;
@@ -214,7 +212,7 @@ void ServerList::onSelect(const AppServer& s) {
             .os = s.os,
             .urls = {s.urls[selected]},
         });
-        brls::sync([this]() { this->onLoad(); });
+        brls::sync([this]() { this->willAppear(); });
     });
 
     if (s.users.empty()) {

@@ -20,6 +20,7 @@ public:
     void onContentAvailable() override;
     void onSelect(const AppServer &s);
     std::string getUrl();
+    void willAppear(bool resetState = false) override;
 
 private:
     BRLS_BIND(brls::Button, btnServerAdd, "btn/server/add");
@@ -33,5 +34,4 @@ private:
     BRLS_BIND(brls::AppletFrame, mainframe, "server/frame");
 
     void setActive(brls::View *active);
-    void onLoad();
 };
