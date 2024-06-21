@@ -7,7 +7,7 @@ export PKG_CONFIG_PATH=$CMAKE_PREFIX_PATH/lib/pkgconfig
 export LD_LIBRARY_PATH=$CMAKE_PREFIX_PATH/lib
 
 wget -qO- https://curl.se/download/curl-8.7.1.tar.xz | tar Jxf - -C /tmp
-wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.4.2/dav1d-1.4.2.tar.xz | tar Jxf - -C /tmp
+wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.4.3/dav1d-1.4.3.tar.xz | tar Jxf - -C /tmp
 wget -qO- https://ffmpeg.org/releases/ffmpeg-7.0.1.tar.xz | tar Jxf - -C /tmp
 wget -qO- https://github.com/mpv-player/mpv/archive/v0.36.0.tar.gz | tar zxf - -C /tmp
 git clone https://github.com/dragonflylee/glfw.git -b switchfin --depth=1 /tmp/glfw
@@ -21,7 +21,7 @@ cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$CMAKE
 cmake --build build
 cmake --install build --strip
 
-cd /tmp/dav1d-1.4.2
+cd /tmp/dav1d-1.4.3
 meson setup build --prefix=$CMAKE_PREFIX_PATH --libdir=lib --buildtype=release --default-library=shared \
   -Denable_tools=false -Denable_examples=false -Denable_tests=false -Denable_docs=false
 meson compile -C build

@@ -136,8 +136,8 @@ jobs:
         meson install -C build
     - name: Build fribidi
       run: |
-        curl -sSL https://github.com/fribidi/fribidi/releases/download/v1.0.14/fribidi-1.0.14.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/fribidi-1.0.14
+        curl -sSL https://github.com/fribidi/fribidi/releases/download/v1.0.15/fribidi-1.0.15.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/fribidi-1.0.15
         meson setup build ${{ matrix.meson }} \
           --prefix=$CMAKE_PREFIX_PATH \
           --buildtype=release \
@@ -161,8 +161,8 @@ jobs:
         make install -j$(sysctl -n hw.ncpu)
     - name: Build dav1d
       run: |
-        curl -sSL https://downloads.videolan.org/pub/videolan/dav1d/1.4.2/dav1d-1.4.2.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/dav1d-1.4.2
+        curl -sSL https://downloads.videolan.org/pub/videolan/dav1d/1.4.3/dav1d-1.4.3.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/dav1d-1.4.3
         meson setup build ${{ matrix.meson }} \
           --prefix=$CMAKE_PREFIX_PATH \
           --buildtype=release \
