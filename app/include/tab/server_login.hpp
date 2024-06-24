@@ -22,4 +22,6 @@ private:
     BRLS_BIND(brls::Label, labelDisclaimer, "login/disclaimer");
 
     std::string url;
+
+    void Disclaimer();
 };

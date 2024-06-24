@@ -99,8 +99,7 @@ ServerLogin::ServerLogin(const std::string& name, const std::string& url, const 
 
     this->hdrSigin->setTitle(brls::getStr("main/setting/server/sigin_to", name));
     this->inputUser->init("main/setting/username"_i18n, user);
-    this->inputPass->init(
-        "main/setting/password"_i18n, "", [](std::string text) {}, "", "", 256);
+    this->inputPass->init("main/setting/password"_i18n, "", [](std::string text) {}, "", "", 256);
 
     this->btnSignin->registerClickAction([this](...) { return this->onSignin(); });
     this->btnQuickConnect->setVisibility(brls::Visibility::GONE);
@@ -111,34 +110,46 @@ ServerLogin::ServerLogin(const std::string& name, const std::string& url, const 
         return true;
     });
 
-    brls::async([this]() {
+    ASYNC_RETAIN
+    brls::async([ASYNC_TOKEN]() {
         try {
             std::string resp = HTTP::get(this->url + jellyfin::apiQuickEnabled, HTTP::Timeout{});
             if (resp.compare("true") == 0)
-                brls::sync([this]() { this->btnQuickConnect->setVisibility(brls::Visibility::VISIBLE); });
+                brls::sync([ASYNC_TOKEN]() {
+                    ASYNC_RELEASE
+                    this->btnQuickConnect->setVisibility(brls::Visibility::VISIBLE);
+                });
         } catch (const std::exception& ex) {
+            ASYNC_RELEASE
             brls::Logger::warning("query quickconnect: {}", ex.what());
         }
     });
 
+    this->Disclaimer();
+}
+
+ServerLogin::~ServerLogin() { brls::Logger::debug("ServerLogin Activity: delete"); }
+
+void ServerLogin::Disclaimer() {
+    ASYNC_RETAIN
     this->labelDisclaimer->setVisibility(brls::Visibility::INVISIBLE);
-    brls::async([this]() {
+    brls::async([ASYNC_TOKEN]() {
         try {
             auto resp = HTTP::get(this->url + jellyfin::apiBranding, HTTP::Timeout{});
             jellyfin::BrandingConfig r = nlohmann::json::parse(resp);
             if (!r.LoginDisclaimer.empty()) {
-                brls::sync([this, r]() {
+                brls::sync([ASYNC_TOKEN, r]() {
+                    ASYNC_RELEASE
                     this->labelDisclaimer->setText(r.LoginDisclaimer);
                     this->labelDisclaimer->setVisibility(brls::Visibility::VISIBLE);
                 });
             }
         } catch (const std::exception& ex) {
+            ASYNC_RELEASE
             brls::Logger::warning("get login disclaimer: {}", ex.what());
         }
     });
 }
-
-ServerLogin::~ServerLogin() { brls::Logger::debug("ServerLogin Activity: delete"); }
 
 bool ServerLogin::onSignin() {
     std::string username = inputUser->getValue();
