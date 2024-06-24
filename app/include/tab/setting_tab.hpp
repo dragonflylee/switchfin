@@ -24,8 +24,6 @@ class SettingTab : public AttachedView {
 public:
     SettingTab();
 
-    void hideStatus();
-
     void onCreate() override;
 
     static brls::View* create();

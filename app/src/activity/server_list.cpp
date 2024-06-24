@@ -7,7 +7,6 @@
 #include "view/recycling_grid.hpp"
 #include "tab/server_add.hpp"
 #include "tab/server_login.hpp"
-#include "tab/setting_tab.hpp"
 #include "utils/image.hpp"
 #include "utils/dialog.hpp"
 #include "api/jellyfin.hpp"
@@ -136,16 +135,6 @@ void ServerList::onContentAvailable() {
             view->present(new ServerAdd());
             return true;
         });
-
-    if (brls::Application::getActivitiesStack().empty()) {
-        this->serverDetail->registerAction("main/tabs/setting"_i18n, brls::BUTTON_Y, [](brls::View* view) {
-            SettingTab* setting = new SettingTab();
-            setting->hideStatus();
-            setting->onCreate();
-            view->present(setting);
-            return true;
-        });
-    }
 
     this->recyclerUsers->registerCell("Cell", [this]() {
         UserCell* cell = new UserCell();

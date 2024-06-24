@@ -4,7 +4,6 @@
 
 #include "tab/server_add.hpp"
 #include "tab/server_login.hpp"
-#include "tab/setting_tab.hpp"
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
 #include "api/jellyfin.hpp"
@@ -15,16 +14,6 @@ ServerAdd::ServerAdd() {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/server_add.xml");
     brls::Logger::debug("ServerAdd: create");
-
-    if (brls::Application::getActivitiesStack().size() <= 1) {
-        this->registerAction("main/tabs/setting"_i18n, brls::BUTTON_Y, [this](...) {
-            SettingTab* view = new SettingTab();
-            view->hideStatus();
-            view->onCreate();
-            this->present(view);
-            return true;
-        });
-    }
 
     inputUrl->init("URL", "https://", [](std::string) {}, "", "", 255);
 

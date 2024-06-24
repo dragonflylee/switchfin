@@ -74,9 +74,11 @@ SettingTab::SettingTab() {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/settings.xml");
     GA("open_setting");
-}
 
-void SettingTab::hideStatus() { boxStatus->setVisibility(brls::Visibility::GONE); }
+    this->registerBoolXMLAttribute("hideStatus", [this](bool value) {
+        this->boxStatus->setVisibility(value ? brls::Visibility::GONE : brls::Visibility::VISIBLE);
+    });
+}
 
 void SettingTab::onCreate() {
     auto& conf = AppConfig::instance();
