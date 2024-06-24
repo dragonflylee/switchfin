@@ -130,6 +130,12 @@ void ServerList::onContentAvailable() {
         return true;
     });
 
+    if (AppConfig::instance().getRemotes().empty() || brls::Application::getActivitiesStack().size() > 1) {
+        // Hide the remote tab if there are no remotes
+        brls::View* tab = this->getView("tab/remote");
+        if (tab) tab->setVisibility(brls::Visibility::GONE);
+    }
+
     this->sidebarServers->registerAction(
         "main/setting/server/connect_new"_i18n, brls::BUTTON_Y, [this](brls::View* view) {
             view->present(new ServerAdd());

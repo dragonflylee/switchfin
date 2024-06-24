@@ -39,8 +39,8 @@
             <Tab label=""
                 fontSize="18"
                 id="tab/remote"
-                icon="@res/icon/ico-server.svg"
-                iconActivate="@res/icon/ico-server-activate.svg">
+                icon="@res/icon/ico-cloud.svg"
+                iconActivate="@res/icon/ico-cloud-activate.svg">
                 <RemoteTab />
             </Tab>
 

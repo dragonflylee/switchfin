@@ -34,7 +34,8 @@ void RemoteTab::onCreate() {
         auto c = remote::create(r);
         if (!c) continue;
         auto* item = new AutoSidebarItem();
-        item->setTabStyle(AutoTabBarStyle::PLAIN);
+        item->setTabStyle(AutoTabBarStyle::ACCENT);
+        item->setFontSize(22);
         item->setLabel(r.name);
         this->tabFrame->addTab(item, [c]() {
             auto view = new RemoteView(c);
