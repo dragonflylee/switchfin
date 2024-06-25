@@ -27,6 +27,7 @@ build() {
     --disable-shared --enable-static --disable-ipv6 --disable-unix-sockets \
     --disable-manual --disable-ntlm-wb --disable-threaded-resolver \
     --without-zstd --with-mbedtls --disable-progress-meter \
+    --with-ca-bundle=romfs:/ca-bundle.crt \
     --with-default-ssl-backend=mbedtls
 
   make -C lib

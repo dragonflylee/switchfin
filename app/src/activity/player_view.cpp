@@ -209,7 +209,7 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
                     brls::Logger::info("Track {} type {} => {}", s.Index, s.Type, s.DisplayTitle);
                 }
 #endif
-                ssextra << "network-timeout=60";
+                ssextra << fmt::format("network-timeout={}", HTTP::TIMEOUT / 100);
                 if (HTTP::PROXY_STATUS) {
                     ssextra << ",http-proxy=\"http://" << HTTP::PROXY_HOST << ":" << HTTP::PROXY_PORT << "\"";
                 }

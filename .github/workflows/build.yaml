@@ -118,6 +118,7 @@ jobs:
         done
     - name: Build nro
       run: |
+        cp /etc/ssl/certs/ca-certificates.crt resources/ca-bundle.crt
         cmake -B build_switch -DCMAKE_BUILD_TYPE=Release -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON -DVERSION_BUILD=${{ github.run_number }} ${{ matrix.cmake }}
         make -C build_switch Switchfin.nro -j$(nproc)
     - name: Set outputs
@@ -238,7 +239,7 @@ jobs:
     - name: Install deps
       run: |
         brew install create-dmg dylibbundler
-        curl -sSL https://github.com/dragonflylee/switchfin/releases/download/macos-dylib/dylib-ffmpeg6-mpv36-${{ matrix.tag }}.tar.gz | tar zxf - -C /tmp
+        curl -sSL https://github.com/dragonflylee/switchfin/releases/download/macos-dylib/dylib-ffmpeg7-mpv36-${{ matrix.tag }}.tar.gz | tar zxf - -C /tmp
     - name: Build App
       env:
         DYLD_LIBRARY_PATH: /tmp/lib

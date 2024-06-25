@@ -234,7 +234,7 @@ jobs:
     - name: Build packages
       run: |
         cd $CMAKE_PREFIX_PATH
-        tar zcf ${{ github.workspace }}/dylib-ffmpeg6-mpv36-${{ matrix.tag }}.tar.gz \
+        tar zcf ${{ github.workspace }}/dylib-ffmpeg7-mpv36-${{ matrix.tag }}.tar.gz \
           include lib/pkgconfig lib/cmake lib/*.dylib
     - name: Upload packages
       uses: softprops/action-gh-release@v2

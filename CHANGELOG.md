@@ -8,6 +8,12 @@
 * add highlight for current play track
 * add webdav file browser
 
+### Fixed
+
+* network timeout for load video
+* panic after cancel login
+* abnormal focus when login after add server
+
 ## [0.5.0]
 
 ### Added

@@ -6,14 +6,15 @@ namespace remote {
 
 Webdav::Webdav(const std::string& url, const std::string& user, const std::string& passwd) {
     HTTP::Header h{"Accept-Charset: utf-8", "Depth: 1"};
-    HTTP::set_option(this->c, HTTP::BasicAuth{.user = user, .passwd = passwd}, h);
+    HTTP::BasicAuth auth{.user = user, .passwd = passwd};
+    HTTP::set_option(this->c, HTTP::Timeout{}, auth, h);
     auto pos = url.find("/", url.find("://") + 3);
     if (pos != std::string::npos) {
         this->host = url.substr(0, pos);
         this->root = url + "/";
     }
 
-    this->extra = fmt::format("network-timeout={}", 120);
+    this->extra = fmt::format("network-timeout={}", HTTP::TIMEOUT / 100);
     if (user.size() > 0 && passwd.size() > 0) {
         std::string auth = base64::encode(fmt::format("{}:{}", user, passwd));
         this->extra += fmt::format(",http-header-fields=\"Authorization: Basic {}\"", auth);

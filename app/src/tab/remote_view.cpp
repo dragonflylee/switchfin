@@ -117,9 +117,7 @@ static std::set<std::string> imageExt = {".jpg", ".jpeg", ".png", ".bmp", ".gif"
 class FileDataSource : public RecyclingGridDataSource {
 public:
     FileDataSource(const DirList& r, RemoteView::Client c) : list(std::move(r)), client(c) {
-        std::sort(this->list.begin(), this->list.end(), [](auto i, auto j) { 
-            return i.name < j.name; 
-        });
+        std::sort(this->list.begin(), this->list.end(), [](auto i, auto j) { return i.name < j.name; });
 
         for (auto& it : this->list) {
             if (it.type == remote::EntryType::DIR) continue;
@@ -127,6 +125,7 @@ public:
             auto pos = it.name.find_last_of('.');
             if (pos == std::string::npos) continue;
             std::string ext = it.name.substr(pos);
+            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
             if (videoExt.count(ext)) {
                 it.type = remote::EntryType::VIDEO;
             } else if (audioExt.count(ext)) {
@@ -181,7 +180,7 @@ RemoteView::~RemoteView() { brls::Logger::debug("RemoteView: deleted"); }
 brls::View* RemoteView::getDefaultFocus() { return this->recycler; }
 
 void RemoteView::onCreate() {
-    this->recycler->registerAction("hints/cancel"_i18n, brls::BUTTON_B, [this](...) {
+    this->recycler->registerAction("hints/back"_i18n, brls::BUTTON_B, [this](...) {
         if (this->stack.size() > 1) {
             this->stack.pop_back();
             this->load();
@@ -205,8 +204,8 @@ void RemoteView::push(const std::string& path) {
 }
 
 void RemoteView::load() {
-    ASYNC_RETAIN
     this->recycler->showSkeleton();
+    ASYNC_RETAIN
     brls::async([ASYNC_TOKEN]() {
         try {
             auto r = client->list(this->stack.back());
