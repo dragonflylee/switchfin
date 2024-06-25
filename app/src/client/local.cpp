@@ -15,8 +15,6 @@ namespace fs = std::experimental::filesystem;
 
 namespace remote {
 
-const std::string emptystring;
-
 Local::Local(const std::string& path) { root = path; }
 
 std::vector<DirEntry> Local::list(const std::string& path) {

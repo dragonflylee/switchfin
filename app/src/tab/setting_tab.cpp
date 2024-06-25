@@ -76,7 +76,10 @@ SettingTab::SettingTab() {
     GA("open_setting");
 
     this->registerBoolXMLAttribute("hideStatus", [this](bool value) {
-        this->boxStatus->setVisibility(value ? brls::Visibility::GONE : brls::Visibility::VISIBLE);
+        auto visibility = value ? brls::Visibility::GONE : brls::Visibility::VISIBLE;
+        this->boxStatus->setVisibility(visibility);
+        this->btnServer->setVisibility(visibility);
+        this->btnUser->setVisibility(visibility);
     });
 }
 
