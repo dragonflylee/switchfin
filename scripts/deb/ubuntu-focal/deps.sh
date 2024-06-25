@@ -33,7 +33,7 @@ cd /tmp/ffmpeg-7.0.1
 ./configure --prefix=$CMAKE_PREFIX_PATH --enable-shared --disable-static \
   --ld=g++ --enable-nonfree --enable-openssl --enable-libv4l2 \
   --enable-opengl --enable-libass --disable-doc --enable-asm --enable-rpath \
-  --disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,httpproxy \
+  --disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,ftp,httpproxy \
   --disable-filters --enable-filter=hflip,vflip,transpose --disable-avdevice \
   --disable-muxers --disable-encoders --disable-programs --disable-debug
 make -j$(nproc)

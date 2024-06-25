@@ -6,7 +6,7 @@
 
 pkgname=switch-ffmpeg
 pkgver=7.0.1
-pkgrel=1
+pkgrel=2
 pkgdesc='ffmpeg port (for Nintendo Switch homebrew development)'
 arch=('any')
 url='https://ffmpeg.org/'
@@ -14,15 +14,18 @@ license=('GPL')
 options=(!strip staticlibs)
 makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
 depends=('switch-zlib' 'switch-bzip2' 'switch-libass' 'switch-libfribidi'
-         'switch-freetype' 'switch-mbedtls' 'switch-dav1d')
-source=("https://ffmpeg.org/releases/ffmpeg-${pkgver}.tar.xz" "ffmpeg-${pkgver}.patch" "getnameinfo.patch")
-sha256sums=('bce9eeb0f17ef8982390b1f37711a61b4290dc8c2a0c1a37b5857e85bfb0e4ff' 'SKIP' 'SKIP')
+         'switch-freetype' 'switch-mbedtls' 'switch-dav1d' 'switch-libsmb2')
+source=(
+  "https://ffmpeg.org/releases/ffmpeg-${pkgver}.tar.xz" 
+  "ffmpeg-${pkgver}.patch" "getnameinfo.patch" "protocol.patch")
+sha256sums=('bce9eeb0f17ef8982390b1f37711a61b4290dc8c2a0c1a37b5857e85bfb0e4ff' 'SKIP' 'SKIP' 'SKIP')
 
 groups=('switch-portlibs')
 
 prepare() {
   cd ffmpeg-$pkgver
   patch -Np1 -i "$srcdir/ffmpeg-${pkgver}.patch"
+  patch -Np1 -i "$srcdir/protocol.patch"
   patch -Np1 -i "$srcdir/getnameinfo.patch"
 }
 
@@ -41,7 +44,7 @@ build() {
     --enable-asm --enable-neon \
     --disable-avdevice --disable-encoders --disable-muxers \
     --enable-swscale --enable-swresample --enable-network  \
-    --disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,httpproxy \
+    --disable-protocols --enable-libsmb2 --enable-protocol=file,http,tcp,udp,hls,https,tls,ftp,httpproxy,libsmb2 \
     --disable-filters --enable-filter=hflip,vflip,transpose \
     --enable-zlib --enable-bzlib --enable-libass --enable-libfreetype --enable-libfribidi --enable-libdav1d \
     --enable-mbedtls --enable-version3 --enable-demuxer=hls --enable-nvtegra

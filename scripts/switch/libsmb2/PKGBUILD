@@ -1,0 +1,34 @@
+pkgname=switch-libsmb2
+pkgver=master
+pkgrel=1
+pkgdesc="SMB2/3 userspace client"
+url="https://github.com/sahlberg/libsmb2"
+license=('LGPL')
+arch=('any')
+options=(!strip libtool staticlibs)
+groups=('switch-portlibs')
+source=("${url}/archive/${pkgver}.tar.gz")
+sha256sums=('SKIP')
+makedepends=('dkp-toolchain-vars')
+
+build() {
+  cd "libsmb2-${pkgver}"
+
+  source ${DEVKITPRO}/switchvars.sh
+
+  export CFLAGS="-DNEED_READV -DNEED_WRITEV -DNEED_GETLOGIN_R"
+
+  ./bootstrap
+  ./configure --prefix="${PORTLIBS_PREFIX}" --host=aarch64-none-elf \
+    --disable-shared --enable-static --without-libkrb5 --disable-werror
+  make -j$(nproc)
+}
+
+package() {
+  cd "libsmb2-${pkgver}"
+
+  source /opt/devkitpro/switchvars.sh
+
+  make DESTDIR="${pkgdir}" install
+  install -Dm644 COPYING "${pkgdir}/opt/devkitpro/portlibs/switch/licenses/${pkgname}/LICENSE"
+}

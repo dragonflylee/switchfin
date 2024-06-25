@@ -58,7 +58,7 @@ build() {
     --disable-protocols \
     --enable-dxva2 \
     --enable-d3d11va \
-    --enable-protocol=file,http,tcp,udp,hls,https,tls,httpproxy \
+    --enable-protocol=file,http,tcp,udp,hls,https,tls,ftp,httpproxy \
     --enable-filter=hflip,vflip,transpose \
     --enable-zlib \
     --enable-bzlib \

@@ -100,20 +100,20 @@ jobs:
       run: |
         dkp-pacman --noconfirm -U $BASE_URL/hacBrewPack-3.05-1-any.pkg.tar.zst
         dkp-pacman --noconfirm -U $BASE_URL/libnx-4.7.0-1-any.pkg.tar.zst
-        for pkg in curl-8.7.1-1 libass-0.17.2-1 dav1d-1.4.3-1 ffmpeg-7.0.1-1 nspmini-main-1; do
+        for pkg in curl-8.7.1-1 libass-0.17.2-1 dav1d-1.4.3-1 libsmb2-master-1 ffmpeg-7.0.1-2 nspmini-main-1; do
           dkp-pacman --noconfirm -U $BASE_URL/switch-${pkg}-any.pkg.tar.zst
         done
         dkp-pacman --noconfirm -R switch-libmpv
     - name: Update mpv opengl
       if: ${{ matrix.driver == 'opengl' }}
       run: |
-        for pkg in switch-libmpv-0.36.0-5; do
+        for pkg in switch-libmpv-0.36.0-7; do
           dkp-pacman --noconfirm -U $BASE_URL/${pkg}-any.pkg.tar.zst
         done
     - name: Update mpv deko3d
       if: ${{ matrix.driver == 'deko3d' }}
       run: |
-        for pkg in libuam-master-1 switch-libmpv-deko3d-0.36.0-6; do
+        for pkg in libuam-master-1 switch-libmpv-deko3d-0.36.0-8; do
           dkp-pacman --noconfirm -U $BASE_URL/${pkg}-any.pkg.tar.zst
         done
     - name: Build nro

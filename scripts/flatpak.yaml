@@ -115,7 +115,7 @@ modules:
           - --disable-encoders
           - --disable-muxers
           - --disable-filters
-          - --enable-protocol=file,http,tcp,udp,hls,https,tls,httpproxy
+          - --enable-protocol=file,http,tcp,udp,hls,https,tls,ftp,httpproxy
           - --enable-filter=hflip,vflip,transpose
           - --enable-libv4l2
           - --enable-libdav1d

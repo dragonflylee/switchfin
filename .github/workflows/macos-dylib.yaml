@@ -202,7 +202,7 @@ jobs:
           --disable-autodetect --disable-encoders --enable-pic --disable-asm \
           --disable-programs --disable-doc --disable-debug --disable-avdevice \
           --disable-filters --enable-filter=hflip,vflip,transpose --disable-muxers \
-          --disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,httpproxy \
+          --disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,ftp,httpproxy \
           --disable-libjack --disable-indev=jack --disable-postproc --enable-demuxer=hls \
           --enable-libdav1d --enable-libass --enable-libfreetype --enable-zlib --enable-bzlib \
           --enable-network --enable-securetransport --enable-videotoolbox --enable-audiotoolbox

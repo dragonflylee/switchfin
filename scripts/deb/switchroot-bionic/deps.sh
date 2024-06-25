@@ -27,7 +27,7 @@ cd /tmp/ffmpeg
   --ld=g++ --enable-nonfree --enable-openssl --enable-libv4l2 --enable-nvv4l2 \
   --enable-opengl --disable-doc --enable-asm --enable-neon --disable-debug \
   --enable-libass --enable-demuxer=hls --disable-muxers --disable-avdevice \
-  --disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,httpproxy \
+  --disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,ftp,httpproxy \
   --disable-filters --enable-filter=hflip,vflip,transpose \
   --disable-encoders --disable-programs --enable-rpath
 make -j$(nproc)
