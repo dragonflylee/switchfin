@@ -10,6 +10,7 @@ enum class EntryType {
     VIDEO,
     AUDIO,
     IMAGE,
+    PLAYLIST,
     TEXT,
 };
 

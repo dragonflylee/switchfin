@@ -12,10 +12,9 @@ using namespace brls::literals;
 
 class RemotePlayer : public brls::Box {
 public:
-    RemotePlayer(const DirList& list, size_t index, RemoteView::Client c) {
+    RemotePlayer(const remote::DirEntry& item) {
         float width = brls::Application::contentWidth;
         float height = brls::Application::contentHeight;
-        auto& item = list.at(index);
         view->setDimensions(width, height);
         view->setWidthPercentage(100);
         view->setHeightPercentage(100);
@@ -27,35 +26,14 @@ public:
         auto& mpv = MPVCore::instance();
         eventSubscribeID = mpv.getEvent()->subscribe([this, item](MpvEventEnum event) {
             switch (event) {
+            case MpvEventEnum::START_FILE:
+                if (titles.empty()) this->loadList();
+                break;
             case MpvEventEnum::MPV_LOADED:
                 view->getProfile()->init(item.name);
                 break;
             default:;
             }
-        });
-
-        // 播放列表
-        std::vector<std::string> values;
-        DirList urls;
-        for (size_t i = 0; i < list.size(); i++) {
-            auto& it = list.at(i);
-            if (it.type == remote::EntryType::VIDEO) {
-                if (i == index) index = urls.size();
-                values.push_back(it.name);
-                urls.push_back(it);
-            }
-        }
-        if (values.size() > 1) view->setList(values, index);
-
-        playSubscribeID = view->getPlayEvent()->subscribe([this, urls, c](int index) {
-            if (index < 0 || index >= (int)urls.size()) {
-                return VideoView::dismiss();
-            }
-            auto& it = urls.at(index);
-            MPVCore::instance().reset();
-            MPVCore::instance().setUrl(it.path, c->extraOption());
-            view->setTitie(it.name);
-            return true;
         });
         settingSubscribeID = view->getSettingEvent()->subscribe([this]() {
             brls::View* setting = new PlayerSetting();
@@ -70,8 +48,56 @@ public:
         view->getSettingEvent()->unsubscribe(settingSubscribeID);
     }
 
+    void setList(const DirList& list, size_t index, RemoteView::Client c) {
+        // 播放列表
+        DirList urls;
+        for (size_t i = 0; i < list.size(); i++) {
+            auto& it = list.at(i);
+            if (it.type == remote::EntryType::VIDEO) {
+                if (i == index) index = urls.size();
+                titles.push_back(it.name);
+                urls.push_back(it);
+            }
+        }
+        if (titles.size() > 1) view->setList(titles, index);
+
+        playSubscribeID = view->getPlayEvent()->subscribe([this, urls, c](int index) {
+            if (index < 0 || index >= (int)urls.size()) {
+                return VideoView::dismiss();
+            }
+            auto& it = urls.at(index);
+            MPVCore::instance().reset();
+            MPVCore::instance().setUrl(it.path, c->extraOption());
+            view->setTitie(it.name);
+            return true;
+        });
+    }
+
+    void loadList() {
+        auto& mpv = MPVCore::instance();
+        int64_t count = mpv.getInt("playlist-count");
+        if (count <= 1) return;
+
+        for (int64_t n = 0; n < count; n++) {
+            auto key = fmt::format("playlist/{}/title", n);
+            titles.push_back(mpv.getString(key));
+        }
+        view->setList(titles, 0);
+        view->setTitie(titles.front());
+
+        playSubscribeID = view->getPlayEvent()->subscribe([this, &mpv](int index) {
+            if (index < 0 || index >= (int)titles.size()) {
+                return VideoView::dismiss();
+            }
+            view->setTitie(titles.at(index));
+            mpv.command("playlist-play-index", std::to_string(index).c_str());
+            return true;
+        });
+    }
+
 private:
     VideoView* view = new VideoView();
+    std::vector<std::string> titles;
     MPVEvent::Subscription eventSubscribeID;
     brls::Event<int>::Subscription playSubscribeID;
     brls::VoidEvent::Subscription settingSubscribeID;
@@ -98,6 +124,9 @@ public:
             break;
         case remote::EntryType::IMAGE:
             this->icon->setImageFromSVGRes("icon/ico-file-image.svg");
+            break;
+        case remote::EntryType::PLAYLIST:
+            this->icon->setImageFromSVGRes("icon/ico-list.svg");
             break;
         default:
             this->icon->setImageFromSVGRes("icon/ico-file.svg");
@@ -132,6 +161,8 @@ public:
                 it.type = remote::EntryType::AUDIO;
             } else if (imageExt.count(ext)) {
                 it.type = remote::EntryType::IMAGE;
+            } else if (ext == ".m3u") {
+                it.type = remote::EntryType::PLAYLIST;
             }
         }
     }
@@ -154,10 +185,17 @@ public:
         }
 
         if (item.type == remote::EntryType::VIDEO) {
-            RemotePlayer* view = new RemotePlayer(this->list, index, client);
+            RemotePlayer* view = new RemotePlayer(item);
+            view->setList(this->list, index, client);
             MPVCore::instance().setUrl(item.path, client->extraOption());
             brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
             return;
+        }
+
+        if (item.type == remote::EntryType::PLAYLIST) {
+            RemotePlayer* view = new RemotePlayer(item);
+            MPVCore::instance().setUrl(item.path, client->extraOption());
+            brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
         }
     }
 

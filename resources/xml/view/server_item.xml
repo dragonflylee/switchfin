@@ -17,7 +17,7 @@
 
     <SVGImage
         width="80"
-        height="auto"
+        height="80"
         svg="@res/icon/ico-server.svg" />
 
     <brls:Box
