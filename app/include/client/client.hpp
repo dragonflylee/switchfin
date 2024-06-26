@@ -17,15 +17,17 @@ enum class EntryType {
 struct DirEntry {
     std::string name;
     std::string path;
+    std::string url;
     uint64_t fileSize;
     EntryType type;
-    time_t modified;
+    std::tm modified;
 };
 
 class Client {
 public:
     virtual ~Client() = default;
     virtual std::vector<DirEntry> list(const std::string& path) = 0;
+    virtual void auth(const std::string& user, const std::string& passwd) {}
     const std::string& rootPath() { return this->root; }
     const std::string& extraOption() { return this->extra; }
 

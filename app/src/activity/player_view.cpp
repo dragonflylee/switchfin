@@ -39,7 +39,7 @@ PlayerView::PlayerView(const jellyfin::MediaItem& item) : itemId(item.Id) {
         switch (event) {
         case MpvEventEnum::MPV_RESUME:
             this->reportPlay();
-            view->getProfile()->init(stream.Name, this->playMethod);
+            view->getProfile()->init(this->playMethod);
             break;
         case MpvEventEnum::MPV_PAUSE:
             this->reportPlay(true);

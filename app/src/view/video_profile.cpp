@@ -21,14 +21,14 @@ VideoProfile::~VideoProfile() {
     this->ticker.stop();
 }
 
-void VideoProfile::init(const std::string& title, const std::string& method) {
+void VideoProfile::init(const std::string& method) {
     auto& mpv = MPVCore::instance();
-    labelUrl->setText(title);
+    labelUrl->setText(mpv.getString("path"));
     labelFormat->setText(mpv.getString("file-format"));
     labelSize->setText(misc::formatSize(mpv.getInt("file-size")));
 
     if (method.empty())
-        labelMethod->setVisibility(brls::Visibility::GONE);
+        labelMethod->setText(mpv.getString("playlist-path"));
     else
         labelMethod->setText(method);
 

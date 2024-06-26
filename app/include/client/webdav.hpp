@@ -2,7 +2,6 @@
 
 #include "client.hpp"
 #include <api/http.hpp>
-#include <tinyxml2/tinyxml2.h>
 
 namespace remote {
 
@@ -14,8 +13,6 @@ public:
 private:
     HTTP c;
     std::string host;
-
-    std::string getNamespacePrefix(tinyxml2::XMLElement *root, const std::string &nsURI);
 };
 
 }  // namespace remote

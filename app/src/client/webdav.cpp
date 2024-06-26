@@ -1,24 +1,39 @@
 #include "client/webdav.hpp"
 #include <utils/misc.hpp>
+#include <tinyxml2/tinyxml2.h>
 #include <sstream>
 
 namespace remote {
 
 Webdav::Webdav(const std::string& url, const std::string& user, const std::string& passwd) {
     HTTP::Header h{"Accept-Charset: utf-8", "Depth: 1"};
-    HTTP::BasicAuth auth{.user = user, .passwd = passwd};
-    HTTP::set_option(this->c, HTTP::Timeout{}, auth, h);
+    HTTP::set_option(this->c, HTTP::Timeout{}, h);
     auto pos = url.find("/", url.find("://") + 3);
     if (pos != std::string::npos) {
         this->host = url.substr(0, pos);
         this->root = url + "/";
     }
-
     this->extra = fmt::format("network-timeout={}", HTTP::TIMEOUT / 100);
-    if (user.size() > 0 && passwd.size() > 0) {
+    if (user.size() > 0 || passwd.size() > 0) {
         std::string auth = base64::encode(fmt::format("{}:{}", user, passwd));
         this->extra += fmt::format(",http-header-fields=\"Authorization: Basic {}\"", auth);
+        HTTP::set_option(this->c, HTTP::BasicAuth{.user = user, .passwd = passwd});
     }
+}
+
+static std::string getNamespacePrefix(tinyxml2::XMLElement* root, const std::string& nsURI) {
+    for (const tinyxml2::XMLAttribute* attr = root->FirstAttribute(); attr; attr = attr->Next()) {
+        std::string name = attr->Name();
+        if (nsURI.compare(attr->Value()) == 0) {
+            auto pos = name.find(':');
+            if (pos != std::string::npos) {
+                return name.substr(pos + 1);
+            } else {
+                return "";  // Default namespace (no prefix)
+            }
+        }
+    }
+    return "";  // No namespace found
 }
 
 std::vector<DirEntry> Webdav::list(const std::string& path) {
@@ -76,6 +91,14 @@ std::vector<DirEntry> Webdav::list(const std::string& path) {
                     const char* sizeStr = lenElem->GetText();
                     if (sizeStr) item.fileSize = std::stoull(sizeStr);
                 }
+                tinyxml2::XMLElement* timeElem = propElem->FirstChildElement((nsPrefix + "getlastmodified").c_str());
+                if (timeElem) {
+                    const char* timeStr = timeElem->GetText();
+                    if (timeStr) {
+                        std::stringstream ss(timeStr);
+                        ss >> std::get_time(&item.modified, "%a, %d %b %Y %H:%M:%S %Z");
+                    }
+                }
             }
         }
 
@@ -84,21 +107,6 @@ std::vector<DirEntry> Webdav::list(const std::string& path) {
         if (item.path.compare(path)) s.push_back(item);
     }
     return s;
-}
-
-std::string Webdav::getNamespacePrefix(tinyxml2::XMLElement* root, const std::string& nsURI) {
-    for (const tinyxml2::XMLAttribute* attr = root->FirstAttribute(); attr; attr = attr->Next()) {
-        std::string name = attr->Name();
-        if (nsURI.compare(attr->Value()) == 0) {
-            auto pos = name.find(':');
-            if (pos != std::string::npos) {
-                return name.substr(pos + 1);
-            } else {
-                return "";  // Default namespace (no prefix)
-            }
-        }
-    }
-    return "";  // No namespace found
 }
 
 }  // namespace remote

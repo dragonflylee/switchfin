@@ -24,13 +24,11 @@ public:
         this->addView(view);
 
         auto& mpv = MPVCore::instance();
-        eventSubscribeID = mpv.getEvent()->subscribe([this, item](MpvEventEnum event) {
+        eventSubscribeID = mpv.getEvent()->subscribe([this](MpvEventEnum event) {
             switch (event) {
-            case MpvEventEnum::START_FILE:
-                if (titles.empty()) this->loadList();
-                break;
             case MpvEventEnum::MPV_LOADED:
-                view->getProfile()->init(item.name);
+                if (titles.empty()) this->loadList();
+                view->getProfile()->init();
                 break;
             default:;
             }
@@ -76,13 +74,11 @@ public:
     void loadList() {
         auto& mpv = MPVCore::instance();
         int64_t count = mpv.getInt("playlist-count");
-        if (count <= 1) return;
-
         for (int64_t n = 0; n < count; n++) {
             auto key = fmt::format("playlist/{}/title", n);
             titles.push_back(mpv.getString(key));
         }
-        view->setList(titles, 0);
+        if (titles.size() > 1) view->setList(titles, 0);
         view->setTitie(titles.front());
 
         playSubscribeID = view->getPlayEvent()->subscribe([this, &mpv](int index) {
@@ -187,14 +183,14 @@ public:
         if (item.type == remote::EntryType::VIDEO) {
             RemotePlayer* view = new RemotePlayer(item);
             view->setList(this->list, index, client);
-            MPVCore::instance().setUrl(item.path, client->extraOption());
+            MPVCore::instance().setUrl(item.url.empty() ? item.path : item.url, client->extraOption());
             brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
             return;
         }
 
         if (item.type == remote::EntryType::PLAYLIST) {
             RemotePlayer* view = new RemotePlayer(item);
-            MPVCore::instance().setUrl(item.path, client->extraOption());
+            MPVCore::instance().setUrl(item.url.empty() ? item.path : item.url, client->extraOption());
             brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
         }
     }
