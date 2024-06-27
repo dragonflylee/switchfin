@@ -1,8 +1,0 @@
-{
-  "C_Cpp.intelliSenseCachePath": "${workspaceFolder}/.vscode",
-  "C_Cpp.default.browse.databaseFilename": "${workspaceFolder}/.vscode/.BROWSE.VC.DB",
-  "files.watcherExclude": {
-    "**/build/**": true,
-    "**/cmake-*/**": true
-  }
-}

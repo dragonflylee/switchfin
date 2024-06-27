@@ -4,6 +4,7 @@
 
 #include "tab/media_folder.hpp"
 #include "tab/media_collection.hpp"
+#include "tab/live_tv.hpp"
 #include "view/recycling_grid.hpp"
 #include "view/auto_tab_frame.hpp"
 #include "api/jellyfin.hpp"
@@ -16,6 +17,7 @@ public:
     MediaFolderCell() {
         auto theme = brls::Application::getTheme();
         this->picture->setGrow(1.0f);
+        this->picture->setScalingType(brls::ImageScalingType::FILL);
         this->labelTitle->setFontSize(35);
         this->setAlignItems(brls::AlignItems::CENTER);
         this->setJustifyContent(brls::JustifyContent::CENTER);
@@ -65,17 +67,22 @@ public:
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
         auto& item = this->list.at(index);
-        std::string itemType;
-        if (item.CollectionType == "tvshows")
-            itemType = jellyfin::mediaTypeSeries;
-        else if (item.CollectionType == "movies")
-            itemType = jellyfin::mediaTypeMovie;
-        else if (item.CollectionType == "music")
-            itemType = jellyfin::mediaTypeMusicAlbum;
-        else if (item.CollectionType == "playlists")
-            itemType = jellyfin::mediaTypePlaylist;
+        brls::View* view = nullptr;
 
-        recycler->present(new MediaCollection(item.Id, itemType));
+        if (item.CollectionType == "tvshows")
+            view = new MediaCollection(item.Id, jellyfin::mediaTypeSeries);
+        else if (item.CollectionType == "movies")
+            view = new MediaCollection(item.Id, jellyfin::mediaTypeMovie);
+        else if (item.CollectionType == "music")
+            view = new MediaCollection(item.Id, jellyfin::mediaTypeMusicAlbum);
+        else if (item.CollectionType == "playlists")
+            view = new MediaCollection(item.Id, jellyfin::mediaTypePlaylist);
+        else if (item.CollectionType == "livetv")
+            view = new LiveTV(item.Id);
+        else 
+            view = new MediaCollection(item.Id);
+
+        recycler->present(view);
     }
 
     void clearData() override { this->list.clear(); }

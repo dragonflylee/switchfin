@@ -6,6 +6,7 @@
 
 * upgrade ffmpeg 7.0.1
 * add highlight for current play track
+* **add live tv support**
 * add webdav file browser
 
 ### Fixed

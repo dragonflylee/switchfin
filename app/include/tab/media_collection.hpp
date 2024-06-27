@@ -16,7 +16,7 @@ public:
     brls::View* getDefaultFocus() override;
 
 private:
-    BRLS_BIND(RecyclingGrid, recyclerSeries, "media/series");
+    BRLS_BIND(RecyclingGrid, recycler, "media/series");
 
     /// @brief 获取显示配置
     void doPreferences();

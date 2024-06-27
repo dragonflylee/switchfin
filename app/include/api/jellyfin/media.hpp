@@ -14,6 +14,7 @@ const std::string apiUserLatest = "/Users/{}/Items/Latest?{}";
 const std::string apiShowNextUp = "/Shows/NextUp?{}";
 const std::string apiShowSeanon = "/Shows/{}/Seasons?{}";
 const std::string apiShowEpisodes = "/Shows/{}/Episodes?{}";
+const std::string apiLiveChannels = "/LiveTv/Channels?{}";
 #ifdef USE_WEBP
 const std::string apiUserImage = "/Users/{}/Images/Primary?format=Webp&{}";
 const std::string apiPrimaryImage = "/Items/{}/Images/Primary?format=Webp&{}";
@@ -49,6 +50,7 @@ const std::string mediaTypeAudio = "Audio";
 const std::string mediaTypeMusicAlbum = "MusicAlbum";
 const std::string mediaTypeMusicVideo = "MusicVideo";
 const std::string mediaTypePlaylist = "Playlist";
+const std::string mediaTypeTvChannel = "TvChannel";
 
 const std::string streamTypeVideo = "Video";
 const std::string streamTypeAudio = "Audio";
@@ -134,6 +136,7 @@ struct MediaSource {
     std::string Id;
     std::string Name;
     std::string Container;
+    std::string Protocol;
     int DefaultAudioStreamIndex;
     int DefaultSubtitleStreamIndex;
     bool SupportsDirectPlay;
@@ -146,13 +149,14 @@ struct MediaSource {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaSource, Id, Name, Container, DefaultAudioStreamIndex,
     DefaultSubtitleStreamIndex, SupportsDirectPlay, SupportsTranscoding, DirectStreamUrl, TranscodingUrl, ETag,
-    MediaStreams, MediaAttachments);
+    MediaStreams, MediaAttachments, Protocol);
 
 struct PlaybackResult {
     std::vector<MediaSource> MediaSources;
     std::string PlaySessionId;
+    std::string ErrorCode;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlaybackResult, MediaSources, PlaySessionId);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PlaybackResult, MediaSources, PlaySessionId, ErrorCode);
 
 struct MediaEpisode : public MediaSeason {
     int ParentIndexNumber = 0;
@@ -194,6 +198,20 @@ struct MediaPlaylist : public MediaItem {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaPlaylist, Id, Name, Type, IndexNumber, ParentIndexNumber,
     RunTimeTicks, ProductionYear, Chapters, CommunityRating, SeriesName, ImageTags, AlbumId, AlbumPrimaryImageTag,
     Artists, UserData);
+
+struct LiveProgram {
+    std::string Name;
+    uint64_t RunTimeTicks = 0;
+    std::string StartDate;
+    std::string EndDate;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(LiveProgram, Name, RunTimeTicks, StartDate, EndDate);
+
+struct LiveChannel : public MediaItem {
+    std::string ChannelType;
+    LiveProgram CurrentProgram;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(LiveChannel, Id, Name, Type, ImageTags, ChannelType, CurrentProgram);
 
 template <typename T>
 struct MediaQueryResult {

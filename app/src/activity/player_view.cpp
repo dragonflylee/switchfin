@@ -153,9 +153,6 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
     jellyfin::postJSON(
         {
             {"UserId", AppConfig::instance().getUser().id},
-            {"MediaSourceId", this->itemId},
-            {"AudioStreamIndex", PlayerSetting::selectedAudio},
-            {"SubtitleStreamIndex", PlayerSetting::selectedSubtitle},
             {"AllowAudioStreamCopy", true},
             {
                 "DeviceProfile",
@@ -198,6 +195,11 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
         [ASYNC_TOKEN, seekTicks](const jellyfin::PlaybackResult& r) {
             ASYNC_RELEASE
 
+            if (r.MediaSources.empty()) {
+                Dialog::show(r.ErrorCode, []() { VideoView::dismiss(); });
+                return;
+            }
+
             auto& mpv = MPVCore::instance();
             auto& svr = AppConfig::instance().getUrl();
             this->playSessionId = r.PlaySessionId;
@@ -238,7 +240,7 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
                 }
             }
 
-            Dialog::show("Unsupport video format", []() { VideoView::dismiss(); });
+            VideoView::dismiss();
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE

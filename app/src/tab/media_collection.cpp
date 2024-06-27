@@ -16,10 +16,10 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/collection.xml");
     brls::Logger::debug("MediaCollection: create {} type {}", itemId, itemType);
-    this->pageSize = this->recyclerSeries->spanCount * 3;
+    this->pageSize = this->recycler->spanCount * 3;
 
     if (itemType == jellyfin::mediaTypeMusicAlbum) {
-        this->recyclerSeries->estimatedRowHeight = 240;
+        this->recycler->estimatedRowHeight = 240;
     }
 
     std::string serverUrl = AppConfig::instance().getUrl();
@@ -33,8 +33,8 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
         return true;
     });
 
-    this->recyclerSeries->registerCell("Cell", VideoCardCell::create);
-    this->recyclerSeries->onNextPage([this]() { this->doRequest(); });
+    this->recycler->registerCell("Cell", VideoCardCell::create);
+    this->recycler->onNextPage([this]() { this->doRequest(); });
 
     if (itemType == jellyfin::mediaTypePlaylist) {
         this->doRequest();
@@ -43,7 +43,7 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
     }
 }
 
-brls::View* MediaCollection::getDefaultFocus() { return this->recyclerSeries; }
+brls::View* MediaCollection::getDefaultFocus() { return this->recycler; }
 
 void MediaCollection::doPreferences() {
     ASYNC_RETAIN
@@ -61,7 +61,7 @@ void MediaCollection::doPreferences() {
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            this->recyclerSeries->setError(ex);
+            this->recycler->setError(ex);
         },
         jellyfin::apiUserSetting, AppConfig::instance().getUser().id);
 
@@ -143,19 +143,19 @@ void MediaCollection::doRequest() {
             ASYNC_RELEASE
             this->startIndex = r.StartIndex + this->pageSize;
             if (r.TotalRecordCount == 0) {
-                this->recyclerSeries->setEmpty();
+                this->recycler->setEmpty();
             } else if (r.StartIndex == 0) {
-                this->recyclerSeries->setDataSource(new VideoDataSource(r.Items));
-                brls::Application::giveFocus(this->recyclerSeries);
+                this->recycler->setDataSource(new VideoDataSource(r.Items));
+                brls::Application::giveFocus(this->recycler);
             } else if (r.Items.size() > 0) {
-                auto dataSrc = dynamic_cast<VideoDataSource*>(this->recyclerSeries->getDataSource());
+                auto dataSrc = dynamic_cast<VideoDataSource*>(this->recycler->getDataSource());
                 dataSrc->appendData(r.Items);
-                this->recyclerSeries->notifyDataChanged();
+                this->recycler->notifyDataChanged();
             }
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            this->recyclerSeries->setError(ex);
+            this->recycler->setError(ex);
         },
         jellyfin::apiUserLibrary, AppConfig::instance().getUser().id, HTTP::encode_form(query));
 }
