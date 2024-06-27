@@ -19,6 +19,10 @@ PlayerView::PlayerView(const jellyfin::MediaItem& item) : itemId(item.Id) {
     this->setDimensions(width, height);
     this->addView(view);
 
+    if (item.Type == jellyfin::mediaTypeTvChannel) {
+        view->hideVideoProgressSlider();
+    }
+
     auto& mpv = MPVCore::instance();
     // 停止正在播放的音乐
     mpv.stop();

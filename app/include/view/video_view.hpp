@@ -57,6 +57,8 @@ public:
 
     VideoProfile* getProfile() { return this->profile; }
 
+    void hideVideoProgressSlider();
+
     static bool dismiss();
 
 private:

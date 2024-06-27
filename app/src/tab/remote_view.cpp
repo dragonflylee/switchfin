@@ -23,6 +23,10 @@ public:
         this->setDimensions(width, height);
         this->addView(view);
 
+        if (item.type == remote::EntryType::PLAYLIST) {
+            view->hideVideoProgressSlider();
+        }
+
         auto& mpv = MPVCore::instance();
         eventSubscribeID = mpv.getEvent()->subscribe([this](MpvEventEnum event) {
             switch (event) {
