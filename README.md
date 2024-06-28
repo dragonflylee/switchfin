@@ -22,6 +22,7 @@ Switchfin is third-party PC player for Jellyfin that provides a native user inte
 - Completely native interface
 - Supported media items: movies, series, seasons, episodes 
   - Direct play and transcoding
+- Remote browser for webdav server
 - Base on MPV Player
   - Container formats: mkv, mov, mp4, avi
   - Video codecs: H.264, H.265, VP8, VP9, AV1
@@ -42,7 +43,27 @@ Switchfin is third-party PC player for Jellyfin that provides a native user inte
 
 ## FAQ
 
-1. Q: Subtitles didn't display? A: Put any ttf file at `/switch/Switchfin/subfont.ttf`
+1. Q: Subtitles didn't display?
+   A: Put any ttf file at `/switch/Switchfin/subfont.ttf`
+2. Q: How to play media files on webdav server?
+   A: Edit config file `config.json`
+
+```json
+{
+  "remotes": [
+    {
+      "name": "xiaoya",
+      "passwd": "guest_Api789",
+      "url": "webdav://192.168.1.5:5678/dav",
+      "user": "guest"
+    },
+    {
+      "name": "local",
+      "url": "file:///switch"
+    }
+  ]
+}
+```
 
 ## TODO list
 
@@ -63,7 +84,7 @@ git clone https://github.com/dragonflylee/switchfin.git --recurse-submodules --s
 To build for Switch, a standard development environment must first be set up. In order to do so, [refer to the Getting Started guide](https://devkitpro.org/wiki/Getting_Started).
 
 ```bash
-sudo dkp-pacman -S switch-dev switch-glfw switch-libwebp switch-curl
+sudo dkp-pacman -S switch-dev switch-glfw switch-libwebp switch-curl switch-libmpv
 cmake -B build_switch -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON
 make -C build_switch Switchfin.nro -j$(nproc)
 # for debug
