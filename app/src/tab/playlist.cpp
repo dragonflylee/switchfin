@@ -28,7 +28,7 @@ public:
 
 class PlaylistDataSource : public RecyclingGridDataSource {
 public:
-    using MediaList = std::vector<jellyfin::MediaPlaylist>;
+    using MediaList = std::vector<jellyfin::Playlist>;
 
     PlaylistDataSource(const MediaList& r) : list(std::move(r)) {}
 
@@ -106,7 +106,7 @@ private:
     MediaList list;
 };
 
-Playlist::Playlist(const jellyfin::MediaItem& item) : itemId(item.Id) {
+Playlist::Playlist(const jellyfin::Item& item) : itemId(item.Id) {
     this->inflateFromXMLRes("xml/tabs/music_album.xml");
     brls::Logger::debug("Tab Playlist: create {}", itemId);
 
@@ -151,8 +151,8 @@ void Playlist::doList() {
     });
 
     ASYNC_RETAIN
-    jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaPlaylist>& r) {
+    jellyfin::getJSON<jellyfin::Result<jellyfin::Playlist>>(
+        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Playlist>& r) {
             ASYNC_RELEASE
             this->playlist->setDataSource(new PlaylistDataSource(r.Items));
         },

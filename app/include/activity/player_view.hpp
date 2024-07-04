@@ -12,7 +12,7 @@ class VideoView;
 
 class PlayerView : public brls::Box {
 public:
-    PlayerView(const jellyfin::MediaItem& item);
+    PlayerView(const jellyfin::Item& item);
     ~PlayerView();
 
     void setSeries(const std::string& seriesId);
@@ -33,8 +33,8 @@ private:
     /// @brief DirectPlay, Transcode
     std::string playMethod;
     std::string playSessionId;
-    jellyfin::MediaSource stream;
-    std::vector<jellyfin::MediaEpisode> episodes;
+    jellyfin::Source stream;
+    std::vector<jellyfin::Episode> episodes;
 
     MPVEvent::Subscription eventSubscribeID;
     brls::VoidEvent::Subscription exitSubscribeID;

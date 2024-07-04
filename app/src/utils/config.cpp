@@ -330,7 +330,7 @@ bool AppConfig::checkLogin() {
 }
 
 bool AppConfig::checkDanmuku() {
-    jellyfin::getJSON(
+    jellyfin::getJSON<jellyfin::PluginList>(
         [](const jellyfin::PluginList& plugins) {
             for (auto& p : plugins) {
                 if (p.Name == "Danmu") {

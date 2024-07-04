@@ -8,7 +8,7 @@
 #include "view/video_view.hpp"
 #include "view/video_profile.hpp"
 
-PlayerView::PlayerView(const jellyfin::MediaItem& item) : itemId(item.Id) {
+PlayerView::PlayerView(const jellyfin::Item& item) : itemId(item.Id) {
     float width = brls::Application::contentWidth;
     float height = brls::Application::contentHeight;
     view = new VideoView();
@@ -108,8 +108,8 @@ void PlayerView::setSeries(const std::string& seriesId) {
     });
 
     ASYNC_RETAIN
-    jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
+    jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
+        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
             ASYNC_RELEASE
             int index = -1;
             std::vector<std::string> values;

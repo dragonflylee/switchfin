@@ -95,7 +95,7 @@ void MusicView::registerMpvEvent() {
     });
     // 注冊命令回調
     replySubscribeID = mpv.getCommandReply()->subscribe([this](uint64_t userdata, int64_t entryId) {
-        auto item = reinterpret_cast<jellyfin::MusicTrack*>(userdata);
+        auto item = reinterpret_cast<jellyfin::Track*>(userdata);
         if (item) playList.insert(std::make_pair(entryId, *item));
     });
 
@@ -139,7 +139,7 @@ void MusicView::registerViewAction(brls::View* view) {
 
 const std::string& MusicView::currentId() { return this->itemId; }
 
-void MusicView::play(const jellyfin::MediaItem& item) {
+void MusicView::play(const jellyfin::Item& item) {
     auto& conf = AppConfig::instance();
     auto& mpv = MPVCore::instance();
 
@@ -157,7 +157,7 @@ void MusicView::play(const jellyfin::MediaItem& item) {
     this->playTitle->setText(item.Name);
 }
 
-void MusicView::load(const std::vector<jellyfin::MusicTrack>& items, size_t index) {
+void MusicView::load(const std::vector<jellyfin::Track>& items, size_t index) {
     auto& conf = AppConfig::instance();
     auto& mpv = MPVCore::instance();
     std::string extra = fmt::format("http-header-fields='X-Emby-Token: {}'", conf.getUser().access_token);

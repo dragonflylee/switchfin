@@ -14,8 +14,8 @@ namespace jellyfin {
 
 using OnError = std::function<void(const std::string&)>;
 
-template <typename Then, typename... Args>
-inline void getJSON(Then then, OnError error, std::string_view fmt, Args&&... args) {
+template <typename Result, typename... Args>
+inline void getJSON(const std::function<void(Result)>& then, OnError error, std::string_view fmt, Args&&... args) {
     std::string url = fmt::format(fmt::runtime(fmt), std::forward<Args>(args)...);
     brls::async([then, error, url]() {
         auto& c = AppConfig::instance();
@@ -24,7 +24,7 @@ inline void getJSON(Then then, OnError error, std::string_view fmt, Args&&... ar
         try {
             auto resp = HTTP::get(c.getUrl() + url, header, HTTP::Timeout{});
             if (resp.empty()) return;
-            nlohmann::json j = nlohmann::json::parse(resp);
+            auto j = nlohmann::json::parse(resp).get<Result>();
             brls::sync(std::bind(std::move(then), std::move(j)));
         } catch (const std::exception& ex) {
             if (error) brls::sync(std::bind(error, ex.what()));

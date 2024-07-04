@@ -6,7 +6,7 @@
 
 using namespace brls::literals;
 
-PlayerSetting::PlayerSetting(const jellyfin::MediaSource* src) {
+PlayerSetting::PlayerSetting(const jellyfin::Source* src) {
     this->inflateFromXMLRes("xml/view/player_setting.xml");
     brls::Logger::debug("PlayerSetting: create");
     this->audioTrack->detail->setVisibility(brls::Visibility::GONE);

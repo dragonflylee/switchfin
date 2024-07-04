@@ -83,7 +83,7 @@ void VideoProfile::onRequest() {
     std::string query = HTTP::encode_form({
         {"deviceId", AppConfig::instance().getDeviceId()},
     });
-    jellyfin::getJSON(
+    jellyfin::getJSON<std::vector<jellyfin::SessionInfo>>(
         [this](const std::vector<jellyfin::SessionInfo>& list) {
             if (list.empty()) return;
 

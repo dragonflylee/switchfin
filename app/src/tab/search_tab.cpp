@@ -228,8 +228,8 @@ void SearchTab::doSuggest() {
     });
 
     ASYNC_RETAIN
-    jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
+    jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
+        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
             ASYNC_RELEASE
             this->searchSuggest->spanCount = 1;
             this->searchSuggest->estimatedRowHeight = 30;
@@ -254,8 +254,8 @@ void SearchTab::doSearch(const std::string& searchTerm) {
     });
 
     ASYNC_RETAIN
-    jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
+    jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
+        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
             ASYNC_RELEASE
             this->searchIndex = r.StartIndex + this->pageSize;
             if (r.TotalRecordCount == 0) {

@@ -7,7 +7,7 @@ class RecyclingGrid;
 
 class Playlist : public brls::Box {
 public:
-    Playlist(const jellyfin::MediaItem& item);
+    Playlist(const jellyfin::Item& item);
     ~Playlist() override;
 
     brls::View* getDefaultFocus() override;

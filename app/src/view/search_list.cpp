@@ -31,8 +31,8 @@ void SearchList::doRequest(const std::string& searchTerm) {
     });
 
     ASYNC_RETAIN
-    jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
+    jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
+        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
             ASYNC_RELEASE
             if (r.Items.empty()) {
                 this->setVisibility(brls::Visibility::GONE);

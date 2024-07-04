@@ -57,7 +57,7 @@ public:
 
 class TracksDataSource : public RecyclingGridDataSource {
 public:
-    using MediaList = std::vector<jellyfin::MusicTrack>;
+    using MediaList = std::vector<jellyfin::Track>;
 
     TracksDataSource(const MediaList& r) : list(std::move(r)) {}
 
@@ -87,7 +87,7 @@ private:
     MediaList list;
 };
 
-MusicAlbum::MusicAlbum(const jellyfin::MediaItem& item) : itemId(item.Id) {
+MusicAlbum::MusicAlbum(const jellyfin::Item& item) : itemId(item.Id) {
     this->inflateFromXMLRes("xml/tabs/music_album.xml");
     brls::Logger::debug("Tab MusicAlbum: create {}", itemId);
 
@@ -117,7 +117,7 @@ MusicAlbum::MusicAlbum(const jellyfin::MediaItem& item) : itemId(item.Id) {
     auto mpvce = MPVCore::instance().getCustomEvent();
     this->customEventSubscribeID = mpvce->subscribe([this](const std::string& event, void* data) {
         if (event == TRACK_START) {
-            auto item = reinterpret_cast<jellyfin::MusicTrack*>(data);
+            auto item = reinterpret_cast<jellyfin::Track*>(data);
             for (auto i : this->albumTracks->getGridItems()) {
                 auto* cell = dynamic_cast<MusicTrackCell*>(i);
                 if (cell) cell->setSelected(cell->itemId == item->Id);
@@ -138,8 +138,8 @@ MusicAlbum::~MusicAlbum() {
 
 void MusicAlbum::doAlbum() {
     ASYNC_RETAIN
-    jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MusicAlbum& r) {
+    jellyfin::getJSON<jellyfin::Album>(
+        [ASYNC_TOKEN](const jellyfin::Album& r) {
             ASYNC_RELEASE
             this->albumAritst->setText(r.AlbumArtist);
         },
@@ -154,8 +154,8 @@ void MusicAlbum::doTracks() {
     });
 
     ASYNC_RETAIN
-    jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MusicTrack>& r) {
+    jellyfin::getJSON<jellyfin::Result<jellyfin::Track>>(
+        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Track>& r) {
             ASYNC_RELEASE
             this->albumTracks->setDataSource(new TracksDataSource(r.Items));
         },

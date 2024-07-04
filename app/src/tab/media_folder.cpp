@@ -40,7 +40,7 @@ public:
 
 class MediaFolderDataSource : public RecyclingGridDataSource {
 public:
-    using MediaList = std::vector<jellyfin::MediaCollection>;
+    using MediaList = std::vector<jellyfin::Collection>;
 
     MediaFolderDataSource(const MediaList& r) : list(std::move(r)) {
         brls::Logger::debug("MediaFolderDataSource: create {}", r.size());
@@ -79,7 +79,7 @@ public:
             view = new MediaCollection(item.Id, jellyfin::mediaTypePlaylist);
         else if (item.CollectionType == "livetv")
             view = new LiveTV(item.Id);
-        else 
+        else
             view = new MediaCollection(item.Id);
 
         recycler->present(view);
@@ -115,8 +115,8 @@ void MediaFolders::onCreate() {
 
 void MediaFolders::doRequest() {
     ASYNC_RETAIN
-    jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaCollection>& r) {
+    jellyfin::getJSON<jellyfin::Result<jellyfin::Collection>>(
+        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Collection>& r) {
             ASYNC_RELEASE
             if (r.Items.empty())
                 this->recyclerFolders->setEmpty();

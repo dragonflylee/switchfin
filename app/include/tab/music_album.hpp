@@ -8,7 +8,7 @@ class RecyclingGrid;
 
 class MusicAlbum : public brls::Box {
 public:
-    MusicAlbum(const jellyfin::MediaItem& item);
+    MusicAlbum(const jellyfin::Item& item);
     ~MusicAlbum() override;
 
 private:

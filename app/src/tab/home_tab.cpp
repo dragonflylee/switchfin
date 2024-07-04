@@ -58,8 +58,8 @@ void HomeTab::doResume() {
         {"startIndex", std::to_string(this->startResume)},
     });
     ASYNC_RETAIN
-    jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
+    jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
+        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
             ASYNC_RELEASE
             this->startResume = r.StartIndex + this->pageSize;
             if (r.TotalRecordCount == 0) {
@@ -91,8 +91,8 @@ void HomeTab::doVideoLatest() {
         {"limit", std::to_string(this->latestSize)},
     });
     ASYNC_RETAIN
-    jellyfin::getJSON(
-        [ASYNC_TOKEN](const std::vector<jellyfin::MediaEpisode>& r) {
+    jellyfin::getJSON<std::vector<jellyfin::Episode>>(
+        [ASYNC_TOKEN](const std::vector<jellyfin::Episode>& r) {
             ASYNC_RELEASE
             if (r.empty()) {
                 this->headerVideo->setVisibility(brls::Visibility::GONE);
@@ -119,8 +119,8 @@ void HomeTab::doMusicLatest() {
         {"limit", std::to_string(this->latestSize)},
     });
     ASYNC_RETAIN
-    jellyfin::getJSON(
-        [ASYNC_TOKEN](const std::vector<jellyfin::MediaEpisode>& r) {
+    jellyfin::getJSON<std::vector<jellyfin::Episode>>(
+        [ASYNC_TOKEN](const std::vector<jellyfin::Episode>& r) {
             ASYNC_RELEASE
             if (r.empty()) {
                 this->headerMusic->setVisibility(brls::Visibility::GONE);
@@ -147,8 +147,8 @@ void HomeTab::doNextup() {
         {"startIndex", std::to_string(this->startNextup)},
     });
     ASYNC_RETAIN
-    jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
+    jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
+        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
             ASYNC_RELEASE
             this->startNextup = r.StartIndex + this->pageSize;
             if (r.TotalRecordCount == 0) {

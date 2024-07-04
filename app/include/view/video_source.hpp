@@ -5,7 +5,7 @@
 
 class VideoDataSource : public RecyclingGridDataSource {
 public:
-    using MediaList = std::vector<jellyfin::MediaEpisode>;
+    using MediaList = std::vector<jellyfin::Episode>;
 
     explicit VideoDataSource(const MediaList& r);
 

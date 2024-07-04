@@ -30,9 +30,9 @@ public:
 
     const std::string& currentId();
 
-    void play(const jellyfin::MediaItem& item);
+    void play(const jellyfin::Item& item);
 
-    void load(const std::vector<jellyfin::MusicTrack>& item, size_t index);
+    void load(const std::vector<jellyfin::Track>& item, size_t index);
 
 private:
     BRLS_BIND(brls::Box, btnPrev, "music/prev");
@@ -60,7 +60,7 @@ private:
     MPVEvent::Subscription eventSubscribeID;
     MPVCommandReply::Subscription replySubscribeID;
 
-    using MusicList = std::unordered_map<int64_t, jellyfin::MusicTrack>;
+    using MusicList = std::unordered_map<int64_t, jellyfin::Track>;
     int64_t playSession = 0;
     std::string itemId;
     MusicList playList;

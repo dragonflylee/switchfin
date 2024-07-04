@@ -12,7 +12,7 @@ using namespace brls::literals;  // for _i18n
 
 class LiveDataSource : public RecyclingGridDataSource {
 public:
-    using MediaList = std::vector<jellyfin::LiveChannel>;
+    using MediaList = std::vector<jellyfin::Channel>;
 
     explicit LiveDataSource(const MediaList& r) : list(std::move(r)) {
         brls::Logger::debug("LiveDataSource: create {}", r.size());
@@ -72,8 +72,8 @@ void LiveTV::doRequest() {
     HTTP::Form query = {{"userId", AppConfig::instance().getUser().id}};
 
     ASYNC_RETAIN
-    jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::LiveChannel>& r) {
+    jellyfin::getJSON<jellyfin::Result<jellyfin::Channel>>(
+        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Channel>& r) {
             ASYNC_RELEASE
             if (r.Items.empty())
                 this->recycler->setEmpty();

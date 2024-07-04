@@ -24,7 +24,7 @@ public:
 
 class EpisodeDataSource : public RecyclingGridDataSource {
 public:
-    using MediaList = std::vector<jellyfin::MediaEpisode>;
+    using MediaList = std::vector<jellyfin::Episode>;
 
     explicit EpisodeDataSource(const MediaList& r) : list(std::move(r)) {
         brls::Logger::debug("EpisodeDataSource: create {}", r.size());
@@ -107,8 +107,8 @@ void MediaSeries::doRequest() {
 
 void MediaSeries::doSeries() {
     ASYNC_RETAIN
-    jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MedisSeries& r) {
+    jellyfin::getJSON<jellyfin::Series>(
+        [ASYNC_TOKEN](const jellyfin::Series& r) {
             ASYNC_RELEASE
             this->headerTitle->setTitle(r.Name);
             this->labelYear->setText(std::to_string(r.ProductionYear));
@@ -146,8 +146,8 @@ void MediaSeries::doSeason() {
     });
 
     ASYNC_RETAIN
-    jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaSeason>& r) {
+    jellyfin::getJSON<jellyfin::Result<jellyfin::Season>>(
+        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Season>& r) {
             ASYNC_RELEASE
 
             size_t firstSeason = 0;
@@ -179,8 +179,8 @@ void MediaSeries::doEpisodes(const std::string& seasonId) {
     });
 
     ASYNC_RETAIN
-    jellyfin::getJSON(
-        [ASYNC_TOKEN](const jellyfin::MediaQueryResult<jellyfin::MediaEpisode>& r) {
+    jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
+        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
             ASYNC_RELEASE
             this->recyclerEpisodes->setDataSource(new EpisodeDataSource(r.Items));
         },
