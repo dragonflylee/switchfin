@@ -37,7 +37,7 @@ public:
             default:;
             }
         });
-        settingSubscribeID = view->getSettingEvent()->subscribe([this]() {
+        settingSubscribeID = view->getSettingEvent()->subscribe([]() {
             brls::View* setting = new PlayerSetting();
             brls::Application::pushActivity(new brls::Activity(setting));
         });

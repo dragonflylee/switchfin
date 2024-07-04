@@ -125,7 +125,7 @@ ServerList::ServerList() { brls::Logger::debug("ServerList: create"); }
 ServerList::~ServerList() { brls::Logger::debug("ServerList Activity: delete"); }
 
 void ServerList::onContentAvailable() {
-    this->btnServerAdd->registerClickAction([this](brls::View* view) {
+    this->btnServerAdd->registerClickAction([](brls::View* view) {
         view->present(new ServerAdd());
         return true;
     });
@@ -137,7 +137,7 @@ void ServerList::onContentAvailable() {
     }
 
     this->sidebarServers->registerAction(
-        "main/setting/server/connect_new"_i18n, brls::BUTTON_Y, [this](brls::View* view) {
+        "main/setting/server/connect_new"_i18n, brls::BUTTON_Y, [](brls::View* view) {
             view->present(new ServerAdd());
             return true;
         });
