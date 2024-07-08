@@ -119,8 +119,8 @@ jobs:
         cmake --install build --strip
     - name: Build harfbuzz
       run: |
-        curl -sSL https://github.com/harfbuzz/harfbuzz/releases/download/8.5.0/harfbuzz-8.5.0.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/harfbuzz-8.5.0
+        curl -sSL https://github.com/harfbuzz/harfbuzz/releases/download/9.0.0/harfbuzz-9.0.0.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/harfbuzz-9.0.0
         meson setup build ${{ matrix.meson }} \
           --prefix=$CMAKE_PREFIX_PATH \
           --buildtype=release \
@@ -155,8 +155,8 @@ jobs:
         make install -j$(sysctl -n hw.ncpu)
     - name: Build libass
       run: |
-        curl -sSL https://github.com/libass/libass/releases/download/0.17.2/libass-0.17.2.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/libass-0.17.2
+        curl -sSL https://github.com/libass/libass/releases/download/0.17.3/libass-0.17.3.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/libass-0.17.3
         ./configure --enable-shared --disable-static --disable-fontconfig --disable-asm --prefix=$CMAKE_PREFIX_PATH ${{ matrix.autoconf }}
         make install -j$(sysctl -n hw.ncpu)
     - name: Build dav1d

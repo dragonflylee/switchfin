@@ -81,7 +81,9 @@ PlayerView::PlayerView(const jellyfin::Item& item) : itemId(item.Id) {
     this->playMedia(item.UserData.PlaybackPositionTicks);
 
     // Report stop when application exit
-    this->exitSubscribeID = brls::Application::getExitEvent()->subscribe([this]() { this->reportStop(); });
+    this->exitSubscribeID = brls::Application::getExitEvent()->subscribe([this]() {
+        if (!MPVCore::instance().isStopped()) this->reportStop();
+    });
 }
 
 PlayerView::~PlayerView() {
@@ -94,7 +96,7 @@ PlayerView::~PlayerView() {
         DanmakuCore::instance().reset();
     }
 
-    if (this->playSessionId.size()) this->reportStop();
+    if (!mpv.isStopped()) this->reportStop();
     brls::Application::getExitEvent()->unsubscribe(this->exitSubscribeID);
     brls::Logger::debug("trying delete PlayerView...");
 }

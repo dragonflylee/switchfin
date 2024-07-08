@@ -100,7 +100,7 @@ jobs:
       run: |
         dkp-pacman --noconfirm -U $BASE_URL/hacBrewPack-3.05-1-any.pkg.tar.zst
         dkp-pacman --noconfirm -U $BASE_URL/libnx-4.7.0-1-any.pkg.tar.zst
-        for pkg in curl-8.7.1-1 libass-0.17.2-1 dav1d-1.4.3-1 ffmpeg-7.0.1-1 nspmini-main-1; do
+        for pkg in curl-8.7.1-1 libass-0.17.3-1 dav1d-1.4.3-1 ffmpeg-7.0.1-1 nspmini-main-1; do
           dkp-pacman --noconfirm -U $BASE_URL/switch-${pkg}-any.pkg.tar.zst
         done
         dkp-pacman --noconfirm -R switch-libmpv
