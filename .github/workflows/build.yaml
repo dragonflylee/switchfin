@@ -118,7 +118,7 @@ jobs:
         done
     - name: Build nro
       run: |
-        cp /etc/ssl/certs/ca-certificates.crt resources/ca-bundle.crt
+        curl -Lo resources/ca-bundle.crt https://curl.se/ca/cacert.pem
         cmake -B build_switch -DCMAKE_BUILD_TYPE=Release -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON -DVERSION_BUILD=${{ github.run_number }} ${{ matrix.cmake }}
         make -C build_switch Switchfin.nro -j$(nproc)
     - name: Set outputs
