@@ -833,3 +833,5 @@ void VideoView::setClipPoint(const std::vector<float>& clips) {
 }
 
 void VideoView::hideVideoProgressSlider() { this->osdSlider->setVisibility(brls::Visibility::GONE); }
+
+void VideoView::hideVideoQuality() { this->btnVideoQuality->setVisibility(brls::Visibility::GONE); }

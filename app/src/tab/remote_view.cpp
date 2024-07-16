@@ -20,6 +20,7 @@ public:
         view->setHeightPercentage(100);
         view->setId("video");
         view->setTitie(item.name);
+        view->hideVideoQuality();
         this->setDimensions(width, height);
         this->addView(view);
 
