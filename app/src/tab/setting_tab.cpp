@@ -338,6 +338,11 @@ void SettingTab::onCreate() {
     });
     inputProxyPort->setVisibility(proxyStatus ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
 
+    btnSync->init("main/setting/others/sync"_i18n, AppConfig::SYNC, [](bool value) {
+        AppConfig::SYNC = value;
+        AppConfig::instance().setItem(AppConfig::SYNC_SETTING, value);
+    });
+
     btnDebug->init("main/setting/others/debug"_i18n, brls::Application::isDebuggingViewEnabled(), [](bool value) {
         brls::Application::enableDebuggingView(value);
         MPVCore::instance().restart();

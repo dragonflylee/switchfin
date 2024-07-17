@@ -36,7 +36,7 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
     this->recycler->registerCell("Cell", VideoCardCell::create);
     this->recycler->onNextPage([this]() { this->doRequest(); });
 
-    if (itemType == jellyfin::mediaTypePlaylist) {
+    if (itemType == jellyfin::mediaTypePlaylist || AppConfig::SYNC) {
         this->doRequest();
     } else {
         this->doPreferences();
@@ -70,7 +70,7 @@ void MediaCollection::doPreferences() {
         filter->getEvent()->subscribe([this]() {
             this->startIndex = 0;
             this->doRequest();
-            this->saveFilter();
+            if (AppConfig::SYNC) this->saveFilter();
         });
         brls::Application::pushActivity(new brls::Activity(filter));
         return true;

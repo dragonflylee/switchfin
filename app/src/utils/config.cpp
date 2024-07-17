@@ -52,6 +52,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {OSD_ON_TOGGLE, {"osd_on_toggle"}},
     {TOUCH_GESTURE, {"touch_gesture"}},
     {CLIP_POINT, {"clip_point"}},
+    {SYNC_SETTING, {"sync_setting"}},
     {OVERCLOCK, {"overclock"}},
     {PLAYER_BOTTOM_BAR, {"player_bottom_bar"}},
     {PLAYER_SEEKING_STEP, {"player_seeking_step", {"5", "10", "15", "30"}, {5, 10, 15, 30}}},
@@ -168,6 +169,8 @@ bool AppConfig::init() {
         return false;
     }
 #endif
+
+    AppConfig::SYNC = this->getItem(SYNC_SETTING, true);
 
     HTTP::TIMEOUT = this->getItem(REQUEST_TIMEOUT, 3000L);
     HTTP::PROXY_STATUS = this->getItem(HTTP_PROXY_STATUS, false);

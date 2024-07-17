@@ -129,6 +129,8 @@
                     id="setting/single" />
                 <brls:BooleanCell
                     id="setting/overclock" />
+                <brls:BooleanCell
+                    id="setting/sync" />
                 <SelectorCell
                     id="setting/keymap"
                     quitApp="true" />

@@ -68,6 +68,7 @@ public:
         OSD_ON_TOGGLE,
         TOUCH_GESTURE,
         CLIP_POINT,
+        SYNC_SETTING,
         PLAYER_BOTTOM_BAR,
         PLAYER_SEEKING_STEP,
         PLAYER_LOW_QUALITY,
@@ -147,6 +148,8 @@ public:
     const std::vector<AppServer> getServers() const;
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AppConfig, user_id, server_url, device, users, servers, setting, remotes);
+
+    inline static bool SYNC = true;
 
 private:
     static std::unordered_map<Item, Option> settingMap;

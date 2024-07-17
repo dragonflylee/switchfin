@@ -189,6 +189,7 @@
       "single": "Single instance",
       "overclock": "CPU Overclock",
       "debug": "Debug View",
+      "sync": "Preserve order setting",
       "theme": {
         "header": "Theme (restart required)",
         "1": "Auto",
