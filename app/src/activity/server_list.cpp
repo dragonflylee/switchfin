@@ -30,7 +30,7 @@ public:
         this->addGestureRecognizer(new brls::TapGestureRecognizer(this));
 
         this->serverId = s.id;
-        this->labelName->setText(s.name);
+        this->labelName->setText(s.name.empty() ? "-" : s.name);
         this->labelUrl->setText(s.urls.front());
         this->labelUsers->setText(brls::getStr("main/setting/server/users", s.users.size()));
     }
@@ -125,6 +125,8 @@ ServerList::ServerList() { brls::Logger::debug("ServerList: create"); }
 ServerList::~ServerList() { brls::Logger::debug("ServerList Activity: delete"); }
 
 void ServerList::onContentAvailable() {
+    this->selectorUrl->detail->setSingleLine(true);
+
     this->btnServerAdd->registerClickAction([](brls::View* view) {
         view->present(new ServerAdd());
         return true;
@@ -197,7 +199,7 @@ void ServerList::willAppear(bool resetState) {
 }
 
 void ServerList::onSelect(const AppServer& s) {
-    this->serverVersion->setDetailText(s.version);
+    this->serverVersion->setDetailText(s.version.empty() ? "-" : s.version);
     this->serverOS->setDetailText(s.os.empty() ? "-" : s.os);
     this->selectorUrl->init("main/setting/url"_i18n, s.urls, 0, [this, s](size_t selected) {
         AppConfig::instance().addServer({
