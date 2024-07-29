@@ -70,6 +70,9 @@ PlayerView::PlayerView(const jellyfin::Item& item) : itemId(item.Id) {
             if (PlayerSetting::selectedSubtitle > 0 || external) {
                 mpv.setInt("sid", PlayerSetting::selectedSubtitle);
             }
+            if (DanmakuCore::PLUGIN_ACTIVE) {
+                this->requestDanmaku();
+            }
             break;
         }
         case MpvEventEnum::UPDATE_PROGRESS:
@@ -161,6 +164,8 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
     jellyfin::postJSON(
         {
             {"UserId", AppConfig::instance().getUser().id},
+            {"AudioStreamIndex", PlayerSetting::selectedAudio},
+            {"SubtitleStreamIndex", PlayerSetting::selectedSubtitle},
             {"AllowAudioStreamCopy", true},
             {
                 "DeviceProfile",
@@ -255,10 +260,6 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
             Dialog::show(ex, []() { VideoView::dismiss(); });
         },
         jellyfin::apiPlayback, this->itemId);
-
-    if (DanmakuCore::PLUGIN_ACTIVE) {
-        this->requestDanmaku();
-    }
 }
 
 void PlayerView::reportStart() {

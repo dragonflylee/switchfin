@@ -183,7 +183,7 @@ bool AppConfig::init() {
 
     // 初始化是否固定显示底部进度条
     MPVCore::BOTTOM_BAR = this->getItem(PLAYER_BOTTOM_BAR, true);
-    MPVCore::OSD_ON_TOGGLE = this->getItem(PLAYER_BOTTOM_BAR, true);
+    MPVCore::OSD_ON_TOGGLE = this->getItem(OSD_ON_TOGGLE, true);
     MPVCore::TOUCH_GESTURE = this->getItem(TOUCH_GESTURE, true);
     MPVCore::CLIP_POINT = this->getItem(CLIP_POINT, true);
     // 初始化内存缓存大小
