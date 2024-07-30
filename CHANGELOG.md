@@ -1,6 +1,6 @@
 # Changelog
 
-## [next]
+## [0.5.1]
 
 ### Add
 
@@ -14,6 +14,7 @@
 * network timeout for load video
 * panic after cancel login
 * abnormal focus when login after add server
+* server list url display
 
 ## [0.5.0]
 

@@ -11,6 +11,10 @@ std::shared_ptr<Client> create(const AppRemote& c) {
         std::string url = "http" + c.url.substr(pos);
         return std::make_shared<Webdav>(url, c.user, c.passwd);
     }
+    if (scheme == "webdavs") {
+        std::string url = "https" + c.url.substr(pos);
+        return std::make_shared<Webdav>(url, c.user, c.passwd);
+    }
     if (scheme == "file") {
         return std::make_shared<Local>(c.url.substr(pos + 3));
     }
