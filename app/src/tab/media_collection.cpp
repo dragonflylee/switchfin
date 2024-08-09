@@ -36,10 +36,22 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
     this->recycler->registerCell("Cell", VideoCardCell::create);
     this->recycler->onNextPage([this]() { this->doRequest(); });
 
-    if (itemType == jellyfin::mediaTypePlaylist || AppConfig::SYNC) {
+    if (itemType == jellyfin::mediaTypePlaylist) {
         this->doRequest();
-    } else {
+    } else if (AppConfig::SYNC) {
         this->doPreferences();
+    } else {
+        this->registerAction("main/media/sort"_i18n, brls::BUTTON_Y, [this](...) {
+            MediaFilter* filter = new MediaFilter();
+            filter->getEvent()->subscribe([this]() {
+                this->startIndex = 0;
+                this->doRequest();
+            });
+            brls::Application::pushActivity(new brls::Activity(filter));
+            return true;
+        });
+
+        this->doRequest();
     }
 }
 
@@ -70,7 +82,7 @@ void MediaCollection::doPreferences() {
         filter->getEvent()->subscribe([this]() {
             this->startIndex = 0;
             this->doRequest();
-            if (AppConfig::SYNC) this->saveFilter();
+            this->saveFilter();
         });
         brls::Application::pushActivity(new brls::Activity(filter));
         return true;
