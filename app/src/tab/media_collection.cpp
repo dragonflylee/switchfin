@@ -7,7 +7,7 @@
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
 #include "view/media_filter.hpp"
-#include <fmt/format.h>
+#include <fmt/ranges.h>
 
 using namespace brls::literals;  // for _i18n
 

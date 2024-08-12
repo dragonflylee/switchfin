@@ -85,7 +85,7 @@ jobs:
         - { driver: deko3d, cmake: "-DUSE_DEKO3D=ON" }
         driver: [opengl, deko3d]
     container:
-      image: devkitpro/devkita64:20240324
+      image: devkitpro/devkita64:20240604
     env:
       BASE_URL: https://github.com/dragonflylee/switchfin/releases/download/switch-portlibs
     steps:
@@ -99,8 +99,7 @@ jobs:
     - name: Update dependencies
       run: |
         dkp-pacman --noconfirm -U $BASE_URL/hacBrewPack-3.05-1-any.pkg.tar.zst
-        dkp-pacman --noconfirm -U $BASE_URL/libnx-4.7.0-1-any.pkg.tar.zst
-        for pkg in curl-8.7.1-1 libass-0.17.3-1 dav1d-1.4.3-1 ffmpeg-7.0.1-1 nspmini-main-1; do
+        for pkg in curl-8.7.1-1 libass-0.17.3-1 dav1d-1.4.3-1 ffmpeg-7.0.2-1 nspmini-main-1; do
           dkp-pacman --noconfirm -U $BASE_URL/switch-${pkg}-any.pkg.tar.zst
         done
         dkp-pacman --noconfirm -R switch-libmpv

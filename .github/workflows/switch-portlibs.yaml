@@ -12,7 +12,7 @@ jobs:
   build-portlibs:
     runs-on: ubuntu-latest
     container:
-      image: devkitpro/devkita64:20240324
+      image: devkitpro/devkita64:20240604
     steps:
     - name: Disable autocrlf
       run: git config --global core.autocrlf false
@@ -22,7 +22,7 @@ jobs:
     - name: Install dependency
       run: |
         apt-get update
-        apt-get install -y fakeroot zstd ninja-build bison flex libtool python3-pip manpages-
+        apt-get install -y fakeroot zstd bison flex libtool python3-pip manpages-
         pip3 install meson mako
 
         dkp-pacman --noconfirm -U scripts/switch/dkp-*.zst
@@ -41,7 +41,7 @@ jobs:
         sudo -u builder -i bash -s << EOF
           set -x
           cd scripts/switch
-          for pkg in libnx libass dav1d ffmpeg libuam; do
+          for pkg in libass dav1d ffmpeg libuam; do
             echo building \$pkg
             pushd \$pkg; dkp-makepkg -sciCf --noconfirm; popd
           done

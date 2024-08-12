@@ -108,8 +108,8 @@ jobs:
         cmake --install build --strip
     - name: Build freetype
       run: |
-        curl -sSL https://downloads.sourceforge.net/project/freetype/freetype2/2.13.2/freetype-2.13.2.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/freetype-2.13.2
+        curl -sSL https://downloads.sourceforge.net/project/freetype/freetype2/2.13.3/freetype-2.13.3.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/freetype-2.13.3
         cmake -B build -G Ninja \
           -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
           -DBUILD_SHARED_LIBS=ON \
@@ -195,8 +195,8 @@ jobs:
         cmake --install build --strip
     - name: Build ffmpeg
       run: |
-        curl -sSL https://ffmpeg.org/releases/ffmpeg-7.0.1.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/ffmpeg-7.0.1
+        curl -sSL https://ffmpeg.org/releases/ffmpeg-7.0.2.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/ffmpeg-7.0.2
         ./configure --enable-shared --disable-static --enable-pthreads --prefix=$CMAKE_PREFIX_PATH \
           --cc=clang --enable-cross-compile --target-os=darwin --arch=${{ matrix.arch }} \
           --disable-autodetect --disable-encoders --enable-pic --disable-asm \
