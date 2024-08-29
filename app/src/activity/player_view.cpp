@@ -333,7 +333,7 @@ void PlayerView::requestDanmaku() {
 
             std::vector<DanmakuItem> items;
             for (auto child = element->FirstChildElement(); child != nullptr; child = child->NextSiblingElement()) {
-                if (child->Name()[0] != 'd') continue;  // 简易判断是不是弹幕
+                if (strcmp(child->Name(), "d")) continue;  // 简易判断是不是弹幕
                 const char* content = child->GetText();
                 if (!content) continue;
                 try {
