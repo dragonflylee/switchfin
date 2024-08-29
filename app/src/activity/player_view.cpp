@@ -56,18 +56,16 @@ PlayerView::PlayerView(const jellyfin::Item& item) : itemId(item.Id) {
             break;
         case MpvEventEnum::MPV_LOADED: {
             auto& svr = AppConfig::instance().getUrl();
-            bool external = false;
             // 移除其他备用链接
             for (auto& s : this->stream.MediaStreams) {
                 if (s.Type == jellyfin::streamTypeSubtitle) {
                     if (s.DeliveryUrl.size() > 0 && (s.IsExternal || this->playMethod == jellyfin::methodTranscode)) {
                         std::string url = svr + s.DeliveryUrl;
-                        mpv.command("sub-add", url.c_str(), "auto", s.DisplayTitle.c_str());
-                        external = true;
+                        mpv.command("sub-add", url.c_str(), "select", s.DisplayTitle.c_str());
                     }
                 }
             }
-            if (PlayerSetting::selectedSubtitle > 0 || external) {
+            if (PlayerSetting::selectedSubtitle > 0) {
                 mpv.setInt("sid", PlayerSetting::selectedSubtitle);
             }
             if (DanmakuCore::PLUGIN_ACTIVE) {
