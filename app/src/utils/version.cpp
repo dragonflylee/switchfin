@@ -94,8 +94,13 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
 
             brls::sync([latest_ver]() {
                 std::string title = brls::getStr("main/setting/others/upgrade", latest_ver);
+                auto dialog = new brls::Dialog(title);
+                dialog->addButton("hints/cancel"_i18n, []() {
+                    auto& conf = AppConfig::instance();
+                    conf.setItem(AppConfig::APP_UPDATE, getVersion());
+                });
 #ifdef __SWITCH__
-                Dialog::cancelable(title, [latest_ver]() {
+                dialog->addButton("hints/ok"_i18n, [latest_ver]() {
                     AppVersion::updating->store(false);
                     ThreadPool::instance().submit([latest_ver]() {
                         std::string conf_dir = AppConfig::instance().configDir();
@@ -121,8 +126,9 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
                 });
 #else
                 std::string url = fmt::format("https://github.com/{}/releases/tag/{}", git_repo, latest_ver);
-                Dialog::cancelable(title, [url] { brls::Application::getPlatform()->openBrowser(url); });
+                dialog->addButton("hints/ok"_i18n, [url] { brls::Application::getPlatform()->openBrowser(url); });
 #endif
+                dialog->open();
             });
         } catch (const std::exception& ex) {
             brls::Logger::error("checkUpdate failed: {}", ex.what());

@@ -47,7 +47,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Load cookies and settings
-    if (!AppConfig::instance().init()) {
+    auto& conf = AppConfig::instance();
+    if (!conf.init()) {
         return 0;
     }
 
@@ -107,7 +108,7 @@ int main(int argc, char* argv[]) {
 
     if (!brls::Application::getPlatform()->isApplicationMode()) {
         brls::Application::pushActivity(new HintActivity());
-    } else if (!AppConfig::instance().checkLogin()) {
+    } else if (!conf.checkLogin()) {
         brls::Application::pushActivity(new ServerList());
     } else if (itemId.empty()) {
         brls::Application::pushActivity(new MainActivity());
@@ -116,14 +117,15 @@ int main(int argc, char* argv[]) {
         //brls::sync([view]() { brls::Application::giveFocus(view); });
     }
 
-    AppVersion::checkUpdate();
+    std::string v = conf.getItem(AppConfig::APP_UPDATE, std::string("NaN"));
+    if (AppVersion::getVersion().compare(v)) AppVersion::checkUpdate();
+
     // Run the app
-    while (brls::Application::mainLoop())
-        ;
+    while (brls::Application::mainLoop());
 
     ThreadPool::instance().stop();
 
-    AppConfig::instance().checkRestart(argv);
+    conf.checkRestart(argv);
     // Exit
     return EXIT_SUCCESS;
 }

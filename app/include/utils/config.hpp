@@ -61,6 +61,7 @@ public:
         OVERCLOCK,
         APP_THEME,
         APP_LANG,
+        APP_UPDATE,
         KEYMAP,
         TRANSCODEC,
         FORCE_DIRECTPLAY,
