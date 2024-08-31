@@ -1,5 +1,14 @@
 # Changelog
 
+## [next]
+
+### Fixed
+
+* disable update notify when user caneled
+* decode danmaku failed
+* filter missing when sync option off
+* auto selected external subtitles
+
 ## [0.5.1]
 
 ### Add

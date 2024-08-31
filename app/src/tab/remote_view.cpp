@@ -54,7 +54,7 @@ public:
     void setList(const DirList& list, size_t index, RemoteView::Client c) {
         // 播放列表
         DirList urls;
-        for (size_t i = 0; i < list.size(); i++) {
+        for (size_t i = 1; i < list.size(); i++) {
             auto& it = list.at(i);
             if (it.type == remote::EntryType::VIDEO) {
                 if (i == index) index = urls.size();
@@ -179,6 +179,11 @@ public:
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
         auto& item = this->list.at(index);
+        if (index == 0) {
+            recycler->getParent()->dismiss();
+            return;
+        }
+
         if (item.type == remote::EntryType::DIR) {
             auto* view = dynamic_cast<RemoteView*>(recycler->getParent());
             if (view) view->push(item.path);
@@ -190,6 +195,10 @@ public:
             view->setList(this->list, index, client);
             MPVCore::instance().setUrl(item.url.empty() ? item.path : item.url, client->extraOption());
             brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
+            return;
+        }
+
+        if (item.type == remote::EntryType::IMAGE) {
             return;
         }
 
@@ -220,14 +229,7 @@ brls::View* RemoteView::getDefaultFocus() { return this->recycler; }
 
 void RemoteView::onCreate() {
     this->recycler->registerAction("hints/back"_i18n, brls::BUTTON_B, [this](...) {
-        if (this->stack.size() > 1) {
-            this->stack.pop_back();
-            this->load();
-        } else if (brls::Application::getInputType() == brls::InputType::TOUCH) {
-            this->dismiss();
-        } else {
-            AutoTabFrame::focus2Sidebar(this);
-        }
+        this->dismiss();
         return true;
     });
 
@@ -240,6 +242,17 @@ void RemoteView::onCreate() {
 void RemoteView::push(const std::string& path) {
     this->stack.push_back(path);
     this->load();
+}
+
+void RemoteView::dismiss(std::function<void(void)> cb) {
+    if (this->stack.size() > 1) {
+        this->stack.pop_back();
+        this->load();
+    } else if (brls::Application::getInputType() == brls::InputType::TOUCH) {
+        brls::View::dismiss();
+    } else {
+        AutoTabFrame::focus2Sidebar(this);
+    }
 }
 
 void RemoteView::load() {

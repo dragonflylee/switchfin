@@ -19,6 +19,10 @@ Local::Local(const std::string& path) { root = path; }
 
 std::vector<DirEntry> Local::list(const std::string& path) {
     std::vector<DirEntry> s;
+    s.push_back({
+        .name = "..", 
+        .type = EntryType::DIR,
+    });
     auto it = fs::directory_iterator(path);
     for (const auto& fp : it) {
         DirEntry item;

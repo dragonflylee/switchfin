@@ -104,8 +104,13 @@ std::vector<DirEntry> Webdav::list(const std::string& path) {
 
         respElem = respElem->NextSiblingElement((nsPrefix + "response").c_str());
 
-        if (item.path.compare(path)) s.push_back(item);
+        s.push_back(item);
     }
+
+    if (s.size() > 0) {
+        s[0].name = "..";
+    }
+
     return s;
 }
 

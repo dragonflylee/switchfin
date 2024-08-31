@@ -24,6 +24,8 @@ public:
 
     void push(const std::string& path);
 
+    void dismiss(std::function<void(void)> cb = [] {}) override;
+
 private:
     BRLS_BIND(RecyclingGrid, recycler, "remote/list");
 
