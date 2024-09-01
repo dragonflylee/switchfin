@@ -19,7 +19,7 @@ Local::Local(const std::string& path) { root = path; }
 
 std::vector<DirEntry> Local::list(const std::string& path) {
     std::vector<DirEntry> s;
-    s.push_back({
+    s.push_back(DirEntry{
         .name = "..", 
         .type = EntryType::DIR,
     });
