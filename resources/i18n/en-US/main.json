@@ -80,6 +80,7 @@
       "hint": "Support keywords and their initial letters",
       "clear": "Clear",
       "delete": "Delete",
+      "paste": "Paste",
       "search": "Search",
       "history": "History",
       "suggest": "Suggest"

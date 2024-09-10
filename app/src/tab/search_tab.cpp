@@ -12,6 +12,10 @@
 #include "api/jellyfin.hpp"
 #include <fstream>
 
+#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
+#include <clip/clip.h>
+#endif
+
 using namespace brls::literals;  // for _i18n
 
 typedef brls::Event<char> KeyboardEvent;
@@ -161,7 +165,12 @@ SearchTab::SearchTab() {
         return true;
     });
     this->searchBox->addGestureRecognizer(new brls::TapGestureRecognizer(this->searchBox));
-
+#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
+    this->searchBox->registerAction("main/search/tv/paste"_i18n, brls::BUTTON_X, [this](brls::View* view) {
+        if (clip::get_text(this->currentSearch)) this->updateInput();
+        return true;
+    });
+#endif
     this->recyclingKeyboard->registerCell("Cell", KeyboardButton::create);
     this->recyclingKeyboard->setDataSource(new DataSourceKeyboard([this](char key) {
         this->currentSearch += key;

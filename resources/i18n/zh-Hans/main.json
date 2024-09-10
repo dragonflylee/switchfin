@@ -80,6 +80,7 @@
       "hint": "支持关键字及关键字首字母",
       "clear": "清空",
       "delete": "删除",
+      "paste": "粘贴",
       "search": "搜索",
       "history": "历史记录",
       "suggest": "猜你想搜"
