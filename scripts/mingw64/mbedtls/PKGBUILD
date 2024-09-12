@@ -1,0 +1,60 @@
+# Maintainer: Nazar Mishturak <nazar m x at gmail dot com>
+
+_realname=mbedtls
+pkgbase="mingw-w64-${_realname}"
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+pkgver=3.5.2
+pkgrel=1
+pkgdesc="Portable cryptographic and SSL/TLS library, aka polarssl (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw32' 'mingw64' 'clangarm64')
+url='https://www.trustedfirmware.org/projects/mbed-tls/'
+msys2_repository_url="https://github.com/Mbed-TLS/mbedtls"
+msys2_references=(
+  'archlinux: mbedtls'
+)
+license=('spdx:Apache-2.0')
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-gcc-libs"
+  "${MINGW_PACKAGE_PREFIX}-libwinpthread"
+)
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "${MINGW_PACKAGE_PREFIX}-cmake"
+  "${MINGW_PACKAGE_PREFIX}-ninja"
+)
+source=(
+  "https://github.com/Mbed-TLS/mbedtls/archive/v${pkgver}/${_realname}-${pkgver}.tar.gz"
+  "0001-support-cpuid-for-win32.patch"
+)
+sha256sums=('35890edf1a2c7a7e29eac3118d43302c3e1173e0df0ebaf5db56126dabe5bb05' 'SKIP')
+
+prepare() {
+  cd "${srcdir}/${_realname}-${pkgver}"
+
+  patch -Np1 -i "${srcdir}/0001-support-cpuid-for-win32.patch"
+}
+
+build() {
+  if [[ ${MSYSTEM} == MINGW32 ]]; then
+    CFLAGS="-maes -msse2 -mpclmul"
+  fi
+
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    ${MINGW_PREFIX}/bin/cmake.exe -B "build-${MSYSTEM}" -G Ninja \
+      -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DENABLE_PROGRAMS=OFF \
+      -DENABLE_TESTING=OFF \
+      -DUSE_SHARED_MBEDTLS_LIBRARY=ON \
+      -DUSE_STATIC_MBEDTLS_LIBRARY=ON \
+      "${srcdir}/${_realname}-${pkgver}"
+
+  ${MINGW_PREFIX}/bin/cmake.exe --build "build-${MSYSTEM}"
+}
+
+package () {
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake.exe --install "build-${MSYSTEM}"
+
+  install -Dm644 "${srcdir}/${_realname}-${pkgver}/LICENSE" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
+}
