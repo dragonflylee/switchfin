@@ -1,7 +1,7 @@
 #ifdef __SWITCH__
 #include <switch.h>
 #include "utils/overclock.hpp"
-#else
+#elif defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
 #include <unistd.h>
 #include <borealis/platforms/desktop/desktop_platform.hpp>
 #if defined(_WIN32)
@@ -40,6 +40,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
                                 brls::LOCALE_DE, "cs", "uk-UA"}}},
     {APP_UPDATE, {"app_update"}},
     {KEYMAP, {"keymap", {"xbox", "ps", "keyboard"}}},
+    {WINDOW_STATE, {"window_state"}},
     {TRANSCODEC, {"transcodec", {"h264", "hevc", "av1"}}},
     {FORCE_DIRECTPLAY, {"force_directplay"}},
     {VIDEO_QUALITY,
@@ -169,6 +170,32 @@ bool AppConfig::init() {
         brls::Logger::warning("AppConfig single instance");
         return false;
     }
+    // 加载窗口位置
+    auto wstate = this->getItem(AppConfig::WINDOW_STATE, std::string{""});
+    if (wstate.size() > 0) {
+        int hXPos, hYPos, monitor;
+        uint32_t hWidth, hHeight;
+        sscanf(wstate.c_str(), "%d,%ux%u,%dx%d", &monitor, &hWidth, &hHeight, &hXPos, &hYPos);
+        if (hWidth > 0 && hHeight > 0) {
+            VideoContext::sizeH = hHeight;
+            VideoContext::sizeW = hWidth;
+            VideoContext::posX = (float)hXPos;
+            VideoContext::posY = (float)hYPos;
+            VideoContext::monitorIndex = monitor;
+        }
+    }
+    // 窗口将要关闭时, 保存窗口状态配置
+    brls::Application::getExitEvent()->subscribe([this]() {
+        if (isnan(VideoContext::posX) || isnan(VideoContext::posY)) return;
+        auto videoContext = brls::Application::getPlatform()->getVideoContext();
+        uint32_t width = VideoContext::sizeW;
+        uint32_t height = VideoContext::sizeH;
+        if (width == 0) width = brls::Application::ORIGINAL_WINDOW_WIDTH;
+        if (height == 0) height = brls::Application::ORIGINAL_WINDOW_HEIGHT;
+        this->setItem(AppConfig::WINDOW_STATE, fmt::format("{},{}x{},{}x{}", videoContext->getCurrentMonitorIndex(),
+                                                   width, height, (int)VideoContext::posX, (int)VideoContext::posY));
+        this->save();
+    });
 #endif
 
     AppConfig::SYNC = this->getItem(SYNC_SETTING, true);

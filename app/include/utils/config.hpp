@@ -63,6 +63,7 @@ public:
         APP_LANG,
         APP_UPDATE,
         KEYMAP,
+        WINDOW_STATE,
         TRANSCODEC,
         FORCE_DIRECTPLAY,
         VIDEO_QUALITY,
