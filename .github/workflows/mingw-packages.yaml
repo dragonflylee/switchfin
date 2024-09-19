@@ -41,7 +41,7 @@ jobs:
       run: |
         cd scripts/mingw64
 
-        for pkg in libwebp freetype harfbuzz libass dav1d ffmpeg spirv-cross shaderc mpv; do
+        for pkg in mbedtls libwebp freetype harfbuzz libass dav1d ffmpeg spirv-cross shaderc mpv; do
           echo building $pkg
           pushd $pkg; makepkg-mingw -sciCf --noconfirm; popd
         done

@@ -1,5 +1,17 @@
 # Changelog
 
+## [next]
+
+### Add
+
+* save windows state when exit
+* support touch input on linux
+* support paste text to search input
+
+### Fixed
+
+* support loading custom emoji font
+
 ## [0.5.2]
 
 ### Fixed
