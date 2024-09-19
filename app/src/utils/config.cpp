@@ -319,6 +319,12 @@ bool AppConfig::init() {
 #endif
     }
 
+    brls::FontLoader::USER_EMOJI_PATH = configDir() + "/emoji.ttf";
+    if (access(brls::FontLoader::USER_EMOJI_PATH.c_str(), F_OK) == -1) {
+        // 自定义emoji不存在，使用内置emoji
+        brls::FontLoader::USER_EMOJI_PATH = BRLS_ASSET("font/emoji.ttf");
+    }
+
     brls::Logger::info("init {} v{}-{} device {} from {}", AppVersion::getPlatform(), AppVersion::getVersion(),
         AppVersion::getCommit(), this->device, path);
     return true;
