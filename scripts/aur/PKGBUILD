@@ -1,0 +1,29 @@
+pkgname=switchfin
+pkgver=0.5.2
+pkgrel=1
+pkgdesc='Third-party native Jellyfin client'
+arch=('x86_64' 'aarch64')
+url='https://github.com/dragonflylee/switchfin'
+license=('GPL-3.0-or-later')
+depends=('curl' 'dbus' 'gcc-libs' 'glibc' 'hicolor-icon-theme' 'libwebp' 'mpv' 'libxcb' 'tinyxml2' 'libpng')
+makedepends=('cmake' 'git' 'libxi' 'libxinerama' 'ninja' 'python' 'wayland-protocols')
+#source=("${pkgname}::git+$url.git")
+#sha256sums=('SKIP')
+
+build() {
+  cmake -B "${srcdir}/build" -G Ninja \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D CMAKE_INSTALL_PREFIX='/usr' \
+    -D CMAKE_INSTALL=ON \
+    -D PLATFORM_DESKTOP=ON \
+    -D USE_SYSTEM_CURL=ON \
+    -D USE_SYSTEM_TINYXML2=ON \
+    -D GLFW_BUILD_WAYLAND=ON \
+    -D GLFW_BUILD_X11=ON \
+    -S "../../.."
+  cmake --build "${srcdir}/build"
+}
+
+package() {
+  DESTDIR="${pkgdir}" cmake --install "${srcdir}/build"
+}

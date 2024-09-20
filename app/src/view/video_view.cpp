@@ -41,7 +41,7 @@ VideoView::VideoView() {
                 this->toggleOSD();
                 return true;
             }
-            return dismiss();
+            return close();
         },
         true);
 
@@ -237,7 +237,7 @@ VideoView::VideoView() {
     this->osdLockBox->addGestureRecognizer(new brls::TapGestureRecognizer(this->osdLockBox));
 
     this->btnClose->registerClickAction([](...) {
-        brls::sync([]() { dismiss(); });
+        brls::sync([]() { close(); });
         return true;
     });
     this->btnClose->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnClose));
@@ -614,7 +614,7 @@ void VideoView::registerMpvEvent() {
             this->btnVolumeIcon->setImageFromSVGRes("icon/ico-volume.svg");
             break;
         case MpvEventEnum::MPV_FILE_ERROR: {
-            Dialog::show("main/player/error"_i18n, []() { dismiss(); });
+            Dialog::show("main/player/error"_i18n, []() { close(); });
             break;
         }
         default:;
@@ -774,7 +774,7 @@ bool VideoView::toggleVolume(brls::View* view) {
     return true;
 }
 
-bool VideoView::dismiss() {
+bool VideoView::close() {
     return brls::Application::popActivity(brls::TransitionAnimation::NONE, []() {
         auto mpvce = MPVCore::instance().getCustomEvent();
         mpvce->fire(VIDEO_CLOSE, nullptr);

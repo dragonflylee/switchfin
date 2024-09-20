@@ -33,8 +33,14 @@ on:
       arm_flatpak:
         description: build flatpak (aarch64)
         type: boolean
+      snap:
+        description: build snapcraft
+        type: boolean
       deb:
         description: build ubuntu deb
+        type: boolean
+      aur:
+        description: build archlinux package
         type: boolean
       mingw64:
         description: build win64 mingw64
@@ -70,7 +76,8 @@ jobs:
           Switchfin-windows-*.7z
           Switchfin-macos-*/*.dmg
           Switchfin-deko3d-*/*.nro
-          Switchfin-linux-*/*.flatpak
+          "*/*.flatpak"
+          "*/*.pkg.tar.*"
         body: |
           ![download](https://img.shields.io/github/downloads/${{ github.repository }}/${{ github.ref_name }}/total?label=Downloads)
 
@@ -213,6 +220,44 @@ jobs:
       with:
         name: Switchfin-${{ matrix.release }}-${{ steps.vars.outputs.sha_short }}
         path: Switchfin-*.deb
+
+  build-snap:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.snap }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Build snap
+      run: |
+        docker run --rm --tty --network host -v $PWD:/work -w /work/scripts --privileged diddledani/snapcraft:core20
+    - name: Set outputs
+      id: vars
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+    - name: Upload Assets
+      uses: actions/upload-artifact@v4
+      with:
+        name: switchfin-snap-${{ steps.vars.outputs.sha_short }}
+        path: scripts/*.snap
+
+  build-aur:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.aur || github.event_name != 'workflow_dispatch' }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Build aur
+      run: |
+        docker run --rm --tty --network host -v $PWD:/work -e PUID=$(id -u) -w /work/scripts/aur archlinux bash entrypoint.sh
+    - name: Set outputs
+      id: vars
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+    - name: Upload Assets
+      uses: actions/upload-artifact@v4
+      with:
+        name: Switchfin-aur-${{ steps.vars.outputs.sha_short }}
+        path: scripts/aur/*.pkg.tar.*
 
   build-macos:
     runs-on: macos-12

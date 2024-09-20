@@ -60,7 +60,7 @@ public:
     void hideVideoProgressSlider();
     void hideVideoQuality();
 
-    static bool dismiss();
+    static bool close();
 
 private:
     /// OSD

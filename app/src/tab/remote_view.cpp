@@ -66,7 +66,7 @@ public:
 
         playSubscribeID = view->getPlayEvent()->subscribe([this, urls, c](int index) {
             if (index < 0 || index >= (int)urls.size()) {
-                return VideoView::dismiss();
+                return VideoView::close();
             }
             auto& it = urls.at(index);
             MPVCore::instance().reset();
@@ -88,7 +88,7 @@ public:
 
         playSubscribeID = view->getPlayEvent()->subscribe([this, &mpv](int index) {
             if (index < 0 || index >= (int)titles.size()) {
-                return VideoView::dismiss();
+                return VideoView::close();
             }
             view->setTitie(titles.at(index));
             mpv.command("playlist-play-index", std::to_string(index).c_str());

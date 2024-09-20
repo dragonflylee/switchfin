@@ -145,7 +145,7 @@ void PlayerView::setChapters(const std::vector<jellyfin::MediaChapter>& chaps, u
 
 bool PlayerView::playIndex(int index) {
     if (index < 0 || index >= (int)this->episodes.size()) {
-        return VideoView::dismiss();
+        return VideoView::close();
     }
     MPVCore::instance().reset();
 
@@ -207,7 +207,7 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
             ASYNC_RELEASE
 
             if (r.MediaSources.empty()) {
-                Dialog::show(r.ErrorCode, []() { VideoView::dismiss(); });
+                Dialog::show(r.ErrorCode, []() { VideoView::close(); });
                 return;
             }
 
@@ -251,11 +251,11 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
                 }
             }
 
-            VideoView::dismiss();
+            VideoView::close();
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            Dialog::show(ex, []() { VideoView::dismiss(); });
+            Dialog::show(ex, []() { VideoView::close(); });
         },
         jellyfin::apiPlayback, this->itemId);
 }

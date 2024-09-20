@@ -9,6 +9,7 @@ build*/
 /resources/forwarder.nsp
 /resources/shaders/*.dksh
 /scripts/*/*/*.tar.*
+/scripts/aur/*.tar.*
 /scripts/*/*/src
 /scripts/switch/mpv-deko3d/deko3d.patch
 /switchfin
