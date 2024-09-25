@@ -14,3 +14,7 @@ build*/
 /scripts/switch/mpv-deko3d/deko3d.patch
 /switchfin
 .DS_Store
+debian/debhelper-build-stamp
+debian/files
+debian/switchfin*
+debian/.debhelper

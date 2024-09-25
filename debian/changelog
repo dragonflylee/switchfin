@@ -1,0 +1,5 @@
+switchfin (0.5.2-1) unstable; urgency=medium
+
+  * save windows state when exit
+
+ -- dragonflylee <dragonflylee@outlook.com>  Sun, 11 Apr 2021 22:34:40 -0400
