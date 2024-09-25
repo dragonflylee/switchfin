@@ -199,28 +199,27 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: [ switchroot-bionic, ubuntu-focal, debian-bookworm ]
+        include:
+        - { img: ubuntu, tag: noble }
+        - { img: debian, tag: bookworm }
     runs-on: ubuntu-latest
     if: ${{ inputs.deb }}
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
-    - name: Set up QEMU
-      if: ${{ matrix.release == 'switchroot-bionic'}}
-      uses: docker/setup-qemu-action@v3
-    - name: Build docker
-      run: docker build -t build:${{ matrix.release }} scripts/deb/${{ matrix.release }}
     - name: Build deb
-      run: docker run --rm -u $(id -u):$(id -g) -v $PWD:/opt -w /opt -e VERSION_BUILD=${{ github.run_number }} build:${{ matrix.release }} bash scripts/deb/${{ matrix.release }}/build.sh
+      run: |
+        docker build -t builddeb --build-arg TAG=${{ matrix.tag }} --build-arg IMG=${{ matrix.img }} debian
+        docker run --rm --tty -u $(id -u):$(id -g) -v $PWD:/tmp/work -w /tmp/work -v /tmp:/tmp builddeb dpkg-buildpackage --post-clean
     - name: Set outputs
       id: vars
       run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
       uses: actions/upload-artifact@v4
       with:
-        name: Switchfin-${{ matrix.release }}-${{ steps.vars.outputs.sha_short }}
-        path: Switchfin-*.deb
+        name: Switchfin-${{ matrix.tag }}-${{ steps.vars.outputs.sha_short }}
+        path: /tmp/switchfin_*.deb
 
   build-snap:
     runs-on: ubuntu-latest
@@ -231,7 +230,7 @@ jobs:
         submodules: recursive
     - name: Build snap
       run: |
-        docker run --rm --tty --network host -v $PWD:/work -w /work/scripts --privileged diddledani/snapcraft:core20
+        docker run --rm --tty -v $PWD:/work -w /work/scripts --privileged diddledani/snapcraft:core20
     - name: Set outputs
       id: vars
       run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -250,7 +249,7 @@ jobs:
         submodules: recursive
     - name: Build aur
       run: |
-        docker run --rm --tty --network host -v $PWD:/work -e PUID=$(id -u) -w /work/scripts/aur archlinux bash entrypoint.sh
+        docker run --rm --tty -v $PWD:/work -e PUID=$(id -u) -w /work/scripts/aur archlinux bash entrypoint.sh
     - name: Set outputs
       id: vars
       run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
