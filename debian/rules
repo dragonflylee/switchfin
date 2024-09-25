@@ -1,0 +1,9 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --buildsystem=cmake --builddirectory=build
+
+override_dh_auto_configure:
+	dh_auto_configure -- \
+		-DPLATFORM_DESKTOP=ON -DCMAKE_INSTALL=ON \
+    -DFETCHCONTENT_FULLY_DISCONNECTED=OFF
