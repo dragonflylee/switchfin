@@ -11,6 +11,7 @@
 ### Fixed
 
 * support loading custom emoji font
+* empty tab when search failed
 
 ## [0.5.2]
 

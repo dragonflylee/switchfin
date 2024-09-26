@@ -167,7 +167,11 @@ void MediaCollection::doRequest() {
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            this->recycler->setError(ex);
+            if (this->startIndex > 0) {
+                brls::Application::notify(ex);
+            } else {
+                this->recycler->setError(ex);
+            }
         },
         jellyfin::apiUserLibrary, AppConfig::instance().getUser().id, HTTP::encode_form(query));
 }

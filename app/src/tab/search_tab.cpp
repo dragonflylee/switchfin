@@ -217,9 +217,14 @@ SearchTab::SearchTab() {
         return true;
     });
     this->searchLabel->addGestureRecognizer(new brls::TapGestureRecognizer(searchLabel));
+}
 
+void SearchTab::onCreate() {
+    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
+        this->updateInput();
+        return true;
+    });
     this->updateInput();
-    this->doSuggest();
 }
 
 SearchTab::~SearchTab() { brls::Logger::debug("SearchTab: deleted"); }
@@ -281,7 +286,7 @@ void SearchTab::doSearch(const std::string& searchTerm) {
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            this->setVisibility(brls::Visibility::GONE);
+            brls::Application::notify(ex);
         },
         jellyfin::apiUserLibrary, AppConfig::instance().getUser().id, query);
 }
@@ -292,17 +297,17 @@ void SearchTab::updateInput() {
         this->inputLabel->setTextColor(brls::Application::getTheme().getColor("font/grey"));
         if (this->historyBox->getVisibility() == brls::Visibility::GONE) {
             this->historyBox->setVisibility(brls::Visibility::VISIBLE);
-            this->searchSuggest->setEmpty("hints/loading"_i18n);
-            this->doSuggest();
         }
+        this->searchSuggest->setEmpty("hints/loading"_i18n);
+        this->doSuggest();
     } else {
         this->inputLabel->setText(this->currentSearch);
         this->inputLabel->setTextColor(brls::Application::getTheme().getColor("brls/text"));
         if (this->historyBox->getVisibility() == brls::Visibility::VISIBLE) {
             this->historyBox->setVisibility(brls::Visibility::GONE);
-            this->searchSuggest->setEmpty("hints/loading"_i18n);
         }
         this->searchIndex = 0;
+        this->searchSuggest->setEmpty("hints/loading"_i18n);
         this->doSearch(this->currentSearch);
     }
 }

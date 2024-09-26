@@ -13,6 +13,8 @@ public:
     SearchTab();
     ~SearchTab();
 
+    void onCreate() override;
+
     static brls::View* create();
 
 private:
