@@ -79,6 +79,8 @@ void HomeTab::doResume() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             this->userResume->setVisibility(brls::Visibility::GONE);
+            this->headerResume->setSubtitle(ex);
+            brls::Application::notify(ex);
         },
         jellyfin::apiUserResume, AppConfig::instance().getUser().id, query);
 }
@@ -107,6 +109,7 @@ void HomeTab::doVideoLatest() {
             ASYNC_RELEASE
             this->headerVideo->setVisibility(brls::Visibility::GONE);
             this->videoLatest->setVisibility(brls::Visibility::GONE);
+            brls::Application::notify(ex);
         },
         jellyfin::apiUserLatest, AppConfig::instance().getUser().id, query);
 }
@@ -135,6 +138,7 @@ void HomeTab::doMusicLatest() {
             ASYNC_RELEASE
             this->headerMusic->setVisibility(brls::Visibility::GONE);
             this->musicLatest->setVisibility(brls::Visibility::GONE);
+            brls::Application::notify(ex);
         },
         jellyfin::apiUserLatest, AppConfig::instance().getUser().id, query);
 }
@@ -168,6 +172,7 @@ void HomeTab::doNextup() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             this->showNextup->setVisibility(brls::Visibility::GONE);
+            brls::Application::notify(ex);
         },
         jellyfin::apiShowNextUp, query);
 }

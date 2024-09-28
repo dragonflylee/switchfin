@@ -171,32 +171,46 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
                     {"MaxStreamingBitrate", MPVCore::VIDEO_QUALITY ? MPVCore::VIDEO_QUALITY << 20 : 1 << 24},
                     {
                         "DirectPlayProfiles",
-                        {{
-                            {"Type", "Video"},
+                        {
+                            {{"Type", "Audio"}},
+                            {
+                                {"Type", "Video"},
 #ifdef __SWITCH__
-                            {"VideoCodec", "h264,hevc,av1,vp9"},
+                                {"VideoCodec", "h264,hevc,av1,vp9"},
 #endif
-                        }},
+                            },
+                        },
                     },
                     {
                         "TranscodingProfiles",
-                        {{
-                            {"Container", "ts"},
-                            {"Type", "Video"},
-                            {"VideoCodec", MPVCore::VIDEO_CODEC},
-                            {"AudioCodec", "aac,mp3,ac3,opus"},
-                            {"Protocol", "hls"},
-                        }},
+                        {
+                            {{"Type", "Audio"}},
+                            {
+                                {"Container", "ts"},
+                                {"Type", "Video"},
+                                {"VideoCodec", MPVCore::VIDEO_CODEC + ",mpeg4,mpeg2video"},
+                                {"AudioCodec", "aac,mp3,ac3,opus,vorbis"},
+                                {"Protocol", "hls"},
+                            },
+                        },
                     },
                     {
                         "SubtitleProfiles",
                         {
-                            {{"Format", "ass"}, {"Method", "External"}},
-                            {{"Format", "ssa"}, {"Method", "External"}},
                             {{"Format", "srt"}, {"Method", "External"}},
-                            {{"Format", "smi"}, {"Method", "External"}},
+                            {{"Format", "srt"}, {"Method", "Embed"}},
+                            {{"Format", "ass"}, {"Method", "External"}},
+                            {{"Format", "ass"}, {"Method", "Embed"}},
+                            {{"Format", "ssa"}, {"Method", "External"}},
+                            {{"Format", "ssa"}, {"Method", "Embed"}},
                             {{"Format", "sub"}, {"Method", "External"}},
+                            {{"Format", "sub"}, {"Method", "Embed"}},
+                            {{"Format", "smi"}, {"Method", "External"}},
+                            {{"Format", "smi"}, {"Method", "Embed"}},
+                            {{"Format", "vtt"}, {"Method", "External"}},
                             {{"Format", "dvdsub"}, {"Method", "Embed"}},
+                            {{"Format", "dvbsub"}, {"Method", "Embed"}},
+                            {{"Format", "pgssub"}, {"Method", "Embed"}},
                             {{"Format", "pgs"}, {"Method", "Embed"}},
                         },
                     },
