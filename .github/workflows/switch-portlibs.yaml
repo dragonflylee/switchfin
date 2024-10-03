@@ -12,7 +12,7 @@ jobs:
   build-portlibs:
     runs-on: ubuntu-latest
     container:
-      image: devkitpro/devkita64:20240604
+      image: devkitpro/devkita64:20240916
     steps:
     - name: Disable autocrlf
       run: git config --global core.autocrlf false
@@ -35,7 +35,7 @@ jobs:
           -H 'Accept: application/vnd.github.patch' \
           -H 'Authorization: Bearer ${{ secrets.MPV_TOKEN }}' \
           -H 'X-GitHub-Api-Version: 2022-11-28' \
-          -s ${{ secrets.MPV_COMMIT}}
+          -s ${{ secrets.MPV_COMMIT}}/0.36
 
         chown -R builder:builder scripts/switch
         sudo -u builder -i bash -s << EOF

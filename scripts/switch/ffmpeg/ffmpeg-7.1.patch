@@ -1,16 +1,16 @@
 diff --git a/configure b/configure
-index 2a1d22310b..f5cf158aee 100755
+index d77a55b653..566d5fbed2 100755
 --- a/configure
 +++ b/configure
-@@ -359,6 +359,7 @@ External library support:
+@@ -363,6 +363,7 @@ External library support:
    --disable-vdpau          disable Nvidia Video Decode and Presentation API for Unix code [autodetect]
    --disable-videotoolbox   disable VideoToolbox code [autodetect]
    --disable-vulkan         disable Vulkan code [autodetect]
-+  --enable-nvtegra         enable nvtegra video decoding [no]
++  --enable-nvtegra         enable nvtegra code [no]
  
  Toolchain options:
    --arch=ARCH              select architecture [$arch]
-@@ -2018,6 +2019,7 @@ HWACCEL_LIBRARY_LIST="
+@@ -2025,6 +2026,7 @@ HWACCEL_LIBRARY_LIST="
      mmal
      omx
      opencl
@@ -18,7 +18,7 @@ index 2a1d22310b..f5cf158aee 100755
  "
  
  DOCUMENT_LIST="
-@@ -3131,6 +3133,7 @@ videotoolbox_hwaccel_deps="videotoolbox pthreads"
+@@ -3151,6 +3153,7 @@ videotoolbox_hwaccel_deps="videotoolbox pthreads"
  videotoolbox_hwaccel_extralibs="-framework QuartzCore"
  vulkan_deps="threads"
  vulkan_deps_any="libdl LoadLibrary"
@@ -26,7 +26,7 @@ index 2a1d22310b..f5cf158aee 100755
  
  av1_d3d11va_hwaccel_deps="d3d11va DXVA_PicParams_AV1"
  av1_d3d11va_hwaccel_select="av1_decoder"
-@@ -3170,6 +3173,8 @@ h264_videotoolbox_hwaccel_deps="videotoolbox"
+@@ -3190,6 +3193,8 @@ h264_videotoolbox_hwaccel_deps="videotoolbox"
  h264_videotoolbox_hwaccel_select="h264_decoder"
  h264_vulkan_hwaccel_deps="vulkan"
  h264_vulkan_hwaccel_select="h264_decoder"
@@ -35,7 +35,7 @@ index 2a1d22310b..f5cf158aee 100755
  hevc_d3d11va_hwaccel_deps="d3d11va DXVA_PicParams_HEVC"
  hevc_d3d11va_hwaccel_select="hevc_decoder"
  hevc_d3d11va2_hwaccel_deps="d3d11va DXVA_PicParams_HEVC"
-@@ -3188,16 +3193,22 @@ hevc_videotoolbox_hwaccel_deps="videotoolbox"
+@@ -3208,16 +3213,22 @@ hevc_videotoolbox_hwaccel_deps="videotoolbox"
  hevc_videotoolbox_hwaccel_select="hevc_decoder"
  hevc_vulkan_hwaccel_deps="vulkan"
  hevc_vulkan_hwaccel_select="hevc_decoder"
@@ -58,7 +58,7 @@ index 2a1d22310b..f5cf158aee 100755
  mpeg2_d3d11va_hwaccel_deps="d3d11va"
  mpeg2_d3d11va_hwaccel_select="mpeg2video_decoder"
  mpeg2_d3d11va2_hwaccel_deps="d3d11va"
-@@ -3214,6 +3225,8 @@ mpeg2_vdpau_hwaccel_deps="vdpau"
+@@ -3234,6 +3245,8 @@ mpeg2_vdpau_hwaccel_deps="vdpau"
  mpeg2_vdpau_hwaccel_select="mpeg2video_decoder"
  mpeg2_videotoolbox_hwaccel_deps="videotoolbox"
  mpeg2_videotoolbox_hwaccel_select="mpeg2video_decoder"
@@ -67,7 +67,7 @@ index 2a1d22310b..f5cf158aee 100755
  mpeg4_nvdec_hwaccel_deps="nvdec"
  mpeg4_nvdec_hwaccel_select="mpeg4_decoder"
  mpeg4_vaapi_hwaccel_deps="vaapi"
-@@ -3224,6 +3237,8 @@ mpeg4_videotoolbox_hwaccel_deps="videotoolbox"
+@@ -3244,6 +3257,8 @@ mpeg4_videotoolbox_hwaccel_deps="videotoolbox"
  mpeg4_videotoolbox_hwaccel_select="mpeg4_decoder"
  prores_videotoolbox_hwaccel_deps="videotoolbox"
  prores_videotoolbox_hwaccel_select="prores_decoder"
@@ -76,7 +76,7 @@ index 2a1d22310b..f5cf158aee 100755
  vc1_d3d11va_hwaccel_deps="d3d11va"
  vc1_d3d11va_hwaccel_select="vc1_decoder"
  vc1_d3d11va2_hwaccel_deps="d3d11va"
-@@ -3238,10 +3253,14 @@ vc1_vaapi_hwaccel_deps="vaapi"
+@@ -3258,10 +3273,14 @@ vc1_vaapi_hwaccel_deps="vaapi"
  vc1_vaapi_hwaccel_select="vc1_decoder"
  vc1_vdpau_hwaccel_deps="vdpau"
  vc1_vdpau_hwaccel_select="vc1_decoder"
@@ -91,7 +91,7 @@ index 2a1d22310b..f5cf158aee 100755
  vp9_d3d11va_hwaccel_deps="d3d11va DXVA_PicParams_VP9"
  vp9_d3d11va_hwaccel_select="vp9_decoder"
  vp9_d3d11va2_hwaccel_deps="d3d11va DXVA_PicParams_VP9"
-@@ -3258,6 +3277,8 @@ vp9_vdpau_hwaccel_deps="vdpau VdpPictureInfoVP9"
+@@ -3278,6 +3297,8 @@ vp9_vdpau_hwaccel_deps="vdpau VdpPictureInfoVP9"
  vp9_vdpau_hwaccel_select="vp9_decoder"
  vp9_videotoolbox_hwaccel_deps="videotoolbox"
  vp9_videotoolbox_hwaccel_select="vp9_decoder"
@@ -100,15 +100,15 @@ index 2a1d22310b..f5cf158aee 100755
  wmv3_d3d11va_hwaccel_select="vc1_d3d11va_hwaccel"
  wmv3_d3d11va2_hwaccel_select="vc1_d3d11va2_hwaccel"
  wmv3_d3d12va_hwaccel_select="vc1_d3d12va_hwaccel"
-@@ -3265,6 +3286,7 @@ wmv3_dxva2_hwaccel_select="vc1_dxva2_hwaccel"
+@@ -3285,6 +3306,7 @@ wmv3_dxva2_hwaccel_select="vc1_dxva2_hwaccel"
  wmv3_nvdec_hwaccel_select="vc1_nvdec_hwaccel"
  wmv3_vaapi_hwaccel_select="vc1_vaapi_hwaccel"
  wmv3_vdpau_hwaccel_select="vc1_vdpau_hwaccel"
 +wmv3_nvtegra_hwaccel_select="vc1_nvtegra_hwaccel"
  
  # hardware-accelerated codecs
- mediafoundation_deps="mftransform_h MFCreateAlignedMemoryBuffer"
-@@ -5926,6 +5948,10 @@ case $target_os in
+ d3d12va_encode_deps="d3d12va ID3D12VideoEncoder d3d12_encoder_feature"
+@@ -5970,6 +5992,10 @@ case $target_os in
          ;;
      minix)
          ;;
@@ -119,7 +119,7 @@ index 2a1d22310b..f5cf158aee 100755
      none)
          ;;
      *)
-@@ -7670,6 +7696,10 @@ haiku)
+@@ -7719,6 +7745,10 @@ haiku)
          disable memalign
      fi
      ;;
@@ -131,10 +131,10 @@ index 2a1d22310b..f5cf158aee 100755
  
  flatten_extralibs(){
 diff --git a/libavcodec/Makefile b/libavcodec/Makefile
-index 9ce6d445c1..96c542909d 100644
+index a4fcce3b42..c8fc0a1ded 100644
 --- a/libavcodec/Makefile
 +++ b/libavcodec/Makefile
-@@ -993,6 +993,7 @@ OBJS-$(CONFIG_VAAPI)                      += vaapi_decode.o
+@@ -1001,6 +1001,7 @@ OBJS-$(CONFIG_VAAPI)                      += vaapi_decode.o
  OBJS-$(CONFIG_VIDEOTOOLBOX)               += videotoolbox.o
  OBJS-$(CONFIG_VDPAU)                      += vdpau.o
  OBJS-$(CONFIG_VULKAN)                     += vulkan.o vulkan_video.o
@@ -142,7 +142,7 @@ index 9ce6d445c1..96c542909d 100644
  
  OBJS-$(CONFIG_AV1_D3D11VA_HWACCEL)        += dxva2_av1.o
  OBJS-$(CONFIG_AV1_DXVA2_HWACCEL)          += dxva2_av1.o
-@@ -1012,6 +1013,7 @@ OBJS-$(CONFIG_H264_VAAPI_HWACCEL)         += vaapi_h264.o
+@@ -1020,6 +1021,7 @@ OBJS-$(CONFIG_H264_VAAPI_HWACCEL)         += vaapi_h264.o
  OBJS-$(CONFIG_H264_VDPAU_HWACCEL)         += vdpau_h264.o
  OBJS-$(CONFIG_H264_VIDEOTOOLBOX_HWACCEL)  += videotoolbox.o
  OBJS-$(CONFIG_H264_VULKAN_HWACCEL)        += vulkan_decode.o vulkan_h264.o
@@ -150,7 +150,7 @@ index 9ce6d445c1..96c542909d 100644
  OBJS-$(CONFIG_HEVC_D3D11VA_HWACCEL)       += dxva2_hevc.o
  OBJS-$(CONFIG_HEVC_DXVA2_HWACCEL)         += dxva2_hevc.o
  OBJS-$(CONFIG_HEVC_D3D12VA_HWACCEL)       += dxva2_hevc.o d3d12va_hevc.o
-@@ -1020,11 +1022,14 @@ OBJS-$(CONFIG_HEVC_QSV_HWACCEL)           += qsvdec.o
+@@ -1028,11 +1030,14 @@ OBJS-$(CONFIG_HEVC_QSV_HWACCEL)           += qsvdec.o
  OBJS-$(CONFIG_HEVC_VAAPI_HWACCEL)         += vaapi_hevc.o h265_profile_level.o
  OBJS-$(CONFIG_HEVC_VDPAU_HWACCEL)         += vdpau_hevc.o h265_profile_level.o
  OBJS-$(CONFIG_HEVC_VULKAN_HWACCEL)        += vulkan_decode.o vulkan_hevc.o
@@ -165,7 +165,7 @@ index 9ce6d445c1..96c542909d 100644
  OBJS-$(CONFIG_MPEG2_D3D11VA_HWACCEL)      += dxva2_mpeg2.o
  OBJS-$(CONFIG_MPEG2_DXVA2_HWACCEL)        += dxva2_mpeg2.o
  OBJS-$(CONFIG_MPEG2_D3D12VA_HWACCEL)      += dxva2_mpeg2.o d3d12va_mpeg2.o
-@@ -1033,10 +1038,12 @@ OBJS-$(CONFIG_MPEG2_QSV_HWACCEL)          += qsvdec.o
+@@ -1041,10 +1046,12 @@ OBJS-$(CONFIG_MPEG2_QSV_HWACCEL)          += qsvdec.o
  OBJS-$(CONFIG_MPEG2_VAAPI_HWACCEL)        += vaapi_mpeg2.o
  OBJS-$(CONFIG_MPEG2_VDPAU_HWACCEL)        += vdpau_mpeg12.o
  OBJS-$(CONFIG_MPEG2_VIDEOTOOLBOX_HWACCEL) += videotoolbox.o
@@ -178,7 +178,7 @@ index 9ce6d445c1..96c542909d 100644
  OBJS-$(CONFIG_VC1_D3D11VA_HWACCEL)        += dxva2_vc1.o
  OBJS-$(CONFIG_VC1_DXVA2_HWACCEL)          += dxva2_vc1.o
  OBJS-$(CONFIG_VC1_D3D12VA_HWACCEL)        += dxva2_vc1.o d3d12va_vc1.o
-@@ -1044,8 +1051,10 @@ OBJS-$(CONFIG_VC1_NVDEC_HWACCEL)          += nvdec_vc1.o
+@@ -1052,8 +1059,10 @@ OBJS-$(CONFIG_VC1_NVDEC_HWACCEL)          += nvdec_vc1.o
  OBJS-$(CONFIG_VC1_QSV_HWACCEL)            += qsvdec.o
  OBJS-$(CONFIG_VC1_VAAPI_HWACCEL)          += vaapi_vc1.o
  OBJS-$(CONFIG_VC1_VDPAU_HWACCEL)          += vdpau_vc1.o
@@ -189,7 +189,7 @@ index 9ce6d445c1..96c542909d 100644
  OBJS-$(CONFIG_VP9_D3D11VA_HWACCEL)        += dxva2_vp9.o
  OBJS-$(CONFIG_VP9_DXVA2_HWACCEL)          += dxva2_vp9.o
  OBJS-$(CONFIG_VP9_D3D12VA_HWACCEL)        += dxva2_vp9.o d3d12va_vp9.o
-@@ -1053,6 +1062,7 @@ OBJS-$(CONFIG_VP9_NVDEC_HWACCEL)          += nvdec_vp9.o
+@@ -1061,6 +1070,7 @@ OBJS-$(CONFIG_VP9_NVDEC_HWACCEL)          += nvdec_vp9.o
  OBJS-$(CONFIG_VP9_VAAPI_HWACCEL)          += vaapi_vp9.o
  OBJS-$(CONFIG_VP9_VDPAU_HWACCEL)          += vdpau_vp9.o
  OBJS-$(CONFIG_VP9_VIDEOTOOLBOX_HWACCEL)   += videotoolbox_vp9.o
@@ -197,8 +197,8 @@ index 9ce6d445c1..96c542909d 100644
  OBJS-$(CONFIG_VP8_QSV_HWACCEL)            += qsvdec.o
  
  # Objects duplicated from other libraries for shared builds
-@@ -1282,6 +1292,7 @@ SKIPHEADERS-$(CONFIG_VIDEOTOOLBOX)     += videotoolbox.h vt_internal.h
- SKIPHEADERS-$(CONFIG_VULKAN)           += vulkan.h vulkan_video.h vulkan_decode.h
+@@ -1292,6 +1302,7 @@ SKIPHEADERS-$(CONFIG_VIDEOTOOLBOX)     += videotoolbox.h vt_internal.h
+ SKIPHEADERS-$(CONFIG_VULKAN)           += vulkan.h vulkan_video.h vulkan_encode.h vulkan_decode.h
  SKIPHEADERS-$(CONFIG_V4L2_M2M)         += v4l2_buffers.h v4l2_context.h v4l2_m2m.h
  SKIPHEADERS-$(CONFIG_ZLIB)             += zlib_wrapper.h
 +SKIPHEADERS-$(CONFIG_NVTEGRA)          += nvtegra_decode.h
@@ -206,10 +206,10 @@ index 9ce6d445c1..96c542909d 100644
  TESTPROGS = avcodec                                                     \
              avpacket                                                    \
 diff --git a/libavcodec/h263dec.c b/libavcodec/h263dec.c
-index 910df7585f..417a39e38e 100644
+index 0c23012584..5a98a33841 100644
 --- a/libavcodec/h263dec.c
 +++ b/libavcodec/h263dec.c
-@@ -61,6 +61,9 @@ static const enum AVPixelFormat h263_hwaccel_pixfmt_list_420[] = {
+@@ -60,6 +60,9 @@ static const enum AVPixelFormat h263_hwaccel_pixfmt_list_420[] = {
  #endif
  #if CONFIG_H263_VIDEOTOOLBOX_HWACCEL || CONFIG_MPEG4_VIDEOTOOLBOX_HWACCEL
      AV_PIX_FMT_VIDEOTOOLBOX,
@@ -219,7 +219,7 @@ index 910df7585f..417a39e38e 100644
  #endif
      AV_PIX_FMT_YUV420P,
      AV_PIX_FMT_NONE
-@@ -691,6 +694,9 @@ static const AVCodecHWConfigInternal *const h263_hw_config_list[] = {
+@@ -701,6 +704,9 @@ static const AVCodecHWConfigInternal *const h263_hw_config_list[] = {
  #if CONFIG_MPEG4_VDPAU_HWACCEL
      HWACCEL_VDPAU(mpeg4),
  #endif
@@ -230,7 +230,7 @@ index 910df7585f..417a39e38e 100644
      HWACCEL_VIDEOTOOLBOX(h263),
  #endif
 diff --git a/libavcodec/h264_slice.c b/libavcodec/h264_slice.c
-index e9a404e41b..bcf0934b73 100644
+index a66b75ca80..26d408772f 100644
 --- a/libavcodec/h264_slice.c
 +++ b/libavcodec/h264_slice.c
 @@ -784,7 +784,8 @@ static enum AVPixelFormat get_pixel_format(H264Context *h, int force_callback)
@@ -254,10 +254,10 @@ index e9a404e41b..bcf0934b73 100644
              if (h->avctx->color_range == AVCOL_RANGE_JPEG)
                  *fmt++ = AV_PIX_FMT_YUVJ420P;
 diff --git a/libavcodec/h264dec.c b/libavcodec/h264dec.c
-index b4973fce29..5d19cebc1e 100644
+index 0154fe17b6..f8c0a0f5ff 100644
 --- a/libavcodec/h264dec.c
 +++ b/libavcodec/h264dec.c
-@@ -1151,6 +1151,9 @@ const FFCodec ff_h264_decoder = {
+@@ -1160,6 +1160,9 @@ const FFCodec ff_h264_decoder = {
  #endif
  #if CONFIG_H264_VULKAN_HWACCEL
                                 HWACCEL_VULKAN(h264),
@@ -267,11 +267,11 @@ index b4973fce29..5d19cebc1e 100644
  #endif
                                 NULL
                             },
-diff --git a/libavcodec/hevcdec.c b/libavcodec/hevcdec.c
-index 575836e340..8f67a144b4 100644
---- a/libavcodec/hevcdec.c
-+++ b/libavcodec/hevcdec.c
-@@ -405,7 +405,8 @@ static enum AVPixelFormat get_format(HEVCContext *s, const HEVCSPS *sps)
+diff --git a/libavcodec/hevc/hevcdec.c b/libavcodec/hevc/hevcdec.c
+index 0dc24f82f8..21ffcd3384 100644
+--- a/libavcodec/hevc/hevcdec.c
++++ b/libavcodec/hevc/hevcdec.c
+@@ -530,7 +530,8 @@ static enum AVPixelFormat get_format(HEVCContext *s, const HEVCSPS *sps)
                       CONFIG_HEVC_VAAPI_HWACCEL + \
                       CONFIG_HEVC_VIDEOTOOLBOX_HWACCEL + \
                       CONFIG_HEVC_VDPAU_HWACCEL + \
@@ -279,9 +279,9 @@ index 575836e340..8f67a144b4 100644
 +                     CONFIG_HEVC_VULKAN_HWACCEL + \
 +                     CONFIG_HEVC_NVTEGRA_HWACCEL)
      enum AVPixelFormat pix_fmts[HWACCEL_MAX + 2], *fmt = pix_fmts;
+     int ret;
  
-     switch (sps->pix_fmt) {
-@@ -435,6 +436,9 @@ static enum AVPixelFormat get_format(HEVCContext *s, const HEVCSPS *sps)
+@@ -561,6 +562,9 @@ static enum AVPixelFormat get_format(HEVCContext *s, const HEVCSPS *sps)
  #endif
  #if CONFIG_HEVC_VULKAN_HWACCEL
          *fmt++ = AV_PIX_FMT_VULKAN;
@@ -291,7 +291,7 @@ index 575836e340..8f67a144b4 100644
  #endif
          break;
      case AV_PIX_FMT_YUV420P10:
-@@ -462,6 +466,9 @@ static enum AVPixelFormat get_format(HEVCContext *s, const HEVCSPS *sps)
+@@ -588,6 +592,9 @@ static enum AVPixelFormat get_format(HEVCContext *s, const HEVCSPS *sps)
  #endif
  #if CONFIG_HEVC_NVDEC_HWACCEL
          *fmt++ = AV_PIX_FMT_CUDA;
@@ -301,15 +301,15 @@ index 575836e340..8f67a144b4 100644
  #endif
          break;
      case AV_PIX_FMT_YUV444P:
-@@ -597,6 +604,7 @@ static int hls_slice_header(HEVCContext *s)
-     GetBitContext *gb = &s->HEVClc->gb;
-     SliceHeader *sh   = &s->sh;
+@@ -708,6 +715,7 @@ static int hls_slice_header(SliceHeader *sh, const HEVCContext *s, GetBitContext
+     const HEVCVPS *vps;
+     unsigned pps_id, layer_idx;
      int i, ret;
 +    int nvidia_skip_len_start;
  
      // Coded parameters
      sh->first_slice_in_pic_flag = get_bits1(gb);
-@@ -699,6 +707,8 @@ static int hls_slice_header(HEVCContext *s)
+@@ -782,6 +790,8 @@ static int hls_slice_header(SliceHeader *sh, const HEVCContext *s, GetBitContext
              return AVERROR_INVALIDDATA;
          }
  
@@ -317,24 +317,24 @@ index 575836e340..8f67a144b4 100644
 +
          // when flag is not present, picture is inferred to be output
          sh->pic_output_flag = 1;
-         if (s->ps.pps->output_flag_present_flag)
-@@ -752,6 +762,7 @@ static int hls_slice_header(HEVCContext *s)
+         if (pps->output_flag_present_flag)
+@@ -841,6 +851,7 @@ static int hls_slice_header(SliceHeader *sh, const HEVCContext *s, GetBitContext
              }
              sh->long_term_ref_pic_set_size = pos - get_bits_left(gb);
  
 +            sh->nvidia_skip_length = nvidia_skip_len_start - get_bits_left(gb);
-             if (s->ps.sps->sps_temporal_mvp_enabled_flag)
+             if (sps->temporal_mvp_enabled)
                  sh->slice_temporal_mvp_enabled_flag = get_bits1(gb);
              else
-@@ -764,6 +775,7 @@ static int hls_slice_header(HEVCContext *s)
+@@ -853,6 +864,7 @@ static int hls_slice_header(SliceHeader *sh, const HEVCContext *s, GetBitContext
              sh->short_term_rps                  = NULL;
              sh->long_term_ref_pic_set_size      = 0;
              sh->slice_temporal_mvp_enabled_flag = 0;
 +            sh->nvidia_skip_length              = nvidia_skip_len_start - get_bits_left(gb);
          }
  
-         /* 8.3.1 */
-@@ -3742,6 +3754,9 @@ const FFCodec ff_hevc_decoder = {
+         sh->inter_layer_pred = 0;
+@@ -4107,6 +4119,9 @@ const FFCodec ff_hevc_decoder = {
  #endif
  #if CONFIG_HEVC_VULKAN_HWACCEL
                                 HWACCEL_VULKAN(hevc),
@@ -344,14 +344,14 @@ index 575836e340..8f67a144b4 100644
  #endif
                                 NULL
                             },
-diff --git a/libavcodec/hevcdec.h b/libavcodec/hevcdec.h
-index e65a6180ca..60db98a353 100644
---- a/libavcodec/hevcdec.h
-+++ b/libavcodec/hevcdec.h
-@@ -277,6 +277,8 @@ typedef struct SliceHeader {
-     int16_t chroma_offset_l1[16][2];
+diff --git a/libavcodec/hevc/hevcdec.h b/libavcodec/hevc/hevcdec.h
+index 6ba2ca3887..c076cbbc80 100644
+--- a/libavcodec/hevc/hevcdec.h
++++ b/libavcodec/hevc/hevcdec.h
+@@ -283,6 +283,8 @@ typedef struct SliceHeader {
  
      int slice_ctb_addr_rs;
+     unsigned data_offset;
 +
 +    int nvidia_skip_length;
  } SliceHeader;
@@ -439,10 +439,10 @@ index ee29ca631d..a3c3402c77 100644
  #define HW_CONFIG_ENCODER(device, frames, ad_hoc, format, device_type_) \
      &(const AVCodecHWConfigInternal) { \
 diff --git a/libavcodec/mjpegdec.c b/libavcodec/mjpegdec.c
-index c9409eac6c..fef979207e 100644
+index 86ec58713c..1010e7a9cd 100644
 --- a/libavcodec/mjpegdec.c
 +++ b/libavcodec/mjpegdec.c
-@@ -732,6 +732,9 @@ int ff_mjpeg_decode_sof(MJpegDecodeContext *s)
+@@ -733,6 +733,9 @@ int ff_mjpeg_decode_sof(MJpegDecodeContext *s)
  #endif
  #if CONFIG_MJPEG_VAAPI_HWACCEL
                  AV_PIX_FMT_VAAPI,
@@ -452,7 +452,7 @@ index c9409eac6c..fef979207e 100644
  #endif
                  s->avctx->pix_fmt,
                  AV_PIX_FMT_NONE,
-@@ -3020,6 +3023,9 @@ const FFCodec ff_mjpeg_decoder = {
+@@ -3019,6 +3022,9 @@ const FFCodec ff_mjpeg_decoder = {
  #endif
  #if CONFIG_MJPEG_VAAPI_HWACCEL
                          HWACCEL_VAAPI(mjpeg),
@@ -463,10 +463,10 @@ index c9409eac6c..fef979207e 100644
                          NULL
                      },
 diff --git a/libavcodec/mpeg12dec.c b/libavcodec/mpeg12dec.c
-index 4ad1eb6572..c597140416 100644
+index 4f784611de..e05f8e4bd4 100644
 --- a/libavcodec/mpeg12dec.c
 +++ b/libavcodec/mpeg12dec.c
-@@ -839,6 +839,9 @@ static const enum AVPixelFormat mpeg1_hwaccel_pixfmt_list_420[] = {
+@@ -812,6 +812,9 @@ static const enum AVPixelFormat mpeg1_hwaccel_pixfmt_list_420[] = {
  #endif
  #if CONFIG_MPEG1_VDPAU_HWACCEL
      AV_PIX_FMT_VDPAU,
@@ -476,7 +476,7 @@ index 4ad1eb6572..c597140416 100644
  #endif
      AV_PIX_FMT_YUV420P,
      AV_PIX_FMT_NONE
-@@ -866,6 +869,9 @@ static const enum AVPixelFormat mpeg2_hwaccel_pixfmt_list_420[] = {
+@@ -839,6 +842,9 @@ static const enum AVPixelFormat mpeg2_hwaccel_pixfmt_list_420[] = {
  #endif
  #if CONFIG_MPEG2_VIDEOTOOLBOX_HWACCEL
      AV_PIX_FMT_VIDEOTOOLBOX,
@@ -486,7 +486,7 @@ index 4ad1eb6572..c597140416 100644
  #endif
      AV_PIX_FMT_YUV420P,
      AV_PIX_FMT_NONE
-@@ -2623,6 +2629,9 @@ const FFCodec ff_mpeg1video_decoder = {
+@@ -2609,6 +2615,9 @@ const FFCodec ff_mpeg1video_decoder = {
  #endif
  #if CONFIG_MPEG1_VIDEOTOOLBOX_HWACCEL
                                 HWACCEL_VIDEOTOOLBOX(mpeg1),
@@ -496,7 +496,7 @@ index 4ad1eb6572..c597140416 100644
  #endif
                                 NULL
                             },
-@@ -2695,6 +2704,9 @@ const FFCodec ff_mpeg2video_decoder = {
+@@ -2681,6 +2690,9 @@ const FFCodec ff_mpeg2video_decoder = {
  #endif
  #if CONFIG_MPEG2_VIDEOTOOLBOX_HWACCEL
                          HWACCEL_VIDEOTOOLBOX(mpeg2),
@@ -507,10 +507,10 @@ index 4ad1eb6572..c597140416 100644
                          NULL
                      },
 diff --git a/libavcodec/mpeg4videodec.c b/libavcodec/mpeg4videodec.c
-index 07de5d6d91..12b250e943 100644
+index debcafc4c0..0575ea4236 100644
 --- a/libavcodec/mpeg4videodec.c
 +++ b/libavcodec/mpeg4videodec.c
-@@ -3881,6 +3881,9 @@ const FFCodec ff_mpeg4_decoder = {
+@@ -3863,6 +3863,9 @@ const FFCodec ff_mpeg4_decoder = {
  #endif
  #if CONFIG_MPEG4_VIDEOTOOLBOX_HWACCEL
                                 HWACCEL_VIDEOTOOLBOX(mpeg4),
@@ -522,10 +522,10 @@ index 07de5d6d91..12b250e943 100644
                             },
 diff --git a/libavcodec/nvtegra_decode.c b/libavcodec/nvtegra_decode.c
 new file mode 100644
-index 0000000000..7ad838f6ae
+index 0000000000..1978fcf644
 --- /dev/null
 +++ b/libavcodec/nvtegra_decode.c
-@@ -0,0 +1,437 @@
+@@ -0,0 +1,517 @@
 +/*
 + * Copyright (c) 2024 averne <averne381@gmail.com>
 + *
@@ -911,33 +911,113 @@ index 0000000000..7ad838f6ae
 +    return 0;
 +}
 +
++static int nvtegra_get_size_constraints(enum AVCodecID codec,
++                                        int *min_width, int *min_height,
++                                        int *max_width, int *max_height,
++                                        int *align, int *max_mbs)
++{
++    switch (codec) {
++        case AV_CODEC_ID_MPEG1VIDEO:
++        case AV_CODEC_ID_MPEG2VIDEO:
++            *min_width = 48,    *min_height = 1;
++            *max_width = 4096,  *max_height = 4096;
++            *align     = 16,    *max_mbs    = 0x20000;
++            break;
++
++        case AV_CODEC_ID_MPEG4:
++            *min_width = 48,    *min_height = 1;
++            *max_width = 2048,  *max_height = 2048;
++            *align     = 16,    *max_mbs    = 0x2000;
++            break;
++
++        case AV_CODEC_ID_VC1:
++        case AV_CODEC_ID_WMV3:
++            *min_width = 48,    *min_height = 1;
++            *max_width = 2048,  *max_height = 2048;
++            *align     = 1,     *max_mbs    = -1;
++            break;
++
++        case AV_CODEC_ID_H264:
++            *min_width = 48,    *min_height = 1;
++            *max_width = 4096,  *max_height = 4096;
++            *align     = 16,    *max_mbs    = 0x20000;
++            break;
++
++        case AV_CODEC_ID_HEVC:
++            /* Note: on nvdec 4.0+ (tegra 194) max dimensions are 8192, and max mbs 0x80000 */
++            *min_width = 144,   *min_height = 144;
++            *max_width = 4096,  *max_height = 4096;
++            *align     = 64,    *max_mbs    = 0x20000;
++            break;
++
++        case AV_CODEC_ID_VP8:
++            *min_width = 48,    *min_height = 1;
++            *max_width = 4096,  *max_height = 4096;
++            *align     = 16,    *max_mbs    = 0x20000;
++            break;
++
++        case AV_CODEC_ID_VP9:
++            /* Note: on nvdec 4.0+ (tegra 194) max dimensions are 8192, and max mbs 0x40000 */
++            *min_width = 144,   *min_height = 144;
++            *max_width = 4096,  *max_height = 4096;
++            *align     = 16,    *max_mbs    = 0x10000;
++            break;
++
++        case AV_CODEC_ID_MJPEG:
++            *min_width = 1,     *min_height = 1;
++            *max_width = 16384, *max_height = 16384;
++            *align     = 1,     *max_mbs    = -1;
++            break;
++
++        #if 0
++        case AV_CODEC_ID_AV1:
++            /* Note: on nvdec 4.0+ (tegra 194) max dimensions are 8192, and max mbs 0x80000 */
++            *min_width = 128,   *min_height = 128;
++            *max_width = 4096,  *max_height = 4096;
++            *align     = 64,    *max_mbs    = 0x20000;
++            break;
++        #endif
++
++        default:
++            return AVERROR(EINVAL);
++    }
++
++    return 0;
++}
++
 +int ff_nvtegra_frame_params(AVCodecContext *avctx, AVBufferRef *hw_frames_ctx) {
 +    AVHWFramesContext *frames_ctx = (AVHWFramesContext *)hw_frames_ctx->data;
 +    const AVPixFmtDescriptor *sw_desc;
 +
-+    switch (avctx->codec_id) {
-+        /*
-+        case AV_CODEC_ID_AV1:
-+            if ((avctx->coded_width < 128) || (avctx->coded_height < 128))
-+                goto fail;
-+            break;
-+         */
++    int min_width, min_height, max_width, max_height, align, max_mbs,
++        aligned_width, aligned_height, num_mbs;
++    int err;
 +
-+        case AV_CODEC_ID_VP9:
-+        case AV_CODEC_ID_HEVC:
-+            if ((avctx->coded_width < 144) || (avctx->coded_height < 144))
-+                goto fail;
-+            break;
++    err = nvtegra_get_size_constraints(avctx->codec_id, &min_width, &min_height,
++                                       &max_width, &max_height, &align, &max_mbs);
++    if (err < 0)
++        return err;
 +
-+        default:
-+            if (avctx->coded_width < 48)
-+                goto fail;
-+            break;
++    aligned_width  = FFALIGN(avctx->coded_width,  align);
++    aligned_height = FFALIGN(avctx->coded_height, align);
++    num_mbs = (aligned_width / 16) * (aligned_height / 16);
 +
-+fail:
-+            av_log(avctx, AV_LOG_ERROR, "Dimensions %dx%d are not supported by the hardware for codec %s\n",
-+                   avctx->coded_width, avctx->coded_height, avctx->codec_descriptor->name);
-+            return AVERROR(EINVAL);
++    if ((aligned_width  < min_width)  || (aligned_width  > max_width) ||
++        (aligned_height < min_height) || (aligned_height > max_height))
++    {
++        av_log(avctx, AV_LOG_ERROR, "Dimensions %dx%d (min. %dx%d, max. %dx%d) "
++                                    "are not supported by the hardware for codec %s\n",
++               avctx->coded_width, avctx->coded_height,
++               min_width, min_height, max_width, max_height,
++               avctx->codec_descriptor->name);
++        return AVERROR(EINVAL);
++    }
++
++    if ((max_mbs > 0) && (num_mbs > max_mbs)) {
++        av_log(avctx, AV_LOG_ERROR, "Number of macroblocks %d exceeds maximum %d "
++                                    "for codec %s\n",
++               num_mbs, max_mbs, avctx->codec_descriptor->name);
++        return AVERROR(EINVAL);
 +    }
 +
 +    frames_ctx->format = AV_PIX_FMT_NVTEGRA;
@@ -965,10 +1045,10 @@ index 0000000000..7ad838f6ae
 +}
 diff --git a/libavcodec/nvtegra_decode.h b/libavcodec/nvtegra_decode.h
 new file mode 100644
-index 0000000000..4835439c89
+index 0000000000..5260c8b3c5
 --- /dev/null
 +++ b/libavcodec/nvtegra_decode.h
-@@ -0,0 +1,93 @@
+@@ -0,0 +1,94 @@
 +/*
 + * Copyright (c) 2024 averne <averne381@gmail.com>
 + *
@@ -989,12 +1069,13 @@ index 0000000000..4835439c89
 + * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 + */
 +
-+#ifndef AVCODEC_NVTEGRA_H
-+#define AVCODEC_NVTEGRA_H
++#ifndef AVCODEC_NVTEGRA_DECODE_H
++#define AVCODEC_NVTEGRA_DECODE_H
 +
 +#include <stdbool.h>
 +
 +#include "avcodec.h"
++#include "libavutil/mem.h"
 +#include "libavutil/hwcontext_nvtegra.h"
 +
 +#include "libavutil/nvdec_drv.h"
@@ -1061,13 +1142,13 @@ index 0000000000..4835439c89
 +
 +int ff_nvtegra_frame_params(AVCodecContext *avctx, AVBufferRef *hw_frames_ctx);
 +
-+#endif /* AVCODEC_NVTEGRA_H */
++#endif /* AVCODEC_NVTEGRA_DECODE_H */
 diff --git a/libavcodec/nvtegra_h264.c b/libavcodec/nvtegra_h264.c
 new file mode 100644
-index 0000000000..63073c44a6
+index 0000000000..e425ec5d0f
 --- /dev/null
 +++ b/libavcodec/nvtegra_h264.c
-@@ -0,0 +1,506 @@
+@@ -0,0 +1,501 @@
 +/*
 + * Copyright (c) 2024 averne <averne381@gmail.com>
 + *
@@ -1088,10 +1169,10 @@ index 0000000000..63073c44a6
 + * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 + */
 +
++#include "config_components.h"
++
 +#include <stdbool.h>
 +#include <string.h>
-+
-+#include "config_components.h"
 +
 +#include "avcodec.h"
 +#include "hwaccel_internal.h"
@@ -1104,6 +1185,12 @@ index 0000000000..63073c44a6
 +#include "libavutil/pixdesc.h"
 +#include "libavutil/nvtegra_host1x.h"
 +
++typedef struct NVTegraH264FrameData {
++    uint8_t pic_idx;
++    uint8_t dpb_idx;
++    bool pic_initialized, dpb_initialized;
++} NVTegraH264FrameData;
++
 +typedef struct NVTegraH264DecodeContext {
 +    FFNVTegraDecodeContext core;
 +
@@ -1111,17 +1198,8 @@ index 0000000000..63073c44a6
 +    uint32_t coloc_off, mbhist_off, history_off;
 +    uint32_t mbhist_size, history_size;
 +
-+    struct NVTegraH264RefFrame {
-+        AVNVTegraMap *map;
-+        uint32_t chroma_off;
-+        int16_t frame_num;
-+        int16_t pic_id;
-+    } refs[16+1];
-+
-+    uint8_t ordered_dpb_map[16+1],
-+        pic_id_map[16+1], scratch_ref, cur_frame;
-+
-+    uint64_t refs_mask, ordered_dpb_mask, pic_id_mask;
++    H264Picture *dpb[16], *scratch_ref;
++    uint32_t dpb_mask, pic_idx_mask;
 +} NVTegraH264DecodeContext;
 +
 +/* Size (width, height) of a macroblock */
@@ -1212,9 +1290,6 @@ index 0000000000..63073c44a6
 +    ctx->mbhist_size  = mbhist_size;
 +    ctx->history_size = history_size;
 +
-+    memset(ctx->ordered_dpb_map, -1, sizeof(ctx->ordered_dpb_map));
-+    memset(ctx->pic_id_map,      -1, sizeof(ctx->pic_id_map));
-+
 +    return 0;
 +
 +fail:
@@ -1226,15 +1301,14 @@ index 0000000000..63073c44a6
 +    return (poc[!top] != INT_MAX) ? poc[!top] : 0;
 +}
 +
-+static void dpb_add(H264Context *h, nvdec_dpb_entry_s *dst,
-+                    H264Picture *src, int pic_id)
-+{
++static void dpb_add(H264Context *h, nvdec_dpb_entry_s *dst, H264Picture *src) {
++    NVTegraH264FrameData *fr_priv = src->hwaccel_picture_private;
 +    int marking;
 +
 +    marking = src->long_ref ? 2 : 1;
 +    *dst = (nvdec_dpb_entry_s){
-+        .index                = pic_id,
-+        .col_idx              = pic_id,
++        .index                = fr_priv->pic_idx,
++        .col_idx              = fr_priv->pic_idx,
 +        .state                = src->reference,
 +        .is_long_term         = src->long_ref,
 +        .not_existing         = src->invalid_gap,
@@ -1250,8 +1324,16 @@ index 0000000000..63073c44a6
 +    };
 +}
 +
-+static inline int find_slot(uint64_t *mask) {
-+    int slot = ff_ctzll(~*mask);
++static inline void register_ref(NVTegraH264DecodeContext *ctx, H264Picture *fr) {
++    NVTegraH264FrameData *fr_priv = fr->hwaccel_picture_private;
++
++    ctx->dpb[fr_priv->dpb_idx] = fr;
++    ctx->dpb_mask     |= 1 << fr_priv->dpb_idx;
++    ctx->pic_idx_mask |= 1 << fr_priv->pic_idx;
++}
++
++static inline int find_slot(uint32_t *mask) {
++    int slot = ff_ctz(~*mask);
 +    *mask |= (1 << slot);
 +    return slot;
 +}
@@ -1262,9 +1344,9 @@ index 0000000000..63073c44a6
 +    const PPS *pps = h->ps.pps;
 +    const SPS *sps = h->ps.sps;
 +
-+    int dpb_size, i, j, diff;
-+    H264Picture *refs [16+1] = {0};
-+    uint8_t dpb_to_ref[16+1] = {0};
++    H264Picture *refs[16+1] = {0};
++    NVTegraH264FrameData *fr_priv;
++    int num_refs, max, i, diff;
 +
 +    *setup = (nvdec_h264_pic_s){
 +        .mbhist_buffer_size                     = ctx->mbhist_size,
@@ -1329,102 +1411,81 @@ index 0000000000..63073c44a6
 +        .qpprime_y_zero_transform_bypass_flag   = sps->transform_bypass,
 +    };
 +
-+    /* Build concatenated ref list for this frame */
-+    dpb_size = 0;
-+    for (i = 0; i < h->short_ref_count; ++i)
-+        refs[dpb_size++] = h->short_ref[i];
-+
-+    for (i = 0; i < 16; ++i)
-+        if (h->long_ref[i])
-+            refs[dpb_size++] = h->long_ref[i];
-+
-+    /* Remove stale references from our ref list */
-+    for (i = 0; i < FF_ARRAY_ELEMS(ctx->refs); ++i) {
-+        if (!(ctx->refs_mask & (1 << i)))
-+            continue;
-+
-+        for (j = 0; j < dpb_size; ++j) {
-+            if (av_nvtegra_frame_get_fbuf_map(refs[j]->f) == ctx->refs[i].map)
-+                break;
-+        }
-+
-+        if (j == dpb_size) {
-+            ctx->pic_id_mask &= ~(1 << ctx->refs[i].pic_id);
-+            ctx->pic_id_map[ctx->refs[i].pic_id] = -1;
-+
-+            ctx->refs_mask &= ~(1 << i);
-+            ctx->refs[i].map = NULL;
-+        } else {
-+            dpb_to_ref[i] = j;
-+        }
-+    }
-+
-+    /* Update the ordered DPB mask */
-+    for (i = 0; i < FF_ARRAY_ELEMS(ctx->ordered_dpb_map); ++i) {
-+        if (!(ctx->ordered_dpb_mask & (1 << i)))
-+            continue;
-+        if (!ctx->refs[ctx->ordered_dpb_map[i]].map) {
-+            ctx->ordered_dpb_mask &= ~(1 << i);
-+            ctx->ordered_dpb_map[i] = -1;
-+        }
-+    }
-+
-+    /* Add new frames to the ordered DPB */
-+    for (i = 0; i < FF_ARRAY_ELEMS(ctx->refs); ++i) {
-+        if (!(ctx->refs_mask & (1 << i)))
-+            continue;
-+
-+        for (j = 0; j < FF_ARRAY_ELEMS(ctx->ordered_dpb_map); ++j) {
-+            if (ctx->ordered_dpb_map[j] == i)
-+                break;
-+        }
-+
-+        if (j == FF_ARRAY_ELEMS(ctx->ordered_dpb_map))
-+            ctx->ordered_dpb_map[find_slot(&ctx->ordered_dpb_mask)] = i;
-+    }
-+
 +    /*
-+     * Add the current frame to our ref list
-+     * In the case of interlaced video, the new frame can be the same as the last
++     * Decoded frames need to be allocated two indices, respectively for colocated
++     * and decoded data (pic_idx). For simplicity the two are kept at the same value,
++     * in both this code and the official driver. These indices must remain fixed
++     * until the frame is dropped from the DPB.
++     * Furthermore, a third index (dpb_idx) must be allocated when (and if) the
++     * decoded frame is subsequently used as a reference.
++     * Since decoding a frame will initialize its colocated data, but will not
++     * insert it (yet) in the DPB array, this last index must be decoupled from
++     * the previous two. The pic_idx is allocated when decoding a frame, while
++     * dpb_idx is allocated when it is used as a reference.
 +     */
-+    if (ctx->refs[ctx->cur_frame].map != av_nvtegra_frame_get_fbuf_map(h->cur_pic_ptr->f)) {
-+        /* Allocate a pic id for the current frame */
-+        i = find_slot(&ctx->pic_id_mask);
 +
-+        /* Insert it in our ref list */
-+        ctx->cur_frame = find_slot(&ctx->refs_mask);
-+        ctx->pic_id_map[i] = ctx->cur_frame;
-+        ctx->refs[ctx->cur_frame] = (struct NVTegraH264RefFrame){
-+            .map        = av_nvtegra_frame_get_fbuf_map(h->cur_pic_ptr->f),
-+            .chroma_off = h->cur_pic_ptr->f->data[1] - h->cur_pic_ptr->f->data[0],
-+            .frame_num  = h->cur_pic_ptr->frame_num,
-+            .pic_id     = i,
++    /* Build concatenated list of references */
++    num_refs = 0, max = FFMIN(h->short_ref_count, FF_ARRAY_ELEMS(refs) - num_refs);
++    for (i = 0; i < max; ++i)
++        refs[num_refs++] = h->short_ref[i];
++
++    max = FFMIN(16, FF_ARRAY_ELEMS(refs) - num_refs);
++    for (i = 0; i < max; ++i)
++        if (h->long_ref[i])
++            refs[num_refs++] = h->short_ref[i];
++
++    /* Add all frames with an already allocated DPB index to our ref list */
++    for (i = 0; i < num_refs; ++i) {
++        NVTegraH264FrameData *fr_priv = refs[i]->hwaccel_picture_private;
++        if (!fr_priv->dpb_initialized)
++            continue;
++
++        register_ref(ctx, refs[i]);
++    }
++
++    /* Allocate a DPB index for new frames and add them to our ref list */
++    for (i = 0; i < num_refs; ++i) {
++        NVTegraH264FrameData *fr_priv = refs[i]->hwaccel_picture_private;
++        if (fr_priv->dpb_initialized || !fr_priv->pic_initialized)
++            continue;
++
++        fr_priv->dpb_idx         = find_slot(&ctx->dpb_mask);
++        fr_priv->dpb_initialized = true;
++
++        register_ref(ctx, refs[i]);
++    }
++
++    /* Allocate a picture idx for the current frame */
++    fr_priv = h->cur_pic_ptr->hwaccel_picture_private;
++    if (!fr_priv->pic_initialized) {
++        *fr_priv = (NVTegraH264FrameData){
++            .pic_idx         = find_slot(&ctx->pic_idx_mask),
++            .pic_initialized = true,
 +        };
 +    }
 +
-+    setup->CurrPicIdx = setup->CurrColIdx = ctx->refs[ctx->cur_frame].pic_id;
++    setup->CurrPicIdx = setup->CurrColIdx = fr_priv->pic_idx;
 +
-+    /* Find the temporally closest frame to be used as a scratch ref, or use the current one */
-+    diff = INT_MAX;
-+    ctx->scratch_ref = ctx->cur_frame;
-+    for (i = 0; i < FF_ARRAY_ELEMS(ctx->ordered_dpb_map); ++i) {
-+        j = ctx->ordered_dpb_map[i];
-+        if ((ctx->ordered_dpb_mask & (1 << i)) &&
-+                FFABS(h->cur_pic_ptr->frame_num - refs[dpb_to_ref[j]]->frame_num) < diff)
-+            ctx->scratch_ref = j;
-+    }
-+
-+    /* Build the NVDEC DPB */
++    /* Finally, fill the NVDEC DPB */
 +    for (i = 0; i < FF_ARRAY_ELEMS(setup->dpb); ++i) {
-+        if (ctx->ordered_dpb_mask & (1 << i)) {
-+            j = ctx->ordered_dpb_map[i];
-+            dpb_add(h, &setup->dpb[i], refs[dpb_to_ref[j]], ctx->refs[j].pic_id);
-+        }
++        if (ctx->dpb_mask & (1 << i))
++            dpb_add(h, &setup->dpb[i], ctx->dpb[i]);
 +    }
 +
 +    memcpy(setup->WeightScale,       pps->scaling_matrix4,    sizeof(setup->WeightScale));
 +    memcpy(setup->WeightScale8x8[0], pps->scaling_matrix8[0], sizeof(setup->WeightScale8x8[0]));
 +    memcpy(setup->WeightScale8x8[1], pps->scaling_matrix8[3], sizeof(setup->WeightScale8x8[1]));
++
++    /* Find the temporally closest frame to be used as a scratch ref, or use the current one */
++    diff = INT_MAX;
++    ctx->scratch_ref = h->cur_pic_ptr;
++    for (i = 0; i < FF_ARRAY_ELEMS(ctx->dpb); ++i) {
++        if (!(ctx->dpb_mask & (1 << i)))
++            continue;
++
++        if (FFABS(h->cur_pic_ptr->frame_num - ctx->dpb[i]->frame_num) < diff)
++            ctx->scratch_ref = ctx->dpb[i];
++    }
 +}
 +
 +static int nvtegra_h264_prepare_cmdbuf(AVNVTegraCmdbuf *cmdbuf, H264Context *h,
@@ -1434,6 +1495,8 @@ index 0000000000..63073c44a6
 +    FFNVTegraDecodeFrame *tf = fdd->hwaccel_priv;
 +    AVNVTegraMap  *input_map = (AVNVTegraMap *)tf->input_map_ref->data;
 +
++    H264Picture *refs[16+1];
++    NVTegraH264FrameData *fr_priv;
 +    int err, i;
 +
 +    err = av_nvtegra_cmdbuf_begin(cmdbuf, HOST1X_CLASS_NVDEC);
@@ -1465,21 +1528,30 @@ index 0000000000..63073c44a6
 +    AV_NVTEGRA_PUSH_RELOC(cmdbuf, NVC5B0_SET_HISTORY_OFFSET,
 +                          &ctx->common_map, ctx->history_off,            NVHOST_RELOC_TYPE_DEFAULT);
 +
-+#define PUSH_FRAME(ref, offset) ({                                                \
-+    AV_NVTEGRA_PUSH_RELOC(cmdbuf, NVC5B0_SET_PICTURE_LUMA_OFFSET0   + offset * 4, \
-+                          ref.map, 0, NVHOST_RELOC_TYPE_DEFAULT);                 \
-+    AV_NVTEGRA_PUSH_RELOC(cmdbuf, NVC5B0_SET_PICTURE_CHROMA_OFFSET0 + offset * 4, \
-+                          ref.map, ref.chroma_off, NVHOST_RELOC_TYPE_DEFAULT);    \
++    /* Build list of references sorted by picture idx */
++    for (i = 0; i < FF_ARRAY_ELEMS(refs); ++i)
++        refs[i] = ctx->scratch_ref;
++
++    fr_priv = h->cur_pic_ptr->hwaccel_picture_private;
++    refs[fr_priv->pic_idx] = h->cur_pic_ptr;
++
++    for (i = 0; i < FF_ARRAY_ELEMS(ctx->dpb); ++i) {
++        if (!(ctx->dpb_mask & (1 << i)))
++            continue;
++        fr_priv = ctx->dpb[i]->hwaccel_picture_private;
++        refs[fr_priv->pic_idx] = ctx->dpb[i];
++    }
++
++#define PUSH_FRAME(fr, offset) ({                                                           \
++    AV_NVTEGRA_PUSH_RELOC(cmdbuf, NVC5B0_SET_PICTURE_LUMA_OFFSET0   + offset * 4,           \
++                          av_nvtegra_frame_get_fbuf_map(fr), 0, NVHOST_RELOC_TYPE_DEFAULT); \
++    AV_NVTEGRA_PUSH_RELOC(cmdbuf, NVC5B0_SET_PICTURE_CHROMA_OFFSET0 + offset * 4,           \
++                          av_nvtegra_frame_get_fbuf_map(fr), fr->data[1] - fr->data[0],     \
++                          NVHOST_RELOC_TYPE_DEFAULT);                                       \
 +})
 +
-+    for (i = 0; i < 16 + 1; ++i) {
-+        if (i == ctx->cur_frame)
-+            PUSH_FRAME(ctx->refs[i], i);
-+        else if (ctx->pic_id_mask & (1 << i))
-+            PUSH_FRAME(ctx->refs[ctx->pic_id_map[i]], i);
-+        else
-+            PUSH_FRAME(ctx->refs[ctx->scratch_ref], i);
-+    }
++    for (i = 0; i < FF_ARRAY_ELEMS(refs); ++i)
++        PUSH_FRAME(refs[i]->f, i);
 +
 +    AV_NVTEGRA_PUSH_VALUE(cmdbuf, NVC5B0_EXECUTE,
 +                          AV_NVTEGRA_ENUM(NVC5B0_EXECUTE, AWAKEN, ENABLE));
@@ -1512,6 +1584,9 @@ index 0000000000..63073c44a6
 +    tf = fdd->hwaccel_priv;
 +    input_map = (AVNVTegraMap *)tf->input_map_ref->data;
 +    mem = av_nvtegra_map_get_addr(input_map);
++
++    memset(ctx->dpb, 0, sizeof(ctx->dpb));
++    ctx->dpb_mask = ctx->pic_idx_mask = 0;
 +
 +    nvtegra_h264_prepare_frame_setup((nvdec_h264_pic_s *)(mem + ctx->core.pic_setup_off), h, ctx);
 +
@@ -1560,26 +1635,27 @@ index 0000000000..63073c44a6
 +
 +#if CONFIG_H264_NVTEGRA_HWACCEL
 +const FFHWAccel ff_h264_nvtegra_hwaccel = {
-+    .p.name         = "h264_nvtegra",
-+    .p.type         = AVMEDIA_TYPE_VIDEO,
-+    .p.id           = AV_CODEC_ID_H264,
-+    .p.pix_fmt      = AV_PIX_FMT_NVTEGRA,
-+    .start_frame    = &nvtegra_h264_start_frame,
-+    .end_frame      = &nvtegra_h264_end_frame,
-+    .decode_slice   = &nvtegra_h264_decode_slice,
-+    .init           = &nvtegra_h264_decode_init,
-+    .uninit         = &nvtegra_h264_decode_uninit,
-+    .frame_params   = &ff_nvtegra_frame_params,
-+    .priv_data_size = sizeof(NVTegraH264DecodeContext),
-+    .caps_internal  = HWACCEL_CAP_ASYNC_SAFE,
++    .p.name               = "h264_nvtegra",
++    .p.type               = AVMEDIA_TYPE_VIDEO,
++    .p.id                 = AV_CODEC_ID_H264,
++    .p.pix_fmt            = AV_PIX_FMT_NVTEGRA,
++    .start_frame          = &nvtegra_h264_start_frame,
++    .end_frame            = &nvtegra_h264_end_frame,
++    .decode_slice         = &nvtegra_h264_decode_slice,
++    .init                 = &nvtegra_h264_decode_init,
++    .uninit               = &nvtegra_h264_decode_uninit,
++    .frame_params         = &ff_nvtegra_frame_params,
++    .frame_priv_data_size = sizeof(NVTegraH264FrameData),
++    .priv_data_size       = sizeof(NVTegraH264DecodeContext),
++    .caps_internal        = HWACCEL_CAP_ASYNC_SAFE,
 +};
 +#endif
 diff --git a/libavcodec/nvtegra_hevc.c b/libavcodec/nvtegra_hevc.c
 new file mode 100644
-index 0000000000..9d543deb0d
+index 0000000000..0227f60220
 --- /dev/null
 +++ b/libavcodec/nvtegra_hevc.c
-@@ -0,0 +1,633 @@
+@@ -0,0 +1,642 @@
 +/*
 + * Copyright (c) 2024 averne <averne381@gmail.com>
 + *
@@ -1602,17 +1678,25 @@ index 0000000000..9d543deb0d
 +
 +#include "config_components.h"
 +
++#include <stdbool.h>
++#include <string.h>
++
 +#include "avcodec.h"
 +#include "hwaccel_internal.h"
 +#include "internal.h"
 +#include "hwconfig.h"
-+#include "hevcdec.h"
-+#include "hevc_data.h"
++#include "hevc/hevcdec.h"
++#include "hevc/data.h"
 +#include "decode.h"
 +#include "nvtegra_decode.h"
 +
 +#include "libavutil/pixdesc.h"
 +#include "libavutil/nvtegra_host1x.h"
++
++typedef struct NVTegraHEVCFrameData {
++    bool initialized;
++    uint8_t dpb_idx;
++} NVTegraHEVCFrameData;
 +
 +typedef struct NVTegraHEVCDecodeContext {
 +    FFNVTegraDecodeContext core;
@@ -1624,14 +1708,8 @@ index 0000000000..9d543deb0d
 +    unsigned int colmv_size, sao_offset, bsd_offset;
 +    uint8_t pattern_id;
 +
-+    struct NVTegraHEVCRefFrame {
-+        AVNVTegraMap *map;
-+        uint32_t chroma_off;
-+        int poc;
-+    } refs[16+1];
-+
-+    uint64_t refs_mask;
-+    int8_t scratch_ref;
++    HEVCFrame *refs[16], *scratch_ref;
++    uint32_t refs_mask;
 +} NVTegraHEVCDecodeContext;
 +
 +/* Size (width, height) of a macroblock */
@@ -1723,8 +1801,8 @@ index 0000000000..9d543deb0d
 +}
 +
 +static void nvtegra_hevc_set_scaling_list(nvdec_hevc_scaling_list_s *list, HEVCContext *s) {
-+    const ScalingList *sl = s->ps.pps->scaling_list_data_present_flag ?
-+                            &s->ps.pps->scaling_list : &s->ps.sps->scaling_list;
++    const ScalingList *sl = s->pps->scaling_list_data_present_flag ?
++                            &s->pps->scaling_list : &s->pps->sps->scaling_list;
 +
 +    int i;
 +
@@ -1744,8 +1822,8 @@ index 0000000000..9d543deb0d
 +}
 +
 +static void nvtegra_hevc_set_tile_sizes(uint16_t *sizes, HEVCContext *s) {
-+    const HEVCPPS *pps = s->ps.pps;
-+    const HEVCSPS *sps = s->ps.sps;
++    const HEVCPPS *pps = s->pps;
++    const HEVCSPS *sps = pps->sps;
 +
 +    int i, j, sum;
 +
@@ -1796,8 +1874,8 @@ index 0000000000..9d543deb0d
 +    return -1;
 +}
 +
-+static inline int find_slot(uint64_t *mask) {
-+    int slot = ff_ctzll(~*mask);
++static inline int find_slot(uint32_t *mask) {
++    int slot = ff_ctz(~*mask);
 +    *mask |= (1 << slot);
 +    return slot;
 +}
@@ -1810,16 +1888,17 @@ index 0000000000..9d543deb0d
 +    AVNVTegraMap       *input_map = (AVNVTegraMap *)tf->input_map_ref->data;
 +    AVHWFramesContext *frames_ctx = (AVHWFramesContext *)avctx->hw_frames_ctx->data;
 +    HEVCContext                *s = avctx->priv_data;
++    HEVCLayerContext           *l = &s->layers[s->cur_layer];
 +    SliceHeader               *sh = &s->sh;
-+    const HEVCPPS            *pps = s->ps.pps;
-+    const HEVCSPS            *sps = s->ps.sps;
++    const HEVCPPS            *pps = s->pps;
++    const HEVCSPS            *sps = pps->sps;
 +
 +    HEVCFrame *fr;
++    NVTegraHEVCFrameData *fr_priv;
 +    enum RPSType st;
 +    uint8_t *mem;
 +    uint16_t *tile_sizes;
 +    int output_mode, cur_frame, scratch_ref_diff_poc, i, j;
-+    int8_t dpb_to_ref[16+1] = {0}, ref_to_dpb[16+1] = {0};
 +    int8_t rps_stcurrbef[8], rps_stcurraft[8], rps_ltcurr[8];
 +
 +    mem = av_nvtegra_map_get_addr(input_map);
@@ -1856,8 +1935,8 @@ index 0000000000..9d543deb0d
 +
 +        /* Divide by two if we are decoding to a 2bpp surface */
 +        .framestride                                 = {
-+            s->frame->linesize[0] / ((output_mode == 1) ? 2 : 1),
-+            s->frame->linesize[1] / ((output_mode == 1) ? 2 : 1),
++            s->cur_frame->f->linesize[0] / ((output_mode == 1) ? 2 : 1),
++            s->cur_frame->f->linesize[1] / ((output_mode == 1) ? 2 : 1),
 +        },
 +
 +        .colMvBuffersize                             = ctx->colmv_size / 256,
@@ -1877,17 +1956,17 @@ index 0000000000..9d543deb0d
 +
 +        .max_transform_hierarchy_depth_inter         = sps->max_transform_hierarchy_depth_inter,
 +        .max_transform_hierarchy_depth_intra         = sps->max_transform_hierarchy_depth_intra,
-+        .scalingListEnable                           = sps->scaling_list_enable_flag,
-+        .amp_enable_flag                             = sps->amp_enabled_flag,
++        .scalingListEnable                           = sps->scaling_list_enabled,
++        .amp_enable_flag                             = sps->amp_enabled,
 +        .sample_adaptive_offset_enabled_flag         = sps->sao_enabled,
-+        .pcm_enabled_flag                            = sps->pcm_enabled_flag,
-+        .pcm_sample_bit_depth_luma                   = sps->pcm_enabled_flag ? sps->pcm.bit_depth                : 0,
-+        .pcm_sample_bit_depth_chroma                 = sps->pcm_enabled_flag ? sps->pcm.bit_depth_chroma         : 0,
-+        .log2_min_pcm_luma_coding_block_size         = sps->pcm_enabled_flag ? sps->pcm.log2_min_pcm_cb_size     : 0,
-+        .log2_max_pcm_luma_coding_block_size         = sps->pcm_enabled_flag ? sps->pcm.log2_max_pcm_cb_size     : 0,
-+        .pcm_loop_filter_disabled_flag               = sps->pcm_enabled_flag ? sps->pcm.loop_filter_disable_flag : 0,
-+        .sps_temporal_mvp_enabled_flag               = sps->sps_temporal_mvp_enabled_flag,
-+        .strong_intra_smoothing_enabled_flag         = sps->sps_strong_intra_smoothing_enable_flag,
++        .pcm_enabled_flag                            = sps->pcm_enabled,
++        .pcm_sample_bit_depth_luma                   = sps->pcm_enabled ? sps->pcm.bit_depth            : 0,
++        .pcm_sample_bit_depth_chroma                 = sps->pcm_enabled ? sps->pcm.bit_depth_chroma     : 0,
++        .log2_min_pcm_luma_coding_block_size         = sps->pcm_enabled ? sps->pcm.log2_min_pcm_cb_size : 0,
++        .log2_max_pcm_luma_coding_block_size         = sps->pcm_enabled ? sps->pcm.log2_max_pcm_cb_size : 0,
++        .pcm_loop_filter_disabled_flag               = sps->pcm_loop_filter_disabled,
++        .sps_temporal_mvp_enabled_flag               = sps->temporal_mvp_enabled,
++        .strong_intra_smoothing_enabled_flag         = sps->strong_intra_smoothing_enabled,
 +
 +        .dependent_slice_segments_enabled_flag       = pps->dependent_slice_segments_enabled_flag,
 +        .output_flag_present_flag                    = pps->output_flag_present_flag,
@@ -1923,7 +2002,7 @@ index 0000000000..9d543deb0d
 +        .log2_parallel_merge_level                   = pps->log2_parallel_merge_level,
 +        .slice_segment_header_extension_present_flag = pps->slice_header_extension_present_flag,
 +
-+        .num_ref_frames                              = ff_hevc_frame_nb_refs(s),
++        .num_ref_frames                              = ff_hevc_frame_nb_refs(sh, pps, s->cur_layer),
 +
 +        .IDR_picture_flag                            = IS_IDR(s),
 +        .RAP_picture_flag                            = IS_IRAP(s),
@@ -1942,50 +2021,51 @@ index 0000000000..9d543deb0d
 +        */
 +    };
 +
-+    /* Remove stale references from our ref list */
-+    for (i = 0; i < FF_ARRAY_ELEMS(ctx->refs); ++i) {
-+        if (!(ctx->refs_mask & (1 << i)))
-+            continue;
++    /*
++     * Decoded frames need to be allocated an index that represents its position
++     * in the data pointers array (pushed to the cmdbuf) and in the metadata
++     * sent to the hardware.
++     * This index must remain fixed until the frame is dropped from the DPB.
++     */
 +
-+        for (j = 0; j < FF_ARRAY_ELEMS(s->DPB); ++j) {
-+            if (s->DPB[j].frame->buf[0] && s->DPB[j].poc == ctx->refs[i].poc)
-+                break;
++    /* Build ordered reflist from the DPB */
++    for (i = 0; i < FF_ARRAY_ELEMS(l->DPB); ++i) {
++        fr      = &l->DPB[i];
++        fr_priv = fr->hwaccel_picture_private;
++
++        if ((fr->flags & (HEVC_FRAME_FLAG_LONG_REF | HEVC_FRAME_FLAG_SHORT_REF)) &&
++            (fr != s->cur_frame) && fr_priv->initialized)
++        {
++            ctx->refs[fr_priv->dpb_idx] = fr;
++            ctx->refs_mask |= 1 << fr_priv->dpb_idx;
 +        }
-+
-+        if (j == FF_ARRAY_ELEMS(s->DPB) || s->DPB[j].poc == s->ref->poc ||
-+                !(s->DPB[j].flags & (HEVC_FRAME_FLAG_SHORT_REF | HEVC_FRAME_FLAG_LONG_REF)))
-+            ctx->refs_mask &= ~(1 << i), ctx->refs[i].map = NULL;
-+        else
-+            dpb_to_ref[i] = j, ref_to_dpb[j] = i;
 +    }
 +
-+    /* Try to find a valid reference */
-+    ctx->scratch_ref = -1, scratch_ref_diff_poc = 0;
++    /* Try to find a valid reference, or use the current one */
++    ctx->scratch_ref = s->cur_frame, scratch_ref_diff_poc = 0;
 +    for (i = 0; i < FF_ARRAY_ELEMS(ctx->refs); ++i) {
-+        if (!(ctx->refs_mask & (1 << i)) ||
-+                (ctx->refs[i].map == av_nvtegra_frame_get_fbuf_map(s->frame)))
++        fr = ctx->refs[i];
++        if (!(ctx->refs_mask & (1 << i)) || (fr == s->cur_frame))
 +            continue;
 +
-+        st = find_ref_rps_type(s, &s->DPB[dpb_to_ref[i]]);
++        st = find_ref_rps_type(s, fr);
 +        if ((st != ST_CURR_BEF) && (st != ST_CURR_AFT) && (st != LT_CURR))
 +            continue;
 +
-+        ctx->scratch_ref     = i;
-+        scratch_ref_diff_poc = av_clip_int8(s->ref->poc - s->DPB[dpb_to_ref[i]].poc);
++        ctx->scratch_ref     = fr;
++        scratch_ref_diff_poc = av_clip_int8(s->cur_frame->poc - fr->poc);
 +        break;
 +    }
 +
 +    /* Add the current frame to our ref list */
 +    setup->curr_pic_idx = cur_frame = find_slot(&ctx->refs_mask);
-+    ctx->refs[cur_frame] = (struct NVTegraHEVCRefFrame){
-+        .map        = av_nvtegra_frame_get_fbuf_map(s->frame),
-+        .chroma_off = s->frame->data[1] - s->frame->data[0],
-+        .poc        = s->ref->poc,
-+    };
++    ctx->refs[cur_frame] = s->cur_frame;
 +
-+    /* If there were no valid references, use the current frame */
-+    if (ctx->scratch_ref == -1)
-+        ctx->scratch_ref = cur_frame;
++    fr_priv = s->cur_frame->hwaccel_picture_private;
++    *fr_priv = (NVTegraHEVCFrameData){
++        .dpb_idx     = cur_frame,
++        .initialized = true,
++    };
 +
 +    /* Fill the POC metadata */
 +    for (i = 0; i < FF_ARRAY_ELEMS(setup->RefDiffPicOrderCnts); ++i) {
@@ -1993,23 +2073,23 @@ index 0000000000..9d543deb0d
 +            continue;
 +
 +        if (ctx->refs_mask & (1 << i)) {
-+            fr = &s->DPB[dpb_to_ref[i]];
-+            setup->RefDiffPicOrderCnts[i] = av_clip_int8(s->ref->poc - fr->poc);
++            fr = ctx->refs[i];
++            setup->RefDiffPicOrderCnts[i] = av_clip_int8(s->cur_frame->poc - fr->poc);
 +            setup->longtermflag |= !!(fr->flags & HEVC_FRAME_FLAG_LONG_REF) << (15 - i);
 +        } else {
 +            setup->RefDiffPicOrderCnts[i] = scratch_ref_diff_poc;
 +        }
 +    }
 +
-+#define RPS_TO_DPB_IDX(set, array) ({                  \
-+    for (i = 0; i < s->rps[set].nb_refs; ++i) {        \
-+        for (j = 0; j < FF_ARRAY_ELEMS(s->DPB); ++j) { \
-+            if (s->rps[set].ref[i] == &s->DPB[j]) {    \
-+                array[i] = ref_to_dpb[j];              \
-+                break;                                 \
-+            }                                          \
-+        }                                              \
-+    }                                                  \
++#define RPS_TO_DPB_IDX(set, array) ({                       \
++    for (i = 0; i < s->rps[set].nb_refs; ++i) {             \
++        for (j = 0; j < FF_ARRAY_ELEMS(ctx->refs); ++j) {   \
++            if (s->rps[set].ref[i] == ctx->refs[j]) {       \
++                array[i] = j;                               \
++                break;                                      \
++            }                                               \
++        }                                                   \
++    }                                                       \
 +})
 +
 +    RPS_TO_DPB_IDX(ST_CURR_BEF, rps_stcurrbef);
@@ -2039,7 +2119,7 @@ index 0000000000..9d543deb0d
 +
 +    ctx->pattern_id ^= 1;
 +
-+    if (sps->scaling_list_enable_flag)
++    if (sps->scaling_list_enabled)
 +        nvtegra_hevc_set_scaling_list((nvdec_hevc_scaling_list_s *)(mem + ctx->scaling_list_off), s);
 +
 +    tile_sizes = (uint16_t *)(mem + ctx->tile_sizes_off);
@@ -2090,18 +2170,19 @@ index 0000000000..9d543deb0d
 +    AV_NVTEGRA_PUSH_RELOC(cmdbuf, NVC5B0_SET_COLOC_DATA_OFFSET,
 +                          &ctx->common_map, ctx->coloc_off,          NVHOST_RELOC_TYPE_DEFAULT);
 +
-+#define PUSH_FRAME(ref, offset) ({                                                \
-+    AV_NVTEGRA_PUSH_RELOC(cmdbuf, NVC5B0_SET_PICTURE_LUMA_OFFSET0   + offset * 4, \
-+                          ref.map, 0, NVHOST_RELOC_TYPE_DEFAULT);                 \
-+    AV_NVTEGRA_PUSH_RELOC(cmdbuf, NVC5B0_SET_PICTURE_CHROMA_OFFSET0 + offset * 4, \
-+                          ref.map, ref.chroma_off, NVHOST_RELOC_TYPE_DEFAULT);    \
++#define PUSH_FRAME(fr, offset) ({                                                           \
++    AV_NVTEGRA_PUSH_RELOC(cmdbuf, NVC5B0_SET_PICTURE_LUMA_OFFSET0   + offset * 4,           \
++                          av_nvtegra_frame_get_fbuf_map(fr), 0, NVHOST_RELOC_TYPE_DEFAULT); \
++    AV_NVTEGRA_PUSH_RELOC(cmdbuf, NVC5B0_SET_PICTURE_CHROMA_OFFSET0 + offset * 4,           \
++                          av_nvtegra_frame_get_fbuf_map(fr), fr->data[1] - fr->data[0],     \
++                          NVHOST_RELOC_TYPE_DEFAULT);                                       \
 +})
 +
 +    for (i = 0; i < FF_ARRAY_ELEMS(ctx->refs); ++i) {
 +        if (ctx->refs_mask & (1 << i))
-+            PUSH_FRAME(ctx->refs[i],                i);
++            PUSH_FRAME(ctx->refs[i]->f,     i);
 +        else
-+            PUSH_FRAME(ctx->refs[ctx->scratch_ref], i);
++            PUSH_FRAME(ctx->scratch_ref->f, i);
 +    }
 +
 +    /* TODO: Dithered 8-bit post-processing, binding to DISPLAY_BUF */
@@ -2118,7 +2199,7 @@ index 0000000000..9d543deb0d
 +
 +static int nvtegra_hevc_start_frame(AVCodecContext *avctx, const uint8_t *buf, uint32_t buf_size) {
 +    HEVCContext                *s = avctx->priv_data;
-+    AVFrame                *frame = s->frame;
++    AVFrame                *frame = s->cur_frame->f;
 +    FrameDecodeData          *fdd = (FrameDecodeData *)frame->private_ref->data;
 +    NVTegraHEVCDecodeContext *ctx = avctx->internal->hwaccel_priv_data;
 +
@@ -2134,6 +2215,9 @@ index 0000000000..9d543deb0d
 +    if (err < 0)
 +        return err;
 +
++    memset(ctx->refs, 0, sizeof(ctx->refs));
++    ctx->refs_mask = 0;
++
 +    tf = fdd->hwaccel_priv;
 +    input_map = (AVNVTegraMap *)tf->input_map_ref->data;
 +    mem = av_nvtegra_map_get_addr(input_map);
@@ -2147,7 +2231,7 @@ index 0000000000..9d543deb0d
 +static int nvtegra_hevc_end_frame(AVCodecContext *avctx) {
 +    HEVCContext                *s = avctx->priv_data;
 +    NVTegraHEVCDecodeContext *ctx = avctx->internal->hwaccel_priv_data;
-+    AVFrame                *frame = s->ref->frame;
++    AVFrame                *frame = s->cur_frame->f;
 +    FrameDecodeData          *fdd = (FrameDecodeData *)frame->private_ref->data;
 +    FFNVTegraDecodeFrame      *tf = fdd->hwaccel_priv;
 +
@@ -2177,7 +2261,7 @@ index 0000000000..9d543deb0d
 +                                     uint32_t buf_size)
 +{
 +    HEVCContext                *s = avctx->priv_data;
-+    AVFrame                *frame = s->ref->frame;
++    AVFrame                *frame = s->cur_frame->f;
 +    FrameDecodeData          *fdd = (FrameDecodeData *)frame->private_ref->data;
 +    FFNVTegraDecodeFrame      *tf = fdd->hwaccel_priv;
 +    AVNVTegraMap       *input_map = (AVNVTegraMap *)tf->input_map_ref->data;
@@ -2199,18 +2283,19 @@ index 0000000000..9d543deb0d
 +
 +#if CONFIG_HEVC_NVTEGRA_HWACCEL
 +const FFHWAccel ff_hevc_nvtegra_hwaccel = {
-+    .p.name         = "hevc_nvtegra",
-+    .p.type         = AVMEDIA_TYPE_VIDEO,
-+    .p.id           = AV_CODEC_ID_HEVC,
-+    .p.pix_fmt      = AV_PIX_FMT_NVTEGRA,
-+    .start_frame    = &nvtegra_hevc_start_frame,
-+    .end_frame      = &nvtegra_hevc_end_frame,
-+    .decode_slice   = &nvtegra_hevc_decode_slice,
-+    .init           = &nvtegra_hevc_decode_init,
-+    .uninit         = &nvtegra_hevc_decode_uninit,
-+    .frame_params   = &ff_nvtegra_frame_params,
-+    .priv_data_size = sizeof(NVTegraHEVCDecodeContext),
-+    .caps_internal  = HWACCEL_CAP_ASYNC_SAFE,
++    .p.name               = "hevc_nvtegra",
++    .p.type               = AVMEDIA_TYPE_VIDEO,
++    .p.id                 = AV_CODEC_ID_HEVC,
++    .p.pix_fmt            = AV_PIX_FMT_NVTEGRA,
++    .start_frame          = &nvtegra_hevc_start_frame,
++    .end_frame            = &nvtegra_hevc_end_frame,
++    .decode_slice         = &nvtegra_hevc_decode_slice,
++    .init                 = &nvtegra_hevc_decode_init,
++    .uninit               = &nvtegra_hevc_decode_uninit,
++    .frame_params         = &ff_nvtegra_frame_params,
++    .frame_priv_data_size = sizeof(NVTegraHEVCFrameData),
++    .priv_data_size       = sizeof(NVTegraHEVCDecodeContext),
++    .caps_internal        = HWACCEL_CAP_ASYNC_SAFE,
 +};
 +#endif
 diff --git a/libavcodec/nvtegra_mjpeg.c b/libavcodec/nvtegra_mjpeg.c
@@ -2557,10 +2642,10 @@ index 0000000000..9139116159
 +#endif
 diff --git a/libavcodec/nvtegra_mpeg12.c b/libavcodec/nvtegra_mpeg12.c
 new file mode 100644
-index 0000000000..efeaeb47d1
+index 0000000000..f5419ec0e7
 --- /dev/null
 +++ b/libavcodec/nvtegra_mpeg12.c
-@@ -0,0 +1,318 @@
+@@ -0,0 +1,319 @@
 +/*
 + * Copyright (c) 2024 averne <averne381@gmail.com>
 + *
@@ -2583,13 +2668,14 @@ index 0000000000..efeaeb47d1
 +
 +#include "config_components.h"
 +
-+#include <string.h>
++#include <stdbool.h>
 +
 +#include "avcodec.h"
 +#include "hwaccel_internal.h"
 +#include "internal.h"
 +#include "hwconfig.h"
 +#include "mpegvideo.h"
++#include "mpegutils.h"
 +#include "decode.h"
 +#include "nvtegra_decode.h"
 +
@@ -2689,8 +2775,8 @@ index 0000000000..efeaeb47d1
 +
 +        .PicWidthInMbs              = FFALIGN(s->width,  MB_SIZE) / MB_SIZE,
 +        .FrameHeightInMbs           = FFALIGN(s->height, MB_SIZE) / MB_SIZE,
-+        .pitch_luma                 = s->current_picture.f->linesize[0],
-+        .pitch_chroma               = s->current_picture.f->linesize[1],
++        .pitch_luma                 = s->cur_pic.ptr->f->linesize[0],
++        .pitch_chroma               = s->cur_pic.ptr->f->linesize[1],
 +        .luma_top_offset            = 0,
 +        .luma_bot_offset            = 0,
 +        .luma_frame_offset          = 0,
@@ -2779,7 +2865,7 @@ index 0000000000..efeaeb47d1
 +
 +static int nvtegra_mpeg12_start_frame(AVCodecContext *avctx, const uint8_t *buf, uint32_t buf_size) {
 +    MpegEncContext               *s = avctx->priv_data;
-+    AVFrame                  *frame = s->current_picture.f;
++    AVFrame                  *frame = s->cur_pic.ptr->f;
 +    FrameDecodeData            *fdd = (FrameDecodeData *)frame->private_ref->data;
 +    NVTegraMPEG12DecodeContext *ctx = avctx->internal->hwaccel_priv_data;
 +
@@ -2801,8 +2887,8 @@ index 0000000000..efeaeb47d1
 +
 +    nvtegra_mpeg12_prepare_frame_setup((nvdec_mpeg2_pic_s *)(mem + ctx->core.pic_setup_off), s, ctx);
 +
-+    ctx->prev_frame = (s->pict_type != AV_PICTURE_TYPE_I) ? s->last_picture.f : frame;
-+    ctx->next_frame = (s->pict_type == AV_PICTURE_TYPE_B) ? s->next_picture.f : frame;
++    ctx->prev_frame = (s->pict_type != AV_PICTURE_TYPE_I && s->last_pic.ptr) ? s->last_pic.ptr->f : frame;
++    ctx->next_frame = (s->pict_type == AV_PICTURE_TYPE_B && s->next_pic.ptr) ? s->next_pic.ptr->f : frame;
 +
 +    return 0;
 +}
@@ -2810,7 +2896,7 @@ index 0000000000..efeaeb47d1
 +static int nvtegra_mpeg12_end_frame(AVCodecContext *avctx) {
 +    MpegEncContext               *s = avctx->priv_data;
 +    NVTegraMPEG12DecodeContext *ctx = avctx->internal->hwaccel_priv_data;
-+    AVFrame                  *frame = s->current_picture.f;
++    AVFrame                  *frame = s->cur_pic.ptr->f;
 +    FrameDecodeData            *fdd = (FrameDecodeData *)frame->private_ref->data;
 +    FFNVTegraDecodeFrame        *tf = fdd->hwaccel_priv;
 +
@@ -2841,7 +2927,7 @@ index 0000000000..efeaeb47d1
 +
 +static int nvtegra_mpeg12_decode_slice(AVCodecContext *avctx, const uint8_t *buf, uint32_t buf_size) {
 +    MpegEncContext *s = avctx->priv_data;
-+    AVFrame    *frame = s->current_picture.f;
++    AVFrame    *frame = s->cur_pic.ptr->f;
 +
 +    return ff_nvtegra_decode_slice(avctx, frame, buf, buf_size, false);
 +}
@@ -2881,10 +2967,10 @@ index 0000000000..efeaeb47d1
 +#endif
 diff --git a/libavcodec/nvtegra_mpeg4.c b/libavcodec/nvtegra_mpeg4.c
 new file mode 100644
-index 0000000000..2325380330
+index 0000000000..bb20d02151
 --- /dev/null
 +++ b/libavcodec/nvtegra_mpeg4.c
-@@ -0,0 +1,344 @@
+@@ -0,0 +1,346 @@
 +/*
 + * Copyright (c) 2024 averne <averne381@gmail.com>
 + *
@@ -2906,6 +2992,8 @@ index 0000000000..2325380330
 + */
 +
 +#include "config_components.h"
++
++#include <stdbool.h>
 +
 +#include "avcodec.h"
 +#include "hwaccel_internal.h"
@@ -3039,8 +3127,8 @@ index 0000000000..2325380330
 +        .height                       = FFALIGN(s->height, MB_SIZE),
 +
 +        .FrameStride                  = {
-+            s->current_picture.f->linesize[0],
-+            s->current_picture.f->linesize[1],
++            s->cur_pic.ptr->f->linesize[0],
++            s->cur_pic.ptr->f->linesize[1],
 +        },
 +
 +        .luma_top_offset              = 0,
@@ -3139,7 +3227,7 @@ index 0000000000..2325380330
 +static int nvtegra_mpeg4_start_frame(AVCodecContext *avctx, const uint8_t *buf, uint32_t buf_size) {
 +    Mpeg4DecContext             *m = avctx->priv_data;
 +    MpegEncContext              *s = &m->m;
-+    AVFrame                 *frame = s->current_picture.f;
++    AVFrame                 *frame = s->cur_pic.ptr->f;
 +    FrameDecodeData           *fdd = (FrameDecodeData *)frame->private_ref->data;
 +    NVTegraMPEG4DecodeContext *ctx = avctx->internal->hwaccel_priv_data;
 +
@@ -3161,8 +3249,8 @@ index 0000000000..2325380330
 +
 +    nvtegra_mpeg4_prepare_frame_setup((nvdec_mpeg4_pic_s *)(mem + ctx->core.pic_setup_off), avctx, ctx);
 +
-+    ctx->prev_frame = (s->pict_type != AV_PICTURE_TYPE_I) ? s->last_picture.f : frame;
-+    ctx->next_frame = (s->pict_type == AV_PICTURE_TYPE_B) ? s->next_picture.f : frame;
++    ctx->prev_frame = (s->pict_type != AV_PICTURE_TYPE_I && s->last_pic.ptr) ? s->last_pic.ptr->f : frame;
++    ctx->next_frame = (s->pict_type == AV_PICTURE_TYPE_B && s->next_pic.ptr) ? s->next_pic.ptr->f : frame;
 +
 +    return 0;
 +}
@@ -3171,7 +3259,7 @@ index 0000000000..2325380330
 +    Mpeg4DecContext             *m = avctx->priv_data;
 +    MpegEncContext              *s = &m->m;
 +    NVTegraMPEG4DecodeContext *ctx = avctx->internal->hwaccel_priv_data;
-+    AVFrame                 *frame = s->current_picture.f;
++    AVFrame                 *frame = s->cur_pic.ptr->f;
 +    FrameDecodeData           *fdd = (FrameDecodeData *)frame->private_ref->data;
 +    FFNVTegraDecodeFrame       *tf = fdd->hwaccel_priv;
 +
@@ -3204,7 +3292,7 @@ index 0000000000..2325380330
 +                                  uint32_t buf_size)
 +{
 +    Mpeg4DecContext *m = avctx->priv_data;
-+    AVFrame     *frame = m->m.current_picture.f;
++    AVFrame     *frame = m->m.cur_pic.ptr->f;
 +
 +    /* Rewind the bitstream looking for the VOP start marker */
 +    while (*(uint32_t *)buf != AV_BE2NE32C(VOP_STARTCODE))
@@ -3231,7 +3319,7 @@ index 0000000000..2325380330
 +#endif
 diff --git a/libavcodec/nvtegra_vc1.c b/libavcodec/nvtegra_vc1.c
 new file mode 100644
-index 0000000000..b5ee85c9d4
+index 0000000000..7b79b05d60
 --- /dev/null
 +++ b/libavcodec/nvtegra_vc1.c
 @@ -0,0 +1,455 @@
@@ -3255,9 +3343,9 @@ index 0000000000..b5ee85c9d4
 + * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 + */
 +
-+#include <stdbool.h>
-+
 +#include "config_components.h"
++
++#include <stdbool.h>
 +
 +#include "avcodec.h"
 +#include "hwaccel_internal.h"
@@ -3383,7 +3471,7 @@ index 0000000000..b5ee85c9d4
 +{
 +    VC1Context     *v = avctx->priv_data;
 +    MpegEncContext *s = &v->s;
-+    AVFrame    *frame = s->current_picture_ptr->f;
++    AVFrame    *frame = s->cur_pic.ptr->f;
 +
 +    /*
 +     * Notes:
@@ -3555,7 +3643,7 @@ index 0000000000..b5ee85c9d4
 +static int nvtegra_vc1_start_frame(AVCodecContext *avctx, const uint8_t *buf, uint32_t buf_size) {
 +    VC1Context                *v = avctx->priv_data;
 +    MpegEncContext            *s = &v->s;
-+    AVFrame               *frame = s->current_picture.f;
++    AVFrame               *frame = s->cur_pic.ptr->f;
 +    FrameDecodeData         *fdd = (FrameDecodeData *)frame->private_ref->data;
 +    NVTegraVC1DecodeContext *ctx = avctx->internal->hwaccel_priv_data;
 +
@@ -3579,8 +3667,8 @@ index 0000000000..b5ee85c9d4
 +
 +    nvtegra_vc1_prepare_frame_setup((nvdec_vc1_pic_s *)(mem + ctx->core.pic_setup_off), avctx, ctx);
 +
-+    ctx->prev_frame = ff_nvtegra_safe_get_ref(s->last_picture.f, frame);
-+    ctx->next_frame = ff_nvtegra_safe_get_ref(s->next_picture.f, frame);
++    ctx->prev_frame = ff_nvtegra_safe_get_ref(s->last_pic.ptr ? s->last_pic.ptr->f : frame, frame);
++    ctx->next_frame = ff_nvtegra_safe_get_ref(s->next_pic.ptr ? s->next_pic.ptr->f : frame, frame);
 +
 +    return 0;
 +}
@@ -3588,7 +3676,7 @@ index 0000000000..b5ee85c9d4
 +static int nvtegra_vc1_end_frame(AVCodecContext *avctx) {
 +    VC1Context                *v = avctx->priv_data;
 +    NVTegraVC1DecodeContext *ctx = avctx->internal->hwaccel_priv_data;
-+    AVFrame               *frame = v->s.current_picture.f;
++    AVFrame               *frame = v->s.cur_pic.ptr->f;
 +    FrameDecodeData         *fdd = (FrameDecodeData *)frame->private_ref->data;
 +    FFNVTegraDecodeFrame     *tf = fdd->hwaccel_priv;
 +
@@ -3622,7 +3710,7 @@ index 0000000000..b5ee85c9d4
 +{
 +    VC1Context                *v = avctx->priv_data;
 +    NVTegraVC1DecodeContext *ctx = avctx->internal->hwaccel_priv_data;
-+    AVFrame               *frame = v->s.current_picture.f;
++    AVFrame               *frame = v->s.cur_pic.ptr->f;
 +    FrameDecodeData         *fdd = (FrameDecodeData *)frame->private_ref->data;
 +    FFNVTegraDecodeFrame     *tf = fdd->hwaccel_priv;
 +    AVNVTegraMap      *input_map = (AVNVTegraMap *)tf->input_map_ref->data;
@@ -3692,10 +3780,10 @@ index 0000000000..b5ee85c9d4
 +#endif
 diff --git a/libavcodec/nvtegra_vp8.c b/libavcodec/nvtegra_vp8.c
 new file mode 100644
-index 0000000000..a3aa69fe62
+index 0000000000..d6061616da
 --- /dev/null
 +++ b/libavcodec/nvtegra_vp8.c
-@@ -0,0 +1,334 @@
+@@ -0,0 +1,336 @@
 +/*
 + * Copyright (c) 2024 averne <averne381@gmail.com>
 + *
@@ -3717,6 +3805,8 @@ index 0000000000..a3aa69fe62
 + */
 +
 +#include "config_components.h"
++
++#include <stdbool.h>
 +
 +#include "avcodec.h"
 +#include "hwaccel_internal.h"
@@ -4032,7 +4122,7 @@ index 0000000000..a3aa69fe62
 +#endif
 diff --git a/libavcodec/nvtegra_vp9.c b/libavcodec/nvtegra_vp9.c
 new file mode 100644
-index 0000000000..a0cca1a5a4
+index 0000000000..f9544de09f
 --- /dev/null
 +++ b/libavcodec/nvtegra_vp9.c
 @@ -0,0 +1,665 @@
@@ -4056,9 +4146,9 @@ index 0000000000..a0cca1a5a4
 + * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 + */
 +
-+#include <stdbool.h>
-+
 +#include "config_components.h"
++
++#include <stdbool.h>
 +
 +#include "avcodec.h"
 +#include "hwaccel_internal.h"
@@ -4702,10 +4792,10 @@ index 0000000000..a0cca1a5a4
 +};
 +#endif
 diff --git a/libavcodec/vc1dec.c b/libavcodec/vc1dec.c
-index 3ca478e82a..ce389d8767 100644
+index 5f1a5bd437..62ef919ca9 100644
 --- a/libavcodec/vc1dec.c
 +++ b/libavcodec/vc1dec.c
-@@ -70,6 +70,9 @@ static const enum AVPixelFormat vc1_hwaccel_pixfmt_list_420[] = {
+@@ -71,6 +71,9 @@ static const enum AVPixelFormat vc1_hwaccel_pixfmt_list_420[] = {
  #endif
  #if CONFIG_VC1_VDPAU_HWACCEL
      AV_PIX_FMT_VDPAU,
@@ -4715,7 +4805,7 @@ index 3ca478e82a..ce389d8767 100644
  #endif
      AV_PIX_FMT_YUV420P,
      AV_PIX_FMT_NONE
-@@ -1414,6 +1417,9 @@ const FFCodec ff_vc1_decoder = {
+@@ -1425,6 +1428,9 @@ const FFCodec ff_vc1_decoder = {
  #endif
  #if CONFIG_VC1_VDPAU_HWACCEL
                          HWACCEL_VDPAU(vc1),
@@ -4725,7 +4815,7 @@ index 3ca478e82a..ce389d8767 100644
  #endif
                          NULL
                      },
-@@ -1453,6 +1459,9 @@ const FFCodec ff_wmv3_decoder = {
+@@ -1464,6 +1470,9 @@ const FFCodec ff_wmv3_decoder = {
  #endif
  #if CONFIG_WMV3_VDPAU_HWACCEL
                          HWACCEL_VDPAU(wmv3),
@@ -4736,10 +4826,10 @@ index 3ca478e82a..ce389d8767 100644
                          NULL
                      },
 diff --git a/libavcodec/vp8.c b/libavcodec/vp8.c
-index dd6c1b361b..0fbec081d1 100644
+index d6df018655..6ae6980abd 100644
 --- a/libavcodec/vp8.c
 +++ b/libavcodec/vp8.c
-@@ -197,6 +197,9 @@ static enum AVPixelFormat get_pixel_format(VP8Context *s)
+@@ -184,6 +184,9 @@ static enum AVPixelFormat get_pixel_format(VP8Context *s)
  #endif
  #if CONFIG_VP8_NVDEC_HWACCEL
          AV_PIX_FMT_CUDA,
@@ -4749,7 +4839,7 @@ index dd6c1b361b..0fbec081d1 100644
  #endif
          AV_PIX_FMT_YUV420P,
          AV_PIX_FMT_NONE,
-@@ -3005,6 +3008,9 @@ const FFCodec ff_vp8_decoder = {
+@@ -2980,6 +2983,9 @@ const FFCodec ff_vp8_decoder = {
  #endif
  #if CONFIG_VP8_NVDEC_HWACCEL
                                 HWACCEL_NVDEC(vp8),
@@ -4760,10 +4850,10 @@ index dd6c1b361b..0fbec081d1 100644
                                 NULL
                             },
 diff --git a/libavcodec/vp9.c b/libavcodec/vp9.c
-index 855936cdc1..0a75814118 100644
+index 8ede2e2eb3..6f2b6f5241 100644
 --- a/libavcodec/vp9.c
 +++ b/libavcodec/vp9.c
-@@ -174,7 +174,8 @@ static int update_size(AVCodecContext *avctx, int w, int h)
+@@ -165,7 +165,8 @@ static int update_size(AVCodecContext *avctx, int w, int h)
                       CONFIG_VP9_NVDEC_HWACCEL + \
                       CONFIG_VP9_VAAPI_HWACCEL + \
                       CONFIG_VP9_VDPAU_HWACCEL + \
@@ -4773,7 +4863,7 @@ index 855936cdc1..0a75814118 100644
      enum AVPixelFormat pix_fmts[HWACCEL_MAX + 2], *fmtp = pix_fmts;
      VP9Context *s = avctx->priv_data;
      uint8_t *p;
-@@ -189,6 +190,10 @@ static int update_size(AVCodecContext *avctx, int w, int h)
+@@ -180,6 +181,10 @@ static int update_size(AVCodecContext *avctx, int w, int h)
  
          switch (s->pix_fmt) {
          case AV_PIX_FMT_YUV420P:
@@ -4784,7 +4874,7 @@ index 855936cdc1..0a75814118 100644
          case AV_PIX_FMT_YUV420P10:
  #if CONFIG_VP9_DXVA2_HWACCEL
              *fmtp++ = AV_PIX_FMT_DXVA2_VLD;
-@@ -1917,6 +1922,9 @@ const FFCodec ff_vp9_decoder = {
+@@ -1870,6 +1875,9 @@ const FFCodec ff_vp9_decoder = {
  #endif
  #if CONFIG_VP9_VIDEOTOOLBOX_HWACCEL
                                 HWACCEL_VIDEOTOOLBOX(vp9),
@@ -4795,7 +4885,7 @@ index 855936cdc1..0a75814118 100644
                                 NULL
                             },
 diff --git a/libavutil/Makefile b/libavutil/Makefile
-index 6e6fa8d800..e9c879f9e2 100644
+index 6e6fa8d800..8e1f9ebc2f 100644
 --- a/libavutil/Makefile
 +++ b/libavutil/Makefile
 @@ -52,6 +52,10 @@ HEADERS = adler32.h                                                     \
@@ -4813,7 +4903,7 @@ index 6e6fa8d800..e9c879f9e2 100644
  OBJS-$(CONFIG_VULKAN)                   += hwcontext_vulkan.o vulkan.o
  
  OBJS-$(!CONFIG_VULKAN)                  += hwcontext_stub.o
-+OBJS-$(CONFIG_NVTEGRA)                  += hwcontext_nvtegra.o nvtegra.o
++OBJS-$(CONFIG_NVTEGRA)                  += nvtegra.o hwcontext_nvtegra.o
  
  OBJS += $(COMPAT_OBJS:%=../compat/%)
  
@@ -4821,9 +4911,9 @@ index 6e6fa8d800..e9c879f9e2 100644
  SKIPHEADERS-$(CONFIG_VULKAN)           += hwcontext_vulkan.h vulkan.h   \
                                            vulkan_functions.h            \
                                            vulkan_loader.h
-+SKIPHEADERS-$(CONFIG_NVTEGRA)          += hwcontext_nvtegra.h           \
-+                                          nvtegra.h                     \
-+                                          nvtegra_host1x.h
++SKIPHEADERS-$(CONFIG_NVTEGRA)          += nvtegra.h                     \
++                                          nvtegra_host1x.h              \
++                                          hwcontext_nvtegra.h
  
  TESTPROGS = adler32                                                     \
              aes                                                         \
@@ -4866,7 +4956,7 @@ index 0000000000..da8dbd6574
 +
 +#endif /* AVUTIL_RISCV_INTMATH_H */
 diff --git a/libavutil/buffer.c b/libavutil/buffer.c
-index e4562a79b1..5b6e329fc7 100644
+index a8101d83f0..40e6605ada 100644
 --- a/libavutil/buffer.c
 +++ b/libavutil/buffer.c
 @@ -16,9 +16,14 @@
@@ -5817,7 +5907,7 @@ index 0000000000..cefa634164
 +#endif
 +#endif // _cle7d0_h
 diff --git a/libavutil/cpu.c b/libavutil/cpu.c
-index 48d195168c..e87e296293 100644
+index df00bd541f..9d0563b144 100644
 --- a/libavutil/cpu.c
 +++ b/libavutil/cpu.c
 @@ -48,6 +48,9 @@
@@ -5828,9 +5918,9 @@ index 48d195168c..e87e296293 100644
 +#include <switch.h>
 +#endif
  
- static atomic_int cpu_flags = ATOMIC_VAR_INIT(-1);
- static atomic_int cpu_count = ATOMIC_VAR_INIT(-1);
-@@ -245,6 +248,10 @@ int av_cpu_count(void)
+ #if HAVE_GETAUXVAL || HAVE_ELF_AUX_INFO
+ #include <sys/auxv.h>
+@@ -249,6 +252,10 @@ int av_cpu_count(void)
  #elif HAVE_WINRT
      GetNativeSystemInfo(&sysinfo);
      nb_cpus = sysinfo.dwNumberOfProcessors;
@@ -5888,10 +5978,10 @@ index e32b786238..478583abdd 100644
  #endif /* AVUTIL_HWCONTEXT_INTERNAL_H */
 diff --git a/libavutil/hwcontext_nvtegra.c b/libavutil/hwcontext_nvtegra.c
 new file mode 100644
-index 0000000000..ff115a111a
+index 0000000000..6b72348082
 --- /dev/null
 +++ b/libavutil/hwcontext_nvtegra.c
-@@ -0,0 +1,1044 @@
+@@ -0,0 +1,1045 @@
 +/*
 + * Copyright (c) 2024 averne <averne381@gmail.com>
 + *
@@ -5918,6 +6008,7 @@ index 0000000000..ff115a111a
 +#include "pixdesc.h"
 +#include "imgutils.h"
 +#include "internal.h"
++#include "mem.h"
 +#include "time.h"
 +
 +#include "hwcontext.h"
@@ -6784,7 +6875,7 @@ index 0000000000..ff115a111a
 +static int nvtegra_vic_transfer_data(AVHWFramesContext *ctx, const AVFrame *dst, const AVFrame *src,
 +                                     int num_planes, bool from)
 +{
-+    NVTegraDevicePriv       *priv = ctx->hwctx;
++    NVTegraDevicePriv       *priv = ctx->device_ctx->hwctx;
 +    AVNVTegraDeviceContext *hwctx = &priv->p;
 +
 +    AVBufferRef *job_ref;
@@ -7035,7 +7126,7 @@ index 0000000000..7c845951d9
 +
 +#endif /* AVUTIL_HWCONTEXT_NVTEGRA_H */
 diff --git a/libavutil/intmath.h b/libavutil/intmath.h
-index c54d23b7bf..4f723570e0 100644
+index 52e11a8d5f..4c91e14d86 100644
 --- a/libavutil/intmath.h
 +++ b/libavutil/intmath.h
 @@ -26,7 +26,9 @@
@@ -11488,7 +11579,7 @@ index 0000000000..25e37eae61
 +
 +#endif /* AVUTIL_NVTEGRA_HOST1X_H */
 diff --git a/libavutil/pixdesc.c b/libavutil/pixdesc.c
-index 9c708520b1..87b947f10f 100644
+index 1c0bcf2232..bb14b1b306 100644
 --- a/libavutil/pixdesc.c
 +++ b/libavutil/pixdesc.c
 @@ -2791,6 +2791,10 @@ static const AVPixFmtDescriptor av_pix_fmt_descriptors[AV_PIX_FMT_NB] = {
@@ -11503,14 +11594,20 @@ index 9c708520b1..87b947f10f 100644
  
  static const char * const color_range_names[] = {
 diff --git a/libavutil/pixfmt.h b/libavutil/pixfmt.h
-index 4aa20e4e58..fef2983b58 100644
+index a7f50e1690..1b98a7ecc4 100644
 --- a/libavutil/pixfmt.h
 +++ b/libavutil/pixfmt.h
-@@ -439,6 +439,8 @@ enum AVPixelFormat {
+@@ -439,6 +439,14 @@ enum AVPixelFormat {
       */
      AV_PIX_FMT_D3D12,
  
-+    AV_PIX_FMT_NVTEGRA,   ///< Tegra X1 pixel format, data[3] contains nothing
++    /**
++     * Hardware surfaces for Tegra devices.
++     *
++     * data[0..2] points to memory-mapped buffers containing frame data
++     * buf[0] contains an AVBufferRef to an AVNTegraMap
++     */
++    AV_PIX_FMT_NVTEGRA,
 +
      AV_PIX_FMT_NB         ///< number of pixel formats, DO NOT USE THIS if you want to link with shared libav* because the number of formats might differ between versions
  };

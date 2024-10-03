@@ -56,7 +56,7 @@ parts:
       - libass
 
   ffmpeg:
-    source: https://ffmpeg.org/releases/ffmpeg-7.0.2.tar.xz
+    source: https://ffmpeg.org/releases/ffmpeg-7.1.tar.xz
     source-type: tar
     plugin: autotools
     autotools-configure-parameters:

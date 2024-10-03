@@ -8,7 +8,7 @@ export PKG_CONFIG_PATH=$CMAKE_PREFIX_PATH/lib/pkgconfig
 export LD_LIBRARY_PATH=$CMAKE_PREFIX_PATH/lib
 
 wget -qO- https://curl.se/download/curl-8.7.1.tar.xz | tar Jxf - -C /tmp
-wget -qO- https://ffmpeg.org/releases/ffmpeg-7.0.2.tar.xz | tar Jxf - -C /tmp
+wget -qO- https://ffmpeg.org/releases/ffmpeg-7.1.tar.xz | tar Jxf - -C /tmp
 wget -qO- https://github.com/mpv-player/mpv/archive/v0.36.0.tar.gz | tar zxf - -C /tmp
 wget -qO- https://github.com/webmproject/libwebp/archive/v1.4.0.tar.gz | tar zxf - -C /tmp
 git clone https://github.com/dragonflylee/glfw.git -b switchfin --depth=1 /tmp/glfw
@@ -21,7 +21,7 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_P
 cmake --build build -j$(nproc)
 cmake --install build --strip
 
-cd /tmp/ffmpeg-7.0.2
+cd /tmp/ffmpeg-7.1
 ./configure --prefix=$CMAKE_PREFIX_PATH --enable-shared --disable-static \
   --ld=g++ --enable-nonfree --enable-openssl --enable-libv4l2 \
   --enable-opengl --enable-libass --disable-doc --enable-asm --enable-rpath \

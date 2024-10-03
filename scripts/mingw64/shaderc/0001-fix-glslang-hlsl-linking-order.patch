@@ -1,3 +1,15 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ffcb54b98f..1451cb6503 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -157,6 +157,6 @@ function(define_pkg_config_file NAME LIBS)
+   endif()
+ endfunction()
+ 
+-define_pkg_config_file(shaderc -lshaderc_shared)
++define_pkg_config_file(shaderc -lshaderc_combined)
+ define_pkg_config_file(shaderc_static "-lshaderc ${EXTRA_STATIC_PKGCONFIG_LIBS} -lshaderc_util")
+ define_pkg_config_file(shaderc_combined -lshaderc_combined)
 diff --git a/cmake/shaderc_combined.pc.in b/cmake/shaderc_combined.pc.in
 index 6d217bfcde..e5f500bd1b 100644
 --- a/cmake/shaderc_combined.pc.in

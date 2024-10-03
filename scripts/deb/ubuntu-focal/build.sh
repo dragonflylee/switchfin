@@ -9,7 +9,7 @@ export LD_LIBRARY_PATH=$CMAKE_PREFIX_PATH/lib
 
 wget -qO- https://curl.se/download/curl-8.7.1.tar.xz | tar Jxf - -C /tmp
 wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.4.3/dav1d-1.4.3.tar.xz | tar Jxf - -C /tmp
-wget -qO- https://ffmpeg.org/releases/ffmpeg-7.0.2.tar.xz | tar Jxf - -C /tmp
+wget -qO- https://ffmpeg.org/releases/ffmpeg-7.1.tar.xz | tar Jxf - -C /tmp
 wget -qO- https://github.com/mpv-player/mpv/archive/v0.36.0.tar.gz | tar zxf - -C /tmp
 git clone https://github.com/dragonflylee/glfw.git -b switchfin --depth=1 /tmp/glfw
 git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git -b n12.2.72.0 --depth=1 /tmp/nv-codec-headers
@@ -30,7 +30,7 @@ meson install -C build
 
 make PREFIX=$CMAKE_PREFIX_PATH -C /tmp/nv-codec-headers install
 
-cd /tmp/ffmpeg-7.0.2
+cd /tmp/ffmpeg-7.1
 ./configure --prefix=$CMAKE_PREFIX_PATH --enable-shared --disable-static \
   --ld=g++ --enable-nonfree --enable-openssl --enable-libv4l2 \
   --enable-opengl --enable-libass --disable-doc --enable-asm --enable-rpath \

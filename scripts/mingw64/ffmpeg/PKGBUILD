@@ -6,7 +6,7 @@
 _realname=ffmpeg
 pkgbase="mingw-w64-${_realname}"
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=7.0.2
+pkgver=7.1
 pkgrel=1
 pkgdesc="Complete solution to record, convert and stream audio and video (mingw-w64)"
 arch=('any')
@@ -32,7 +32,7 @@ makedepends=(
 )
 options=('staticlibs' '!strip')
 source=("https://ffmpeg.org/releases/${_realname}-${pkgver}.tar.xz")
-sha256sums=('8646515b638a3ad303e23af6a3587734447cb8fc0a0c064ecdb8e95c4fd8b389')
+sha256sums=('40973d44970dbc83ef302b0609f2e74982be2d85916dd2ee7472d30678a7abe6')
 
 build() {
   mkdir -p "${srcdir}/build-${MSYSTEM}" && cd "${srcdir}/build-${MSYSTEM}"

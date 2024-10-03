@@ -3,7 +3,7 @@
 _realname=shaderc
 pkgbase=mingw-w64-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
-pkgver=2024.2
+pkgver=2024.3
 pkgrel=1
 pkgdesc="Collection of tools, libraries and tests for shader compilation (mingw-w64)"
 url="https://github.com/google/shaderc"
@@ -26,7 +26,7 @@ source=(
   "${_realname}-${pkgver}.tar.gz"::"https://github.com/google/shaderc/archive/v${pkgver}.tar.gz"
   "0001-fix-glslang-hlsl-linking-order.patch"
 )
-sha256sums=('c25e24d47c911b808266684d9c75ee09a390a5c537c17465eb15ea6905e702c3' 'SKIP')
+sha256sums=('d5c68b5de5d4c7859d9699054493e0a42a2a5eb21b425d63f7b7dd543db0d708' 'SKIP')
 
 prepare() {
   cd "${srcdir}/${_realname}-${pkgver}"
@@ -47,6 +47,7 @@ build() {
     ${MINGW_PREFIX}/bin/cmake.exe -B "build-${MSYSTEM}" -G Ninja \
       -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
       -DCMAKE_BUILD_TYPE=Release \
+      -DBUILD_SHARED_LIBS=OFF \
       -Dglslang_SOURCE_DIR=$(cygpath -m "${MINGW_PREFIX}/include/glslang") \
       -DSHADERC_SKIP_TESTS=ON \
       -DSHADERC_SKIP_EXAMPLES=ON \
