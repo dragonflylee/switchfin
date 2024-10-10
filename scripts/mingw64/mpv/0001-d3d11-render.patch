@@ -1,14 +1,5 @@
-diff --git a/libmpv/mpv.def b/libmpv/mpv.def
-index 232490d44d..8e0171abce 100644
---- a/libmpv/mpv.def
-+++ b/libmpv/mpv.def
-@@ -1,3 +1,4 @@
-+EXPORTS
- mpv_abort_async_command
- mpv_client_api_version
- mpv_client_id
 diff --git a/libmpv/render.h b/libmpv/render.h
-index 29f9b91e96..d3cefdcde4 100644
+index 862ffdeb81..27ea013134 100644
 --- a/libmpv/render.h
 +++ b/libmpv/render.h
 @@ -421,6 +421,10 @@ typedef enum mpv_render_param_type {
@@ -56,20 +47,41 @@ index 0000000000..5614cc99d9
 +#endif
 +#endif // MPV_CLIENT_API_RENDER_DXGI_H_
 diff --git a/meson.build b/meson.build
-index f9fe4e7263..75a3e500c3 100644
+index b7bcb1b0ba..31fbe60ccc 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -980,7 +980,8 @@ d3d11 = get_option('d3d11').require(
+@@ -307,7 +307,7 @@ features += {'darwin': darwin}
+ features += {'posix': posix}
+ features += {'dos-paths': win32, 'win32': win32}
+ 
+-mswin_flags = ['-D_WIN32_WINNT=0x0A00', '-DWINVER=0x0A00', '-DUNICODE',
++mswin_flags = ['-D_WIN32_WINNT=0x0602', '-DWINVER=0x0602', '-DUNICODE',
+                '-DCOBJMACROS', '-DINITGUID', '-DNOMINMAX',
+                '-D_USE_MATH_DEFINES', '-DWIN32_LEAN_AND_MEAN',
+                '-D_CRT_DECLARE_NONSTDC_NAMES', '-D_CRT_NONSTDC_NO_WARNINGS',
+@@ -497,11 +497,6 @@ endif
+ 
+ features += {'win32-desktop': win32 and not uwp.found()}
+ if features['win32-desktop']
+-    pathcch = cc.find_library('pathcch', required: false)
+-    features += {'pathcch': pathcch.found()}
+-    if features['pathcch']
+-        dependencies += pathcch
+-    endif
+     win32_desktop_libs = [cc.find_library('avrt'),
+                           cc.find_library('dwmapi'),
+                           cc.find_library('gdi32'),
+@@ -1007,7 +1002,8 @@ d3d11 = get_option('d3d11').require(
  features += {'d3d11': d3d11.allowed()}
  if features['d3d11']
      sources += files('video/out/d3d11/context.c',
 -                     'video/out/d3d11/ra_d3d11.c')
 +                     'video/out/d3d11/ra_d3d11.c',
 +                     'video/out/d3d11/libmpv_d3d11.c')
+     features += {'dxgi-debug-d3d11': cc.has_header_symbol('d3d11sdklayers.h', 'DXGI_DEBUG_D3D11')}
+     features += {'dxgi-debug': cc.has_header_symbol('dxgidebug.h', 'IID_IDXGIInfoQueue')}
  endif
- 
- wayland = {
-@@ -1724,8 +1725,10 @@ if get_option('libmpv')
+@@ -1775,7 +1771,8 @@ if get_option('libmpv')
                   description: 'mpv media player client library')
  
      headers = ['libmpv/client.h', 'libmpv/render.h',
@@ -77,10 +89,8 @@ index f9fe4e7263..75a3e500c3 100644
 +               'libmpv/render_gl.h', 'libmpv/stream_cb.h',
 +               'libmpv/render_dxgi.h']
      install_headers(headers, subdir: 'mpv')
-+    install_data(sources: 'libmpv/mpv.def', install_dir: 'share/doc/mpv')
- endif
  
- if get_option('cplayer')
+     # Allow projects to build with libmpv by cloning into ./subprojects/mpv
 diff --git a/video/out/d3d11/libmpv_d3d11.c b/video/out/d3d11/libmpv_d3d11.c
 new file mode 100644
 index 0000000000..9059834745
@@ -176,7 +186,7 @@ index 0000000000..9059834745
 +};
 \ No newline at end of file
 diff --git a/video/out/gpu/libmpv_gpu.c b/video/out/gpu/libmpv_gpu.c
-index aae1d18eed..bc65a73f7b 100644
+index 0878fa00f1..e9b0243871 100644
 --- a/video/out/gpu/libmpv_gpu.c
 +++ b/video/out/gpu/libmpv_gpu.c
 @@ -6,6 +6,9 @@

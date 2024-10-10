@@ -113,13 +113,13 @@ jobs:
     - name: Update mpv opengl
       if: ${{ matrix.driver == 'opengl' }}
       run: |
-        for pkg in switch-libmpv-0.36.0-5; do
+        for pkg in switch-libmpv-0.39.0-3; do
           dkp-pacman --noconfirm -U $BASE_URL/${pkg}-any.pkg.tar.zst
         done
     - name: Update mpv deko3d
       if: ${{ matrix.driver == 'deko3d' }}
       run: |
-        for pkg in libuam-master-1 switch-libmpv-deko3d-0.36.0-6; do
+        for pkg in libuam-master-1 switch-libmpv-deko3d-0.39.0-4; do
           dkp-pacman --noconfirm -U $BASE_URL/${pkg}-any.pkg.tar.zst
         done
     - name: Build nro
@@ -199,7 +199,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: [ switchroot-bionic, kylin-v10, ubuntu-focal, debian-bookworm ]
+        release: [ switchroot-bionic, ubuntu-focal, debian-bookworm ]
     runs-on: ubuntu-latest
     if: ${{ inputs.deb }}
     steps:
@@ -207,7 +207,7 @@ jobs:
       with:
         submodules: recursive
     - name: Set up QEMU
-      if: ${{ matrix.release == 'switchroot-bionic' || matrix.release == 'kylin-v10' }}
+      if: ${{ matrix.release == 'switchroot-bionic' }}
       uses: docker/setup-qemu-action@v3
     - name: Build deb
       run: docker run --rm -u $(id -u):$(id -g) -v $PWD:/opt -w /opt -e VERSION_BUILD=${{ github.run_number }} dragonflylee/build:${{ matrix.release }} bash scripts/deb/${{ matrix.release }}/build.sh
@@ -271,11 +271,7 @@ jobs:
         - tag: Intel
           arch: x86_64
           target: "10.15"
-        - tag: Intel_10.11
-          arch: x86_64
-          target: "10.11"
-          cmake: -DUSE_BOOST_FILESYSTEM=ON
-        tag: [ Silicon, Intel, Intel_10.11 ]
+        tag: [ Silicon, Intel ]
     steps:
     - uses: actions/checkout@v4
       with:
@@ -283,12 +279,12 @@ jobs:
     - name: Install deps
       run: |
         brew install create-dmg dylibbundler
-        curl -sSL https://github.com/dragonflylee/switchfin/releases/download/macos-dylib/dylib-ffmpeg71-mpv36-${{ matrix.tag }}.tar.gz | tar zxf - -C /tmp
+        curl -sSL https://github.com/dragonflylee/switchfin/releases/download/macos-dylib/dylib-ffmpeg71-mpv39-${{ matrix.tag }}.tar.gz | tar zxf - -C /tmp
     - name: Build App
       env:
         DYLD_LIBRARY_PATH: /tmp/lib
       run: |
-        cmake -B build ${{ matrix.cmake }} \
+        cmake -B build \
           -DCMAKE_PREFIX_PATH=/tmp \
           -DCMAKE_BUILD_TYPE=Release \
           -DPLATFORM_DESKTOP=ON \
@@ -338,7 +334,7 @@ jobs:
         submodules: recursive
     - name: Install dependency
       run: |
-        for pkg in glfw-3.5.0-1 curl-8.7.1-1 mpv-0.36.0-4 libwebp-1.4.0-1; do
+        for pkg in glfw-3.5.0-1 curl-8.7.1-1 mpv-0.39.0-4 libwebp-1.4.0-1; do
           curl -sLO https://github.com/dragonflylee/switchfin/releases/download/mingw-packages/${MINGW_PACKAGE_PREFIX}-${pkg}-any.pkg.tar.zst
         done
         pacman -U --noconfirm *.pkg.tar.zst

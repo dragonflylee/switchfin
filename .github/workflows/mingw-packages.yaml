@@ -43,21 +43,15 @@ jobs:
       run: |
         cd scripts/mingw64
 
-        for pkg in mbedtls libwebp freetype harfbuzz libass dav1d ffmpeg spirv-cross shaderc mpv; do
+        for pkg in mbedtls libwebp freetype harfbuzz libass dav1d ffmpeg spirv-cross shaderc libplacebo; do
           echo building $pkg
           pushd $pkg; makepkg-mingw -sciCf --noconfirm; popd
         done
 
-        for pkg in glfw curl; do
+        for pkg in glfw curl mpv; do
           echo building $pkg
           pushd $pkg; makepkg-mingw -scCf --noconfirm; popd
         done
-
-        cd ${MINGW_PREFIX}
-        7z a -mx=9 ${GITHUB_WORKSPACE}/mpv-dev-${MSYSTEM_CARCH}.7z include/mpv \
-          ${MINGW_PREFIX}/bin/libmpv-2.dll \
-          ${MINGW_PREFIX}/lib/libmpv.dll.a \
-          ${MINGW_PREFIX}/share/doc/mpv/mpv.def
     - name: Upload packages
       uses: softprops/action-gh-release@v2
       with:
@@ -69,6 +63,5 @@ jobs:
           scripts/mingw64/glfw/*.pkg.tar.zst
           scripts/mingw64/libwebp/*.pkg.tar.zst
           scripts/mingw64/mpv/*.pkg.tar.zst
-          mpv-*.7z
         body: |
           ![download](https://img.shields.io/github/downloads/${{ github.repository }}/mingw-packages/total?label=Downloads)
