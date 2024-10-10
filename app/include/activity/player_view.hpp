@@ -40,5 +40,6 @@ private:
     brls::VoidEvent::Subscription exitSubscribeID;
     brls::Event<int>::Subscription playSubscribeID;
     brls::VoidEvent::Subscription settingSubscribeID;
+    MPVCustomEvent::Subscription customEventSubscribeID;
     VideoView* view = nullptr;
 };

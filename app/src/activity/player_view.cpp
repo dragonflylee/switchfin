@@ -79,6 +79,12 @@ PlayerView::PlayerView(const jellyfin::Item& item) : itemId(item.Id) {
         default:;
         }
     });
+    // 自定义的mpv事件
+    customEventSubscribeID = mpv.getCustomEvent()->subscribe([this](const std::string& event, void* data) {
+        if (event == QUALITY_CHANGE) {
+            this->playMedia(MPVCore::instance().playback_time * jellyfin::PLAYTICKS);
+        }
+    });
 
     this->setChapters(item.Chapters, item.RunTimeTicks);
     this->playMedia(item.UserData.PlaybackPositionTicks);
@@ -92,6 +98,7 @@ PlayerView::PlayerView(const jellyfin::Item& item) : itemId(item.Id) {
 PlayerView::~PlayerView() {
     auto& mpv = MPVCore::instance();
     mpv.getEvent()->unsubscribe(eventSubscribeID);
+    mpv.getCustomEvent()->unsubscribe(customEventSubscribeID);
     view->getPlayEvent()->unsubscribe(playSubscribeID);
     view->getSettingEvent()->unsubscribe(settingSubscribeID);
 
