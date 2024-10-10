@@ -1,0 +1,53 @@
+# Maintainer: Alexey Pavlov <alexpux@gmail.com>
+
+_realname=libplacebo
+pkgbase=mingw-w64-${_realname}
+pkgname=("${MINGW_PACKAGE_PREFIX}-libplacebo")
+pkgver=7.349.0
+pkgrel=1
+pkgdesc="Reusable library for GPU-accelerated video/image rendering primitives (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw32' 'mingw64' 'clangarm64')
+url="https://code.videolan.org/videolan/libplacebo"
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-shaderc"
+  "${MINGW_PACKAGE_PREFIX}-spirv-cross"
+)
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "${MINGW_PACKAGE_PREFIX}-meson"
+  "${MINGW_PACKAGE_PREFIX}-pkgconf"
+  "${MINGW_PACKAGE_PREFIX}-python-jinja"
+  "${MINGW_PACKAGE_PREFIX}-fast_float"
+  "${MINGW_PACKAGE_PREFIX}-vulkan-headers"
+)
+license=('LGPL2.1')
+source=(${url}/-/archive/v${pkgver}/${_realname}-v${pkgver}.tar.gz)
+sha256sums=('79120e685a1836344b51b13b6a5661622486a84e4d4a35f6c8d01679a20fbc86')
+
+build() {
+  MSYS2_ARG_CONV_EXCL="--prefix=" \
+    meson setup \
+      --prefix="${MINGW_PREFIX}" \
+      --buildtype=release  \
+      --default-library=static \
+      -Ddemos=false \
+      -Dtests=false \
+      -Dopengl=disabled \
+      -Dgl-proc-addr=disabled \
+      -Dlcms=disabled \
+      -Ddovi=enabled \
+      -Dshaderc=enabled \
+      -Dvulkan=disabled \
+      "build-${MSYSTEM}" \
+      "${srcdir}/${_realname}-v${pkgver}"
+
+  meson compile -C "build-${MSYSTEM}"
+}
+
+package() {
+  cd "${srcdir}/build-${MSYSTEM}"
+  meson install --destdir "${pkgdir}"
+
+  sed -s "s|$(cygpath -am ${MINGW_PREFIX})|${MINGW_PREFIX}|g" -i ${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/libplacebo.pc
+}

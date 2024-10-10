@@ -4,7 +4,7 @@
 _realname=mpv
 pkgbase="mingw-w64-${_realname}"
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=0.36.0
+pkgver=0.39.0
 pkgrel=4
 pkgdesc="Video player based on MPlayer/mplayer2 (mingw-w64)"
 url="https://mpv.io/"
@@ -21,18 +21,18 @@ makedepends=(
   "${MINGW_PACKAGE_PREFIX}-lua51"
   "${MINGW_PACKAGE_PREFIX}-shaderc"
   "${MINGW_PACKAGE_PREFIX}-spirv-cross"
+  "${MINGW_PACKAGE_PREFIX}-libplacebo"
 )
 options=('strip')
 source=(
   "${_realname}-${pkgver}.tar.gz"::"https://github.com/mpv-player/${_realname}/archive/v${pkgver}.tar.gz"
-  "0001-d3d11-render.patch" "0002-lavfi-channel-layout.patch"
+  "0001-d3d11-render.patch"
 )
-sha256sums=('29abc44f8ebee013bb2f9fe14d80b30db19b534c679056e4851ceadf5a5e8bf6' 'SKIP' 'SKIP')
+sha256sums=('2ca92437affb62c2b559b4419ea4785c70d023590500e8a52e95ea3ab4554683' 'SKIP')
 
 prepare() {
   cd "${srcdir}/${_realname}-${pkgver}"
   patch -Nbp1 -i "${srcdir}/0001-d3d11-render.patch"
-  patch -Nbp1 -i "${srcdir}/0002-lavfi-channel-layout.patch"
 }
 
 build() {
@@ -54,6 +54,7 @@ build() {
       -Dgl-win32=disabled \
       -Degl-angle-lib=disabled \
       -Dd3d11=enabled \
+      -Dvulkan=disabled \
       -Dlibarchive=disabled \
       -Dlua=enabled \
       "build-${MSYSTEM}" \
