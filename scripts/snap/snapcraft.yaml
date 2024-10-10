@@ -24,7 +24,7 @@ layout:
 
 parts:
   libmpv:
-    source: https://github.com/mpv-player/mpv/archive/v0.36.0.tar.gz
+    source: https://github.com/mpv-player/mpv/archive/v0.39.0.tar.gz
     source-type: tar
     plugin: meson
     meson-parameters:
@@ -53,6 +53,7 @@ parts:
       - -usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pkgconfig
     after:
       - ffmpeg
+      - libplacebo
       - libass
 
   ffmpeg:
@@ -112,10 +113,24 @@ parts:
       - --strip
       - -Denable_tools=false
       - -Denable_tests=false
-    build-packages:
-      - libxxhash-dev
-    stage-packages:
-      - libxxhash0
+    prime:
+      - -usr/include
+      - -usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pkgconfig
+      - -usr/share
+
+  libplacebo:
+    plugin: meson
+    source: https://code.videolan.org/videolan/libplacebo.git
+    source-type: git
+    meson-parameters:
+      - --prefix=/usr
+      - --buildtype=release
+      - --strip
+      - -Dglslang=disabled
+      - -Ddemos=false
+      - -Ddovi=enabled
+      - -Dlcms=disabled
+      - -Dvulkan=disabled
     prime:
       - -usr/include
       - -usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pkgconfig
