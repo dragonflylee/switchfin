@@ -56,12 +56,13 @@ PlayerView::PlayerView(const jellyfin::Item& item) : itemId(item.Id) {
             break;
         case MpvEventEnum::MPV_LOADED: {
             auto& svr = AppConfig::instance().getUrl();
+            const char* flag = MPVCore::SUBS_FALLBACK ? "auto" : "select";
             // 移除其他备用链接
             for (auto& s : this->stream.MediaStreams) {
                 if (s.Type == jellyfin::streamTypeSubtitle) {
                     if (s.DeliveryUrl.size() > 0 && (s.IsExternal || this->playMethod == jellyfin::methodTranscode)) {
                         std::string url = svr + s.DeliveryUrl;
-                        mpv.command("sub-add", url.c_str(), "select", s.DisplayTitle.c_str());
+                        mpv.command("sub-add", url.c_str(), flag, s.DisplayTitle.c_str());
                     }
                 }
             }

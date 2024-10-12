@@ -78,6 +78,7 @@ public:
         PLAYER_HWDEC,
         PLAYER_HWDEC_CUSTOM,
         PLAYER_ASPECT,
+        PLAYER_SUBS_FALLBACK,
         DANMAKU_ON,
         DANMAKU_STYLE_AREA,
         DANMAKU_STYLE_ALPHA,

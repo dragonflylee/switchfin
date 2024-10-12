@@ -143,6 +143,13 @@ void SettingTab::onCreate() {
         conf.setItem(AppConfig::PLAYER_LOW_QUALITY, value);
     });
 
+    btnSubFallback->init("main/setting/playback/subs_fallback"_i18n, MPVCore::SUBS_FALLBACK, [&conf](bool value) {
+        if (MPVCore::SUBS_FALLBACK == value) return;
+        MPVCore::SUBS_FALLBACK = value;
+        MPVCore::instance().restart();
+        conf.setItem(AppConfig::PLAYER_SUBS_FALLBACK, value);
+    });
+
     btnDirectPlay->init("main/setting/playback/force_directplay"_i18n, MPVCore::FORCE_DIRECTPLAY, [&conf](bool value) {
         if (MPVCore::FORCE_DIRECTPLAY == value) return;
         MPVCore::FORCE_DIRECTPLAY = value;

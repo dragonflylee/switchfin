@@ -93,7 +93,7 @@ void MPVCore::init() {
     mpv_set_option_string(mpv, "osd-level", "0");
     mpv_set_option_string(mpv, "video-timing-offset", "0");  // 60fps
     mpv_set_option_string(mpv, "reset-on-next-file", "speed,pause");
-    mpv_set_option_string(mpv, "subs-fallback", "yes");
+    mpv_set_option_string(mpv, "subs-fallback", SUBS_FALLBACK ? "yes" : "no");
     mpv_set_option_string(mpv, "vo", "libmpv");
 
     if (MPVCore::LOW_QUALITY) {

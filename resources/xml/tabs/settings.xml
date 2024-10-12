@@ -57,6 +57,8 @@
                 <brls:SelectorCell
                     id="setting/player/seeking" />
                 <brls:BooleanCell
+                    id="setting/video/subs_fallback" />
+                <brls:BooleanCell
                     id="setting/player/bottom_bar" />
                 <brls:BooleanCell
                     id="setting/player/osd_on_toggle" />

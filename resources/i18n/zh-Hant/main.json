@@ -123,6 +123,7 @@
       "bottom_bar": "顯示底部進度條",
       "low_quality": "低畫質解碼（以畫質為代價換取更低的功耗）",
       "in_memory_cache": "解码緩存",
+      "subs_fallback": "自動載入字幕",
       "hwdec": "硬體解碼",
       "force_directplay": "強制直接播放",
       "osd_on_toggle": "暫停時顯示控製界面",

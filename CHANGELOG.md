@@ -8,6 +8,7 @@
 * support touch input on linux
 * support paste text to search input
 * new option low quality
+* new option subtitle fallback
 
 ### Fixed
 
