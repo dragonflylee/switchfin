@@ -30,11 +30,17 @@ public:
 
         auto& mpv = MPVCore::instance();
         eventSubscribeID = mpv.getEvent()->subscribe([this](MpvEventEnum event) {
+            auto& mpv = MPVCore::instance();
             switch (event) {
-            case MpvEventEnum::MPV_LOADED:
+            case MpvEventEnum::MPV_LOADED: {
                 if (titles.empty()) this->loadList();
                 view->getProfile()->init();
+                const char* flag = MPVCore::SUBS_FALLBACK ? "auto" : "select";
+                for (auto& it : this->subtitles) {
+                    mpv.command("sub-add", it.second.c_str(), flag, it.first.c_str());
+                }
                 break;
+            }
             default:;
             }
         });
@@ -64,16 +70,33 @@ public:
         }
         if (titles.size() > 1) view->setList(titles, index);
 
-        playSubscribeID = view->getPlayEvent()->subscribe([this, urls, c](int index) {
+        playSubscribeID = view->getPlayEvent()->subscribe([this, list, urls, c](int index) {
             if (index < 0 || index >= (int)urls.size()) {
                 return VideoView::close();
             }
             auto& it = urls.at(index);
+
+            std::string name = it.name;
+            auto pos = name.find_last_of(".");
+            if (pos != std::string::npos) {
+                name = name.substr(0, pos);
+            }
+
+            this->subtitles.clear();
+            for (auto& it : list) {
+                if (it.type == remote::EntryType::SUBTITLE) {
+                    if (!it.name.rfind(name, 0)) {
+                        this->subtitles.insert(std::make_pair(it.name.substr(pos), it.url.empty() ? it.path : it.url));
+                    }
+                }
+            }
             MPVCore::instance().reset();
             MPVCore::instance().setUrl(it.path, c->extraOption());
-            view->setTitie(it.name);
+            view->setTitie(name);
             return true;
         });
+
+        view->getPlayEvent()->fire(index);
     }
 
     void loadList() {
@@ -99,6 +122,7 @@ public:
 private:
     VideoView* view = new VideoView();
     std::vector<std::string> titles;
+    std::unordered_map<std::string, std::string> subtitles;
     MPVEvent::Subscription eventSubscribeID;
     brls::Event<int>::Subscription playSubscribeID;
     brls::VoidEvent::Subscription settingSubscribeID;
@@ -143,6 +167,7 @@ private:
 static std::set<std::string> videoExt = {".mp4", ".mkv", ".avi", ".flv", ".mov", ".wmv", ".webm"};
 static std::set<std::string> audioExt = {".mp3", ".flac", ".wav", ".ogg", ".m4a"};
 static std::set<std::string> imageExt = {".jpg", ".jpeg", ".png", ".bmp", ".gif"};
+static std::set<std::string> subtitleExt = {".srt", ".ass", ".ssa", ".sub", ".smi"};
 
 class FileDataSource : public RecyclingGridDataSource {
 public:
@@ -162,6 +187,8 @@ public:
                 it.type = remote::EntryType::AUDIO;
             } else if (imageExt.count(ext)) {
                 it.type = remote::EntryType::IMAGE;
+            } else if (subtitleExt.count(ext)) {
+                it.type = remote::EntryType::SUBTITLE;
             } else if (ext == ".m3u") {
                 it.type = remote::EntryType::PLAYLIST;
             }
@@ -193,7 +220,6 @@ public:
         if (item.type == remote::EntryType::VIDEO) {
             RemotePlayer* view = new RemotePlayer(item);
             view->setList(this->list, index, client);
-            MPVCore::instance().setUrl(item.url.empty() ? item.path : item.url, client->extraOption());
             brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
             return;
         }
@@ -223,7 +249,11 @@ RemoteView::RemoteView(Client c) : client(c) {
     this->recycler->registerCell("Cell", []() { return new FileCard(); });
 }
 
-RemoteView::~RemoteView() { brls::Logger::debug("RemoteView: deleted"); }
+RemoteView::~RemoteView() {
+    brls::Logger::debug("RemoteView: deleted");
+    PlayerSetting::selectedSubtitle = 0;
+    PlayerSetting::selectedAudio = 0;
+}
 
 brls::View* RemoteView::getDefaultFocus() { return this->recycler; }
 

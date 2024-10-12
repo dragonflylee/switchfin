@@ -11,6 +11,7 @@ enum class EntryType {
     AUDIO,
     IMAGE,
     PLAYLIST,
+    SUBTITLE,
     TEXT,
 };
 
