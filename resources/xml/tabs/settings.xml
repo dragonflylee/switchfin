@@ -44,6 +44,8 @@
                 marginBottom="30px">
                 <brls:BooleanCell
                     id="setting/video/hwdec" />
+                <brls:BooleanCell
+                    id="setting/video/low_quality" />
                 <brls:SelectorCell
                     id="setting/video/codec" />
                 <brls:BooleanCell

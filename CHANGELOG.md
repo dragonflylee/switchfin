@@ -7,6 +7,7 @@
 * save windows state when exit
 * support touch input on linux
 * support paste text to search input
+* new option low quality
 
 ### Fixed
 

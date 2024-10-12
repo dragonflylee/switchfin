@@ -106,6 +106,9 @@ PlayerView::~PlayerView() {
         DanmakuCore::instance().reset();
     }
 
+    PlayerSetting::selectedSubtitle = 0;
+    PlayerSetting::selectedAudio = 0;
+
     if (!mpv.isStopped()) this->reportStop();
     brls::Application::getExitEvent()->unsubscribe(this->exitSubscribeID);
     brls::Logger::debug("trying delete PlayerView...");

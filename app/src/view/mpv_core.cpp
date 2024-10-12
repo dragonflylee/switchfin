@@ -101,6 +101,9 @@ void MPVCore::init() {
         brls::Logger::info("lavc: skip loop filter and set fast decode");
         mpv_set_option_string(mpv, "vd-lavc-skiploopfilter", "all");
         mpv_set_option_string(mpv, "vd-lavc-fast", "yes");
+        if (mpv_client_api_version() > MPV_MAKE_VERSION(2, 1)) {
+            mpv_set_option_string(mpv, "profile", "fast");
+        }
     }
 
     if (MPVCore::INMEMORY_CACHE) {

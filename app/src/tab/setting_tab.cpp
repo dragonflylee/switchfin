@@ -135,6 +135,14 @@ void SettingTab::onCreate() {
     });
 #endif
 
+    /// Decode quality
+    btnQuality->init("main/setting/playback/low_quality"_i18n, MPVCore::LOW_QUALITY, [&conf](bool value) {
+        if (MPVCore::LOW_QUALITY == value) return;
+        MPVCore::LOW_QUALITY = value;
+        MPVCore::instance().restart();
+        conf.setItem(AppConfig::PLAYER_LOW_QUALITY, value);
+    });
+
     btnDirectPlay->init("main/setting/playback/force_directplay"_i18n, MPVCore::FORCE_DIRECTPLAY, [&conf](bool value) {
         if (MPVCore::FORCE_DIRECTPLAY == value) return;
         MPVCore::FORCE_DIRECTPLAY = value;
