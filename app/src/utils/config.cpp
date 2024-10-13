@@ -218,7 +218,7 @@ bool AppConfig::init() {
     // 初始化内存缓存大小
     MPVCore::INMEMORY_CACHE = this->getItem(PLAYER_INMEMORY_CACHE, 10);
     // 是否使用低质量解码
-#if defined(__PSV__) || defined(PS4)
+#if defined(__PSV__) || defined(PS4) || defined(__SWITCH__)
     MPVCore::LOW_QUALITY = this->getItem(PLAYER_LOW_QUALITY, true);
 #else
     MPVCore::LOW_QUALITY = this->getItem(PLAYER_LOW_QUALITY, false);

@@ -108,7 +108,7 @@ std::vector<DirEntry> Webdav::list(const std::string& path) {
     }
 
     if (s.size() > 0) {
-        s[0].name = "..";
+        s[0].type = EntryType::UP;
     }
 
     return s;

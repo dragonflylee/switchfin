@@ -92,6 +92,11 @@
       "episode": "Episode"
     }
   },
+  "remote": {
+    "local": "Local",
+    "folder": "Folder",
+    "up": "Up"
+  },
   "setting": {
     "quit_hint": "You are about to exit the application. The settings will take effect after the next startup",
     "name": "Name",

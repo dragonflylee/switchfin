@@ -13,6 +13,7 @@ enum class EntryType {
     PLAYLIST,
     SUBTITLE,
     TEXT,
+    UP,
 };
 
 struct DirEntry {

@@ -133,6 +133,12 @@ public:
     FileCard() { this->inflateFromXMLRes("xml/view/dir_entry.xml"); }
 
     void setCard(const remote::DirEntry& item) {
+        if (item.type == remote::EntryType::UP) {
+            this->icon->setImageFromSVGRes("icon/ico-folder-up.svg");
+            this->name->setText("main/remote/up"_i18n);
+            this->size->setText("");
+            return;
+        }
         this->name->setText(item.name);
         if (item.type == remote::EntryType::DIR) {
             this->icon->setImageFromSVGRes("icon/ico-folder.svg");
@@ -171,11 +177,24 @@ static std::set<std::string> subtitleExt = {".srt", ".ass", ".ssa", ".sub", ".sm
 
 class FileDataSource : public RecyclingGridDataSource {
 public:
-    FileDataSource(const DirList& r, RemoteView::Client c) : list(std::move(r)), client(c) {
-        std::sort(this->list.begin(), this->list.end(), [](auto i, auto j) { return i.name < j.name; });
+    FileDataSource(const DirList& r, RemoteView::Client c, bool root) : list(std::move(r)), client(c) {
+        if (this->list.size() > 1) {
+            std::sort(this->list.begin() + 1, this->list.end(), [](auto i, auto j) { 
+                if (i.type == remote::EntryType::UP) {
+                    return true;
+                }
+                if (i.type == j.type) {
+                    return i.name < j.name; 
+                }
+                if (i.type == remote::EntryType::DIR) {
+                    return true; 
+                }
+                return i.name < j.name; 
+            });
+        }
 
         for (auto& it : this->list) {
-            if (it.type == remote::EntryType::DIR) continue;
+            if (it.type != remote::EntryType::FILE) continue;
 
             auto pos = it.name.find_last_of('.');
             if (pos == std::string::npos) continue;
@@ -206,7 +225,7 @@ public:
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
         auto& item = this->list.at(index);
-        if (index == 0) {
+        if (item.type == remote::EntryType::UP) {
             recycler->getParent()->dismiss();
             return;
         }
@@ -293,7 +312,7 @@ void RemoteView::load() {
             auto r = client->list(this->stack.back());
             brls::sync([ASYNC_TOKEN, r]() {
                 ASYNC_RELEASE
-                this->recycler->setDataSource(new FileDataSource(r, client));
+                this->recycler->setDataSource(new FileDataSource(r, client, this->stack.size() <= 1));
             });
         } catch (const std::exception& ex) {
             std::string error = ex.what();
