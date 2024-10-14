@@ -56,7 +56,7 @@ PlayerView::PlayerView(const jellyfin::Item& item) : itemId(item.Id) {
             break;
         case MpvEventEnum::MPV_LOADED: {
             auto& svr = AppConfig::instance().getUrl();
-            const char* flag = MPVCore::SUBS_FALLBACK ? "auto" : "select";
+            const char* flag = MPVCore::SUBS_FALLBACK ? "select" : "auto";
             // 移除其他备用链接
             for (auto& s : this->stream.MediaStreams) {
                 if (s.Type == jellyfin::streamTypeSubtitle) {

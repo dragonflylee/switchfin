@@ -35,7 +35,7 @@ public:
             case MpvEventEnum::MPV_LOADED: {
                 if (titles.empty()) this->loadList();
                 view->getProfile()->init();
-                const char* flag = MPVCore::SUBS_FALLBACK ? "auto" : "select";
+                const char* flag = MPVCore::SUBS_FALLBACK ? "select" : "auto";
                 for (auto& it : this->subtitles) {
                     mpv.command("sub-add", it.second.c_str(), flag, it.first.c_str());
                 }

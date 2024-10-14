@@ -118,7 +118,8 @@ void MPVCore::init() {
 #if defined(__SWITCH__)
     mpv_set_option_string(mpv, "vd-lavc-dr", "yes");
     mpv_set_option_string(mpv, "vd-lavc-threads", "3");
-
+    // This should fix random crash, but I don't know why.
+    mpv_set_option_string(mpv, "opengl-glfinish", "yes");
     // Set default subfont
     std::string locale = brls::Application::getPlatform()->getLocale();
     if (locale == brls::LOCALE_ZH_HANS)
