@@ -13,5 +13,6 @@ Depends: libass9,
          libuchardet0,
          libwebp6,
          libssl1.1,
+         libluajit-5.1-2,
          nvidia-l4t-core
 Description: Third-party native Jellyfin client for Nintendo Switch

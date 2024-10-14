@@ -45,7 +45,7 @@ jobs:
             echo building \$pkg
             pushd \$pkg; dkp-makepkg -sciCf --noconfirm; popd
           done
-          for pkg in mpv mpv-deko3d nspmini curl hacbrewpack; do
+          for pkg in mpv mpv-deko3d nspmini hacbrewpack; do
             echo building \$pkg
             pushd \$pkg; dkp-makepkg -scCf --noconfirm; popd
           done

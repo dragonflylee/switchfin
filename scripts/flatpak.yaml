@@ -41,7 +41,7 @@ modules:
     buildsystem: meson
     config-opts:
       - -Dlibmpv=true
-      - -Dlua=disabled
+      - -Dlua=enabled
       - -Ddebug=false
       - -Dcplayer=false
       - -Dtests=false
@@ -70,6 +70,21 @@ modules:
               project-id: 17166
               stable-only: true
               url-template: https://xorg.freedesktop.org/archive/individual/lib/libXpresent-$version.tar.xz
+
+      - name: luajit
+        no-autogen: true
+        cleanup:
+          - /bin
+          - /include
+          - /lib/pkgconfig
+          - /share/man
+        sources:
+          - type: archive
+            url: https://github.com/LuaJIT/LuaJIT/archive/v2.1.0-beta3.tar.gz
+            sha256: 409f7fe570d3c16558e594421c47bdd130238323c9d6fd6c83dedd2aaeb082a8
+          - type: shell
+            commands:
+              - sed -i 's|/usr/local|/app|' ./Makefile
 
       - name: libass
         config-opts:

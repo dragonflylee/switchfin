@@ -21,8 +21,11 @@ jobs:
           autoconf: --host=x86_64-apple-darwin --target=arm64-apple-darwin
         - tag: Intel
           arch: x86_64
+          target: "10.15"
+        - tag: Intel_10.11
+          arch: x86_64
           target: "10.11"
-        tag: [ Silicon, Intel ]
+        tag: [ Intel_10.11, Intel, Silicon ]
     runs-on: macos-12
     env:
       CFLAGS: -arch ${{ matrix.arch }} -mmacosx-version-min=${{ matrix.target }}
@@ -43,9 +46,9 @@ jobs:
         find /usr/local/bin -lname '*/Library/Frameworks/Python.framework/*' -delete -print
         brew unlink python && brew link --overwrite python
     - name: Install dependency
-      run: brew install ninja nasm meson python
+      run: brew install python
     - name: Build bootstrap
-      if: ${{ matrix.arch != 'arm64' }}
+      if: ${{ matrix.tag == 'Intel_10.11' }}
       run: |
         curl -sSL https://boostorg.jfrog.io/artifactory/main/release/1.85.0/source/boost_1_85_0.tar.gz | tar zxf - -C ${{ runner.temp }}
         cd ${{ runner.temp }}/boost_1_85_0
@@ -64,7 +67,17 @@ jobs:
           -DENABLE_DOCS=OFF
         cmake --build build
         cmake --install build --strip
+    - name: Build luajit
+      env:
+        CFLAGS: -mmacosx-version-min=${{ matrix.target }}
+        LDFLAGS: -mmacosx-version-min=${{ matrix.target }}
+      run: |
+        curl -sSL https://github.com/LuaJIT/LuaJIT/archive/v2.1.0-beta3.tar.gz | tar zxf - -C ${{ runner.temp }}
+        cd ${{ runner.temp }}/LuaJIT-2.1.0-beta3
+        sed -i '' -e 's|/usr/local|/tmp|' ./Makefile
+        make install -j$(sysctl -n hw.ncpu) HOST_CFLAGS='-arch x86_64' HOST_LDFLAGS='-arch x86_64' TARGET_CFLAGS='-arch ${{ matrix.arch }}' TARGET_LDFLAGS='-arch ${{ matrix.arch }}'
     - name: Build curl
+      if: ${{ matrix.tag == 'Intel_10.11' }}
       run: |
         curl -sSL https://curl.se/download/curl-8.7.1.tar.xz | tar Jxf - -C ${{ runner.temp }}
         cd ${{ runner.temp }}/curl-8.7.1
@@ -224,7 +237,7 @@ jobs:
           -Dmacos-media-player=disabled \
           -Dmacos-touchbar=disabled \
           -Dlibarchive=disabled \
-          -Dlua=disabled \
+          -Dlua=enabled \
           -Dlcms2=disabled \
           -Djpeg=disabled \
           -Dmanpage-build=disabled \
@@ -234,7 +247,7 @@ jobs:
     - name: Build packages
       run: |
         cd $CMAKE_PREFIX_PATH
-        tar zcf ${{ github.workspace }}/dylib-ffmpeg7-mpv36-${{ matrix.tag }}.tar.gz \
+        tar zcf ${{ github.workspace }}/dylib-ffmpeg71-mpv36-${{ matrix.tag }}.tar.gz \
           include lib/pkgconfig lib/cmake lib/*.dylib
     - name: Upload packages
       uses: softprops/action-gh-release@v2

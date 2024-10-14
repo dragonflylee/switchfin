@@ -45,7 +45,7 @@ make install
 cd /tmp/mpv-0.36.0
 patch -Nbp1 -i /opt/scripts/mingw64/mpv/0002-lavfi-channel-layout.patch
 meson setup build --prefix=$CMAKE_PREFIX_PATH --libdir=lib --buildtype=release --default-library=shared \
-  -Dlibmpv=true -Dcplayer=false -Dtests=false -Ddebug=false -Dlibarchive=disabled -Dlua=disabled
+  -Dlibmpv=true -Dcplayer=false -Dtests=false -Ddebug=false -Dlibarchive=disabled -Dlua=enabled
 meson compile -C build
 meson install -C build
 
