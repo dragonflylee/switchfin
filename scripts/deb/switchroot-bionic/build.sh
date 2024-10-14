@@ -38,7 +38,7 @@ cd /tmp/mpv
 ./bootstrap.py
 LIBDIR=$CMAKE_PREFIX_PATH/lib RPATH=$CMAKE_PREFIX_PATH/lib ./waf configure --prefix=$CMAKE_PREFIX_PATH \
   --disable-libmpv-static --enable-libmpv-shared --disable-debug-build --disable-libavdevice \
-  --disable-cplayer --disable-libarchive --disable-lua
+  --disable-cplayer --disable-libarchive --enable-lua
 ./waf install
 
 cd /tmp/glfw

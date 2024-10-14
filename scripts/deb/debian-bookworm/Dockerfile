@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y gnupg wget \
   && rm -rf /var/lib/apt/lists/* /usr/share/man/*
 
 RUN apt-get update && apt-get install -y --no-install-recommends libwayland-dev libxkbcommon-dev xorg-dev libdbus-1-dev libssl-dev \
-    libass-dev libwebp-dev libv4l-dev libpulse-dev libuchardet-dev libva-dev libvdpau-dev libxxhash-dev \
+    libluajit-5.1-dev libass-dev libwebp-dev libv4l-dev libpulse-dev libuchardet-dev libva-dev libvdpau-dev libxxhash-dev \
   && rm -rf /var/lib/apt/lists/* /usr/share/man/* /usr/src/tensorrt/*
 
 RUN adduser --gecos '' --disabled-password debian \

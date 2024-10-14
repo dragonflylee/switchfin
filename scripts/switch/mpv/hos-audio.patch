@@ -1,4 +1,4 @@
-From 94bf0973319ed74d04692782fc77c877630f21a8 Mon Sep 17 00:00:00 2001
+From 906eb05576e87412a08eaf0b02dc3b51ddaa0cca Mon Sep 17 00:00:00 2001
 From: averne <averne381@gmail.com>
 Date: Sun, 22 Aug 2021 21:49:16 +0200
 Subject: [PATCH] Implement switch specific audio backend
@@ -6,7 +6,7 @@ Subject: [PATCH] Implement switch specific audio backend
 ---
  audio/out/ao.c          |   4 +
  audio/out/ao_hos.c      | 296 ++++++++++++++++++++++++++++++++++++++++
- meson.build             |  11 +-
+ meson.build             |  21 ++-
  meson_options.txt       |   1 +
  osdep/io.c              |   2 +-
  osdep/io.h              |   2 +-
@@ -14,7 +14,7 @@ Subject: [PATCH] Implement switch specific audio backend
  sub/filter_regex.c      |   2 +-
  wscript                 |   9 ++
  wscript_build.py        |   4 +-
- 10 files changed, 338 insertions(+), 8 deletions(-)
+ 10 files changed, 349 insertions(+), 7 deletions(-)
  create mode 100644 audio/out/ao_hos.c
  create mode 100644 osdep/switch/sys/mman.h
 
@@ -343,7 +343,7 @@ index 0000000000..42b22ab9ed
 +    .options_prefix   = "ao-hos",
 +};
 diff --git a/meson.build b/meson.build
-index f9fe4e7263..2bd4090336 100644
+index f9fe4e7263..c3d695c32a 100644
 --- a/meson.build
 +++ b/meson.build
 @@ -294,7 +294,8 @@ endif
@@ -356,16 +356,26 @@ index f9fe4e7263..2bd4090336 100644
  
  features += {'darwin': darwin}
  features += {'posix': posix}
-@@ -419,7 +420,7 @@ if darwin
+@@ -419,6 +420,18 @@ if darwin
  
  endif
  
--if posix and not darwin
-+if (posix or hos) and not darwin
++if hos
++    sources += files('osdep/path-unix.c',
++                     'osdep/timer-linux.c',
++                     'osdep/subprocess-dummy.c',
++                     'osdep/terminal-dummy.c',
++                     'osdep/main-fn-unix.c',
++                     'osdep/language-posix.c',
++                     'input/ipc-dummy.c',
++                     'osdep/polldev.c',
++                     'sub/filter_regex.c')
++endif
++
+ if posix and not darwin
      sources += files('osdep/path-unix.c',
                       'osdep/timer-linux.c')
- endif
-@@ -870,6 +871,12 @@ if features['wasapi']
+@@ -870,6 +883,12 @@ if features['wasapi']
                       'audio/out/ao_wasapi_utils.c')
  endif
  

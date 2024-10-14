@@ -18,6 +18,7 @@ makedepends=(
   "${MINGW_PACKAGE_PREFIX}-pkgconf"
   "${MINGW_PACKAGE_PREFIX}-ffmpeg"
   "${MINGW_PACKAGE_PREFIX}-libass"
+  "${MINGW_PACKAGE_PREFIX}-lua51"
   "${MINGW_PACKAGE_PREFIX}-shaderc"
   "${MINGW_PACKAGE_PREFIX}-spirv-cross"
 )
@@ -54,7 +55,7 @@ build() {
       -Degl-angle-lib=disabled \
       -Dd3d11=enabled \
       -Dlibarchive=disabled \
-      -Dlua=disabled \
+      -Dlua=enabled \
       "build-${MSYSTEM}" \
       "${srcdir}/${_realname}-${pkgver}"
 
