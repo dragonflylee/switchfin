@@ -132,6 +132,8 @@
                 <brls:BooleanCell
                     id="setting/single" />
                 <brls:BooleanCell
+                    id="setting/swap_abxy" />
+                <brls:BooleanCell
                     id="setting/overclock" />
                 <brls:BooleanCell
                     id="setting/sync" />

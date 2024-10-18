@@ -254,10 +254,16 @@ void SettingTab::onCreate() {
         AppConfig::instance().setItem(AppConfig::SINGLE, value);
         MPVCore::instance().restart();
     });
+
+    btnSwapABXY->init("main/setting/others/swap_abxy"_i18n, brls::Application::isSwapInputKeys(), [](bool value) {
+        brls::Application::setSwapInputKeys(value);
+        AppConfig::instance().setItem(AppConfig::APP_SWAP_ABXY, value);
+    });
 #else
     btnFullscreen->setVisibility(brls::Visibility::GONE);
     btnAlwaysOnTop->setVisibility(brls::Visibility::GONE);
     btnSingle->setVisibility(brls::Visibility::GONE);
+    btnSwapABXY->setVisibility(brls::Visibility::GONE);
 #endif
 
 #if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)

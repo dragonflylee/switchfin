@@ -32,6 +32,7 @@
 * add highlight for current play track
 * **add live tv support**
 * add webdav file browser
+* add option for swap abxy buttons (desktop only)
 
 ### Fixed
 

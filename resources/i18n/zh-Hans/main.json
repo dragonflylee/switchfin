@@ -194,6 +194,7 @@
       "fullscreen": "全屏显示",
       "always_on_top": "窗口置顶",
       "single": "单实例模式",
+      "swap_abxy": "交换键位",
       "overclock": "CPU超频",
       "debug": "调试窗口",
       "sync": "保存排序设置",

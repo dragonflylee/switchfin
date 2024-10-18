@@ -100,6 +100,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
         }},
     {ALWAYS_ON_TOP, {"always_on_top"}},
     {SINGLE, {"single"}},
+    {APP_SWAP_ABXY, {"app_swap_abxy"}},
     {TEXTURE_CACHE_NUM, {"texture_cache_num"}},
     {REQUEST_THREADS, {"request_threads", {"1", "2", "4", "8"}, {1, 2, 4, 8}}},
     {REQUEST_TIMEOUT, {"request_timeout", {"1000", "2000", "3000", "5000"}, {1000, 2000, 3000, 5000}}},
@@ -254,6 +255,13 @@ bool AppConfig::init() {
 
     // 初始化一些在创建窗口之后才能初始化的内容
     brls::Application::getWindowCreationDoneEvent()->subscribe([this]() {
+        // 是否交换按键
+        if (this->getItem(APP_SWAP_ABXY, false)) {
+            // 对于 PSV/PS4 来说，初始化时会加载系统设置，可能在那时已经交换过按键
+            // 所以这里需要读取 isSwapInputKeys 的值，而不是直接设置为 true
+            brls::Application::setSwapInputKeys(!brls::Application::isSwapInputKeys());
+        }
+
         // 初始化弹幕字体
         std::string danmakuFont = this->configDir() + "/danmaku.ttf";
         // 只在应用模式下加载自定义字体 减少switch上的内存占用
@@ -315,6 +323,8 @@ bool AppConfig::init() {
             brls::FontLoader::USER_ICON_PATH = BRLS_ASSET("font/keymap_xbox.ttf");
         } else if (icon == "ps") {
             brls::FontLoader::USER_ICON_PATH = BRLS_ASSET("font/keymap_ps.ttf");
+        } else if (brls::Application::isSwapInputKeys()) {
+            brls::FontLoader::USER_ICON_PATH = BRLS_ASSET("font/keymap_keyboard_swap.ttf");
         } else {
             brls::FontLoader::USER_ICON_PATH = BRLS_ASSET("font/keymap_keyboard.ttf");
         }

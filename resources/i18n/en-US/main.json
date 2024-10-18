@@ -194,6 +194,7 @@
       "fullscreen": "Fullscreen",
       "always_on_top": "Always on top",
       "single": "Single instance",
+      "swap_abxy": "Swap AB/XY",
       "overclock": "CPU Overclock",
       "debug": "Debug View",
       "sync": "Preserve order setting",

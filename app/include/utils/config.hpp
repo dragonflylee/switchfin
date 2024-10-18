@@ -89,6 +89,7 @@ public:
         DANMAKU_RENDER_QUALITY,
         ALWAYS_ON_TOP,
         SINGLE,
+        APP_SWAP_ABXY,  // A-B 交换 和 X-Y 交换
         TEXTURE_CACHE_NUM,
         REQUEST_THREADS,
         REQUEST_TIMEOUT,
@@ -150,7 +151,8 @@ public:
     const std::vector<AppRemote>& getRemotes() const { return this->remotes; }
     const std::vector<AppServer> getServers() const;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AppConfig, user_id, server_url, device, users, servers, setting, remotes);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(
+        AppConfig, user_id, server_url, device, users, servers, setting, remotes);
 
     inline static bool SYNC = true;
 
