@@ -1,4 +1,4 @@
-From 906eb05576e87412a08eaf0b02dc3b51ddaa0cca Mon Sep 17 00:00:00 2001
+From bd7c196e51e2ea4db40e0bce8855e4c52ba39a3c Mon Sep 17 00:00:00 2001
 From: averne <averne381@gmail.com>
 Date: Sun, 22 Aug 2021 21:49:16 +0200
 Subject: [PATCH] Implement switch specific audio backend
@@ -12,9 +12,13 @@ Subject: [PATCH] Implement switch specific audio backend
  osdep/io.h              |   2 +-
  osdep/switch/sys/mman.h |  15 ++
  sub/filter_regex.c      |   2 +-
+ sub/osd.c               |   4 +-
+ sub/sd_ass.c            |  29 ++++
+ video/mp_image.c        |   2 +-
+ video/mp_image.h        |   2 +-
  wscript                 |   9 ++
  wscript_build.py        |   4 +-
- 10 files changed, 349 insertions(+), 7 deletions(-)
+ 14 files changed, 382 insertions(+), 11 deletions(-)
  create mode 100644 audio/out/ao_hos.c
  create mode 100644 osdep/switch/sys/mman.h
 
@@ -458,6 +462,101 @@ index 8e299918ce..c7b08f5273 100644
  
  #include "common/common.h"
  #include "common/msg.h"
+diff --git a/sub/osd.c b/sub/osd.c
+index 811b6c821b..1db7db8444 100644
+--- a/sub/osd.c
++++ b/sub/osd.c
+@@ -76,7 +76,7 @@ const struct m_sub_options osd_style_conf = {
+     .opts = style_opts,
+     .size = sizeof(struct osd_style_opts),
+     .defaults = &(const struct osd_style_opts){
+-        .font = "sans-serif",
++        .font = "nintendo_udsg-r_std_003",
+         .font_size = 55,
+         .color = {255, 255, 255, 255},
+         .border_color = {0, 0, 0, 255},
+@@ -95,7 +95,7 @@ const struct m_sub_options sub_style_conf = {
+     .opts = style_opts,
+     .size = sizeof(struct osd_style_opts),
+     .defaults = &(const struct osd_style_opts){
+-        .font = "sans-serif",
++        .font = "nintendo_udsg-r_std_003",
+         .font_size = 55,
+         .color = {255, 255, 255, 255},
+         .border_color = {0, 0, 0, 255},
+diff --git a/sub/sd_ass.c b/sub/sd_ass.c
+index e4e5652875..978d8703f9 100644
+--- a/sub/sd_ass.c
++++ b/sub/sd_ass.c
+@@ -21,6 +21,10 @@
+ #include <math.h>
+ #include <limits.h>
+ 
++#ifdef __SWITCH__
++#include <switch.h>
++#endif
++
+ #include <libavutil/common.h>
+ #include <ass/ass.h>
+ 
+@@ -198,6 +202,31 @@ static void enable_output(struct sd *sd, bool enable)
+     } else {
+         ctx->ass_renderer = ass_renderer_init(ctx->ass_library);
+ 
++#ifdef __SWITCH__
++        static char * const pl_font_names[] = {
++            [PlSharedFontType_Standard]             = "nintendo_udsg-r_std_003",
++            [PlSharedFontType_ChineseSimplified]    = "nintendo_udsg-r_org_zh-cn_003",
++            [PlSharedFontType_ExtChineseSimplified] = "nintendo_udsg-r_ext_zh-cn_003",
++            [PlSharedFontType_ChineseTraditional]   = "nintendo_udjxh-db_zh-tw_003",
++            [PlSharedFontType_KO]                   = "nintendo_udsg-r_ko_003",
++            [PlSharedFontType_NintendoExt]          = "NintendoExt003",
++        };
++
++        Result rc = plInitialize(PlServiceType_User);
++        if (R_SUCCEEDED(rc)) {
++            PlFontData font;
++            for (int i = 0; i < PlSharedFontType_Total; ++i) {
++                rc = plGetSharedFontByType(&font, i);
++                if (R_SUCCEEDED(rc))
++                    ass_add_font(ctx->ass_library, pl_font_names[font.type],
++                        font.address, font.size);
++                else
++                    MP_ERR(sd, "Failed to add font %s from pl: %#x\n", pl_font_names[i], rc);
++            }
++            plExit();
++        }
++#endif
++
+         mp_ass_configure_fonts(ctx->ass_renderer, sd->opts->sub_style,
+                                sd->global, sd->log);
+     }
+diff --git a/video/mp_image.c b/video/mp_image.c
+index 40678d10bd..0baddd3e78 100644
+--- a/video/mp_image.c
++++ b/video/mp_image.c
+@@ -176,7 +176,7 @@ static bool mp_image_alloc_planes(struct mp_image *mpi)
+         return false;
+ 
+     // Note: mp_image_pool assumes this creates only 1 AVBufferRef.
+-    mpi->bufs[0] = av_buffer_alloc(size + align);
++    mpi->bufs[0] = av_buffer_aligned_alloc(size + align, 0x100); // Alignment required for plane offsets
+     if (!mpi->bufs[0])
+         return false;
+ 
+diff --git a/video/mp_image.h b/video/mp_image.h
+index 98dd666412..376e269356 100644
+--- a/video/mp_image.h
++++ b/video/mp_image.h
+@@ -32,7 +32,7 @@
+ // libraries except libavcodec don't really know what alignment they want.
+ // Things will randomly crash or get slower if the alignment is not satisfied.
+ // Whatever. This value should be pretty safe with current CPU architectures.
+-#define MP_IMAGE_BYTE_ALIGN 64
++#define MP_IMAGE_BYTE_ALIGN 256 // VIC alignement
+ 
+ #define MP_IMGFIELD_TOP_FIRST 0x02
+ #define MP_IMGFIELD_REPEAT_FIRST 0x04
 diff --git a/wscript b/wscript
 index 82f65b4afa..42a574c09c 100644
 --- a/wscript

@@ -1,10 +1,10 @@
 diff --git a/meson.build b/meson.build
-index 1104aef..17b804b 100644
+index 798abc1deb..cff6de6931 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -178,6 +178,11 @@ if host_machine.system() == 'linux'
-     endif
+@@ -196,6 +196,11 @@ if host_machine.system() == 'linux'
  endif
+ cdata.set10('HAVE_DLSYM', have_dlsym)
  
 +libnx_dependency = []
 +if host_machine.system() == 'horizon'
@@ -15,20 +15,20 @@ index 1104aef..17b804b 100644
  
  
 diff --git a/src/cpu.c b/src/cpu.c
-index d24148c..152fc4b 100644
+index 415266711e..1b8886e837 100644
 --- a/src/cpu.c
 +++ b/src/cpu.c
-@@ -36,6 +36,9 @@
- #elif defined(__APPLE__)
+@@ -37,6 +37,9 @@
+ #ifdef __APPLE__
  #include <sys/sysctl.h>
  #include <sys/types.h>
 +#elif defined(__SWITCH__)
 +#undef PACKED // libdav1d's definition is incompatible with libnx' usage of the macro
 +#include <switch.h>
- #else
- #include <pthread.h>
+ #endif
+ #if HAVE_UNISTD_H
  #include <unistd.h>
-@@ -83,6 +86,10 @@ COLD int dav1d_num_logical_processors(Dav1dContext *const c) {
+@@ -91,6 +94,10 @@ COLD int dav1d_num_logical_processors(Dav1dContext *const c) {
      GetNativeSystemInfo(&system_info);
      return system_info.dwNumberOfProcessors;
  #endif
@@ -36,14 +36,14 @@ index d24148c..152fc4b 100644
 +    u64 core_mask = 0;
 +    Result rc = svcGetInfo(&core_mask, InfoType_CoreMask, CUR_PROCESS_HANDLE, 0);
 +    return R_SUCCEEDED(rc) ? __builtin_popcountll(core_mask) : 3;
- #elif defined(HAVE_PTHREAD_GETAFFINITY_NP) && defined(CPU_COUNT)
+ #elif HAVE_PTHREAD_GETAFFINITY_NP && defined(CPU_COUNT)
      cpu_set_t affinity;
      if (!pthread_getaffinity_np(pthread_self(), sizeof(affinity), &affinity))
 diff --git a/src/meson.build b/src/meson.build
-index 3a34e76..b88f026 100644
+index 29fd5d6c76..bbbfc8545f 100644
 --- a/src/meson.build
 +++ b/src/meson.build
-@@ -327,6 +327,7 @@ libdav1d = library('dav1d',
+@@ -384,6 +384,7 @@ libdav1d = library('dav1d',
          thread_dependency,
          thread_compat_dep,
          libdl_dependency,
