@@ -3,7 +3,7 @@
 _realname=dav1d
 pkgbase=mingw-w64-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
-pkgver=1.4.3
+pkgver=1.5.0 
 pkgrel=1
 pkgdesc="AV1 cross-platform decoder focused on speed and correctness (mingw-w64)"
 arch=('any')
@@ -19,7 +19,7 @@ makedepends=(
   $([[ ${MINGW_PACKAGE_PREFIX} == *-clang-aarch64* ]] || echo "${MINGW_PACKAGE_PREFIX}-nasm")
 )
 source=("https://downloads.videolan.org/pub/videolan/dav1d/${pkgver}/dav1d-${pkgver}.tar.xz")
-sha256sums=('42fe524bcc82ea3a830057178faace22923a79bad3d819a4962d8cfc54c36f19')
+sha256sums=('14bd6f5157808ed9aedcafbe50df689d304fd4810ac20be6eec1ab037436afd6')
 
 build() {
   MSYS2_ARG_CONV_EXCL="--prefix=" \

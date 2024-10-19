@@ -105,8 +105,9 @@ jobs:
         git config --system --add safe.directory '*'
     - name: Update dependencies
       run: |
-        dkp-pacman --noconfirm -U $BASE_URL/hacBrewPack-3.05-1-any.pkg.tar.zst
-        for pkg in libass-0.17.3-1 dav1d-1.4.3-1 ffmpeg-7.1-1 nspmini-main-1; do
+        dkp-pacman --noconfirm -U $BASE_URL/hacBrewPack-3.05-1-x86_64.pkg.tar.zst
+        dkp-pacman --noconfirm -U $BASE_URL/switch-tools-1.13.0-1-x86_64.pkg.tar.zst
+        for pkg in libass-0.17.3-1 dav1d-1.5.0-1 ffmpeg-7.1-1 nspmini-main-1; do
           dkp-pacman --noconfirm -U $BASE_URL/switch-${pkg}-any.pkg.tar.zst
         done
         dkp-pacman --noconfirm -R switch-libmpv

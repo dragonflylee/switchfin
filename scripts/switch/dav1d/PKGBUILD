@@ -2,7 +2,7 @@
 
 pkgbasename=dav1d
 pkgname=switch-$pkgbasename
-pkgver=1.4.3
+pkgver=1.5.0
 pkgrel=1
 pkgdesc="dav1d is an AV1 cross-platform decoder, open-source, and focused on speed and correctness."
 arch=("any")
@@ -14,8 +14,8 @@ source=(
   "dav1d.patch"
 )
 sha256sums=(
-  '42fe524bcc82ea3a830057178faace22923a79bad3d819a4962d8cfc54c36f19'
-  '424e132380ea9afb0e13fcdf5d2893a7895094fff4ee297cdb30ead422256542'
+  '14bd6f5157808ed9aedcafbe50df689d304fd4810ac20be6eec1ab037436afd6'
+  'b9b48db3f8b1c070f6fb1581f0cea666f34a3dd3f53cd0dd018980c985b36515'
 )
 makedepends=('dkp-toolchain-vars' 'dkp-meson-scripts')
 groups=('switch-portlibs')
