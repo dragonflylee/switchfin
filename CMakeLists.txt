@@ -146,7 +146,7 @@ endif ()
 if (PLATFORM_DESKTOP)
     find_package(MPV REQUIRED)
     list(APPEND APP_PLATFORM_INCLUDE ${MPV_INCLUDE_DIR})
-    list(APPEND APP_PLATFORM_LIB ${MPV_LIBRARY} clip)
+    list(APPEND APP_PLATFORM_LIB ${MPV_LIBRARY})
 else ()
     # Used for Cross Compile such as NintendoSwitch
     # If dependent files cannot be found, environment variables can be set before executing the cmake command:

@@ -25,11 +25,13 @@ namespace fs = std::experimental::filesystem;
 #include <set>
 #include <borealis.hpp>
 #include <borealis/core/cache_helper.hpp>
+#include <borealis/views/edit_text_dialog.hpp>
 #include "api/jellyfin.hpp"
 #include "utils/config.hpp"
 #include "utils/misc.hpp"
 #include "view/mpv_core.hpp"
 #include "view/danmaku_core.hpp"
+#include "view/video_view.hpp"
 
 constexpr uint32_t MINIMUM_WINDOW_WIDTH = 640;
 constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
@@ -100,10 +102,10 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
         }},
     {ALWAYS_ON_TOP, {"always_on_top"}},
     {SINGLE, {"single"}},
+    {APP_SWAP_ABXY, {"app_swap_abxy"}},
     {TEXTURE_CACHE_NUM, {"texture_cache_num"}},
     {REQUEST_THREADS, {"request_threads", {"1", "2", "4", "8"}, {1, 2, 4, 8}}},
     {REQUEST_TIMEOUT, {"request_timeout", {"1000", "2000", "3000", "5000"}, {1000, 2000, 3000, 5000}}},
-    {TLS_VERIFY, {"tls_verify"}},
     {HTTP_PROXY_STATUS, {"http_proxy_status"}},
     {HTTP_PROXY_HOST, {"http_proxy_host"}},
     {HTTP_PROXY_PORT, {"http_proxy_port"}},
@@ -205,7 +207,6 @@ bool AppConfig::init() {
     HTTP::PROXY_STATUS = this->getItem(HTTP_PROXY_STATUS, false);
     HTTP::PROXY_HOST = this->getItem(HTTP_PROXY_HOST, HTTP::PROXY_HOST);
     HTTP::PROXY_PORT = this->getItem(HTTP_PROXY_PORT, HTTP::PROXY_PORT);
-    HTTP::TLS_VERIFY = this->getItem(TLS_VERIFY, false);
 
     // 初始化是否全屏，必须在创建窗口前设置此值
     VideoContext::FULLSCREEN = this->getItem(FULLSCREEN, false);
@@ -254,6 +255,13 @@ bool AppConfig::init() {
 
     // 初始化一些在创建窗口之后才能初始化的内容
     brls::Application::getWindowCreationDoneEvent()->subscribe([this]() {
+        // 是否交换按键
+        if (this->getItem(APP_SWAP_ABXY, false)) {
+            // 对于 PSV/PS4 来说，初始化时会加载系统设置，可能在那时已经交换过按键
+            // 所以这里需要读取 isSwapInputKeys 的值，而不是直接设置为 true
+            brls::Application::setSwapInputKeys(!brls::Application::isSwapInputKeys());
+        }
+
         // 初始化弹幕字体
         std::string danmakuFont = this->configDir() + "/danmaku.ttf";
         // 只在应用模式下加载自定义字体 减少switch上的内存占用
@@ -291,6 +299,32 @@ bool AppConfig::init() {
         }
 #endif
 
+        // Init keyboard shortcut
+        brls::Application::getPlatform()->getInputManager()->getKeyboardKeyStateChanged()->subscribe(
+            [this](brls::KeyState state) {
+                if (!state.pressed) return;
+                auto top = brls::Application::getActivitiesStack().back();
+                switch (state.key) {
+                case brls::BRLS_KBD_KEY_F:
+                    // 在编辑框弹出时不触发
+                    if (dynamic_cast<brls::EditTextDialog*>(top->getContentView())) break;
+#ifndef __APPLE__
+                case brls::BRLS_KBD_KEY_F11:
+#endif
+                    VideoContext::FULLSCREEN = !this->getItem(AppConfig::FULLSCREEN, VideoContext::FULLSCREEN);
+                    this->setItem(AppConfig::FULLSCREEN, VideoContext::FULLSCREEN);
+                    brls::Application::getPlatform()->getVideoContext()->fullScreen(VideoContext::FULLSCREEN);
+                    break;
+                case brls::BRLS_KBD_KEY_SPACE: {
+                    MPVCore::instance().togglePlay();
+                    VideoView* video = dynamic_cast<VideoView*>(top->getContentView()->getView("video"));
+                    if (video) video->showOSD(true);
+                    break;
+                }
+                default:;
+                }
+            });
+
         // i18n 相关
         settingMap[VIDEO_QUALITY].options[0] = brls::getStr("main/player/auto");
     });
@@ -315,6 +349,8 @@ bool AppConfig::init() {
             brls::FontLoader::USER_ICON_PATH = BRLS_ASSET("font/keymap_xbox.ttf");
         } else if (icon == "ps") {
             brls::FontLoader::USER_ICON_PATH = BRLS_ASSET("font/keymap_ps.ttf");
+        } else if (brls::Application::isSwapInputKeys()) {
+            brls::FontLoader::USER_ICON_PATH = BRLS_ASSET("font/keymap_keyboard_swap.ttf");
         } else {
             brls::FontLoader::USER_ICON_PATH = BRLS_ASSET("font/keymap_keyboard.ttf");
         }

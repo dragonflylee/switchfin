@@ -159,7 +159,6 @@
       "header": "Network",
       "threads": "Number of image loading threads",
       "timeout": "Request timeout (ms)",
-      "tls": "TLS verify",
       "proxy": "Proxy Setting",
       "host": "Host",
       "port": "Port"

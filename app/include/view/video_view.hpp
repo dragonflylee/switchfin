@@ -60,6 +60,8 @@ public:
     void hideVideoProgressSlider();
     void hideVideoQuality();
 
+     void showOSD(bool autoHide = true);
+
     static bool close();
 
 private:
@@ -113,7 +115,6 @@ private:
     bool toggleProfile();
     /// OSD
     void toggleOSD();
-    void showOSD(bool autoHide = true);
     void hideOSD();
     bool toggleOSDLock();
     bool toggleSpeed();

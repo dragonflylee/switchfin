@@ -123,7 +123,6 @@
       "header": "Síť",
       "threads": "Počet vláken pro načítání obrázku",
       "timeout": "Časový limit požadavku (ms)",
-      "tls": "Ověření TLS",
       "proxy": "Nastavení proxy",
       "host": "Hostitel",
       "port": "Port"

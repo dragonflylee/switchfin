@@ -255,13 +255,6 @@ VideoView::VideoView() {
     });
     this->btnForward->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnForward));
 
-    this->registerAction("main/player/toggle"_i18n, brls::BUTTON_SPACE, [this](brls::View* view) -> bool {
-        MPVCore::instance().togglePlay();
-        if (MPVCore::OSD_ON_TOGGLE) {
-            this->showOSD(true);
-        }
-        return true;
-    });
     this->registerAction("main/player/toggle"_i18n, brls::BUTTON_A, [this](brls::View* view) -> bool {
         MPVCore::instance().togglePlay();
         if (MPVCore::OSD_ON_TOGGLE) {
@@ -269,17 +262,6 @@ VideoView::VideoView() {
         }
         return true;
     });
-#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
-    this->registerAction(
-        "", brls::BUTTON_F,
-        [](...) {
-            VideoContext::FULLSCREEN = !AppConfig::instance().getItem(AppConfig::FULLSCREEN, VideoContext::FULLSCREEN);
-            AppConfig::instance().setItem(AppConfig::FULLSCREEN, VideoContext::FULLSCREEN);
-            brls::Application::getPlatform()->getVideoContext()->fullScreen(VideoContext::FULLSCREEN);
-            return true;
-        },
-        true);
-#endif
     /// 视频质量
     this->btnVideoQuality->registerClickAction([this](brls::View* view) { return this->toggleQuality(); });
     this->btnVideoQuality->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoQuality));

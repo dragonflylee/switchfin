@@ -5,6 +5,3 @@
 [submodule "library/lunasvg"]
 	path = library/lunasvg
 	url = https://github.com/sammycage/lunasvg
-[submodule "library/clip"]
-	path = library/clip
-	url = https://github.com/dacap/clip.git

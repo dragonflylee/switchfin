@@ -26,15 +26,15 @@
             "includePath": [
                 "${workspaceFolder}/app/include",
                 "${workspaceFolder}/library/**",
-                "C:\\MinGW64\\include",
-                "C:\\MinGW64\\x86_64-w64-mingw32\\include"
+                "C:/MinGW64/include",
+                "C:/MinGW64/x86_64-w64-mingw32/include/**"
             ],
             "defines": [
                 "BOREALIS_USE_OPENGL",
                 "YG_ENABLE_EVENTS",
                 "BRLS_RESOURCES=\"resources\""
             ],
-            "compilerPath": "C:\\MinGW64\\bin\\gcc.exe",
+            "compilerPath": "C:/MinGW64/bin/gcc.exe",
             "cStandard": "c17",
             "cppStandard": "gnu++17",
             "intelliSenseMode": "windows-gcc-x64"
