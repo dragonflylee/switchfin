@@ -5,7 +5,7 @@
 
 namespace remote {
 
-Webdav::Webdav(const std::string& url, const std::string& user, const std::string& passwd) {
+Webdav::Webdav(const std::string& url, const AppRemote& conf) {
     HTTP::Header h{"Accept-Charset: utf-8", "Depth: 1"};
     HTTP::set_option(this->c, HTTP::Timeout{}, h);
     auto pos = url.find("/", url.find("://") + 3);
@@ -13,12 +13,21 @@ Webdav::Webdav(const std::string& url, const std::string& user, const std::strin
         this->host = url.substr(0, pos);
         this->root = url + "/";
     }
-    this->extra = fmt::format("network-timeout={}", HTTP::TIMEOUT / 100);
-    if (user.size() > 0 || passwd.size() > 0) {
-        std::string auth = base64::encode(fmt::format("{}:{}", user, passwd));
-        this->extra += fmt::format(",http-header-fields=\"Authorization: Basic {}\"", auth);
-        HTTP::set_option(this->c, HTTP::BasicAuth{.user = user, .passwd = passwd});
+    std::stringstream ssextra;
+    ssextra << fmt::format("network-timeout={}", HTTP::TIMEOUT / 100);
+    if (HTTP::PROXY_STATUS) {
+        ssextra << ",http-proxy=\"http://" << HTTP::PROXY_HOST << ":" << HTTP::PROXY_PORT << "\"";
     }
+    if (conf.user.size() > 0 || conf.passwd.size() > 0) {
+        std::string auth = base64::encode(fmt::format("{}:{}", conf.user, conf.passwd));
+        ssextra << fmt::format(",http-header-fields=\"Authorization: Basic {}\"", auth);
+        this->c.set_basic_auth(conf.user, conf.passwd);
+    }
+    if (conf.user_agent.size() > 0) {
+        ssextra << fmt::format(",user_agent=\"{}\"", conf.user_agent);
+        this->c.set_user_agent(conf.user_agent);
+    }
+    this->extra = ssextra.str();
 }
 
 static std::string getNamespacePrefix(tinyxml2::XMLElement* root, const std::string& nsURI) {

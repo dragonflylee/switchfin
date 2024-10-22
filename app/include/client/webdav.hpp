@@ -7,7 +7,7 @@ namespace remote {
 
 class Webdav : public Client {
 public:
-    Webdav(const std::string &url, const std::string &user, const std::string &passwd);
+    Webdav(const std::string& url, const AppRemote &conf);
     std::vector<DirEntry> list(const std::string &path) override;
 
 private:

@@ -44,11 +44,6 @@ public:
         bool http_only;
     };
 
-    struct BasicAuth {
-        std::string user;
-        std::string passwd;
-    };
-
     using Cookies = std::vector<Cookie>;
 
     HTTP();
@@ -59,6 +54,8 @@ public:
     void _get(const std::string& url, std::ostream* out);
     int propfind(const std::string& url, std::ostream* out, bool self = false);
     std::string _post(const std::string& url, const std::string& data);
+    void set_user_agent(const std::string& agent);
+    void set_basic_auth(const std::string& user, const std::string& passwd);
 
     template <typename... Ts>
     static void set_option(HTTP& s, Ts&&... ts) {
@@ -112,7 +109,6 @@ private:
     void set_option(const Timeout& t);
     void set_option(const Cancel& c);
     void set_option(const Cookies& cookies);
-    void set_option(const BasicAuth& auth);
     void set_option(Progress::Callback p);
 
     template <typename CT>

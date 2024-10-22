@@ -9,6 +9,7 @@
 * support paste text to search input
 * new option low quality
 * new option subtitle fallback
+* support custom user-agent in webdav browser
 
 ### Fixed
 
