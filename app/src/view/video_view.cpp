@@ -756,12 +756,7 @@ bool VideoView::toggleVolume(brls::View* view) {
     return true;
 }
 
-bool VideoView::close() {
-    return brls::Application::popActivity(brls::TransitionAnimation::NONE, []() {
-        auto mpvce = MPVCore::instance().getCustomEvent();
-        mpvce->fire(VIDEO_CLOSE, nullptr);
-    });
-}
+bool VideoView::close() { return brls::Application::popActivity(brls::TransitionAnimation::NONE); }
 
 void VideoView::disableDimming(bool disable) {
     brls::Application::getPlatform()->disableScreenDimming(disable, "Playing video", AppVersion::getPackageName());
