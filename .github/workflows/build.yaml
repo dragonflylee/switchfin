@@ -54,7 +54,7 @@ permissions:
 
 jobs:
   upload-release:
-    needs: [ build-mingw, build-nx, build-macos, build-flatpak ]
+    needs: [ build-mingw, build-nx, build-macos, build-flatpak, build-aur, build-ps4 ]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
@@ -63,8 +63,13 @@ jobs:
     - name: Package Assets
       run: |
         for p in Switchfin-windows-*; do
-          [[ -d $p ]] && 7z a -mx=9 $p.7z ./$p/*
+          [[ -d $p ]] && 7z a -mx=9 $p.7z ./$p/* && rm -rf $p
         done
+        for p in Switchfin-Flatpak*; do
+          mv $p/Switchfin-Linux.flatpak $p.flatpak && rm -rf $p
+        done
+        rm Switchfin-*/*-debug-*.pkg.tar.*
+        tree
     - name: Release and Upload Assets
       uses: softprops/action-gh-release@v2
       with:
@@ -74,10 +79,11 @@ jobs:
         draft: true
         files: |
           Switchfin-windows-*.7z
-          Switchfin-macos-*/*.dmg
-          Switchfin-deko3d-*/*.nro
-          "*/*.flatpak"
-          "*/*.pkg.tar.*"
+          Switchfin-macOS-*/*.dmg
+          Switchfin-deko3d/*.nro
+          Switchfin-PS4/*.pkg
+          Switchfin-*.flatpak
+          Switchfin-*/*.pkg.tar.*
         body: |
           ![download](https://img.shields.io/github/downloads/${{ github.repository }}/${{ github.ref_name }}/total?label=Downloads)
 
@@ -92,7 +98,7 @@ jobs:
         - { driver: deko3d, cmake: "-DUSE_DEKO3D=ON" }
         driver: [opengl, deko3d]
     container:
-      image: devkitpro/devkita64:20240916
+      image: devkitpro/devkita64:20241023
     env:
       BASE_URL: https://github.com/dragonflylee/switchfin/releases/download/switch-portlibs
     steps:
@@ -106,8 +112,7 @@ jobs:
     - name: Update dependencies
       run: |
         dkp-pacman --noconfirm -U $BASE_URL/hacBrewPack-3.05-1-x86_64.pkg.tar.zst
-        dkp-pacman --noconfirm -U $BASE_URL/switch-tools-1.13.0-1-x86_64.pkg.tar.zst
-        for pkg in libass-0.17.3-1 dav1d-1.5.0-1 ffmpeg-7.1-1 nspmini-main-1; do
+        for pkg in harfbuzz-10.0.1-1 ffmpeg-7.1-1 nspmini-main-1; do
           dkp-pacman --noconfirm -U $BASE_URL/switch-${pkg}-any.pkg.tar.zst
         done
         dkp-pacman --noconfirm -R switch-libmpv
@@ -127,13 +132,10 @@ jobs:
       run: |
         cmake -B build_switch -DCMAKE_BUILD_TYPE=Release -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON -DVERSION_BUILD=${{ github.run_number }} ${{ matrix.cmake }}
         make -C build_switch Switchfin.nro -j$(nproc)
-    - name: Set outputs
-      id: vars
-      run: echo "sha_short=${{ matrix.driver }}-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
       uses: actions/upload-artifact@v4
       with:
-        name: Switchfin-${{ steps.vars.outputs.sha_short }}
+        name: Switchfin-${{ matrix.driver }}
         path: |
           build_switch/Switchfin.nro
           build_switch/Switchfin.elf
@@ -150,13 +152,10 @@ jobs:
         docker run --rm -v $(pwd):/src -u $(id -u):$(id -g) xfangfang/wiliwili_ps4_builder \
             "cmake -B build_ps4 -DPLATFORM_PS4=ON -DVERSION_BUILD=${{ github.run_number }} && \
              make -C build_ps4 -j$(nproc)"
-    - name: Set outputs
-      id: vars
-      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
       uses: actions/upload-artifact@v4
       with:
-        name: Switchfin-ps4-${{ steps.vars.outputs.sha_short }}
+        name: Switchfin-PS4
         path: |
           build_ps4/Switchfin.oelf
           build_ps4/*.pkg
@@ -184,17 +183,22 @@ jobs:
       uses: docker/setup-qemu-action@v3
     - name: Set workspace permissions
       run: git config --system --add safe.directory '*'
-    - name: Set outputs
-      id: vars
-      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+    - name: Build flatpak
+      uses: flatpak/flatpak-github-actions/flatpak-builder@master
       if: ${{ matrix.arch == 'x86_64' || (matrix.arch == 'aarch64' && inputs.arm_flatpak) }}
       with:
-        bundle: Switchfin-linux-${{ steps.vars.outputs.sha_short }}.flatpak
+        bundle: Switchfin-Linux.flatpak
         manifest-path: scripts/flatpak.yaml
         cache-key: flatpak-builder-${{ hashFiles('scripts/flatpak.yaml') }}
-        verbose: true
+        upload-artifact: false
         arch: ${{ matrix.arch }}
+    - name: Upload Assets
+      uses: actions/upload-artifact@v4
+      if: ${{ matrix.arch == 'x86_64' || (matrix.arch == 'aarch64' && inputs.arm_flatpak) }}
+      with:
+        name: Switchfin-Flatpak-${{ matrix.arch }}
+        path: Switchfin-*.flatpak
+        if-no-files-found: error
 
   build-deb:
     strategy:
@@ -214,13 +218,10 @@ jobs:
       run: docker build -t build:${{ matrix.release }} scripts/deb/${{ matrix.release }}
     - name: Build deb
       run: docker run --rm -u $(id -u):$(id -g) -v $PWD:/opt -w /opt -e VERSION_BUILD=${{ github.run_number }} build:${{ matrix.release }} bash scripts/deb/${{ matrix.release }}/build.sh
-    - name: Set outputs
-      id: vars
-      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
       uses: actions/upload-artifact@v4
       with:
-        name: Switchfin-${{ matrix.release }}-${{ steps.vars.outputs.sha_short }}
+        name: Switchfin-${{ matrix.release }}
         path: Switchfin-*.deb
 
   build-snap:
@@ -233,13 +234,10 @@ jobs:
     - name: Build snap
       run: |
         docker run --rm --tty --network host -v $PWD:/work -w /work/scripts --privileged diddledani/snapcraft:core20
-    - name: Set outputs
-      id: vars
-      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
       uses: actions/upload-artifact@v4
       with:
-        name: switchfin-snap-${{ steps.vars.outputs.sha_short }}
+        name: Switchfin-Snapcraft
         path: scripts/*.snap
 
   build-aur:
@@ -252,17 +250,14 @@ jobs:
     - name: Build aur
       run: |
         docker run --rm --tty --network host -v $PWD:/work -e PUID=$(id -u) -w /work/scripts/aur archlinux bash entrypoint.sh
-    - name: Set outputs
-      id: vars
-      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
       uses: actions/upload-artifact@v4
       with:
-        name: Switchfin-aur-${{ steps.vars.outputs.sha_short }}
+        name: Switchfin-Archlinux
         path: scripts/aur/*.pkg.tar.*
 
   build-macos:
-    runs-on: macos-12
+    runs-on: macos-latest
     if: ${{ inputs.macos || github.event_name != 'workflow_dispatch' }}
     strategy:
       fail-fast: false
@@ -310,13 +305,10 @@ jobs:
           --icon "README.md" 400 100 --hide-extension "Switchfin.app" \
           --app-drop-link 600 185 --volicon ./scripts/macos/dmg.icns \
           --volname "Switchfin" Switchfin-macOS-${{ matrix.tag }}.dmg "dist/"
-    - name: Set outputs
-      id: vars
-      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
       uses: actions/upload-artifact@v4
       with:
-        name: Switchfin-macos-${{ matrix.tag }}-${{ steps.vars.outputs.sha_short }}
+        name: Switchfin-macOS-${{ matrix.tag }}
         path: Switchfin-*.dmg
 
   build-mingw:
@@ -351,7 +343,7 @@ jobs:
 
         curl -sLO https://github.com/rainers/cv2pdb/releases/download/v0.52/cv2pdb-0.52.zip
         unzip cv2pdb-0.52.zip cv2pdb64.exe -d /usr/bin
-    - if: matrix.arch == 'x86'
+    - if: matrix.msystem == 'MINGW32'
       name: Config Editbin
       shell: powershell
       run: |
@@ -371,13 +363,10 @@ jobs:
         cmake --build build_mingw
         cv2pdb64 build_mingw/Switchfin.exe
         cp -a README.md ${MINGW_PREFIX}/bin/libmpv-2.dll build_mingw
-    - name: Set outputs
-      id: vars
-      run: echo "sha_short=${{ matrix.arch }}-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
       uses: actions/upload-artifact@v4
       with:
-        name: Switchfin-windows-${{ steps.vars.outputs.sha_short }}
+        name: Switchfin-windows-${{ matrix.arch }}
         path: |
           build_mingw/Switchfin.exe
           build_mingw/Switchfin.pdb
@@ -414,12 +403,8 @@ jobs:
         xmake build -y
         cd build\windows\${{ matrix.arch }}\release
         7z a -mx=9 "$env:GITHUB_WORKSPACE\Switchfin-${{ matrix.arch }}-msvc.7z" *
-    - name: Set outputs
-      id: vars
-      shell: bash
-      run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
     - name: Upload Assets
       uses: actions/upload-artifact@v4
       with:
-        name: Switchfin-msvc-${{ matrix.arch }}-${{ steps.vars.outputs.sha_short }}
+        name: Switchfin-MSVC-${{ matrix.arch }}
         path: Switchfin-*.7z

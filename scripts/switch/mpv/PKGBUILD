@@ -4,8 +4,8 @@
 
 pkgbasename=libmpv
 pkgname=switch-${pkgbasename}
-pkgver=0.36.0
-pkgrel=5
+pkgver=0.39.0
+pkgrel=3
 pkgdesc='Command line video player (library only)'
 arch=('any')
 url='https://mpv.io/'
@@ -13,30 +13,28 @@ license=('GPL')
 options=(!strip libtool staticlibs)
 source=(
   "${pkgbasename}-${pkgver}.tar.gz::https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz" 
-  "hos-audio.patch" "lavfi-channel.patch"
+  "hos-audio.patch"
 )
 sha256sums=(
-  '29abc44f8ebee013bb2f9fe14d80b30db19b534c679056e4851ceadf5a5e8bf6'
-  'SKIP' 'SKIP'
+  '2ca92437affb62c2b559b4419ea4785c70d023590500e8a52e95ea3ab4554683'
+  'SKIP'
 )
 makedepends=("dkp-toolchain-vars" "dkp-meson-scripts")
-depends=('switch-ffmpeg' 'switch-mesa' 'switch-liblua51')
+depends=('switch-ffmpeg' 'switch-mesa' 'switch-libplacebo' 'switch-liblua51')
 groups=('switch-portlibs')
 
 prepare() {
   cd mpv-$pkgver
   patch -Np1 -i "$srcdir/hos-audio.patch"
-  patch -Np1 -i "$srcdir/lavfi-channel.patch"
 }
 
 build() {
   cd mpv-$pkgver
 
   /opt/devkitpro/meson-cross.sh switch ../crossfile.txt \
-    -Dlibmpv=true -Dcplayer=false -Dtests=false \
+    -Dlibmpv=true -Dcplayer=false -Dtests=false -Dlua=enabled -Dhos-audio=enabled \
     -Dplain-gl=enabled -Degl=disabled -Dsdl2=disabled \
-    -Dlibarchive=disabled -Dlua=enabled -Djpeg=disabled \
-    -Diconv=disabled -Dhos-audio=enabled build
+    -Dlibarchive=disabled -Djpeg=disabled -Diconv=disabled build
 
   meson compile -C build
 }
