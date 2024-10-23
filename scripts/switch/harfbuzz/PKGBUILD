@@ -10,7 +10,7 @@ license=(LGPL)
 options=(!strip libtool staticlibs)
 source=("https://github.com/harfbuzz/harfbuzz/releases/download/${pkgver}/harfbuzz-${pkgver}.tar.xz")
 sha256sums=('b2cb13bd351904cb9038f907dc0dee0ae07127061242fe3556b2795c4e9748fc')
-makedepends=('dkp-toolchain-vars' 'dkp-meson-scripts' 'switch-freetype')
+makedepends=('dkp-toolchain-vars' 'dkp-meson-scripts')
 depends=('switch-freetype')
 
 groups=('switch-portlibs')

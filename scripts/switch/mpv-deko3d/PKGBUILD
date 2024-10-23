@@ -34,10 +34,9 @@ build() {
   cd mpv-$pkgver
 
   /opt/devkitpro/meson-cross.sh switch ../crossfile.txt \
-    -Dlibmpv=true -Dcplayer=false -Dtests=false \
-    -Dgl=disabled -Degl=disabled -Dsdl2=disabled -Diconv=disabled  \
-    -Dlibarchive=disabled -Dlua=enabled -Djpeg=disabled \
-    -Dhos-audio=enabled -Ddeko3d=enabled build
+    -Dlibmpv=true -Dcplayer=false -Dtests=false -Dlua=enabled -Dhos-audio=enabled \
+    -Dplain-gl=enabled -Degl=disabled -Dsdl2=disabled -Dlibplacebo=disabled \
+    -Dlibarchive=disabled -Djpeg=disabled -Diconv=disabled -Ddeko3d=enabled build
 
   meson compile -C build
 }
