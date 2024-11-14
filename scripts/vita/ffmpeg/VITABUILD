@@ -1,0 +1,60 @@
+pkgname=ffmpeg
+pkgver=n6.0
+pkgrel=3
+url="https://ffmpeg.org/"
+source=("${pkgname}-${pkgver}.tar.gz::https://github.com/FFmpeg/FFmpeg/archive/refs/tags/${pkgver}.tar.gz" "ffmpeg.patch")
+sha256sums=('SKIP' 'SKIP')
+depends=('mbedtls')
+
+prepare() {
+  cd FFmpeg-${pkgver}
+  patch --strip=1 --input=${srcdir}/ffmpeg.patch
+}
+
+build() {
+  cd FFmpeg-${pkgver}
+  ./configure --prefix=$VITASDK/arm-vita-eabi \
+        --enable-vita \
+        --target-os=vita \
+        --enable-cross-compile \
+        --disable-runtime-cpudetect \
+        --disable-armv5te \
+        --cross-prefix=$VITASDK/bin/arm-vita-eabi- \
+        --extra-ldflags=" -L$VITASDK/lib " \
+        --disable-shared \
+        --enable-static \
+        --disable-programs \
+        --disable-doc \
+        --disable-autodetect \
+        --enable-swscale \
+        --enable-swresample \
+        --disable-encoders \
+        --disable-muxers \
+        --disable-demuxers \
+        --enable-demuxer='hls,flac,flv,aac,h264,hevc,mp3,wav,mov,mjpeg,matroska' \
+        --disable-parsers \
+        --enable-parser='aac,aac_latm,bmp,flac,h264,hdr,hevc,mjpeg,mpeg4video,mpeg4audio,mpegvideo' \
+        --disable-decoders \
+        --enable-decoder='h264,aac,bmp,flv,flac,mjpeg,srt,aac_vita,mp3_vita,h264_vita' \
+        --enable-network \
+        --disable-protocols \
+        --enable-protocol='file,http,tcp,tls,hls,https,ftp,rtp,crypto,httpproxy' \
+        --disable-filters \
+        --enable-filter='hflip,vflip,transpose' \
+        --disable-iconv \
+        --disable-lzma \
+        --disable-sdl2 \
+        --disable-xlib \
+        --disable-avdevice \
+        --enable-mbedtls --enable-version3 \
+        --enable-pthreads
+
+  sed 's/#define HAVE_GETADDRINFO 1/#define HAVE_GETADDRINFO 0/g' -i config.h
+
+  make -j12
+}
+
+package () {
+  cd FFmpeg-${pkgver}
+  make DESTDIR=$pkgdir install
+}

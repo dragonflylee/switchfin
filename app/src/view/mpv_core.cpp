@@ -17,6 +17,9 @@ static inline void check_error(int status) {
 extern std::unique_ptr<brls::D3D11Context> D3D11_CONTEXT;
 #elif defined(BOREALIS_USE_DEKO3D)
 #include <borealis/platforms/switch/switch_video.hpp>
+#elif defined(BOREALIS_USE_GXM)
+#include <borealis/platforms/psv/psv_video.hpp>
+#include <borealis/extern/nanovg/nanovg_gxm.h>
 #else
 #ifdef __SDL2__
 #include <SDL2/SDL.h>
@@ -40,7 +43,7 @@ void MPVCore::on_update(void *self) {
     MPVCore *mpv = reinterpret_cast<MPVCore *>(self);
     brls::sync([mpv]() {
         uint64_t flags = mpv_render_context_update(mpv->mpv_context);
-#if defined(MPV_SW_RENDER)
+#if defined(MPV_SW_RENDER) || defined(BOREALIS_USE_GXM)
         if (flags & MPV_RENDER_UPDATE_FRAME) {
             mpv_render_context_render(mpv->mpv_context, mpv->mpv_params);
             mpv_render_context_report_swap(mpv->mpv_context);
@@ -126,8 +129,8 @@ void MPVCore::init() {
 #elif defined(__PS4__)
     mpv_set_option_string(mpv, "vd-lavc-threads", "6");
 #elif defined(__PSV__)
-    mpv_set_option_string(mpv, "vd-lavc-dr", "no");
     mpv_set_option_string(mpv, "vd-lavc-threads", "4");
+    mpv_set_option_string(mpv, "fbo-format", "rgba8");
     // Fix vo_wait_frame() cannot be wakeup
     mpv_set_option_string(mpv, "video-latency-hacks", "yes");
 #endif
@@ -191,6 +194,46 @@ void MPVCore::init() {
         {MPV_RENDER_PARAM_DEKO3D_INIT_PARAMS, &deko_init_params},
         {MPV_RENDER_PARAM_INVALID, nullptr},
     };
+#elif defined(BOREALIS_USE_GXM)
+    auto videoContext = dynamic_cast<brls::PsvVideoContext *>(brls::Application::getPlatform()->getVideoContext());
+    NVGXMwindow *gxm = videoContext->getWindow();
+    NVGcontext *vg = brls::Application::getNVGContext();
+    mpv_gxm_init_params gxm_params = {
+        .context = gxm->context,
+        .shader_patcher = gxm->shader_patcher,
+        .buffer_index = 0,
+        .msaa = SCE_GXM_MULTISAMPLE_4X,
+    };
+    mpv_render_param params[] = {
+        {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_GXM)},
+        {MPV_RENDER_PARAM_GXM_INIT_PARAMS, &gxm_params},
+        {MPV_RENDER_PARAM_INVALID, nullptr},
+    };
+
+    if (!mpv_fbo.render_target) {
+        int texture_width = DISPLAY_WIDTH;
+        int texture_height = DISPLAY_HEIGHT;
+        int texture_stride = ALIGN(texture_width, 8);
+        nvg_image = nvgCreateImageRGBA(vg, texture_width, texture_height, 0, nullptr);
+        NVGXMtexture *texture = nvgxmImageHandle(vg, nvg_image);
+
+        NVGXMframebufferInitOptions framebufferOpts = {
+            .display_buffer_count = 1,  // Must be 1 for custom FBOs
+            .scenesPerFrame = 1,
+            .render_target = texture,
+            .color_format = SCE_GXM_COLOR_FORMAT_U8U8U8U8_ABGR,
+            .color_surface_type = SCE_GXM_COLOR_SURFACE_LINEAR,
+            .display_width = texture_width,
+            .display_height = texture_height,
+            .display_stride = texture_stride,
+        };
+        NVGXMframebuffer *fbo = gxmCreateFramebuffer(&framebufferOpts);
+        mpv_fbo.render_target = fbo->gxm_render_target;
+        mpv_fbo.color_surface = &fbo->gxm_color_surfaces[0].surface;
+        mpv_fbo.depth_stencil_surface = &fbo->gxm_depth_stencil_surface;
+        mpv_fbo.w = texture_width;
+        mpv_fbo.h = texture_height;
+    }
 #else
     mpv_opengl_init_params gl_init_params{get_proc_address, nullptr};
     mpv_render_param params[] = {
@@ -320,6 +363,14 @@ void MPVCore::setFrameSize(brls::Rect area) {
     sw_size[0] = drawWidth;
     sw_size[1] = drawHeight;
     pitch = PIXCEL_SIZE * drawWidth;
+#elif defined(BOREALIS_USE_GXM)
+    // This line will be called between beginFrame() and endFrame() in Application::frame(),
+    // but mpvRenderContextRender(...) will call functions similar to beginFrame() and endFrame() to draw content to FBO,
+    // and that will cause error in GXM, so call in brls::sync to make the mpv drawing calls outside the brls::Application::frame().
+    brls::sync([this]() {
+        mpv_render_context_render(this->mpv_context, mpv_params);
+        mpv_render_context_report_swap(this->mpv_context);
+    });
 #elif !defined(BOREALIS_USE_D3D11)
     // Using default framebuffer
     this->mpv_fbo.w = brls::Application::windowWidth;
@@ -350,6 +401,13 @@ void MPVCore::draw(brls::Rect area, float alpha) {
     nvgRect(vg, rect.getMinX(), rect.getMinY(), rect.getWidth(), rect.getHeight());
     nvgFillPaint(vg, nvgImagePattern(vg, 0, 0, rect.getWidth(), rect.getHeight(), 0, nvg_image, alpha));
     nvgFill(vg);
+#elif defined(BOREALIS_USE_GXM)
+    NVGcontext *vg = brls::Application::getNVGContext();
+    NVGpaint img = nvgImagePattern(vg, area.getMinX(), area.getMinY(), area.getWidth(), area.getHeight(), 0, nvg_image, alpha);
+    nvgBeginPath(vg);
+    nvgRect(vg, area.getMinX(), area.getMinY(), area.getWidth(), area.getHeight());
+    nvgFillPaint(vg, img);
+    nvgFill(vg);
 #else
     // 只在非透明时绘制视频，可以避免退出页面时视频画面残留
     if (alpha >= 1) {
@@ -366,7 +424,7 @@ void MPVCore::draw(brls::Rect area, float alpha) {
         D3D11_CONTEXT->beginFrame();
 #elif defined(BOREALIS_USE_DEKO3D)
         videoContext->queueWaitFence(&doneFence);
-#else
+#elif defined(BOREALIS_USE_OPENGL)
         glBindFramebuffer(GL_FRAMEBUFFER, default_framebuffer);
         glViewport(0, 0, brls::Application::windowWidth, brls::Application::windowHeight);
 #endif

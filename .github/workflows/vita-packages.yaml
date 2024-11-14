@@ -1,0 +1,47 @@
+name: vita-packages
+
+on:
+  push:
+    tags: [ vita-packages ]
+    paths: [ scripts/vita/*/* ]
+
+permissions:
+  contents: write
+
+jobs:
+  build-packages:
+    runs-on: ubuntu-latest
+    container:
+      image: vitasdk/vitasdk:latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        sparse-checkout: scripts/vita
+    - name: Install dependency
+      run: |
+        apk update
+        apk add cmake ninja meson pkgconf bash git zstd tar patch
+        vdpm mbedtls libass harfbuzz fribidi freetype libpng libwebp
+    - name: Build packages
+      run: |
+        adduser --gecos '' --home ${GITHUB_WORKSPACE}/scripts/vita --disabled-password builder
+        echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder
+        chown -R builder:builder scripts/vita
+
+        su - builder -c "cd curl && vita-makepkg"
+        su - builder -c "cd ffmpeg && vita-makepkg"
+
+        vdpm $PWD/scripts/vita/ffmpeg/*-arm.tar.xz
+        touch /tmp/vdpm_install_ffmpeg
+
+        su - builder -c "cd mpv && vita-makepkg"
+
+    - name: Upload packages
+      uses: softprops/action-gh-release@v2
+      with:
+        name: vita-packages
+        tag_name: vita-packages
+        prerelease: true
+        files: scripts/vita/*/*-arm.tar.xz
+        body: |
+          ![download](https://img.shields.io/github/downloads/${{ github.repository }}/vita-packages/total?label=Downloads)

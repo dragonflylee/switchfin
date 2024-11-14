@@ -2,6 +2,14 @@
 #include <switch.h>
 #include "utils/overclock.hpp"
 #elif defined(__PSV__)
+#include <psp2/kernel/cpu.h>
+#include <psp2/kernel/threadmgr/thread.h>
+#include <psp2/vshbridge.h>
+
+extern "C" {
+unsigned int _newlib_heap_size_user = 220 * 1024 * 1024;
+unsigned int _pthread_stack_default_user = 2 * 1024 * 1024;
+}
 #elif defined(__PS4__)
 #include <orbis/SystemService.h>
 #include <orbis/Sysmodule.h>
@@ -56,7 +64,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {KEYMAP, {"keymap", {"xbox", "ps", "keyboard"}}},
     {WINDOW_STATE, {"window_state"}},
     {TRANSCODEC, {"transcodec", {"h264", "hevc", "av1"}}},
-    {FORCE_DIRECTPLAY, {"force_directplay"}},        
+    {FORCE_DIRECTPLAY, {"force_directplay"}},
     {FULLSCREEN, {"fullscreen"}},
     {OSD_ON_TOGGLE, {"osd_on_toggle"}},
     {TOUCH_GESTURE, {"touch_gesture"}},
@@ -207,6 +215,13 @@ bool AppConfig::init() {
                                                    width, height, (int)VideoContext::posX, (int)VideoContext::posY));
         this->save();
     });
+#elif defined(__PSV__)
+    int search_unk[2];
+    if (_vshKernelSearchModuleByName("CapUnlocker", search_unk) >= 0) {
+        brls::sync([]() { brls::Application::notify("CapUnlocker found"); });
+        sceKernelChangeThreadPriority(SCE_KERNEL_THREAD_ID_SELF, 64);
+        sceKernelChangeThreadCpuAffinityMask(SCE_KERNEL_THREAD_ID_SELF, SCE_KERNEL_CPU_MASK_SYSTEM);
+    }
 #elif defined(__PS4__)
     if (sceSysmoduleLoadModuleInternal(ORBIS_SYSMODULE_INTERNAL_NET) < 0) brls::Logger::error("cannot load net module");
     primary_dns = inet_addr("223.5.5.5");

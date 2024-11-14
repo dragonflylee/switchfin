@@ -4,11 +4,13 @@ on:
   push:
     tags-ignore:
     - switch-portlibs
+    - vita-packages
     - mingw-packages
     - macos-dylib
     paths-ignore:
     - scripts/mingw64/*/*
     - scripts/switch/*/*
+    - scripts/vita/*/*
     - debian/*
     - images/*
     - CHANGELOG.md
@@ -23,6 +25,9 @@ on:
     inputs:
       nx:
         description: build nintendo switch
+        type: boolean
+      vita:
+        description: build playstation vita
         type: boolean
       ps4:
         description: build playstation 4
@@ -151,6 +156,41 @@ jobs:
         path: |
           build/Switchfin.oelf
           build/*.pkg
+
+  build-vita:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.vita || github.event_name != 'workflow_dispatch' }}
+    container:
+      image: vitasdk/vitasdk:latest
+    steps:
+    - name: Install build requirements
+      run: |
+        apk update
+        apk add cmake ninja git zstd tar pkgconf
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Update dependencies
+      env:
+        BASE_URL: https://github.com/dragonflylee/switchfin/releases/download/vita-packages
+      run: |
+        for pkg in curl-8.9.1-2 ffmpeg-n6.0-3 mpv-0.36.0-3; do
+          wget $BASE_URL/${pkg}-arm.tar.xz
+        done
+        vdpm mbedtls libass harfbuzz fribidi freetype libpng libwebp $PWD/*-arm.tar.xz
+        git config --system --add safe.directory $GITHUB_WORKSPACE
+    - name: Build
+      run: |
+        cmake -B build -G Ninja -DPLATFORM_PSV=ON -DUSE_GXM=ON \
+          -DUSE_VITA_SHARK=OFF -DVERSION_BUILD=${{ github.run_number }}
+        cmake --build build
+    - name: Upload Assets
+      uses: actions/upload-artifact@v4
+      with:
+        name: Switchfin-Vita-${{ github.run_number }}
+        path: |
+          build/Switchfin.velf
+          build/*.vpk
 
   build-flatpak:
     runs-on: ubuntu-latest

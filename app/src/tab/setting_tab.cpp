@@ -45,6 +45,8 @@ public:
             "D3D11"
 #elif defined(BOREALIS_USE_DEKO3D)
             "Deko3D"
+#elif defined(BOREALIS_USE_GXM)
+            "GXM"
 #else
             "OpenGL"
 #endif

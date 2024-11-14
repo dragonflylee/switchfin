@@ -55,6 +55,7 @@ set(VERSION_ALTER "1")
 set(PROJECT_TITLEID "010ff000ffff0003")
 set(PROJECT_AUTHOR "dragonflylee")
 set(PACKAGE_NAME "org.player.switchfin")
+set(VITA_TITLEID "SWITCHFIN")
 set(PSN_TITLE_ID "SFIN00000")
 set(VITA_VERSION "00.61")
 set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon.jpg)
@@ -257,6 +258,21 @@ elseif (PLATFORM_SWITCH)
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_RESOURCES} ${CMAKE_BINARY_DIR}/resources
         COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_BINARY_DIR}/resources/font/keymap*.ttf ${CMAKE_BINARY_DIR}/resources/font/switch_font.ttf
         COMMAND ${NX_ELF2NRO_EXE} ${PROJECT_NAME}.elf ${PROJECT_NAME}.nro --icon=${PROJECT_ICON} --nacp=${PROJECT_NAME}.nacp --romfsdir=${CMAKE_BINARY_DIR}/resources
+    )
+elseif (PLATFORM_PSV)
+    set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d ATTRIBUTE2=12") # max heap size mode
+    set(PSV_ASSETS_FILES ${CMAKE_SOURCE_DIR}/scripts/vita/sce_sys sce_sys)
+    if (NOT USE_LIBROMFS)
+        list(APPEND PSV_ASSETS_FILES ${CMAKE_SOURCE_DIR}/resources resources)
+    endif ()
+    if (USE_VITA_SHARK)
+        list(APPEND PSV_ASSETS_FILES "${CMAKE_BINARY_DIR}/vendor/SceShaccCg" module)
+    endif ()
+    vita_create_self(${PROJECT_NAME}.self ${PROJECT_NAME} UNSAFE NOASLR)
+    vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} ${PROJECT_NAME}.self
+        VERSION ${VITA_VERSION}
+        NAME ${PROJECT_NAME}
+        FILE ${PSV_ASSETS_FILES}
     )
 elseif (PLATFORM_PS4)
     add_self(${PROJECT_NAME})

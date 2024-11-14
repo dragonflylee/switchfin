@@ -1,0 +1,35 @@
+pkgname=curl
+pkgver=8.9.1
+pkgrel=2
+url="https://curl.se/"
+source=("https://github.com/curl/curl/releases/download/curl-8_9_1/curl-8.9.1.tar.gz")
+sha256sums=('291124a007ee5111997825940b3876b3048f7d31e73e9caa681b80fe48b2dcd5')
+depends=('mbedtls' 'zlib')
+
+prepare() {
+  cd curl-${pkgver}
+}
+
+build() {
+  cd curl-${pkgver}
+
+  cmake -B build -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.toolchain.cmake \
+    -DCMAKE_INSTALL_PREFIX=$prefix \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DBUILD_CURL_EXE=OFF \
+    -DBUILD_SHARED_LIBS=OFF \
+    -DBUILD_TESTING=OFF \
+    -DENABLE_IPV6=OFF \
+    -DENABLE_THREADED_RESOLVER=OFF \
+    -DBUILD_LIBCURL_DOCS=OFF \
+    -DBUILD_MISC_DOCS=OFF \
+    -DENABLE_CURL_MANUAL=OFF \
+    -DCURL_USE_MBEDTLS=ON \
+    -DCURL_USE_OPENSSL=OFF
+  cmake --build build -j$(nproc)
+}
+
+package () {
+  cd curl-${pkgver}
+  DESTDIR=$pkgdir cmake --install build
+}
