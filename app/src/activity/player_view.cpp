@@ -172,12 +172,12 @@ bool PlayerView::playIndex(int index) {
 
 void PlayerView::playMedia(const uint64_t seekTicks) {
     int maxAllowedHeight = brls::Application::windowHeight;
-    if (MPVCore::VIDEO_QUALITY <= 0) {
 #if defined(__PS4__)
         maxAllowedHeight = 1080;
 #elif defined(__PSV__)
         maxAllowedHeight = 720;
-#endif
+#else
+    if (MPVCore::VIDEO_QUALITY <= 0) {
     } else if (MPVCore::VIDEO_QUALITY <= 420000) {
         maxAllowedHeight = 360;
     } else if (MPVCore::VIDEO_QUALITY <= 720000) {
@@ -191,7 +191,7 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
     } else if (MPVCore::VIDEO_QUALITY <= 120000000) {
         maxAllowedHeight = 2160;
     }
-
+#endif
     nlohmann::json conditions = {
         {
             {"Condition", "LessThanEqual"},
@@ -202,7 +202,7 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
     };
 
     nlohmann::json profile = {
-        {"MaxStreamingBitrate", MPVCore::VIDEO_QUALITY},
+        {"MaxStreamingBitrate", (MPVCore::VIDEO_QUALITY <= 0) ? 120000000 : MPVCore::VIDEO_QUALITY},
         {
             "DirectPlayProfiles",
             {
@@ -443,23 +443,29 @@ void PlayerView::requestDanmaku() {
 bool PlayerView::toggleQuality() {
     std::vector<std::string> options = {"main/player/auto"_i18n};
     std::vector<int64_t> values = {0};
-
-    if (this->stream.Bitrate > 10000000 && brls::Application::windowHeight >= 1440) {
-        options.push_back("2K - 15 Mbps"), values.push_back(15000000);
-        options.push_back("2K - 10 Mbps"), values.push_back(10000000);
+    double referenceBitRatio = 1.0;
+    bool hasHevcAv1Vp9 = false;
+    for (const auto& stream : this->stream.MediaStreams) {
+        if (stream.Type == "Video" && 
+                (stream.Codec == "hevc" || stream.Codec == "av1" || stream.Codec == "vp9" || stream.Codec == "HEVC" || stream.Codec == "AV1" || stream.Codec == "VP9")) {
+                hasHevcAv1Vp9 = true;
+                break;
+        }
     }
-
-    if (this->stream.Bitrate > 6000000 && brls::Application::windowHeight >= 1080) {
-        options.push_back("1080p - 8 Mbps"), values.push_back(8000000);
-        options.push_back("1080p - 6 Mbps"), values.push_back(6000000);
+    
+    if (hasHevcAv1Vp9 && this->stream.Bitrate <= 20000000) {
+        referenceBitRatio = 1.5;
     }
-
-    if (this->stream.Bitrate > 4000000) options.push_back("720p - 4 Mbps"), values.push_back(4000000);
-    if (this->stream.Bitrate > 3000000) options.push_back("720p - 3 Mbps"), values.push_back(3000000);
-    if (this->stream.Bitrate > 1500000) options.push_back("720p - 1.5 Mbps"), values.push_back(1500000);
-
-    options.push_back("480p - 720 kbps"), values.push_back(720000);
-    options.push_back("360p - 420 kbps"), values.push_back(420000);
+    if (this->stream.Bitrate * referenceBitRatio >= 15000000) options.push_back("20 Mbps"), values.push_back(20000000);
+    if (this->stream.Bitrate * referenceBitRatio >= 10000000) options.push_back("15 Mbps"), values.push_back(15000000);
+    if (this->stream.Bitrate * referenceBitRatio >= 8000000) options.push_back("10 Mbps"), values.push_back(10000000);
+    if (this->stream.Bitrate * referenceBitRatio >= 6000000) options.push_back("8 Mbps"), values.push_back(8000000);
+    if (this->stream.Bitrate * referenceBitRatio >= 4000000) options.push_back("6 Mbps"), values.push_back(6000000);
+    if (this->stream.Bitrate * referenceBitRatio >= 3000000) options.push_back("4 Mbps"), values.push_back(4000000);
+    if (this->stream.Bitrate * referenceBitRatio >= 1500000) options.push_back("3 Mbps"), values.push_back(3000000);
+    if (this->stream.Bitrate * referenceBitRatio >= 720000) options.push_back("1.5 Mbps"), values.push_back(1500000);
+    options.push_back("720 kbps"), values.push_back(720000);
+    options.push_back("420 kbps"), values.push_back(420000);
 
     auto it = std::find(values.begin(), values.end(), MPVCore::VIDEO_QUALITY);
     if (it == values.end()) it = values.begin();
