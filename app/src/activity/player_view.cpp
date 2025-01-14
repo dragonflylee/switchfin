@@ -171,12 +171,12 @@ bool PlayerView::playIndex(int index) {
 }
 
 void PlayerView::playMedia(const uint64_t seekTicks) {
-    int maxAllowedHeight = brls::Application::windowHeight;
 #if defined(__PS4__)
-        maxAllowedHeight = 1080;
+    int maxAllowedHeight = 1080;
 #elif defined(__PSV__)
-        maxAllowedHeight = 720;
+    int maxAllowedHeight = 720;
 #else
+    int maxAllowedHeight = brls::Application::windowHeight;
     if (MPVCore::VIDEO_QUALITY <= 0) {
     } else if (MPVCore::VIDEO_QUALITY <= 420000) {
         maxAllowedHeight = 360;
@@ -441,29 +441,27 @@ void PlayerView::requestDanmaku() {
 }
 
 bool PlayerView::toggleQuality() {
+    static std::set<std::string> codecs = {"hevc", "av1", "vp9"};
     std::vector<std::string> options = {"main/player/auto"_i18n};
     std::vector<int64_t> values = {0};
-    double referenceBitRatio = 1.0;
-    bool hasHevcAv1Vp9 = false;
-    for (const auto& stream : this->stream.MediaStreams) {
-        if (stream.Type == "Video" && 
-                (stream.Codec == "hevc" || stream.Codec == "av1" || stream.Codec == "vp9" || stream.Codec == "HEVC" || stream.Codec == "AV1" || stream.Codec == "VP9")) {
-                hasHevcAv1Vp9 = true;
+    int64_t videoBitRate = this->stream.Bitrate;
+    if (videoBitRate <= 20000000) {
+        for (const auto& stream : this->stream.MediaStreams) {
+            if (stream.Type == "Video" && codecs.count(stream.Codec) > 0) {
+                videoBitRate = round(videoBitRate * 1.5);
                 break;
+            }
         }
     }
-    
-    if (hasHevcAv1Vp9 && this->stream.Bitrate <= 20000000) {
-        referenceBitRatio = 1.5;
-    }
-    if (this->stream.Bitrate * referenceBitRatio >= 15000000) options.push_back("20 Mbps"), values.push_back(20000000);
-    if (this->stream.Bitrate * referenceBitRatio >= 10000000) options.push_back("15 Mbps"), values.push_back(15000000);
-    if (this->stream.Bitrate * referenceBitRatio >= 8000000) options.push_back("10 Mbps"), values.push_back(10000000);
-    if (this->stream.Bitrate * referenceBitRatio >= 6000000) options.push_back("8 Mbps"), values.push_back(8000000);
-    if (this->stream.Bitrate * referenceBitRatio >= 4000000) options.push_back("6 Mbps"), values.push_back(6000000);
-    if (this->stream.Bitrate * referenceBitRatio >= 3000000) options.push_back("4 Mbps"), values.push_back(4000000);
-    if (this->stream.Bitrate * referenceBitRatio >= 1500000) options.push_back("3 Mbps"), values.push_back(3000000);
-    if (this->stream.Bitrate * referenceBitRatio >= 720000) options.push_back("1.5 Mbps"), values.push_back(1500000);
+
+    if (videoBitRate >= 15000000) options.push_back("20 Mbps"), values.push_back(20000000);
+    if (videoBitRate >= 10000000) options.push_back("15 Mbps"), values.push_back(15000000);
+    if (videoBitRate >= 8000000) options.push_back("10 Mbps"), values.push_back(10000000);
+    if (videoBitRate >= 6000000) options.push_back("8 Mbps"), values.push_back(8000000);
+    if (videoBitRate >= 4000000) options.push_back("6 Mbps"), values.push_back(6000000);
+    if (videoBitRate >= 3000000) options.push_back("4 Mbps"), values.push_back(4000000);
+    if (videoBitRate >= 1500000) options.push_back("3 Mbps"), values.push_back(3000000);
+    if (videoBitRate >= 720000) options.push_back("1.5 Mbps"), values.push_back(1500000);
     options.push_back("720 kbps"), values.push_back(720000);
     options.push_back("420 kbps"), values.push_back(420000);
 
