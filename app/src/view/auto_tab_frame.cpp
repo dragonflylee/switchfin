@@ -17,6 +17,7 @@
     limitations under the License.
 */
 
+#include <tinyxml2.h>
 #include "view/auto_tab_frame.hpp"
 #include "view/svg_image.hpp"
 

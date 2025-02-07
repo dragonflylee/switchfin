@@ -13,7 +13,7 @@ brls::View* TextBox::create() { return new TextBox(); }
 
 void TextBox::onLayout() {
     float width = this->getWidth();
-    if (isnan(width) || width == 0) return;
+    if (std::isnan(width) || width == 0) return;
     if (this->fullText.empty()) return;
     if (!this->parsedDone) this->cutText(width);
 }

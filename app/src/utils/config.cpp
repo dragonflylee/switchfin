@@ -196,7 +196,7 @@ bool AppConfig::init() {
     }
     // 窗口将要关闭时, 保存窗口状态配置
     brls::Application::getExitEvent()->subscribe([this]() {
-        if (isnan(VideoContext::posX) || isnan(VideoContext::posY)) return;
+        if (std::isnan(VideoContext::posX) || std::isnan(VideoContext::posY)) return;
         if (VideoContext::FULLSCREEN) return;
         auto videoContext = brls::Application::getPlatform()->getVideoContext();
         uint32_t width = VideoContext::sizeW;

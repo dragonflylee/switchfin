@@ -7,6 +7,7 @@
 #include "view/player_setting.hpp"
 #include "view/video_view.hpp"
 #include "view/video_profile.hpp"
+#include <tinyxml2.h>
 
 using namespace brls::literals;
 
