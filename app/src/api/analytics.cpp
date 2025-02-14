@@ -34,7 +34,7 @@ Analytics::Analytics() {
     this->client_id = fmt::format("GA1.3.{}", AppConfig::instance().getDeviceId());
     this->url = GA_URL + "?" + HTTP::encode_form({{"api_secret", GA_KEY}, {"measurement_id", GA_ID}});
 
-    this->ticker.setCallback([this]() { ThreadPool::instance().submit(&Analytics::send, this); });
+    this->ticker.setCallback([this]() { ThreadPool::instance().submit([this](HTTP& s) { this->send(); }); });
     this->ticker.start(10000);
 }
 

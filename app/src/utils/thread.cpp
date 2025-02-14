@@ -2,6 +2,7 @@
 #include <fmt/format.h>
 #include "utils/thread.hpp"
 #include "utils/config.hpp"
+#include "api/http.hpp"
 
 constexpr std::chrono::milliseconds max_idle_time{60000};
 
@@ -37,6 +38,7 @@ void ThreadPool::start(size_t num) {
 
 void *ThreadPool::task_loop(void *ptr) {
     ThreadPool *p = reinterpret_cast<ThreadPool *>(ptr);
+    HTTP s;
     while (!p->isStop.load()) {
         Task task;
 
@@ -55,7 +57,7 @@ void *ThreadPool::task_loop(void *ptr) {
 
         if (task) {
             try {
-                task();
+                task(s);
             } catch (const std::exception &ex) {
                 brls::Logger::error("error: pool task {}", ex.what());
             }

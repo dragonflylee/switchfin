@@ -12,19 +12,19 @@
 #include <pthread.h>
 #endif
 #include <borealis/core/singleton.hpp>
+#include "api/http.hpp"
 
 class ThreadPool : public brls::Singleton<ThreadPool> {
 public:
-    using Task = std::function<void()>;
+    using Task = std::function<void(HTTP& s)>;
 
     explicit ThreadPool();
     virtual ~ThreadPool();
 
-    template <typename Fn, typename... Args>
-    void submit(Fn&& fn, Args&&... args) {
+    void submit(Task fn) {
         {
             std::lock_guard<std::mutex> locker(this->taskMutex);
-            this->tasks.push_back(std::bind(std::forward<Fn>(fn), std::forward<Args>(args)...));
+            this->tasks.push_back(fn);
         }
         this->taskCond.notify_one();
     }

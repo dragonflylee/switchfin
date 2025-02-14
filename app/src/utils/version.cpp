@@ -84,7 +84,7 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
         Dialog::cancelable("main/setting/others/updating"_i18n, [] { AppVersion::updating->store(true); });
         return;
     }
-    ThreadPool::instance().submit([showUpToDateDialog]() {
+    ThreadPool::instance().submit([showUpToDateDialog](HTTP& s) {
         try {
             std::string url = fmt::format("https://api.github.com/repos/{}/releases/latest", git_repo);
             auto resp = HTTP::get(url, HTTP::Timeout{});
@@ -106,7 +106,7 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
 #ifdef __SWITCH__
                 dialog->addButton("hints/ok"_i18n, [latest_ver]() {
                     AppVersion::updating->store(false);
-                    ThreadPool::instance().submit([latest_ver]() {
+                    ThreadPool::instance().submit([latest_ver](HTTP& s) {
                         std::string conf_dir = AppConfig::instance().configDir();
                         std::string pkg_name = AppVersion::getPackageName();
                         std::string path = fmt::format("{}/{}_{}.nro", conf_dir, pkg_name, latest_ver);

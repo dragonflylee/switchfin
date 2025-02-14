@@ -44,7 +44,7 @@ void Image::with(brls::Image* view, const std::string& url) {
     // 设置图片组件不处理纹理的销毁，由缓存统一管理纹理销毁
     view->setFreeTexture(false);
 
-    ThreadPool::instance().submit(std::bind(&Image::doRequest, item));
+    ThreadPool::instance().submit([item](HTTP& s) { item->doRequest(s); });
 }
 
 void Image::cancel(brls::Image* view) {
@@ -54,13 +54,12 @@ void Image::cancel(brls::Image* view) {
     clear(view);
 }
 
-void Image::doRequest() {
+void Image::doRequest(HTTP& s) {
     if (this->isCancel->load()) {
         Image::clear(this->image);
         return;
     }
     try {
-        HTTP s;
         std::ostringstream body;
         char* ct = nullptr;
         HTTP::set_option(s, this->isCancel, HTTP::Timeout{});

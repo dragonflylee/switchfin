@@ -26,7 +26,7 @@ public:
     static void cancel(brls::Image* view);
 
 private:
-    void doRequest();
+    void doRequest(HTTP& s);
 
     static void clear(brls::Image* view);
 
