@@ -25,18 +25,30 @@ HTTP::HTTP() : chunk(nullptr) {
     static struct Global {
         Global() {
             CURLcode rc = curl_global_init(CURL_GLOBAL_ALL);
+            this->share = curl_share_init();
             brls::Logger::debug("curl init {}", std::to_string(rc));
+
+            curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
+            curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_SSL_SESSION);
+            curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_CONNECT);
         }
         ~Global() {
+            curl_share_cleanup(this->share);
             curl_global_cleanup();
             brls::Logger::debug("curl cleanup");
         }
+        // Avoids initalization order problems
+        std::mutex init_lock;
+        CURLSH* share;
     } global;
 
+    global.init_lock.lock();
     this->easy = curl_easy_init();
+    global.init_lock.unlock();
 
     curl_easy_setopt(this->easy, CURLOPT_USERAGENT, user_agent.c_str());
     curl_easy_setopt(this->easy, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(this->easy, CURLOPT_SHARE, global.share);
     // enable all supported built-in compressions
     curl_easy_setopt(this->easy, CURLOPT_ACCEPT_ENCODING, "");
     curl_easy_setopt(this->easy, CURLOPT_VERBOSE, 0L);
