@@ -2,7 +2,7 @@ pkgname=curl
 pkgver=8.9.1
 pkgrel=2
 url="https://curl.se/"
-source=("https://github.com/curl/curl/releases/download/curl-8_9_1/curl-8.9.1.tar.gz")
+source=("https://curl.haxx.se/download/curl-8.9.1.tar.gz")
 sha256sums=('291124a007ee5111997825940b3876b3048f7d31e73e9caa681b80fe48b2dcd5')
 depends=('mbedtls' 'zlib')
 
