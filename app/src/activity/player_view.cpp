@@ -200,6 +200,20 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
             {"Value", maxAllowedHeight},
             {"IsRequired", false},
         },
+#if defined(__PSV__)
+        {
+            {"Condition", "EqualsAny"},
+            {"Property", "VideoProfile"},
+            {"Value", "high|main|baseline"},
+            {"IsRequired", false},
+        },
+        {
+            {"Condition", "LessThanEqual"},
+            {"Property", "VideoLevel"},
+            {"Value", 40},
+            {"IsRequired", false},
+        }
+#endif
     };
 
     nlohmann::json profile = {

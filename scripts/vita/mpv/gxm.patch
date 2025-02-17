@@ -930,7 +930,7 @@ index a1459e9512..6109de6d88 100644
  };
  
 diff --git a/video/decode/vd_lavc.c b/video/decode/vd_lavc.c
-index 2106dcb56e..d8483da5de 100644
+index 2106dcb56e..2742b10b04 100644
 --- a/video/decode/vd_lavc.c
 +++ b/video/decode/vd_lavc.c
 @@ -663,6 +663,91 @@ static void reinit(struct mp_filter *vd)
@@ -1025,21 +1025,15 @@ index 2106dcb56e..d8483da5de 100644
  static void init_avctx(struct mp_filter *vd)
  {
      vd_ffmpeg_ctx *ctx = vd->priv;
-@@ -750,6 +835,13 @@ static void init_avctx(struct mp_filter *vd)
+@@ -750,6 +835,7 @@ static void init_avctx(struct mp_filter *vd)
          mp_set_avcodec_threads(vd->log, avctx, lavc_param->threads);
      }
  
-+#if HAVE_GXM
-+    if (ctx->use_hwdec && lavc_codec->id == AV_CODEC_ID_H264 ) {
-+        avctx->opaque = vd;
-+        avctx->get_buffer2 = get_buffer2_direct_gxm;
-+        c->lav_codecpar->format = lavc_param->dr ? AV_PIX_FMT_VITA_NV12: AV_PIX_FMT_VITA_YUV420P;
-+    }
-+#else
++#if !HAVE_GXM
      if (!ctx->use_hwdec && ctx->vo && lavc_param->dr) {
          avctx->opaque = vd;
          avctx->get_buffer2 = get_buffer2_direct;
-@@ -759,6 +851,7 @@ static void init_avctx(struct mp_filter *vd)
+@@ -759,6 +845,7 @@ static void init_avctx(struct mp_filter *vd)
          });
  #endif
      }
@@ -1047,6 +1041,20 @@ index 2106dcb56e..d8483da5de 100644
  
      avctx->flags |= lavc_param->bitexact ? AV_CODEC_FLAG_BITEXACT : 0;
      avctx->flags2 |= lavc_param->fast ? AV_CODEC_FLAG2_FAST : 0;
+@@ -813,6 +900,13 @@ static void init_avctx(struct mp_filter *vd)
+         goto error;
+     }
+ 
++#if HAVE_GXM
++    if (ctx->use_hwdec && lavc_codec->id == AV_CODEC_ID_H264) {
++        avctx->opaque = vd;
++        avctx->get_buffer2 = get_buffer2_direct_gxm;
++        avctx->pix_fmt = lavc_param->dr ? AV_PIX_FMT_VITA_NV12: AV_PIX_FMT_VITA_YUV420P;
++    }
++#endif
+     /* open it */
+     if (avcodec_open2(avctx, lavc_codec, NULL) < 0)
+         goto error;
 diff --git a/video/fmt-conversion.c b/video/fmt-conversion.c
 index aa7d857341..6c39f267b7 100644
 --- a/video/fmt-conversion.c
@@ -2795,7 +2803,7 @@ index 0000000000..d024945b7b
 +bool ra_is_gxm(struct ra *ra);
 diff --git a/video/out/hwdec/hwdec_gxm.c b/video/out/hwdec/hwdec_gxm.c
 new file mode 100644
-index 0000000000..7defd4f532
+index 0000000000..aa31ead8c3
 --- /dev/null
 +++ b/video/out/hwdec/hwdec_gxm.c
 @@ -0,0 +1,145 @@
@@ -2831,6 +2839,10 @@ index 0000000000..7defd4f532
 +
 +static int init(struct ra_hwdec *hw) {
 +    struct priv_owner *priv = hw->priv;
++    if (!hw->ra_ctx->ra->glsl_gxm) {
++        MP_ERR(hw, "Only GXM is supported\n");
++        return -1;
++    }
 +
 +    // TODO: gc_count should be >= `display buffer count` of user's application
 +    priv->gc_count = 3;
@@ -2853,10 +2865,6 @@ index 0000000000..7defd4f532
 +}
 +
 +static int mapper_init(struct ra_hwdec_mapper *mapper) {
-+    if (!mapper->ra->glsl_gxm) {
-+        MP_ERR(mapper, "Only GXM is not supported\n");
-+        return -1;
-+    }
 +    mapper->dst_params = mapper->src_params;
 +
 +    struct ra_tex *tex = NULL;
