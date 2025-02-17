@@ -21,12 +21,16 @@ jobs:
       run: |
         apk update
         apk add cmake ninja meson pkgconf bash git zstd tar patch
-        vdpm mbedtls libass harfbuzz fribidi freetype libpng libwebp
+        vdpm libass harfbuzz fribidi freetype libpng libwebp
     - name: Build packages
       run: |
         adduser --gecos '' --home ${GITHUB_WORKSPACE}/scripts/vita --disabled-password builder
         echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder
         chown -R builder:builder scripts/vita
+
+        su - builder -c "cd mbedtls && vita-makepkg"
+        vdpm $PWD/scripts/vita/mbedtls/*-arm.tar.xz
+        touch /tmp/vdpm_install_mbedtls
 
         su - builder -c "cd curl && vita-makepkg"
         su - builder -c "cd ffmpeg && vita-makepkg"
