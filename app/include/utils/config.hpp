@@ -92,6 +92,7 @@ public:
         ALWAYS_ON_TOP,
         SINGLE,
         FPS,
+        SWAP_INTERVAL,
         APP_SWAP_ABXY,  // A-B 交换 和 X-Y 交换
         TEXTURE_CACHE_NUM,
         REQUEST_THREADS,

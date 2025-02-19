@@ -5,6 +5,9 @@
 ### Add
 
 * add korean localization (@KimPig)
+* improve image load speed
+* add psvita gxm support
+* custom vsync interval
 
 ## [0.6.1]
 
