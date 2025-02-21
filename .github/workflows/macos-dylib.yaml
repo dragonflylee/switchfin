@@ -131,8 +131,8 @@ jobs:
         meson install -C build-freetype
     - name: Build harfbuzz
       run: |
-        curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/10.2.0/harfbuzz-10.2.0.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        meson setup build-harfbuzz ${{ runner.temp }}/harfbuzz-10.2.0 ${{ matrix.meson }} \
+        curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/10.3.0/harfbuzz-10.3.0.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        meson setup build-harfbuzz ${{ runner.temp }}/harfbuzz-10.3.0 ${{ matrix.meson }} \
           --prefix=$CMAKE_PREFIX_PATH --buildtype=release --default-library=shared \
           -Dtests=disabled -Ddocs=disabled -Dicu=disabled -Dcairo=disabled \
           -Dglib=disabled -Dgobject=disabled -Dbenchmark=disabled
