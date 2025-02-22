@@ -84,7 +84,7 @@ rclone serve http --addr :8000 --read-only /media/downloads
 - [ ] Movie view
 - [ ] Series detail
 - [x] Search page
-- [ ] Websocket connection (Syncplay)
+- [x] Websocket connection (Syncplay)
 - [x] [danmu plugin](https://github.com/cxfksword/jellyfin-plugin-danmu) integration
 
 ## Develop

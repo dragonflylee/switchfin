@@ -14,6 +14,7 @@ const std::string apiAuthByName = "/Users/authenticatebyname";
 const std::string apiLogout = "/Sessions/Logout";
 
 const std::string apiSessionList = "/Sessions?{}";
+const std::string apiCapabilities = "/Sessions/Capabilities/Full";
 // apiQuickConnect
 const std::string apiQuickEnabled = "/QuickConnect/Enabled";
 const std::string apiQuickInitiate = "/QuickConnect/Initiate";

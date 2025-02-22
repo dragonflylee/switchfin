@@ -4,6 +4,7 @@
 
 ### Add
 
+* **add mirror play support**
 * add korean localization (@KimPig)
 * improve image load speed
 * add psvita gxm support

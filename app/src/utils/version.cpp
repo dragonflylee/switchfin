@@ -39,7 +39,11 @@ std::string AppVersion::getPlatform() {
     if (getenv("SteamDeck")) return "SteamDeck";
     return "Linux";
 #elif defined(_WIN32)
+#if defined(_M_ARM64)
+    return "Windows-arm64";
+#else
     return "Windows";
+#endif
 #else
 #error "Unsupport platform"
 #endif

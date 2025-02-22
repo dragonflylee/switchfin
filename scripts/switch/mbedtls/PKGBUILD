@@ -33,7 +33,7 @@ build() {
     -DENABLE_PROGRAMS=OFF \
     .
 
-  make
+  make -j$(nproc)
 
 }
 

@@ -1,14 +1,10 @@
 pkgname=curl
-pkgver=8.9.1
+pkgver=8.11.1
 pkgrel=2
 url="https://curl.se/"
-source=("https://curl.haxx.se/download/curl-8.9.1.tar.gz")
-sha256sums=('291124a007ee5111997825940b3876b3048f7d31e73e9caa681b80fe48b2dcd5')
+source=("https://curl.haxx.se/download/curl-${pkgver}.tar.xz")
+sha256sums=('c7ca7db48b0909743eaef34250da02c19bc61d4f1dcedd6603f109409536ab56')
 depends=('mbedtls' 'zlib')
-
-prepare() {
-  cd curl-${pkgver}
-}
 
 build() {
   cd curl-${pkgver}
@@ -19,13 +15,18 @@ build() {
     -DBUILD_CURL_EXE=OFF \
     -DBUILD_SHARED_LIBS=OFF \
     -DBUILD_TESTING=OFF \
-    -DENABLE_IPV6=OFF \
-    -DENABLE_THREADED_RESOLVER=OFF \
     -DBUILD_LIBCURL_DOCS=OFF \
     -DBUILD_MISC_DOCS=OFF \
     -DENABLE_CURL_MANUAL=OFF \
+    -DHTTP_ONLY=ON \
     -DCURL_USE_MBEDTLS=ON \
-    -DCURL_USE_OPENSSL=OFF
+    -DCURL_DISABLE_PROGRESS_METER=ON \
+    -DENABLE_IPV6=OFF \
+    -DENABLE_THREADED_RESOLVER=OFF \
+    -DUSE_NGHTTP2=OFF \
+    -DUSE_LIBIDN2=OFF \
+    -DCURL_USE_LIBSSH2=OFF \
+    -DCURL_USE_LIBPSL=OFF
   cmake --build build -j$(nproc)
 }
 

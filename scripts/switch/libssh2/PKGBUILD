@@ -32,7 +32,7 @@ build() {
   --disable-docker-tests \
   --disable-sshd-tests
 
-  make
+  make -j$(nproc)
 }
 
 package() {

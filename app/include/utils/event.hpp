@@ -32,5 +32,6 @@ typedef brls::Event<uint64_t, int64_t> MPVCommandReply;
 const std::string VIDEO_CLOSE = "VIDEO_CLOSE";
 // 用于 PlayerView 可以接收的自定义事件
 const std::string QUALITY_CHANGE = "QUALITY_CHANGE";
+const std::string SYNC_STOP = "SYNC_STOP";
 
 const std::string TRACK_START = "TRACK_START";

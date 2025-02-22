@@ -12,7 +12,7 @@ class VideoView;
 
 class PlayerView : public brls::Box {
 public:
-    PlayerView(const jellyfin::Item& item);
+    PlayerView(const jellyfin::Item& item, const uint64_t seekTicks = 0);
     ~PlayerView();
 
     void setSeries(const std::string& seriesId);

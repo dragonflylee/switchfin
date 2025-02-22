@@ -20,8 +20,9 @@ public:
     ~websocket();
 
 private:
-    static void* ws_recv(void*);
-    static void on_msg(const std::string& msg);
+    static void* wsRecv(void*);
+    static size_t onMsg(char *b, size_t size, size_t nitems, void *p);
+    static void onPlayNow(const std::string& itemId, uint64_t seekTicks);
 
 #ifdef BOREALIS_USE_STD_THREAD
     std::shared_ptr<std::thread> th;

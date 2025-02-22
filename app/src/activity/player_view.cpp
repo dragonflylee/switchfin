@@ -11,7 +11,7 @@
 
 using namespace brls::literals;
 
-PlayerView::PlayerView(const jellyfin::Item& item) : itemId(item.Id) {
+PlayerView::PlayerView(const jellyfin::Item& item, const uint64_t seekTicks) : itemId(item.Id) {
     float width = brls::Application::contentWidth;
     float height = brls::Application::contentHeight;
     view = new VideoView();
@@ -85,11 +85,13 @@ PlayerView::PlayerView(const jellyfin::Item& item) : itemId(item.Id) {
     customEventSubscribeID = mpv.getCustomEvent()->subscribe([this](const std::string& event, void* data) {
         if (event == QUALITY_CHANGE) {
             this->playMedia(MPVCore::instance().playback_time * jellyfin::PLAYTICKS);
+        } else if (event == SYNC_STOP) {
+            VideoView::close();
         }
     });
 
     this->setChapters(item.Chapters, item.RunTimeTicks);
-    this->playMedia(item.UserData.PlaybackPositionTicks);
+    this->playMedia(seekTicks > 0 ? seekTicks : item.UserData.PlaybackPositionTicks);
 
     // Report stop when application exit
     this->exitSubscribeID = brls::Application::getExitEvent()->subscribe([this]() {
@@ -356,11 +358,13 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
 }
 
 void PlayerView::reportStart() {
+    uint64_t ticks = MPVCore::instance().playback_time * jellyfin::PLAYTICKS;
     jellyfin::postJSON(
         {
             {"ItemId", this->itemId},
             {"PlayMethod", this->playMethod},
             {"PlaySessionId", this->playSessionId},
+            {"PositionTicks", ticks},
             {"MediaSourceId", this->stream.Id},
             {"MaxStreamingBitrate", MPVCore::VIDEO_QUALITY},
         },

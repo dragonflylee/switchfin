@@ -1,97 +1,64 @@
 #include "api/websocket.hpp"
 #include "utils/config.hpp"
-#include <borealis/core/application.hpp>
-#include <borealis/core/thread.hpp>
-#include <libretro-common/retro_timers.h>
+#include "api/jellyfin.hpp"
+#include <view/mpv_core.hpp>
+#include <activity/player_view.hpp>
 #include <curl/curl.h>
-#ifdef _WIN32
-#include <winsock2.h>
-#else
-#include <sys/select.h>
-#endif
 
 websocket::websocket(const std::string& url) {
-    this->easy = curl_easy_init();
 #if LIBCURL_VERSION_NUM >= 0x080000 && !defined(__PS4__)
+    this->easy = curl_easy_init();
     curl_easy_setopt(this->easy, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(this->easy, CURLOPT_CONNECT_ONLY, 2L); /* websocket style */
 
     // enable all supported built-in compressions
     curl_easy_setopt(this->easy, CURLOPT_ACCEPT_ENCODING, "");
     curl_easy_setopt(this->easy, CURLOPT_VERBOSE, 0L);
     curl_easy_setopt(this->easy, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(this->easy, CURLOPT_SSL_VERIFYHOST, 0L);
+    curl_easy_setopt(this->easy, CURLOPT_WRITEFUNCTION, onMsg);
+    curl_easy_setopt(this->easy, CURLOPT_WRITEDATA, this);
 
     this->isStopped = std::make_shared<std::atomic_bool>(false);
 #ifdef BOREALIS_USE_STD_THREAD
-    this->th = std::make_shared<std::thread>(ws_recv, this);
+    this->th = std::make_shared<std::thread>(wsRecv, this);
 #else
-    pthread_create(&this->th, nullptr, ws_recv, this);
+    pthread_create(&this->th, nullptr, wsRecv, this);
 #endif
 #endif
 }
 
 websocket::~websocket() {
+#if LIBCURL_VERSION_NUM >= 0x080000 && !defined(__PS4__)
     this->isStopped->store(true);
     curl_easy_cleanup(this->easy);
+#ifdef BOREALIS_USE_STD_THREAD
+    this->th->join();
+#else
+    pthread_join(this->th, nullptr);
+#endif
+#endif
 }
 
-void* websocket::ws_recv(void* ptr) {
+void* websocket::wsRecv(void* ptr) {
 #if LIBCURL_VERSION_NUM >= 0x080000 && !defined(__PS4__)
     websocket* p = reinterpret_cast<websocket*>(ptr);
-    auto isStopped = p->isStopped;
     CURL* easy = p->easy;
-    uint64_t timeout = 0;
 
-    while (!isStopped->load()) {
-        CURLcode res = curl_easy_perform(easy);
-        if (res != CURLE_OK) {
-            brls::Logger::warning("ws perform failed: {}", curl_easy_strerror(res));
-            if (!timeout) break;
-            retro_sleep(timeout *= 2);
-            continue;
-        }
-        timeout = 500;
+    jellyfin::postJSON(
+        {
+            {"PlayableMediaTypes", {"Video"}},
+            {"SupportedCommands", {"ToggleOsd", "DisplayContent", "DisplayMessage"}},
+            {"SupportsPersistentIdentifier", false},
+            {"SupportsMediaControl", true},
+        },
+        [](...) {}, nullptr, jellyfin::apiCapabilities);
 
-        int ws_sockfd;
-        res = curl_easy_getinfo(easy, CURLINFO_ACTIVESOCKET, &ws_sockfd);
-        if (res != CURLE_OK) {
-            brls::Logger::warning("ws get socket: {}", curl_easy_strerror(res));
-            break;
-        }
-
-        fd_set rfds;
-        size_t rlen, slen;
-        const struct curl_ws_frame* meta;
-        struct timeval tv = {.tv_sec = 10};
-        std::string buf(2048, '\0');
-        const std::string resp = R"({"MessageType":"KeepAlive"})";
-
-        for (;;) {
-            FD_ZERO(&rfds);
-            FD_SET(ws_sockfd, &rfds);
-            int ret = select(1, &rfds, NULL, NULL, &tv);
-            if (ret < 0 || isStopped->load()) break;
-            if (ret == 0) {
-                res = curl_ws_send(easy, resp.data(), resp.size(), &slen, 0, CURLWS_TEXT);
-                if (res != CURLE_OK) break;
-            } else {
-                res = curl_ws_recv(easy, buf.data(), buf.size(), &rlen, &meta);
-                if (res == CURLE_AGAIN) continue;
-                if (res != CURLE_OK) break;
-
-                if (meta->flags & CURLWS_CLOSE) break;
-                if (meta->flags & CURLWS_TEXT) on_msg(buf.substr(0, rlen));
-            }
-        }
-
-        if (res != CURLE_OK) {
-            std::string msg = fmt::format("ws failed: {}", curl_easy_strerror(res));
-            brls::sync([msg] { brls::Application::notify(msg); });
-        }
+    CURLcode res = curl_easy_perform(easy);
+    if (res != CURLE_OK) {
+        brls::Logger::warning("ws perform failed: {}", curl_easy_strerror(res));
+    } else {
+        brls::Logger::info("ws recv exit");
     }
-
-    brls::Logger::info("ws recv exit");
 #endif
     return nullptr;
 }
@@ -99,18 +66,76 @@ void* websocket::ws_recv(void* ptr) {
 struct Message {
     std::string MessageType;
     std::string MessageId;
+    nlohmann::json Data;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Message, MessageType, MessageId);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Message, MessageType, MessageId, Data);
 
-const std::string MsgKeepAlive = "KeepAlive";
+struct MsgArguments {
+    std::string Header;
+    std::string Text;
+    std::string TimeoutMs;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MsgArguments, Header, Text, TimeoutMs);
 
-void websocket::on_msg(const std::string& resp) {
+struct MsgPlay {
+    std::vector<std::string> ItemIds;
+    uint64_t StartPositionTicks;
+    std::string PlayCommand;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MsgPlay, ItemIds, StartPositionTicks, PlayCommand);
+
+size_t websocket::onMsg(char* b, size_t size, size_t nitems, void* p) {
     try {
+        std::string resp(b, nitems);
         Message m = nlohmann::json::parse(resp);
-        if (m.MessageType.compare(MsgKeepAlive)) {
+        if (m.MessageType == "Playstate") {
+            std::string cmd = m.Data.at("Command");
+            brls::sync([cmd, m]() {
+                auto& mpv = MPVCore::instance();
+                if (cmd == "PlayPause") {
+                    mpv.togglePlay();
+                } else if (cmd == "Stop") {
+                    mpv.getCustomEvent()->fire(SYNC_STOP, nullptr);
+                } else if (cmd == "Seek") {
+                    int64_t seek = m.Data.at("SeekPositionTicks").get<int64_t>();
+                    mpv.seek(seek / jellyfin::PLAYTICKS, "absolute");
+                } else {
+                    mpv.getCustomEvent()->fire(cmd, nullptr);
+                }
+            });
+        } else if (m.MessageType == "Play") {
+            MsgPlay cmd = m.Data.get<MsgPlay>();
+            if (cmd.PlayCommand == "PlayNow") {
+                websocket::onPlayNow(cmd.ItemIds.front(), cmd.StartPositionTicks);
+            } else {
+                brls::Logger::info("play command: {}", resp);
+            }
+        } else if (m.MessageType == "GeneralCommand") {
+            MsgArguments args = m.Data.at("Arguments");
+            brls::sync([args]() { brls::Application::notify(args.Text); });
+        } else if (m.MessageType != "KeepAlive") {
             brls::Logger::debug("ws recv: {}", resp);
         }
     } catch (const std::exception& ex) {
         brls::Logger::warning("parse ws {}", ex.what());
     }
+    return nitems;
+}
+
+void websocket::onPlayNow(const std::string& itemId, uint64_t seekTicks) {
+    jellyfin::getJSON<jellyfin::Episode>(
+        [seekTicks](const jellyfin::Episode& item) {
+            if (item.Type == "Audio") return;
+            MPVCore::instance().getCustomEvent()->fire(SYNC_STOP, nullptr);
+            PlayerView* view = new PlayerView(item, seekTicks);
+            if (item.Type == jellyfin::mediaTypeEpisode) {
+                view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
+                view->setSeries(item.SeriesId);
+            } else if (item.ProductionYear) {
+                view->setTitie(fmt::format("{} ({})", item.Name, item.ProductionYear));
+            } else {
+                view->setTitie(item.Name);
+            }
+        },
+        nullptr, jellyfin::apiUserItem, AppConfig::instance().getUserId(), itemId);
 }
