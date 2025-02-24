@@ -545,7 +545,8 @@ void MPVCore::eventMainLoop() {
                 }
                 break;
             case 2:  // pause
-                if (!!*(int *)prop->data) {
+                this->video_paused = *(int *)prop->data;
+                if (this->video_paused) {
                     brls::Logger::info("MPVCore => PAUSE");
                     mpvCoreEvent.fire(MpvEventEnum::MPV_PAUSE);
                 } else if (!this->video_stopped) {
@@ -597,6 +598,7 @@ void MPVCore::reset() {
     mpvCoreEvent.fire(MpvEventEnum::RESET);
     this->stop();
     this->video_stopped = true;
+    this->video_paused = false;
     this->duration = 0;     // second
     this->cache_speed = 0;  // Bps
     this->playback_time = 0;
@@ -627,11 +629,7 @@ void MPVCore::seek(int64_t value, const std::string &flags) {
 
 bool MPVCore::isStopped() const { return video_stopped; }
 
-bool MPVCore::isPaused() {
-    int ret = -1;
-    mpv_get_property(mpv, "pause", MPV_FORMAT_FLAG, &ret);
-    return ret == 1;
-}
+bool MPVCore::isPaused() { return video_paused; }
 
 double MPVCore::getSpeed() const { return video_speed; }
 

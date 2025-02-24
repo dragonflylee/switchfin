@@ -160,6 +160,7 @@ private:
     mpv_render_context *mpv_context = nullptr;
     brls::Rect rect = {0, 0, 1920, 1080};
     bool video_stopped = true;
+    bool video_paused = false;
     int64_t cache_speed = 0;  // Bps
 
 #ifdef MPV_SW_RENDER
