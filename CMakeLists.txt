@@ -98,7 +98,7 @@ if (USE_SYSTEM_CURL)
 else ()
     include(FetchContent)
     FetchContent_Declare(curl
-        URL https://curl.se/download/curl-8.10.1.tar.xz
+        URL https://curl.se/download/curl-8.11.1.tar.xz
         DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     )
     if (WIN32)

@@ -5,6 +5,8 @@
 #include <activity/player_view.hpp>
 #include <curl/curl.h>
 
+const std::string msgKeepAlive = R"({"MessageType":"KeepAlive"})";
+
 websocket::websocket(const std::string& url) {
 #if LIBCURL_VERSION_NUM >= 0x080000 && !defined(__PS4__)
     this->easy = curl_easy_init();
@@ -16,20 +18,25 @@ websocket::websocket(const std::string& url) {
     curl_easy_setopt(this->easy, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(this->easy, CURLOPT_SSL_VERIFYHOST, 0L);
     curl_easy_setopt(this->easy, CURLOPT_WRITEFUNCTION, onMsg);
-    curl_easy_setopt(this->easy, CURLOPT_WRITEDATA, this);
+    curl_easy_setopt(this->easy, CURLOPT_WRITEDATA, this->easy);
 
-    this->isStopped = std::make_shared<std::atomic_bool>(false);
 #ifdef BOREALIS_USE_STD_THREAD
-    this->th = std::make_shared<std::thread>(wsRecv, this);
+    this->th = std::make_shared<std::thread>(wsRecv, this->easy);
 #else
-    pthread_create(&this->th, nullptr, wsRecv, this);
+    pthread_create(&this->th, nullptr, wsRecv, this->easy);
 #endif
+
+    hb.setCallback([this]() {
+        size_t slen = msgKeepAlive.size();
+        curl_ws_send(this->easy, msgKeepAlive.data(), slen, &slen, 0, CURLWS_TEXT);
+    });
+    hb.start(30000);
 #endif
 }
 
 websocket::~websocket() {
 #if LIBCURL_VERSION_NUM >= 0x080000 && !defined(__PS4__)
-    this->isStopped->store(true);
+    hb.stop();
     curl_easy_cleanup(this->easy);
 #ifdef BOREALIS_USE_STD_THREAD
     this->th->join();
@@ -39,15 +46,12 @@ websocket::~websocket() {
 #endif
 }
 
-void* websocket::wsRecv(void* ptr) {
+void* websocket::wsRecv(void* easy) {
 #if LIBCURL_VERSION_NUM >= 0x080000 && !defined(__PS4__)
-    websocket* p = reinterpret_cast<websocket*>(ptr);
-    CURL* easy = p->easy;
-
     jellyfin::postJSON(
         {
             {"PlayableMediaTypes", {"Video"}},
-            {"SupportedCommands", {"ToggleOsd", "DisplayContent", "DisplayMessage"}},
+            {"SupportedCommands", {"DisplayMessage"}},
             {"SupportsPersistentIdentifier", false},
             {"SupportsMediaControl", true},
         },
@@ -84,7 +88,7 @@ struct MsgPlay {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MsgPlay, ItemIds, StartPositionTicks, PlayCommand);
 
-size_t websocket::onMsg(char* b, size_t size, size_t nitems, void* p) {
+size_t websocket::onMsg(char* b, size_t size, size_t nitems, void* easy) {
     try {
         std::string resp(b, nitems);
         Message m = nlohmann::json::parse(resp);

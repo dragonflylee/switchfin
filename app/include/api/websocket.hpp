@@ -4,15 +4,15 @@
 
 #pragma once
 
+#include <stdint.h>
 #include <string>
-#include <atomic>
-#include <memory>
 #ifdef BOREALIS_USE_STD_THREAD
 #include <thread>
 #else
 #include <pthread.h>
 #endif
-#include <curl/curl.h>
+#include <borealis/core/timer.hpp>
+#include <curl/system.h>
 
 class websocket {
 public:
@@ -29,6 +29,6 @@ private:
 #else
     pthread_t th;
 #endif
-    CURL *easy;
-    std::shared_ptr<std::atomic_bool> isStopped;
+    brls::RepeatingTimer hb;
+    void *easy;
 };
