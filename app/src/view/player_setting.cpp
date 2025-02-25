@@ -229,10 +229,10 @@ void PlayerSetting::setupEqualizer(brls::SliderCell* cell, const std::string& ti
             mpv.setInt("saturation", data);
             break;
         case Equalizer::GAMMA:
-            mpv.setInt("hue", data);
+            mpv.setInt("gamma", data);
             break;
         case Equalizer::HUE:
-            mpv.setInt("gamma", data);
+            mpv.setInt("hue", data);
             break;
         default:;
         }
