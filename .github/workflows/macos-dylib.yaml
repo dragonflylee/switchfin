@@ -216,7 +216,7 @@ jobs:
           --prefix=$CMAKE_PREFIX_PATH --buildtype=release --default-library=shared \
           -Dlibmpv=true -Dcplayer=false -Dtests=false -Dswift-build=disabled -Dcocoa=disabled \
           -Dmacos-cocoa-cb=disabled -Dmacos-media-player=disabled -Dmacos-touchbar=disabled \
-          -Dlibarchive=disabled -Dlcms2=disabled -Djpeg=disabled \
+          -Dlibarchive=disabled -Dlcms2=disabled -Djpeg=disabled -Dlua=disabled \
           -Dmanpage-build=disabled -Dhtml-build=disabled 
         meson compile -C build-mpv
         meson install -C build-mpv
@@ -230,7 +230,7 @@ jobs:
           --prefix=$CMAKE_PREFIX_PATH --buildtype=release --default-library=shared \
           -Dlibmpv=true -Dcplayer=false -Dtests=false -Dswift-build=disabled \
           -Dmacos-cocoa-cb=disabled -Dmacos-media-player=disabled -Dmacos-touchbar=disabled \
-          -Dlibarchive=disabled -Dlcms2=disabled -Djpeg=disabled \
+          -Dlibarchive=disabled -Dlcms2=disabled -Djpeg=disabled -Dlua=disabled \
           -Dmanpage-build=disabled -Dhtml-build=disabled 
         meson compile -C build-mpv
         meson install -C build-mpv

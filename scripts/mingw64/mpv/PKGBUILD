@@ -58,6 +58,7 @@ build() {
       -Dd3d11=enabled \
       -Dvulkan=disabled \
       -Dlibarchive=disabled \
+      -Dlua=disabled \
       "build-${MSYSTEM}" \
       "${srcdir}/${_realname}-${pkgver}"
   meson compile -C "build-${MSYSTEM}"

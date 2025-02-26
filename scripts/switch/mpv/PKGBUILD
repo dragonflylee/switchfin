@@ -24,7 +24,7 @@ sha256sums=(
   'SKIP' 'SKIP' 'SKIP'
 )
 makedepends=("dkp-toolchain-vars" "dkp-meson-scripts")
-depends=('switch-ffmpeg' 'switch-mesa' 'switch-liblua51')
+depends=('switch-ffmpeg' 'switch-mesa')
 groups=('switch-portlibs')
 
 prepare() {
@@ -36,12 +36,12 @@ prepare() {
 
 build() {
   /opt/devkitpro/meson-cross.sh switch crossfile.txt build-deko3d mpv-$pkgver \
-    -Dlibmpv=true -Dcplayer=false -Dtests=false -Dlua=enabled -Ddeko3d=enabled \
+    -Dlibmpv=true -Dcplayer=false -Dtests=false -Dlua=disabled -Ddeko3d=enabled \
     -Dgl=disabled -Degl=disabled -Dsdl2=disabled -Dlibarchive=disabled  \
     -Dlibplacebo=disabled -Dlibavdevice=disabled -Djpeg=disabled -Diconv=disabled
   
   /opt/devkitpro/meson-cross.sh switch crossfile.txt build-gl mpv-$pkgver \
-    -Dlibmpv=true -Dcplayer=false -Dtests=false -Dlua=enabled -Ddeko3d=disabled \
+    -Dlibmpv=true -Dcplayer=false -Dtests=false -Dlua=disabled -Ddeko3d=disabled \
     -Dplain-gl=enabled -Degl=disabled -Dsdl2=disabled -Dlibarchive=disabled \
     -Dlibplacebo=disabled -Dlibavdevice=disabled -Djpeg=disabled -Diconv=disabled
 }

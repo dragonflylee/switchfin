@@ -35,9 +35,7 @@ jobs:
           ${MINGW_PACKAGE_PREFIX}-cmake \
           ${MINGW_PACKAGE_PREFIX}-meson \
           ${MINGW_PACKAGE_PREFIX}-nasm \
-          ${MINGW_PACKAGE_PREFIX}-lua51 \
           ${MINGW_PACKAGE_PREFIX}-cc patch p7zip
-        rm ${MINGW_PREFIX}/lib/liblua5.1.dll.a
     - name: Build packages
       run: |
         cd scripts/mingw64
