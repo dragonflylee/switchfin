@@ -87,6 +87,10 @@ PlayerView::PlayerView(const jellyfin::Item& item, const uint64_t seekTicks) : i
             this->playMedia(MPVCore::instance().playback_time * jellyfin::PLAYTICKS);
         } else if (event == SYNC_STOP) {
             VideoView::close();
+        } else if (event == "PreviousTrack") {
+            this->view->playNext(-1);
+        } else if (event == "NextTrack") {
+            this->view->playNext(1);
         }
     });
 
@@ -195,13 +199,12 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
         maxAllowedHeight = 2160;
     }
 #endif
-    nlohmann::json conditions = {
-        {
-            {"Condition", "LessThanEqual"},
-            {"Property", "Height"},
-            {"Value", maxAllowedHeight},
-            {"IsRequired", false},
-        },
+    nlohmann::json conditions = {{
+                                     {"Condition", "LessThanEqual"},
+                                     {"Property", "Height"},
+                                     {"Value", maxAllowedHeight},
+                                     {"IsRequired", false},
+                                 },
 #if defined(__PSV__)
         {
             {"Condition", "EqualsAny"},

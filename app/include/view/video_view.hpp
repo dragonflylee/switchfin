@@ -49,6 +49,8 @@ public:
 
     void setClipPoint(const std::vector<float>& clips);
 
+    void playNext(int offset);
+
     brls::Event<int>* getPlayEvent() { return &this->playIndexEvent; }
 
     brls::VoidEvent* getSettingEvent() { return &this->settingEvent; }

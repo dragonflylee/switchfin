@@ -830,6 +830,8 @@ void VideoView::setClipPoint(const std::vector<float>& clips) {
     }
 }
 
+void VideoView::playNext(int offset) { this->playIndexEvent.fire(this->playIndex + offset); }
+
 void VideoView::hideVideoProgressSlider() { this->osdSlider->setVisibility(brls::Visibility::GONE); }
 
 void VideoView::hideVideoQuality() {

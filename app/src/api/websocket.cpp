@@ -27,8 +27,10 @@ websocket::websocket(const std::string& url) {
 #endif
 
     hb.setCallback([this]() {
-        size_t slen = msgKeepAlive.size();
-        curl_ws_send(this->easy, msgKeepAlive.data(), slen, &slen, 0, CURLWS_TEXT);
+        brls::async([this]() {
+            size_t slen = msgKeepAlive.size();
+            curl_ws_send(this->easy, msgKeepAlive.data(), slen, &slen, 0, CURLWS_TEXT);
+        });
     });
     hb.start(30000);
 #endif
