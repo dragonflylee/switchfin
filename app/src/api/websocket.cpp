@@ -18,13 +18,7 @@ websocket::websocket(const std::string& url) {
     curl_easy_setopt(this->easy, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(this->easy, CURLOPT_SSL_VERIFYHOST, 0L);
     curl_easy_setopt(this->easy, CURLOPT_WRITEFUNCTION, onMsg);
-    curl_easy_setopt(this->easy, CURLOPT_WRITEDATA, this->easy);
-
-#ifdef BOREALIS_USE_STD_THREAD
-    this->th = std::make_shared<std::thread>(wsRecv, this->easy);
-#else
-    pthread_create(&this->th, nullptr, wsRecv, this->easy);
-#endif
+    curl_easy_setopt(this->easy, CURLOPT_WRITEDATA, this);
 
     hb.setCallback([this]() {
         brls::async([this]() {
@@ -32,13 +26,17 @@ websocket::websocket(const std::string& url) {
             curl_ws_send(this->easy, msgKeepAlive.data(), slen, &slen, 0, CURLWS_TEXT);
         });
     });
-    hb.start(30000);
+
+#ifdef BOREALIS_USE_STD_THREAD
+    this->th = std::make_shared<std::thread>(wsRecv, this);
+#else
+    pthread_create(&this->th, nullptr, wsRecv, this);
+#endif
 #endif
 }
 
 websocket::~websocket() {
 #if LIBCURL_VERSION_NUM >= 0x080000 && !defined(__PS4__)
-    hb.stop();
     curl_easy_cleanup(this->easy);
 #ifdef BOREALIS_USE_STD_THREAD
     this->th->join();
@@ -48,24 +46,15 @@ websocket::~websocket() {
 #endif
 }
 
-void* websocket::wsRecv(void* easy) {
-#if LIBCURL_VERSION_NUM >= 0x080000 && !defined(__PS4__)
-    jellyfin::postJSON(
-        {
-            {"PlayableMediaTypes", {"Video"}},
-            {"SupportedCommands", {"DisplayMessage"}},
-            {"SupportsPersistentIdentifier", false},
-            {"SupportsMediaControl", true},
-        },
-        [](...) {}, nullptr, jellyfin::apiCapabilities);
-
-    CURLcode res = curl_easy_perform(easy);
+void* websocket::wsRecv(void* ptr) {
+    websocket* p = reinterpret_cast<websocket*>(ptr);
+    CURLcode res = curl_easy_perform(p->easy);
     if (res != CURLE_OK) {
         brls::Logger::warning("ws perform failed: {}", curl_easy_strerror(res));
     } else {
         brls::Logger::info("ws recv exit");
     }
-#endif
+    p->hb.stop();
     return nullptr;
 }
 
@@ -90,7 +79,7 @@ struct MsgPlay {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MsgPlay, ItemIds, StartPositionTicks, PlayCommand);
 
-size_t websocket::onMsg(char* b, size_t size, size_t nitems, void* easy) {
+size_t websocket::onMsg(char* b, size_t size, size_t nitems, void* ptr) {
     try {
         std::string resp(b, nitems);
         Message m = nlohmann::json::parse(resp);
@@ -119,6 +108,17 @@ size_t websocket::onMsg(char* b, size_t size, size_t nitems, void* easy) {
         } else if (m.MessageType == "GeneralCommand") {
             MsgArguments args = m.Data.at("Arguments");
             brls::sync([args]() { brls::Application::notify(args.Text); });
+        } else if (m.MessageType == "ForceKeepAlive") {
+            websocket* p = reinterpret_cast<websocket*>(ptr);
+            jellyfin::postJSON(
+                {
+                    {"PlayableMediaTypes", {"Video"}},
+                    {"SupportedCommands", {"DisplayMessage"}},
+                    {"SupportsPersistentIdentifier", false},
+                    {"SupportsMediaControl", true},
+                },
+                [](...) {}, nullptr, jellyfin::apiCapabilities);
+            p->hb.start(30000);
         } else if (m.MessageType != "KeepAlive") {
             brls::Logger::debug("ws recv: {}", resp);
         }
