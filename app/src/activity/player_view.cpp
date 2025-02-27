@@ -321,7 +321,7 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
                 ssextra << fmt::format("network-timeout={}", HTTP::TIMEOUT / 100);
                 if (seekTicks > 0) ssextra << ",start=" << misc::sec2Time(seekTicks / jellyfin::PLAYTICKS);
 
-                if (item.Protocol == "Http") {
+                if (item.Protocol == "Http" && !item.SupportsDirectPlay) {
                     mpv.setUrl(item.Path, ssextra.str());
                     this->stream = std::move(item);
                     return;
