@@ -1,12 +1,18 @@
 # Changelog
 
-## [next]
+## [0.6.2]
+
+### Fixed
+
+* strm format support
+* search suggest include `MusicAlbum`
+* improve image load speed
+* optimize auto quality option
 
 ### Add
 
 * **add mirror play support**
 * add korean localization (@KimPig)
-* improve image load speed
 * add psvita gxm support
 * custom vsync interval
 

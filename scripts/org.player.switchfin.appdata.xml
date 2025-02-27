@@ -3,7 +3,9 @@
     <id>org.player.switchfin</id>
     <metadata_license>CC0-1.0</metadata_license>
     <name>Switchfin</name>
-    <developer_name>dragonflylee</developer_name>
+    <developer id="dragonflylee">
+        <name>dragonflylee</name>
+    </developer>
     <summary>Third-party native Jellyfin client designed specifically for controller users</summary>
     <launchable type="desktop-id">org.player.switchfin.desktop</launchable>
     <description>
@@ -18,7 +20,7 @@
         </ul>
     </description>
     <releases>
-        <release date="2024-12-23" version="0.6.1">
+        <release date="2025-02-27" version="0.6.2">
             <description>
                 <p>
                     Please See Official Changelog at github.com/dragonflylee/switchfin/releases
