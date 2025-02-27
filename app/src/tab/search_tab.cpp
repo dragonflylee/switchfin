@@ -224,7 +224,7 @@ brls::View* SearchTab::create() { return new SearchTab(); }
 void SearchTab::doSuggest() {
     std::string query = HTTP::encode_form({
         {"sortBy", "IsFavoriteOrLiked,Random"},
-        {"includeItemTypes", "Movie,Series,MusicArtist"},
+        {"includeItemTypes", "Movie,Series,MusicAlbum"},
         {"limit", "24"},
         {"Recursive", "true"},
         {"EnableImages", "false"},
