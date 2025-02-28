@@ -70,9 +70,6 @@ jobs:
         for p in Switchfin-windows-*; do
           [[ -d $p ]] && 7z a -mx=9 $p.7z ./$p/* && rm -rf $p
         done
-        for p in Switchfin-Flatpak*; do
-          mv $p/Switchfin-Linux.flatpak $p.flatpak && rm -rf $p
-        done
         rm Switchfin-*/*-debug-*.pkg.tar.*
         tree
     - name: Release and Upload Assets
@@ -87,7 +84,8 @@ jobs:
           Switchfin-macOS-*/*.dmg
           Switchfin-NintendoSwitch-deko3d-*/*.nro
           Switchfin-PS4-*/*.pkg
-          Switchfin-*.flatpak
+          Switchfin-Vita-*/*.vpk
+          Switchfin-Flatpak-*/*.flatpak
           Switchfin-*/*.pkg.tar.*
         body: |
           ![download](https://img.shields.io/github/downloads/${{ github.repository }}/${{ github.ref_name }}/total?label=Downloads)

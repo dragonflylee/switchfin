@@ -167,7 +167,6 @@ modules:
               - -DCMAKE_BUILD_TYPE=Release
               - -DBUILD_SHARED_LIBS=ON
               - -DBUILD_STATIC_LIBS=OFF
-              - -DGLFW_BUILD_X11=ON
               - -DBUILD_EXAMPLES=ON
               - -DBUILD_TESTING=OFF
             sources:
