@@ -283,7 +283,7 @@ bool AppConfig::init() {
     brls::Platform::APP_LOCALE_DEFAULT = this->getItem(APP_LANG, brls::LOCALE_AUTO);
 
     brls::Application::setFPSStatus(this->getItem(FPS, false));
-    VideoContext::swapInterval = this->getItem(SWAP_INTERVAL, 0);
+    VideoContext::swapInterval = this->getItem(SWAP_INTERVAL, 1);
 
     // 初始化一些在创建窗口之后才能初始化的内容
     brls::Application::getWindowCreationDoneEvent()->subscribe([this]() {
