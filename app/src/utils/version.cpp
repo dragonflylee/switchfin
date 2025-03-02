@@ -59,10 +59,9 @@ std::string AppVersion::getDeviceName() {
     DWORD nSize = 128;
     std::vector<WCHAR> buf(nSize);
     if (GetComputerNameW(buf.data(), &nSize)) {
-        std::string name;
-        name.resize(nSize);
+        std::vector<char> name(nSize * 3);
         WideCharToMultiByte(CP_UTF8, 0, buf.data(), nSize, name.data(), name.size(), nullptr, nullptr);
-        return name;
+        return name.data();
     }
 #elif defined(__APPLE__)
     CFStringRef nameRef = SCDynamicStoreCopyComputerName(nullptr, nullptr);
@@ -72,10 +71,11 @@ std::string AppVersion::getDeviceName() {
         CFRelease(nameRef);
         return name.data();
     }
-#else
-    std::vector<char> buf(128);
-    if (gethostname(buf.data(), buf.size()) > 0) {
-        return buf.data();
+#elif defined(__linux__)
+    std::ifstream file("/etc/hostname");
+    if (file.is_open()) {
+        return std::string(std::istreambuf_iterator<char>(file), 
+            std::istreambuf_iterator<char>());
     }
 #endif
     return fmt::format("{} for {}", getPackageName(), getPlatform());

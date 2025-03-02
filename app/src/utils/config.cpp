@@ -438,7 +438,7 @@ bool AppConfig::checkLogin() {
         });
         return true;
     } catch (const std::exception& ex) {
-        brls::Logger::warning("AppConfig checkLogin: {}", ex.what());
+        brls::Logger::warning("AppConfig {} checkLogin: {}", this->server_url, ex.what());
         return false;
     }
 }
