@@ -195,6 +195,17 @@ void SettingTab::onCreate() {
             conf.setItem(AppConfig::PLAYER_BOTTOM_BAR, value);
         });
 
+    btnShowFPS->init("main/setting/ui/show_fps"_i18n, brls::Application::getFPSStatus(), [&conf](bool value) {
+        brls::Application::setFPSStatus(value);
+        conf.setItem(AppConfig::SHOW_FPS, value);
+    });
+
+    selectorVSync->init("main/setting/ui/vsync"_i18n, {"hints/off"_i18n, "hints/on"_i18n, "1/2", "1/3", "1/4"},
+        VideoContext::swapInterval, [&conf](int selected) {
+            brls::Application::setSwapInterval(selected);
+            conf.setItem(AppConfig::SWAP_INTERVAL, selected);
+        });
+
     btnOSDOnToggle->init(
         "main/setting/playback/osd_on_toggle"_i18n, conf.getItem(AppConfig::OSD_ON_TOGGLE, true), [&conf](bool value) {
             MPVCore::OSD_ON_TOGGLE = value;

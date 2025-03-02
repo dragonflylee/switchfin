@@ -163,6 +163,11 @@
       "host": "地址",
       "port": "端口"
     },
+    "ui": {
+      "header": "界面设置",
+      "vsync": "垂直同步",
+      "show_fps": "显示 FPS"
+    },
     "tutorial": {
       "header": "使用教程",
       "open": "安装桌面图标",

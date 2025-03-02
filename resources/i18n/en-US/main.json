@@ -163,6 +163,11 @@
       "host": "Host",
       "port": "Port"
     },
+    "ui": {
+      "header": "UI",
+      "vsync": "Vertical Sync",
+      "show_fps": "Show FPS"
+    },
     "tutorial": {
       "header": "Tutorial",
       "open": "How to install desktop icon",

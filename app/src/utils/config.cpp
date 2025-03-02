@@ -115,7 +115,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
         }},
     {ALWAYS_ON_TOP, {"always_on_top"}},
     {SINGLE, {"single"}},
-    {FPS, {"fps"}},
+    {SHOW_FPS, {"show_fps"}},
     {SWAP_INTERVAL, {"swap_interval"}},
     {APP_SWAP_ABXY, {"app_swap_abxy"}},
     {TEXTURE_CACHE_NUM, {"texture_cache_num"}},
@@ -282,7 +282,7 @@ bool AppConfig::init() {
     // 初始化i18n
     brls::Platform::APP_LOCALE_DEFAULT = this->getItem(APP_LANG, brls::LOCALE_AUTO);
 
-    brls::Application::setFPSStatus(this->getItem(FPS, false));
+    brls::Application::setFPSStatus(this->getItem(SHOW_FPS, false));
     VideoContext::swapInterval = this->getItem(SWAP_INTERVAL, 1);
 
     // 初始化一些在创建窗口之后才能初始化的内容

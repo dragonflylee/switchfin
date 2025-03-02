@@ -41,7 +41,9 @@ private:
     BRLS_BIND(brls::BooleanCell, btnDirectPlay, "setting/video/directplay");
     BRLS_BIND(brls::SelectorCell, selectorCodec, "setting/transcode/codec");
     BRLS_BIND(brls::SelectorCell, selectorInmemory, "setting/video/inmemory");
-    BRLS_BIND(brls::BooleanCell, btnBottomBar, "setting/player/bottom_bar");
+    BRLS_BIND(brls::SelectorCell, selectorVSync, "setting/ui/vsync");
+    BRLS_BIND(brls::BooleanCell, btnBottomBar, "setting/ui/bottom_bar");
+    BRLS_BIND(brls::BooleanCell, btnShowFPS, "setting/ui/show_fps");
     BRLS_BIND(brls::BooleanCell, btnOSDOnToggle, "setting/player/osd_on_toggle");
     BRLS_BIND(brls::BooleanCell, btnTouchGesture, "setting/player/touch_gesture");
     BRLS_BIND(brls::BooleanCell, btnClipPoint, "setting/player/clip_point");

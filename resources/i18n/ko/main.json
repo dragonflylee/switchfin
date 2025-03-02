@@ -160,6 +160,11 @@
       "host": "주소",
       "port": "포트"
     },
+    "ui": {
+      "header": "사용자 인터페이스",
+      "vsync": "수직 동기화",
+      "show_fps": "FPS 표시"
+    },
     "tutorial": {
       "header": "튜토리얼",
       "open": "홈 화면에 아이콘 설치",

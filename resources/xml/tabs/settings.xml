@@ -51,8 +51,6 @@
                 <brls:BooleanCell
                     id="setting/video/subs_fallback" />
                 <brls:BooleanCell
-                    id="setting/player/bottom_bar" />
-                <brls:BooleanCell
                     id="setting/player/osd_on_toggle" />
                 <brls:BooleanCell
                     id="setting/player/touch_gesture" />
@@ -107,6 +105,30 @@
             <brls:Header
                 width="auto"
                 height="auto"
+                title="@i18n/main/setting/ui/header"
+                marginBottom="0px" />
+            <brls:Box
+                width="100%"
+                height="auto"
+                axis="column"
+                marginBottom="30px">
+                <brls:BooleanCell
+                    id="setting/ui/bottom_bar" />
+                <brls:BooleanCell
+                    id="setting/ui/show_fps" />
+                <SelectorCell
+                    id="setting/ui/vsync" />
+                <SelectorCell
+                    id="setting/keymap"
+                    quitApp="true" />
+                <SelectorCell
+                    id="setting/ui/theme"
+                    quitApp="true" />
+            </brls:Box>
+
+            <brls:Header
+                width="auto"
+                height="auto"
                 title="@i18n/main/setting/tutorial/header"
                 marginBottom="0px" />
             <brls:Box
@@ -148,12 +170,6 @@
                     id="setting/overclock" />
                 <brls:BooleanCell
                     id="setting/sync" />
-                <SelectorCell
-                    id="setting/keymap"
-                    quitApp="true" />
-                <SelectorCell
-                    id="setting/ui/theme"
-                    quitApp="true" />
                 <SelectorCell
                     id="setting/language"
                     quitApp="true" />

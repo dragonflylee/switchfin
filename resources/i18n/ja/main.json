@@ -160,6 +160,11 @@
       "host": "ホスト",
       "port": "ポート"
     },
+    "ui": {
+      "header": "UI",
+      "vsync": "垂直同期",
+      "show_fps": "FPSを表示"
+    },
     "tutorial": {
       "header": "チュートリアル",
       "open": "デスクトップアイコンのインストール方法",

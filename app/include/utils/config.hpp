@@ -91,7 +91,7 @@ public:
         DANMAKU_RENDER_QUALITY,
         ALWAYS_ON_TOP,
         SINGLE,
-        FPS,
+        SHOW_FPS,
         SWAP_INTERVAL,
         APP_SWAP_ABXY,  // A-B 交换 和 X-Y 交换
         TEXTURE_CACHE_NUM,
