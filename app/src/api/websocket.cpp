@@ -37,12 +37,14 @@ websocket::websocket(const std::string& url) {
 
 websocket::~websocket() {
 #if LIBCURL_VERSION_NUM >= 0x080000 && !defined(__PS4__)
-    curl_easy_cleanup(this->easy);
+    size_t sent;
+    curl_ws_send(this->easy, "", 0, &sent, 0, CURLWS_CLOSE);
 #ifdef BOREALIS_USE_STD_THREAD
     this->th->join();
 #else
     pthread_join(this->th, nullptr);
 #endif
+    curl_easy_cleanup(this->easy);
 #endif
 }
 
@@ -81,6 +83,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MsgPlay, ItemIds, StartPositionT
 
 size_t websocket::onMsg(char* b, size_t size, size_t nitems, void* ptr) {
     try {
+        if (nitems <= 2) return nitems;
         std::string resp(b, nitems);
         Message m = nlohmann::json::parse(resp);
         if (m.MessageType == "Playstate") {
