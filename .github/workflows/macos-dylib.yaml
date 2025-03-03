@@ -132,8 +132,8 @@ jobs:
         meson install -C build-freetype
     - name: Build harfbuzz
       run: |
-        curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/10.3.0/harfbuzz-10.3.0.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        meson setup build-harfbuzz ${{ runner.temp }}/harfbuzz-10.3.0 ${{ matrix.meson }} \
+        curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/10.4.0/harfbuzz-10.4.0.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        meson setup build-harfbuzz ${{ runner.temp }}/harfbuzz-10.4.0 ${{ matrix.meson }} \
           --prefix=$CMAKE_PREFIX_PATH --buildtype=release --default-library=shared \
           -Dtests=disabled -Ddocs=disabled -Dicu=disabled -Dcairo=disabled \
           -Dglib=disabled -Dgobject=disabled -Dbenchmark=disabled
@@ -180,13 +180,13 @@ jobs:
         cmake --install build-libwebp
     - name: Build ffmpeg
       run: |
-        curl --retry 5 -sSL https://ffmpeg.org/releases/ffmpeg-7.1.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        patch -d ${{ runner.temp }}/ffmpeg-7.1 -Nbp1 -i ${{ github.workspace }}/scripts/mingw64/ffmpeg/avio.patch
+        curl --retry 5 -sSL https://ffmpeg.org/releases/ffmpeg-7.1.1.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        patch -d ${{ runner.temp }}/ffmpeg-7.1.1 -Nbp1 -i ${{ github.workspace }}/scripts/mingw64/ffmpeg/avio.patch
         mkdir -p build-ffmpeg && cd build-ffmpeg
-        ${{ runner.temp }}/ffmpeg-7.1/configure --enable-shared --disable-static --pkg-config-flags=-static \
+        ${{ runner.temp }}/ffmpeg-7.1.1/configure --enable-shared --disable-static --pkg-config-flags=-static \
           --prefix=$CMAKE_PREFIX_PATH --enable-pthreads --disable-runtime-cpudetect \
           --cc=clang --enable-cross-compile --target-os=darwin --arch=${{ matrix.arch }} \
-          --extra-cflags='-arch ${{ matrix.arch }} -mmacosx-version-min=${{ matrix.target }}' \
+          --extra-cflags='-arch ${{ matrix.arch }} -mmacosx-version-min=${{ matrix.target }} -Wl,-headerpad_max_install_names' \
           --extra-cxxflags='-arch ${{ matrix.arch }} -mmacosx-version-min=${{ matrix.target }}' \
           --extra-ldflags='-arch ${{ matrix.arch }} -mmacosx-version-min=${{ matrix.target }}' \
           --disable-autodetect --disable-encoders --enable-pic ${{ matrix.ffmpeg }} \

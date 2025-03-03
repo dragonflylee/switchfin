@@ -55,10 +55,10 @@ dav1d:
 	meson install -C build/dav1d
 
 ffmpeg: libssh2 dav1d
-	wget -qO- https://ffmpeg.org/releases/ffmpeg-7.1.tar.xz | tar Jxf - -C /tmp
-	patch -d /tmp/ffmpeg-7.1 -Nbp1 -i $(CURDIR)/scripts/mingw64/ffmpeg/avio.patch
+	wget -qO- https://ffmpeg.org/releases/ffmpeg-7.1.1.tar.xz | tar Jxf - -C /tmp
+	patch -d /tmp/ffmpeg-7.1.1 -Nbp1 -i $(CURDIR)/scripts/mingw64/ffmpeg/avio.patch
 	mkdir -p build/ffmpeg && cd build/ffmpeg && \
-	/tmp/ffmpeg-7.1/configure --prefix=$(PREFIX) --enable-shared --disable-static --enable-rpath \
+	/tmp/ffmpeg-7.1.1/configure --prefix=$(PREFIX) --enable-shared --disable-static --enable-rpath \
 		--disable-programs --disable-debug --disable-doc --disable-autodetect --enable-pic \
 		--disable-avdevice --enable-libv4l2 --enable-vaapi --enable-vdpau --disable-encoders \
 		--enable-mbedtls --enable-gpl --enable-version3 --enable-libssh2 --enable-asm --enable-opengl \
