@@ -64,7 +64,8 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
         recycler->present(new MediaSeries(item.Id));
     } else if (item.Type == jellyfin::mediaTypeFolder || item.Type == jellyfin::mediaTypeBoxSet) {
         recycler->present(new MediaCollection(item.Id));
-    } else if (item.Type == jellyfin::mediaTypeMovie || item.Type == jellyfin::mediaTypeMusicVideo) {
+    } else if (item.Type == jellyfin::mediaTypeMovie || item.Type == jellyfin::mediaTypeMusicVideo ||
+               item.Type == jellyfin::mediaTypeVideo) {
         PlayerView* view = new PlayerView(item);
         view->setTitie(item.ProductionYear ? fmt::format("{} ({})", item.Name, item.ProductionYear) : item.Name);
     } else if (item.Type == jellyfin::mediaTypeEpisode) {
@@ -76,7 +77,7 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
     } else if (item.Type == jellyfin::mediaTypePlaylist) {
         recycler->present(new Playlist(item));
     } else {
-        auto dialog = new brls::Dialog(fmt::format("Unknown media type: {}", item.Type));
+        auto dialog = new brls::Dialog(fmt::format("Unsupported media type: {}", item.Type));
         dialog->addButton("hints/cancel"_i18n, []() {});
         dialog->open();
     }

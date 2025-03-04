@@ -47,6 +47,7 @@ const std::string mediaTypeEpisode = "Episode";
 const std::string mediaTypeMovie = "Movie";
 const std::string mediaTypeBoxSet = "BoxSet";
 const std::string mediaTypeAudio = "Audio";
+const std::string mediaTypeVideo = "Video";
 const std::string mediaTypeMusicAlbum = "MusicAlbum";
 const std::string mediaTypeMusicVideo = "MusicVideo";
 const std::string mediaTypePlaylist = "Playlist";
