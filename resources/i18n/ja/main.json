@@ -135,7 +135,8 @@
     "filter": {
       "mirror": "ビデオ反転",
       "hflip": "水平反転",
-      "vflip": "上下反転"
+      "vflip": "上下反転",
+      "rotation": "回転"
     },
     "aspect": {
       "header": "ビデオアスペクト",

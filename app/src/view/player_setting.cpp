@@ -152,6 +152,30 @@ PlayerSetting::PlayerSetting(const jellyfin::Source* src) {
             }
         });
 
+    btnVideoRotation->init("main/setting/filter/rotation"_i18n,
+        {
+            "hints/off"_i18n,
+            "90",
+            "180",
+            "270",
+        },
+        MPVCore::VIDEO_ROTATION, [&mpv](int value) {
+            MPVCore::VIDEO_ROTATION = value;
+            switch (value) {
+            case 1:
+                mpv.command("set", "video-rotate", "90");
+                return;
+            case 2:
+                mpv.command("set", "video-rotate", "180");
+                return;
+            case 3:
+                mpv.command("set", "video-rotate", "270");
+                return;
+            default:
+                mpv.command("set", "video-rotate", "0");
+            }
+        });
+
     /// Player aspect
     btnVideoAspect->init("main/setting/aspect/header"_i18n,
         {

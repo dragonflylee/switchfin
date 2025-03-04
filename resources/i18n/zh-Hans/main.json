@@ -138,7 +138,8 @@
     "filter": {
       "mirror": "镜像画面",
       "hflip": "水平镜像",
-      "vflip": "垂直镜像"
+      "vflip": "垂直镜像",
+      "rotation": "旋转"
     },
     "aspect": {
       "header": "视频比例",

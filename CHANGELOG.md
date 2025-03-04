@@ -1,5 +1,16 @@
 # Changelog
 
+## [next]
+
+### Fixed
+
+* graceful close websocket
+
+### Add
+
+* player option for video rotate
+* support view photo media
+
 ## [0.6.2]
 
 ### Fixed

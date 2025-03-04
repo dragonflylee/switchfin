@@ -138,7 +138,8 @@
     "filter": {
       "mirror": "Video flip",
       "hflip": "Horizontally flip",
-      "vflip": "Vertically flip"
+      "vflip": "Vertically flip",
+      "rotation": "Rotation"
     },
     "aspect": {
       "header": "Video aspect",

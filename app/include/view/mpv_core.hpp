@@ -150,6 +150,7 @@ public:
 
     // 是否镜像视频
     inline static int VIDEO_FILTER = 0;
+    inline static int VIDEO_ROTATION = 0;
     // 强制的视频比例 (-1 为自动)
     inline static std::string VIDEO_ASPECT = "auto";
 

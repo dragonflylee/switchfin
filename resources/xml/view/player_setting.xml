@@ -48,6 +48,8 @@
                     <brls:SelectorCell
                         id="setting/video/mirror" />
                     <brls:SelectorCell
+                        id="setting/video/rotation" />
+                    <brls:SelectorCell
                         id="setting/video/aspect" />
                     <brls:SliderCell
                         id="setting/video/subsync" />

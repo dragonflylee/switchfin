@@ -135,7 +135,8 @@
     "filter": {
       "mirror": "화면 반전",
       "hflip": "수평 반전",
-      "vflip": "수직 반전"
+      "vflip": "수직 반전",
+      "rotation": "회전"
     },
     "aspect": {
       "header": "화면 비율",
