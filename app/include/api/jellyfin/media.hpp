@@ -30,6 +30,7 @@ const std::string apiBackdropImage = "/Items/{}/Images/Backdrop?format=Png&{}";
 // danmu plugin
 const std::string apiDanmuku = "/api/danmu/{}/raw";
 
+const std::string apiDownload = "/Items/{}/Download?{}";
 const std::string apiPlayback = "/Items/{}/PlaybackInfo";
 const std::string apiStream = "/Videos/{}/stream?{}";
 const std::string apiAudio = "/Audio/{}/stream?{}";
@@ -48,6 +49,8 @@ const std::string mediaTypeMovie = "Movie";
 const std::string mediaTypeBoxSet = "BoxSet";
 const std::string mediaTypeAudio = "Audio";
 const std::string mediaTypeVideo = "Video";
+const std::string mediaTypePhoto = "Photo";
+const std::string mediaTypePhotoAlbum = "PhotoAlbum";
 const std::string mediaTypeMusicAlbum = "MusicAlbum";
 const std::string mediaTypeMusicVideo = "MusicVideo";
 const std::string mediaTypePlaylist = "Playlist";

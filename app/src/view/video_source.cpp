@@ -1,4 +1,5 @@
 #include "activity/player_view.hpp"
+#include "activity/gallery_activity.hpp"
 #include "tab/media_collection.hpp"
 #include "tab/media_series.hpp"
 #include "tab/music_album.hpp"
@@ -62,7 +63,8 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
 
     if (item.Type == jellyfin::mediaTypeSeries) {
         recycler->present(new MediaSeries(item.Id));
-    } else if (item.Type == jellyfin::mediaTypeFolder || item.Type == jellyfin::mediaTypeBoxSet) {
+    } else if (item.Type == jellyfin::mediaTypeFolder || item.Type == jellyfin::mediaTypeBoxSet ||
+               item.Type == jellyfin::mediaTypePhotoAlbum) {
         recycler->present(new MediaCollection(item.Id));
     } else if (item.Type == jellyfin::mediaTypeMovie || item.Type == jellyfin::mediaTypeMusicVideo ||
                item.Type == jellyfin::mediaTypeVideo) {
@@ -76,6 +78,15 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
         recycler->present(new MusicAlbum(item));
     } else if (item.Type == jellyfin::mediaTypePlaylist) {
         recycler->present(new Playlist(item));
+    } else if (item.Type == jellyfin::mediaTypePhoto) {
+        auto& conf = AppConfig::instance();
+        std::string query = HTTP::encode_form({
+            {"api_key", conf.getToken()},
+        });
+        std::vector<std::string> photos = {
+            conf.getUrl() + fmt::format(fmt::runtime(jellyfin::apiDownload), item.Id, query),
+        };
+        brls::Application::pushActivity(new GalleryActivity(photos));
     } else {
         auto dialog = new brls::Dialog(fmt::format("Unsupported media type: {}", item.Type));
         dialog->addButton("hints/cancel"_i18n, []() {});
