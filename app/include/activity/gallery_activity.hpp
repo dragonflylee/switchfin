@@ -8,13 +8,14 @@
 #include <borealis/core/bind.hpp>
 
 class GalleryView;
+class NetImageGalleryItem;
 
 class GalleryActivity : public brls::Activity {
 public:
     // Declare that the content of this activity is the given XML file
     CONTENT_FROM_XML_RES("activity/gallery.xml");
 
-    explicit GalleryActivity(const std::vector<std::string>& data);
+    explicit GalleryActivity(const std::string& url);
 
     bool isTranslucent() override;
 
@@ -25,5 +26,5 @@ public:
 private:
     BRLS_BIND(GalleryView, gallery, "hint/gallery");
 
-    std::vector<std::string> galleryData;
+    NetImageGalleryItem* view;
 };

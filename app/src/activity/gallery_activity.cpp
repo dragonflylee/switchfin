@@ -33,20 +33,19 @@ public:
 
     ~NetImageGalleryItem() override { Image::cancel(this->image); }
 
-private:
     BRLS_BIND(brls::Image, image, "gallery/image");
 };
 
-GalleryActivity::GalleryActivity(const std::vector<std::string>& data) : galleryData(data) {
+GalleryActivity::GalleryActivity(const std::string& url) {
     brls::Logger::debug("GalleryActivity: create");
+
+    this->view = new NetImageGalleryItem(url);
 }
 
 void GalleryActivity::onContentAvailable() {
     brls::Logger::debug("GalleryActivity: onContentAvailable");
     gallery->setIndicatorPosition(0.97);
-    for (auto& i : galleryData) {
-        gallery->addCustomView(new NetImageGalleryItem(i));
-    }
+    gallery->addCustomView(this->view);
 }
 
 GalleryActivity::~GalleryActivity() { brls::Logger::debug("GalleryActivity: delete"); }

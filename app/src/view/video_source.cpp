@@ -80,13 +80,9 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
         recycler->present(new Playlist(item));
     } else if (item.Type == jellyfin::mediaTypePhoto) {
         auto& conf = AppConfig::instance();
-        std::string query = HTTP::encode_form({
-            {"api_key", conf.getToken()},
-        });
-        std::vector<std::string> photos = {
-            conf.getUrl() + fmt::format(fmt::runtime(jellyfin::apiDownload), item.Id, query),
-        };
-        brls::Application::pushActivity(new GalleryActivity(photos));
+        std::string query = HTTP::encode_form({{"api_key", conf.getToken()}});
+        std::string url = conf.getUrl() + fmt::format(fmt::runtime(jellyfin::apiDownload), item.Id, query);
+        brls::Application::pushActivity(new GalleryActivity(url));
     } else {
         auto dialog = new brls::Dialog(fmt::format("Unsupported media type: {}", item.Type));
         dialog->addButton("hints/cancel"_i18n, []() {});

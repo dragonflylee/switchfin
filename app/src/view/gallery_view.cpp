@@ -4,40 +4,48 @@
 
 #include "view/gallery_view.hpp"
 
+using namespace brls::literals;
+
 GalleryView::GalleryView() {
     brls::Logger::debug("View GalleryView: create");
     this->setFocusable(true);
-    this->registerAction("Prev", brls::ControllerButton::BUTTON_LB, [this](brls::View* view) -> bool {
-        prev();
-        return true;
-    });
     this->registerAction(
-        "Prev", brls::ControllerButton::BUTTON_LT,
+        "main/player/prev"_i18n, brls::BUTTON_LB,
+        [this](brls::View* view) -> bool {
+            prev();
+            return true;
+        },
+        false);
+    this->registerAction(
+        "main/player/prev"_i18n, brls::BUTTON_LT,
         [this](brls::View* view) -> bool {
             prev();
             return true;
         },
         true);
     this->registerAction(
-        "Prev", brls::ControllerButton::BUTTON_NAV_LEFT,
+        "main/player/prev"_i18n, brls::BUTTON_NAV_LEFT,
         [this](brls::View* view) -> bool {
             prev();
             return true;
         },
         true);
-    this->registerAction("Next", brls::ControllerButton::BUTTON_RB, [this](brls::View* view) -> bool {
-        next();
-        return true;
-    });
     this->registerAction(
-        "Next", brls::ControllerButton::BUTTON_RT,
+        "main/player/prev"_i18n, brls::BUTTON_RB,
+        [this](brls::View* view) -> bool {
+            next();
+            return true;
+        },
+        false);
+    this->registerAction(
+        "main/player/prev"_i18n, brls::BUTTON_RT,
         [this](brls::View* view) -> bool {
             next();
             return true;
         },
         true);
     this->registerAction(
-        "Next", brls::ControllerButton::BUTTON_NAV_RIGHT,
+        "main/player/next"_i18n, brls::BUTTON_NAV_RIGHT,
         [this](brls::View* view) -> bool {
             next();
             return true;
