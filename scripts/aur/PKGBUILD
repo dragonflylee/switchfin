@@ -7,6 +7,7 @@ url='https://github.com/dragonflylee/switchfin'
 license=('GPL-3.0-or-later')
 depends=('curl' 'dbus' 'gcc-libs' 'glibc' 'hicolor-icon-theme' 'libwebp' 'mpv' 'libxcb' 'tinyxml2' 'libpng')
 makedepends=('cmake' 'git' 'libxi' 'libxinerama' 'ninja' 'python' 'wayland-protocols')
+options=(strip !debug)
 #source=("${pkgname}::git+$url.git")
 #sha256sums=('SKIP')
 
