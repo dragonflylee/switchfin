@@ -237,6 +237,7 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
 #ifdef __SWITCH__
                     {"VideoCodec", "h264,hevc,av1,vp9"},
 #elif defined(__PSV__)
+                    {"AudioCodec", "aac,mp3"},
                     {"VideoCodec", "h264"},
 #endif
                 },
@@ -262,7 +263,11 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
                     {"Container", "ts"},
                     {"Type", "Video"},
                     {"VideoCodec", MPVCore::VIDEO_CODEC + ",mpeg4,mpeg2video"},
+#if defined(__PSV__)
+                    {"AudioCodec", "aac,mp3"},
+#else
                     {"AudioCodec", "aac,mp3,ac3,opus,vorbis"},
+#endif
                     {"Protocol", "hls"},
                     {"Conditions", conditions},
                 },
