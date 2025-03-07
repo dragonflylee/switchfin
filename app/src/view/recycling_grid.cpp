@@ -9,7 +9,7 @@
 
 RecyclingGridItem::RecyclingGridItem() {
     this->setFocusable(true);
-    this->registerClickAction([this](...) {
+    this->registerClickAction([this](View*) {
         brls::Box* view = this->getParent()->getParent();
         RecyclingView* recycler = dynamic_cast<RecyclingView*>(view);
         if (recycler) recycler->getDataSource()->onItemSelected(view, index);
@@ -298,17 +298,23 @@ void RecyclingGrid::reloadData() {
     if (!layouted) return;
 
     // 将所有节点从屏幕上移除放入重复利用的列表中
-    auto children = this->contentBox->getChildren();
+    auto& children = this->contentBox->getChildren();
     for (auto const& child : children) {
         queueReusableCell((RecyclingGridItem*)child);
-        this->removeCell(child);
+        child->willDisappear(true);
     }
+    children.clear();
 
     visibleMin = UINT_MAX;
     visibleMax = 0;
 
     renderedFrame = brls::Rect();
     renderedFrame.size.width = getWidth();
+    if (renderedFrame.size.width != renderedFrame.size.width) {
+        // 当列表在展示骨架屏后被隐藏，这时获取到 width 的值为 NAN
+        // 使用历史宽度值避免后续计算错误
+        renderedFrame.size.width = oldWidth;
+    }
 
     setContentOffsetY(0, false);
 
@@ -425,8 +431,6 @@ void RecyclingGrid::itemsRecyclingLoop() {
     while (true) {
         RecyclingGridItem* minCell = nullptr;
         for (auto it : contentBox->getChildren())
-
-            // todo: contentBox 循环时加锁？it出现过空指针报错
             if (*((size_t*)it->getParentUserData()) == visibleMin) minCell = (RecyclingGridItem*)it;
 
         // 当第一个cell的顶部 与 组件顶部的距离大于 preFetchLine 行元素的距离时结束
@@ -452,7 +456,6 @@ void RecyclingGrid::itemsRecyclingLoop() {
     // 下方元素自动销毁
     while (true) {
         RecyclingGridItem* maxCell = nullptr;
-        // todo: contentBox 循环时加锁？it出现过空指针报错
         for (auto it : contentBox->getChildren())
             if (*((size_t*)it->getParentUserData()) == visibleMax) maxCell = (RecyclingGridItem*)it;
 
@@ -461,6 +464,9 @@ void RecyclingGrid::itemsRecyclingLoop() {
                                 getHeightByCellIndex(visibleMax, visibleMax - preFetchLine * spanCount) <=
                             visibleFrame.getMaxY()))
             break;
+        if (visibleMax == 0) {
+            break;
+        }
 
         float cellHeight = estimatedRowHeight;
         if (isFlowMode) cellHeight = cellHeightCache[visibleMax];
