@@ -56,11 +56,11 @@ std::string AppVersion::getDeviceName() {
         return nick.nickname;
     }
 #elif defined(_WIN32)
-    DWORD nSize = 128;
-    std::vector<WCHAR> buf(nSize);
-    if (GetComputerNameW(buf.data(), &nSize)) {
-        std::vector<char> name(nSize * 3);
-        WideCharToMultiByte(CP_UTF8, 0, buf.data(), nSize, name.data(), name.size(), nullptr, nullptr);
+    DWORD bufsize = MAX_PATH;
+    std::wstring buf(bufsize, '\0');
+    if (GetComputerNameW(buf.data(), &bufsize)) {
+        std::string name(bufsize * 3, '\0');
+        WideCharToMultiByte(CP_UTF8, 0, buf.data(), bufsize, name.data(), name.size(), nullptr, nullptr);
         return name.data();
     }
 #elif defined(__APPLE__)
@@ -74,8 +74,7 @@ std::string AppVersion::getDeviceName() {
 #elif defined(__linux__)
     std::ifstream file("/etc/hostname");
     if (file.is_open()) {
-        return std::string(std::istreambuf_iterator<char>(file), 
-            std::istreambuf_iterator<char>());
+        return std::string(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
     }
 #endif
     return fmt::format("{} for {}", getPackageName(), getPlatform());
