@@ -8,7 +8,7 @@ switchfin (0.6.2-1) unstable; urgency=medium
 
  -- dragonflylee <dragonflylee@outlook.com>  Sun, 27 Feb 2025 23:53:36 +0800
  
- switchfin (0.6.1-1) unstable; urgency=medium
+switchfin (0.6.1-1) unstable; urgency=medium
 
   * ignore save resume on m3u playlist
   * ignore save window stat when fullscreen

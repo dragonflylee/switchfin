@@ -21,6 +21,8 @@ finish-args:
   - --env=LC_NUMERIC=C
   # control steam client
   - --filesystem=~/.steam
+cleanup-commands:
+  - mkdir -p /app/lib/ffmpeg
 cleanup:
   - "*.a"
   - "*.la"
@@ -30,11 +32,6 @@ cleanup:
   - /man
   - /share/man
   - /share/gtk-doc
-add-extensions:
-  org.freedesktop.Platform.ffmpeg-full:
-    directory: lib/ffmpeg
-    version: "24.08"
-    add-ld-path: "."
 
 modules:
   - name: libmpv
