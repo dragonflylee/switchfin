@@ -1,3 +1,11 @@
+switchfin (0.6.3-1) unstable; urgency=medium
+
+  * fix vita transcode audio codec
+  * upgrade ffmpeg 7.1.1
+  * add photo viewer support
+
+ -- dragonflylee <dragonflylee@outlook.com>  Sun, 10 Mar 2025 23:53:36 +0800
+
 switchfin (0.6.2-1) unstable; urgency=medium
 
   * fix strm format support

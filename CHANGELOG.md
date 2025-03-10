@@ -1,15 +1,17 @@
 # Changelog
 
-## [next]
+## [0.6.3]
 
 ### Fixed
 
-* graceful close websocket
+* websocket close gracefully
+* vita transcode audio codec
+* upgrade ffmpeg 7.1.1
 
 ### Add
 
 * player option for video rotate
-* support view photo media
+* photo viewer support
 
 ## [0.6.2]
 
