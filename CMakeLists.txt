@@ -76,6 +76,8 @@ if (PLATFORM_SWITCH)
 elseif (PLATFORM_PS4)
     # Show backtrace when app crash
     list(APPEND MAIN_SRC ${BOREALIS_LIBRARY}/lib/platforms/ps4/crashlog.c)
+elseif (PLATFORM_PSV)
+    configure_file("${CMAKE_SOURCE_DIR}/app/app_vita.xml.in" "${CMAKE_BINARY_DIR}/template.xml")
 elseif (WIN32)
     configure_file("${CMAKE_SOURCE_DIR}/app/app_win32.rc.in" "${CMAKE_BINARY_DIR}/app_win32.rc")
     list(APPEND MAIN_SRC ${CMAKE_BINARY_DIR}/app_win32.rc)
@@ -261,7 +263,13 @@ elseif (PLATFORM_SWITCH)
     )
 elseif (PLATFORM_PSV)
     set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d ATTRIBUTE2=12") # max heap size mode
-    set(PSV_ASSETS_FILES ${CMAKE_SOURCE_DIR}/scripts/vita/sce_sys sce_sys)
+    set(PSV_ASSETS_FILES
+        FILE ${CMAKE_SOURCE_DIR}/scripts/vita/sce_sys/icon0.png sce_sys/icon0.png
+        FILE ${CMAKE_SOURCE_DIR}/scripts/vita/sce_sys/pic0.png sce_sys/pic0.png
+        FILE ${CMAKE_SOURCE_DIR}/scripts/vita/sce_sys/bg.png sce_sys/livearea/contents/bg.png
+        FILE ${CMAKE_SOURCE_DIR}/scripts/vita/sce_sys/startup.png sce_sys/livearea/contents/startup.png
+        FILE ${CMAKE_BINARY_DIR}/template.xml sce_sys/livearea/contents/template.xml
+    )
     if (NOT USE_LIBROMFS)
         list(APPEND PSV_ASSETS_FILES ${CMAKE_SOURCE_DIR}/resources resources)
     endif ()
