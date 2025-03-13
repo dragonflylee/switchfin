@@ -199,12 +199,7 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
         maxAllowedHeight = 2160;
     }
 #endif
-    nlohmann::json conditions = {{
-                                     {"Condition", "LessThanEqual"},
-                                     {"Property", "Height"},
-                                     {"Value", maxAllowedHeight},
-                                     {"IsRequired", false},
-                                 },
+    nlohmann::json conditions = {
 #if defined(__PSV__)
         {
             {"Condition", "EqualsAny"},
@@ -217,8 +212,14 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
             {"Property", "VideoLevel"},
             {"Value", 40},
             {"IsRequired", false},
-        }
+        },
 #endif
+        {
+            {"Condition", "LessThanEqual"},
+            {"Property", "Height"},
+            {"Value", maxAllowedHeight},
+            {"IsRequired", false},
+        },
     };
 
     nlohmann::json profile = {
@@ -262,10 +263,11 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
                 {
                     {"Container", "ts"},
                     {"Type", "Video"},
-                    {"VideoCodec", MPVCore::VIDEO_CODEC + ",mpeg4,mpeg2video"},
 #if defined(__PSV__)
+                    {"VideoCodec", "h264"},
                     {"AudioCodec", "aac,mp3"},
 #else
+                    {"VideoCodec", MPVCore::VIDEO_CODEC + ",mpeg4,mpeg2video"},
                     {"AudioCodec", "aac,mp3,ac3,opus,vorbis"},
 #endif
                     {"Protocol", "hls"},

@@ -173,12 +173,16 @@ void SettingTab::onCreate() {
         conf.setItem(AppConfig::FORCE_DIRECTPLAY, value);
     });
 
+#if defined(__PSV__)
+    selectorCodec->setVisibility(brls::Visibility::GONE);
+#else
     auto& codecOption = conf.getOptions(AppConfig::TRANSCODEC);
     selectorCodec->init("main/setting/playback/transcodec"_i18n, {"AVC/H264", "HEVC/H265", "AV1"},
         conf.getOptionIndex(AppConfig::TRANSCODEC), [&codecOption](int selected) {
             MPVCore::VIDEO_CODEC = codecOption.options[selected];
             AppConfig::instance().setItem(AppConfig::TRANSCODEC, MPVCore::VIDEO_CODEC);
         });
+#endif
 
     auto& inmemoryOption = conf.getOptions(AppConfig::PLAYER_INMEMORY_CACHE);
     selectorInmemory->init("main/setting/playback/in_memory_cache"_i18n, inmemoryOption.options,
