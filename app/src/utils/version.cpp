@@ -72,9 +72,9 @@ std::string AppVersion::getDeviceName() {
         return name.data();
     }
 #elif defined(__linux__)
-    std::ifstream file("/etc/hostname");
-    if (file.is_open()) {
-        return std::string(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
+    std::vector<char> buf(128);
+    if (gethostname(buf.data(), buf.size()) == 0) {
+        return buf.data();
     }
 #endif
     return fmt::format("{} for {}", getPackageName(), getPlatform());
