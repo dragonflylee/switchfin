@@ -1,0 +1,43 @@
+# Maintainer: J. Peter Mugaas <jpmugaas@suddenlink.net>
+# Contributor: wirx6 <wirx654@gmail.com>
+
+_realname=glslang
+pkgbase=mingw-w64-${_realname}
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+pkgver=15.1.0
+pkgrel=1
+pkgdesc='An OpenGL and OpenGL ES shader front end and validator (mingw-w64)'
+arch=('any')
+mingw_arch=('mingw32' 'mingw64' 'clangarm64')
+url='https://github.com/KhronosGroup/glslang'
+msys2_references=(
+  'archlinux: glslang'
+)
+license=('spdx:BSD-3-Clause')
+depends=("${MINGW_PACKAGE_PREFIX}-gcc-libs"
+         "${MINGW_PACKAGE_PREFIX}-spirv-tools")
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
+             "${MINGW_PACKAGE_PREFIX}-cmake"
+             "${MINGW_PACKAGE_PREFIX}-ninja"
+             "${MINGW_PACKAGE_PREFIX}-python")
+source=("https://github.com/KhronosGroup/glslang/archive/${pkgver}/${_realname}-${pkgver}.tar.gz")
+sha256sums=('4bdcd8cdb330313f0d4deed7be527b0ac1c115ff272e492853a6e98add61b4bc')
+
+build() {
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    ${MINGW_PREFIX}/bin/cmake.exe \
+      -B "build-${MSYSTEM}" -G Ninja -G Ninja \
+      -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DBUILD_SHARED_LIBS=OFF \
+      -DENABLE_GLSLANG_BINARIES=OFF \
+      -DGLSLANG_TESTS=OFF \
+      -DBUILD_EXTERNAL=OFF \
+      -DALLOW_EXTERNAL_SPIRV_TOOLS=ON \
+      "${srcdir}/${_realname}-${pkgver}"
+  ${MINGW_PREFIX}/bin/cmake.exe --build "build-${MSYSTEM}"
+}
+
+package() {
+  DESTDIR="${pkgdir}" cmake --install "build-${MSYSTEM}"
+}

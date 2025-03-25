@@ -4,7 +4,7 @@ _realname=spirv-cross
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
 epoch=1
-pkgver=1.4.304.1
+pkgver=1.4.309.0
 pkgrel=2
 pkgdesc="A tool and library for parsing and converting SPIR-V to other shader languages (mingw-w64)"
 arch=('any')
@@ -24,10 +24,10 @@ makedepends=(
   "${MINGW_PACKAGE_PREFIX}-spirv-headers"
 )
 source=(
-  "${_realname}-${pkgver}.tar.gz::https://github.com/KhronosGroup/SPIRV-Cross/archive/vulkan-sdk-${pkgver}.tar.gz"
+  "https://github.com/KhronosGroup/SPIRV-Cross/archive/vulkan-sdk-${pkgver}/${_realname}-${pkgver}.tar.gz"
   "0001-static-linking-hacks.patch"
 )
-sha256sums=('bd3614abfc83a52760e667536c945b6e136ab013efca72918f222403da081cab' 'SKIP')
+sha256sums=('cf4f12a767d63f63024e61750e372ffdc95567513b99ed9be6f21f474b328ddd' 'SKIP')
 
 prepare() {
   cd "${srcdir}/SPIRV-Cross-vulkan-sdk-${pkgver}"
@@ -39,7 +39,7 @@ prepare() {
 
 build() {
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
-    cmake -B "build-${MSYSTEM}" -G Ninja \
+    ${MINGW_PREFIX}/bin/cmake.exe -B "build-${MSYSTEM}" -G Ninja \
       -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
       -DCMAKE_BUILD_TYPE=Release \
       -DBUILD_SHARED_LIBS=OFF \
@@ -48,9 +48,9 @@ build() {
       -DSPIRV_CROSS_ENABLE_TESTS=OFF \
       -DCMAKE_CXX_FLAGS='${CMAKE_CXX_FLAGS} -D__USE_MINGW_ANSI_STDIO' \
       "${srcdir}/SPIRV-Cross-vulkan-sdk-${pkgver}"
-  cmake --build "build-${MSYSTEM}"
+  ${MINGW_PREFIX}/bin/cmake.exe --build "build-${MSYSTEM}"
 }
 
 package() {
-  DESTDIR="${pkgdir}" cmake --install "build-${MSYSTEM}"
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake.exe --install "build-${MSYSTEM}"
 }

@@ -1,0 +1,36 @@
+# Maintainer: Christoph Reiter <reiter.christoph@gmail.com>
+# Contributor: Biswapriyo Nath <nathbappai@gmail.com>
+
+_realname=spirv-headers
+pkgbase=mingw-w64-${_realname}
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+epoch=2
+pkgver=1.4.309.0
+pkgrel=1
+pkgdesc='Machine-readable files for the SPIR-V Registry (mingw-w64)'
+arch=('any')
+mingw_arch=('mingw32' 'mingw64' 'clangarm64')
+url='https://www.khronos.org/registry/spir-v/'
+msys2_repository_url="https://github.com/KhronosGroup/SPIRV-Headers"
+license=('spdx:MIT')
+groups=("${MINGW_PACKAGE_PREFIX}-vulkan-devel")
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "${MINGW_PACKAGE_PREFIX}-cmake"
+  "${MINGW_PACKAGE_PREFIX}-ninja"
+)
+source=("https://github.com/KhronosGroup/SPIRV-Headers/archive/vulkan-sdk-${pkgver}/${_realname}-${pkgver}.tar.gz")
+sha256sums=('a96f8b4f2dfb18f7432e5c523e220ab0075372a9509e0c25fbff21c76af0de7c')
+
+build() {
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    ${MINGW_PREFIX}/bin/cmake.exe -B "build-${MSYSTEM}" -G Ninja \
+      -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+      "${srcdir}/SPIRV-Headers-vulkan-sdk-${pkgver}"
+
+  ${MINGW_PREFIX}/bin/cmake.exe --build "build-${MSYSTEM}"
+}
+
+package() {
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake.exe --install "build-${MSYSTEM}"
+}

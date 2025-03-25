@@ -1,0 +1,46 @@
+# Maintainer: J. Peter Mugaas <jpmugaas@suddenlink.net>
+# Contributor: Biswapriyo Nath <nathbappai@gmail.com>
+
+_realname=spirv-tools
+pkgbase=mingw-w64-${_realname}
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+epoch=3
+pkgver=1.4.309.0
+pkgrel=1
+pkgdesc="API and commands for processing SPIR-V modules (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw32' 'mingw64' 'clangarm64')
+url="https://www.khronos.org/vulkan/"
+msys2_repository_url="https://github.com/KhronosGroup/SPIRV-Tools"
+license=('spdx:Apache-2.0')
+groups=("${MINGW_PACKAGE_PREFIX}-vulkan-devel")
+depends=("${MINGW_PACKAGE_PREFIX}-gcc-libs")
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "${MINGW_PACKAGE_PREFIX}-cmake"
+  "${MINGW_PACKAGE_PREFIX}-ninja"
+  "${MINGW_PACKAGE_PREFIX}-python"
+  "${MINGW_PACKAGE_PREFIX}-spirv-headers"
+)
+source=("https://github.com/KhronosGroup/SPIRV-Tools/archive/vulkan-sdk-${pkgver}/${_realname}-${pkgver}.tar.gz")
+sha256sums=('6b8577054c575573ead3ad71cb6a2c0b3397b64c746cc3c99e48cc5e324c1b55')
+
+build() {
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    ${MINGW_PREFIX}/bin/cmake.exe -B "build-${MSYSTEM}" -G Ninja \
+      -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DSPIRV_WERROR=OFF \
+      -DBUILD_SHARED_LIBS=OFF \
+      -DSPIRV_TOOLS_BUILD_STATIC=ON \
+      -DSPIRV_SKIP_EXECUTABLES=ON \
+      -DSPIRV_SKIP_TESTS=ON \
+      -DSPIRV-Headers_SOURCE_DIR=${MINGW_PREFIX} \
+      -DPython3_EXECUTABLE=${MINGW_PREFIX}/bin/python.exe \
+      "${srcdir}/SPIRV-Tools-vulkan-sdk-${pkgver}"
+  ${MINGW_PREFIX}/bin/cmake.exe --build "build-${MSYSTEM}"
+}
+
+package() {
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake.exe --install "build-${MSYSTEM}"
+}

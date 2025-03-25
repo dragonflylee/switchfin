@@ -23,35 +23,20 @@ on:
     branches: [ dev ]
   workflow_dispatch:
     inputs:
-      nx:
-        description: build nintendo switch
-        type: boolean
-      vita:
-        description: build playstation vita
-        type: boolean
-      ps4:
-        description: build playstation 4
-        type: boolean
-      macos:
-        description: build macos dmg
-        type: boolean
-      arm_flatpak:
-        description: build flatpak (aarch64)
-        type: boolean
-      snap:
-        description: build snapcraft
-        type: boolean
-      deb:
-        description: build ubuntu deb
-        type: boolean
-      aur:
-        description: build archlinux package
-        type: boolean
-      mingw64:
-        description: build win64 mingw64
-        type: boolean
-      msvc:
-        description: build win64 msvc
+      platform:
+        description: which platform to build
+        type: choice
+        options:
+        - mingw64
+        - macos
+        - nx
+        - psvita
+        - ps4
+        - flatpak
+        - aur
+        - deb
+      disable_builtin_nsp:
+        description: disable builtin NSP
         type: boolean
 
 permissions:
@@ -91,7 +76,7 @@ jobs:
 
   build-nx:
     runs-on: ubuntu-latest
-    if: ${{ inputs.nx || github.event_name != 'workflow_dispatch' }}
+    if: ${{ inputs.platform == 'nx' || github.event_name != 'workflow_dispatch' }}
     strategy:
       fail-fast: false
       matrix:
@@ -115,7 +100,7 @@ jobs:
     - name: Update dependencies
       run: |
         dkp-pacman --noconfirm -U $BASE_URL/hacBrewPack-3.05-1-x86_64.pkg.tar.zst
-        for pkg in mbedtls-2.28.9-3 curl-8.11.1-1 harfbuzz-10.4.0-1 ffmpeg-7.1.1-6 libmpv${{ matrix.shuffix }}-0.36.0-5 nspmini-main-1; do
+        for pkg in mbedtls-2.28.9-3 curl-8.11.1-1 harfbuzz-11.0.0-1 ffmpeg-7.1.1-6 libmpv${{ matrix.shuffix }}-0.36.0-5 nspmini-main-1; do
           dkp-pacman --noconfirm -U $BASE_URL/switch-${pkg}-any.pkg.tar.zst
         done
         git config --system --add safe.directory $GITHUB_WORKSPACE
@@ -123,7 +108,8 @@ jobs:
       run: |
         cmake -B build ${{ matrix.cmake }} \
           -DCMAKE_BUILD_TYPE=Release \
-          -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON \
+          -DPLATFORM_SWITCH=ON \
+          -DBUILTIN_NSP=${{ github.event.inputs.disable_builtin_nsp && 'OFF' || 'ON' }} \
           -DVERSION_BUILD=${{ github.run_number }}
         make -C build Switchfin.nro -j$(nproc)
     - name: Upload nro
@@ -139,7 +125,7 @@ jobs:
 
   build-ps4:
     runs-on: ubuntu-latest
-    if: ${{ inputs.ps4 || github.event_name != 'workflow_dispatch' }}
+    if: ${{ inputs.platform == 'ps4' || github.event_name != 'workflow_dispatch' }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -162,7 +148,7 @@ jobs:
 
   build-vita:
     runs-on: ubuntu-latest
-    if: ${{ inputs.vita || github.event_name != 'workflow_dispatch' }}
+    if: ${{ inputs.platform == 'psvita' || github.event_name != 'workflow_dispatch' }}
     container:
       image: vitasdk/vitasdk:latest
     steps:
@@ -207,23 +193,23 @@ jobs:
     container:
       image: bilelmoussaoui/flatpak-github-actions:freedesktop-22.08
       options: --privileged
-    if: ${{ inputs.arm_flatpak || github.event_name != 'workflow_dispatch' }}
+    if: ${{ inputs.platform == 'flatpak' || github.event_name != 'workflow_dispatch' }}
     steps:
     - uses: actions/checkout@v4
-      if: ${{ matrix.arch == 'x86_64' || inputs.arm_flatpak || startsWith(github.ref, 'refs/tags/') }}
+      if: ${{ matrix.arch == 'x86_64' || inputs.platform == 'flatpak' || startsWith(github.ref, 'refs/tags/') }}
       with:
         submodules: recursive
     - name: Install docker
-      if: ${{ matrix.arch == 'aarch64' && (inputs.arm_flatpak || startsWith(github.ref, 'refs/tags/')) }}
+      if: ${{ matrix.arch == 'aarch64' && (inputs.platform == 'flatpak' || startsWith(github.ref, 'refs/tags/')) }}
       run: dnf -y install docker
     - name: Set up QEMU
-      if: ${{ matrix.arch == 'aarch64' && (inputs.arm_flatpak || startsWith(github.ref, 'refs/tags/')) }}
+      if: ${{ matrix.arch == 'aarch64' && (inputs.platform == 'flatpak' || startsWith(github.ref, 'refs/tags/')) }}
       uses: docker/setup-qemu-action@v3
     - name: Set workspace permissions
       run: git config --system --add safe.directory $GITHUB_WORKSPACE
     - name: Build flatpak
       uses: flatpak/flatpak-github-actions/flatpak-builder@master
-      if: ${{ matrix.arch == 'x86_64' || inputs.arm_flatpak || startsWith(github.ref, 'refs/tags/') }}
+      if: ${{ matrix.arch == 'x86_64' || inputs.platform == 'flatpak' || startsWith(github.ref, 'refs/tags/') }}
       with:
         bundle: Switchfin-Linux-${{ matrix.arch }}-${{ github.run_number }}.flatpak
         manifest-path: scripts/flatpak.yaml
@@ -232,7 +218,7 @@ jobs:
         arch: ${{ matrix.arch }}
     - name: Upload Assets
       uses: actions/upload-artifact@v4
-      if: ${{ matrix.arch == 'x86_64' || inputs.arm_flatpak || startsWith(github.ref, 'refs/tags/') }}
+      if: ${{ matrix.arch == 'x86_64' || inputs.platform == 'flatpak' || startsWith(github.ref, 'refs/tags/') }}
       with:
         name: Switchfin-Flatpak-${{ matrix.arch }}-${{ github.run_number }}
         path: Switchfin-*.flatpak
@@ -249,7 +235,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/${{ github.repository_owner }}/build:${{ matrix.img }}-${{ matrix.tag }}
-    if: ${{ inputs.deb || github.event_name != 'workflow_dispatch' }}
+    if: ${{ inputs.platform == 'deb' || github.event_name != 'workflow_dispatch' }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -276,25 +262,9 @@ jobs:
         name: Switchfin-${{ matrix.img }}-${{ matrix.tag }}-${{ github.run_number }}
         path: switchfin_*.deb
 
-  build-snap:
-    runs-on: ubuntu-latest
-    if: ${{ inputs.snap }}
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: recursive
-    - name: Build snap
-      run: |
-        docker run --rm --tty --network host -v $PWD:/work -w /work/scripts --privileged diddledani/snapcraft:core20
-    - name: Upload Assets
-      uses: actions/upload-artifact@v4
-      with:
-        name: Switchfin-Snapcraft-${{ github.run_number }}
-        path: scripts/*.snap
-
   build-aur:
     runs-on: ubuntu-latest
-    if: ${{ inputs.aur || github.event_name != 'workflow_dispatch' }}
+    if: ${{ inputs.platform == 'aur' || github.event_name != 'workflow_dispatch' }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -309,7 +279,7 @@ jobs:
 
   build-macos:
     runs-on: macos-latest
-    if: ${{ inputs.macos || github.event_name != 'workflow_dispatch' }}
+    if: ${{ inputs.platform == 'macos' || github.event_name != 'workflow_dispatch' }}
     strategy:
       fail-fast: false
       matrix:
@@ -364,7 +334,7 @@ jobs:
         path: Switchfin-*.dmg
 
   build-mingw:
-    if: ${{ inputs.mingw64 == true || github.event_name != 'workflow_dispatch'}}
+    if: ${{ inputs.platform == 'mingw64' || github.event_name != 'workflow_dispatch'}}
     strategy:
       fail-fast: false
       matrix:
