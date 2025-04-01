@@ -246,21 +246,6 @@ class FileDataSource : public RecyclingGridDataSource {
 public:
     FileDataSource(const DirList& r, RemoteView::Client c, RemoteResume* rr)
         : list(std::move(r)), resume(rr), client(c) {
-        if (this->list.size() > 1) {
-            std::sort(this->list.begin() + 1, this->list.end(), [](auto i, auto j) {
-                if (i.type == remote::EntryType::UP) {
-                    return true;
-                }
-                if (i.type == j.type) {
-                    return i.name < j.name;
-                }
-                if (i.type == remote::EntryType::DIR) {
-                    return true;
-                }
-                return i.name < j.name;
-            });
-        }
-
         for (auto& it : this->list) {
             if (it.type != remote::EntryType::FILE) continue;
 
