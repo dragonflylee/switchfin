@@ -77,12 +77,12 @@ elseif (PLATFORM_PS4)
     # Show backtrace when app crash
     list(APPEND MAIN_SRC ${BOREALIS_LIBRARY}/lib/platforms/ps4/crashlog.c)
 elseif (PLATFORM_PSV)
-    configure_file("${CMAKE_SOURCE_DIR}/app/app_vita.xml.in" "${CMAKE_BINARY_DIR}/template.xml")
+    configure_file("${CMAKE_SOURCE_DIR}/app/platform/vita/template.xml.in" "${CMAKE_BINARY_DIR}/template.xml")
 elseif (WIN32)
-    configure_file("${CMAKE_SOURCE_DIR}/app/app_win32.rc.in" "${CMAKE_BINARY_DIR}/app_win32.rc")
-    list(APPEND MAIN_SRC ${CMAKE_BINARY_DIR}/app_win32.rc)
+    configure_file("${CMAKE_SOURCE_DIR}/app/platform/win32/app.rc.in" "${CMAKE_BINARY_DIR}/app.rc")
+    list(APPEND MAIN_SRC ${CMAKE_BINARY_DIR}/app.rc)
 elseif (APPLE)
-    list(APPEND MAIN_SRC ${CMAKE_SOURCE_DIR}/app/app.icns)
+    list(APPEND MAIN_SRC ${CMAKE_SOURCE_DIR}/app/platform/osx/app.icns)
 endif ()
 
 if (USE_LIBROMFS)
@@ -219,7 +219,7 @@ if (PLATFORM_DESKTOP)
             MACOSX_BUNDLE_SHORT_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}"
             MACOSX_BUNDLE_ICON_FILE "app.icns"
             MACOSX_BUNDLE_COPYRIGHT "Copyright 2024 ${PROJECT_AUTHOR}"
-            RESOURCE "${CMAKE_SOURCE_DIR}/app/app.icns"
+            RESOURCE "${CMAKE_SOURCE_DIR}/app/platform/osx/app.icns"
         )
 
         if (CMAKE_PREFIX_PATH)
@@ -264,10 +264,10 @@ elseif (PLATFORM_SWITCH)
 elseif (PLATFORM_PSV)
     set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d ATTRIBUTE2=12") # max heap size mode
     set(PSV_ASSETS_FILES
-        FILE ${CMAKE_SOURCE_DIR}/scripts/vita/sce_sys/icon0.png sce_sys/icon0.png
-        FILE ${CMAKE_SOURCE_DIR}/scripts/vita/sce_sys/pic0.png sce_sys/pic0.png
-        FILE ${CMAKE_SOURCE_DIR}/scripts/vita/sce_sys/bg.png sce_sys/livearea/contents/bg.png
-        FILE ${CMAKE_SOURCE_DIR}/scripts/vita/sce_sys/startup.png sce_sys/livearea/contents/startup.png
+        FILE ${CMAKE_SOURCE_DIR}/app/platform/vita/sce_sys/icon0.png sce_sys/icon0.png
+        FILE ${CMAKE_SOURCE_DIR}/app/platform/vita/sce_sys/pic0.png sce_sys/pic0.png
+        FILE ${CMAKE_SOURCE_DIR}/app/platform/vita/sce_sys/bg.png sce_sys/livearea/contents/bg.png
+        FILE ${CMAKE_SOURCE_DIR}/app/platform/vita/sce_sys/startup.png sce_sys/livearea/contents/startup.png
         FILE ${CMAKE_BINARY_DIR}/template.xml sce_sys/livearea/contents/template.xml
     )
     if (NOT USE_LIBROMFS)
@@ -293,7 +293,7 @@ elseif (PLATFORM_PS4)
     )
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND "${CMAKE_COMMAND}" -E copy_directory ${BOREALIS_DIR}/ps4/sce_module ${CMAKE_BINARY_DIR}/ps4/sce_module
-        COMMAND "${CMAKE_COMMAND}" -E copy_directory ${CMAKE_SOURCE_DIR}/scripts/ps4/sce_sys ${CMAKE_BINARY_DIR}/ps4/sce_sys
+        COMMAND "${CMAKE_COMMAND}" -E copy_directory ${CMAKE_SOURCE_DIR}/app/platform/ps4/sce_sys ${CMAKE_BINARY_DIR}/ps4/sce_sys
         COMMAND "${CMAKE_COMMAND}" -E copy_directory ${BOREALIS_DIR}/ps4/sce_sys/about ${CMAKE_BINARY_DIR}/ps4/sce_sys/about
         COMMAND "${CMAKE_COMMAND}" -E copy_directory ${PROJECT_RESOURCES} ${CMAKE_BINARY_DIR}/ps4/resources
     )
