@@ -96,7 +96,7 @@ jobs:
           -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
           -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.target }} \
           -DCMAKE_BUILD_TYPE=Release -DCRYPTO_BACKEND=mbedTLS \
-          -DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=OFF \
+          -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON \
           -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF
         cmake --build build-libssh2
         cmake --install build-libssh2
@@ -113,7 +113,7 @@ jobs:
           -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.target }} \
           -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON \
           -DHTTP_ONLY=ON -DCURL_DISABLE_PROGRESS_METER=ON -DCURL_USE_MBEDTLS=ON \
-          -DBUILD_CURL_EXE=OFF -DUSE_NGHTTP2=OFF -DBUILD_TESTING=OFF \
+          -DBUILD_CURL_EXE=OFF -DUSE_NGHTTP2=OFF -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF \
           -DBUILD_LIBCURL_DOCS=OFF -DBUILD_MISC_DOCS=OFF -DENABLE_CURL_MANUAL=OFF \
           -DUSE_LIBIDN2=OFF -DCURL_USE_LIBSSH2=OFF -DCURL_USE_LIBPSL=OFF
         cmake --build build-curl
@@ -128,8 +128,8 @@ jobs:
           -DCMAKE_INSTALL_NAME_DIR=${CMAKE_PREFIX_PATH}/lib \
           -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
           -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.target }} \
-          -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON \
-          -DBUILD_BINARY=OFF -DBUILD_STATIC=OFF
+          -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
+          -DBUILD_BINARY=OFF
         cmake --build build-uchardet
         cmake --install build-uchardet
     - name: Build freetype
@@ -137,8 +137,7 @@ jobs:
         pkgver: '2.13.3'
       run: |
         curl --retry 5 -sSL https://downloads.sourceforge.net/project/freetype/freetype2/${pkgver}/freetype-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        meson setup build-freetype ${{ runner.temp }}/freetype-${pkgver} ${{ matrix.meson }} \
-          --prefix=${CMAKE_PREFIX_PATH} --buildtype=release --default-library=shared \
+        meson setup build-freetype ${{ runner.temp }}/freetype-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
           -Dharfbuzz=disabled -Dbrotli=disabled -Dzlib=system
         meson compile -C build-freetype
         meson install -C build-freetype
@@ -147,8 +146,7 @@ jobs:
         pkgver: '11.0.0'
       run: |
         curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/${pkgver}/harfbuzz-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        meson setup build-harfbuzz ${{ runner.temp }}/harfbuzz-${pkgver} ${{ matrix.meson }} \
-          --prefix=${CMAKE_PREFIX_PATH} --buildtype=release --default-library=shared \
+        meson setup build-harfbuzz ${{ runner.temp }}/harfbuzz-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
           -Dtests=disabled -Ddocs=disabled -Dicu=disabled -Dcairo=disabled \
           -Dglib=disabled -Dgobject=disabled -Dbenchmark=disabled
         meson compile -C build-harfbuzz
@@ -158,8 +156,7 @@ jobs:
         pkgver: '1.0.16'
       run: |
         curl --retry 5 -sSL https://github.com/fribidi/fribidi/releases/download/v${pkgver}/fribidi-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        meson setup build-fribidi ${{ runner.temp }}/fribidi-${pkgver} ${{ matrix.meson }} \
-          --prefix=${CMAKE_PREFIX_PATH} --buildtype=release --default-library=shared \
+        meson setup build-fribidi ${{ runner.temp }}/fribidi-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
           -Ddocs=false -Dbin=false -Dtests=false
         meson compile -C build-fribidi
         meson install -C build-fribidi
@@ -168,8 +165,7 @@ jobs:
         pkgver: '0.17.3'
       run: |
         curl --retry 5 -sSL https://github.com/libass/libass/releases/download/${pkgver}/libass-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        meson setup build-libass ${{ runner.temp }}/libass-${pkgver} ${{ matrix.meson }} \
-          --prefix=${CMAKE_PREFIX_PATH} --buildtype=release --default-library=shared
+        meson setup build-libass ${{ runner.temp }}/libass-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH}
         meson compile -C build-libass
         meson install -C build-libass
     - name: Build dav1d
@@ -177,8 +173,7 @@ jobs:
         pkgver: '1.5.1'
       run: |
         curl --retry 5 -sSL https://downloads.videolan.org/pub/videolan/dav1d/${pkgver}/dav1d-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        meson setup build-dav1d ${{ runner.temp }}/dav1d-${pkgver} ${{ matrix.meson }} \
-          --prefix=${CMAKE_PREFIX_PATH} --buildtype=release --default-library=shared \
+        meson setup build-dav1d ${{ runner.temp }}/dav1d-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
           -Denable_tools=false -Denable_examples=false -Denable_tests=false -Denable_docs=false
         meson compile -C build-dav1d
         meson install -C build-dav1d
@@ -212,7 +207,7 @@ jobs:
           --cc=clang --enable-cross-compile --target-os=darwin --arch=${{ matrix.arch }} \
           --extra-cflags='-arch ${{ matrix.arch }} -mmacosx-version-min=${{ matrix.target }}' \
           --extra-cxxflags='-arch ${{ matrix.arch }} -mmacosx-version-min=${{ matrix.target }}' \
-          --extra-ldflags='-arch ${{ matrix.arch }} -mmacosx-version-min=${{ matrix.target }} -Wl,-headerpad_max_install_names' \
+          --extra-ldflags='-arch ${{ matrix.arch }} -mmacosx-version-min=${{ matrix.target }}' \
           --disable-autodetect --disable-encoders --enable-pic ${{ matrix.ffmpeg }} \
           --disable-programs --disable-doc --disable-debug --disable-avdevice --enable-libssh2 \
           --disable-filters --enable-filter=hflip,vflip,transpose --disable-muxers \
@@ -226,8 +221,7 @@ jobs:
       if: ${{ matrix.tag != 'Intel_Old' }}
       run: |
         git clone https://github.com/haasn/libplacebo.git -b v7.349.0 --depth 1 --recurse-submodules ${{ runner.temp }}/libplacebo
-        meson setup build-libplacebo ${{ runner.temp }}/libplacebo ${{ matrix.meson }} \
-          --prefix=${CMAKE_PREFIX_PATH} --buildtype=release --default-library=shared \
+        meson setup build-libplacebo ${{ runner.temp }}/libplacebo ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
           -Ddemos=false -Dtests=false -Dopengl=enabled -Dlcms=disabled -Dvulkan=disabled
         meson compile -C build-libplacebo
         meson install -C build-libplacebo
@@ -238,8 +232,7 @@ jobs:
       run: |
         curl --retry 5 -sSL https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz | tar zxf - -C ${{ runner.temp }}
         curl --retry 5 -sSL https://github.com/mpv-player/mpv/commit/901b9bc8888c8bc5647d146aa4b84a9cccc9cbe1.patch | patch -d ${{ runner.temp }}/mpv-${pkgver} -Nbp1 -i -
-        meson setup build-mpv ${{ runner.temp }}/mpv-${pkgver} ${{ matrix.meson }} \
-          --prefix=${CMAKE_PREFIX_PATH} --buildtype=release --default-library=shared \
+        meson setup build-mpv ${{ runner.temp }}/mpv-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
           -Dlibmpv=true -Dcplayer=false -Dtests=false -Dswift-build=disabled -Dcocoa=disabled \
           -Dmacos-cocoa-cb=disabled -Dmacos-media-player=disabled -Dmacos-touchbar=disabled \
           -Dlibarchive=disabled -Dlcms2=disabled -Djpeg=disabled -Dlua=disabled \
@@ -254,8 +247,7 @@ jobs:
         curl --retry 5 -sSL https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz | tar zxf - -C ${{ runner.temp }}
         patch -d ${{ runner.temp }}/mpv-${pkgver} -Nbp1 -i ${{ github.workspace }}/scripts/macos/mpv.patch
         patch -d ${{ runner.temp }}/mpv-${pkgver} -Nbp1 -i ${{ github.workspace }}/scripts/macos/lavfi.patch
-        meson setup build-mpv ${{ runner.temp }}/mpv-${pkgver} ${{ matrix.meson }} \
-          --prefix=${CMAKE_PREFIX_PATH} --buildtype=release --default-library=shared \
+        meson setup build-mpv ${{ runner.temp }}/mpv-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
           -Dlibmpv=true -Dcplayer=false -Dtests=false -Dswift-build=disabled \
           -Dmacos-cocoa-cb=disabled -Dmacos-media-player=disabled -Dmacos-touchbar=disabled \
           -Dlibarchive=disabled -Dlcms2=disabled -Djpeg=disabled -Dlua=disabled \

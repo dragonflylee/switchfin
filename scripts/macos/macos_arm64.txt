@@ -14,10 +14,12 @@ strip = ['strip']
 pkgconfig = ['pkg-config']
 
 [built-in options]
+buildtype = 'release'
+default_library = 'shared'
 c_args = ['-arch', 'arm64', '-mmacosx-version-min=11.0']
-cpp_args = ['-stdlib=libc++', '-arch', 'arm64', '-mmacosx-version-min=11.0']
+cpp_args = ['-arch', 'arm64', '-mmacosx-version-min=11.0']
 objc_args = ['-arch', 'arm64', '-mmacosx-version-min=11.0']
-objcpp_args = ['-stdlib=libc++', '-arch', 'arm64', '-mmacosx-version-min=11.0']
+objcpp_args = ['-arch', 'arm64', '-mmacosx-version-min=11.0']
 c_link_args = ['-arch', 'arm64', '-mmacosx-version-min=11.0']
 cpp_link_args = ['-arch', 'arm64', '-mmacosx-version-min=11.0']
 objc_link_args = ['-arch', 'arm64', '-mmacosx-version-min=11.0']

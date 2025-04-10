@@ -1,14 +1,15 @@
 #!/usr/bin/make -f
 
-PREFIX=/opt/switchfin
+PREFIX ?= /opt/switchfin
+TMPDIR ?= /tmp
 DESTDIR=$(CURDIR)/debian/switchfin$(PREFIX)
 export PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig
 
 WAYLAND := $(if $(shell dpkg -s libxkbcommon-dev 2>/dev/null),ON,OFF)
 
 mbedtls:
-	wget -qO- https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.2/mbedtls-3.6.2.tar.bz2 | tar jxf - -C /tmp
-	cmake -B build/mbedtls -G Ninja -S /tmp/mbedtls-3.6.2 -DCMAKE_BUILD_TYPE=Release \
+	wget -qO- https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.2/mbedtls-3.6.2.tar.bz2 | tar jxf - -C $(TMPDIR)
+	cmake -B build/mbedtls -G Ninja -S $(TMPDIR)/mbedtls-3.6.2 -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_RPATH=$(PREFIX)/lib \
 		-DUSE_SHARED_MBEDTLS_LIBRARY=ON -DUSE_STATIC_MBEDTLS_LIBRARY=OFF \
 		-DENABLE_PROGRAMS=OFF -DENABLE_TESTING=OFF
@@ -16,10 +17,10 @@ mbedtls:
 	cmake --install build/mbedtls
 
 curl: mbedtls
-	wget -qO- https://curl.se/download/curl-8.11.1.tar.xz | tar Jxf - -C /tmp
-	cmake -B build/curl -G Ninja -S /tmp/curl-8.11.1 -DCMAKE_BUILD_TYPE=Release \
+	wget -qO- https://curl.se/download/curl-8.11.1.tar.xz | tar Jxf - -C $(TMPDIR)
+	cmake -B build/curl -G Ninja -S $(TMPDIR)/curl-8.11.1 -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_RPATH=$(PREFIX)/lib \
-		-DBUILD_CURL_EXE=OFF -DUSE_NGHTTP2=OFF -DBUILD_TESTING=OFF \
+		-DBUILD_CURL_EXE=OFF -DUSE_NGHTTP2=OFF -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF \
 		-DBUILD_LIBCURL_DOCS=OFF -DBUILD_MISC_DOCS=OFF -DENABLE_CURL_MANUAL=OFF \
 		-DUSE_LIBIDN2=OFF -DCURL_USE_LIBSSH2=OFF -DCURL_USE_LIBPSL=OFF \
 		-DHTTP_ONLY=ON -DCURL_DISABLE_PROGRESS_METER=ON -DCURL_USE_MBEDTLS=ON
@@ -27,10 +28,10 @@ curl: mbedtls
 	cmake --install build/curl
 
 glfw:
-	wget -qO- https://github.com/dragonflylee/glfw/archive/switchfin.tar.gz | tar zxf - -C /tmp
-	cmake -P /tmp/glfw-switchfin/CMake/GenerateMappings.cmake \
-		/tmp/glfw-switchfin/src/mappings.h.in /tmp/glfw-switchfin/src/mappings.h
-	cmake -B build/glfw -G Ninja -S /tmp/glfw-switchfin -DCMAKE_BUILD_TYPE=Release \
+	wget -qO- https://github.com/dragonflylee/glfw/archive/switchfin.tar.gz | tar zxf - -C $(TMPDIR)
+	cmake -P $(TMPDIR)/glfw-switchfin/CMake/GenerateMappings.cmake \
+		$(TMPDIR)/glfw-switchfin/src/mappings.h.in $(TMPDIR)/glfw-switchfin/src/mappings.h
+	cmake -B build/glfw -G Ninja -S $(TMPDIR)/glfw-switchfin -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_RPATH=$(PREFIX)/lib \
 		-DBUILD_SHARED_LIBS=ON -DGLFW_BUILD_X11=ON -DGLFW_BUILD_WAYLAND=$(WAYLAND) \
 		-DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_DOCS=OFF
@@ -38,8 +39,8 @@ glfw:
 	cmake --install build/glfw
 
 libssh2:
-	wget -qO- https://libssh2.org/download/libssh2-1.11.1.tar.xz | tar Jxf - -C /tmp
-	cmake -B build/libssh2 -G Ninja -S /tmp/libssh2-1.11.1 -DCMAKE_BUILD_TYPE=Release \
+	wget -qO- https://libssh2.org/download/libssh2-1.11.1.tar.xz | tar Jxf - -C $(TMPDIR)
+	cmake -B build/libssh2 -G Ninja -S $(TMPDIR)/libssh2-1.11.1 -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_RPATH=$(PREFIX)/lib \
 		-DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=OFF -DCRYPTO_BACKEND=mbedTLS \
 		-DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF
@@ -47,18 +48,18 @@ libssh2:
 	cmake --install build/libssh2
 
 dav1d:
-	wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.5.1/dav1d-1.5.1.tar.xz | tar Jxf - -C /tmp
-	meson setup build/dav1d /tmp/dav1d-1.5.1 --prefix=$(PREFIX) --libdir=lib \
+	wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.5.1/dav1d-1.5.1.tar.xz | tar Jxf - -C $(TMPDIR)
+	meson setup build/dav1d $(TMPDIR)/dav1d-1.5.1 --prefix=$(PREFIX) --libdir=lib \
 		--buildtype=release --default-library=shared \
 		-Denable_tools=false -Denable_examples=false -Denable_tests=false -Denable_docs=false
 	meson compile -C build/dav1d
 	meson install -C build/dav1d
 
 ffmpeg: libssh2 dav1d
-	wget -qO- https://ffmpeg.org/releases/ffmpeg-7.1.1.tar.xz | tar Jxf - -C /tmp
-	patch -d /tmp/ffmpeg-7.1.1 -Nbp1 -i $(CURDIR)/scripts/mingw64/ffmpeg/avio.patch
+	wget -qO- https://ffmpeg.org/releases/ffmpeg-7.1.1.tar.xz | tar Jxf - -C $(TMPDIR)
+	patch -d $(TMPDIR)/ffmpeg-7.1.1 -Nbp1 -i $(CURDIR)/scripts/mingw64/ffmpeg/avio.patch
 	mkdir -p build/ffmpeg && cd build/ffmpeg && \
-	/tmp/ffmpeg-7.1.1/configure --prefix=$(PREFIX) --enable-shared --disable-static --enable-rpath \
+	$(TMPDIR)/ffmpeg-7.1.1/configure --prefix=$(PREFIX) --enable-shared --disable-static --enable-rpath \
 		--disable-programs --disable-debug --disable-doc --disable-autodetect --enable-pic \
 		--disable-avdevice --enable-libv4l2 --enable-vaapi --enable-vdpau --disable-encoders \
 		--enable-mbedtls --enable-gpl --enable-version3 --enable-libssh2 --enable-asm --enable-opengl \
@@ -68,17 +69,17 @@ ffmpeg: libssh2 dav1d
 	make -C build/ffmpeg install
 
 libplacebo:
-	git clone https://github.com/haasn/libplacebo.git -b v7.349.0 --depth 1 --recurse-submodules /tmp/libplacebo
-	meson setup build/libplacebo /tmp/libplacebo --prefix=$(PREFIX) --libdir=lib \
+	git clone https://github.com/haasn/libplacebo.git -b v7.349.0 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
+	meson setup build/libplacebo $(TMPDIR)/libplacebo --prefix=$(PREFIX) --libdir=lib \
 		--buildtype=release --default-library=shared \
 		-Ddemos=false -Dtests=false -Dlcms=disabled -Dvulkan=disabled
 	meson compile -C build/libplacebo
 	meson install -C build/libplacebo
 
 mpv: ffmpeg libplacebo
-	wget -qO- https://github.com/mpv-player/mpv/archive/v0.39.0.tar.gz | tar zxf - -C /tmp
-	wget -qO- https://github.com/mpv-player/mpv/commit/901b9bc8888c8bc5647d146aa4b84a9cccc9cbe1.patch | patch -d /tmp/mpv-0.39.0 -Nbp1 -i -
-	meson setup build/mpv /tmp/mpv-0.39.0 --prefix=$(PREFIX) --libdir=lib \
+	wget -qO- https://github.com/mpv-player/mpv/archive/v0.39.0.tar.gz | tar zxf - -C $(TMPDIR)
+	wget -qO- https://github.com/mpv-player/mpv/commit/901b9bc8888c8bc5647d146aa4b84a9cccc9cbe1.patch | patch -d $(TMPDIR)/mpv-0.39.0 -Nbp1 -i -
+	meson setup build/mpv $(TMPDIR)/mpv-0.39.0 --prefix=$(PREFIX) --libdir=lib \
 		--buildtype=release --default-library=shared \
 		-Dlibmpv=true -Dcplayer=false -Dtests=false -Dlibarchive=disabled -Dlua=disabled
 	meson compile -C build/mpv
