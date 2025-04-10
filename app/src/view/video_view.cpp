@@ -444,6 +444,17 @@ void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::S
     // draw video
     mpv.draw(this->getFrame(), this->getAlpha());
 
+    if (MPVCore::BOTTOM_BAR) {
+        NVGcontext* vg = brls::Application::getNVGContext();
+        bottomBarColor.a = alpha;
+        float progress = mpv.playback_time / mpv.duration;
+        progress = progress > 1.0f ? 1.0f : progress;
+        nvgFillColor(vg, bottomBarColor);
+        nvgBeginPath(vg);
+        nvgRect(vg, x, y + h - 2, w * progress, 2);
+        nvgFill(vg);
+    }
+
     if (enableDanmaku) DanmakuCore::instance().draw(vg, x, y, w, h, alpha);
 
     // draw osd

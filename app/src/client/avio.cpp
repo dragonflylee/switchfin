@@ -10,7 +10,7 @@ extern "C" {
 
 AVIO::AVIO(const std::string& path) {
     if (!avio_find_protocol_name(path.c_str())) {
-        throw std::runtime_error("unsupport protocol");
+        throw remote_error("unsupport protocol");
     }
     root = path;
 }
@@ -19,7 +19,7 @@ std::vector<DirEntry> AVIO::list(const std::string& path) {
     AVIODirContext* ctx = nullptr;
     AVIODirEntry* next = nullptr;
     int ret = avio_open_dir(&ctx, path.c_str(), nullptr);
-    if (ret < 0) throw std::runtime_error(fmt::format("avio_open_dir {:#x}", ret));
+    if (ret < 0) throw remote_error(fmt::format("avio_open_dir {:#x}", ret));
 
     std::vector<DirEntry> s = {{.type = EntryType::UP}};
     while (avio_read_dir(ctx, &next) >= 0) {
@@ -44,7 +44,7 @@ std::vector<DirEntry> AVIO::list(const std::string& path) {
 
 #else
 
-AVIO::AVIO(const std::string& path) { throw std::runtime_error("unsupport protocol"); }
+AVIO::AVIO(const std::string& path) { throw remote_error("unsupport protocol"); }
 
 std::vector<DirEntry> AVIO::list(const std::string& path) { return {}; }
 

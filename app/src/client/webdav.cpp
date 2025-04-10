@@ -34,14 +34,14 @@ std::vector<DirEntry> Webdav::list(const std::string& path) {
     std::stringstream ss;
     int status = this->c.propfind(path, &ss);
     if (status != 207) {
-        throw std::runtime_error(fmt::format("webdav propfind {}", status));
+        throw remote_error(fmt::format("webdav propfind {}", status));
     }
 
     tinyxml2::XMLDocument doc = tinyxml2::XMLDocument();
     tinyxml2::XMLError error = doc.Parse(ss.str().c_str());
     if (error != tinyxml2::XMLError::XML_SUCCESS) {
         const char* name = tinyxml2::XMLDocument::ErrorIDToName(error);
-        throw std::runtime_error(name);
+        throw remote_error(name);
     }
 
     tinyxml2::XMLElement* root = doc.RootElement();

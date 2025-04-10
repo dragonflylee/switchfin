@@ -72,11 +72,12 @@ char __attribute__((optimize("no-optimize-sibling-calls"))) * sce_strdup(const c
 
 class curl_error : public std::exception {
 public:
-    explicit curl_error(CURLcode c) : code(c) {}
-    const char* what() const noexcept override { return curl_easy_strerror(this->code); }
+    explicit curl_error(CURLcode code) : m(curl_easy_strerror(code)) {}
+    explicit curl_error(const std::string& arg) : m(arg) {}
+    const char* what() const noexcept override { return m.c_str(); }
 
 private:
-    CURLcode code;
+    std::string m;
 };
 
 static std::string user_agent =
@@ -230,7 +231,7 @@ void HTTP::_get(const std::string& url, std::ostream* out, char** ct) {
     curl_easy_setopt(this->easy, CURLOPT_URL, url.c_str());
     curl_easy_setopt(this->easy, CURLOPT_HTTPGET, 1L);
     int code = this->perform(out);
-    if (code >= 400) throw std::runtime_error(fmt::format("http status {}", code));
+    if (code >= 400) throw curl_error(fmt::format("http status {}", code));
     if (ct) curl_easy_getinfo(this->easy, CURLINFO_CONTENT_TYPE, ct);
 }
 
@@ -246,6 +247,6 @@ std::string HTTP::_post(const std::string& url, const std::string& data) {
     curl_easy_setopt(this->easy, CURLOPT_POSTFIELDS, data.c_str());
     curl_easy_setopt(this->easy, CURLOPT_POSTFIELDSIZE, data.size());
     int code = this->perform(&body);
-    if (code >= 400) throw std::runtime_error(fmt::format("http status {}", code));
+    if (code >= 400) throw curl_error(fmt::format("http status {}", code));
     return body.str();
 }

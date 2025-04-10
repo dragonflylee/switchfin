@@ -431,15 +431,6 @@ void MPVCore::draw(brls::Rect area, float alpha) {
         mpv_render_context_report_swap(this->mpv_context);
     }
 #endif
-
-    if (BOTTOM_BAR) {
-        NVGcontext *vg = brls::Application::getNVGContext();
-        bottomBarColor.a = alpha;
-        nvgFillColor(vg, bottomBarColor);
-        nvgBeginPath(vg);
-        nvgRect(vg, rect.getMinX(), rect.getMaxY() - 2, rect.getWidth() * (playback_time / duration), 2);
-        nvgFill(vg);
-    }
 }
 
 std::string MPVCore::getCacheSpeed() const {
