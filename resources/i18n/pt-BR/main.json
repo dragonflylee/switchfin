@@ -1,0 +1,248 @@
+{
+  "tabs": {
+    "home": "Início",
+    "search": "Buscar",
+    "setting": "Configurações"
+  },
+  "home": {
+    "resume": "Continuar Assistindo",
+    "nextup": "Próximo",
+    "latest": "Adicionados Recentemente"
+  },
+  "about": {
+    "header": "Sobre",
+    "brief": "Mais um cliente Jellyfin de terceiros",
+    "repo_header": "Repositório"
+  },
+  "player": {
+    "subtitle": "Legenda",
+    "none": "Nenhuma",
+    "audio": "Faixa de Áudio",
+    "common": "Comum",
+    "speed": "Velocidade de Reprodução",
+    "quality": "Qualidade de Vídeo",
+    "chapter": "Capítulo",
+    "auto": "Automático",
+    "toggle": "Reproduzir/Pausar",
+    "prev": "Anterior",
+    "next": "Próximo",
+    "error": "Erro de reprodução",
+    "episode": "Episódio",
+    "speed_up": "Velocidade atual {}"
+  },
+  "danmaku": {
+    "header": "Configurações de Danmaku",
+    "performance": {
+      "header": "Desempenho",
+      "render": "Qualidade de renderização"
+    },
+    "style": {
+      "header": "Estilo do Danmaku",
+      "font": "Estilo do Contorno",
+      "font_stroke": "Contorno",
+      "font_incline": "Inclinação",
+      "font_shadow": "Sombra",
+      "font_pure": "Puro",
+      "area": "Área de Exibição",
+      "area_1_4": "1/4 da Tela",
+      "area_2_4": "1/2 da Tela",
+      "area_3_4": "3/4 da Tela",
+      "area_4_4": "Tela Inteira",
+      "alpha": "Transparência",
+      "fontsize": "Tamanho da Fonte",
+      "line_height": "Altura da Linha",
+      "speed": "Velocidade",
+      "speed_slow_plus": "Extremamente lenta",
+      "speed_slow": "Lenta",
+      "speed_fast_plus": "Extremamente rápida",
+      "speed_fast": "Rápida",
+      "speed_moderate": "Moderada"
+    }
+  },
+  "media": {
+    "sort": "Ordenar",
+    "sort_by": "Ordenar Por",
+    "filter": "Filtrar",
+    "order": "Ordem",
+    "ascending": "Crescente",
+    "descending": "Decrescente",
+    "name": "Nome",
+    "date_add": "Data de Adição",
+    "date_played": "Data de Reprodução",
+    "premiere_date": "Data de Estreia",
+    "play_count": "Número de Reproduções",
+    "rating": "Avaliação da Comunidade",
+    "random": "Aleatório",
+    "played": "Reproduzido",
+    "unplayed": "Não Reproduzido"
+  },
+  "search": {
+    "hint": "Suporta palavras-chave e suas iniciais",
+    "clear": "Limpar",
+    "delete": "Excluir",
+    "paste": "Colar",
+    "history": "Histórico",
+    "suggest": "Sugestões",
+    "clear_history": "Confirmar exclusão do histórico de buscas?",
+    "genres": {
+      "movie": "Filme",
+      "series": "Série",
+      "episode": "Episódio"
+    }
+  },
+  "remote": {
+    "local": "Local",
+    "folder": "Pasta",
+    "up": "Acima"
+  },
+  "setting": {
+    "quit_hint": "Você está prestes a sair do aplicativo. As configurações entrarão em vigor na próxima inicialização.",
+    "name": "Nome",
+    "version": "Versão",
+    "os": "Sistema Operacional",
+    "url": "URL",
+    "user": "Usuário",
+    "username": "Nome de Usuário",
+    "password": "Senha",
+    "server": {
+      "header": "Servidor",
+      "detail": "Detalhes do Servidor",
+      "connect_new": "Novo Servidor",
+      "connect_to": "Conectar a um servidor Jellyfin",
+      "invalid": "Endereço de servidor inválido!",
+      "connect": "Conectar",
+      "delete": "Confirmar exclusão?",
+      "local": "Servidores Locais",
+      "users": "{} usuários",
+      "sigin_to": "Entrar em {}",
+      "signin": "Entrar"
+    },
+    "playback": {
+      "header": "Reprodução",
+      "bottom_bar": "Mostrar barra de progresso inferior",
+      "low_quality": "Decodificação em baixa qualidade (menor uso de CPU)",
+      "in_memory_cache": "Cache em memória",
+      "subs_fallback": "Carregar legendas automaticamente",
+      "hwdec": "Decodificação por hardware",
+      "force_directplay": "Forçar reprodução direta",
+      "osd_on_toggle": "Mostrar OSD quando pausado",
+      "touch_gesture": "Gestos de toque para pular",
+      "clip_point": "Mostrar ponto de clipe do capítulo",
+      "transcodec": "Codec",
+      "video_quality": "Qualidade do Vídeo",
+      "subsync": "Sincronização de Legendas"
+    },
+    "transcode": {
+      "header": "Transcodificação"
+    },
+    "filter": {
+      "mirror": "Espelhamento de Vídeo",
+      "hflip": "Espelhar horizontalmente",
+      "vflip": "Espelhar verticalmente",
+      "rotation": "Rotação"
+    },
+    "aspect": {
+      "header": "Proporção de Vídeo",
+      "crop": "Cortar",
+      "stretch": "Esticar",
+      "auto": "Automático"
+    },
+    "equalizer": {
+      "header": "Equalizador",
+      "brightness": "Brilho",
+      "contrast": "Contraste",
+      "saturation": "Saturação",
+      "gamma": "Gama",
+      "hue": "Matiz",
+      "reset": "Redefinir"
+    },
+    "network": {
+      "header": "Rede",
+      "threads": "Número de threads para carregar imagens",
+      "timeout": "Tempo limite da requisição (ms)",
+      "proxy": "Configuração de Proxy",
+      "host": "Host",
+      "port": "Porta"
+    },
+    "ui": {
+      "header": "Interface",
+      "vsync": "Sincronização Vertical",
+      "show_fps": "Mostrar FPS"
+    },
+    "tutorial": {
+      "header": "Tutorial",
+      "open": "Como instalar o ícone na área de trabalho",
+      "error": "Se você encontrar um bug",
+      "hot_key": "Teclas de atalho",
+      "font": "Definir fonte personalizada",
+      "error_q1": "Não é possível acessar a rede",
+      "error_a1": "1. Verifique se o Atmosphere e o firmware estão atualizados\n2. Confirme que a hora do sistema está correta\n3. Restaure as configurações de rede padrão, incluindo IP, DNS, etc.\n4. Usando na China",
+      "error_q2": "Fecha com erro aleatório",
+      "error_a2": "1. Usando cartão de memória em formato Fat32\n2. Verifique se o Atmosphere e o firmware estão atualizados\n3. Aguarde os desenvolvedores corrigirem",
+      "font_q1": "Como definir fonte ou ícone personalizados",
+      "font_a1": "1. Baixe a fonte ou ícone desejado\n2. Renomeie para: font.ttf e icon.ttf\n3. Coloque os arquivos na pasta config\n4. Reinicie o aplicativo",
+      "font_q2": "FAQ",
+      "font_a2": "1. O Switchfin prioriza fontes personalizadas, com fallback para fontes nativas\n2. Em 'Configurações - Tutorial' há atalho para abrir o diretório config\n3. No Linux, usa-se xdg-open para abrir a pasta. Instale-o se necessário",
+      "font_q3": "Legendas não exibidas",
+      "font_a3": "Coloque qualquer arquivo ttf em {}/subfont.ttf"
+    },
+    "quick_connect": {
+      "header": "Conexão Rápida",
+      "code": "Código de Conexão Rápida",
+      "invalid": "Código de Conexão Rápida inválido",
+      "success": "Autorização de Conexão Rápida bem-sucedida. Continue no outro dispositivo.",
+      "steps": "1. Abra o app Jellyfin no seu celular ou navegador e entre com sua conta\n2. Vá até o menu de usuário e abra a página de Conexão Rápida\n3. Insira o código a seguir:",
+      "disabled": "Nota: Conexão Rápida não ativada"
+    },
+    "others": {
+      "header": "Outros",
+      "fullscreen": "Tela Cheia",
+      "always_on_top": "Sempre no Topo",
+      "single": "Instância Única",
+      "overclock": "Overclock da CPU",
+      "debug": "Visualização de Depuração",
+      "sync": "Preservar ordem de configuração",
+      "theme": {
+        "header": "Tema (requer reinício)",
+        "1": "Automático",
+        "2": "Claro",
+        "3": "Escuro"
+      },
+      "language": {
+        "header": "Idioma (requer reinício)",
+        "auto": "Automático",
+        "chinese_s": "简体中文",
+        "chinese_t": "繁體中文",
+        "japanese": "日本語",
+        "korean": "한국어",
+        "czech": "Tcheco",
+        "english": "Inglês",
+        "german": "Alemão",
+        "ukrainian": "Ucraniano",
+        "vietnam": "Vietnamita",
+        "portuguese": "Português"
+      },
+      "keymap": {
+        "header": "Estilo de Mapeamento de Teclas",
+        "xbox": "Xbox",
+        "ps": "PlayStation",
+        "keyboard": "Teclado"
+      },
+      "config_dir": "Diretório de Configuração",
+      "logout": "Sair da conta atual\n(o aplicativo será fechado)",
+      "up2date": "Aplicativo está atualizado",
+      "upgrade": "{} está disponível! Deseja atualizar?",
+      "updating": "Atualização em andamento, cancelar agora?",
+      "release": "Verificar atualizações"
+    }
+  },
+  "hints": {
+    "hint1": "Selecione um jogo na tela inicial",
+    "hint2": "Segure a tecla \uE0E5 e clique em \uE0E0 para abrir o hbmenu",
+    "hint3": "No hbmenu, selecione Switchfin",
+    "hint4": "Opcional: Use o encaminhador NSP fornecido pelo Switchfin",
+    "hint_nsp": "Clique em \uE0E0 para instalar o encaminhador NSP",
+    "hint_confirm": "Instalar o encaminhador NSP pode resultar em banimento\nDeseja continuar?",
+    "hint_right": "As imagens são da Internet e os direitos autorais pertencem à Nintendo Co., Ltd"
+  }
+}

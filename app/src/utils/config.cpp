@@ -61,7 +61,7 @@ namespace fs = std::experimental::filesystem;
 std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {APP_THEME, {"app_theme", {"auto", "light", "dark"}}},
     {APP_LANG, {"app_lang", {brls::LOCALE_AUTO, brls::LOCALE_EN_US, brls::LOCALE_ZH_HANS, brls::LOCALE_ZH_HANT,
-                                brls::LOCALE_JA, brls::LOCALE_Ko, brls::LOCALE_DE, "cs", "uk-UA", "vi_VN"}}},
+                                brls::LOCALE_JA, brls::LOCALE_Ko, brls::LOCALE_DE, "cs", "uk-UA", "vi_VN", "pt-BR"}}},
     {APP_UPDATE, {"app_update"}},
     {KEYMAP, {"keymap", {"xbox", "ps", "keyboard"}}},
     {WINDOW_STATE, {"window_state"}},

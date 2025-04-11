@@ -220,7 +220,8 @@
         "english": "English",
         "german": "Deutsch",
         "ukrainian": "Українська",
-        "vietnam": "Tiếng việt"
+        "vietnam": "Tiếng việt",
+        "portuguese": "Portuguese"
       },
       "keymap": {
         "header": "Keymap style",
