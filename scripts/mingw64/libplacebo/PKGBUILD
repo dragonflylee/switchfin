@@ -22,8 +22,8 @@ makedepends=(
   "${MINGW_PACKAGE_PREFIX}-vulkan-headers"
 )
 license=('LGPL2.1')
-source=(${url}/-/archive/v${pkgver}/${_realname}-v${pkgver}.tar.gz)
-sha256sums=('79120e685a1836344b51b13b6a5661622486a84e4d4a35f6c8d01679a20fbc86')
+source=("https://github.com/haasn/libplacebo/archive/v${pkgver}.tar.gz")
+sha256sums=('627e32439a0b3d2b90368ead7e919f470ee7446c87cc0f7841bbe319b23aa8b1')
 
 build() {
   MSYS2_ARG_CONV_EXCL="--prefix=" \
@@ -40,7 +40,7 @@ build() {
       -Dshaderc=enabled \
       -Dvulkan=disabled \
       "build-${MSYSTEM}" \
-      "${srcdir}/${_realname}-v${pkgver}"
+      "${srcdir}/${_realname}-${pkgver}"
 
   meson compile -C "build-${MSYSTEM}"
 }

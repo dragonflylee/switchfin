@@ -1,4 +1,4 @@
-# docker build --network host -t build:ubuntu-focal debian/focal
+# docker build --network host -t build:ubuntu-focal -f Dockerfile.focal .
 # docker run --rm --network host -v $PWD:/build -w /build -it build:ubuntu-focal dpkg-buildpackage -b -nc
 
 ARG TAG=focal

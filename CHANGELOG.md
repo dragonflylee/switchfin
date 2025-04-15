@@ -1,5 +1,12 @@
 # Changelog
 
+## [next]
+
+### Fixed
+
+* exception catch under macOS
+* remote load large file list
+
 ## [0.6.3]
 
 ### Fixed

@@ -1,8 +1,5 @@
-# docker build --network host -t build:debian-bookworm debian
-# docker run --rm --network host -v $PWD:/build -w /build -it build:debian-bookworm dpkg-buildpackage -b -nc
-
-ARG IMG=debian
-ARG TAG=bookworm
+ARG IMG=ubuntu
+ARG TAG=noble
 FROM $IMG:$TAG
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends wget xz-utils \

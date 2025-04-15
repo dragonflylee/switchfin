@@ -77,9 +77,8 @@ libplacebo:
 	meson install -C build/libplacebo
 
 mpv: ffmpeg libplacebo
-	wget -qO- https://github.com/mpv-player/mpv/archive/v0.39.0.tar.gz | tar zxf - -C $(TMPDIR)
-	wget -qO- https://github.com/mpv-player/mpv/commit/901b9bc8888c8bc5647d146aa4b84a9cccc9cbe1.patch | patch -d $(TMPDIR)/mpv-0.39.0 -Nbp1 -i -
-	meson setup build/mpv $(TMPDIR)/mpv-0.39.0 --prefix=$(PREFIX) --libdir=lib \
+	wget -qO- https://github.com/mpv-player/mpv/archive/v0.40.0.tar.gz | tar zxf - -C $(TMPDIR)
+	meson setup build/mpv $(TMPDIR)/mpv-0.40.0 --prefix=$(PREFIX) --libdir=lib \
 		--buildtype=release --default-library=shared \
 		-Dlibmpv=true -Dcplayer=false -Dtests=false -Dlibarchive=disabled -Dlua=disabled
 	meson compile -C build/mpv

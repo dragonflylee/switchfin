@@ -23,11 +23,7 @@ jobs:
           arch: x86_64
           target: "10.15"
           meson: --cross-file $GITHUB_WORKSPACE/scripts/macos/macos_x86_64.txt
-        - tag: Intel_Old
-          arch: x86_64
-          target: "10.11"
-          meson: --cross-file $GITHUB_WORKSPACE/scripts/macos/macos_10.11.txt
-        tag: [ Silicon, Intel, Intel_Old ]
+        tag: [ Silicon, Intel ]
     runs-on: macos-latest
     env:
       CMAKE_PREFIX_PATH: /tmp
@@ -42,17 +38,6 @@ jobs:
         brew unlink python && brew link --overwrite python
     - name: Install dependency
       run: brew reinstall ninja nasm meson
-    - name: Build bootstrap
-      env:
-        pkgver: '1.85.0'
-      if: ${{ matrix.tag == 'Intel_Old' }}
-      run: |
-        curl --retry 5 -sSL https://github.com/boostorg/boost/releases/download/boost-${pkgver}/boost-${pkgver}-b2-nodocs.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cd ${{ runner.temp }}/boost-${pkgver}
-        ./bootstrap.sh --with-libraries=filesystem --without-icu -prefix=${CMAKE_PREFIX_PATH}
-        ./b2 install target-os=darwin variant=release --with-filesystem \
-          cxxflags="-arch ${{ matrix.arch }} -mmacosx-version-min=${{ matrix.target }}" \
-          linkflags="-arch ${{ matrix.arch }} -mmacosx-version-min=${{ matrix.target }}"
     - name: Build glfw
       run: |
         curl --retry 5 -sSL https://github.com/dragonflylee/glfw/archive/switchfin.tar.gz | tar zxf - -C ${{ runner.temp }}
@@ -100,24 +85,6 @@ jobs:
           -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF
         cmake --build build-libssh2
         cmake --install build-libssh2
-    - name: Build libcurl
-      if: ${{ matrix.tag == 'Intel_Old' }}
-      env:
-        pkgver: '8.11.1'
-      run: |
-        curl --retry 5 -sSL https://curl.se/download/curl-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cmake -B build-curl -G Ninja -S ${{ runner.temp }}/curl-${pkgver} \
-          -DCMAKE_INSTALL_PREFIX=${CMAKE_PREFIX_PATH} \
-          -DCMAKE_INSTALL_NAME_DIR=${CMAKE_PREFIX_PATH}/lib \
-          -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
-          -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.target }} \
-          -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON \
-          -DHTTP_ONLY=ON -DCURL_DISABLE_PROGRESS_METER=ON -DCURL_USE_MBEDTLS=ON \
-          -DBUILD_CURL_EXE=OFF -DUSE_NGHTTP2=OFF -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF \
-          -DBUILD_LIBCURL_DOCS=OFF -DBUILD_MISC_DOCS=OFF -DENABLE_CURL_MANUAL=OFF \
-          -DUSE_LIBIDN2=OFF -DCURL_USE_LIBSSH2=OFF -DCURL_USE_LIBPSL=OFF
-        cmake --build build-curl
-        cmake --install build-curl
     - name: Build uchardet
       env:
         pkgver: '0.0.8'
@@ -143,7 +110,7 @@ jobs:
         meson install -C build-freetype
     - name: Build harfbuzz
       env:
-        pkgver: '11.0.0'
+        pkgver: '11.0.1'
       run: |
         curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/${pkgver}/harfbuzz-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
         meson setup build-harfbuzz ${{ runner.temp }}/harfbuzz-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
@@ -218,7 +185,6 @@ jobs:
         make -j$(sysctl -n hw.ncpu)
         make install
     - name: Build libplacebo
-      if: ${{ matrix.tag != 'Intel_Old' }}
       run: |
         git clone https://github.com/haasn/libplacebo.git -b v7.349.0 --depth 1 --recurse-submodules ${{ runner.temp }}/libplacebo
         meson setup build-libplacebo ${{ runner.temp }}/libplacebo ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
@@ -226,29 +192,12 @@ jobs:
         meson compile -C build-libplacebo
         meson install -C build-libplacebo
     - name: Build mpv
-      if: ${{ matrix.tag != 'Intel_Old' }}
       env:
-        pkgver: '0.39.0'
+        pkgver: '0.40.0'
       run: |
         curl --retry 5 -sSL https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz | tar zxf - -C ${{ runner.temp }}
-        curl --retry 5 -sSL https://github.com/mpv-player/mpv/commit/901b9bc8888c8bc5647d146aa4b84a9cccc9cbe1.patch | patch -d ${{ runner.temp }}/mpv-${pkgver} -Nbp1 -i -
         meson setup build-mpv ${{ runner.temp }}/mpv-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
           -Dlibmpv=true -Dcplayer=false -Dtests=false -Dswift-build=disabled -Dcocoa=disabled \
-          -Dmacos-cocoa-cb=disabled -Dmacos-media-player=disabled -Dmacos-touchbar=disabled \
-          -Dlibarchive=disabled -Dlcms2=disabled -Djpeg=disabled -Dlua=disabled \
-          -Dmanpage-build=disabled -Dhtml-build=disabled 
-        meson compile -C build-mpv
-        meson install -C build-mpv
-    - name: Build mpv36
-      if: ${{ matrix.tag == 'Intel_Old' }}
-      env:
-        pkgver: '0.36.0'
-      run: |
-        curl --retry 5 -sSL https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz | tar zxf - -C ${{ runner.temp }}
-        patch -d ${{ runner.temp }}/mpv-${pkgver} -Nbp1 -i ${{ github.workspace }}/scripts/macos/mpv.patch
-        patch -d ${{ runner.temp }}/mpv-${pkgver} -Nbp1 -i ${{ github.workspace }}/scripts/macos/lavfi.patch
-        meson setup build-mpv ${{ runner.temp }}/mpv-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
-          -Dlibmpv=true -Dcplayer=false -Dtests=false -Dswift-build=disabled \
           -Dmacos-cocoa-cb=disabled -Dmacos-media-player=disabled -Dmacos-touchbar=disabled \
           -Dlibarchive=disabled -Dlcms2=disabled -Djpeg=disabled -Dlua=disabled \
           -Dmanpage-build=disabled -Dhtml-build=disabled 
@@ -257,7 +206,7 @@ jobs:
     - name: Build packages
       run: |
         cd ${CMAKE_PREFIX_PATH}
-        tar zcf ${{ github.workspace }}/dylib-ffmpeg71-${{ matrix.tag }}.tar.gz \
+        tar zcf ${{ github.workspace }}/dylib-ffmpeg71-mpv40-${{ matrix.tag }}.tar.gz \
           include lib/pkgconfig lib/cmake lib/*.dylib
     - name: Archive Build Logs
       if: ${{ failure() }}
