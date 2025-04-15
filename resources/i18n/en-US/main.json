@@ -123,6 +123,7 @@
       "low_quality": "Low quality decoding (with less CPU usage)",
       "in_memory_cache": "Inmemory cache",
       "subs_fallback": "Autoload subtitles",
+      "vo": "Video output",
       "hwdec": "Hardware decode",
       "force_directplay": "Force direct play",
       "osd_on_toggle": "Show OSD when paused",

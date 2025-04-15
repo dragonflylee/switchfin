@@ -73,6 +73,7 @@ public:
         TOUCH_GESTURE,
         CLIP_POINT,
         SYNC_SETTING,
+        MPV_VO,
         PLAYER_BOTTOM_BAR,
         PLAYER_LOW_QUALITY,
         PLAYER_INMEMORY_CACHE,

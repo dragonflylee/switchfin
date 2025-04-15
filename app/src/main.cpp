@@ -28,6 +28,10 @@
 #include "tab/remote_tab.hpp"
 #include "tab/setting_tab.hpp"
 
+#if defined(IOS) || defined(ANDROID)
+#include <SDL2/SDL_main.h>
+#endif
+
 using namespace brls::literals;  // for _i18n
 
 int main(int argc, char* argv[]) {

@@ -131,7 +131,7 @@ public:
 
     // 硬件解码
     inline static bool HARDWARE_DEC = false;
-#if defined(__SWITCH__) || defined(BOREALIS_USE_GXM)
+#if defined(__SWITCH__) || defined(BOREALIS_USE_GXM) || defined(ANDROID)
     inline static std::string PLAYER_HWDEC_METHOD = "auto";
 #elif defined(__PSV__)
     inline static std::string PLAYER_HWDEC_METHOD = "vita-copy";
@@ -139,6 +139,11 @@ public:
     inline static std::string PLAYER_HWDEC_METHOD = "no";
 #else
     inline static std::string PLAYER_HWDEC_METHOD = "auto-safe";
+#endif
+#if defined(ANDROID)
+    inline static std::string VO = "gpu";
+#else
+    inline static std::string VO = "libmpv";
 #endif
     inline static std::string VIDEO_CODEC = "h264";
     inline static int64_t VIDEO_QUALITY = 0;

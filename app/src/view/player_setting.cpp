@@ -95,7 +95,7 @@ PlayerSetting::PlayerSetting(const jellyfin::Source* src) {
     auto& conf = AppConfig::instance();
 
 /// Fullscreen
-#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
+#if (defined(__APPLE__) || defined(__linux__) || defined(_WIN32)) && !defined(ANDROID)
     btnFullscreen->init(
         "main/setting/others/fullscreen"_i18n, conf.getItem(AppConfig::FULLSCREEN, false), [](bool value) {
             VideoContext::FULLSCREEN = value;

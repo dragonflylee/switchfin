@@ -92,7 +92,7 @@ void MPVCore::init() {
     mpv_set_option_string(mpv, "video-timing-offset", "0");  // 60fps
     mpv_set_option_string(mpv, "reset-on-next-file", "speed,pause");
     mpv_set_option_string(mpv, "subs-fallback", SUBS_FALLBACK ? "yes" : "no");
-    mpv_set_option_string(mpv, "vo", "libmpv");
+    mpv_set_option_string(mpv, "vo", MPVCore::VO.c_str());
 
     if (MPVCore::LOW_QUALITY) {
         // Less cpu cost
@@ -151,7 +151,7 @@ void MPVCore::init() {
         mpv_request_log_messages(mpv, "info");
     }
 
-#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
+#if (defined(__APPLE__) || defined(__linux__) || defined(_WIN32)) && !defined(ANDROID)
     if (conf.getItem(AppConfig::SINGLE, false)) {
         mpv_set_option_string(mpv, "input-ipc-server", conf.ipcSocket().c_str());
     }
@@ -629,7 +629,7 @@ void MPVCore::setSpeed(double value) {
     this->command("set", "speed", speed.c_str());
 }
 
-void MPVCore::enableVO(bool value) { mpv_set_option_string(mpv, "vo", value ? "libmpv" : "null"); }
+void MPVCore::enableVO(bool value) { mpv_set_option_string(mpv, "vo", value ? MPVCore::VO.c_str() : "null"); }
 
 void MPVCore::setAspect(const std::string &value) {
     if (value == "auto") {

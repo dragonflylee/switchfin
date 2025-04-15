@@ -44,6 +44,8 @@
                 marginBottom="30px">
                 <brls:BooleanCell
                     id="setting/video/hwdec" />
+                <brls:SelectorCell
+                    id="setting/mpv/vo" />
                 <brls:BooleanCell
                     id="setting/video/low_quality" />
                 <brls:SelectorCell
@@ -54,8 +56,6 @@
                     id="setting/player/osd_on_toggle" />
                 <brls:BooleanCell
                     id="setting/player/touch_gesture" />
-                <brls:BooleanCell
-                    id="setting/player/clip_point" />
             </brls:Box>
 
             <brls:Header
@@ -112,6 +112,8 @@
                 height="auto"
                 axis="column"
                 marginBottom="30px">
+                <brls:BooleanCell
+                    id="setting/player/clip_point" />
                 <brls:BooleanCell
                     id="setting/ui/bottom_bar" />
                 <brls:BooleanCell

@@ -21,12 +21,17 @@ extern int ps4_mpv_dump_shaders;
 extern in_addr_t primary_dns;
 extern in_addr_t secondary_dns;
 }
+#elif defined(ANDROID)
+#include <SDL2/SDL_system.h>
 #elif defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
 #include <unistd.h>
 #include <borealis/platforms/desktop/desktop_platform.hpp>
 #if defined(_WIN32)
 #include <shlobj.h>
 #endif
+
+constexpr uint32_t MINIMUM_WINDOW_WIDTH = 640;
+constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
 #endif
 
 #include <fstream>
@@ -53,9 +58,6 @@ namespace fs = std::experimental::filesystem;
 #include "view/danmaku_core.hpp"
 #include "view/video_view.hpp"
 
-constexpr uint32_t MINIMUM_WINDOW_WIDTH = 640;
-constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
-
 std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {APP_THEME, {"app_theme", {"auto", "light", "dark"}}},
     {APP_LANG, {"app_lang", {brls::LOCALE_AUTO, brls::LOCALE_EN_US, brls::LOCALE_ZH_HANS, brls::LOCALE_ZH_HANT,
@@ -71,6 +73,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {CLIP_POINT, {"clip_point"}},
     {SYNC_SETTING, {"sync_setting"}},
     {OVERCLOCK, {"overclock"}},
+    {MPV_VO, {"mpv_vo", {"gpu", "gpu-next", "mediacodec_embed"}}},
     {PLAYER_BOTTOM_BAR, {"player_bottom_bar"}},
     {PLAYER_LOW_QUALITY, {"player_low_quality"}},
     {PLAYER_SUBS_FALLBACK, {"player_subs_fallback"}},
@@ -184,7 +187,7 @@ bool AppConfig::init() {
     misc::initCrashDump();
 #endif
 
-#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
+#if (defined(__APPLE__) || defined(__linux__) || defined(_WIN32)) && !defined(ANDROID)
     if (this->getItem(AppConfig::SINGLE, false) && misc::sendIPC(this->ipcSocket(), "{}")) {
         brls::Logger::warning("AppConfig single instance");
         return false;
@@ -258,6 +261,7 @@ bool AppConfig::init() {
     MPVCore::SUBS_FALLBACK = this->getItem(PLAYER_SUBS_FALLBACK, true);
 
     // 初始化是否使用硬件加速
+    MPVCore::VO = this->getItem(MPV_VO, MPVCore::VO);
     MPVCore::HARDWARE_DEC = this->getItem(PLAYER_HWDEC, true);
     MPVCore::FORCE_DIRECTPLAY = this->getItem(FORCE_DIRECTPLAY, false);
     MPVCore::VIDEO_CODEC = this->getItem(TRANSCODEC, MPVCore::VIDEO_CODEC);
@@ -323,7 +327,7 @@ bool AppConfig::init() {
         brls::TextureCache::instance().cache.setCapacity(getItem(TEXTURE_CACHE_NUM, 200));
 #endif
 
-#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
+#if (defined(__APPLE__) || defined(__linux__) || defined(_WIN32)) && !defined(ANDROID)
         // 设置窗口最小尺寸
         brls::Application::getPlatform()->setWindowSizeLimits(MINIMUM_WINDOW_WIDTH, MINIMUM_WINDOW_HEIGHT, 0, 0);
         if (this->getItem(ALWAYS_ON_TOP, false)) {
@@ -479,6 +483,8 @@ std::string AppConfig::configDir() {
     SHGetSpecialFolderPathW(0, wpath, CSIDL_LOCAL_APPDATA, false);
     WideCharToMultiByte(CP_UTF8, 0, wpath, std::wcslen(wpath), lpath.data(), lpath.size(), nullptr, nullptr);
     return fmt::format("{}\\{}", lpath.data(), AppVersion::getPackageName());
+#elif defined(ANDROID)
+    return SDL_AndroidGetInternalStoragePath();
 #elif __linux__
     char* config_home = getenv("XDG_CONFIG_HOME");
     if (config_home) return fmt::format("{}/{}", config_home, AppVersion::getPackageName());
@@ -497,8 +503,7 @@ std::string AppConfig::ipcSocket() {
 }
 
 void AppConfig::checkRestart(char* argv[]) {
-#if defined(__PS4__)
-#elif __PSV__
+#if defined(__PS4__) || defined(__PSV__) || defined(ANDROID)
 #elif defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
     if (brls::DesktopPlatform::RESTART_APP) {
         brls::Logger::info("Restart app {}", argv[0]);

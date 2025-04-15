@@ -152,6 +152,19 @@ void SettingTab::onCreate() {
     });
 #endif
 
+#if defined(ANDROID)
+    auto& voOption = conf.getOptions(AppConfig::MPV_VO);
+    selectorVO->init("main/setting/playback/vo"_i18n, voOption.options, conf.getOptionIndex(AppConfig::MPV_VO),
+        [&voOption](int selected) {
+            if (MPVCore::VO == voOption.options[selected]) return;
+            MPVCore::VO = voOption.options[selected];
+            AppConfig::instance().setItem(AppConfig::MPV_VO, MPVCore::VO);
+            MPVCore::instance().restart();
+        });
+#else
+    selectorVO->setVisibility(brls::Visibility::GONE);
+#endif
+
     /// Decode quality
     btnQuality->init("main/setting/playback/low_quality"_i18n, MPVCore::LOW_QUALITY, [&conf](bool value) {
         if (MPVCore::LOW_QUALITY == value) return;
@@ -253,7 +266,7 @@ void SettingTab::onCreate() {
 
     btnOpenConfig->registerClickAction([](...) -> bool {
         const std::string confDir = AppConfig::instance().configDir();
-#if defined(__SWITCH__) || defined(__PSV__) || defined(__PS4__)
+#if defined(__SWITCH__) || defined(__PSV__) || defined(__PS4__) || defined(ANDROID)
         Dialog::show("main/setting/others/config_dir"_i18n + ":\n" + confDir);
 #else
 #ifdef __linux__
@@ -267,7 +280,7 @@ void SettingTab::onCreate() {
     });
 
 /// Fullscreen
-#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
+#if (defined(__APPLE__) || defined(__linux__) || defined(_WIN32)) && !defined(ANDROID)
     btnFullscreen->init(
         "main/setting/others/fullscreen"_i18n, conf.getItem(AppConfig::FULLSCREEN, false), [](bool value) {
             VideoContext::FULLSCREEN = value;
