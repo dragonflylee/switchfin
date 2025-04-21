@@ -245,7 +245,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: /opt/switchfin
-        key: deps-${{ matrix.img }}-${{ matrix.tag }}
+        key: deps-${{ matrix.img }}-${{ matrix.tag }}-${{ hashFiles('debian/rules') }}
     - name: Build depends
       if: steps.cache-deps.outputs.cache-hit != 'true'
       run: make -f debian/rules curl glfw mpv

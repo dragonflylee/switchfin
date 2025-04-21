@@ -143,6 +143,17 @@ static std::string generateDeviceId() {
         sha256CalculateHash(digest, &uid, sizeof(uid));
         return misc::hexEncode(digest, sizeof(digest));
     }
+#elif defined(__PSV__)
+    char cid[0x20];
+    if (_vshSblAimgrGetConsoleId(cid) >= 0) {
+        char text[0x40];
+        sceClibSnprintf(text, sizeof(text) - 1,
+            "%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
+            cid[0x0], cid[0x1], cid[0x2], cid[0x3], cid[0x4], cid[0x5], cid[0x6], cid[0x7],
+            cid[0x8], cid[0x9], cid[0xA], cid[0xB], cid[0xC], cid[0xD], cid[0xE], cid[0xF]
+        );
+        return text;
+    }
 #elif defined(_WIN32)
     HW_PROFILE_INFOW profile;
     if (GetCurrentHwProfileW(&profile)) {
@@ -161,6 +172,19 @@ static std::string generateDeviceId() {
         CFRelease(uuidCf);
         IOObjectRelease(ioRegistryRoot);
         return deviceId.data();
+    }
+#elif defined(__linux__)
+    static const char *dev_names[] = {
+        "/sys/devices/virtual/dmi/id/board_serial",
+        "/etc/machine-id"
+    };
+    for (size_t i = 0; i < sizeof(dev_names); i++) {
+        std::ifstream f(dev_names[i]);
+        if (f.is_open()) {
+            std::string name;
+            std::getline(f, name);
+            return name;
+        }
     }
 #endif
     return misc::randHex(16);

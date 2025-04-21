@@ -2,6 +2,8 @@
 #ifdef __SWITCH__
 #include <switch.h>
 #include <filesystem>
+#elif defined(__PSV__)
+#include <psp2/vshbridge.h>
 #elif defined(__APPLE__)
 #include <SystemConfiguration/SystemConfiguration.h>
 #elif defined(__linux__)
@@ -57,6 +59,18 @@ std::string AppVersion::getDeviceName() {
     if (R_SUCCEEDED(setsysGetDeviceNickname(&nick))) {
         return nick.nickname;
     }
+#elif defined(__PSV__)
+    if (vshSblAimgrIsGenuineDolce()) {
+        return "PSTV";
+    } else if (vshSblAimgrIsGenuineVITA()) {
+        char cid[0x20];
+        if (_vshSblAimgrGetConsoleId(cid) >= 0) {
+            if (cid[7] == 0x14 || cid[7] == 0x18) {
+                return "PSVita Slim";
+            }
+        }
+        return "PSVita";
+    }
 #elif defined(_WIN32)
     DWORD bufsize = MAX_PATH;
     std::wstring buf(bufsize, '\0');
@@ -74,9 +88,18 @@ std::string AppVersion::getDeviceName() {
         return name.data();
     }
 #elif defined(__linux__)
-    std::vector<char> buf(128);
-    if (gethostname(buf.data(), buf.size()) == 0) {
-        return buf.data();
+    static const char* dev_names[] = {
+        "/sys/devices/virtual/dmi/id/product_name",
+        "/sys/devices/virtual/dmi/id/board_name",
+        "/sys/firmware/devicetree/base/model",
+    };
+    for (size_t i = 0; i < sizeof(dev_names); i++) {
+        std::ifstream f(dev_names[i]);
+        if (f.is_open()) {
+            std::string name;
+            std::getline(f, name);
+            return name;
+        }
     }
 #endif
     return fmt::format("{} for {}", getPackageName(), getPlatform());
