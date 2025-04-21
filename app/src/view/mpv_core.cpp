@@ -45,6 +45,37 @@ static void *get_proc_address(void *unused, const char *name) {
 #endif
 #endif
 
+#ifdef ANDROID
+#include <jni.h>
+extern "C" {
+#include <libavcodec/jni.h>
+}
+static JavaVM *g_vm;
+static jobject surface;
+
+static int64_t getNativeSurface() {
+    int64_t ptr = 0;
+    JNIEnv *env = static_cast<JNIEnv *>(SDL_AndroidGetJNIEnv());
+    jobject activity = static_cast<jobject>(SDL_AndroidGetActivity());
+    jclass cls = env->GetObjectClass(activity);
+    jmethodID jmethod = env->GetStaticMethodID(cls, "getMpvSurface", "()Landroid/view/Surface;");
+    jobject surface_ = env->CallStaticObjectMethod(cls, jmethod);
+    if (surface_ != nullptr) {
+        surface = env->NewGlobalRef(surface_);
+        ptr = (int64_t)(intptr_t)surface;
+        env->DeleteLocalRef(surface_);
+    }
+    env->DeleteLocalRef(cls);
+    env->DeleteLocalRef(activity);
+    return ptr;
+}
+
+static void deleteSurfaceObj() {
+    auto env = static_cast<JNIEnv *>(SDL_AndroidGetJNIEnv());
+    env->DeleteGlobalRef(surface);
+}
+#endif
+
 void MPVCore::on_update(void *self) {
     MPVCore *mpv = reinterpret_cast<MPVCore *>(self);
     brls::sync([mpv]() {
@@ -81,6 +112,11 @@ MPVCore::MPVCore() {
 }
 
 void MPVCore::init() {
+    setlocale(LC_NUMERIC, "C");
+#ifdef ANDROID
+    auto env = static_cast<JNIEnv *>(SDL_AndroidGetJNIEnv());
+    if (!env->GetJavaVM(&g_vm) && g_vm) av_jni_set_java_vm(g_vm, NULL);
+#endif
     this->mpv = mpv_create();
     if (!mpv) {
         brls::fatal("Error Create mpv Handle");
@@ -147,6 +183,9 @@ void MPVCore::init() {
     mpv_set_option_string(mpv, "fbo-format", "rgba8");
     // Fix vo_wait_frame() cannot be wakeup
     mpv_set_option_string(mpv, "video-latency-hacks", "yes");
+#elif defined(ANDROID)
+    mpv_set_option_string(mpv, "gpu-context", "android");
+    mpv_set_option_string(mpv, "opengl-es", "yes");
 #endif
 
     // hardware decoding
@@ -187,8 +226,12 @@ void MPVCore::init() {
     check_error(mpv_observe_property(mpv, 9, "speed", MPV_FORMAT_DOUBLE));
     check_error(mpv_observe_property(mpv, 10, "volume", MPV_FORMAT_INT64));
 
-    // init renderer params
-#ifdef MPV_SW_RENDER
+// init renderer params
+#ifdef ANDROID
+    int64_t wid = getNativeSurface();
+    mpv_set_option(mpv, "wid", MPV_FORMAT_INT64, (void *)&wid);
+    mpv_set_option_string(mpv, "force-window", "yes");
+#elif defined(MPV_SW_RENDER)
     mpv_render_param params[] = {
         {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_SW)},
         {MPV_RENDER_PARAM_INVALID, nullptr},
@@ -263,10 +306,12 @@ void MPVCore::init() {
     };
 #endif
 
+#ifndef ANDROID
     if (mpv_render_context_create(&mpv_context, mpv, params) < 0) {
         mpv_terminate_destroy(mpv);
         brls::fatal("failed to initialize mpv context");
     }
+#endif
 #ifdef BOREALIS_USE_D3D11
     misc::initCrashDump();
 #endif
@@ -276,8 +321,10 @@ void MPVCore::init() {
     this->command("set", "audio-client-name", AppVersion::getPackageName().c_str());
     // set event callback
     mpv_set_wakeup_callback(mpv, on_wakeup, this);
+#ifndef ANDROID
     // set render callback
     mpv_render_context_set_update_callback(mpv_context, on_update, this);
+#endif
 
     focusSubscription = brls::Application::getWindowFocusChangedEvent()->subscribe([this](bool focus) {
         static bool playing = false;
@@ -288,6 +335,9 @@ void MPVCore::init() {
         } else if (playing) {  // application is on top
             command("set", "pause", "no");
         }
+#if defined(ANDROID)
+        this->enableVO(focus);
+#endif
     });
 
 #if defined(BOREALIS_USE_OPENGL) && !defined(MPV_SW_RENDER)
@@ -314,6 +364,9 @@ void MPVCore::clean() {
         // mpv_destroy(this->mpv);
         this->mpv = nullptr;
     }
+#ifdef ANDROID
+    deleteSurfaceObj();
+#endif
 }
 
 void MPVCore::restart() {
@@ -398,7 +451,13 @@ void MPVCore::setFrameSize(brls::Rect area) {
 #endif
 }
 
-bool MPVCore::isValid() { return mpv_context != nullptr; }
+bool MPVCore::isValid() {
+#ifdef ANDROID
+    return true;
+#else
+    return mpv_context != nullptr;
+#endif
+}
 
 void MPVCore::draw(brls::Rect area, float alpha) {
     if (mpv_context == nullptr) return;
@@ -423,11 +482,13 @@ void MPVCore::draw(brls::Rect area, float alpha) {
     nvgFill(vg);
 #elif defined(BOREALIS_USE_GXM)
     NVGcontext *vg = brls::Application::getNVGContext();
-    NVGpaint img = nvgImagePattern(vg, area.getMinX(), area.getMinY(), area.getWidth(), area.getHeight(), 0, nvg_image, alpha);
+    NVGpaint img =
+        nvgImagePattern(vg, area.getMinX(), area.getMinY(), area.getWidth(), area.getHeight(), 0, nvg_image, alpha);
     nvgBeginPath(vg);
     nvgRect(vg, area.getMinX(), area.getMinY(), area.getWidth(), area.getHeight());
     nvgFillPaint(vg, img);
     nvgFill(vg);
+#elif defined(ANDROID)
 #else
     // 只在非透明时绘制视频，可以避免退出页面时视频画面残留
     if (alpha >= 1) {

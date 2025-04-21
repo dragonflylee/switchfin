@@ -19,3 +19,4 @@ debian/files
 debian/switchfin*
 debian/.debhelper
 .wget-hsts
+/jniLibs/

@@ -4,6 +4,9 @@
 #include <filesystem>
 #elif defined(__PSV__)
 #include <psp2/vshbridge.h>
+#elif defined(ANDROID)
+#include <SDL2/SDL.h>
+#include <jni.h>
 #elif defined(__APPLE__)
 #include <SystemConfiguration/SystemConfiguration.h>
 #elif defined(__linux__)
@@ -70,6 +73,19 @@ std::string AppVersion::getDeviceName() {
             }
         }
         return "PSVita";
+    }
+#elif defined(ANDROID)
+    JNIEnv* env = static_cast<JNIEnv*>(SDL_AndroidGetJNIEnv());
+    jclass clazz = env->FindClass("android/os/Build");
+    if (clazz) {
+        jfieldID fid = env->GetStaticFieldID(clazz, "MODEL", "Ljava/lang/String;");
+        jstring jname = (jstring)env->GetStaticObjectField(clazz, fid);
+        const char* name = env->GetStringUTFChars(jname, nullptr);
+        std::string device_name = name;
+        env->ReleaseStringUTFChars(jname, name);
+        env->DeleteLocalRef(jname);
+        env->DeleteLocalRef(clazz);
+        return device_name;
     }
 #elif defined(_WIN32)
     DWORD bufsize = MAX_PATH;
