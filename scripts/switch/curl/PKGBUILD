@@ -1,7 +1,7 @@
 
 # Maintainer: WinterMute <davem@devkitpro.org>
 pkgname=switch-curl
-pkgver=8.11.1
+pkgver=8.13.0
 pkgrel=1
 pkgdesc='An URL retrieval utility and library'
 arch=('any')
@@ -13,7 +13,7 @@ makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
 source=("https://curl.haxx.se/download/curl-${pkgver}.tar.xz")
 groups=('switch-portlibs')
 
-sha256sums=('c7ca7db48b0909743eaef34250da02c19bc61d4f1dcedd6603f109409536ab56')
+sha256sums=('4a093979a3c2d02de2fbc00549a32771007f2e78032c6faa5ecd2f7a9e152025')
 
 build() {
   cd curl-${pkgver}
@@ -39,6 +39,8 @@ build() {
     -DENABLE_THREADED_RESOLVER=OFF \
     -DUSE_NGHTTP2=OFF \
     -DUSE_LIBIDN2=OFF \
+    -DCURL_BROTLI=OFF \
+    -DCURL_ZSTD=OFF \
     -DCURL_USE_LIBSSH2=OFF \
     -DCURL_USE_LIBPSL=OFF
   sed -i '/HAVE_SOCKETPAIR/d' lib/curl_config.h

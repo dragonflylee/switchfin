@@ -207,7 +207,7 @@ parts:
       - -usr/share
 
   curl:
-    source: https://curl.se/download/curl-8.11.1.tar.xz
+    source: https://curl.se/download/curl-8.13.0.tar.xz
     source-type: tar
     plugin: cmake
     cmake-parameters:
@@ -223,6 +223,8 @@ parts:
       - -DBUILD_LIBCURL_DOCS=OFF
       - -DUSE_NGHTTP2=OFF
       - -DUSE_LIBIDN2=OFF
+      - -DCURL_BROTLI=OFF
+      - -DCURL_ZSTD=OFF
       - -DCURL_USE_LIBSSH2=OFF
       - -DCURL_USE_LIBPSL=OFF
     build-environment:

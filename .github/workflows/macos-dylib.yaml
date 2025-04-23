@@ -56,7 +56,7 @@ jobs:
         cmake --install build-glfw
     - name: Build mbedtls
       env:
-        pkgver: '3.6.2'
+        pkgver: '3.6.3'
       run: |
         curl --retry 5 -sSL https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-${pkgver}/mbedtls-${pkgver}.tar.bz2 | tar jxf - -C ${{ runner.temp }}
         cmake -B build-mbedtls -G Ninja -S ${{ runner.temp }}/mbedtls-${pkgver} \
@@ -70,6 +70,24 @@ jobs:
           -DENABLE_PROGRAMS=OFF -DENABLE_TESTING=OFF
         cmake --build build-mbedtls
         cmake --install build-mbedtls
+    - name: Build libcurl
+      env:
+        pkgver: '8.13.0'
+      run: |
+        curl --retry 5 -sSL https://curl.se/download/curl-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
+        cmake -B build-curl -G Ninja -S ${{ runner.temp }}/curl-${pkgver} \
+          -DCMAKE_INSTALL_PREFIX=${CMAKE_PREFIX_PATH} \
+          -DCMAKE_INSTALL_NAME_DIR=${CMAKE_PREFIX_PATH}/lib \
+          -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.target }} \
+          -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON \
+          -DHTTP_ONLY=ON -DCURL_DISABLE_PROGRESS_METER=ON -DCURL_USE_SECTRANSP=ON \
+          -DBUILD_CURL_EXE=OFF -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF \
+          -DBUILD_LIBCURL_DOCS=OFF -DBUILD_MISC_DOCS=OFF -DENABLE_CURL_MANUAL=OFF \
+          -DCURL_USE_LIBSSH2=OFF -DCURL_USE_LIBPSL=OFF -DCURL_BROTLI=OFF -DCURL_ZSTD=OFF \
+          -DUSE_NGHTTP2=OFF -DUSE_LIBIDN2=OFF  
+        cmake --build build-curl
+        cmake --install build-curl
     - name: Build libssh2
       env:
         pkgver: '1.11.1'
@@ -110,7 +128,7 @@ jobs:
         meson install -C build-freetype
     - name: Build harfbuzz
       env:
-        pkgver: '11.0.1'
+        pkgver: '11.1.0'
       run: |
         curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/${pkgver}/harfbuzz-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
         meson setup build-harfbuzz ${{ runner.temp }}/harfbuzz-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \

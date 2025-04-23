@@ -100,7 +100,7 @@ if (USE_SYSTEM_CURL)
 else ()
     include(FetchContent)
     FetchContent_Declare(curl
-        URL https://curl.se/download/curl-8.11.1.tar.xz
+        URL https://curl.se/download/curl-8.13.0.tar.xz
         DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     )
     if (WIN32)
@@ -120,6 +120,8 @@ else ()
     set(ENABLE_CURL_MANUAL OFF)
     set(USE_NGHTTP2 OFF)
     set(USE_LIBIDN2 OFF)
+    set(CURL_BROTLI OFF)
+    set(CURL_ZSTD OFF)
     set(CURL_USE_LIBSSH2 OFF)
     set(CURL_USE_LIBPSL OFF)
     set(CURL_DISABLE_PROGRESS_METER ON)

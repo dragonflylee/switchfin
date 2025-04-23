@@ -46,7 +46,7 @@ build() {
       -DWEBP_BUILD_WEBPMUX=OFF \
       -DWEBP_BUILD_EXTRAS=OFF \
       "${srcdir}/${_realname}-${pkgver}"
-    ${MINGW_PREFIX}/bin/cmake.exe --build "build-${MSYSTEM}"
+  ${MINGW_PREFIX}/bin/cmake.exe --build "build-${MSYSTEM}"
 }
 
 package() {

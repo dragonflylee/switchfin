@@ -8,8 +8,8 @@ export PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig
 WAYLAND := $(if $(shell dpkg -s libxkbcommon-dev 2>/dev/null),ON,OFF)
 
 mbedtls:
-	wget -qO- https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.2/mbedtls-3.6.2.tar.bz2 | tar jxf - -C $(TMPDIR)
-	cmake -B build/mbedtls -G Ninja -S $(TMPDIR)/mbedtls-3.6.2 -DCMAKE_BUILD_TYPE=Release \
+	wget -qO- https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.3/mbedtls-3.6.3.tar.bz2 | tar jxf - -C $(TMPDIR)
+	cmake -B build/mbedtls -G Ninja -S $(TMPDIR)/mbedtls-3.6.3 -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_RPATH=$(PREFIX)/lib \
 		-DUSE_SHARED_MBEDTLS_LIBRARY=ON -DUSE_STATIC_MBEDTLS_LIBRARY=OFF \
 		-DENABLE_PROGRAMS=OFF -DENABLE_TESTING=OFF
@@ -17,13 +17,13 @@ mbedtls:
 	cmake --install build/mbedtls
 
 curl: mbedtls
-	wget -qO- https://curl.se/download/curl-8.11.1.tar.xz | tar Jxf - -C $(TMPDIR)
-	cmake -B build/curl -G Ninja -S $(TMPDIR)/curl-8.11.1 -DCMAKE_BUILD_TYPE=Release \
+	wget -qO- https://curl.se/download/curl-8.13.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	cmake -B build/curl -G Ninja -S $(TMPDIR)/curl-8.13.0 -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_RPATH=$(PREFIX)/lib \
+		-DBUILD_SHARED_LIBS=ON -DHTTP_ONLY=ON -DCURL_DISABLE_PROGRESS_METER=ON -DCURL_USE_MBEDTLS=ON \
 		-DBUILD_CURL_EXE=OFF -DUSE_NGHTTP2=OFF -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF \
 		-DBUILD_LIBCURL_DOCS=OFF -DBUILD_MISC_DOCS=OFF -DENABLE_CURL_MANUAL=OFF \
-		-DUSE_LIBIDN2=OFF -DCURL_USE_LIBSSH2=OFF -DCURL_USE_LIBPSL=OFF \
-		-DHTTP_ONLY=ON -DCURL_DISABLE_PROGRESS_METER=ON -DCURL_USE_MBEDTLS=ON
+		-DUSE_LIBIDN2=OFF -DCURL_USE_LIBSSH2=OFF -DCURL_BROTLI=OFF -DCURL_ZSTD=OFF -DCURL_USE_LIBPSL=OFF
 	cmake --build build/curl
 	cmake --install build/curl
 

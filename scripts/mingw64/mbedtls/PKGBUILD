@@ -3,7 +3,7 @@
 _realname=mbedtls
 pkgbase="mingw-w64-${_realname}"
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=3.6.2
+pkgver=3.6.3
 pkgrel=1
 pkgdesc="Portable cryptographic and SSL/TLS library, aka polarssl (mingw-w64)"
 arch=('any')
@@ -24,13 +24,11 @@ makedepends=(
   "${MINGW_PACKAGE_PREFIX}-ninja"
 )
 source=("https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-${pkgver}/mbedtls-${pkgver}.tar.bz2")
-sha256sums=('8b54fb9bcf4d5a7078028e0520acddefb7900b3e66fec7f7175bb5b7d85ccdca')
+sha256sums=('64cd73842cdc05e101172f7b437c65e7312e476206e1dbfd644433d11bc56327')
 
 build() {
   if [[ ${MSYSTEM} == MINGW32 ]]; then
     CFLAGS="-maes -msse2 -mpclmul"
-  elif [[ ${MSYSTEM} == CLANG* ]]; then
-    CFLAGS="-D__USE_MINGW_ANSI_STDIO=0"
   fi
 
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
@@ -41,6 +39,7 @@ build() {
       -DPython3_EXECUTABLE=${MINGW_PREFIX}/bin/python.exe \
       -DENABLE_PROGRAMS=OFF \
       -DENABLE_TESTING=OFF \
+      -DMBEDTLS_FATAL_WARNINGS=OFF \
       -DUSE_SHARED_MBEDTLS_LIBRARY=ON \
       -DUSE_STATIC_MBEDTLS_LIBRARY=ON \
       -DLINK_WITH_PTHREAD=ON \
