@@ -333,10 +333,10 @@ void SettingTab::onCreate() {
             "main/setting/others/language/japanese"_i18n,
             "main/setting/others/language/korean"_i18n,
             "main/setting/others/language/german"_i18n,
+            "main/setting/others/language/portuguese"_i18n,
             "main/setting/others/language/czech"_i18n,
             "main/setting/others/language/ukrainian"_i18n,
             "main/setting/others/language/vietnam"_i18n,
-            "main/setting/others/language/portuguese"_i18n,
         },
         langIndex, [langIndex](int selected) {
             if (langIndex == selected) return;

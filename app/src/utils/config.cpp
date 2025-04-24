@@ -60,8 +60,9 @@ namespace fs = std::experimental::filesystem;
 
 std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {APP_THEME, {"app_theme", {"auto", "light", "dark"}}},
-    {APP_LANG, {"app_lang", {brls::LOCALE_AUTO, brls::LOCALE_EN_US, brls::LOCALE_ZH_HANS, brls::LOCALE_ZH_HANT,
-                                brls::LOCALE_JA, brls::LOCALE_Ko, brls::LOCALE_DE, "cs", "uk-UA", "vi_VN", "pt-BR"}}},
+    {APP_LANG, {"app_lang",
+                   {brls::LOCALE_AUTO, brls::LOCALE_EN_US, brls::LOCALE_ZH_HANS, brls::LOCALE_ZH_HANT, brls::LOCALE_JA,
+                       brls::LOCALE_Ko, brls::LOCALE_DE, brls::LOCALE_PT_BR, "cs", "uk-UA", "vi_VN"}}},
     {APP_UPDATE, {"app_update"}},
     {KEYMAP, {"keymap", {"xbox", "ps", "keyboard"}}},
     {WINDOW_STATE, {"window_state"}},
@@ -147,11 +148,9 @@ static std::string generateDeviceId() {
     char cid[0x20];
     if (_vshSblAimgrGetConsoleId(cid) >= 0) {
         char text[0x40];
-        sceClibSnprintf(text, sizeof(text) - 1,
-            "%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
-            cid[0x0], cid[0x1], cid[0x2], cid[0x3], cid[0x4], cid[0x5], cid[0x6], cid[0x7],
-            cid[0x8], cid[0x9], cid[0xA], cid[0xB], cid[0xC], cid[0xD], cid[0xE], cid[0xF]
-        );
+        sceClibSnprintf(text, sizeof(text) - 1, "%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
+            cid[0x0], cid[0x1], cid[0x2], cid[0x3], cid[0x4], cid[0x5], cid[0x6], cid[0x7], cid[0x8], cid[0x9],
+            cid[0xA], cid[0xB], cid[0xC], cid[0xD], cid[0xE], cid[0xF]);
         return text;
     }
 #elif defined(_WIN32)
@@ -174,9 +173,9 @@ static std::string generateDeviceId() {
         return deviceId.data();
     }
 #elif defined(__linux__)
-    static const char *dev_names[] = {
+    static const char* dev_names[] = {
         "/sys/devices/virtual/dmi/id/board_serial",
-        "/etc/machine-id"
+        "/etc/machine-id",
     };
     for (size_t i = 0; i < sizeof(dev_names); i++) {
         std::ifstream f(dev_names[i]);
