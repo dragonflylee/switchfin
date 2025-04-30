@@ -11,8 +11,6 @@ class RecyclingGrid;
 
 using DirList = std::vector<remote::DirEntry>;
 
-class RemoteResume;
-
 class RemoteView : public AttachedView {
 public:
     using Client = std::shared_ptr<remote::Client>;
@@ -34,6 +32,5 @@ private:
     void load();
 
     std::vector<std::string> stack;
-    std::unique_ptr<RemoteResume> resume;
     Client client;
 };

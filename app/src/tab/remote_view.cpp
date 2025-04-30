@@ -10,55 +10,9 @@
 
 using namespace brls::literals;
 
-const int RESUME_THRESHOLD = 60;
-
-class RemoteResume {
-public:
-    RemoteResume(const std::string& name) {
-        this->path = fmt::format("{}/resume_{}.json", AppConfig::instance().configDir(), name);
-
-        std::ifstream readFile(this->path);
-        if (readFile.is_open()) {
-            try {
-                this->list = nlohmann::json::parse(readFile);
-            } catch (const std::exception& e) {
-                brls::Logger::error("load resume history: {}", e.what());
-            }
-        }
-    }
-
-    void end(const std::string url) {
-        if (this->list.erase(url)) this->save();
-    }
-
-    int64_t get(const std::string url) {
-        auto it = this->list.find(url);
-        if (it == this->list.end()) return 0;
-        return it->second;
-    }
-
-    void update(const std::string url, int64_t progress) {
-        this->list.insert_or_assign(url, progress);
-        this->save();
-    }
-
-private:
-    std::unordered_map<std::string, int64_t> list;
-    std::string path;  // 播放历史
-
-    void save() {
-        std::ofstream writeFile(this->path);
-        if (writeFile.is_open()) {
-            nlohmann::json j(this->list);
-            writeFile << j.dump(2);
-            writeFile.close();
-        }
-    }
-};
-
 class RemotePlayer : public brls::Box {
 public:
-    RemotePlayer(const remote::DirEntry& item, RemoteResume* rr) {
+    RemotePlayer(const remote::DirEntry& item) {
         float width = brls::Application::contentWidth;
         float height = brls::Application::contentHeight;
         view->setDimensions(width, height);
@@ -69,7 +23,6 @@ public:
         view->hideVideoQuality();
         this->setDimensions(width, height);
         this->addView(view);
-        this->resume = rr;
 
         if (item.type == remote::EntryType::PLAYLIST) {
             view->hideVideoProgressSlider();
@@ -88,9 +41,6 @@ public:
                 }
                 break;
             }
-            case MpvEventEnum::END_OF_FILE:
-                if (this->resume) this->resume->end(this->url);
-                break;
             default:;
             }
         });
@@ -105,13 +55,7 @@ public:
         mpv.getEvent()->unsubscribe(eventSubscribeID);
         view->getPlayEvent()->unsubscribe(playSubscribeID);
         view->getSettingEvent()->unsubscribe(settingSubscribeID);
-        if (this->resume) {
-            if (mpv.video_progress > RESUME_THRESHOLD && mpv.duration - mpv.video_progress > RESUME_THRESHOLD) {
-                this->resume->update(this->url, mpv.video_progress);
-            } else {
-                this->resume->end(this->url);
-            }
-        }
+        mpv.command("write-watch-later-config");
     }
 
     void setList(const DirList& list, size_t index, RemoteView::Client c) {
@@ -149,12 +93,7 @@ public:
                 }
             }
             this->url = item.url();
-            std::string extra = c->extraOption();
-            int64_t seek = this->resume->get(this->url);
-            if (seek > 0) {
-                extra += (extra.empty() ? "start=" : ",start=") + misc::sec2Time(seek);
-            }
-            MPVCore::instance().setUrl(this->url, extra);
+            MPVCore::instance().setUrl(this->url, c->extraOption());
             view->setTitie(name);
             return true;
         });
@@ -185,7 +124,6 @@ public:
 
 private:
     VideoView* view = new VideoView();
-    RemoteResume* resume;
     std::string url;
     std::vector<std::string> titles;
     std::unordered_map<std::string, std::string> subtitles;
@@ -244,8 +182,8 @@ static std::set<std::string> subtitleExt = {".srt", ".ass", ".ssa", ".sub", ".sm
 
 class FileDataSource : public RecyclingGridDataSource {
 public:
-    FileDataSource(const DirList& r, RemoteView::Client c, RemoteResume* rr)
-        : list(std::move(r)), resume(rr), client(c) {
+    FileDataSource(const DirList& r, RemoteView::Client c)
+        : list(std::move(r)), client(c) {
         for (auto& it : this->list) {
             if (it.type != remote::EntryType::FILE) continue;
 
@@ -290,7 +228,7 @@ public:
         }
 
         if (item.type == remote::EntryType::VIDEO) {
-            RemotePlayer* view = new RemotePlayer(item, this->resume);
+            RemotePlayer* view = new RemotePlayer(item);
             view->setList(this->list, index, client);
             brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
             return;
@@ -301,7 +239,7 @@ public:
         }
 
         if (item.type == remote::EntryType::PLAYLIST) {
-            RemotePlayer* view = new RemotePlayer(item, nullptr);
+            RemotePlayer* view = new RemotePlayer(item);
             MPVCore::instance().setUrl(item.url(), client->extraOption());
             brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
         }
@@ -311,7 +249,6 @@ public:
 
 private:
     DirList list;
-    RemoteResume* resume;
     RemoteView::Client client;
 };
 
@@ -319,7 +256,6 @@ RemoteView::RemoteView(Client c, const std::string& name) : client(c) {
     this->inflateFromXMLRes("xml/tabs/remote_view.xml");
     brls::Logger::debug("RemoteView: create");
 
-    this->resume = std::make_unique<RemoteResume>(name);
     this->recycler->registerCell("Cell", []() { return new FileCard(); });
 }
 
@@ -367,7 +303,7 @@ void RemoteView::load() {
             auto r = client->list(this->stack.back());
             brls::sync([ASYNC_TOKEN, r]() {
                 ASYNC_RELEASE
-                this->recycler->setDataSource(new FileDataSource(r, client, this->resume.get()));
+                this->recycler->setDataSource(new FileDataSource(r, client));
             });
         } catch (const std::exception& ex) {
             std::string error = ex.what();
