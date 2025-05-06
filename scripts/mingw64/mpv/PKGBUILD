@@ -26,12 +26,16 @@ makedepends=(
 options=('strip')
 source=(
   "${_realname}-${pkgver}.tar.gz"::"https://github.com/mpv-player/${_realname}/archive/v${pkgver}.tar.gz"
+  "https://github.com/mpv-player/mpv/commit/22aacb4008179342748701950a52f278ee6ba9e6.patch"
+  "https://github.com/mpv-player/mpv/commit/61be67071617889282bc477e8d701333ea834783.patch"
   "0001-d3d11-render.patch"
 )
-sha256sums=('10a0f4654f62140a6dd4d380dcf0bbdbdcf6e697556863dc499c296182f081a3' 'SKIP')
+sha256sums=('10a0f4654f62140a6dd4d380dcf0bbdbdcf6e697556863dc499c296182f081a3' 'SKIP' 'SKIP' 'SKIP')
 
 prepare() {
   cd "${srcdir}/${_realname}-${pkgver}"
+  patch -Nbp1 -i "${srcdir}/22aacb4008179342748701950a52f278ee6ba9e6.patch"
+  patch -Nbp1 -i "${srcdir}/61be67071617889282bc477e8d701333ea834783.patch"
   patch -Nbp1 -i "${srcdir}/0001-d3d11-render.patch"
 }
 

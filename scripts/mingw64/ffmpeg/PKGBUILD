@@ -19,8 +19,7 @@ depends=(
   "${MINGW_PACKAGE_PREFIX}-freetype"
   "${MINGW_PACKAGE_PREFIX}-dav1d"
   "${MINGW_PACKAGE_PREFIX}-libass"
-  "${MINGW_PACKAGE_PREFIX}-libssh2-mbedtls"
-  "${MINGW_PACKAGE_PREFIX}-mbedtls"
+  "${MINGW_PACKAGE_PREFIX}-libssh2-wincng"
   "${MINGW_PACKAGE_PREFIX}-zlib"
 )
 makedepends=(
@@ -52,6 +51,7 @@ build() {
     --enable-static \
     --pkg-config-flags=-static \
     --enable-runtime-cpudetect \
+    --disable-autodetect \
     --enable-pic \
     --disable-programs \
     --disable-debug \
@@ -75,11 +75,9 @@ build() {
     --enable-libfreetype \
     --enable-libfribidi \
     --enable-libssh2 \
-    --enable-mbedtls \
-    --enable-gpl \
-    --enable-version3 \
+    --enable-schannel \
     $( [[ "${MINGW_PACKAGE_PREFIX}" != *clang-aarch64* ]] \
-      && echo "--enable-nvdec --enable-amf")
+      && echo "--enable-nvdec --enable-ffnvcodec")
 
   make -j4
 }

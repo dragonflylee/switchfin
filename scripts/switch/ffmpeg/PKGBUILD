@@ -35,7 +35,7 @@ build() {
 
   source /opt/devkitpro/switchvars.sh
 
-  ./configure --prefix=$PORTLIBS_PREFIX --enable-gpl --disable-shared --enable-static \
+  ./configure --prefix=$PORTLIBS_PREFIX --disable-shared --enable-static \
     --cross-prefix=aarch64-none-elf- --enable-cross-compile \
     --arch=aarch64 --cpu=cortex-a57 --target-os=horizon --enable-pic \
     --extra-cflags='-D__SWITCH__ -D_GNU_SOURCE -O2 -march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIC -ftls-model=local-exec' \

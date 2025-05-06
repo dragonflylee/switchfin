@@ -62,7 +62,7 @@ ffmpeg: libssh2 dav1d
 	$(TMPDIR)/ffmpeg-7.1.1/configure --prefix=$(PREFIX) --enable-shared --disable-static --enable-rpath \
 		--disable-programs --disable-debug --disable-doc --disable-autodetect --enable-pic \
 		--disable-avdevice --enable-libv4l2 --enable-vaapi --enable-vdpau --disable-encoders \
-		--enable-mbedtls --enable-gpl --enable-version3 --enable-libssh2 --enable-asm --enable-opengl \
+		--enable-mbedtls --enable-version3 --enable-libssh2 --enable-asm --enable-opengl \
 		--disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,ftp,libssh2,rtp,crypto,httpproxy \
 		--disable-filters --enable-filter=hflip,vflip,transpose --enable-libass --enable-libdav1d
 	make -C build/ffmpeg -j$(shell nproc)
