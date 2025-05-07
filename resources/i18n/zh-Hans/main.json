@@ -67,6 +67,9 @@
     "ascending": "升序",
     "descending": "降序",
     "name": "名称",
+    "intro": "简介",
+    "people": "演职人员",
+    "similar": "更多类似",
     "date_add": "加入日期",
     "date_played": "播放日期",
     "premiere_date": "上映时间",
@@ -134,7 +137,7 @@
       "subsync": "字幕同步"
     },
     "transcode": {
-      "header": "转码设置"
+      "header": "转码配置"
     },
     "filter": {
       "mirror": "镜像画面",

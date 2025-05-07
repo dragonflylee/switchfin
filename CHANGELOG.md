@@ -2,6 +2,10 @@
 
 ## [next]
 
+### Add
+
+* refactor series view layout
+
 ### Fixed
 
 * exception catch under macOS

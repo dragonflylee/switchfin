@@ -14,6 +14,7 @@ const std::string apiUserLatest = "/Users/{}/Items/Latest?{}";
 const std::string apiShowNextUp = "/Shows/NextUp?{}";
 const std::string apiShowSeanon = "/Shows/{}/Seasons?{}";
 const std::string apiShowEpisodes = "/Shows/{}/Episodes?{}";
+const std::string apiSimilar = "/Items/{}/Similar?{}";
 const std::string apiLiveChannels = "/LiveTv/Channels?{}";
 #ifdef USE_WEBP
 const std::string apiUserImage = "/Users/{}/Images/Primary?format=Webp&{}";
@@ -102,19 +103,29 @@ struct Collection : public Item {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Collection, Id, Name, Type, ImageTags, IsFolder, CollectionType);
 
+struct MediaPeople {
+    std::string Id;
+    std::string Name;
+    std::string PrimaryImageTag;
+    std::string Role;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaPeople, Id, Name, PrimaryImageTag, Role);
+
 struct Series : public Item {
     std::string OriginalTitle;
     std::string Overview;
     std::string OfficialRating;
     std::vector<std::string> Genres;
+    std::vector<MediaPeople> People;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Series, Id, Name, Type, ImageTags, IsFolder, ProductionYear,
-    OriginalTitle, Overview, OfficialRating, CommunityRating, Genres, UserData);
+    OriginalTitle, Overview, OfficialRating, CommunityRating, Genres, People, UserData);
 
 struct Season : public Item {
     long IndexNumber = 0;
+    std::string SeriesId;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Season, Id, Name, Type, ImageTags, IsFolder, IndexNumber);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Season, Id, Name, Type, ImageTags, IsFolder, SeriesId, IndexNumber);
 
 struct Attachment {
     std::string Codec;
@@ -166,16 +177,15 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PlaybackResult, MediaSources, Pl
 struct Episode : public Season {
     int ParentIndexNumber = 0;
     std::string Overview;
-    std::string SeriesId;
     std::string SeriesName;
     std::string SeriesPrimaryImageTag;
     std::string ParentBackdropItemId;
     std::vector<std::string> ParentBackdropImageTags;
     std::vector<Source> MediaSources;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Episode, Id, Name, Type, ImageTags, IsFolder, ProductionYear,
-    UserData, Chapters, RunTimeTicks, IndexNumber, ParentIndexNumber, Overview, SeriesId, SeriesName,
-    SeriesPrimaryImageTag, ParentBackdropItemId, ParentBackdropImageTags, MediaSources);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Episode, Id, Name, Type, ImageTags, IsFolder, ProductionYear, UserData,
+    Chapters, RunTimeTicks, IndexNumber, ParentIndexNumber, Overview, SeriesId, SeriesName, SeriesPrimaryImageTag,
+    ParentBackdropItemId, ParentBackdropImageTags, MediaSources);
 
 struct Album : public Item {
     std::string AlbumArtist;
@@ -200,9 +210,8 @@ struct Playlist : public Item {
     std::vector<std::string> Artists;
     std::string SeriesName;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Playlist, Id, Name, Type, IndexNumber, ParentIndexNumber,
-    RunTimeTicks, ProductionYear, Chapters, CommunityRating, SeriesName, ImageTags, AlbumId, AlbumPrimaryImageTag,
-    Artists, UserData);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Playlist, Id, Name, Type, IndexNumber, ParentIndexNumber, RunTimeTicks,
+    ProductionYear, Chapters, CommunityRating, SeriesName, ImageTags, AlbumId, AlbumPrimaryImageTag, Artists, UserData);
 
 struct Program {
     std::string Name;

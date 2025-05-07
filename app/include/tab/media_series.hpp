@@ -7,14 +7,13 @@
 #include <borealis.hpp>
 #include <view/presenter.hpp>
 
-class RecyclingGrid;
+class AutoTabFrame;
+class HRecyclerFrame;
 
-class MediaSeries : public brls::Box, public Presenter {
+class MediaSeries : public brls::Box {
 public:
     MediaSeries(const std::string& itemId);
     ~MediaSeries() override;
-
-    void doRequest() override;
 
 private:
     BRLS_BIND(brls::Image, imageLogo, "series/image/logo");
@@ -23,13 +22,14 @@ private:
     BRLS_BIND(brls::Label, parentalRating, "series/parental/rating");
     BRLS_BIND(brls::Label, labelRating, "series/label/rating");
     BRLS_BIND(brls::Label, labelOverview, "series/label/overview");
-    BRLS_BIND(brls::SelectorCell, selectorSeason, "series/selector/season");
-    BRLS_BIND(RecyclingGrid, recyclerEpisodes, "media/episodes");
+    BRLS_BIND(brls::Label, labelGenres, "series/label/genres");
+    BRLS_BIND(HRecyclerFrame, people, "series/people");
+    BRLS_BIND(HRecyclerFrame, similar, "series/similar");
+    BRLS_BIND(AutoTabFrame, tabFrame, "series/tabFrame");
 
     void doSeries();
     void doSeason();
-    void doEpisodes(const std::string& seasonId);
+    void doSimilar();
 
     std::string seriesId;
-    std::vector<std::string> seasonIds;
 };

@@ -1,0 +1,18 @@
+<brls:Box
+    width="auto"
+    height="auto"
+    paddingLeft="@style/main/content_padding_sides"
+    paddingRight="@style/main/content_padding_sides"
+    paddingTop="@style/main/content_padding_top_bottom"
+    paddingBottom="@style/main/content_padding_top_bottom">
+
+    <RecyclingGrid
+        grow="1"
+        wireframe="false"
+        paddingRight="10"
+        spanCount="1"
+        flowMode="true"
+        itemSpace="10"
+        id="media/episodes" />
+
+</brls:Box>

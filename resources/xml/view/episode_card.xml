@@ -40,7 +40,6 @@
 
     <brls:Box
         axis="column"
-        width="530"
         marginLeft="20">
         <brls:Label
             id="episode/card/name"

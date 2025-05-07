@@ -67,6 +67,9 @@
     "ascending": "上昇",
     "descending": "下降",
     "name": "名前",
+    "intro": "イントロ",
+    "people": "ピープル",
+    "similar": "これに似たもの",
     "date_add": "追加日",
     "date_played": "再生した日付",
     "premiere_date": "公開日",
@@ -123,6 +126,7 @@
       "low_quality": "低品質なデコード (CPU使用率が低い)",
       "in_memory_cache": "インメモリーキャッシュ",
       "subs_fallback": "字幕の自動読み込み",
+      "vo": "ビデオ出力",
       "hwdec": "ハードウェアデコード",
       "force_directplay": "ダイレクトプレーを強制する",
       "osd_on_toggle": "一時停止時にOSDを表示する",
@@ -131,6 +135,9 @@
       "transcodec": "トランスコーデック",
       "video_quality": "ビデオ品質",
       "subsync": "字幕同期"
+    },
+    "transcode": {
+      "header": "トランスコーディングプロファイル"
     },
     "filter": {
       "mirror": "ビデオ反転",

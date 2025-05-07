@@ -5,8 +5,13 @@
 #include "activity/player_view.hpp"
 #include "api/jellyfin.hpp"
 #include "tab/media_series.hpp"
+#include "view/h_recycling.hpp"
+#include "view/auto_tab_frame.hpp"
 #include "view/svg_image.hpp"
 #include "view/video_card.hpp"
+#include "view/people_source.hpp"
+#include "view/video_source.hpp"
+#include <fmt/ranges.h>
 
 using namespace brls::literals;  // for _i18n
 
@@ -83,27 +88,71 @@ private:
     MediaList list;
 };
 
+class MediaSeason : public AttachedView {
+public:
+    MediaSeason(const jellyfin::Season& item) : seriesId(item.SeriesId), seasonId(item.Id) {
+        this->inflateFromXMLRes("xml/tabs/seasons.xml");
+
+        this->recycler->registerCell("Cell", EpisodeCardCell::create);
+    }
+
+    void onCreate() override {
+        std::string query = HTTP::encode_form({
+            {"userId", AppConfig::instance().getUserId()},
+            {"seasonId", this->seasonId},
+            {"fields", "ItemCounts,PrimaryImageAspectRatio,Chapters,Overview"},
+        });
+
+        ASYNC_RETAIN
+        jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
+            [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
+                ASYNC_RELEASE
+                this->recycler->setDataSource(new EpisodeDataSource(r.Items));
+            },
+            [ASYNC_TOKEN](const std::string& ex) {
+                ASYNC_RELEASE
+                this->recycler->setError(ex);
+            },
+            jellyfin::apiShowEpisodes, this->seriesId, query);
+    }
+
+private:
+    BRLS_BIND(RecyclingGrid, recycler, "media/episodes");
+
+    std::string seriesId;
+    std::string seasonId;
+};
+
 MediaSeries::MediaSeries(const std::string& itemId) : seriesId(itemId) {
     brls::Logger::debug("Tab MediaSeries: create");
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/series.xml");
-    this->imageLogo->setVisibility(brls::Visibility::GONE);
 
-    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [](...) { return true; });
-    this->recyclerEpisodes->registerCell("Cell", EpisodeCardCell::create);
+    this->people->registerCell("Cell", VideoCardCell::create);
+    this->similar->registerCell("Cell", VideoCardCell::create);
 
-    this->selectorSeason->init("", {""}, 0, [this](int index) { this->doEpisodes(this->seasonIds[index]); });
+    this->registerAction(
+        "上一项", brls::ControllerButton::BUTTON_LB,
+        [this](brls::View* view) -> bool {
+            tabFrame->focus2LastTab();
+            return true;
+        },
+        true);
+
+    this->registerAction(
+        "下一项", brls::ControllerButton::BUTTON_RB,
+        [this](brls::View* view) -> bool {
+            tabFrame->focus2NextTab();
+            return true;
+        },
+        true);
 
     this->doSeason();
     this->doSeries();
+    this->doSimilar();
 }
 
 MediaSeries::~MediaSeries() { brls::Logger::debug("Tab MediaSeries: delete"); }
-
-void MediaSeries::doRequest() {
-    int index = this->selectorSeason->getSelection();
-    this->doEpisodes(this->seasonIds.at(index));
-}
 
 void MediaSeries::doSeries() {
     ASYNC_RETAIN
@@ -125,16 +174,25 @@ void MediaSeries::doSeries() {
                 this->labelRating->getParent()->setVisibility(brls::Visibility::VISIBLE);
             }
             this->labelOverview->setText(r.Overview);
+
+            if (r.Genres.empty()) {
+                this->labelGenres->setVisibility(brls::Visibility::GONE);
+            } else {
+                this->labelGenres->setText(fmt::format("{}", fmt::join(r.Genres, ", ")));
+                this->labelGenres->setVisibility(brls::Visibility::VISIBLE);
+            }
             // loading Logo
-            auto logo = r.ImageTags.find(jellyfin::imageTypeLogo);
+            auto logo = r.ImageTags.find(jellyfin::imageTypePrimary);
             if (logo != r.ImageTags.end()) {
-                Image::load(this->imageLogo, jellyfin::apiLogoImage, r.Id,
+                Image::load(this->imageLogo, jellyfin::apiPrimaryImage, r.Id,
                     HTTP::encode_form({
                         {"tag", logo->second},
                         {"maxWidth", "300"},
                     }));
                 this->imageLogo->setVisibility(brls::Visibility::VISIBLE);
             }
+
+            this->people->setDataSource(new PeopleDataSource(r.People));
         },
         [](...) {}, jellyfin::apiUserItem, AppConfig::instance().getUserId(), this->seriesId);
 }
@@ -150,43 +208,38 @@ void MediaSeries::doSeason() {
         [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Season>& r) {
             ASYNC_RELEASE
 
-            size_t firstSeason = 0;
-            this->seasonIds.clear();
-
-            std::vector<std::string> seasons;
             for (size_t i = 0; i < r.Items.size(); i++) {
                 auto& it = r.Items.at(i);
-                seasons.push_back(it.Name);
-                this->seasonIds.push_back(it.Id);
-                if (it.IndexNumber == 1) firstSeason = i;
+                auto* item = new AutoSidebarItem();
+                item->setTabStyle(AutoTabBarStyle::ACCENT);
+                item->setFontSize(22);
+                item->setLabel(it.Name);
+                this->tabFrame->addTab(item, [it]() { return new MediaSeason(it); });
             }
-            this->selectorSeason->setData(seasons);
-            this->selectorSeason->setSelection(firstSeason);
-            brls::sync([this]() { brls::Application::giveFocus(this->selectorSeason); });
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            this->recyclerEpisodes->setError(ex);
+            brls::Logger::warning("doSeason {}", ex);
         },
         jellyfin::apiShowSeanon, this->seriesId, query);
 }
 
-void MediaSeries::doEpisodes(const std::string& seasonId) {
+void MediaSeries::doSimilar() {
     std::string query = HTTP::encode_form({
         {"userId", AppConfig::instance().getUserId()},
-        {"seasonId", seasonId},
-        {"fields", "ItemCounts,PrimaryImageAspectRatio,Chapters,Overview"},
+        {"limit", "12"},
+        {"fields", "ItemCounts"},
     });
 
     ASYNC_RETAIN
     jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
         [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
             ASYNC_RELEASE
-            this->recyclerEpisodes->setDataSource(new EpisodeDataSource(r.Items));
+            this->similar->setDataSource(new VideoDataSource(r.Items));
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            this->recyclerEpisodes->setError(ex);
+            this->similar->setVisibility(brls::Visibility::GONE);
         },
-        jellyfin::apiShowEpisodes, this->seriesId, query);
+        jellyfin::apiSimilar, this->seriesId, query);
 }
