@@ -22,9 +22,9 @@
                 paddingBottom="@style/main/content_padding_top_bottom">
 
                 <brls:Box
-                    width="240"
+                    width="200"
                     axis="column"
-                    paddingRight="15">
+                    marginRight="15">
                     <brls:Image
                         id="series/image/logo"
                         height="300"
@@ -55,7 +55,6 @@
                                 id="series/label/genres"
                                 fontSize="15"
                                 animated="false"
-                                textColor="@theme/font/grey"
                                 marginBottom="15" />
 
                             <brls:Padding />

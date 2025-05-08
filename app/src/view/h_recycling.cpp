@@ -57,6 +57,9 @@ HRecyclerFrame::HRecyclerFrame() {
         this->estimatedRowSpace = value;
         this->reloadData();
     });
+
+    this->registerCell("Skeleton", []() { return SkeletonCell::create(); });
+    this->showSkeleton();
 }
 
 HRecyclerFrame::~HRecyclerFrame() {

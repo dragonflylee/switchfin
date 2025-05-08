@@ -127,6 +127,17 @@ struct Season : public Item {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Season, Id, Name, Type, ImageTags, IsFolder, SeriesId, IndexNumber);
 
+struct PeopleItem {
+    std::string Id;
+    std::string Name;
+    std::string Overview;
+    std::vector<std::string> ProductionLocations;
+    std::map<std::string, std::string> ImageTags;
+    int MovieCount;
+    int SeriesCount;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PeopleItem, Id, Name, Overview, ProductionLocations, ImageTags)
+
 struct Attachment {
     std::string Codec;
     std::string Name;

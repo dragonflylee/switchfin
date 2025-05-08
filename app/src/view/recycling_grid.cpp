@@ -125,6 +125,8 @@ void RecyclingView::removeCell(brls::View* view) {
 
 RecyclingGridDataSource* RecyclingView::getDataSource() const { return this->dataSource; }
 
+void RecyclingView::showSkeleton(unsigned int num) { this->setDataSource(new DataSourceSkeleton(num)); }
+
 /// RecyclingGrid
 
 RecyclingGrid::RecyclingGrid() {
@@ -518,8 +520,6 @@ void RecyclingGrid::itemsRecyclingLoop() {
         }
     }
 }
-
-void RecyclingGrid::showSkeleton(unsigned int num) { this->setDataSource(new DataSourceSkeleton(num)); }
 
 void RecyclingGrid::selectRowAt(size_t index, bool animated) {
     this->setContentOffsetY(getHeightByCellIndex(index), animated);

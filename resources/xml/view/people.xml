@@ -1,0 +1,72 @@
+<brls:Box
+    paddingLeft="@style/main/content_padding_sides"
+    paddingRight="@style/main/content_padding_sides"
+    paddingTop="@style/main/content_padding_top_bottom"
+    paddingBottom="@style/main/content_padding_top_bottom">
+
+    <brls:Box
+        width="220"
+        axis="column"
+        alignItems="center"
+        marginRight="30">
+        <brls:Image
+            id="people/image/logo"
+            height="300"
+            scalingType="fit"
+            backgroundColor="@theme/color/grey_1"
+            image="@res/img/video-card-bg.png" />
+
+        <brls:Label
+            id="people/label/location"
+            fontSize="16"
+            animated="false"
+            marginTop="15" />
+    </brls:Box>
+
+    <brls:ScrollingFrame
+        width="auto"
+        height="auto"
+        grow="1.0">
+
+        <brls:Box
+            paddingRight="@style/main/content_padding_sides"
+            axis="column">
+
+            <brls:Header
+                marginBottom="10"
+                height="40"
+                id="people/header/title" />
+
+            <brls:Label
+                id="people/label/overview"
+                fontSize="15"
+                animated="false"
+                textColor="@theme/font/grey"
+                marginBottom="20" />
+
+            <brls:Header
+                marginBottom="10"
+                height="40"
+                id="people/movie/title"
+                title="@i18n/main/search/genres/movie" />
+
+            <HRecyclerFrame
+                height="250"
+                itemWidth="150"
+                id="people/movie" />
+
+            <brls:Header
+                marginBottom="10"
+                height="40"
+                id="people/series/title"
+                title="@i18n/main/search/genres/series" />
+
+            <HRecyclerFrame
+                height="250"
+                itemWidth="150"
+                id="people/series" />
+
+        </brls:Box>
+
+    </brls:ScrollingFrame>
+</brls:Box>

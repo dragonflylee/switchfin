@@ -5,9 +5,9 @@
     paddingBottom="@style/main/content_padding_top_bottom">
 
     <brls:Box
-        width="240"
+        width="220"
         axis="column"
-        paddingRight="15">
+        marginRight="30">
         <brls:Image
             id="movie/image/logo"
             height="300"
@@ -23,8 +23,6 @@
     </brls:Box>
 
     <brls:ScrollingFrame
-        width="auto"
-        height="auto"
         grow="1.0">
 
         <brls:Box
@@ -44,7 +42,6 @@
                     id="movie/label/genres"
                     fontSize="15"
                     animated="false"
-                    textColor="@theme/font/grey"
                     marginBottom="15" />
 
                 <brls:Padding />

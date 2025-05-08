@@ -66,9 +66,17 @@ void MediaMovie::doMovie(const std::string& itemId) {
                 this->imageLogo->setVisibility(brls::Visibility::VISIBLE);
             }
 
-            this->people->setDataSource(new PeopleDataSource(r.People));
+            if (r.People.size() > 0) {
+                this->people->setDataSource(new PeopleDataSource(r.People));
+            } else {
+                this->people->setVisibility(brls::Visibility::GONE);
+            }
         },
-        [](...) {}, jellyfin::apiUserItem, AppConfig::instance().getUserId(), itemId);
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            this->people->setVisibility(brls::Visibility::GONE);
+        },
+        jellyfin::apiUserItem, AppConfig::instance().getUserId(), itemId);
 }
 
 void MediaMovie::doSimilar(const std::string& itemId) {
@@ -82,7 +90,11 @@ void MediaMovie::doSimilar(const std::string& itemId) {
     jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
         [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
             ASYNC_RELEASE
-            this->similar->setDataSource(new VideoDataSource(r.Items));
+            if (r.Items.size() > 0) {
+                this->similar->setDataSource(new VideoDataSource(r.Items));
+            } else {
+                this->similar->setVisibility(brls::Visibility::GONE);
+            }
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE

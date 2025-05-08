@@ -20,7 +20,7 @@ public:
     void setPaddingBottom(float bottom) override;
     void setPaddingLeft(float left) override;
 
-    void setDataSource(RecyclingGridDataSource* source);
+    void setDataSource(RecyclingGridDataSource* source) override;
 
     // 重新加载数据
     void reloadData();

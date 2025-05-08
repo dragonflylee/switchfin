@@ -78,12 +78,15 @@ public:
 
     virtual brls::View* getNextCellFocus(brls::FocusDirection direction, brls::View* currentView) = 0;
 
+    virtual void setDataSource(RecyclingGridDataSource* source) = 0;
+
     void registerCell(std::string identifier, std::function<RecyclingGridItem*()> allocation);
 
     RecyclingGridItem* dequeueReusableCell(std::string identifier);
 
     RecyclingGridDataSource* getDataSource() const;
 
+    void showSkeleton(unsigned int num = 12);
 protected:
     // 回收列表项
     void queueReusableCell(RecyclingGridItem* cell);
@@ -108,9 +111,7 @@ public:
 
     size_t getDefaultCellFocus() const;
 
-    void setDataSource(RecyclingGridDataSource* source);
-
-    void showSkeleton(unsigned int num = 12);
+    void setDataSource(RecyclingGridDataSource* source) override;
 
     // 重新加载数据
     void reloadData();
