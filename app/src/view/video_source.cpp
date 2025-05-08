@@ -2,6 +2,7 @@
 #include "activity/gallery_activity.hpp"
 #include "tab/media_collection.hpp"
 #include "tab/media_series.hpp"
+#include "tab/media_movie.hpp"
 #include "tab/music_album.hpp"
 #include "tab/playlist.hpp"
 #include "utils/misc.hpp"
@@ -62,12 +63,13 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
     auto& item = this->list.at(index);
 
     if (item.Type == jellyfin::mediaTypeSeries) {
-        recycler->present(new MediaSeries(item.Id));
+        recycler->present(new MediaSeries(item));
+    } else if (item.Type == jellyfin::mediaTypeMovie) {
+        recycler->present(new MediaMovie(item));
     } else if (item.Type == jellyfin::mediaTypeFolder || item.Type == jellyfin::mediaTypeBoxSet ||
                item.Type == jellyfin::mediaTypePhotoAlbum) {
         recycler->present(new MediaCollection(item.Id));
-    } else if (item.Type == jellyfin::mediaTypeMovie || item.Type == jellyfin::mediaTypeMusicVideo ||
-               item.Type == jellyfin::mediaTypeVideo) {
+    } else if (item.Type == jellyfin::mediaTypeMusicVideo || item.Type == jellyfin::mediaTypeVideo) {
         PlayerView* view = new PlayerView(item);
         view->setTitie(item.ProductionYear ? fmt::format("{} ({})", item.Name, item.ProductionYear) : item.Name);
     } else if (item.Type == jellyfin::mediaTypeEpisode) {

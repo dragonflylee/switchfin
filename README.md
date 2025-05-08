@@ -81,7 +81,7 @@ rclone serve http --addr :8000 --read-only /media/downloads
 
 ## TODO list
 
-- [ ] Movie view
+- [x] Movie view
 - [x] Series detail
 - [x] Search page
 - [x] Websocket connection (MirrorPlay)

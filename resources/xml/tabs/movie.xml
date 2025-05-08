@@ -1,0 +1,118 @@
+<brls:Box
+    paddingLeft="@style/main/content_padding_sides"
+    paddingRight="@style/main/content_padding_sides"
+    paddingTop="@style/main/content_padding_top_bottom"
+    paddingBottom="@style/main/content_padding_top_bottom">
+
+    <brls:Box
+        width="240"
+        axis="column"
+        paddingRight="15">
+        <brls:Image
+            id="movie/image/logo"
+            height="300"
+            scalingType="fit"
+            backgroundColor="@theme/color/grey_1"
+            image="@res/img/video-card-bg.png" />
+
+        <brls:Button
+            id="movie/play"
+            height="50"
+            marginTop="20px"
+            text="@i18n/main/media/play" />
+    </brls:Box>
+
+    <brls:ScrollingFrame
+        width="auto"
+        height="auto"
+        grow="1.0">
+
+        <brls:Box
+            paddingRight="@style/main/content_padding_sides"
+            axis="column">
+
+            <brls:Header
+                marginBottom="10"
+                height="40"
+                id="movie/header/title" />
+
+            <brls:Box
+                alignItems="center"
+                marginBottom="10">
+
+                <brls:Label
+                    id="movie/label/genres"
+                    fontSize="15"
+                    animated="false"
+                    textColor="@theme/font/grey"
+                    marginBottom="15" />
+
+                <brls:Padding />
+
+                <brls:Label
+                    id="movie/label/year"
+                    marginRight="10"
+                    fontSize="15" />
+
+                <brls:Box
+                    wireframe="false"
+                    borderColor="@theme/brls/text"
+                    borderThickness="1"
+                    visibility="gone"
+                    paddingLeft="5"
+                    paddingRight="5"
+                    height="30"
+                    marginRight="10">
+                    <brls:Label
+                        id="movie/parental/rating"
+                        singleLine="true"
+                        wireframe="false"
+                        fontSize="15" />
+                </brls:Box>
+
+                <brls:Box
+                    wireframe="false"
+                    alignItems="center"
+                    visibility="gone">
+                    <SVGImage
+                        width="15"
+                        height="15"
+                        svg="@res/icon/ico-star.svg" />
+                    <brls:Label
+                        id="movie/label/rating"
+                        marginLeft="2"
+                        fontSize="15" />
+                </brls:Box>
+            </brls:Box>
+
+            <brls:Label
+                id="movie/label/overview"
+                fontSize="15"
+                animated="false"
+                textColor="@theme/font/grey"
+                marginBottom="20" />
+
+            <brls:Header
+                marginBottom="10"
+                height="40"
+                title="@i18n/main/media/people" />
+
+            <HRecyclerFrame
+                height="250"
+                itemWidth="150"
+                id="movie/people" />
+
+            <brls:Header
+                marginBottom="10"
+                height="40"
+                title="@i18n/main/media/similar" />
+
+            <HRecyclerFrame
+                height="250"
+                itemWidth="150"
+                id="movie/similar" />
+
+        </brls:Box>
+
+    </brls:ScrollingFrame>
+</brls:Box>

@@ -111,14 +111,14 @@ struct MediaPeople {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaPeople, Id, Name, PrimaryImageTag, Role);
 
-struct Series : public Item {
+struct Detail : public Item {
     std::string OriginalTitle;
     std::string Overview;
     std::string OfficialRating;
     std::vector<std::string> Genres;
     std::vector<MediaPeople> People;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Series, Id, Name, Type, ImageTags, IsFolder, ProductionYear,
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Detail, Id, Name, Type, ImageTags, IsFolder, ProductionYear,
     OriginalTitle, Overview, OfficialRating, CommunityRating, Genres, People, UserData);
 
 struct Season : public Item {

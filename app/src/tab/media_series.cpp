@@ -123,11 +123,12 @@ private:
     std::string seasonId;
 };
 
-MediaSeries::MediaSeries(const std::string& itemId) : seriesId(itemId) {
+MediaSeries::MediaSeries(const jellyfin::Item& item) {
     brls::Logger::debug("Tab MediaSeries: create");
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/series.xml");
 
+    this->headerTitle->setTitle(item.Name);
     this->people->registerCell("Cell", VideoCardCell::create);
     this->similar->registerCell("Cell", VideoCardCell::create);
 
@@ -147,17 +148,17 @@ MediaSeries::MediaSeries(const std::string& itemId) : seriesId(itemId) {
         },
         true);
 
-    this->doSeason();
-    this->doSeries();
-    this->doSimilar();
+    this->doSeason(item.Id);
+    this->doSeries(item.Id);
+    this->doSimilar(item.Id);
 }
 
 MediaSeries::~MediaSeries() { brls::Logger::debug("Tab MediaSeries: delete"); }
 
-void MediaSeries::doSeries() {
+void MediaSeries::doSeries(const std::string& itemId) {
     ASYNC_RETAIN
-    jellyfin::getJSON<jellyfin::Series>(
-        [ASYNC_TOKEN](const jellyfin::Series& r) {
+    jellyfin::getJSON<jellyfin::Detail>(
+        [ASYNC_TOKEN](const jellyfin::Detail& r) {
             ASYNC_RELEASE
             this->headerTitle->setTitle(r.Name);
             this->labelYear->setText(std::to_string(r.ProductionYear));
@@ -194,10 +195,10 @@ void MediaSeries::doSeries() {
 
             this->people->setDataSource(new PeopleDataSource(r.People));
         },
-        [](...) {}, jellyfin::apiUserItem, AppConfig::instance().getUserId(), this->seriesId);
+        [](...) {}, jellyfin::apiUserItem, AppConfig::instance().getUserId(), itemId);
 }
 
-void MediaSeries::doSeason() {
+void MediaSeries::doSeason(const std::string& itemId) {
     std::string query = HTTP::encode_form({
         {"userId", AppConfig::instance().getUserId()},
         {"fields", "ItemCounts"},
@@ -221,10 +222,10 @@ void MediaSeries::doSeason() {
             ASYNC_RELEASE
             brls::Logger::warning("doSeason {}", ex);
         },
-        jellyfin::apiShowSeanon, this->seriesId, query);
+        jellyfin::apiShowSeanon, itemId, query);
 }
 
-void MediaSeries::doSimilar() {
+void MediaSeries::doSimilar(const std::string& itemId) {
     std::string query = HTTP::encode_form({
         {"userId", AppConfig::instance().getUserId()},
         {"limit", "12"},
@@ -241,5 +242,5 @@ void MediaSeries::doSimilar() {
             ASYNC_RELEASE
             this->similar->setVisibility(brls::Visibility::GONE);
         },
-        jellyfin::apiSimilar, this->seriesId, query);
+        jellyfin::apiSimilar, itemId, query);
 }

@@ -5,14 +5,14 @@
 #pragma once
 
 #include <borealis.hpp>
-#include <view/presenter.hpp>
+#include <api/jellyfin/media.hpp>
 
 class AutoTabFrame;
 class HRecyclerFrame;
 
 class MediaSeries : public brls::Box {
 public:
-    MediaSeries(const std::string& itemId);
+    MediaSeries(const jellyfin::Item& item);
     ~MediaSeries() override;
 
 private:
@@ -27,9 +27,7 @@ private:
     BRLS_BIND(HRecyclerFrame, similar, "series/similar");
     BRLS_BIND(AutoTabFrame, tabFrame, "series/tabFrame");
 
-    void doSeries();
-    void doSeason();
-    void doSimilar();
-
-    std::string seriesId;
+    void doSeries(const std::string& itemId);
+    void doSeason(const std::string& itemId);
+    void doSimilar(const std::string& itemId);
 };
