@@ -1,0 +1,3070 @@
+diff --git a/audio/decode/ad_spdif.c b/audio/decode/ad_spdif.c
+index decd97206d..3e9b58230c 100644
+--- a/audio/decode/ad_spdif.c
++++ b/audio/decode/ad_spdif.c
+@@ -53,7 +53,7 @@ struct spdifContext {
+     struct mp_decoder public;
+ };
+ 
+-static int write_packet(void *p, uint8_t *buf, int buf_size)
++static int write_packet(void *p, const uint8_t *buf, int buf_size)
+ {
+     struct spdifContext *ctx = p;
+ 
+diff --git a/audio/out/ao.c b/audio/out/ao.c
+index a5aa3a9402..6dd0ba6eb2 100644
+--- a/audio/out/ao.c
++++ b/audio/out/ao.c
+@@ -53,6 +53,7 @@ extern const struct ao_driver audio_out_wasapi;
+ extern const struct ao_driver audio_out_pcm;
+ extern const struct ao_driver audio_out_lavc;
+ extern const struct ao_driver audio_out_sdl;
++extern const struct ao_driver audio_out_hos;
+ 
+ static const struct ao_driver * const audio_out_drivers[] = {
+ // native:
+@@ -95,6 +96,9 @@ static const struct ao_driver * const audio_out_drivers[] = {
+ #endif
+ #if HAVE_SNDIO
+     &audio_out_sndio,
++#endif
++#if HAVE_HOS_AUDIO
++    &audio_out_hos,
+ #endif
+     &audio_out_null,
+ #if HAVE_COREAUDIO
+diff --git a/audio/out/ao_hos.c b/audio/out/ao_hos.c
+new file mode 100644
+index 0000000000..83bd03de7d
+--- /dev/null
++++ b/audio/out/ao_hos.c
+@@ -0,0 +1,298 @@
++/*
++ * audio output driver for Horizon OS using audren
++ * Copyright (c) 2024 averne <averne381@gmail.com>
++ *
++ * This file is part of mpv.
++ *
++ * mpv is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * mpv is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with mpv.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <switch.h>
++
++#include "config.h"
++#include "common/common.h"
++#include "common/msg.h"
++#include "options/m_option.h"
++#include "audio/format.h"
++#include "ao.h"
++#include "internal.h"
++
++#define MAX_CHANS 6 // 5.1
++#define MAX_BUF 16
++#define MAX_SAMPLES 32768
++
++struct priv {
++    AudioDriver driver;
++    int num_buffers;
++    int num_samples;
++
++    void *pool;
++    AudioDriverWaveBuf *buffers;
++
++    int cur_buf_idx;
++    uint32_t cur_queued_samples, total_queued_samples;
++};
++
++static const AudioRendererConfig ar_config = {
++    .output_rate     = AudioRendererOutputRate_48kHz,
++    .num_voices      = MAX_CHANS,
++    .num_effects     = 0,
++    .num_sinks       = 1,
++    .num_mix_objs    = 1,
++    .num_mix_buffers = MAX_CHANS,
++};
++
++static const uint8_t sink_channel_ids[] = { 0, 1, 2, 3, 4, 5 };
++
++static const struct mp_chmap possible_channel_layouts[] = {
++    {0},
++    MP_CHMAP_INIT_MONO,                 // mono
++    MP_CHMAP_INIT_STEREO,               // stereo
++    MP_CHMAP3(FL, FR, LFE),             // 2.1
++    MP_CHMAP4(FL, FR, BL, BR),          // 4.0
++    MP_CHMAP5(FL, FR, FC, BL, BR),      // 5.0
++    MP_CHMAP6(FL, FR, FC, LFE, BL, BR), // 5.1
++};
++
++static int init(struct ao *ao) {
++    struct priv *priv = ao->priv;
++
++    Result rc;
++
++    MP_VERBOSE(ao, "Initializing hos audio\n");
++
++    ao->format   = AF_FORMAT_S16; // Only format supported by audrv with Adpcm which mpv can't output
++    ao->channels = possible_channel_layouts[MPMIN(ao->channels.num, MAX_CHANS)];
++
++    rc = audrenInitialize(&ar_config);
++    if (R_FAILED(rc))
++        return -rc;
++
++    rc = audrvCreate(&priv->driver, &ar_config, MAX_CHANS);
++    if (R_FAILED(rc))
++        return -rc;
++
++    size_t mempool_size = MP_ALIGN_UP(priv->num_samples * ao->channels.num *
++        priv->num_buffers * sizeof(int16_t), AUDREN_MEMPOOL_ALIGNMENT);
++
++    priv->pool = aligned_alloc(AUDREN_MEMPOOL_ALIGNMENT, mempool_size);
++    if (!priv->pool)
++        return -1;
++
++    priv->buffers = talloc_array(priv, AudioDriverWaveBuf, priv->num_buffers);
++    for (int i = 0; i < priv->num_buffers; ++i) {
++        priv->buffers[i] = (AudioDriverWaveBuf){
++            .data_raw            = priv->pool,
++            .size                = mempool_size,
++            .start_sample_offset = priv->num_samples * i,
++            .end_sample_offset   = priv->num_samples * (i + 1),
++        };
++    }
++
++    int mpid = audrvMemPoolAdd(&priv->driver, priv->pool, mempool_size);
++    audrvMemPoolAttach(&priv->driver, mpid);
++
++    ao->device_buffer = priv->num_buffers * priv->num_samples;
++
++    audrvDeviceSinkAdd(&priv->driver, AUDREN_DEFAULT_DEVICE_NAME, MAX_CHANS, sink_channel_ids);
++
++    rc = audrenStartAudioRenderer();
++    if (R_FAILED(rc))
++        return -rc;
++
++    audrvVoiceInit(&priv->driver, 0, ao->channels.num, PcmFormat_Int16, ao->samplerate);
++    audrvVoiceSetDestinationMix(&priv->driver, 0, AUDREN_FINAL_MIX_ID);
++
++    for (int i = 0; i < ao->channels.num; ++i)
++        audrvVoiceSetMixFactor(&priv->driver, 0, 1.0f, ao->channels.speaker[i], ao->channels.speaker[i]);
++
++    return 0;
++}
++
++static void uninit(struct ao *ao) {
++    struct priv *priv = ao->priv;
++
++    MP_VERBOSE(ao, "Deinitializing hos audio\n");
++
++    audrvVoiceStop(&priv->driver, 0);
++    audrvUpdate(&priv->driver);
++
++    audrvClose(&priv->driver);
++    audrenExit();
++
++    free(priv->pool);
++}
++
++static void reset(struct ao *ao) {
++    struct priv *priv = ao->priv;
++
++    priv->cur_buf_idx = -1;
++    priv->cur_queued_samples = priv->total_queued_samples = 0;
++    audrvVoiceStop(&priv->driver, 0);
++    audrvUpdate(&priv->driver);
++}
++
++static bool set_pause(struct ao *ao, bool paused) {
++    struct priv *priv = ao->priv;
++
++    audrvVoiceSetPaused(&priv->driver, 0, paused);
++    return R_SUCCEEDED(audrvUpdate(&priv->driver));
++}
++
++static void start(struct ao *ao) {
++    struct priv *priv = ao->priv;
++
++    audrvVoiceStart(&priv->driver, 0);
++    audrvUpdate(&priv->driver);
++}
++
++static int find_free_wavebuf(struct priv *priv) {
++    for (int i = 0; i < priv->num_buffers; ++i) {
++        AudioDriverWaveBuf *buf = &priv->buffers[i];
++        if (buf->state == AudioDriverWaveBufState_Done ||
++                buf->state == AudioDriverWaveBufState_Free)
++            return i;
++    }
++    return -1;
++}
++
++static bool audio_write(struct ao *ao, void **data, int samples) {
++    struct priv *priv = ao->priv;
++
++    // We requested a linear format so there is only one buffer
++    uint8_t *dat = data[0];
++
++    while (samples) {
++        int idx = (priv->cur_buf_idx != -1) ? priv->cur_buf_idx : find_free_wavebuf(priv);
++        if (idx == -1)
++            return false;
++        priv->cur_buf_idx = idx;
++
++        AudioDriverWaveBuf *buf = &priv->buffers[idx];
++        uint8_t *buf_offset = (uint8_t *)buf->data_raw + (idx * priv->num_samples * ao->sstride);
++
++        size_t num_samples = MPMIN(samples, priv->num_samples - priv->cur_queued_samples);
++
++        memcpy(buf_offset + priv->cur_queued_samples * ao->sstride, dat, num_samples * ao->sstride);
++        priv->cur_queued_samples   += num_samples;
++        priv->total_queued_samples += num_samples;
++
++        dat     += num_samples * ao->sstride;
++        samples -= num_samples;
++
++        // Append buffer once it's full
++        if (priv->cur_queued_samples >= priv->num_samples) {
++            armDCacheFlush(buf_offset, priv->num_samples * ao->sstride);
++            audrvVoiceAddWaveBuf(&priv->driver, 0, buf);
++            audrvUpdate(&priv->driver);
++
++            priv->cur_buf_idx = -1, priv->cur_queued_samples = 0;
++        }
++    }
++
++    return true;
++}
++
++static void get_state(struct ao *ao, struct mp_pcm_state *state) {
++    struct priv *priv = ao->priv;
++
++    Result rc = audrvUpdate(&priv->driver);
++    if (R_FAILED(rc))
++        return;
++
++    state->free_samples = state->queued_samples = 0;
++    for (int i = 0; i < priv->num_buffers; ++i) {
++        AudioDriverWaveBuf *buf = &priv->buffers[i];
++        if (buf->state == AudioDriverWaveBufState_Free
++                || buf->state == AudioDriverWaveBufState_Done)
++            state->free_samples += priv->num_samples;
++    }
++
++    if (priv->cur_buf_idx != -1)
++        state->free_samples -= priv->num_samples - priv->cur_queued_samples;
++
++    state->queued_samples = priv->total_queued_samples -
++        audrvVoiceGetPlayedSampleCount(&priv->driver, 0);
++
++    state->delay = (double)state->queued_samples / ao->samplerate;
++
++    state->playing = audrvVoiceIsPlaying(&priv->driver, 0);
++}
++
++static int control(struct ao *ao, enum aocontrol cmd, void *arg) {
++    struct priv *priv = ao->priv;
++
++    int rc;
++
++    switch (cmd) {
++        case AOCONTROL_SET_MUTE:
++        case AOCONTROL_SET_VOLUME: {
++                float vol;
++                if (cmd == AOCONTROL_SET_MUTE) {
++                    bool in = *(bool *)arg;
++                    vol = !in;
++                } else {
++                    float *in = arg;
++                    vol = *in / 100.0f;
++                }
++
++                audrvMixSetVolume(&priv->driver, 0, vol);
++                rc = audrvUpdate(&priv->driver);
++            }
++            break;
++        case AOCONTROL_GET_MUTE:
++        case AOCONTROL_GET_VOLUME: {
++                rc = audrvUpdate(&priv->driver);
++                float vol = priv->driver.in_mixes[0].volume;
++                if (cmd == AOCONTROL_GET_MUTE) {
++                    bool *out = (bool *)arg;
++                    *out = !vol;
++                } else {
++                    float *out = arg;
++                    *out = vol * 100.0f;
++                }
++            }
++            break;
++        default:
++            return CONTROL_UNKNOWN;
++    }
++
++    return R_SUCCEEDED(rc) ? CONTROL_OK : CONTROL_ERROR;
++}
++
++#define OPT_BASE_STRUCT struct priv
++
++const struct ao_driver audio_out_hos = {
++    .description     = "HOS Audio",
++    .name            = "hos",
++    .init            = init,
++    .uninit          = uninit,
++    .reset           = reset,
++    .control         = control,
++    .set_pause       = set_pause,
++    .start           = start,
++    .write           = audio_write,
++    .get_state       = get_state,
++    .priv_size       = sizeof(struct priv),
++    .priv_defaults   = &(const struct priv){
++        .num_buffers = 4,
++        .num_samples = 8192,
++    },
++    .options         = (const struct m_option[]){
++        {"num-buffers", OPT_INT(num_buffers), M_RANGE(2,   MAX_BUF)},
++        {"num-samples", OPT_INT(num_samples), M_RANGE(256, MAX_SAMPLES)},
++        {0}
++    },
++    .options_prefix   = "ao-hos",
++};
+diff --git a/demux/demux_lavf.c b/demux/demux_lavf.c
+index 166bc8f908..e4dfc8db45 100644
+--- a/demux/demux_lavf.c
++++ b/demux/demux_lavf.c
+@@ -1095,11 +1095,21 @@ static int demux_open_lavf(demuxer_t *demuxer, enum demux_check check)
+         MP_VERBOSE(demuxer, "...did read %d bytes.\n", r);
+     }
+ 
+-    if (avformat_open_input(&avfc, priv->filename, priv->avif, &dopts) < 0) {
++    bstr out = {0};
++    bstr fn = bstr0(priv->filename);
++    if (bstr_find0(fn, ":") > 0 && bstr_find0(fn, "://") < 0)
++        bstr_xappend(demuxer, &out, bstr0("file:"));
++
++    bstr_xappend(demuxer, &out, fn);
++
++    if (avformat_open_input(&avfc, out.start, priv->avif, &dopts) < 0) {
+         MP_ERR(demuxer, "avformat_open_input() failed\n");
++        talloc_free(out.start);
+         goto fail;
+     }
+ 
++    talloc_free(out.start);
++
+     mp_avdict_print_unset(demuxer->log, MSGL_V, dopts);
+     av_dict_free(&dopts);
+ 
+diff --git a/filters/f_lavfi.c b/filters/f_lavfi.c
+index 597cf91fc0..c0596d32eb 100644
+--- a/filters/f_lavfi.c
++++ b/filters/f_lavfi.c
+@@ -1024,7 +1024,11 @@ static const char *get_avopt_type_name(enum AVOptionType type)
+     case AV_OPT_TYPE_VIDEO_RATE:        return "fps";
+     case AV_OPT_TYPE_DURATION:          return "duration";
+     case AV_OPT_TYPE_COLOR:             return "color";
++#if LIBAVUTIL_VERSION_MAJOR < 59
+     case AV_OPT_TYPE_CHANNEL_LAYOUT:    return "channellayout";
++#else
++    case AV_OPT_TYPE_CHLAYOUT:          return "channellayout";
++#endif
+     case AV_OPT_TYPE_BOOL:              return "bool";
+     case AV_OPT_TYPE_CONST: // fallthrough
+     default:
+diff --git a/filters/f_swresample.c b/filters/f_swresample.c
+index fb1ef05194..09148b5f88 100644
+--- a/filters/f_swresample.c
++++ b/filters/f_swresample.c
+@@ -23,6 +23,7 @@
+ #include <libswresample/swresample.h>
+ 
+ #include "audio/aframe.h"
++#include "audio/chmap_avchannel.h"
+ #include "audio/fmt-conversion.h"
+ #include "audio/format.h"
+ #include "common/common.h"
+@@ -269,14 +270,28 @@ static bool configure_lavrr(struct priv *p, bool verbose)
+ 
+     out_ch_layout = fudge_layout_conversion(p, in_ch_layout, out_ch_layout);
+ 
++#if HAVE_AV_CHANNEL_LAYOUT
+     // Real conversion; output is input to avrctx_out.
++    AVChannelLayout in_layout, out_layout;
++    mp_chmap_to_av_layout(&in_layout, &in_lavc);
++    mp_chmap_to_av_layout(&out_layout, &out_lavc);
++    av_opt_set_chlayout(p->avrctx, "in_chlayout",  &in_layout, 0);
++    av_opt_set_chlayout(p->avrctx, "out_chlayout", &out_layout, 0);
++#else
+     av_opt_set_int(p->avrctx, "in_channel_layout",  in_ch_layout, 0);
+     av_opt_set_int(p->avrctx, "out_channel_layout", out_ch_layout, 0);
++#endif
+     av_opt_set_int(p->avrctx, "in_sample_rate",     p->in_rate, 0);
+     av_opt_set_int(p->avrctx, "out_sample_rate",    p->out_rate, 0);
+     av_opt_set_int(p->avrctx, "in_sample_fmt",      in_samplefmt, 0);
+     av_opt_set_int(p->avrctx, "out_sample_fmt",     out_samplefmtp, 0);
+ 
++#if HAVE_AV_CHANNEL_LAYOUT
++    AVChannelLayout fake_layout;
++    av_channel_layout_default(&fake_layout, map_out.num);
++    av_opt_set_chlayout(p->avrctx_out, "in_chlayout", &fake_layout, 0);
++    av_opt_set_chlayout(p->avrctx_out, "out_chlayout", &fake_layout, 0);
++#else
+     // Just needs the correct number of channels for deplanarization.
+     struct mp_chmap fake_chmap;
+     mp_chmap_set_unknown(&fake_chmap, map_out.num);
+@@ -285,6 +300,7 @@ static bool configure_lavrr(struct priv *p, bool verbose)
+         goto error;
+     av_opt_set_int(p->avrctx_out, "in_channel_layout",  fake_out_ch_layout, 0);
+     av_opt_set_int(p->avrctx_out, "out_channel_layout", fake_out_ch_layout, 0);
++#endif
+ 
+     av_opt_set_int(p->avrctx_out, "in_sample_fmt",      out_samplefmtp, 0);
+     av_opt_set_int(p->avrctx_out, "out_sample_fmt",     out_samplefmt, 0);
+diff --git a/libmpv/render.h b/libmpv/render.h
+index 29f9b91e96..1f4c6ad071 100644
+--- a/libmpv/render.h
++++ b/libmpv/render.h
+@@ -421,6 +421,17 @@ typedef enum mpv_render_param_type {
+      * See MPV_RENDER_PARAM_SW_STRIDE for alignment requirements.
+      */
+     MPV_RENDER_PARAM_SW_POINTER = 20,
++    /**
++     * Required parameters for initializing the deko3d renderer. Valid for
++     * mpv_render_context_create().
++     * Type: mpv_deko3d_init_params*
++     */
++    MPV_RENDER_PARAM_DEKO3D_INIT_PARAMS = 21,
++    /**
++     * Describes a deko3d render target. Valid for mpv_render_context_render().
++     * Type: DkImage*
++     */
++    MPV_RENDER_PARAM_DEKO3D_FBO = 22,
+ } mpv_render_param_type;
+ 
+ /**
+@@ -465,6 +476,8 @@ typedef struct mpv_render_param {
+  */
+ // See render_gl.h
+ #define MPV_RENDER_API_TYPE_OPENGL "opengl"
++// See render_dk3d.h
++#define MPV_RENDER_API_TYPE_DEKO3D "deko3d"
+ // See section "Software renderer"
+ #define MPV_RENDER_API_TYPE_SW "sw"
+ 
+diff --git a/libmpv/render_dk3d.h b/libmpv/render_dk3d.h
+new file mode 100644
+index 0000000000..85fd94eb17
+--- /dev/null
++++ b/libmpv/render_dk3d.h
+@@ -0,0 +1,68 @@
++/* Copyright (C) 2018 the mpv developers
++ *
++ * Permission to use, copy, modify, and/or distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ */
++
++#ifndef MPV_CLIENT_API_RENDER_GL_H_
++#define MPV_CLIENT_API_RENDER_GL_H_
++
++#include <deko3d.h>
++
++#include "render.h"
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++/**
++ * For initializing the mpv deko3d state via MPV_RENDER_PARAM_DEKO3D_INIT_PARAMS.
++ */
++typedef struct mpv_deko3d_init_params {
++    /**
++     * The deko3d device context that will be used in subsequent operation.
++     */
++    DkDevice device;
++} mpv_deko3d_init_params;
++
++/**
++ * For MPV_RENDER_PARAM_DEKO3D_FBO.
++ */
++typedef struct mpv_deko3d_fbo {
++    /**
++     * Texture object.
++     */
++    DkImage *tex;
++    /**
++     * Fence object which signals that the corresponding texture can be rendered to.
++     */
++    DkFence *ready_fence;
++    /**
++     * Fence object which signals that the corresponding texture is finished being rendered to.
++     */
++    DkFence *done_fence;
++    /**
++     * Valid dimensions. This must refer to the size of the framebuffer. This
++     * must always be set.
++     */
++    int w, h;
++    /**
++     * Underlying texture internal format. This must always be set.
++     */
++    DkImageFormat format;
++} mpv_deko3d_fbo;
++
++#ifdef __cplusplus
++}
++#endif // __cplusplus
++
++#endif
+diff --git a/meson.build b/meson.build
+index f9fe4e7263..62a3d19360 100644
+--- a/meson.build
++++ b/meson.build
+@@ -294,7 +294,8 @@ endif
+ 
+ darwin = host_machine.system() == 'darwin'
+ win32 = host_machine.system() == 'cygwin' or host_machine.system() == 'windows'
+-posix = not win32
++hos = host_machine.system() == 'horizon'
++posix = not (win32 or hos)
+ 
+ features += {'darwin': darwin}
+ features += {'posix': posix}
+@@ -419,6 +420,17 @@ if darwin
+ 
+ endif
+ 
++if hos
++    sources += files('osdep/path-unix.c',
++                     'osdep/timer-linux.c',
++                     'osdep/subprocess-dummy.c',
++                     'osdep/terminal-dummy.c',
++                     'osdep/main-fn-unix.c',
++                     'osdep/language-posix.c',
++                     'input/ipc-dummy.c',
++                     'sub/filter_regex.c')
++endif
++
+ if posix and not darwin
+     sources += files('osdep/path-unix.c',
+                      'osdep/timer-linux.c')
+@@ -855,6 +867,13 @@ if features['sdl2-audio']
+     sources += files('audio/out/ao_sdl.c')
+ endif
+ 
++libnx = cc.find_library('nx', required: false)
++features += {'hos-audio': hos and libnx.found()}
++if features['hos-audio']
++    sources += files('audio/out/ao_hos.c')
++    dependencies += libnx
++endif
++
+ sndio = dependency('sndio', required: get_option('sndio'))
+ features += {'sndio': sndio.found()}
+ if features['sndio']
+@@ -893,6 +912,23 @@ if features['direct3d']
+     sources += files('video/out/vo_direct3d.c')
+ endif
+ 
++deko3d_opt = get_option('deko3d').require(
++    get_option('gpl') and hos,
++    error_message: 'the build is not GPL or this is not a horizon os!',
++)
++libuam = dependency('uam', required: deko3d_opt)
++deko3d_dep = cc.find_library('deko3d', required: deko3d_opt)
++deko3d = cc.has_header('deko3d.h', dependencies: deko3d_dep, required: deko3d_opt)
++features += {'deko3d': deko3d and libuam.found()}
++if features['deko3d']
++    dependencies += libuam
++    sources += files(
++        'video/out/deko3d/context.c',  
++        'video/out/deko3d/ra_dk.c',     
++        'video/out/deko3d/libmpv_dk.c', 
++        'video/out/hwdec/hwdec_deko3d.c')
++endif
++
+ drm = dependency('libdrm', version: '>= 2.4.75', required: get_option('drm'))
+ features += {'drm': drm.found() and (features['vt.h'] or features['consio.h'])}
+ if features['drm']
+@@ -1725,6 +1761,9 @@ if get_option('libmpv')
+ 
+     headers = ['libmpv/client.h', 'libmpv/render.h',
+                'libmpv/render_gl.h', 'libmpv/stream_cb.h']
++    if features['deko3d']
++        headers += 'libmpv/render_dk3d.h'
++    endif
+     install_headers(headers, subdir: 'mpv')
+ endif
+ 
+diff --git a/meson_options.txt b/meson_options.txt
+index 5f2d31df3d..f3d46c371d 100644
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -106,6 +106,7 @@ option('ios-gl', type: 'feature', value: 'auto', description: 'iOS OpenGL ES har
+ option('rpi-mmal', type: 'feature', value: 'auto', description: 'Raspberry Pi MMAL hwaccel')
+ option('videotoolbox-gl', type: 'feature', value: 'auto', description: 'Videotoolbox with OpenGL')
+ option('vulkan-interop', type: 'feature', value: 'auto', description: 'Vulkan graphics interop')
++option('deko3d', type: 'feature', value: 'auto', description: 'deko3d context support')
+ 
+ # macOS features
+ option('macos-10-11-features', type: 'feature', value: 'auto', description: 'macOS 10.11 SDK Features')
+diff --git a/options/path.c b/options/path.c
+index 95a79a94b1..dd75006adb 100644
+--- a/options/path.c
++++ b/options/path.c
+@@ -84,7 +84,7 @@ static const char *mp_get_platform_path(void *talloc_ctx,
+         // force all others to NULL, only first returns the path
+         for (int n = 0; n < MP_ARRAY_SIZE(config_dirs); n++) {
+             if (strcmp(config_dirs[n], type) == 0)
+-                return (n == 0 && global->configdir[0]) ? global->configdir : NULL;
++                return (n < 2 && global->configdir[0]) ? global->configdir : NULL;
+         }
+         for (int n = 0; n < MP_ARRAY_SIZE(config_dir_replaces); n++) {
+             if (strcmp(config_dir_replaces[n], type) == 0)
+@@ -283,6 +283,10 @@ char *mp_splitext(const char *path, bstr *root)
+ 
+ bool mp_path_is_absolute(struct bstr path)
+ {
++    // Switch extension: path with a mountpoint prefix are absolute
++    if (path.len && strchr((char *)path.start, ':'))
++        return true;
++
+     if (path.len && strchr(mp_path_separators, path.start[0]))
+         return true;
+ 
+diff --git a/osdep/io.c b/osdep/io.c
+index 8cd6dede85..1304c8f12f 100644
+--- a/osdep/io.c
++++ b/osdep/io.c
+@@ -62,7 +62,7 @@ bool mp_set_cloexec(int fd)
+     return true;
+ }
+ 
+-#ifdef __MINGW32__
++#if defined(__MINGW32__) || defined(__SWITCH__)
+ int mp_make_cloexec_pipe(int pipes[2])
+ {
+     pipes[0] = pipes[1] = -1;
+diff --git a/osdep/io.h b/osdep/io.h
+index 905558c284..f616f58575 100644
+--- a/osdep/io.h
++++ b/osdep/io.h
+@@ -210,7 +210,7 @@ void freelocale(locale_t);
+ 
+ #else /* __MINGW32__ */
+ 
+-#include <sys/mman.h>
++#include "switch/sys/mman.h"
+ 
+ extern char **environ;
+ 
+diff --git a/osdep/switch/sys/mman.h b/osdep/switch/sys/mman.h
+new file mode 100644
+index 0000000000..398ff01729
+--- /dev/null
++++ b/osdep/switch/sys/mman.h
+@@ -0,0 +1,15 @@
++#ifndef _MEMMAP_H_
++#define _MEMMAP_H_
++
++#include <stdio.h>
++#include <stdint.h>
++
++#define PROT_READ       0x1
++#define PROT_WRITE      0x2
++#define MAP_SHARED      0x01
++#define MAP_FAILED      ((void *) -1)
++
++#define mmap(a, b, c, d, e, f) malloc(b)
++#define munmap(a, b) free(a)
++
++#endif
+diff --git a/sub/filter_regex.c b/sub/filter_regex.c
+index 8e299918ce..c7b08f5273 100644
+--- a/sub/filter_regex.c
++++ b/sub/filter_regex.c
+@@ -1,5 +1,5 @@
+-#include <regex.h>
+ #include <sys/types.h>
++#include <regex.h>
+ 
+ #include "common/common.h"
+ #include "common/msg.h"
+diff --git a/sub/osd.c b/sub/osd.c
+index 811b6c821b..1db7db8444 100644
+--- a/sub/osd.c
++++ b/sub/osd.c
+@@ -76,7 +76,7 @@ const struct m_sub_options osd_style_conf = {
+     .opts = style_opts,
+     .size = sizeof(struct osd_style_opts),
+     .defaults = &(const struct osd_style_opts){
+-        .font = "sans-serif",
++        .font = "nintendo_udsg-r_std_003",
+         .font_size = 55,
+         .color = {255, 255, 255, 255},
+         .border_color = {0, 0, 0, 255},
+@@ -95,7 +95,7 @@ const struct m_sub_options sub_style_conf = {
+     .opts = style_opts,
+     .size = sizeof(struct osd_style_opts),
+     .defaults = &(const struct osd_style_opts){
+-        .font = "sans-serif",
++        .font = "nintendo_udsg-r_std_003",
+         .font_size = 55,
+         .color = {255, 255, 255, 255},
+         .border_color = {0, 0, 0, 255},
+diff --git a/sub/sd_ass.c b/sub/sd_ass.c
+index e4e5652875..6b57464b32 100644
+--- a/sub/sd_ass.c
++++ b/sub/sd_ass.c
+@@ -21,6 +21,10 @@
+ #include <math.h>
+ #include <limits.h>
+ 
++#ifdef __SWITCH__
++#   include <switch.h>
++#endif
++
+ #include <libavutil/common.h>
+ #include <ass/ass.h>
+ 
+@@ -198,6 +202,31 @@ static void enable_output(struct sd *sd, bool enable)
+     } else {
+         ctx->ass_renderer = ass_renderer_init(ctx->ass_library);
+ 
++#ifdef __SWITCH__
++        static char * const pl_font_names[] = {
++            [PlSharedFontType_Standard]             = "nintendo_udsg-r_std_003",
++            [PlSharedFontType_ChineseSimplified]    = "nintendo_udsg-r_org_zh-cn_003",
++            [PlSharedFontType_ChineseTraditional]   = "nintendo_udjxh-db_zh-tw_003",
++            [PlSharedFontType_KO]                   = "nintendo_udsg-r_ko_003",
++        };
++
++        Result rc = plInitialize(PlServiceType_User);
++        if (R_SUCCEEDED(rc)) {
++            PlFontData font;
++            for (int i = 0; i < PlSharedFontType_Total; ++i) {
++                rc = plGetSharedFontByType(&font, i);
++                if (R_SUCCEEDED(rc))
++                    ass_add_font(ctx->ass_library, pl_font_names[font.type],
++                        font.address, font.size);
++                else
++                    MP_ERR(sd, "Failed to add font %s from pl: %#x\n", pl_font_names[i], rc);
++            }
++
++            plExit();
++        }
++
++#endif
++
+         mp_ass_configure_fonts(ctx->ass_renderer, sd->opts->sub_style,
+                                sd->global, sd->log);
+     }
+diff --git a/video/fmt-conversion.c b/video/fmt-conversion.c
+index aa7d857341..088cb8366f 100644
+--- a/video/fmt-conversion.c
++++ b/video/fmt-conversion.c
+@@ -64,6 +64,7 @@ static const struct {
+     {IMGFMT_D3D11, AV_PIX_FMT_D3D11},
+     {IMGFMT_MMAL, AV_PIX_FMT_MMAL},
+     {IMGFMT_CUDA, AV_PIX_FMT_CUDA},
++    {IMGFMT_NVTEGRA, AV_PIX_FMT_NVTEGRA},
+     {IMGFMT_P010, AV_PIX_FMT_P010},
+     {IMGFMT_DRMPRIME, AV_PIX_FMT_DRM_PRIME},
+ #if HAVE_VULKAN_INTEROP
+diff --git a/video/img_format.h b/video/img_format.h
+index 2091e00598..69bba528e6 100644
+--- a/video/img_format.h
++++ b/video/img_format.h
+@@ -278,6 +278,7 @@ enum mp_imgfmt {
+     IMGFMT_MMAL,            // MMAL_BUFFER_HEADER_T
+     IMGFMT_MEDIACODEC,      // AVMediaCodecBuffer
+     IMGFMT_CUDA,            // CUDA Buffer
++    IMGFMT_NVTEGRA,         // AVNVTegraMap
+ 
+     // Not an actual format; base for mpv-specific descriptor table.
+     // Some may still map to AV_PIX_FMT_*.
+diff --git a/video/mp_image.c b/video/mp_image.c
+index 40678d10bd..0baddd3e78 100644
+--- a/video/mp_image.c
++++ b/video/mp_image.c
+@@ -176,7 +176,7 @@ static bool mp_image_alloc_planes(struct mp_image *mpi)
+         return false;
+ 
+     // Note: mp_image_pool assumes this creates only 1 AVBufferRef.
+-    mpi->bufs[0] = av_buffer_alloc(size + align);
++    mpi->bufs[0] = av_buffer_aligned_alloc(size + align, 0x100); // Alignment required for plane offsets
+     if (!mpi->bufs[0])
+         return false;
+ 
+diff --git a/video/mp_image.h b/video/mp_image.h
+index 98dd666412..376e269356 100644
+--- a/video/mp_image.h
++++ b/video/mp_image.h
+@@ -32,7 +32,7 @@
+ // libraries except libavcodec don't really know what alignment they want.
+ // Things will randomly crash or get slower if the alignment is not satisfied.
+ // Whatever. This value should be pretty safe with current CPU architectures.
+-#define MP_IMAGE_BYTE_ALIGN 64
++#define MP_IMAGE_BYTE_ALIGN 256 // VIC alignement
+ 
+ #define MP_IMGFIELD_TOP_FIRST 0x02
+ #define MP_IMGFIELD_REPEAT_FIRST 0x04
+diff --git a/video/out/deko3d/common.h b/video/out/deko3d/common.h
+new file mode 100644
+index 0000000000..b8b6e1545a
+--- /dev/null
++++ b/video/out/deko3d/common.h
+@@ -0,0 +1,35 @@
++/*
++ * Copyright (c) 2024 averne <averne381@gmail.com>
++ *
++ * This file is part of mpv.
++ *
++ * mpv is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * mpv is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with mpv.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#pragma once
++
++#include <deko3d.h>
++
++#define RA_DK_NUM_CMDBUFS 3
++#define RA_DK_CMDBUF_SIZE MP_ALIGN_UP(0x10000, DK_MEMBLOCK_ALIGNMENT)
++
++typedef struct {
++    DkDevice device;
++    DkQueue queue;
++
++    DkCmdBuf cmdbuf;
++    DkMemBlock cmdbuf_memblock;
++    int cur_cmdbuf_slice;
++    DkFence cmdbuf_fences[RA_DK_NUM_CMDBUFS];
++} mp_dk_ctx;
+diff --git a/video/out/deko3d/context.c b/video/out/deko3d/context.c
+new file mode 100644
+index 0000000000..88688663b0
+--- /dev/null
++++ b/video/out/deko3d/context.c
+@@ -0,0 +1,73 @@
++/*
++ * Copyright (c) 2024 averne <averne381@gmail.com>
++ *
++ * This file is part of mpv.
++ *
++ * mpv is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * mpv is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with mpv.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include "context.h"
++#include "ra_dk.h"
++
++struct priv {
++    struct mp_log *log;
++    struct ra_swapchain_fns fns;
++
++    mp_dk_ctx *dk;
++};
++
++static const struct ra_swapchain_fns ra_dk_swapchain_fns;
++
++bool ra_dk_ctx_init(struct ra_ctx *ctx, mp_dk_ctx *dk, struct ra_dk_ctx_params *params) {
++    struct ra_swapchain *sw = ctx->swapchain = talloc_ptrtype(ctx, sw);
++    *sw = (struct ra_swapchain) {
++        .ctx = ctx,
++    };
++
++    struct priv *p = sw->priv = talloc_ptrtype(sw, p);
++    *p = (struct priv) {
++        .dk  = dk,
++        .log = ctx->log,
++        .fns = ra_dk_swapchain_fns,
++    };
++
++    const struct ra_swapchain_fns *ext = params->external_swapchain;
++    if (ext) {
++        if (ext->color_depth)
++            p->fns.color_depth = ext->color_depth;
++        if (ext->start_frame)
++            p->fns.start_frame = ext->start_frame;
++        if (ext->submit_frame)
++            p->fns.submit_frame = ext->submit_frame;
++        if (ext->swap_buffers)
++            p->fns.swap_buffers = ext->swap_buffers;
++    }
++
++    ctx->ra = ra_create_dk(dk, ctx->log);
++    return !!ctx->ra;
++}
++
++void ra_dk_ctx_uninit(struct ra_ctx *ctx) {
++    if (ctx->swapchain)
++        TA_FREEP(&ctx->swapchain);
++    ra_free(&ctx->ra);
++}
++
++static const struct ra_swapchain_fns ra_dk_swapchain_fns = {
++    // .color_depth   = ra_dk_ctx_color_depth,
++    // .start_frame   = ra_dk_ctx_start_frame,
++    // .submit_frame  = ra_dk_ctx_submit_frame,
++    // .swap_buffers  = ra_dk_ctx_swap_buffers,
++    // .get_vsync     = ra_dk_ctx_get_vsync,
++};
+diff --git a/video/out/deko3d/context.h b/video/out/deko3d/context.h
+new file mode 100644
+index 0000000000..7e398311aa
+--- /dev/null
++++ b/video/out/deko3d/context.h
+@@ -0,0 +1,30 @@
++/*
++ * Copyright (c) 2024 averne <averne381@gmail.com>
++ *
++ * This file is part of mpv.
++ *
++ * mpv is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * mpv is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with mpv.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#pragma once
++
++#include "video/out/gpu/context.h"
++#include "common.h"
++
++struct ra_dk_ctx_params {
++    const struct ra_swapchain_fns *external_swapchain;
++};
++
++bool ra_dk_ctx_init(struct ra_ctx *ctx, mp_dk_ctx *dk, struct ra_dk_ctx_params *params);
++void ra_dk_ctx_uninit(struct ra_ctx *ctx);
+diff --git a/video/out/deko3d/libmpv_dk.c b/video/out/deko3d/libmpv_dk.c
+new file mode 100644
+index 0000000000..24648793a1
+--- /dev/null
++++ b/video/out/deko3d/libmpv_dk.c
+@@ -0,0 +1,173 @@
++/*
++ * Copyright (c) 2024 averne <averne381@gmail.com>
++ *
++ * This file is part of mpv.
++ *
++ * mpv is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * mpv is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with mpv.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include "common/msg.h"
++#include "options/m_config.h"
++#include "libmpv/render_dk3d.h"
++#include "video/out/gpu/libmpv_gpu.h"
++#include "video/out/gpu/context.h"
++#include "video/out/gpu/ra.h"
++#include "video/out/deko3d/ra_dk.h"
++#include "common.h"
++#include "context.h"
++
++struct priv {
++    struct ra_ctx *ra_ctx;
++    mp_dk_ctx *dk;
++
++    struct ra_tex *cur_fbo;
++
++    bool first_frame;
++
++    DkFence *client_done_fence;
++};
++
++static int init(struct libmpv_gpu_context *ctx, mpv_render_param *params) {
++    MP_VERBOSE(ctx, "Creating libmpv deko3d context\n");
++
++    struct priv *priv = ctx->priv = talloc_zero(ctx, struct priv);
++
++    mpv_deko3d_init_params *init_params =
++        get_mpv_render_param(params, MPV_RENDER_PARAM_DEKO3D_INIT_PARAMS, NULL);
++    if (!init_params)
++        return MPV_ERROR_INVALID_PARAMETER;
++
++    priv->ra_ctx         = talloc_zero(priv, struct ra_ctx);
++    priv->ra_ctx->log    = ctx->log;
++    priv->ra_ctx->global = ctx->global;
++    priv->ra_ctx->opts   = (struct ra_ctx_opts){
++        .probing = false,
++    };
++
++    priv->dk  = talloc_zero(priv, mp_dk_ctx);
++    *priv->dk = (mp_dk_ctx){
++        .device = init_params->device,
++    };
++
++    struct ra_dk_ctx_params dk_params = {0};
++
++    if (!ra_dk_ctx_init(priv->ra_ctx, priv->dk, &dk_params))
++        return MPV_ERROR_UNSUPPORTED;
++
++    ctx->ra_ctx = priv->ra_ctx;
++
++    priv->cur_fbo       = talloc_zero(priv, struct ra_tex);
++    priv->cur_fbo->priv = talloc_zero(priv, struct ra_tex_dk);
++
++    priv->first_frame = true;
++
++    return 0;
++}
++
++static int wrap_fbo(struct libmpv_gpu_context *ctx, mpv_render_param *params, struct ra_tex **out) {
++    struct priv *priv = ctx->priv;
++
++    mpv_deko3d_fbo *fbo =
++        get_mpv_render_param(params, MPV_RENDER_PARAM_DEKO3D_FBO, NULL);
++
++    struct ra_format *fmt = NULL;
++    for (int i = 0; i < priv->ra_ctx->ra->num_formats; ++i) {
++        fmt = priv->ra_ctx->ra->formats[i];
++        if (((struct dk_format *)fmt->priv)->fmt == fbo->format)
++            break;
++    }
++
++    if (!fmt)
++        return MPV_ERROR_INVALID_PARAMETER;
++
++    priv->cur_fbo->params = (struct ra_tex_params){
++        .w          = fbo->w,
++        .h          = fbo->h,
++        .d          = 1,
++        .format     = fmt,
++        .render_dst = true,
++        .blit_src   = true,
++        .blit_dst   = true,
++    };
++
++    struct ra_tex_dk *priv_tex = priv->cur_fbo->priv;
++    priv_tex->image = *fbo->tex;
++
++    *out = priv->cur_fbo;
++
++    return 0;
++}
++
++static void begin_frame(struct libmpv_gpu_context *ctx, mpv_render_param *params, struct ra_tex *tex) {
++    struct priv *priv = ctx->priv;
++
++    MP_TRACE(ctx, "%s\n", __func__);
++
++    // Wait for the queue operations submitted during initialization to complete
++    if (priv->first_frame) {
++        dkQueueWaitIdle(priv->dk->queue);
++        priv->first_frame = false;
++    }
++
++    // Cycle through the command buffer memory
++    priv->dk->cur_cmdbuf_slice = (priv->dk->cur_cmdbuf_slice + 1) % RA_DK_NUM_CMDBUFS;
++    dkCmdBufClear(priv->dk->cmdbuf);
++    dkCmdBufAddMemory(priv->dk->cmdbuf, priv->dk->cmdbuf_memblock,
++        priv->dk->cur_cmdbuf_slice * RA_DK_CMDBUF_SIZE, RA_DK_CMDBUF_SIZE);
++
++    // Starting a new render cycle would overwrite the command buffer for the in-flight frame
++    // Despite the gpu-side wait inserted before queuing the frame, the rendering is not guaranteed
++    // to have completed when the dequeue operation returns, when using triple+ buffering
++    dkFenceWait(&priv->dk->cmdbuf_fences[priv->dk->cur_cmdbuf_slice], -1);
++
++    mpv_deko3d_fbo *fbo =
++        get_mpv_render_param(params, MPV_RENDER_PARAM_DEKO3D_FBO, NULL);
++
++    priv->client_done_fence = fbo->done_fence;
++
++    // Wait for the framebuffer to be free to write to
++    if (fbo->ready_fence)
++        dkQueueWaitFence(priv->dk->queue, fbo->ready_fence);
++}
++
++static void done_frame(struct libmpv_gpu_context *ctx, bool ds) {
++    struct priv *priv = ctx->priv;
++
++    MP_TRACE(ctx, "%s\n", __func__);
++
++    // Signal that all the rendering tasks have completed
++    if (priv->client_done_fence)
++        dkQueueSignalFence(priv->dk->queue, priv->client_done_fence, false);
++    dkQueueSignalFence(priv->dk->queue,
++        &priv->dk->cmdbuf_fences[priv->dk->cur_cmdbuf_slice], false);
++    dkQueueFlush(priv->dk->queue);
++}
++
++static void destroy(struct libmpv_gpu_context *ctx) {
++    struct priv *p = ctx->priv;
++
++    MP_VERBOSE(ctx, "Destroying libmpv deko3d context\n");
++
++    if (p && p->ra_ctx)
++        ra_dk_ctx_uninit(p->ra_ctx);
++}
++
++const struct libmpv_gpu_context_fns libmpv_gpu_context_dk = {
++    .api_name    = MPV_RENDER_API_TYPE_DEKO3D,
++    .init        = init,
++    .wrap_fbo    = wrap_fbo,
++    .begin_frame = begin_frame,
++    .done_frame  = done_frame,
++    .destroy     = destroy,
++};
+diff --git a/video/out/deko3d/ra_dk.c b/video/out/deko3d/ra_dk.c
+new file mode 100644
+index 0000000000..8b37478f39
+--- /dev/null
++++ b/video/out/deko3d/ra_dk.c
+@@ -0,0 +1,1268 @@
++/*
++ * Copyright (c) 2024 averne <averne381@gmail.com>
++ *
++ * This file is part of mpv.
++ *
++ * mpv is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * mpv is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with mpv.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <libavutil/intreadwrite.h>
++#include <switch.h>
++#include <libuam/libuam.h>
++
++#include "common/msg.h"
++
++#include "ra_dk.h"
++
++// See deko3d format_traits.inc
++const struct dk_format formats[] = {
++    { "r8",       1,  1, { 8},             DkImageFormat_R8_Unorm,      RA_CTYPE_UNORM, true,  true,  true,  true  },
++    { "rg8",      2,  2, { 8,  8},         DkImageFormat_RG8_Unorm,     RA_CTYPE_UNORM, true,  true,  true,  true  },
++    { "rgba8",    4,  4, { 8,  8,  8,  8}, DkImageFormat_RGBA8_Unorm,   RA_CTYPE_UNORM, true,  true,  true,  true  },
++    { "r16",      1,  2, {16},             DkImageFormat_R16_Unorm,     RA_CTYPE_UNORM, true,  true,  true,  true  },
++    { "rg16",     2,  4, {16, 16},         DkImageFormat_RG16_Unorm,    RA_CTYPE_UNORM, true,  true,  true,  true  },
++    { "rgba16",   4,  8, {16, 16, 16, 16}, DkImageFormat_RGBA16_Unorm,  RA_CTYPE_UNORM, true,  true,  true,  true  },
++
++    { "r32ui",    1,  4, {32},             DkImageFormat_R32_Uint,      RA_CTYPE_UINT,  true,  false, true,  true  },
++    { "rg32ui",   2,  8, {32, 32},         DkImageFormat_RG32_Uint,     RA_CTYPE_UINT,  true,  false, true,  true  },
++    { "rgb32ui",  3, 12, {32, 32, 32},     DkImageFormat_RGB32_Uint,    RA_CTYPE_UINT,  false, false, false, true  },
++    { "rgba32ui", 4, 16, {32, 32, 32, 32}, DkImageFormat_RGBA32_Uint,   RA_CTYPE_UINT,  true,  false, true,  true  },
++
++    { "r16f",     1,  2, {16},             DkImageFormat_R16_Float,     RA_CTYPE_FLOAT, true,  true,  true,  true  },
++    { "rg16f",    2,  4, {16, 16},         DkImageFormat_RG16_Float,    RA_CTYPE_FLOAT, true,  true,  true,  true  },
++    { "rgba16f",  4,  8, {16, 16, 16, 16}, DkImageFormat_RGBA16_Float,  RA_CTYPE_FLOAT, true,  true,  true,  true  },
++    { "r32f",     1,  4, {32},             DkImageFormat_R32_Float,     RA_CTYPE_FLOAT, true,  true,  true,  true  },
++    { "rg32f",    2,  8, {32, 32},         DkImageFormat_RG32_Float,    RA_CTYPE_FLOAT, true,  true,  true,  true  },
++    { "rgb32f",   3, 12, {32, 32, 32},     DkImageFormat_RGB32_Float,   RA_CTYPE_FLOAT, false, false, false, true  },
++    { "rgba32f",  4, 16, {32, 32, 32, 32}, DkImageFormat_RGBA32_Float,  RA_CTYPE_FLOAT, true,  true,  true,  true  },
++
++    { "rgb10_a2", 4,  4, {10, 10, 10,  2}, DkImageFormat_RGB10A2_Unorm, RA_CTYPE_UNORM, true,  true,  true,  true  },
++    { "rg11b10f", 3,  4, {11, 11, 10},     DkImageFormat_RG11B10_Float, RA_CTYPE_FLOAT, true,  true,  true,  true  },
++    { "bgra8",    4,  4, { 8,  8,  8,  8}, DkImageFormat_BGRA8_Unorm,   RA_CTYPE_UNORM, true,  true,  true,  false },
++    { "bgrx8",    3,  4, { 8,  8,  8},     DkImageFormat_BGRX8_Unorm,   RA_CTYPE_UNORM, true,  true,  false, false },
++};
++
++struct priv {
++    mp_dk_ctx *dk;
++
++    DkMemBlock           descriptors_memblock;
++    DkSamplerDescriptor *sampler_descriptors;
++    DkImageDescriptor   *image_descriptors;
++    uint64_t             allocated_descriptors[2];
++
++    DkMemBlock query_memblock;
++    size_t     num_queries;
++};
++_Static_assert(sizeof(((struct priv *)0)->allocated_descriptors) * __CHAR_BIT__ == RA_DK_MAX_DESCRIPTORS);
++
++static const char dk_shadercache_magic[] = "DKCH";
++static const int dk_shadercache_version = 1;
++
++struct dk_shadercache_hdr {
++    uint32_t magic;
++    int cache_version;
++    uint32_t vertex_offset, vertex_size;
++    uint32_t fragment_offset, fragment_size;
++    uint32_t compute_offset, compute_size;
++};
++_Static_assert(sizeof(struct dk_shadercache_hdr) == 0x20);
++
++static void dk_destroy(struct ra *ra);
++static void dk_tex_destroy(struct ra *ra, struct ra_tex *tex);
++static struct ra_tex *dk_tex_create(struct ra *ra, const struct ra_tex_params *params);
++static bool dk_tex_upload(struct ra *ra, const struct ra_tex_upload_params *params);
++static bool dk_tex_download(struct ra *ra, struct ra_tex_download_params *params);
++static void dk_buf_destroy(struct ra *ra, struct ra_buf *buf);
++static struct ra_buf *dk_buf_create(struct ra *ra, const struct ra_buf_params *params);
++static void dk_buf_update(struct ra *ra, struct ra_buf *buf, ptrdiff_t offset,
++                          const void *data, size_t size);
++static bool dk_buf_poll(struct ra *ra, struct ra_buf *buf);
++static void dk_clear(struct ra *ra, struct ra_tex *dst, float color[4], struct mp_rect *scissor);
++static void dk_blit(struct ra *ra, struct ra_tex *dst, struct ra_tex *src,
++                    struct mp_rect *dst_rc, struct mp_rect *src_rc);
++static int dk_desc_namespace(struct ra *ra, enum ra_vartype type);
++static void dk_renderpass_destroy(struct ra *ra, struct ra_renderpass *pass);
++static struct ra_renderpass *dk_renderpass_create(struct ra *ra,
++                                                  const struct ra_renderpass_params *params);
++static void dk_renderpass_run(struct ra *ra, const struct ra_renderpass_run_params *params);
++static ra_timer *dk_timer_create(struct ra *ra);
++static void dk_timer_destroy(struct ra *ra, ra_timer *timer);
++static void dk_timer_start(struct ra *ra, ra_timer *timer);
++static uint64_t dk_timer_stop(struct ra *ra, ra_timer *timer);
++static void dk_debug_marker(struct ra *ra, const char *msg);
++
++static struct ra_fns ra_fns_dk = {
++    .destroy            = dk_destroy,
++    .tex_create         = dk_tex_create,
++    .tex_destroy        = dk_tex_destroy,
++    .tex_upload         = dk_tex_upload,
++    .tex_download       = dk_tex_download,
++    .buf_create         = dk_buf_create,
++    .buf_destroy        = dk_buf_destroy,
++    .buf_update         = dk_buf_update,
++    .buf_poll           = dk_buf_poll,
++    .clear              = dk_clear,
++    .blit               = dk_blit,
++    .uniform_layout     = std140_layout,
++    .desc_namespace     = dk_desc_namespace,
++    .renderpass_create  = dk_renderpass_create,
++    .renderpass_destroy = dk_renderpass_destroy,
++    .renderpass_run     = dk_renderpass_run,
++    .timer_create       = dk_timer_create,
++    .timer_destroy      = dk_timer_destroy,
++    .timer_start        = dk_timer_start,
++    .timer_stop         = dk_timer_stop,
++    .debug_marker       = dk_debug_marker,
++};
++
++static inline DkBlendFactor map_blend_factor(enum ra_blend factor) {
++    switch (factor) {
++        case RA_BLEND_ZERO:
++            return DkBlendFactor_Zero;
++        case RA_BLEND_ONE:
++            return DkBlendFactor_One;
++        case RA_BLEND_SRC_ALPHA:
++            return DkBlendFactor_SrcAlpha;
++        case RA_BLEND_ONE_MINUS_SRC_ALPHA:
++            return DkBlendFactor_InvSrcAlpha;
++        default:
++            return -1;
++    }
++}
++
++static DkVtxAttribType map_vertex_attrib_type(enum ra_vartype type) {
++    switch (type) {
++        case RA_VARTYPE_INT:
++            return DkVtxAttribType_Sint;
++        case RA_VARTYPE_FLOAT:
++            return DkVtxAttribType_Float;
++        case RA_VARTYPE_BYTE_UNORM:
++            return DkVtxAttribType_Unorm;
++        default:
++            return -1;
++    }
++}
++
++static DkVtxAttribSize map_vertex_attrib_size(enum ra_vartype type, int dim_v, int dim_m) {
++    // Matrix types not supported
++    switch (type) {
++        case RA_VARTYPE_INT:
++        case RA_VARTYPE_FLOAT:
++            switch (dim_v) {
++                case 1:
++                    return DkVtxAttribSize_1x32;
++                case 2:
++                    return DkVtxAttribSize_2x32;
++                case 3:
++                    return DkVtxAttribSize_3x32;
++                case 4:
++                    return DkVtxAttribSize_4x32;
++            }
++            break;
++        case RA_VARTYPE_BYTE_UNORM:
++            switch (dim_v) {
++                case 1:
++                    return DkVtxAttribSize_1x8;
++                case 2:
++                    return DkVtxAttribSize_2x8;
++                case 3:
++                    return DkVtxAttribSize_3x8;
++                case 4:
++                    return DkVtxAttribSize_4x8;
++            }
++            break;
++    }
++    return -1;
++}
++
++mp_dk_ctx *ra_dk_get_ctx(struct ra *ra) {
++    struct priv *priv = ra->priv;
++    return priv->dk;
++}
++
++static int ra_init_dk(struct ra *ra, mp_dk_ctx *dk) {
++    struct priv *priv = ra->priv = talloc_zero(ra, struct priv);
++    priv->dk = dk;
++
++    ra->fns = &ra_fns_dk;
++    ra->glsl_version = 460;
++    ra->glsl_deko3d = true;
++
++    ra->caps = RA_CAP_TEX_1D        |
++               RA_CAP_TEX_3D        |
++               RA_CAP_BLIT          |
++               RA_CAP_COMPUTE       |
++               RA_CAP_DIRECT_UPLOAD |
++               RA_CAP_BUF_RO        |
++               RA_CAP_BUF_RW        |
++               RA_CAP_NESTED_ARRAY  |
++               RA_CAP_GATHER        |
++               RA_CAP_FRAGCOORD     |
++               // Causes most postproc shaders to use compute instead of fragment
++               // Works fine here but doesn't seem to cause a significant perf gain
++               // RA_CAP_PARALLEL_COMPUTE |
++               RA_CAP_NUM_GROUPS;
++
++    // Values reported by the opengl driver
++    ra->max_texture_wh            = 16384;
++    ra->max_shmem                 = 98304;
++    ra->max_compute_group_threads = 1024;
++
++    for (int i = 0; i < MP_ARRAY_SIZE(formats); ++i) {
++        const struct dk_format *dkfmt = &formats[i];
++
++        struct ra_format *fmt = talloc_zero(ra, struct ra_format);
++        *fmt = (struct ra_format){
++            .name           = dkfmt->name,
++            .priv           = (void *)dkfmt,
++            .ctype          = dkfmt->ctype,
++            .ordered        = dkfmt->ordered,
++            .num_components = dkfmt->components,
++            .pixel_size     = dkfmt->bytes,
++            .linear_filter  = dkfmt->linear_filter,
++            .renderable     = dkfmt->renderable,
++            .storable       = dkfmt->storable,
++        };
++
++        for (int j = 0; j < dkfmt->components; j++)
++            fmt->component_size[j] = fmt->component_depth[j] = dkfmt->bits[j];
++
++        fmt->glsl_format = ra_fmt_glsl_format(fmt);
++
++        MP_TARRAY_APPEND(ra, ra->formats, ra->num_formats, fmt);
++    }
++
++    DkQueueMaker queue_maker;
++    dkQueueMakerDefaults(&queue_maker, priv->dk->device);
++    queue_maker.flags = DkQueueFlags_Graphics | DkQueueFlags_Compute | DkQueueFlags_DisableZcull;
++    priv->dk->queue = dkQueueCreate(&queue_maker);
++    if (!priv->dk->queue)
++        return -1;
++
++    DkMemBlockMaker memblock_maker;
++    dkMemBlockMakerDefaults(&memblock_maker, priv->dk->device, RA_DK_CMDBUF_SIZE * RA_DK_NUM_CMDBUFS);
++    memblock_maker.flags = DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached;
++    priv->dk->cmdbuf_memblock = dkMemBlockCreate(&memblock_maker);
++    if (!priv->dk->cmdbuf_memblock)
++        return -1;
++
++    DkCmdBufMaker cmdbuf_maker;
++    dkCmdBufMakerDefaults(&cmdbuf_maker, priv->dk->device);
++    priv->dk->cmdbuf = dkCmdBufCreate(&cmdbuf_maker);
++    if (!priv->dk->cmdbuf)
++        return -1;
++
++    priv->dk->cur_cmdbuf_slice = 0;
++    memset(priv->dk->cmdbuf_fences, 0, sizeof(priv->dk->cmdbuf_fences));
++    dkCmdBufAddMemory(priv->dk->cmdbuf, priv->dk->cmdbuf_memblock,
++        priv->dk->cur_cmdbuf_slice * RA_DK_CMDBUF_SIZE, RA_DK_CMDBUF_SIZE);
++
++    dkMemBlockMakerDefaults(&memblock_maker, priv->dk->device,
++        RA_DK_MAX_DESCRIPTORS * (sizeof(DkSamplerDescriptor) + sizeof(DkImageDescriptor)));
++    priv->descriptors_memblock = dkMemBlockCreate(&memblock_maker);
++    if (!priv->descriptors_memblock)
++        return -1;
++
++    priv->sampler_descriptors = dkMemBlockGetCpuAddr(priv->descriptors_memblock);
++    priv->image_descriptors   = (DkImageDescriptor *)(priv->sampler_descriptors + RA_DK_MAX_DESCRIPTORS);
++
++    memset(priv->allocated_descriptors, 0, sizeof(priv->allocated_descriptors));
++
++    // 16 bytes per timestamp (ctr + ts), 2 timestamps per query (start + end)
++    dkMemBlockMakerDefaults(&memblock_maker, priv->dk->device, RA_DK_MAX_QUERIES * 16 * 2);
++    memblock_maker.flags = DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuUncached |
++        DkMemBlockFlags_ZeroFillInit;
++    priv->query_memblock = dkMemBlockCreate(&memblock_maker);
++    if (!priv->query_memblock)
++        return -1;
++
++    priv->num_queries = 0;
++
++    dkCmdBufBindSamplerDescriptorSet(priv->dk->cmdbuf,
++        dkMemBlockGetGpuAddr(priv->descriptors_memblock), RA_DK_MAX_DESCRIPTORS);
++    dkCmdBufBindImageDescriptorSet(priv->dk->cmdbuf,
++        dkMemBlockGetGpuAddr(priv->descriptors_memblock) + RA_DK_MAX_DESCRIPTORS * sizeof(DkSamplerDescriptor),
++        RA_DK_MAX_DESCRIPTORS);
++    dkQueueSubmitCommands(priv->dk->queue, dkCmdBufFinishList(priv->dk->cmdbuf));
++    dkQueueWaitIdle(priv->dk->queue);
++
++    return 0;
++}
++
++static void dk_destroy(struct ra *ra) {
++    struct priv *priv = ra->priv;
++
++    MP_VERBOSE(ra, "%s\n", __func__);
++
++    if (priv->dk->queue)
++        dkQueueWaitIdle(priv->dk->queue);
++
++    if (priv->descriptors_memblock)
++        dkMemBlockDestroy(priv->descriptors_memblock);
++
++    if (priv->query_memblock)
++        dkMemBlockDestroy(priv->query_memblock);
++
++    if (priv->dk->cmdbuf)
++        dkCmdBufDestroy(priv->dk->cmdbuf);
++    if (priv->dk->cmdbuf_memblock)
++        dkMemBlockDestroy(priv->dk->cmdbuf_memblock);
++
++    if (priv->dk->queue)
++        dkQueueDestroy(priv->dk->queue);
++}
++
++struct ra *ra_create_dk(mp_dk_ctx *dk, struct mp_log *log) {
++    struct ra *ra = talloc_zero(NULL, struct ra);
++    ra->log = log;
++    if (ra_init_dk(ra, dk) < 0) {
++        dk_destroy(ra);
++        talloc_free(ra);
++        return NULL;
++    }
++    return ra;
++}
++
++void ra_dk_unregister_texture(struct ra *ra, struct ra_tex_dk *tex) {
++    struct priv *priv = ra->priv;
++
++    priv->allocated_descriptors[tex->descriptor_idx / 64] &= ~(1ull << (tex->descriptor_idx % 64));
++}
++
++void ra_dk_register_texture(struct ra *ra, struct ra_tex *tex) {
++    struct priv          *priv = ra->priv;
++    struct ra_tex_dk *tex_priv = tex->priv;
++
++    tex_priv->descriptor_idx = -1;
++    for (int i = 0; i < MP_ARRAY_SIZE(priv->allocated_descriptors); ++i) {
++        uint64_t *pos = &priv->allocated_descriptors[i];
++        if (*pos == -1ull)
++            continue;
++        tex_priv->descriptor_idx = __builtin_ctzll(~*pos);
++        *pos |= (1ull << tex_priv->descriptor_idx);
++        break;
++    }
++
++    if (tex_priv->descriptor_idx < 0) {
++        MP_ERR(ra, "No more free descriptor slots for texture %dx%dx%d %s\n",
++            tex->params.w, tex->params.h, tex->params.d, tex->params.format->name);
++        return;
++    }
++
++    DkImageView image_view;
++    dkImageViewDefaults(&image_view, &tex_priv->image);
++
++    dkImageDescriptorInitialize(&priv->image_descriptors[tex_priv->descriptor_idx],
++        &image_view, tex->params.storage_dst, false);
++
++    DkSampler sampler;
++    dkSamplerDefaults(&sampler);
++
++    sampler.compareEnable = false;
++    sampler.compareOp = DkCompareOp_Never;
++    sampler.wrapMode[0] = sampler.wrapMode[1] = sampler.wrapMode[2] =
++        tex->params.src_repeat ? DkWrapMode_Repeat  : DkWrapMode_ClampToEdge;
++    sampler.minFilter = sampler.magFilter =
++        tex->params.src_linear ? DkFilter_Linear    : DkFilter_Nearest;
++    sampler.mipFilter =
++        tex->params.src_linear ? DkMipFilter_Linear : DkMipFilter_Nearest;
++
++    dkSamplerDescriptorInitialize(&priv->sampler_descriptors[tex_priv->descriptor_idx],
++        &sampler);
++
++    dkCmdBufBarrier(priv->dk->cmdbuf, DkBarrier_None, DkInvalidateFlags_Descriptors);
++}
++
++static void dk_tex_destroy(struct ra *ra, struct ra_tex *tex) {
++    struct ra_tex_dk *tex_priv = tex->priv;
++
++    ra_dk_unregister_texture(ra, tex_priv);
++
++    if (tex_priv->memblock)
++        dkMemBlockDestroy(tex_priv->memblock);
++
++    talloc_free(tex);
++}
++
++static struct ra_tex *dk_tex_create(struct ra *ra, const struct ra_tex_params *params) {
++    struct priv *priv = ra->priv;
++
++    MP_TRACE(ra, "%s (%s %dx%dx%d)\n", __func__,
++        params->format->name, params->w, params->h, params->d);
++
++    struct ra_tex *tex = talloc_zero(NULL, struct ra_tex);
++    if (!tex) {
++        dk_tex_destroy(ra, tex);
++        return NULL;
++    }
++    tex->params = *params;
++    tex->params.initial_data = NULL;
++
++    struct ra_tex_dk *tex_priv = tex->priv = talloc_zero(tex, struct ra_tex_dk);
++    if (!tex_priv) {
++        dk_tex_destroy(ra, tex);
++        return NULL;
++    }
++
++    DkImageLayoutMaker layout_maker;
++    dkImageLayoutMakerDefaults(&layout_maker, priv->dk->device);
++
++    layout_maker.format        = ((struct dk_format *)params->format->priv)->fmt;
++    layout_maker.dimensions[0] = params->w;
++    layout_maker.dimensions[1] = params->h;
++    layout_maker.dimensions[2] = params->d;
++    layout_maker.flags         = DkImageFlags_HwCompression |
++        ((params->render_src || params->render_dst) ? DkImageFlags_UsageRender    : 0) |
++        ( params->storage_dst                       ? DkImageFlags_UsageLoadStore : 0) |
++        ((params->blit_src   || params->blit_dst)   ? DkImageFlags_Usage2DEngine  : 0);
++
++    // Work around deko3d issue https://github.com/devkitPro/deko3d/issues/10
++    if (params->h <= 8) {
++        layout_maker.flags   |= DkImageFlags_CustomTileSize;
++        layout_maker.tileSize = DkTileSize_OneGob;
++    }
++
++    switch (params->dimensions) {
++        case 1:
++            layout_maker.type = DkImageType_1D;
++            break;
++        case 2:
++            layout_maker.type = DkImageType_2D;
++            break;
++        case 3:
++            layout_maker.type = DkImageType_3D;
++            break;
++        default:
++            dk_tex_destroy(ra, tex);
++            return NULL;
++    }
++
++    DkImageLayout tex_layout;
++    dkImageLayoutInitialize(&tex_layout, &layout_maker);
++
++    uint32_t tex_size  = dkImageLayoutGetSize(&tex_layout);
++    uint32_t tex_align = dkImageLayoutGetAlignment(&tex_layout);
++    tex_size = MP_ALIGN_UP(tex_size, tex_align);
++
++    // This is supposed to be a rare operation so allocating a memblock for each texture is probably fine
++    DkMemBlockMaker memblock_maker;
++    dkMemBlockMakerDefaults(&memblock_maker, priv->dk->device, MP_ALIGN_UP(tex_size, DK_MEMBLOCK_ALIGNMENT));
++    memblock_maker.flags = DkMemBlockFlags_CpuUncached |
++        DkMemBlockFlags_GpuCached | DkMemBlockFlags_Image;
++    tex_priv->memblock = dkMemBlockCreate(&memblock_maker);
++    if (!tex_priv->memblock) {
++        dk_tex_destroy(ra, tex);
++        return NULL;
++    }
++
++    dkImageInitialize(&tex_priv->image, &tex_layout, tex_priv->memblock, 0);
++
++    if (params->initial_data) {
++        bool ret = dk_tex_upload(ra, &(struct ra_tex_upload_params){
++            .tex    = tex,
++            .src    = params->initial_data,
++            .stride = params->w * params->format->pixel_size,
++        });
++        if (!ret) {
++            dk_tex_destroy(ra, tex);
++            return NULL;
++        }
++    }
++
++    ra_dk_register_texture(ra, tex);
++
++    return tex;
++}
++
++static bool dk_tex_upload(struct ra *ra, const struct ra_tex_upload_params *params) {
++    struct priv          *priv = ra->priv;
++    struct ra_tex_dk *tex_priv = params->tex->priv;
++
++    DkImageView tex_view;
++    dkImageViewDefaults(&tex_view, &tex_priv->image);
++
++    DkImageRect tex_rect;
++    if (params->rc) {
++        tex_rect = (DkImageRect){
++            params->rc->x0, params->rc->y0, 0,
++            mp_rect_w(*params->rc), mp_rect_h(*params->rc), 1,
++        };
++    } else {
++        tex_rect = (DkImageRect){
++            0, 0, 0,
++            params->tex->params.w,
++            params->tex->params.h,
++            params->tex->params.d,
++        };
++    }
++
++    DkCopyBuf tex_copy;
++    DkMemBlock memblock = NULL;
++    if (params->buf) {
++        struct ra_buf_dk *buf_priv = params->buf->priv;
++        tex_copy = (DkCopyBuf){
++            dkMemBlockGetGpuAddr(buf_priv->memblock) + params->buf_offset,
++            params->stride, tex_rect.height * tex_rect.depth,
++        };
++
++        if (params->buf->params.host_mapped)
++            dkMemBlockFlushCpuCache(buf_priv->memblock, params->buf_offset,
++                params->stride * tex_rect.height * tex_rect.depth);
++    } else {
++        // Map the provided buffer into the GPU address space
++        size_t memblk_off  = (uintptr_t)params->src & (DK_MEMBLOCK_ALIGNMENT - 1);
++        size_t memblk_size = params->stride * tex_rect.height * tex_rect.depth + memblk_off;
++
++        DkMemBlockMaker memblock_maker;
++        dkMemBlockMakerDefaults(&memblock_maker, priv->dk->device, MP_ALIGN_UP(memblk_size, DK_MEMBLOCK_ALIGNMENT));
++        memblock_maker.flags = DkMemBlockFlags_CpuCached | DkMemBlockFlags_GpuCached;
++        memblock_maker.storage = (uint8_t *)params->src - memblk_off;
++
++        memblock = dkMemBlockCreate(&memblock_maker);
++        if (!memblock)
++            return false;
++
++        dkMemBlockFlushCpuCache(memblock, memblk_off, params->stride * tex_rect.height * tex_rect.depth);
++
++        tex_copy = (DkCopyBuf){
++            dkMemBlockGetGpuAddr(memblock) + memblk_off,
++            params->stride, tex_rect.height * tex_rect.depth,
++        };
++    }
++
++    DkFence fence, *done_fence;
++    if (params->buf) {
++        struct ra_buf_dk *buf_priv = params->buf->priv;
++        done_fence = &buf_priv->fence;
++        dkCmdBufWaitFence(priv->dk->cmdbuf, &buf_priv->fence);
++    } else {
++        done_fence = &fence;
++    }
++
++    dkCmdBufCopyBufferToImage(priv->dk->cmdbuf, &tex_copy, &tex_view, &tex_rect, 0);
++    dkCmdBufBarrier(priv->dk->cmdbuf, DkBarrier_None, DkInvalidateFlags_Image);
++    dkCmdBufSignalFence(priv->dk->cmdbuf, done_fence, false);
++
++    // Return early, assuming that the buffer will be kept alive until the transfer is complete
++    if (params->buf) {
++        struct ra_buf_dk *buf_priv = params->buf->priv;
++        if (buf_priv->is_cpu_cached)
++            return true;
++    }
++
++    // Wait for the copy to finish before returning
++    dkQueueSubmitCommands(priv->dk->queue, dkCmdBufFinishList(priv->dk->cmdbuf));
++    dkQueueFlush(priv->dk->queue);
++    bool ret = dkFenceWait(done_fence, -1) == DkResult_Success;
++
++    if (!params->buf)
++        dkMemBlockDestroy(memblock);
++
++    return ret;
++}
++
++static bool dk_tex_download(struct ra *ra, struct ra_tex_download_params *params) {
++    struct priv          *priv = ra->priv;
++    struct ra_tex_dk *tex_priv = params->tex->priv;
++
++    DkImageView tex_view;
++    dkImageViewDefaults(&tex_view, &tex_priv->image);
++
++    DkImageRect tex_rect = (DkImageRect){
++        0, 0, 0,
++        params->tex->params.w,
++        params->tex->params.h,
++        1,
++    };
++
++    // Map the provided buffer into the GPU address space
++    // The buffer might not be aligned correctly so map a range containing it,
++    // and pass an offset to the copy command
++    size_t memblk_off  = (uintptr_t)params->dst & (DK_MEMBLOCK_ALIGNMENT - 1);
++    size_t memblk_size = memblk_off + params->stride * params->tex->params.h;
++
++    DkMemBlockMaker memblock_maker;
++    dkMemBlockMakerDefaults(&memblock_maker, priv->dk->device, MP_ALIGN_UP(memblk_size, DK_MEMBLOCK_ALIGNMENT));
++    memblock_maker.flags   = DkMemBlockFlags_CpuCached | DkMemBlockFlags_GpuCached;
++    memblock_maker.storage = (uint8_t *)params->dst - memblk_off;
++
++    DkMemBlock memblock = dkMemBlockCreate(&memblock_maker);
++    if (!memblock)
++        return false;
++
++    // Flush CPU cache on the target memory
++    dkMemBlockFlushCpuCache(memblock, memblk_off, params->stride * params->tex->params.h);
++
++    DkCopyBuf copy_buf = (DkCopyBuf){
++	    .addr        = dkMemBlockGetGpuAddr(memblock) + memblk_off,
++	    .rowLength   = params->stride,
++	    .imageHeight = params->tex->params.h,
++    };
++
++    DkFence fence;
++    dkCmdBufCopyImageToBuffer(priv->dk->cmdbuf, &tex_view, &tex_rect, &copy_buf, 0);
++    dkCmdBufSignalFence(priv->dk->cmdbuf, &fence, true); // Flush GPU cache
++
++    // Wait for the copy to finish before returning
++    dkQueueSubmitCommands(priv->dk->queue, dkCmdBufFinishList(priv->dk->cmdbuf));
++    dkQueueFlush(priv->dk->queue);
++    bool ret = dkFenceWait(&fence, -1) == DkResult_Success;
++
++    dkMemBlockDestroy(memblock);
++
++    return ret;
++}
++
++static void dk_buf_destroy(struct ra *ra, struct ra_buf *buf) {
++    struct ra_buf_dk *buf_priv = buf->priv;
++
++    if (buf_priv->memblock)
++        dkMemBlockDestroy(buf_priv->memblock);
++
++    talloc_free(buf);
++}
++
++static struct ra_buf *dk_buf_create(struct ra *ra, const struct ra_buf_params *params) {
++    struct priv *priv = ra->priv;
++
++    MP_TRACE(ra, "%s (type %d)\n", __func__, params->type);
++
++    struct ra_buf *buf = talloc_zero(NULL, struct ra_buf);
++    if (!buf) {
++        dk_buf_destroy(ra, buf);
++        return NULL;
++    }
++    buf->params = *params;
++    buf->params.initial_data = NULL;
++
++    struct ra_buf_dk *buf_priv = buf->priv = talloc_zero(buf, struct ra_buf_dk);
++    if (!buf_priv) {
++        dk_buf_destroy(ra, buf);
++        return NULL;
++    }
++
++    buf_priv->is_cpu_cached = params->type == RA_BUF_TYPE_TEX_UPLOAD;
++
++    DkMemBlockMaker memblock_maker;
++    dkMemBlockMakerDefaults(&memblock_maker, priv->dk->device, MP_ALIGN_UP(params->size, DK_MEMBLOCK_ALIGNMENT));
++    memblock_maker.flags =
++        ( buf_priv->is_cpu_cached ? DkMemBlockFlags_CpuCached : DkMemBlockFlags_CpuUncached) |
++        (!buf_priv->is_cpu_cached ? DkMemBlockFlags_GpuCached : DkMemBlockFlags_GpuUncached);
++
++    buf_priv->memblock = dkMemBlockCreate(&memblock_maker);
++    if (!buf_priv->memblock) {
++        dk_buf_destroy(ra, buf);
++        return NULL;
++    }
++
++    if (params->host_mapped)
++        buf->data = dkMemBlockGetCpuAddr(buf_priv->memblock);
++
++    if (params->initial_data)
++        dk_buf_update(ra, buf, 0, params->initial_data, params->size);
++
++    return buf;
++}
++
++static void dk_buf_update(struct ra *ra, struct ra_buf *buf, ptrdiff_t offset,
++                          const void *data, size_t size) {
++    struct priv          *priv = ra->priv;
++    struct ra_buf_dk *buf_priv = buf->priv;
++
++    if (buf->params.type == RA_BUF_TYPE_UNIFORM) {
++        dkCmdBufPushConstants(priv->dk->cmdbuf, dkMemBlockGetGpuAddr(buf_priv->memblock),
++            dkMemBlockGetSize(buf_priv->memblock), offset, size, data);
++    } else {
++        // Wait in case this buffer is currently being used
++        dkQueueWaitIdle(priv->dk->queue);
++
++        memcpy((uint8_t *)dkMemBlockGetCpuAddr(buf_priv->memblock) + offset, data, size);
++        if (buf_priv->is_cpu_cached)
++            dkMemBlockFlushCpuCache(buf_priv->memblock, offset, size);
++    }
++}
++
++static bool dk_buf_poll(struct ra *ra, struct ra_buf *buf) {
++    struct ra_buf_dk *buf_priv = buf->priv;
++
++    return dkFenceWait(&buf_priv->fence, 0) == DkResult_Success;
++}
++
++static void dk_clear(struct ra *ra, struct ra_tex *dst, float color[4], struct mp_rect *scissor) {
++    struct priv          *priv = ra->priv;
++    struct ra_tex_dk *tex_priv = dst->priv;
++
++    DkImageView tex_view;
++    dkImageViewDefaults(&tex_view, &tex_priv->image);
++
++    DkScissor dkscissor = {
++        scissor->x0, scissor->y0,
++        mp_rect_w(*scissor), mp_rect_h(*scissor),
++    };
++
++    dkCmdBufBindRenderTarget(priv->dk->cmdbuf, &tex_view, NULL);
++    dkCmdBufSetScissors(priv->dk->cmdbuf, 0, &dkscissor, 1);
++
++    switch (dst->params.format->ctype) {
++        case RA_CTYPE_UNORM:
++        case RA_CTYPE_FLOAT:
++            dkCmdBufClearColorFloat(priv->dk->cmdbuf, 0, DkColorMask_RGBA,
++                color[0], color[1], color[2], color[3]);
++            break;
++        case RA_CTYPE_UINT:
++            dkCmdBufClearColorUint(priv->dk->cmdbuf, 0, DkColorMask_RGBA,
++                color[0], color[1], color[2], color[3]);
++            break;
++        default:
++            dkCmdBufClearColor(priv->dk->cmdbuf, 0, DkColorMask_RGBA, (void *)color);
++            break;
++    }
++}
++
++static void dk_blit(struct ra *ra, struct ra_tex *dst, struct ra_tex *src,
++                    struct mp_rect *dst_rc, struct mp_rect *src_rc) {
++    struct priv              *priv = ra->priv;
++    struct ra_tex_dk *tex_src_priv = src->priv;
++    struct ra_tex_dk *tex_dst_priv = dst->priv;
++
++    DkImageView src_view, dst_view;
++    dkImageViewDefaults(&src_view, &tex_src_priv->image);
++    dkImageViewDefaults(&dst_view, &tex_dst_priv->image);
++
++    DkImageRect src_rect = (DkImageRect){
++        src_rc->x0, src_rc->y0, 0,
++        mp_rect_w(*src_rc),
++        mp_rect_h(*src_rc),
++        1
++    };
++
++    DkImageRect dst_rect = (DkImageRect){
++        dst_rc->x0, dst_rc->y0, 0,
++        mp_rect_w(*dst_rc),
++        mp_rect_h(*dst_rc),
++        1
++    };
++
++    uint32_t flags = DkBlitFlag_ModeBlit;
++
++    // Handle y-flipping here, since deko3d doesn't flip blits based on coordinates
++    if (dst_rc->y0 > dst_rc->y1) {
++        flags |= DkBlitFlag_FlipY;
++        dst_rect.y = dst_rc->y1;
++        dst_rect.height = dst_rc->y0 - dst_rc->y1;
++    }
++
++    dkCmdBufBlitImage(priv->dk->cmdbuf, &src_view, &src_rect, &dst_view, &dst_rect,
++        flags, 0);
++}
++
++static int dk_desc_namespace(struct ra *ra, enum ra_vartype type) {
++    return type;
++}
++
++static void dk_renderpass_destroy(struct ra *ra, struct ra_renderpass *pass) {
++    struct ra_rpass_dk *pass_priv = pass->priv;
++
++    if (pass_priv->shader_memblock)
++        dkMemBlockDestroy(pass_priv->shader_memblock);
++    if (pass_priv->vao_memblock)
++        dkMemBlockDestroy(pass_priv->vao_memblock);
++
++    talloc_free(pass);
++}
++
++static void save_shader_code(struct ra *ra, struct ra_renderpass *pass,
++                             bstr vert_dat, bstr frag_dat, bstr comp_dat) {
++    struct dk_shadercache_hdr header = {
++        .magic         = AV_RN32(dk_shadercache_magic),
++        .cache_version = dk_shadercache_version,
++    };
++
++    uint32_t offset = sizeof(struct dk_shadercache_hdr);
++    if (vert_dat.len)
++        header.vertex_offset   = offset,                 header.vertex_size   = vert_dat.len;
++    if (frag_dat.len)
++        header.fragment_offset = offset += vert_dat.len, header.fragment_size = frag_dat.len;
++    if (comp_dat.len)
++        header.compute_offset  = offset += frag_dat.len, header.compute_size  = comp_dat.len;
++
++    struct bstr *prog = &pass->params.cached_program;
++    bstr_xappend(pass, prog, (bstr){(char *)&header, sizeof(struct dk_shadercache_hdr)});
++    bstr_xappend(pass, prog, vert_dat);
++    bstr_xappend(pass, prog, frag_dat);
++    bstr_xappend(pass, prog, comp_dat);
++}
++
++static bool load_shader_code(struct ra *ra, struct ra_renderpass *pass, bstr data,
++                             DkShader *vert_sh, DkShader *frag_sh, DkShader *comp_sh) {
++    struct priv              *priv = ra->priv;
++    struct ra_rpass_dk  *pass_priv = pass->priv;
++    struct dk_shadercache_hdr *hdr = (struct dk_shadercache_hdr *)data.start;
++
++    MP_DBG(ra, "Loading from shadercache\n");
++
++    if (!data.start ||
++            (data.len < sizeof(struct dk_shadercache_hdr)))
++        return false;
++
++    if ((hdr->magic != AV_RN32(dk_shadercache_magic)) ||
++            (hdr->cache_version != dk_shadercache_version))
++        return false;
++
++    size_t memblock_size = DK_SHADER_CODE_UNUSABLE_SIZE +
++        ((vert_sh && hdr->vertex_size)   ? MP_ALIGN_UP(hdr->vertex_size,   DK_SHADER_CODE_ALIGNMENT) : 0) +
++        ((frag_sh && hdr->fragment_size) ? MP_ALIGN_UP(hdr->fragment_size, DK_SHADER_CODE_ALIGNMENT) : 0) +
++        ((comp_sh && hdr->compute_size)  ? MP_ALIGN_UP(hdr->compute_size,  DK_SHADER_CODE_ALIGNMENT) : 0);
++
++    DkMemBlockMaker memblock_maker;
++    dkMemBlockMakerDefaults(&memblock_maker, priv->dk->device,
++        MP_ALIGN_UP(memblock_size, DK_MEMBLOCK_ALIGNMENT));
++    memblock_maker.flags = DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached | DkMemBlockFlags_Code;
++    pass_priv->shader_memblock = dkMemBlockCreate(&memblock_maker);
++    if (!pass_priv->shader_memblock)
++        return false;
++
++    size_t offset = 0;
++    DkShaderMaker shader_maker;
++    if (vert_sh && hdr->vertex_size) {
++        memcpy((uint8_t *)dkMemBlockGetCpuAddr(pass_priv->shader_memblock) + offset,
++            data.start + hdr->vertex_offset, hdr->vertex_size);
++        dkShaderMakerDefaults(&shader_maker, pass_priv->shader_memblock, offset);
++        dkShaderInitialize(vert_sh, &shader_maker);
++        offset += MP_ALIGN_UP(hdr->vertex_size, DK_SHADER_CODE_ALIGNMENT);
++    }
++    if (frag_sh && hdr->fragment_size) {
++        memcpy((uint8_t *)dkMemBlockGetCpuAddr(pass_priv->shader_memblock) + offset,
++            data.start + hdr->fragment_offset, hdr->fragment_size);
++        dkShaderMakerDefaults(&shader_maker, pass_priv->shader_memblock, offset);
++        dkShaderInitialize(frag_sh, &shader_maker);
++        offset += MP_ALIGN_UP(hdr->fragment_size, DK_SHADER_CODE_ALIGNMENT);
++    }
++    if (comp_sh && hdr->compute_size) {
++        memcpy((uint8_t *)dkMemBlockGetCpuAddr(pass_priv->shader_memblock) + offset,
++            data.start + hdr->compute_offset, hdr->compute_size);
++        dkShaderMakerDefaults(&shader_maker, pass_priv->shader_memblock, offset);
++        dkShaderInitialize(comp_sh, &shader_maker);
++        offset += MP_ALIGN_UP(hdr->compute_size, DK_SHADER_CODE_ALIGNMENT);
++    }
++
++    return true;
++}
++
++static struct ra_renderpass *dk_renderpass_create_raster(struct ra *ra, struct ra_renderpass *pass,
++                                                         const struct ra_renderpass_params *params) {
++    struct priv             *priv = ra->priv;
++    struct ra_rpass_dk *pass_priv = pass->priv;
++    DkMemBlockMaker memblock_maker;
++
++    if (mp_msg_test(ra->log, MSGL_DEBUG)) {
++        MP_DBG(ra, "Vertex shader source:\n");
++        mp_log_source(ra->log, MSGL_DEBUG, params->vertex_shader);
++        MP_DBG(ra, "Fragment shader source:\n");
++        mp_log_source(ra->log, MSGL_DEBUG, params->frag_shader);
++    }
++
++    pass_priv->shaders = talloc_array(pass, DkShader, 2);
++    if (!pass_priv->shaders)
++        goto fail_1;
++
++    if (!params->cached_program.len ||
++            !load_shader_code(ra, pass, params->cached_program, &pass_priv->shaders[0], &pass_priv->shaders[1], NULL)) {
++        bool error = false;
++
++        uam_compiler *vsh_compiler = uam_create_compiler(DkStage_Vertex),
++            *fsh_compiler = uam_create_compiler(DkStage_Fragment);
++        if (!vsh_compiler || !fsh_compiler) {
++            error = true; goto fail_2;
++        }
++
++        if (!uam_compile_dksh(vsh_compiler, params->vertex_shader) ||
++                !uam_compile_dksh(fsh_compiler, params->frag_shader)) {
++            MP_ERR(ra, "Failed to compile shaders\n");
++            error = true; goto fail_2;
++        }
++
++        size_t vsh_size = uam_get_code_size(vsh_compiler), fsh_size = uam_get_code_size(fsh_compiler);
++        size_t vsh_off = 0, fsh_off = MP_ALIGN_UP(vsh_size, DK_SHADER_CODE_ALIGNMENT);
++
++        dkMemBlockMakerDefaults(&memblock_maker, priv->dk->device,
++            MP_ALIGN_UP(vsh_size + fsh_size + DK_SHADER_CODE_UNUSABLE_SIZE, DK_MEMBLOCK_ALIGNMENT));
++        memblock_maker.flags = DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached | DkMemBlockFlags_Code;
++        pass_priv->shader_memblock = dkMemBlockCreate(&memblock_maker);
++        if (!pass_priv->shader_memblock) {
++            error = true; goto fail_2;
++        }
++
++        uam_write_code(vsh_compiler, (uint8_t *)dkMemBlockGetCpuAddr(pass_priv->shader_memblock) + vsh_off);
++        uam_write_code(fsh_compiler, (uint8_t *)dkMemBlockGetCpuAddr(pass_priv->shader_memblock) + fsh_off);
++
++        save_shader_code(ra, pass,
++            (bstr){(uint8_t *)dkMemBlockGetCpuAddr(pass_priv->shader_memblock) + vsh_off, vsh_size},
++            (bstr){(uint8_t *)dkMemBlockGetCpuAddr(pass_priv->shader_memblock) + fsh_off, fsh_size},
++            (bstr){0});
++
++        DkShaderMaker shader_maker;
++        dkShaderMakerDefaults(&shader_maker, pass_priv->shader_memblock, vsh_off);
++        dkShaderInitialize(&pass_priv->shaders[0], &shader_maker);
++        dkShaderMakerDefaults(&shader_maker, pass_priv->shader_memblock, fsh_off);
++        dkShaderInitialize(&pass_priv->shaders[1], &shader_maker);
++
++fail_2:
++        if (vsh_compiler)
++            uam_free_compiler(vsh_compiler);
++        if (fsh_compiler)
++            uam_free_compiler(fsh_compiler);
++
++        if (error)
++            goto fail_1;
++    }
++
++    pass_priv->vao_attribs = talloc_array(pass, DkVtxAttribState, params->num_vertex_attribs);
++    if (!pass_priv->vao_attribs)
++        goto fail_1;
++
++    for (int i = 0; i < params->num_vertex_attribs; ++i) {
++        struct ra_renderpass_input *inp = &params->vertex_attribs[i];
++
++        pass_priv->vao_attribs[i] = (DkVtxAttribState){
++            .offset = inp->offset,
++            .type   = map_vertex_attrib_type(inp->type),
++            .size   = map_vertex_attrib_size(inp->type, inp->dim_v, inp->dim_m),
++        };
++    }
++    pass_priv->vao_state = (DkVtxBufferState){
++        .stride = params->vertex_stride,
++    };
++
++    dkMemBlockMakerDefaults(&memblock_maker, priv->dk->device,
++        MP_ALIGN_UP(6 * params->vertex_stride, DK_MEMBLOCK_ALIGNMENT)); // 6 vertices to draw a rectangle
++	memblock_maker.flags = DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached;
++    pass_priv->vao_memblock = dkMemBlockCreate(&memblock_maker);
++    if (!pass_priv->vao_memblock)
++        goto fail_1;
++
++    dkRasterizerStateDefaults(&pass_priv->rasterizer_state);
++    dkColorStateDefaults(&pass_priv->color_state);
++    dkColorWriteStateDefaults(&pass_priv->color_write_state);
++    dkDepthStencilStateDefaults(&pass_priv->depth_state);
++
++    pass_priv->rasterizer_state.cullMode = DkFace_None;
++
++    if (params->enable_blend) {
++        dkColorStateSetBlendEnable(&pass_priv->color_state, 0, true);
++        dkBlendStateSetOps(&pass_priv->blend_state, DkBlendOp_Add, DkBlendOp_Add);
++        dkBlendStateSetFactors(&pass_priv->blend_state,
++            map_blend_factor(params->blend_src_rgb),   map_blend_factor(params->blend_dst_rgb),
++            map_blend_factor(params->blend_src_alpha), map_blend_factor(params->blend_dst_alpha));
++    }
++
++	pass_priv->depth_state.depthTestEnable = pass_priv->depth_state.depthWriteEnable =
++	    pass_priv->depth_state.stencilTestEnable = false;
++
++    return pass;
++
++fail_1:
++    dk_renderpass_destroy(ra, pass);
++    ta_free(pass);
++    return NULL;
++}
++
++static struct ra_renderpass *dk_renderpass_create_compute(struct ra *ra, struct ra_renderpass *pass,
++                                                          const struct ra_renderpass_params *params) {
++    struct priv             *priv = ra->priv;
++    struct ra_rpass_dk *pass_priv = pass->priv;
++    DkMemBlockMaker memblock_maker;
++
++    if (mp_msg_test(ra->log, MSGL_DEBUG)) {
++        MP_DBG(ra, "Compute shader source:\n");
++        mp_log_source(ra->log, MSGL_DEBUG, params->compute_shader);
++    }
++
++    pass_priv->shaders = talloc_array(pass, DkShader, 1);
++    if (!pass_priv->shaders)
++        goto fail_1;
++
++    if (!params->cached_program.len ||
++            !load_shader_code(ra, pass, params->cached_program, NULL, NULL, &pass_priv->shaders[0])) {
++        bool error = false;
++
++        uam_compiler *sh_compiler = uam_create_compiler(DkStage_Compute);
++        if (!sh_compiler) {
++            error = true; goto fail_2;
++        }
++
++        if (!uam_compile_dksh(sh_compiler, params->compute_shader)) {
++            MP_ERR(ra, "Failed to compile shader\n");
++            error = true; goto fail_2;
++        }
++
++        size_t sh_size = uam_get_code_size(sh_compiler);
++        dkMemBlockMakerDefaults(&memblock_maker, priv->dk->device,
++            MP_ALIGN_UP(sh_size + DK_SHADER_CODE_UNUSABLE_SIZE, DK_MEMBLOCK_ALIGNMENT));
++        memblock_maker.flags = DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached | DkMemBlockFlags_Code;
++        pass_priv->shader_memblock = dkMemBlockCreate(&memblock_maker);
++        if (!pass_priv->shader_memblock) {
++            error = true; goto fail_2;
++        }
++
++        uam_write_code(sh_compiler, dkMemBlockGetCpuAddr(pass_priv->shader_memblock));
++        save_shader_code(ra, pass, (bstr){0}, (bstr){0},
++            (bstr){dkMemBlockGetCpuAddr(pass_priv->shader_memblock), sh_size});
++
++        DkShaderMaker shader_maker;
++        dkShaderMakerDefaults(&shader_maker, pass_priv->shader_memblock, 0);
++        dkShaderInitialize(&pass_priv->shaders[0], &shader_maker);
++
++fail_2:
++        if (sh_compiler)
++            uam_free_compiler(sh_compiler);
++
++        if (error)
++            goto fail_1;
++    }
++
++    return pass;
++
++fail_1:
++    dk_renderpass_destroy(ra, pass);
++    ta_free(pass);
++    return NULL;
++}
++
++static struct ra_renderpass *dk_renderpass_create(struct ra *ra,
++                                                  const struct ra_renderpass_params *params) {
++    MP_TRACE(ra, "%s (type %d)\n", __func__, params->type);
++
++    struct ra_renderpass *pass = talloc_zero(NULL, struct ra_renderpass);
++    if (!pass)
++        return NULL;
++
++    pass->params = *ra_renderpass_params_copy(pass, params);
++    pass->params.cached_program = (bstr){0};
++    pass->priv = talloc_zero(pass, struct ra_rpass_dk);
++    if (!pass->priv) {
++        talloc_free(pass);
++        return NULL;
++    }
++
++    if (params->type == RA_RENDERPASS_TYPE_RASTER)
++        return dk_renderpass_create_raster(ra, pass, params);
++    else
++        return dk_renderpass_create_compute(ra, pass, params);
++}
++
++static void dk_renderpass_run_raster(struct ra *ra, const struct ra_renderpass_run_params *params) {
++    struct priv                        *priv = ra->priv;
++    struct ra_rpass_dk            *pass_priv = params->pass->priv;
++    struct ra_renderpass_params *pass_params = &params->pass->params;
++    struct ra_tex_dk               *tex_priv = params->target->priv;
++
++    DkImageView tex_view;
++    dkImageViewDefaults(&tex_view, &tex_priv->image);
++
++    // Reallocate vao if the data doesn't fit
++    if (!pass_priv->vao_memblock || (params->vertex_count * pass_params->vertex_stride >
++            dkMemBlockGetSize(pass_priv->vao_memblock))) {
++        // Wait in case an instance of this pass is already running
++        dkQueueWaitIdle(priv->dk->queue);
++
++        if (pass_priv->vao_memblock)
++            dkMemBlockDestroy(pass_priv->vao_memblock);
++
++        DkMemBlockMaker memblock_maker;
++        dkMemBlockMakerDefaults(&memblock_maker, priv->dk->device,
++            MP_ALIGN_UP(params->vertex_count * pass_params->vertex_stride, DK_MEMBLOCK_ALIGNMENT));
++	    memblock_maker.flags = DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached;
++        pass_priv->vao_memblock = dkMemBlockCreate(&memblock_maker);
++        if (!pass_priv->vao_memblock)
++            return;
++    }
++
++    // If the vertex data cannot be transferred by the inline engine, perform the copy ourselves
++    //   A pushbuffer method header has a size field width a width of 13 bits,
++    //   meaning it can move at most ((1<<13)-1)*4 = 0x7ffc bytes (substracting the method header dword)
++    size_t vao_size = params->vertex_count * pass_params->vertex_stride;
++    if (vao_size <= 0x7ffc) {
++        dkCmdBufPushData(priv->dk->cmdbuf, dkMemBlockGetGpuAddr(pass_priv->vao_memblock),
++            params->vertex_data, vao_size);
++    } else {
++        dkQueueWaitIdle(priv->dk->queue);
++        memcpy(dkMemBlockGetCpuAddr(pass_priv->vao_memblock), params->vertex_data, vao_size);
++    }
++
++    DkViewport dkviewport = (DkViewport){
++        params->viewport.x0, params->viewport.y0,
++        mp_rect_w(params->viewport), mp_rect_h(params->viewport),
++        0.0f, 1.0f,
++    };
++
++    DkScissor dkscissor = (DkScissor){
++        params->scissors.x0, params->scissors.y0,
++        mp_rect_w(params->scissors), mp_rect_h(params->scissors),
++    };
++
++    dkCmdBufBindRenderTarget(priv->dk->cmdbuf, &tex_view, NULL);
++    if (params->pass->params.invalidate_target)
++        dkCmdBufDiscardColor(priv->dk->cmdbuf, 0);
++    if (params->pass->params.enable_blend)
++        dkCmdBufBindBlendState(priv->dk->cmdbuf, 0, &pass_priv->blend_state);
++    dkCmdBufSetViewports(priv->dk->cmdbuf, 0, &dkviewport, 1);
++    dkCmdBufSetScissors(priv->dk->cmdbuf, 0, &dkscissor, 1);
++    dkCmdBufBindShaders(priv->dk->cmdbuf, DkStageFlag_GraphicsMask,
++        (DkShader const *[]){&pass_priv->shaders[0], &pass_priv->shaders[1]}, 2);
++    dkCmdBufBindRasterizerState(priv->dk->cmdbuf, &pass_priv->rasterizer_state);
++    dkCmdBufBindColorState(priv->dk->cmdbuf, &pass_priv->color_state);
++    dkCmdBufBindColorWriteState(priv->dk->cmdbuf, &pass_priv->color_write_state);
++    dkCmdBufBindDepthStencilState(priv->dk->cmdbuf, &pass_priv->depth_state);
++    dkCmdBufBindVtxBuffer(priv->dk->cmdbuf, 0, dkMemBlockGetGpuAddr(pass_priv->vao_memblock),
++        dkMemBlockGetSize(pass_priv->vao_memblock));
++    dkCmdBufBindVtxAttribState(priv->dk->cmdbuf, pass_priv->vao_attribs, pass_params->num_vertex_attribs);
++    dkCmdBufBindVtxBufferState(priv->dk->cmdbuf, &pass_priv->vao_state, 1);
++    dkCmdBufDraw(priv->dk->cmdbuf, DkPrimitive_Triangles, params->vertex_count, 1, 0, 0);
++    dkCmdBufBarrier(priv->dk->cmdbuf, DkBarrier_Fragments, DkInvalidateFlags_Image);
++}
++
++static void dk_renderpass_run_compute(struct ra *ra, const struct ra_renderpass_run_params *params) {
++    struct priv             *priv = ra->priv;
++    struct ra_rpass_dk *pass_priv = params->pass->priv;
++
++    dkCmdBufBindShaders(priv->dk->cmdbuf, DkStageFlag_Compute,
++        (DkShader const *[]){&pass_priv->shaders[0]}, 1);
++    dkCmdBufDispatchCompute(priv->dk->cmdbuf, params->compute_groups[0],
++        params->compute_groups[1], params->compute_groups[2]);
++    dkCmdBufBarrier(priv->dk->cmdbuf, DkBarrier_Primitives, DkInvalidateFlags_Shader | DkInvalidateFlags_Image);
++
++    for (int i = 0; i < params->num_values; ++i) {
++        struct ra_renderpass_input_val *val = &params->values[i];
++        struct ra_renderpass_input     *inp = &params->pass->params.inputs[val->index];
++
++        if (inp->type == RA_VARTYPE_BUF_RW) {
++            struct ra_buf         *inp_buf = *(struct ra_buf **)val->data;
++            struct ra_buf_dk *inp_buf_priv = inp_buf->priv;
++            dkCmdBufSignalFence(priv->dk->cmdbuf, &inp_buf_priv->fence, true);
++        }
++    }
++}
++
++static void dk_renderpass_run(struct ra *ra, const struct ra_renderpass_run_params *params) {
++    struct priv *priv = ra->priv;
++
++    DkStage stage = (params->pass->params.type == RA_RENDERPASS_TYPE_RASTER) ?
++        DkStage_Fragment : DkStage_Compute;
++
++    for (int i = 0; i < params->num_values; ++i) {
++        struct ra_renderpass_input_val *val = &params->values[i];
++        struct ra_renderpass_input     *inp = &params->pass->params.inputs[val->index];
++
++        switch (inp->type) {
++            case RA_VARTYPE_TEX:
++            case RA_VARTYPE_IMG_W:
++                struct ra_tex         *inp_tex = *(struct ra_tex **)val->data;
++                struct ra_tex_dk *inp_tex_priv = inp_tex->priv;
++
++                if (inp->type == RA_VARTYPE_TEX)
++                    dkCmdBufBindTexture(priv->dk->cmdbuf, stage, inp->binding,
++                        dkMakeTextureHandle(inp_tex_priv->descriptor_idx, inp_tex_priv->descriptor_idx));
++                else
++                    dkCmdBufBindImage(priv->dk->cmdbuf, stage, inp->binding,
++                        dkMakeImageHandle(inp_tex_priv->descriptor_idx));
++                break;
++            case RA_VARTYPE_BUF_RO:
++            case RA_VARTYPE_BUF_RW:
++                struct ra_buf         *inp_buf = *(struct ra_buf **)val->data;
++                struct ra_buf_dk *inp_buf_priv = inp_buf->priv;
++
++                // For host-mutable buffers, the cache was flushed in buf_update,
++                // and for other buffer types, updating is not possible.
++                if (inp_buf->params.host_mapped)
++                    dkMemBlockFlushCpuCache(inp_buf_priv->memblock, 0,
++                        dkMemBlockGetSize(inp_buf_priv->memblock));
++
++                if (inp->type == RA_VARTYPE_BUF_RO)
++                    dkCmdBufBindUniformBuffer(priv->dk->cmdbuf, stage, inp->binding,
++                        dkMemBlockGetGpuAddr(inp_buf_priv->memblock), inp_buf->params.size);
++                else
++                    dkCmdBufBindStorageBuffer(priv->dk->cmdbuf, stage, inp->binding,
++                        dkMemBlockGetGpuAddr(inp_buf_priv->memblock), inp_buf->params.size);
++                break;
++            default:
++                break;
++        }
++    }
++
++    // Note: Here we add a barrier causing WFI, which allows the application-side queue
++    // to render the UI smoothly even in performance constrained scenarios
++    dkCmdBufBarrier(priv->dk->cmdbuf, DkBarrier_Primitives, 0);
++
++    if (params->pass->params.type == RA_RENDERPASS_TYPE_RASTER)
++        dk_renderpass_run_raster(ra, params);
++    else
++        dk_renderpass_run_compute(ra, params);
++}
++
++static ra_timer *dk_timer_create(struct ra *ra) {
++    struct priv *priv = ra->priv;
++
++    if (priv->num_queries + RA_DK_NUM_QUERIES > RA_DK_MAX_QUERIES)
++        return NULL;
++
++    struct ra_dk_timer *priv_timer = talloc_zero(ra, struct ra_dk_timer);
++    if (!priv_timer)
++        return NULL;
++
++    for (int i = 0; i < RA_DK_NUM_QUERIES; ++i)
++        priv_timer->query_idx[i] = priv->num_queries++;
++
++    return priv_timer;
++}
++
++static void dk_timer_destroy(struct ra *ra, ra_timer *timer) {
++    if (timer)
++        talloc_free(timer);
++}
++
++static void dk_timer_start(struct ra *ra, ra_timer *timer) {
++    struct priv *priv              = ra->priv;
++    struct ra_dk_timer *priv_timer = timer;
++
++    priv_timer->cur_idx = (priv_timer->cur_idx + 1) % RA_DK_NUM_QUERIES;
++
++    uint64_t *query_data = (uint64_t *)((uint8_t *)dkMemBlockGetCpuAddr(priv->query_memblock) +
++        (2 * priv_timer->query_idx[priv_timer->cur_idx]) * 16);
++
++    priv_timer->result = (query_data[3] > query_data[1]) ? dkTimestampToNs(query_data[3] - query_data[1]) : 0;
++
++    dkCmdBufReportCounter(priv->dk->cmdbuf, DkCounter_Timestamp,
++        dkMemBlockGetGpuAddr(priv->query_memblock) + (2 * priv_timer->query_idx[priv_timer->cur_idx] + 0) * 16);
++}
++
++static uint64_t dk_timer_stop(struct ra *ra, ra_timer *timer) {
++    struct priv *priv              = ra->priv;
++    struct ra_dk_timer *priv_timer = timer;
++
++    dkCmdBufReportCounter(priv->dk->cmdbuf, DkCounter_Timestamp,
++        dkMemBlockGetGpuAddr(priv->query_memblock) + (2 * priv_timer->query_idx[priv_timer->cur_idx] + 1) * 16);
++
++    // Submit here to keep both counter commands in the same submission
++    dkQueueSubmitCommands(priv->dk->queue, dkCmdBufFinishList(priv->dk->cmdbuf));
++
++    return priv_timer->result;
++}
++
++static void dk_debug_marker(struct ra *ra, const char *msg) {
++    struct priv *priv = ra->priv;
++
++    if (dkQueueIsInErrorState(priv->dk->queue))
++        MP_ERR(ra, "Queue is in error state: %s\n", msg);
++}
+diff --git a/video/out/deko3d/ra_dk.h b/video/out/deko3d/ra_dk.h
+new file mode 100644
+index 0000000000..5a4af9909b
+--- /dev/null
++++ b/video/out/deko3d/ra_dk.h
+@@ -0,0 +1,77 @@
++/*
++ * Copyright (c) 2024 averne <averne381@gmail.com>
++ *
++ * This file is part of mpv.
++ *
++ * mpv is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * mpv is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with mpv.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#pragma once
++
++#include "video/out/gpu/ra.h"
++#include "video/out/gpu/utils.h"
++#include "common.h"
++
++struct dk_format {
++    const char *name;
++    int components;
++    int bytes;
++    int bits[4];
++    DkImageFormat fmt;
++    enum ra_ctype ctype;
++    bool renderable, linear_filter, storable, ordered;
++};
++
++struct ra_tex_dk {
++    DkMemBlock memblock;
++    DkImage image;
++    int descriptor_idx;
++};
++
++struct ra_buf_dk {
++    DkMemBlock memblock;
++    DkFence fence;
++    bool is_cpu_cached;
++    bool dirty;
++};
++
++struct ra_rpass_dk {
++    DkMemBlock shader_memblock;
++    DkShader *shaders;
++
++    DkMemBlock vao_memblock;
++    DkVtxAttribState *vao_attribs;
++    DkVtxBufferState vao_state;
++
++    DkRasterizerState rasterizer_state;
++    DkColorState color_state;
++    DkColorWriteState color_write_state;
++    DkBlendState blend_state;
++    DkDepthStencilState depth_state;
++};
++
++#define RA_DK_MAX_DESCRIPTORS 128
++#define RA_DK_MAX_QUERIES     128
++
++#define RA_DK_NUM_QUERIES 2
++struct ra_dk_timer {
++    int query_idx[RA_DK_NUM_QUERIES];
++    int cur_idx;
++    uint64_t result;
++};
++
++struct ra *ra_create_dk(mp_dk_ctx *dk, struct mp_log *log);
++mp_dk_ctx *ra_dk_get_ctx(struct ra *ra);
++void ra_dk_register_texture(struct ra *ra, struct ra_tex *tex);
++void ra_dk_unregister_texture(struct ra *ra, struct ra_tex_dk *tex);
+diff --git a/video/out/gpu/hwdec.c b/video/out/gpu/hwdec.c
+index 878ac148fb..72a6965dc1 100644
+--- a/video/out/gpu/hwdec.c
++++ b/video/out/gpu/hwdec.c
+@@ -39,6 +39,7 @@ extern const struct ra_hwdec_driver ra_hwdec_drmprime;
+ extern const struct ra_hwdec_driver ra_hwdec_drmprime_overlay;
+ extern const struct ra_hwdec_driver ra_hwdec_aimagereader;
+ extern const struct ra_hwdec_driver ra_hwdec_vulkan;
++extern const struct ra_hwdec_driver ra_hwdec_nvtegra;
+ 
+ const struct ra_hwdec_driver *const ra_hwdec_drivers[] = {
+ #if HAVE_VAAPI_EGL || HAVE_VAAPI_LIBPLACEBO
+@@ -83,6 +84,9 @@ const struct ra_hwdec_driver *const ra_hwdec_drivers[] = {
+ #if HAVE_VULKAN_INTEROP
+     &ra_hwdec_vulkan,
+ #endif
++#if HAVE_DEKO3D
++    &ra_hwdec_nvtegra,
++#endif
+ 
+     NULL
+ };
+diff --git a/video/out/gpu/libmpv_gpu.c b/video/out/gpu/libmpv_gpu.c
+index aae1d18eed..b99b7f750e 100644
+--- a/video/out/gpu/libmpv_gpu.c
++++ b/video/out/gpu/libmpv_gpu.c
+@@ -6,6 +6,9 @@
+ #include "video/out/libmpv.h"
+ 
+ static const struct libmpv_gpu_context_fns *context_backends[] = {
++#if HAVE_DEKO3D
++    &libmpv_gpu_context_dk,
++#endif
+ #if HAVE_GL
+     &libmpv_gpu_context_gl,
+ #endif
+@@ -185,6 +188,8 @@ static int render(struct render_backend *ctx, mpv_render_param *params,
+                                              &(int){0});
+ 
+     struct ra_fbo target = {.tex = tex, .flip = flip};
++    if (p->context->fns->begin_frame)
++        p->context->fns->begin_frame(p->context, params, tex);
+     gl_video_render_frame(p->renderer, frame, target, RENDER_FRAME_DEF);
+     p->context->fns->done_frame(p->context, frame->display_synced);
+ 
+diff --git a/video/out/gpu/libmpv_gpu.h b/video/out/gpu/libmpv_gpu.h
+index 497dcc3f69..ed04357324 100644
+--- a/video/out/gpu/libmpv_gpu.h
++++ b/video/out/gpu/libmpv_gpu.h
+@@ -29,6 +29,9 @@ struct libmpv_gpu_context_fns {
+     // This does not need to care about generic attributes, like flipping.
+     int (*wrap_fbo)(struct libmpv_gpu_context *ctx, mpv_render_param *params,
+                     struct ra_tex **out);
++    // Signal that the ra_tex object obtained with wrap_fbo is about to
++    // get rendered to.
++    void (*begin_frame)(struct libmpv_gpu_context *ctx, mpv_render_param *params, struct ra_tex *tex);
+     // Signal that the ra_tex object obtained with wrap_fbo is no longer used.
+     // For certain backends, this might also be used to signal the end of
+     // rendering (like OpenGL doing weird crap).
+@@ -38,3 +41,4 @@ struct libmpv_gpu_context_fns {
+ };
+ 
+ extern const struct libmpv_gpu_context_fns libmpv_gpu_context_gl;
++extern const struct libmpv_gpu_context_fns libmpv_gpu_context_dk;
+diff --git a/video/out/gpu/ra.h b/video/out/gpu/ra.h
+index 5f229f8bd6..0c2ba56f01 100644
+--- a/video/out/gpu/ra.h
++++ b/video/out/gpu/ra.h
+@@ -11,6 +11,7 @@ struct ra {
+     int glsl_version;       // GLSL version (e.g. 300 => 3.0)
+     bool glsl_es;           // use ES dialect
+     bool glsl_vulkan;       // use vulkan dialect
++    bool glsl_deko3d;       // use deko3d dialect
+ 
+     struct mp_log *log;
+ 
+diff --git a/video/out/gpu/shader_cache.c b/video/out/gpu/shader_cache.c
+index 3e051730fd..d3a1f3e131 100644
+--- a/video/out/gpu/shader_cache.c
++++ b/video/out/gpu/shader_cache.c
+@@ -272,10 +272,11 @@ static void update_uniform_params(struct gl_shader_cache *sc, struct sc_uniform
+     // Try not using push constants for "large" values like matrices, since
+     // this is likely to both exceed the VGPR budget as well as the pushc size
+     // budget
+-    bool try_pushc = u->input.dim_m == 1 || dynamic;
++    // In deko3d, push constants have the same semantics as uniform buffers
++    bool try_pushc = (sc->ra->glsl_deko3d || u->input.dim_m == 1) || dynamic;
+ 
+     // Attempt using push constants first
+-    if (try_pushc && sc->ra->glsl_vulkan && sc->ra->max_pushc_size) {
++    if (try_pushc && (sc->ra->glsl_vulkan || sc->ra->glsl_deko3d) && sc->ra->max_pushc_size) {
+         struct ra_layout layout = sc->ra->fns->push_constant_layout(&u->input);
+         size_t offset = MP_ALIGN_UP(sc->pushc_size, layout.align);
+         // Push constants have limited size, so make sure we don't exceed this
+@@ -711,7 +712,7 @@ static void add_uniforms(struct gl_shader_cache *sc, bstr *dst)
+             // source. For OpenGL it's optional, but requires higher GL version
+             // so we don't do it (and instead have ra_gl update the bindings
+             // after program creation).
+-            if (sc->ra->glsl_vulkan)
++            if (sc->ra->glsl_vulkan || sc->ra->glsl_deko3d)
+                 ADD(dst, "layout(binding=%d) ", u->input.binding);
+             ADD(dst, "uniform %s %s;\n", u->glsl_type, u->input.name);
+             break;
+@@ -728,7 +729,7 @@ static void add_uniforms(struct gl_shader_cache *sc, bstr *dst)
+             // type of data we will be reading/writing to this image.
+             const char *fmt = u->v.tex->params.format->glsl_format;
+ 
+-            if (sc->ra->glsl_vulkan) {
++            if (sc->ra->glsl_vulkan || sc->ra->glsl_deko3d) {
+                 if (fmt) {
+                     ADD(dst, "layout(binding=%d, %s) ", u->input.binding, fmt);
+                 } else {
+@@ -835,6 +836,8 @@ static void gl_sc_generate(struct gl_shader_cache *sc,
+                 assert(e->dim_v == 2 && e->type == RA_VARTYPE_FLOAT);
+                 ADD(vert_head, "%s%s vec2 vertex_position;\n", loc, vert_in);
+                 ADD(vert_body, "gl_Position = vec4(vertex_position, 1.0, 1.0);\n");
++                if (sc->ra->glsl_deko3d)
++                    ADD(vert_body, "gl_Position.y = -gl_Position.y;\n");
+             } else {
+                 ADD(vert_head, "%s%s %s vertex_%s;\n", loc, vert_in, glsl_type, e->name);
+                 ADD(vert_head, "%s%s %s %s;\n", loc, vert_out, glsl_type, e->name);
+diff --git a/video/out/gpu/video.c b/video/out/gpu/video.c
+index 4233f14336..13036ee16a 100644
+--- a/video/out/gpu/video.c
++++ b/video/out/gpu/video.c
+@@ -3868,6 +3868,8 @@ static void check_gl_features(struct gl_video *p)
+             .tone_map = p->opts.tone_map,
+             .early_flush = p->opts.early_flush,
+             .icc_opts = p->opts.icc_opts,
++            .shader_cache = p->opts.shader_cache,
++            .shader_cache_dir = p->opts.shader_cache_dir,
+             .hwdec_interop = p->opts.hwdec_interop,
+             .target_trc = p->opts.target_trc,
+             .target_prim = p->opts.target_prim,
+diff --git a/video/out/hwdec/hwdec_deko3d.c b/video/out/hwdec/hwdec_deko3d.c
+new file mode 100644
+index 0000000000..d90c10333b
+--- /dev/null
++++ b/video/out/hwdec/hwdec_deko3d.c
+@@ -0,0 +1,288 @@
++/*
++ * Copyright (c) 2024 averne <averne381@gmail.com>
++ *
++ * This file is part of mpv.
++ *
++ * mpv is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * mpv is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with mpv.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <deko3d.h>
++#include <switch.h>
++
++#include <libavutil/hwcontext.h>
++#include <libavutil/hwcontext_nvtegra.h>
++#include <libavutil/nvtegra.h>
++
++#include "config.h"
++
++#include "common/common.h"
++#include "options/m_config.h"
++#include "video/hwdec.h"
++#include "video/out/gpu/hwdec.h"
++#include "video/out/deko3d/ra_dk.h"
++
++struct priv_owner {
++    struct mp_hwdec_ctx hwctx;
++};
++
++struct priv {
++    mp_dk_ctx *dk;
++
++    bool has_calculated_layouts;
++    int num_planes;
++
++    DkImageLayout dklayouts[3];
++    bool is_linear;
++
++    struct cached_texture {
++        AVBufferRef *buf_ref;
++        AVHWFramesContext *frames_ctx;
++
++        uint32_t handle;
++        DkMemBlock memblock;
++        struct ra_tex_dk *tex[3];
++    } *cached_textures;
++    int num_cached_textures;
++};
++
++// NVDEC can render to NV12 and YV12 surfaces, the FFmpeg backend hardcodes for NV12
++// NVJPG can decode to grayscale surfaces
++// Some filters will output YUV420P and upload that to a hardware surface
++static const int supported_formats[] = {
++    IMGFMT_Y8,
++    IMGFMT_NV12,
++    IMGFMT_P010,
++    IMGFMT_420P,
++    IMGFMT_NONE,
++};
++
++static int init(struct ra_hwdec *hw) {
++    struct priv_owner *priv = hw->priv;
++
++    MP_VERBOSE(hw, "%s\n", __func__);
++
++    AVBufferRef *hw_device_ctx = NULL;
++    if ((av_hwdevice_ctx_create(&hw_device_ctx, AV_HWDEVICE_TYPE_NVTEGRA, NULL, NULL, 0) < 0)
++            || (hw_device_ctx == NULL))
++        goto error;
++
++    priv->hwctx = (struct mp_hwdec_ctx) {
++        .driver_name       = hw->driver->name,
++        .av_device_ref     = hw_device_ctx,
++        .supported_formats = supported_formats,
++        .hw_imgfmt         = IMGFMT_NVTEGRA,
++    };
++    hwdec_devices_add(hw->devs, &priv->hwctx);
++
++    return 0;
++
++ error:
++    av_buffer_unref(&hw_device_ctx);
++    return -1;
++}
++
++static void uninit(struct ra_hwdec *hw) {
++    struct priv_owner *priv = hw->priv;
++
++    MP_VERBOSE(hw, "%s\n", __func__);
++
++    hwdec_devices_remove(hw->devs, &priv->hwctx);
++    av_buffer_unref(&priv->hwctx.av_device_ref);
++}
++
++static int mapper_init(struct ra_hwdec_mapper *mapper) {
++    struct priv *priv = mapper->priv;
++
++    MP_VERBOSE(mapper, "%s\n", __func__);
++
++    mapper->dst_params           = mapper->src_params;
++    mapper->dst_params.imgfmt    = mapper->src_params.hw_subfmt;
++    mapper->dst_params.hw_subfmt = 0;
++
++    struct mp_image layout;
++    mp_image_set_params(&layout, &mapper->dst_params);
++
++    struct ra_imgfmt_desc desc;
++    if (!ra_get_imgfmt_desc(mapper->ra, mapper->dst_params.imgfmt, &desc)) {
++        MP_ERR(mapper, "Unsupported format: %s\n", mp_imgfmt_to_name(mapper->dst_params.imgfmt));
++        return -1;
++    }
++
++    priv->dk                     = ra_dk_get_ctx(mapper->ra);
++    priv->num_planes             = desc.num_planes;
++    priv->has_calculated_layouts = false;
++
++    for (int i = 0; i < priv->num_planes; ++i) {
++        mapper->tex[i] = talloc_zero(mapper, struct ra_tex);
++        if (!mapper->tex[i])
++            return -1;
++
++        mapper->tex[i]->params = (struct ra_tex_params){
++            .dimensions = 2,
++            .w          = mp_image_plane_w(&layout, i),
++            .h          = mp_image_plane_h(&layout, i),
++            .d          = 1,
++            .format     = desc.planes[i],
++            .render_src = true,
++            .src_linear = true,
++        };
++    }
++
++    return 0;
++}
++
++static void destroy_cache_entry(struct ra_hwdec_mapper *mapper, struct cached_texture *e) {
++    struct priv *priv = mapper->priv;
++
++    for (int i = 0; i < priv->num_planes; ++i)
++        ra_dk_unregister_texture(mapper->ra, e->tex[i]);
++
++    if (e->memblock)
++        dkMemBlockDestroy(e->memblock);
++
++    av_buffer_unref(&e->buf_ref);
++}
++
++static void mapper_uninit(struct ra_hwdec_mapper *mapper) {
++    struct priv *priv = mapper->priv;
++
++    MP_VERBOSE(mapper, "%s\n", __func__);
++
++    for (int i = 0; i < priv->num_cached_textures; ++i)
++        destroy_cache_entry(mapper, &priv->cached_textures[i]);
++}
++
++static int mapper_map(struct ra_hwdec_mapper *mapper) {
++    struct priv *priv = mapper->priv;
++    AVNVTegraFrame *frame = (AVNVTegraFrame *)mapper->src->bufs[0]->data;
++    AVNVTegraMap *map = (AVNVTegraMap *)frame->map_ref->data;
++
++    if ((priv->is_linear != map->is_linear) || !priv->has_calculated_layouts) {
++        priv->is_linear = map->is_linear;
++
++        for (int i = 0; i < priv->num_planes; ++i) {
++            struct ra_tex_params *params = &mapper->tex[i]->params;
++
++            // If the width (aligned to relevant boundaries) is not equal to the stride
++            // (for example because of cropping), set it to the latter
++            //  Alignment is 64B for block (GOB requirement) and 256B for pitch linear (VIC requirement)
++            int align = (!map->is_linear ? 64 : 256)  / mapper->tex[i]->params.format->pixel_size;
++            int texel_stride = mapper->src->stride[i] / mapper->tex[i]->params.format->pixel_size;
++            if (MP_ALIGN_UP(params->w, align) != texel_stride)
++                params->w = texel_stride;
++
++            DkImageLayoutMaker layout_maker;
++            dkImageLayoutMakerDefaults(&layout_maker, priv->dk->device);
++            layout_maker.type          = DkImageType_2D;
++            layout_maker.format        = ((struct dk_format *)params->format->priv)->fmt;
++            layout_maker.dimensions[0] = params->w;
++            layout_maker.dimensions[1] = params->h;
++            layout_maker.dimensions[2] = 1;
++
++            layout_maker.flags = DkImageFlags_UsageLoadStore | DkImageFlags_Usage2DEngine;
++
++            if (priv->is_linear) {
++                layout_maker.flags      |= DkImageFlags_PitchLinear;
++                layout_maker.pitchStride = mapper->src->stride[i];
++            } else {
++                layout_maker.flags      |= DkImageFlags_UsageVideo;
++            }
++
++            dkImageLayoutInitialize(&priv->dklayouts[i], &layout_maker);
++        }
++
++        priv->has_calculated_layouts = true;
++    }
++
++    AVHWFramesContext *hwctx = (AVHWFramesContext *)mapper->src->hwctx->data;
++
++    // Clean up stale cached frames
++    for (int i = priv->num_cached_textures - 1; i >= 0; --i) {
++        if (priv->cached_textures[i].frames_ctx != hwctx) {
++            destroy_cache_entry(mapper, &priv->cached_textures[i]);
++            MP_TARRAY_REMOVE_AT(priv->cached_textures, priv->num_cached_textures, i);
++        }
++    }
++
++    for (int i = 0; i < priv->num_cached_textures; ++i) {
++        if (priv->cached_textures[i].handle == av_nvtegra_map_get_handle(map)) {
++            for (int j = 0; j < priv->num_planes; ++j)
++                mapper->tex[j]->priv = priv->cached_textures[i].tex[j];
++
++            // Invalidate texture cache
++            dkCmdBufBarrier(priv->dk->cmdbuf, DkBarrier_None, DkInvalidateFlags_Image);
++            dkQueueSubmitCommands(priv->dk->queue, dkCmdBufFinishList(priv->dk->cmdbuf));
++
++            return 0;
++        }
++    }
++
++    struct cached_texture cache;
++    cache.buf_ref = av_buffer_ref(frame->map_ref);
++    if (!cache.buf_ref)
++        return -1;
++
++    cache.handle = av_nvtegra_map_get_handle(map);
++    cache.frames_ctx = hwctx;
++
++    DkMemBlockMaker memblock_maker;
++    dkMemBlockMakerDefaults(&memblock_maker, priv->dk->device, av_nvtegra_map_get_size(map));
++    memblock_maker.flags   = DkMemBlockFlags_CpuUncached |
++        DkMemBlockFlags_GpuCached | DkMemBlockFlags_Image;
++    memblock_maker.storage = av_nvtegra_map_get_addr(map);
++    cache.memblock = dkMemBlockCreate(&memblock_maker);
++    if (!cache.memblock)
++        return -1;
++
++    for (int i = 0; i < priv->num_planes; ++i) {
++        DkImage image;
++        dkImageInitialize(&image, &priv->dklayouts[i], cache.memblock,
++            (uintptr_t)(mapper->src->planes[i] - mapper->src->planes[0]));
++
++        struct ra_tex_dk *tex_priv = mapper->tex[i]->priv = talloc_zero(mapper->tex[i], struct ra_tex_dk);
++        if (!tex_priv) {
++            dkMemBlockDestroy(cache.memblock);
++            return -1;
++        }
++
++        tex_priv->image    = image;
++        tex_priv->memblock = cache.memblock;
++
++        ra_dk_register_texture(mapper->ra, mapper->tex[i]);
++        cache.tex[i] = mapper->tex[i]->priv;
++    }
++
++    MP_TARRAY_APPEND(mapper, priv->cached_textures, priv->num_cached_textures, cache);
++
++    return 0;
++}
++
++static void mapper_unmap(struct ra_hwdec_mapper *mapper) {
++    // Do nothing
++}
++
++const struct ra_hwdec_driver ra_hwdec_nvtegra = {
++    .name          = "nvtegra",
++    .priv_size     = sizeof(struct priv_owner),
++    .imgfmts       = {IMGFMT_NVTEGRA, 0},
++    .init          = init,
++    .uninit        = uninit,
++    .mapper        = &(const struct ra_hwdec_mapper_driver){
++        .priv_size = sizeof(struct priv),
++        .init      = mapper_init,
++        .uninit    = mapper_uninit,
++        .map       = mapper_map,
++        .unmap     = mapper_unmap,
++    },
++};
+diff --git a/video/out/vo.c b/video/out/vo.c
+index c53cec36a1..820cb628e5 100644
+--- a/video/out/vo.c
++++ b/video/out/vo.c
+@@ -119,7 +119,6 @@ static const struct vo_driver *const video_out_drivers[] =
+ #if HAVE_SIXEL
+     &video_out_sixel,
+ #endif
+-    &video_out_kitty,
+     &video_out_lavc,
+ };
+ 
+diff --git a/wscript b/wscript
+index 82f65b4afa..4c32e9c9ad 100644
+--- a/wscript
++++ b/wscript
+@@ -423,6 +423,10 @@ iconv support use --disable-iconv.",
+         'name': 'zimg-st428',
+         'desc': 'ZIMG support for ZIMG_TRANSFER_ST428',
+         'func': check_pkg_config('zimg', '>= 3.0.5'),
++    }, {
++        'name': '--hos',
++        'desc': 'Horizon OS',
++        'func': check_statement(['switch.h'], ''),
+     }
+ ]
+ 
+@@ -509,6 +513,11 @@ audio_output_features = [
+         'desc': 'WASAPI audio output',
+         'deps': 'os-win32 || os-cygwin',
+         'func': check_cc(fragment=load_fragment('wasapi.c')),
++    }, {
++        'name': '--hos-audio',
++        'desc': 'Audren audio output',
++        'deps': 'hos',
++        'func': check_true,
+     }
+ ]
+ 
+@@ -863,6 +872,14 @@ video_output_features = [
+         'desc': "POSIX shared memory API",
+         'deps': 'posix',
+         'func': check_statement('sys/mman.h', 'shm_open("",0,0)')
++    }, {
++        'name': '--deko3d',
++        'desc': 'deko3d context support',
++        'deps': 'hos && gpl',
++        'func': compose_checks(
++                    check_cc(header_name='deko3d.h', lib='deko3d'),
++                    check_pkg_config('uam'),
++                ),
+     }
+ ]
+ 
+diff --git a/wscript_build.py b/wscript_build.py
+index a470808ae5..e60634f5a1 100644
+--- a/wscript_build.py
++++ b/wscript_build.py
+@@ -240,7 +240,6 @@ def build(ctx):
+         ])
+ 
+     getch2_c = ctx.pick_first_matching_dep([
+-        ( "osdep/terminal-unix.c",               "posix" ),
+         ( "osdep/terminal-win.c",                "win32-desktop" ),
+         ( "osdep/terminal-dummy.c" ),
+     ])
+@@ -252,13 +251,11 @@ def build(ctx):
+     ])
+ 
+     ipc_c = ctx.pick_first_matching_dep([
+-        ( "input/ipc-unix.c",                    "posix" ),
+         ( "input/ipc-win.c",                     "win32-desktop" ),
+         ( "input/ipc-dummy.c" ),
+     ])
+ 
+     subprocess_c = ctx.pick_first_matching_dep([
+-        ( "osdep/subprocess-posix.c",            "posix" ),
+         ( "osdep/subprocess-win.c",              "win32-desktop" ),
+         ( "osdep/subprocess-dummy.c" ),
+     ])
+@@ -309,6 +306,7 @@ def build(ctx):
+         ( "audio/out/ao_wasapi.c",               "wasapi" ),
+         ( "audio/out/ao_wasapi_changenotify.c",  "wasapi" ),
+         ( "audio/out/ao_wasapi_utils.c",         "wasapi" ),
++        ( "audio/out/ao_hos.c",                  "hos-audio" ),
+         ( "audio/out/buffer.c" ),
+ 
+         ## Core
+@@ -542,6 +540,10 @@ def build(ctx):
+         ( "video/out/present_sync.c",            "wayland || x11" ),
+         ( "video/out/wldmabuf/context_wldmabuf.c", "dmabuf-wayland" ),
+         ( "video/out/wldmabuf/ra_wldmabuf.c",      "dmabuf-wayland" ),
++        ( "video/out/deko3d/context.c",          "deko3d" ),
++        ( "video/out/deko3d/ra_dk.c",            "deko3d" ),
++        ( "video/out/deko3d/libmpv_dk.c",        "deko3d" ),
++        ( "video/out/hwdec/hwdec_deko3d.c",      "deko3d" ),
+         ( "video/out/vo.c" ),
+         ( "video/out/vo_caca.c",                 "caca" ),
+         ( "video/out/vo_direct3d.c",             "direct3d" ),
+@@ -621,10 +623,10 @@ def build(ctx):
+         ( "osdep/semaphore_osx.c" ),
+         ( "osdep/subprocess.c" ),
+         ( subprocess_c ),
+-        ( "osdep/w32_keyboard.c",                "os-cygwin" ),
++        ( "osdep/w32_keyboard.c",                "os-cygwin && !hos" ),
+         ( "osdep/w32_keyboard.c",                "os-win32" ),
+         ( "osdep/win32/pthread.c",               "win32-internal-pthreads"),
+-        ( "osdep/windows_utils.c",               "os-cygwin" ),
++        ( "osdep/windows_utils.c",               "os-cygwin && !hos" ),
+         ( "osdep/windows_utils.c",               "os-win32" ),
+ 
+         ## tree_allocator
+@@ -779,7 +781,7 @@ def build(ctx):
+         )
+ 
+         headers = ["client.h", "render.h",
+-                   "render_gl.h", "stream_cb.h"]
++                   "render_gl.h", "stream_cb.h", "render_dk3d.h"]
+         for f in headers:
+             ctx.install_as(ctx.env.INCLUDEDIR + '/mpv/' + f, 'libmpv/' + f)
+ 

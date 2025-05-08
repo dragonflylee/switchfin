@@ -11,7 +11,7 @@ objc = ['clang']
 objcpp = ['clang++']
 ar = ['ar']
 strip = ['strip']
-pkgconfig = ['pkg-config']
+pkg-config = ['pkg-config']
 
 [built-in options]
 buildtype = 'release'

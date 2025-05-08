@@ -1,0 +1,128 @@
+diff --git a/include/mbedtls/mbedtls_config.h b/include/mbedtls/mbedtls_config.h
+index bd3f71d..dfc9add 100644
+--- a/include/mbedtls/mbedtls_config.h
++++ b/include/mbedtls/mbedtls_config.h
+@@ -540,7 +540,7 @@
+  *
+  * Uncomment to use your own hardware entropy collector.
+  */
+-//#define MBEDTLS_ENTROPY_HARDWARE_ALT
++#define MBEDTLS_ENTROPY_HARDWARE_ALT
+ 
+ /**
+  * \def MBEDTLS_AES_ROM_TABLES
+@@ -1206,7 +1206,7 @@
+  *
+  * Uncomment this macro to disable the built-in platform entropy functions.
+  */
+-//#define MBEDTLS_NO_PLATFORM_ENTROPY
++#define MBEDTLS_NO_PLATFORM_ENTROPY
+ 
+ /**
+  * \def MBEDTLS_ENTROPY_FORCE_SHA256
+@@ -1521,7 +1521,7 @@
+  *
+  * Enable the checkup functions (*_self_test).
+  */
+-#define MBEDTLS_SELF_TEST
++//#define MBEDTLS_SELF_TEST
+ 
+ /**
+  * \def MBEDTLS_SHA256_SMALLER
+diff --git a/library/entropy_poll.c b/library/entropy_poll.c
+index 611768c..6a2fa1a 100644
+--- a/library/entropy_poll.c
++++ b/library/entropy_poll.c
+@@ -31,7 +31,7 @@
+ 
+ #if !defined(unix) && !defined(__unix__) && !defined(__unix) && \
+     !defined(__APPLE__) && !defined(_WIN32) && !defined(__QNXNTO__) && \
+-    !defined(__HAIKU__) && !defined(__midipix__) && !defined(__MVS__)
++    !defined(__HAIKU__) && !defined(__midipix__) && !defined(__MVS__) && !defined(__SWITCH__)
+ #error \
+     "Platform entropy sources only work on Unix and Windows, see MBEDTLS_NO_PLATFORM_ENTROPY in mbedtls_config.h"
+ #endif
+@@ -203,6 +203,19 @@ int mbedtls_platform_entropy_poll(void *data,
+ #endif /* _WIN32 && !EFIX64 && !EFI32 */
+ #endif /* !MBEDTLS_NO_PLATFORM_ENTROPY */
+ 
++#ifdef __SWITCH__
++#include <switch.h>
++int mbedtls_hardware_poll( void *data,
++                            unsigned char *output, size_t len, size_t *olen )
++{
++    (void)(data);
++    csrngGetRandomBytes(output, len);
++    if(olen)
++        *olen = len;
++    return 0;
++}
++#endif
++
+ #if defined(MBEDTLS_ENTROPY_NV_SEED)
+ int mbedtls_nv_seed_poll(void *data,
+                          unsigned char *output, size_t len, size_t *olen)
+diff --git a/library/net_sockets.c b/library/net_sockets.c
+index ef89a88..f67372d 100644
+--- a/library/net_sockets.c
++++ b/library/net_sockets.c
+@@ -21,7 +21,7 @@
+ 
+ #if !defined(unix) && !defined(__unix__) && !defined(__unix) && \
+     !defined(__APPLE__) && !defined(_WIN32) && !defined(__QNXNTO__) && \
+-    !defined(__HAIKU__) && !defined(__midipix__)
++    !defined(__HAIKU__) && !defined(__midipix__) && !defined(__SWITCH__)
+ #error "This module only works on Unix and Windows, see MBEDTLS_NET_C in mbedtls_config.h"
+ #endif
+ 
+@@ -406,6 +406,7 @@ int mbedtls_net_accept(mbedtls_net_context *bind_ctx,
+             }
+ 
+             memcpy(client_ip, &addr4->sin_addr.s_addr, *cip_len);
++#ifndef __SWITCH__
+         } else {
+             struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *) &client_addr;
+             *cip_len = sizeof(addr6->sin6_addr.s6_addr);
+@@ -415,6 +416,7 @@ int mbedtls_net_accept(mbedtls_net_context *bind_ctx,
+             }
+ 
+             memcpy(client_ip, &addr6->sin6_addr.s6_addr, *cip_len);
++#endif
+         }
+     }
+ 
+diff --git a/library/platform_util.c b/library/platform_util.c
+index 19ef07a..fab0ff7 100644
+--- a/library/platform_util.c
++++ b/library/platform_util.c
+@@ -224,7 +224,7 @@ void (*mbedtls_test_hook_test_fail)(const char *, int, const char *);
+ #include <unistd.h>
+ #endif \
+     /* !_WIN32 && (unix || __unix || __unix__ || (__APPLE__ && __MACH__) || __HAIKU__ || __midipix__) */
+-#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 199309L) || defined(__HAIKU__)
++#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 199309L) || defined(__HAIKU__) || defined(__SWITCH__)
+ mbedtls_ms_time_t mbedtls_ms_time(void)
+ {
+     int ret;
+@@ -257,7 +257,7 @@ mbedtls_ms_time_t mbedtls_ms_time(void)
+                   ((mbedtls_ms_time_t) (ct.dwHighDateTime) << 32LL))/10000;
+     return current_ms;
+ }
+-#else
++#else 
+ #error "No mbedtls_ms_time available"
+ #endif
+ #endif /* MBEDTLS_HAVE_TIME && !MBEDTLS_PLATFORM_MS_TIME_ALT */
+diff --git a/library/timing.c b/library/timing.c
+index 58f1c1e..2f5b27e 100644
+--- a/library/timing.c
++++ b/library/timing.c
+@@ -15,7 +15,7 @@
+ 
+ #if !defined(unix) && !defined(__unix__) && !defined(__unix) && \
+     !defined(__APPLE__) && !defined(_WIN32) && !defined(__QNXNTO__) && \
+-    !defined(__HAIKU__) && !defined(__midipix__)
++    !defined(__HAIKU__) && !defined(__midipix__) && !defined(__SWITCH__)
+ #error "This module only works on Unix and Windows, see MBEDTLS_TIMING_C in mbedtls_config.h"
+ #endif
+ 

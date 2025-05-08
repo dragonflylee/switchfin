@@ -31,14 +31,8 @@ jobs:
         adduser --gecos '' --home ${GITHUB_WORKSPACE}/scripts/switch --disabled-password builder
         echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder
 
-        curl -o scripts/switch/mpv/deko3d.patch \
-          -H 'Accept: application/vnd.github.patch' \
-          -H 'Authorization: Bearer ${{ secrets.MPV_TOKEN }}' \
-          -H 'X-GitHub-Api-Version: 2022-11-28' \
-          -s ${{ secrets.MPV_COMMIT}}/0.36
-
         chown -R builder:builder scripts/switch
-        for pkg in mbedtls harfbuzz ffmpeg libuam; do
+        for pkg in libnx mbedtls ffmpeg libuam; do
           echo building $pkg
           su - builder -c "cd $pkg && dkp-makepkg -siCf --noconfirm"
         done
