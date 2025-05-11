@@ -7,6 +7,7 @@
 #include <borealis.hpp>
 #include <borealis/core/singleton.hpp>
 #include <api/jellyfin/media.hpp>
+#include <client/client.hpp>
 #include <utils/event.hpp>
 
 class VideoProgressSlider;
@@ -32,7 +33,9 @@ public:
 
     void play(const jellyfin::Item& item);
 
-    void load(const std::vector<jellyfin::Track>& item, size_t index);
+    void load(const std::vector<jellyfin::Track>& items, size_t index);
+
+    void load(const std::vector<remote::DirEntry>& items, size_t index, const std::string& extra);
 
 private:
     BRLS_BIND(brls::Box, btnPrev, "music/prev");
@@ -60,7 +63,8 @@ private:
     MPVEvent::Subscription eventSubscribeID;
     MPVCommandReply::Subscription replySubscribeID;
 
-    using MusicList = std::unordered_map<int64_t, jellyfin::Track>;
+    using Entry = std::pair<std::string, std::string>;
+    using MusicList = std::unordered_map<int64_t, Entry>;
     int64_t playSession = 0;
     std::string itemId;
     MusicList playList;

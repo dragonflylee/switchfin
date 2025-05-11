@@ -4,6 +4,7 @@
 #include "view/video_view.hpp"
 #include "view/video_profile.hpp"
 #include "view/mpv_core.hpp"
+#include "view/music_view.hpp"
 #include "view/player_setting.hpp"
 #include "utils/misc.hpp"
 #include "utils/config.hpp"
@@ -58,7 +59,7 @@ public:
         mpv.command("write-watch-later-config");
     }
 
-    void setList(const DirList& list, size_t index, RemoteView::Client c) {
+    void setList(const DirList& list, size_t index, const std::string& extra) {
         // 播放列表
         DirList urls;
         for (size_t i = 1; i < list.size(); i++) {
@@ -71,7 +72,7 @@ public:
         }
         if (titles.size() > 1) view->setList(titles, index);
 
-        playSubscribeID = view->getPlayEvent()->subscribe([this, list, urls, c](int index) {
+        playSubscribeID = view->getPlayEvent()->subscribe([this, list, urls, extra](int index) {
             if (index < 0 || index >= (int)urls.size()) {
                 return VideoView::close();
             }
@@ -93,7 +94,7 @@ public:
                 }
             }
             this->url = item.url();
-            MPVCore::instance().setUrl(this->url, c->extraOption());
+            MPVCore::instance().setUrl(this->url, extra);
             view->setTitie(name);
             return true;
         });
@@ -182,8 +183,7 @@ static std::set<std::string> subtitleExt = {".srt", ".ass", ".ssa", ".sub", ".sm
 
 class FileDataSource : public RecyclingGridDataSource {
 public:
-    FileDataSource(const DirList& r, RemoteView::Client c)
-        : list(std::move(r)), client(c) {
+    FileDataSource(const DirList& r, RemoteView::Client c) : list(std::move(r)), client(c) {
         for (auto& it : this->list) {
             if (it.type != remote::EntryType::FILE) continue;
 
@@ -229,8 +229,21 @@ public:
 
         if (item.type == remote::EntryType::VIDEO) {
             RemotePlayer* view = new RemotePlayer(item);
-            view->setList(this->list, index, client);
+            view->setList(this->list, index, client->extraOption());
             brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
+            return;
+        }
+
+        if (item.type == remote::EntryType::AUDIO) {
+            DirList urls;
+            for (size_t i = 1; i < this->list.size(); i++) {
+                auto& it = this->list.at(i);
+                if (it.type == remote::EntryType::AUDIO) {
+                    if (i == index) index = urls.size();
+                    urls.push_back(it);
+                }
+            }
+            MusicView::instance().load(urls, index, client->extraOption());
             return;
         }
 
@@ -263,6 +276,9 @@ RemoteView::~RemoteView() {
     brls::Logger::debug("RemoteView: deleted");
     PlayerSetting::selectedSubtitle = 0;
     PlayerSetting::selectedAudio = 0;
+
+    /// 通知 MusicView 已关闭
+    MusicView::instance().setParent(nullptr);
 }
 
 brls::View* RemoteView::getDefaultFocus() { return this->recycler; }

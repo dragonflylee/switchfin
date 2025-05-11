@@ -66,6 +66,7 @@
         {
             "name": "MinGW64",
             "includePath": [
+                "${workspaceFolder}/build/library/lunasvg/include",
                 "${workspaceFolder}/app/include",
                 "${workspaceFolder}/library/**",
                 "C:/MinGW64/include",

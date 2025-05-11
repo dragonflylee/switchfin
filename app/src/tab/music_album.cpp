@@ -12,9 +12,9 @@ public:
     MusicTrackCell() { this->inflateFromXMLRes("xml/view/music_track.xml"); }
     ~MusicTrackCell() override = default;
 
-    void setSelected(bool value) {
-        this->selected = value;
-        if (value) {
+    void setSelected(const std::string& itemId) {
+        this->selected = !this->itemId.compare(itemId);
+        if (this->selected) {
             this->trackIndex->setMarginLeft(20);
             this->setBackgroundColor(brls::Application::getTheme().getColor("color/grey_2"));
         } else {
@@ -73,7 +73,7 @@ public:
         cell->trackDuration->setText(misc::sec2Time(item.RunTimeTicks / jellyfin::PLAYTICKS));
         cell->trackFavorite->setVisibility(
             item.UserData.IsFavorite ? brls::Visibility::VISIBLE : brls::Visibility::INVISIBLE);
-        cell->setSelected(MusicView::instance().currentId() == item.Id);
+        cell->setSelected(MusicView::instance().currentId());
         return cell;
     }
 
@@ -120,7 +120,7 @@ MusicAlbum::MusicAlbum(const jellyfin::Item& item) : itemId(item.Id) {
             auto item = reinterpret_cast<jellyfin::Track*>(data);
             for (auto i : this->albumTracks->getGridItems()) {
                 auto* cell = dynamic_cast<MusicTrackCell*>(i);
-                if (cell) cell->setSelected(cell->itemId == item->Id);
+                if (cell) cell->setSelected(item->Id);
             }
         }
     });

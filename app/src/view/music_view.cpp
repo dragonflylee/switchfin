@@ -64,8 +64,8 @@ void MusicView::registerMpvEvent() {
                 std::string key = fmt::format("playlist/{}/id", mpv.getInt("playlist-playing-pos"));
                 auto it = playList.find(mpv.getInt(key));
                 if (it != playList.end()) {
-                    this->playTitle->setText(it->second.Name);
-                    this->itemId = it->second.Id;
+                    this->playTitle->setText(it->second.second);
+                    this->itemId = it->second.first;
                     mpv.getCustomEvent()->fire(TRACK_START, &it->second);
                 }
             }
@@ -86,6 +86,8 @@ void MusicView::registerMpvEvent() {
             this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
             break;
         case MpvEventEnum::END_OF_FILE:
+            this->reset();
+            break;
         case MpvEventEnum::MPV_STOP:
             this->reset();
             if (!this->getParent()) brls::sync([this]() { this->unregisterMpvEvent(); });
@@ -96,7 +98,7 @@ void MusicView::registerMpvEvent() {
     // 注冊命令回調
     replySubscribeID = mpv.getCommandReply()->subscribe([this](uint64_t userdata, int64_t entryId) {
         auto item = reinterpret_cast<jellyfin::Track*>(userdata);
-        if (item) playList.insert(std::make_pair(entryId, *item));
+        if (item) playList.insert(std::make_pair(entryId, std::make_pair(item->Id, item->Name)));
     });
 
     brls::Logger::info("MusicView: registerMpvEvent {}", this->playSession);
@@ -187,6 +189,24 @@ void MusicView::load(const std::vector<jellyfin::Track>& items, size_t index) {
         uint64_t userdata = reinterpret_cast<uint64_t>(&item);
         std::string url = fmt::format(fmt::runtime(jellyfin::apiAudio), item.Id, query);
         mpv.setUrl(conf.getUrl() + url, ssextra.str(), "append", userdata);
+    }
+
+    mpv.command("playlist-play-index", std::to_string(index).c_str());
+}
+
+void MusicView::load(const std::vector<remote::DirEntry>& items, size_t index, const std::string& extra) {
+    auto& mpv = MPVCore::instance();
+
+    if (!this->playSession) this->registerMpvEvent();
+
+    mpv.stop();
+    mpv.enableVO(false);
+    mpv.command("playlist-clear");
+    this->playList.clear();
+    this->btnSuffle->setBorderThickness(0);
+
+    for (auto& item : items) {
+        mpv.setUrl(item.url(), extra, "append");
     }
 
     mpv.command("playlist-play-index", std::to_string(index).c_str());
