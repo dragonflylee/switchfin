@@ -5,11 +5,15 @@
 ### Add
 
 * refactor series view layout
+* add people view of series/movie
+* add Brazilian Portuguese localization (@brunorossetto)
 
 ### Fixed
 
 * exception catch under macOS
 * remote load large file list
+* use mpv watch-later for remote
+* subtitle not display on vita
 
 ## [0.6.3]
 

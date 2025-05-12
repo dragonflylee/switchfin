@@ -2,9 +2,9 @@ pkgname=ffmpeg
 pkgver=n6.0
 pkgrel=3
 url="https://ffmpeg.org/"
-source=("${pkgname}-${pkgver}.tar.gz::https://github.com/FFmpeg/FFmpeg/archive/refs/tags/${pkgver}.tar.gz" "ffmpeg.patch")
+source=("${pkgname}-${pkgver}.tar.gz::https://github.com/FFmpeg/FFmpeg/archive/${pkgver}.tar.gz" "ffmpeg.patch")
 sha256sums=('SKIP' 'SKIP')
-depends=('mbedtls')
+depends=('mbedtls' 'libass')
 
 prepare() {
   cd FFmpeg-${pkgver}
@@ -31,11 +31,11 @@ build() {
         --disable-encoders \
         --disable-muxers \
         --disable-demuxers \
-        --enable-demuxer='hls,flac,flv,aac,ac3,h264,hevc,mp3,wav,mov,mjpeg,matroska' \
+        --enable-demuxer='hls,flac,flv,aac,ac3,h264,hevc,mp3,wav,mov,mjpeg,matroska,ass,srt,dvbsub' \
         --disable-parsers \
-        --enable-parser='aac,aac_latm,ac3,bmp,flac,h264,hdr,hevc,mjpeg,mpeg4video,mpeg4audio,mpegvideo' \
+        --enable-parser='aac,aac_latm,ac3,bmp,flac,h264,hdr,hevc,mjpeg,mpeg4video,mpeg4audio,mpegvideo,dvbsub' \
         --disable-decoders \
-        --enable-decoder='h264,aac,ac3,bmp,flv,flac,mjpeg,srt,aac_vita,mp3_vita,h264_vita' \
+        --enable-decoder='h264,aac,ac3,bmp,flv,flac,mjpeg,srt,aac_vita,mp3_vita,h264_vita,ass,ssa,srt,dvbsub,dvdsub,pgssub' \
         --enable-network \
         --disable-protocols \
         --enable-protocol='file,http,tcp,tls,hls,https,ftp,rtp,crypto,httpproxy' \
@@ -46,6 +46,7 @@ build() {
         --disable-sdl2 \
         --disable-xlib \
         --disable-avdevice \
+        --enable-libass \
         --enable-mbedtls --enable-version3 \
         --enable-pthreads
 
