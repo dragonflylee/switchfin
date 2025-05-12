@@ -10,7 +10,6 @@
         marginRight="30">
         <brls:Image
             id="movie/image/logo"
-            height="300"
             scalingType="fit"
             backgroundColor="@theme/color/grey_1"
             image="@res/img/video-card-bg.png" />

@@ -30,8 +30,8 @@ Switchfin is third-party PC player for Jellyfin that provides a native user inte
       <td><img src="images/music.jpg" alt="Music"></td>
     </tr>
     <tr>
-      <th>Music</th>
       <th>Series</th>
+      <th>Episode</th>
     </tr>
     <tr>
       <td><img src="images/series.jpg" alt="Series"></td>
