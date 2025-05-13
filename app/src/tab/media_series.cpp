@@ -11,6 +11,7 @@
 #include "view/video_card.hpp"
 #include "view/people_source.hpp"
 #include "view/video_source.hpp"
+#include "view/presenter.hpp"
 #include <fmt/ranges.h>
 
 using namespace brls::literals;  // for _i18n
@@ -154,6 +155,13 @@ MediaSeries::MediaSeries(const jellyfin::Item& item) {
 }
 
 MediaSeries::~MediaSeries() { brls::Logger::debug("Tab MediaSeries: delete"); }
+
+void MediaSeries::doRequest() {
+    if (this->tabFrame->isOnTop) {
+        auto view = dynamic_cast<AttachedView*>(this->tabFrame->getActiveTab());
+        if (view) view->onCreate();
+    }
+}
 
 void MediaSeries::doSeries(const std::string& itemId) {
     ASYNC_RETAIN

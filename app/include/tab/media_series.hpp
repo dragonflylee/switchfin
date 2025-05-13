@@ -6,14 +6,17 @@
 
 #include <borealis.hpp>
 #include <api/jellyfin/media.hpp>
+#include <view/presenter.hpp>
 
 class AutoTabFrame;
 class HRecyclerFrame;
 
-class MediaSeries : public brls::Box {
+class MediaSeries : public brls::Box, public Presenter {
 public:
     MediaSeries(const jellyfin::Item& item);
     ~MediaSeries() override;
+
+    void doRequest() override;
 
 private:
     BRLS_BIND(brls::Image, imageLogo, "series/image/logo");

@@ -110,7 +110,7 @@ PlayerView::~PlayerView() {
     view->getPlayEvent()->unsubscribe(playSubscribeID);
     view->getSettingEvent()->unsubscribe(settingSubscribeID);
 
-    mpv.getCustomEvent()->fire(VIDEO_CLOSE, nullptr);
+    brls::sync([]() { MPVCore::instance().getCustomEvent()->fire(VIDEO_CLOSE, nullptr); });
 
     if (DanmakuCore::PLUGIN_ACTIVE) {
         DanmakuCore::instance().reset();
