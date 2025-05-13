@@ -24,8 +24,6 @@ jobs:
         apt-get update
         apt-get install -y fakeroot zstd bison flex libtool python3-pip manpages-
         pip3 install meson mako
-
-        dkp-pacman --noconfirm -U scripts/switch/dkp-*.zst
     - name: Build portlibs
       run: |
         adduser --gecos '' --home ${GITHUB_WORKSPACE}/scripts/switch --disabled-password builder

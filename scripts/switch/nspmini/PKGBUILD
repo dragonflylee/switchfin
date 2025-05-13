@@ -16,7 +16,7 @@ build() {
 
   source /opt/devkitpro/switchvars.sh
 
-  make
+  make -j$(nproc)
 }
 
 package() {

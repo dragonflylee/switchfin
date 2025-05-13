@@ -60,8 +60,10 @@ public:
         this->btnGithub->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnGithub));
 
         auto& mpv = MPVCore::instance();
-        this->labelThirdpart->setText(fmt::format(
-            "ffmpeg/{} {}\n{}", mpv.getString("ffmpeg-version"), mpv.getString("mpv-version"), curl_version()));
+        int libass = mpv.getInt("libass-version");
+        this->labelThirdpart->setText(fmt::format("{} ffmpeg/{} libass/{:x}.{:x}.{:x}\n{}",
+            mpv.getString("mpv-version"), mpv.getString("ffmpeg-version"), (libass >> 28) & 0xf,
+            (libass >> 20) & 0xfffff, (libass >> 12) & 0xff, curl_version()));
         brls::Logger::debug("dialog SettingAbout: create");
     }
 
