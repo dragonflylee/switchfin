@@ -13,8 +13,8 @@ public:
         this->headerTitle->setTitle(item.Name);
         this->doPeople(item.Id);
 
-        this->doMedia(item.Id, jellyfin::mediaTypeMovie, this->movie);
-        this->doMedia(item.Id, jellyfin::mediaTypeSeries, this->series);
+        this->doMedia(item.Id, jellyfin::mediaTypeMovie, this->movie, this->titleMovie);
+        this->doMedia(item.Id, jellyfin::mediaTypeSeries, this->series, this->titleSeries);
     }
 
     void doPeople(const std::string& itemId) {
@@ -43,12 +43,12 @@ public:
             },
             [ASYNC_TOKEN](const std::string& ex) {
                 ASYNC_RELEASE
-                brls::Logger::warning("doPeople {}", ex);
+                brls::Application::notify(ex);
             },
             jellyfin::apiUserItem, AppConfig::instance().getUserId(), itemId);
     }
 
-    void doMedia(const std::string& itemId, const std::string& type, HRecyclerFrame* recyler) {
+    void doMedia(const std::string& itemId, const std::string& type, HRecyclerFrame* recyler, brls::Header* title) {
         std::string query = HTTP::encode_form({
             {"PersonIds", itemId},
             {"fields", "PrimaryImageAspectRatio,Chapters,BasicSyncInfo"},
@@ -62,17 +62,19 @@ public:
 
         ASYNC_RETAIN
         jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
-            [ASYNC_TOKEN, recyler](const jellyfin::Result<jellyfin::Episode>& r) {
+            [ASYNC_TOKEN, recyler, title](const jellyfin::Result<jellyfin::Episode>& r) {
                 ASYNC_RELEASE
                 if (r.Items.size() > 0) {
                     recyler->setDataSource(new VideoDataSource(r.Items));
                 } else {
                     recyler->setVisibility(brls::Visibility::GONE);
+                    title->setVisibility(brls::Visibility::GONE);
                 }
             },
-            [ASYNC_TOKEN, recyler](const std::string& ex) {
+            [ASYNC_TOKEN, recyler, title](const std::string& ex) {
                 ASYNC_RELEASE
                 recyler->setVisibility(brls::Visibility::GONE);
+                title->setVisibility(brls::Visibility::GONE);
             },
             jellyfin::apiUserLibrary, AppConfig::instance().getUserId(), query);
     }
@@ -82,6 +84,8 @@ private:
     BRLS_BIND(brls::Header, headerTitle, "people/header/title");
     BRLS_BIND(brls::Label, labelOverview, "people/label/overview");
     BRLS_BIND(brls::Label, labelLocation, "people/label/location");
+    BRLS_BIND(brls::Header, titleSeries, "people/series/title");
+    BRLS_BIND(brls::Header, titleMovie, "people/movie/title");
     BRLS_BIND(HRecyclerFrame, movie, "people/movie");
     BRLS_BIND(HRecyclerFrame, series, "people/series");
 };

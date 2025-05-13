@@ -21,7 +21,11 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
     auto& item = this->list.at(index);
 
     if (item.Type == jellyfin::mediaTypeEpisode) {
-        cell->labelTitle->setText(item.SeriesName);
+        if (item.SeriesName.empty()) {
+            cell->labelTitle->setVisibility(brls::Visibility::GONE);
+        } else {
+            cell->labelTitle->setText(item.SeriesName);
+        }
         cell->labelExt->setText(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
 
         if (item.ParentBackdropImageTags.empty()) {

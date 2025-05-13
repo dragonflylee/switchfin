@@ -124,7 +124,7 @@ private:
     std::string seasonId;
 };
 
-MediaSeries::MediaSeries(const jellyfin::Item& item) {
+MediaSeries::MediaSeries(const jellyfin::Item& item) : seriesId(item.Id) {
     brls::Logger::debug("Tab MediaSeries: create");
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/series.xml");
@@ -132,6 +132,7 @@ MediaSeries::MediaSeries(const jellyfin::Item& item) {
     this->headerTitle->setTitle(item.Name);
     this->people->registerCell("Cell", VideoCardCell::create);
     this->similar->registerCell("Cell", VideoCardCell::create);
+    this->nextUp->registerCell("Cell", VideoCardCell::create);
 
     this->registerAction(
         "上一项", brls::ControllerButton::BUTTON_LB,
@@ -149,9 +150,10 @@ MediaSeries::MediaSeries(const jellyfin::Item& item) {
         },
         true);
 
-    this->doSeason(item.Id);
-    this->doSeries(item.Id);
-    this->doSimilar(item.Id);
+    this->doSeason();
+    this->doSeries();
+    this->doNextup();
+    this->doSimilar();
 }
 
 MediaSeries::~MediaSeries() { brls::Logger::debug("Tab MediaSeries: delete"); }
@@ -160,10 +162,11 @@ void MediaSeries::doRequest() {
     if (this->tabFrame->isOnTop) {
         auto view = dynamic_cast<AttachedView*>(this->tabFrame->getActiveTab());
         if (view) view->onCreate();
+        this->doNextup();
     }
 }
 
-void MediaSeries::doSeries(const std::string& itemId) {
+void MediaSeries::doSeries() {
     ASYNC_RETAIN
     jellyfin::getJSON<jellyfin::Detail>(
         [ASYNC_TOKEN](const jellyfin::Detail& r) {
@@ -211,10 +214,10 @@ void MediaSeries::doSeries(const std::string& itemId) {
             ASYNC_RELEASE
             this->people->setVisibility(brls::Visibility::GONE);
         },
-        jellyfin::apiUserItem, AppConfig::instance().getUserId(), itemId);
+        jellyfin::apiUserItem, AppConfig::instance().getUserId(), this->seriesId);
 }
 
-void MediaSeries::doSeason(const std::string& itemId) {
+void MediaSeries::doSeason() {
     std::string query = HTTP::encode_form({
         {"userId", AppConfig::instance().getUserId()},
         {"fields", "ItemCounts"},
@@ -238,10 +241,38 @@ void MediaSeries::doSeason(const std::string& itemId) {
             ASYNC_RELEASE
             brls::Logger::warning("doSeason {}", ex);
         },
-        jellyfin::apiShowSeanon, itemId, query);
+        jellyfin::apiShowSeanon, this->seriesId, query);
 }
 
-void MediaSeries::doSimilar(const std::string& itemId) {
+void MediaSeries::doNextup() {
+    std::string query = HTTP::encode_form({
+        {"userId", AppConfig::instance().getUserId()},
+        {"fields", "MediaSourceCount"},
+        {"seriesId", this->seriesId},
+    });
+    ASYNC_RETAIN
+    jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
+        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
+            ASYNC_RELEASE
+            if (r.Items.size() > 0) {
+                auto items = std::move(r.Items);
+                items[0].SeriesName.clear();
+                this->nextUp->setDataSource(new VideoDataSource(items));
+                this->labelNextup->setVisibility(brls::Visibility::VISIBLE);
+            } else {
+                this->nextUp->setVisibility(brls::Visibility::GONE);
+                this->labelNextup->setVisibility(brls::Visibility::GONE);
+            }
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            this->nextUp->setVisibility(brls::Visibility::GONE);
+            this->labelNextup->setVisibility(brls::Visibility::GONE);
+        },
+        jellyfin::apiShowNextUp, query);
+}
+
+void MediaSeries::doSimilar() {
     std::string query = HTTP::encode_form({
         {"userId", AppConfig::instance().getUserId()},
         {"limit", "12"},
@@ -262,5 +293,5 @@ void MediaSeries::doSimilar(const std::string& itemId) {
             ASYNC_RELEASE
             this->similar->setVisibility(brls::Visibility::GONE);
         },
-        jellyfin::apiSimilar, itemId, query);
+        jellyfin::apiSimilar, this->seriesId, query);
 }
