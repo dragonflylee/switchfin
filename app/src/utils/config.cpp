@@ -1,6 +1,7 @@
 #ifdef __SWITCH__
 #include <switch.h>
 #include "utils/overclock.hpp"
+#include "utils/ums.hpp"
 #elif defined(__PSV__)
 #include <psp2/kernel/cpu.h>
 #include <psp2/kernel/threadmgr/thread.h>
@@ -74,6 +75,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {CLIP_POINT, {"clip_point"}},
     {SYNC_SETTING, {"sync_setting"}},
     {OVERCLOCK, {"overclock"}},
+    {UMS, {"ums"}},
     {MPV_VO, {"mpv_vo", {"gpu", "gpu-next", "mediacodec_embed"}}},
     {PLAYER_BOTTOM_BAR, {"player_bottom_bar"}},
     {PLAYER_LOW_QUALITY, {"player_low_quality"}},
@@ -389,6 +391,14 @@ bool AppConfig::init() {
     /// Set Overclock
     if (getItem(AppConfig::OVERCLOCK, false)) {
         SwitchSys::setClock(true);
+    };
+#endif
+#ifdef USE_LIBUSBHSFS
+    if (getItem(AppConfig::UMS, false)) {
+        Ums::instance().init();
+        Ums::instance().getEvent()->subscribe([](const Ums::Device& dev, Ums::DeviceOp op) {
+            brls::Application::notify(fmt::format("{} {}", dev.mount_name, op == Ums::OpAdd ? "add" : "removed"));
+        });
     };
 #endif
 

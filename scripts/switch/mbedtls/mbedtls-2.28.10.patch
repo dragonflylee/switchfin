@@ -1,0 +1,155 @@
+diff --git a/library/entropy.c b/library/entropy.c
+index 339dc0e03..8b7f54ac7 100644
+--- a/library/entropy.c
++++ b/library/entropy.c
+@@ -95,6 +95,19 @@ void mbedtls_entropy_init(mbedtls_entropy_context *ctx)
+ #endif /* MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES */
+ }
+ 
++#ifdef __SWITCH__
++    #include <switch.h>
++    int mbedtls_hardware_poll( void *data,
++                               unsigned char *output, size_t len, size_t *olen )
++    {
++        (void)(data);
++        csrngGetRandomBytes(output, len);
++        if(olen)
++            *olen = len;
++        return 0;
++    }
++#endif
++
+ void mbedtls_entropy_free(mbedtls_entropy_context *ctx)
+ {
+     /* If the context was already free, don't call free() again.
+diff --git a/library/net_sockets.c b/library/net_sockets.c
+index 5d985ef00..5d4620790 100644
+--- a/library/net_sockets.c
++++ b/library/net_sockets.c
+@@ -21,7 +21,7 @@
+ 
+ #if !defined(unix) && !defined(__unix__) && !defined(__unix) && \
+     !defined(__APPLE__) && !defined(_WIN32) && !defined(__QNXNTO__) && \
+-    !defined(__HAIKU__) && !defined(__midipix__)
++    !defined(__HAIKU__) && !defined(__midipix__) && !defined(__SWITCH__)
+ #error "This module only works on Unix and Windows, see MBEDTLS_NET_C in config.h"
+ #endif
+ 
+@@ -411,6 +411,7 @@ int mbedtls_net_accept(mbedtls_net_context *bind_ctx,
+             }
+ 
+             memcpy(client_ip, &addr4->sin_addr.s_addr, *cip_len);
++#ifndef __SWITCH__
+         } else {
+             struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *) &client_addr;
+             *cip_len = sizeof(addr6->sin6_addr.s6_addr);
+@@ -420,6 +421,7 @@ int mbedtls_net_accept(mbedtls_net_context *bind_ctx,
+             }
+ 
+             memcpy(client_ip, &addr6->sin6_addr.s6_addr, *cip_len);
++#endif
+         }
+     }
+ 
+diff --git a/library/timing.c b/library/timing.c
+index b1f72fe1b..db67649df 100644
+--- a/library/timing.c
++++ b/library/timing.c
+@@ -19,7 +19,7 @@
+ 
+ #if !defined(unix) && !defined(__unix__) && !defined(__unix) && \
+     !defined(__APPLE__) && !defined(_WIN32) && !defined(__QNXNTO__) && \
+-    !defined(__HAIKU__) && !defined(__midipix__)
++    !defined(__HAIKU__) && !defined(__midipix__) && !defined(__SWITCH__)
+ #error "This module only works on Unix and Windows, see MBEDTLS_TIMING_C in config.h"
+ #endif
+ 
+@@ -52,6 +52,10 @@ struct _hr_time {
+ };
+ #endif /* _WIN32 && !EFIX64 && !EFI32 */
+ 
++#ifdef __SWITCH__
++#include <switch.h>
++#endif
++
+ #if !defined(HAVE_HARDCLOCK) && defined(MBEDTLS_HAVE_ASM) &&  \
+     (defined(_MSC_VER) && defined(_M_IX86)) || defined(__WATCOMC__)
+ 
+@@ -193,6 +197,16 @@ unsigned long mbedtls_timing_hardclock(void)
+ }
+ #endif /* !HAVE_HARDCLOCK && _MSC_VER && !EFIX64 && !EFI32 */
+ 
++#if !defined(HAVE_HARDCLOCK) && defined(__SWITCH__)
++
++#define HAVE_HARDCLOCK
++unsigned long mbedtls_timing_hardclock( void )
++{
++    return armGetSystemTick();
++}
++
++#endif
++
+ #if !defined(HAVE_HARDCLOCK)
+ 
+ #define HAVE_HARDCLOCK
+@@ -288,6 +302,51 @@ unsigned long mbedtls_timing_get_timer(struct mbedtls_timing_hr_time *val, int r
+     }
+ }
+ 
++#ifdef __SWITCH__
++static bool timer_thread_created = false;
++static unsigned int alarmSecs = 0;
++static Thread timerThread;
++static alignas(0x1000) char timerThreadStack[0x1000];
++
++static void timer_thread_func(void *param)
++{
++    (void) param;
++    svcSleepThread((s64)alarmSecs * 1e9L);
++    mbedtls_timing_alarmed = 1;
++}
++
++static void __attribute__((destructor)) cleanup_timer_thread()
++{
++    if(timer_thread_created)
++    {
++        threadWaitForExit(&timerThread);
++        threadClose(&timerThread);
++    }
++}
++
++void mbedtls_set_alarm( int seconds )
++{
++    if(seconds == 0)
++    {
++        mbedtls_timing_alarmed = 1;
++        return;
++    }
++
++    mbedtls_timing_alarmed = 0;
++    alarmSecs = seconds;
++
++    if(timer_thread_created)
++    {
++        threadWaitForExit(&timerThread);
++        threadClose(&timerThread);
++    }
++
++    timer_thread_created = true;
++
++    threadCreate(&timerThread, timer_thread_func, NULL, timerThreadStack, 0x1000, 0x3b, -2);
++    threadStart(&timerThread);
++}
++#else
+ static void sighandler(int signum)
+ {
+     mbedtls_timing_alarmed = 1;
+@@ -305,7 +364,7 @@ void mbedtls_set_alarm(int seconds)
+         mbedtls_timing_alarmed = 1;
+     }
+ }
+-
++#endif
+ #endif /* _WIN32 && !EFIX64 && !EFI32 */
+ 
+ /*

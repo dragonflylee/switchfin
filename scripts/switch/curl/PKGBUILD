@@ -42,7 +42,8 @@ build() {
     -DCURL_BROTLI=OFF \
     -DCURL_ZSTD=OFF \
     -DCURL_USE_LIBSSH2=OFF \
-    -DCURL_USE_LIBPSL=OFF
+    -DCURL_USE_LIBPSL=OFF \
+    .
   sed -i '/HAVE_SOCKETPAIR/d' lib/curl_config.h
   make -j$(nproc)
 }

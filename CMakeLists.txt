@@ -16,6 +16,7 @@ cmake_dependent_option(CMAKE_INSTALL "Install to system path" OFF "UNIX;NOT APPL
 
 # NintendoSwitch
 cmake_dependent_option(BUILTIN_NSP "Built in NSP forwarder" OFF "PLATFORM_SWITCH" OFF)
+cmake_dependent_option(USE_LIBUSBHSFS "Use libusbhsfs for ums access" OFF "PLATFORM_SWITCH" OFF)
 
 # mpv related
 # If your system does not support OpenGL(ES), you can use software rendering, but it will affect performance.
@@ -178,18 +179,17 @@ else ()
         list(APPEND APP_PLATFORM_OPTION -DUSE_WEBP)
         link_directories(${LIBWEBP_LIBRARY_DIRS})
     endif ()
-
-    find_library(LIBSSH2_LIB NAMES ssh2)
-    if (LIBSSH2_LIB)
-        list(APPEND APP_PLATFORM_LIB ${LIBSSH2_LIB})
-        message(STATUS "Found libssh2: ${LIBSSH2_LIB}")
-    endif ()
 endif()
 
 if (BUILTIN_NSP)
     list(APPEND APP_PLATFORM_LIB nsp)
     list(APPEND APP_PLATFORM_OPTION -DBUILTIN_NSP)
     add_subdirectory(scripts/forwarder)
+endif ()
+
+if (USE_LIBUSBHSFS)
+    list(APPEND APP_PLATFORM_LIB lwext4 ntfs-3g usbhsfs)
+    list(APPEND APP_PLATFORM_OPTION -DUSE_LIBUSBHSFS)
 endif ()
 
 # building target
