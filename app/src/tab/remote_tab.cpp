@@ -38,7 +38,7 @@ void RemoteTab::onCreate() {
             item->setLabel(r.name);
 
             auto c = remote::create(r);
-            auto view = new RemoteView(c, r.name);
+            auto view = new RemoteView(c);
             this->tabFrame->addTab(item, [view, c]() {
                 view->push(c->rootPath());
                 return view;

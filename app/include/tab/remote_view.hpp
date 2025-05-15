@@ -15,22 +15,20 @@ class RemoteView : public AttachedView {
 public:
     using Client = std::shared_ptr<remote::Client>;
 
-    RemoteView(Client c, const std::string& name);
+    RemoteView(Client c);
     ~RemoteView() override;
 
     brls::View* getDefaultFocus() override;
-
-    void onCreate() override;
 
     void push(const std::string& path);
 
     void dismiss(std::function<void(void)> cb = [] {}) override;
 
-private:
-    BRLS_BIND(RecyclingGrid, recycler, "remote/list");
+protected:
+    void setContent(RecyclingGrid* view);
+    RecyclingGrid* newRecycler();
 
-    void load();
-
-    std::vector<std::string> stack;
+    std::vector<RecyclingGrid*> stack;
+    RecyclingGrid* recycler;
     Client client;
 };

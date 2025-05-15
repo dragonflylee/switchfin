@@ -265,15 +265,11 @@ private:
     RemoteView::Client client;
 };
 
-RemoteView::RemoteView(Client c, const std::string& name) : client(c) {
-    this->inflateFromXMLRes("xml/tabs/remote_view.xml");
-    brls::Logger::debug("RemoteView: create");
-
-    this->recycler->registerCell("Cell", []() { return new FileCard(); });
-}
+RemoteView::RemoteView(Client c) : client(c) { brls::Logger::debug("RemoteView: create"); }
 
 RemoteView::~RemoteView() {
     brls::Logger::debug("RemoteView: deleted");
+    this->setDimensions(View::AUTO, View::AUTO);
     PlayerSetting::selectedSubtitle = 0;
     PlayerSetting::selectedAudio = 0;
 
@@ -283,55 +279,67 @@ RemoteView::~RemoteView() {
 
 brls::View* RemoteView::getDefaultFocus() { return this->recycler; }
 
-void RemoteView::onCreate() {
-    this->recycler->registerAction("hints/back"_i18n, brls::BUTTON_B, [this](...) {
-        this->dismiss();
-        return true;
-    });
-
-    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
-        this->load();
-        return true;
-    });
-}
-
 void RemoteView::push(const std::string& path) {
-    this->stack.push_back(path);
-    this->load();
-}
+    RecyclingGrid* view = this->newRecycler();
+    this->stack.push_back(view);
+    this->setContent(view);
 
-void RemoteView::dismiss(std::function<void(void)> cb) {
-    if (this->stack.size() > 1) {
-        this->stack.pop_back();
-        this->load();
-    } else if (brls::Application::getInputType() == brls::InputType::TOUCH) {
-        brls::View::dismiss();
-    } else {
-        AutoTabFrame::focus2Sidebar(this);
-    }
-}
-
-void RemoteView::load() {
-    this->recycler->showSkeleton();
     ASYNC_RETAIN
-    brls::async([ASYNC_TOKEN]() {
+    brls::async([ASYNC_TOKEN, &path]() {
         try {
-            auto r = client->list(this->stack.back());
+            auto r = client->list(path);
             brls::sync([ASYNC_TOKEN, r]() {
                 ASYNC_RELEASE
                 this->recycler->setDataSource(new FileDataSource(r, client));
+                brls::Application::giveFocus(this->recycler);
             });
         } catch (const std::exception& ex) {
             std::string error = ex.what();
             brls::sync([ASYNC_TOKEN, error]() {
                 ASYNC_RELEASE
                 this->recycler->setError(error);
-
-                auto dialog = new brls::Dialog(error);
-                dialog->addButton("hints/retry"_i18n, [this]() { brls::sync([this]() { this->load(); }); });
-                dialog->addButton("hints/cancel"_i18n, []() {});
-                dialog->open();
             });
         }
     });
+}
+
+void RemoteView::dismiss(std::function<void(void)> cb) {
+    if (this->stack.size() > 1) {
+        brls::View* lastView = this->recycler;
+        this->stack.pop_back();
+        this->setContent(this->stack.back());
+        cb();
+        lastView->freeView();
+    } else if (brls::Application::getInputType() == brls::InputType::TOUCH) {
+        brls::View::dismiss(cb);
+    } else {
+        AutoTabFrame::focus2Sidebar(this);
+    }
+}
+
+void RemoteView::setContent(RecyclingGrid* view) {
+    if (this->recycler) {
+        this->removeView(this->recycler, false);
+        this->recycler = nullptr;
+    }
+
+    this->recycler = view;
+    this->recycler->setDimensions(View::AUTO, View::AUTO);
+    this->recycler->setGrow(1.0f);
+    this->addView(this->recycler);
+    brls::Application::giveFocus(this->recycler);
+}
+
+RecyclingGrid* RemoteView::newRecycler() {
+    RecyclingGrid* view = new RecyclingGrid();
+    view->spanCount = 1;
+    view->estimatedRowHeight = 48;
+    view->estimatedRowSpace = 10;
+    view->setDefaultCellFocus(1);
+    view->registerCell("Cell", []() { return new FileCard(); });
+    view->registerAction("hints/back"_i18n, brls::BUTTON_B, [this](...) {
+        this->dismiss();
+        return true;
+    });
+    return view;
 }
