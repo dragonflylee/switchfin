@@ -396,9 +396,6 @@ bool AppConfig::init() {
 #ifdef USE_LIBUSBHSFS
     if (getItem(AppConfig::UMS, false)) {
         Ums::instance().init();
-        Ums::instance().getEvent()->subscribe([](const Ums::Device& dev, Ums::DeviceOp op) {
-            brls::Application::notify(fmt::format("{} {}", dev.mount_name, op == Ums::OpAdd ? "add" : "removed"));
-        });
     };
 #endif
 

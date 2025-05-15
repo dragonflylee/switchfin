@@ -7,10 +7,10 @@ Apache::Apache(const AppRemote &conf) {
     HTTP::set_option(this->c, HTTP::Timeout{});
     this->init(conf, this->c);
 
-    this->root = conf.url;
-    if (this->root.back() != '/') this->root.push_back('/');
-    this->host = this->root.substr(0, this->root.find("/", this->root.find("://") + 3));
-    brls::Logger::debug("remote::Apache host {} root {}", this->host, this->root);
+    std::string url = conf.url;
+    if (url.back() != '/') url.push_back('/');
+    this->host = url.substr(0, url.find("/", url.find("://") + 3));
+    brls::Logger::debug("remote::Apache host {}", this->host);
 }
 
 std::vector<DirEntry> Apache::list(const std::string &path) {

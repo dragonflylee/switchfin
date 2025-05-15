@@ -8,11 +8,8 @@ Webdav::Webdav(const std::string& url, const AppRemote& conf) {
     HTTP::Header h{"Accept-Charset: utf-8", "Depth: 1"};
     HTTP::set_option(this->c, HTTP::Timeout{}, h);
     this->init(conf, this->c);
-
-    this->root = url;
-    if (this->root.back() != '/') this->root.push_back('/');
-    this->host = this->root.substr(0, this->root.find("/", this->root.find("://") + 3));
-    brls::Logger::debug("remote::Webdav host {} root {}", this->host, this->root);
+    this->host = url.substr(0, url.find("/", url.find("://") + 3));
+    brls::Logger::debug("remote::Webdav host {}", url);
 }
 
 static std::string getNamespacePrefix(tinyxml2::XMLElement* root, const std::string& nsURI) {
@@ -32,7 +29,8 @@ static std::string getNamespacePrefix(tinyxml2::XMLElement* root, const std::str
 
 std::vector<DirEntry> Webdav::list(const std::string& path) {
     std::stringstream ss;
-    int status = this->c.propfind(path, &ss);
+    std::string url = path.rfind("webdav") == 0 ? "http" + path.substr(6) : path;
+    int status = this->c.propfind(url, &ss);
     if (status != 207) {
         throw remote_error(fmt::format("webdav propfind {}", status));
     }

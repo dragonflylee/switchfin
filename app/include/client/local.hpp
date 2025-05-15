@@ -6,7 +6,7 @@ namespace remote {
 
 class Local : public Client {
 public:
-    Local(const std::string& path);
+    Local() = default;
     std::vector<DirEntry> list(const std::string &path) override;
 };
 

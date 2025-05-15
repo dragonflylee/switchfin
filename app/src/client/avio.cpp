@@ -12,7 +12,6 @@ AVIO::AVIO(const std::string& path) {
     if (!avio_find_protocol_name(path.c_str())) {
         throw remote_error("unsupport protocol");
     }
-    root = path;
 }
 
 std::vector<DirEntry> AVIO::list(const std::string& path) {

@@ -15,11 +15,10 @@ namespace fs = std::experimental::filesystem;
 
 namespace remote {
 
-Local::Local(const std::string& path) { root = path; }
-
 std::vector<DirEntry> Local::list(const std::string& path) {
     std::vector<DirEntry> s = {{.type = EntryType::UP}};
-    auto it = fs::directory_iterator(path);
+    std::string p = path.rfind("file://") == 0 ? path.substr(7) : path;
+    auto it = fs::directory_iterator(p);
     for (const auto& fp : it) {
         DirEntry item;
         auto& p = fp.path();

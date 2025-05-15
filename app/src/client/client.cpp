@@ -9,19 +9,15 @@ namespace remote {
 std::shared_ptr<Client> create(const AppRemote& c) {
     auto pos = c.url.find_first_of("://");
     if (pos == std::string::npos) {
-        return std::make_shared<Local>(c.url);
+        return std::make_shared<Local>();
     }
     std::string scheme = c.url.substr(0, pos);
-    if (scheme == "webdav") {
-        std::string url = "http" + c.url.substr(pos);
-        return std::make_shared<Webdav>(url, c);
-    }
-    if (scheme == "webdavs") {
-        std::string url = "https" + c.url.substr(pos);
+    if (scheme == "webdav" || scheme == "webdavs") {
+        std::string url = "http" + c.url.substr(6);
         return std::make_shared<Webdav>(url, c);
     }
     if (scheme == "file") {
-        return std::make_shared<Local>(c.url.substr(pos + 3));
+        return std::make_shared<Local>();
     }
     if (scheme == "http" || scheme == "https") {
         return std::make_shared<Apache>(c);

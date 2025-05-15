@@ -6,6 +6,7 @@
 
 #include <view/auto_tab_frame.hpp>
 #include <client/client.hpp>
+#include <utils/ums.hpp>
 
 class RecyclingGrid;
 
@@ -31,4 +32,13 @@ protected:
     std::vector<RecyclingGrid*> stack;
     RecyclingGrid* recycler;
     Client client;
+};
+
+class UmsView : public RemoteView {
+public:
+    UmsView();
+    ~UmsView() override;
+
+private:
+    Ums::DeviceEvent::Subscription deviceSubscribeID;
 };

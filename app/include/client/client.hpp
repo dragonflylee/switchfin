@@ -40,11 +40,9 @@ public:
     virtual ~Client() = default;
     virtual std::vector<DirEntry> list(const std::string& path) = 0;
     virtual void auth(const std::string& user, const std::string& passwd) {}
-    const std::string& rootPath() { return this->root; }
     const std::string& extraOption() { return this->extra; }
 
 protected:
-    std::string root;
     std::string extra;
 
     void init(const AppRemote& conf, HTTP& cilent);

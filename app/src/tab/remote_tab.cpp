@@ -30,7 +30,8 @@ RemoteTab::~RemoteTab() { brls::Logger::debug("RemoteTab: deleted"); }
 brls::View* RemoteTab::create() { return new RemoteTab(); }
 
 void RemoteTab::onCreate() {
-    for (auto& r : AppConfig::instance().getRemotes()) {
+    auto& conf = AppConfig::instance();
+    for (auto& r : conf.getRemotes()) {
         try {
             auto* item = new AutoSidebarItem();
             item->setTabStyle(AutoTabBarStyle::ACCENT);
@@ -39,12 +40,20 @@ void RemoteTab::onCreate() {
 
             auto c = remote::create(r);
             auto view = new RemoteView(c);
-            this->tabFrame->addTab(item, [view, c]() {
-                view->push(c->rootPath());
+            this->tabFrame->addTab(item, [view, r]() {
+                view->push(r.url);
                 return view;
             });
         } catch (const std::exception& ex) {
             brls::Logger::warning("remote {} create {}", r.name, ex.what());
         }
+    }
+
+    if (conf.getItem(AppConfig::UMS, false)) {
+        auto* item = new AutoSidebarItem();
+        item->setTabStyle(AutoTabBarStyle::ACCENT);
+        item->setFontSize(22);
+        item->setLabel("UMS");
+        this->tabFrame->addTab(item, []() { return new UmsView(); });
     }
 }

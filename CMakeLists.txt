@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.18)
 
 # build options
 set(BOREALIS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/library/borealis)
@@ -182,12 +182,14 @@ else ()
 endif()
 
 if (BUILTIN_NSP)
+    find_library(NSP_LIB NAMES nsp REQUIRED)
     list(APPEND APP_PLATFORM_LIB nsp)
     list(APPEND APP_PLATFORM_OPTION -DBUILTIN_NSP)
     add_subdirectory(scripts/forwarder)
 endif ()
 
 if (USE_LIBUSBHSFS)
+    find_library(USBHSFS_LIB NAMES usbhsfs REQUIRED)
     list(APPEND APP_PLATFORM_LIB lwext4 ntfs-3g usbhsfs)
     list(APPEND APP_PLATFORM_OPTION -DUSE_LIBUSBHSFS)
 endif ()

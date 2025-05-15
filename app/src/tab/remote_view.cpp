@@ -6,6 +6,7 @@
 #include "view/mpv_core.hpp"
 #include "view/music_view.hpp"
 #include "view/player_setting.hpp"
+#include "client/local.hpp"
 #include "utils/misc.hpp"
 #include "utils/config.hpp"
 
@@ -264,6 +265,29 @@ private:
     DirList list;
     RemoteView::Client client;
 };
+
+UmsView::UmsView() : RemoteView(std::make_shared<remote::Local>()) {
+    RecyclingGrid* view = this->newRecycler();
+    this->stack.push_back(view);
+    this->setContent(view);
+
+    auto ev = Ums::instance().getEvent();
+    deviceSubscribeID = ev->subscribe([this, view](const Ums::DeviceList& r) {
+        DirList dirs;
+        dirs.reserve(r.size());
+        for (auto& it : r) {
+            dirs.push_back({
+                .name = it.second.name,
+                .path = it.second.mount_name + "/",
+                .type = remote::EntryType::DIR,
+            });
+        }
+        view->setDataSource(new FileDataSource(dirs, this->client));
+    });
+    ev->fire(Ums::instance().getDevice());
+}
+
+UmsView::~UmsView() { Ums::instance().getEvent()->unsubscribe(deviceSubscribeID); }
 
 RemoteView::RemoteView(Client c) : client(c) { brls::Logger::debug("RemoteView: create"); }
 
