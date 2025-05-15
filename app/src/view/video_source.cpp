@@ -19,7 +19,7 @@ size_t VideoDataSource::getItemCount() { return this->list.size(); }
 RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t index) {
     VideoCardCell* cell = dynamic_cast<VideoCardCell*>(recycler->dequeueReusableCell("Cell"));
     auto& item = this->list.at(index);
-
+    cell->setId(item.Id);
     if (item.Type == jellyfin::mediaTypeEpisode) {
         if (item.SeriesName.empty()) {
             cell->labelTitle->setVisibility(brls::Visibility::GONE);
@@ -49,14 +49,17 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
     if (item.UserData.Played) {
         cell->badgeTopRight->setImageFromSVGRes("icon/ico-checkmark.svg");
         cell->badgeTopRight->setVisibility(brls::Visibility::VISIBLE);
+        cell->labelRating->setVisibility(brls::Visibility::INVISIBLE);
     } else if (item.UserData.PlaybackPositionTicks) {
         cell->labelRating->setText(
             fmt::format("{}/{}", misc::sec2Time(item.UserData.PlaybackPositionTicks / jellyfin::PLAYTICKS),
                 misc::sec2Time(item.RunTimeTicks / jellyfin::PLAYTICKS)));
+        cell->labelRating->setVisibility(brls::Visibility::VISIBLE);
         cell->rectProgress->setWidthPercentage(item.UserData.PlayedPercentage);
         cell->rectProgress->getParent()->setVisibility(brls::Visibility::VISIBLE);
         cell->badgeTopRight->setVisibility(brls::Visibility::GONE);
     } else {
+        cell->labelRating->setVisibility(brls::Visibility::INVISIBLE);
         cell->rectProgress->getParent()->setVisibility(brls::Visibility::GONE);
         cell->badgeTopRight->setVisibility(brls::Visibility::GONE);
     }

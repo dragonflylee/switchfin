@@ -98,6 +98,7 @@ RecyclingGridItem* PeopleDataSource::cellForRow(RecyclingView* recycler, size_t 
     VideoCardCell* cell = dynamic_cast<VideoCardCell*>(recycler->dequeueReusableCell("Cell"));
     auto& item = this->list.at(index);
 
+    cell->setId(item.Id);
     cell->labelTitle->setText(item.Name);
     cell->labelExt->setText(item.Role);
 

@@ -73,10 +73,15 @@ HRecyclerFrame::~HRecyclerFrame() {
     }
 }
 
+brls::View* HRecyclerFrame::getDefaultFocus() {
+    if (this->dataSource && this->dataSource->getItemCount() > 0) return HScrollingFrame::getDefaultFocus();
+    return nullptr;
+}
+
 void HRecyclerFrame::setDataSource(RecyclingGridDataSource* source) {
     if (this->dataSource) delete this->dataSource;
 
-     // 允许自动加载下一页
+    // 允许自动加载下一页
     this->requestNextPage = false;
     this->dataSource = source;
     if (layouted) reloadData();

@@ -20,6 +20,7 @@ public:
     void setPaddingBottom(float bottom) override;
     void setPaddingLeft(float left) override;
 
+    brls::View* getDefaultFocus() override;
     void setDataSource(RecyclingGridDataSource* source) override;
 
     // 重新加载数据
@@ -33,7 +34,7 @@ public:
 
     static brls::View* create();
 
-     /// 元素间距
+    /// 元素间距
     float estimatedRowSpace = 10;
 
     /// 默认宽度 (元素实际宽度 = 默认宽度 - 元素间隔)

@@ -41,6 +41,7 @@ public:
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         EpisodeCardCell* cell = dynamic_cast<EpisodeCardCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
+        cell->setId(item.Id);
 
         auto epimage = item.ImageTags.find(jellyfin::imageTypePrimary);
         if (epimage != item.ImageTags.end()) {

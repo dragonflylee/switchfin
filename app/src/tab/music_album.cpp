@@ -13,7 +13,7 @@ public:
     ~MusicTrackCell() override = default;
 
     void setSelected(const std::string& itemId) {
-        this->selected = !this->itemId.compare(itemId);
+        this->selected = !this->id.compare(itemId);
         if (this->selected) {
             this->trackIndex->setMarginLeft(20);
             this->setBackgroundColor(brls::Application::getTheme().getColor("color/grey_2"));
@@ -51,7 +51,7 @@ public:
     BRLS_BIND(brls::Label, trackDuration, "music/track/duration");
     BRLS_BIND(brls::Box, trackFavorite, "music/track/favorite");
 
-    std::string itemId;
+private:
     bool selected = false;
 };
 
@@ -66,7 +66,7 @@ public:
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         MusicTrackCell* cell = dynamic_cast<MusicTrackCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
-        cell->itemId = item.Id;
+        cell->setId(item.Id);
         cell->trackIndex->setText(std::to_string(item.IndexNumber));
         cell->trackName->setText(item.Name);
         cell->trackArtists->setText(fmt::format("{}", fmt::join(item.Artists, " ")));
@@ -77,9 +77,7 @@ public:
         return cell;
     }
 
-    void onItemSelected(brls::Box* recycler, size_t index) override {
-        MusicView::instance().load(this->list, index);
-    }
+    void onItemSelected(brls::Box* recycler, size_t index) override { MusicView::instance().load(this->list, index); }
 
     void clearData() override { this->list.clear(); }
 
