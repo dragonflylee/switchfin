@@ -1,12 +1,13 @@
 # Changelog
 
-## [next]
+## [0.7.0]
 
 ### Add
 
 * refactor series view layout
 * add people view of series/movie
 * add Brazilian Portuguese localization (@brunorossetto)
+* external drive support using [libusbhsfs](https://github.com/DarkMatterCore/libusbhsfs)
 
 ### Fixed
 

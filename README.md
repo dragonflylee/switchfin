@@ -51,6 +51,7 @@ Switchfin is third-party PC player for Jellyfin that provides a native user inte
   - Audio codecs: Opus, FLAC, MP3, AAC, AC-3, E-AC-3, TrueHD, DTS, DTS-HD
   - Subtitle codecs: SRT, VTT, SSA/ASS, DVDSUB
   - Optionally force software decoding when hardware decoding has issues.
+- External drive support using [libusbhsfs](https://github.com/DarkMatterCore/libusbhsfs)
 
 ## Input mapping during playback
 
@@ -121,7 +122,7 @@ To build for Switch, a standard development environment must first be set up. In
 
 ```bash
 sudo dkp-pacman -S switch-dev switch-glfw switch-libwebp switch-curl switch-libmpv
-cmake -B build_switch -DPLATFORM_SWITCH=ON -DBUILTIN_NSP=ON
+cmake -B build_switch -DPLATFORM_SWITCH=ON
 make -C build_switch Switchfin.nro -j$(nproc)
 # for debug
 nxlink -a <YOUR IP> -p Switchfin/Switchfin.nro -s Switchfin.nro --args -d -v
