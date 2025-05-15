@@ -315,7 +315,7 @@ void RemoteView::push(const std::string& path) {
             brls::sync([ASYNC_TOKEN, r]() {
                 ASYNC_RELEASE
                 this->recycler->setDataSource(new FileDataSource(r, client));
-                brls::Application::giveFocus(this->recycler);
+                if (this->stack.size() > 1) brls::Application::giveFocus(this->recycler);
             });
         } catch (const std::exception& ex) {
             std::string error = ex.what();

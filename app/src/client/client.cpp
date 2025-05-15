@@ -9,7 +9,7 @@ namespace remote {
 std::shared_ptr<Client> create(const AppRemote& c) {
     auto pos = c.url.find_first_of("://");
     if (pos == std::string::npos) {
-        return std::make_shared<Local>();
+        throw remote_error("invalid url");
     }
     std::string scheme = c.url.substr(0, pos);
     if (scheme == "webdav" || scheme == "webdavs") {
