@@ -24,9 +24,22 @@ MediaMovie::MediaMovie(const jellyfin::Item& item) {
 
     this->doMovie(item.Id);
     this->doSimilar(item.Id);
+
+    auto logo = item.ImageTags.find(jellyfin::imageTypePrimary);
+    if (logo != item.ImageTags.end()) {
+        Image::load(this->imageLogo, jellyfin::apiPrimaryImage, item.Id,
+            HTTP::encode_form({
+                {"tag", logo->second},
+                {"maxWidth", "400"},
+            }));
+        this->imageLogo->setVisibility(brls::Visibility::VISIBLE);
+    }
 }
 
-MediaMovie::~MediaMovie() { brls::Logger::debug("Tab MediaMovie: delete"); }
+MediaMovie::~MediaMovie() {
+    brls::Logger::debug("Tab MediaMovie: delete");
+    Image::cancel(this->imageLogo);
+}
 
 void MediaMovie::doMovie(const std::string& itemId) {
     ASYNC_RETAIN
@@ -55,17 +68,6 @@ void MediaMovie::doMovie(const std::string& itemId) {
                 this->labelGenres->setText(fmt::format("{}", fmt::join(r.Genres, ", ")));
                 this->labelGenres->setVisibility(brls::Visibility::VISIBLE);
             }
-            // loading Logo
-            auto logo = r.ImageTags.find(jellyfin::imageTypePrimary);
-            if (logo != r.ImageTags.end()) {
-                Image::load(this->imageLogo, jellyfin::apiPrimaryImage, r.Id,
-                    HTTP::encode_form({
-                        {"tag", logo->second},
-                        {"maxWidth", "300"},
-                    }));
-                this->imageLogo->setVisibility(brls::Visibility::VISIBLE);
-            }
-
             if (r.People.size() > 0) {
                 this->people->setDataSource(new PeopleDataSource(r.People));
             } else {

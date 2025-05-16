@@ -18,6 +18,8 @@ HomeTab::HomeTab() {
     this->registerFloatXMLAttribute("latestSize", [this](float value) {
         this->latestSize = value;
         this->doRequest();
+        this->doVideoLatest();
+        this->doMusicLatest();
     });
 
     this->userResume->registerCell("Cell", VideoCardCell::create);
@@ -37,22 +39,25 @@ brls::View* HomeTab::getDefaultFocus() {
     if (this->showNextup->getVisibility() == brls::Visibility::VISIBLE) {
         return this->showNextup;
     }
-    return this->videoLatest; 
+    return this->videoLatest;
 }
 
 void HomeTab::doRequest() {
     this->startNextup = 0;
     this->startResume = 0;
-
     this->doResume();
-    this->doVideoLatest();
-    this->doMusicLatest();
     this->doNextup();
 }
 
 void HomeTab::onCreate() {
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
+        this->userResume->showSkeleton();
+        this->showNextup->showSkeleton();
+        this->videoLatest->showSkeleton();
+        this->musicLatest->showSkeleton();
         this->doRequest();
+        this->doVideoLatest();
+        this->doMusicLatest();
         return true;
     });
 }

@@ -155,9 +155,23 @@ MediaSeries::MediaSeries(const jellyfin::Item& item) : seriesId(item.Id) {
     this->doSeries();
     this->doNextup();
     this->doSimilar();
+
+    // loading Logo
+    auto logo = item.ImageTags.find(jellyfin::imageTypePrimary);
+    if (logo != item.ImageTags.end()) {
+        Image::load(this->imageLogo, jellyfin::apiPrimaryImage, item.Id,
+            HTTP::encode_form({
+                {"tag", logo->second},
+                {"maxWidth", "400"},
+            }));
+        this->imageLogo->setVisibility(brls::Visibility::VISIBLE);
+    }
 }
 
-MediaSeries::~MediaSeries() { brls::Logger::debug("Tab MediaSeries: delete"); }
+MediaSeries::~MediaSeries() {
+    brls::Logger::debug("Tab MediaSeries: delete");
+    Image::cancel(this->imageLogo);
+}
 
 void MediaSeries::doRequest() {
     if (this->tabFrame->isOnTop) {
@@ -194,17 +208,6 @@ void MediaSeries::doSeries() {
                 this->labelGenres->setText(fmt::format("{}", fmt::join(r.Genres, ", ")));
                 this->labelGenres->setVisibility(brls::Visibility::VISIBLE);
             }
-            // loading Logo
-            auto logo = r.ImageTags.find(jellyfin::imageTypePrimary);
-            if (logo != r.ImageTags.end()) {
-                Image::load(this->imageLogo, jellyfin::apiPrimaryImage, r.Id,
-                    HTTP::encode_form({
-                        {"tag", logo->second},
-                        {"maxWidth", "600"},
-                    }));
-                this->imageLogo->setVisibility(brls::Visibility::VISIBLE);
-            }
-
             if (r.People.size() > 0) {
                 this->people->setDataSource(new PeopleDataSource(r.People));
             } else {

@@ -100,7 +100,7 @@ MusicAlbum::MusicAlbum(const jellyfin::Item& item) : itemId(item.Id) {
         Image::load(this->imageCover, jellyfin::apiPrimaryImage, itemId,
             HTTP::encode_form({
                 {"tag", it->second},
-                {"maxWidth", "300"},
+                {"maxWidth", "400"},
             }));
         this->imageCover->setVisibility(brls::Visibility::VISIBLE);
     }
@@ -127,6 +127,7 @@ MusicAlbum::MusicAlbum(const jellyfin::Item& item) : itemId(item.Id) {
 MusicAlbum::~MusicAlbum() {
     brls::Logger::debug("Tab MusicAlbum: delete");
 
+    Image::cancel(this->imageCover);
     auto mpvce = MPVCore::instance().getCustomEvent();
     mpvce->unsubscribe(this->customEventSubscribeID);
     /// 通知 MusicView 已关闭

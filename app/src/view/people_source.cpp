@@ -8,16 +8,47 @@ using namespace brls::literals;  // for _i18n
 
 class PeopleView : public brls::Box {
 public:
-    PeopleView(const jellyfin::MediaPeople& item) {
+    PeopleView(const jellyfin::MediaPeople& item) : peopleId(item.Id) {
+        brls::Logger::debug("Tab PeopleView: create");
         this->inflateFromXMLRes("xml/view/people.xml");
         this->headerTitle->setTitle(item.Name);
-        this->doPeople(item.Id);
 
-        this->doMedia(item.Id, jellyfin::mediaTypeMovie, this->movie, this->titleMovie);
-        this->doMedia(item.Id, jellyfin::mediaTypeSeries, this->series, this->titleSeries);
+        this->movie->registerCell("Cell", VideoCardCell::create);
+        this->series->registerCell("Cell", VideoCardCell::create);
+        this->movie->onNextPage([this]() { this->doMovie(); });
+        this->series->onNextPage([this]() { this->doSeries(); });
+
+        this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
+            this->startMovie = 0;
+            this->startSeries = 0;
+
+            this->movie->showSkeleton();
+            this->series->showSkeleton();
+            this->doRequest();
+            return true;
+        });
+
+        this->doRequest();
+
+        Image::load(this->imageLogo, jellyfin::apiPrimaryImage, item.Id,
+            HTTP::encode_form({
+                {"tag", item.PrimaryImageTag},
+                {"maxWidth", "350"},
+            }));
     }
 
-    void doPeople(const std::string& itemId) {
+    ~PeopleView() override {
+        brls::Logger::debug("Tab PeopleView: delete");
+        Image::cancel(this->imageLogo);
+    }
+
+    void doRequest() {
+        this->doPeople();
+        this->doMovie();
+        this->doSeries();
+    }
+
+    void doPeople() {
         ASYNC_RETAIN
         jellyfin::getJSON<jellyfin::PeopleItem>(
             [ASYNC_TOKEN](const jellyfin::PeopleItem& r) {
@@ -30,51 +61,86 @@ public:
                 } else {
                     this->labelLocation->setVisibility(brls::Visibility::GONE);
                 }
-                // loading Logo
-                auto logo = r.ImageTags.find(jellyfin::imageTypePrimary);
-                if (logo != r.ImageTags.end()) {
-                    Image::load(this->imageLogo, jellyfin::apiPrimaryImage, r.Id,
-                        HTTP::encode_form({
-                            {"tag", logo->second},
-                            {"maxWidth", "300"},
-                        }));
-                    this->imageLogo->setVisibility(brls::Visibility::VISIBLE);
-                }
             },
             [ASYNC_TOKEN](const std::string& ex) {
                 ASYNC_RELEASE
                 brls::Application::notify(ex);
             },
-            jellyfin::apiUserItem, AppConfig::instance().getUserId(), itemId);
+            jellyfin::apiUserItem, AppConfig::instance().getUserId(), this->peopleId);
     }
 
-    void doMedia(const std::string& itemId, const std::string& type, HRecyclerFrame* recyler, brls::Header* title) {
+    void doMovie() {
         std::string query = HTTP::encode_form({
-            {"PersonIds", itemId},
+            {"PersonIds", this->peopleId},
             {"fields", "PrimaryImageAspectRatio,Chapters,BasicSyncInfo"},
             {"EnableImageTypes", "Primary"},
-            {"limit", "10"},
             {"Recursive", "true"},
-            {"IncludeItemTypes", type},
+            {"IncludeItemTypes", jellyfin::mediaTypeMovie},
+            {"limit", std::to_string(this->pageSize)},
+            {"startIndex", std::to_string(this->startMovie)},
         });
-
-        recyler->registerCell("Cell", VideoCardCell::create);
 
         ASYNC_RETAIN
         jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
-            [ASYNC_TOKEN, recyler, title](const jellyfin::Result<jellyfin::Episode>& r) {
+            [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
                 ASYNC_RELEASE
-                if (r.Items.size() > 0) {
-                    recyler->setDataSource(new VideoDataSource(r.Items));
-                } else {
-                    recyler->setVisibility(brls::Visibility::GONE);
-                    title->setVisibility(brls::Visibility::GONE);
+                this->startMovie = r.StartIndex + this->pageSize;
+                if (r.TotalRecordCount == 0) {
+                    this->movie->setVisibility(brls::Visibility::GONE);
+                    this->titleMovie->setVisibility(brls::Visibility::GONE);
+                } else if (r.StartIndex == 0) {
+                    this->titleMovie->setVisibility(brls::Visibility::VISIBLE);
+                    this->movie->setVisibility(brls::Visibility::VISIBLE);
+                    this->movie->setDataSource(new VideoDataSource(r.Items));
+                    this->titleMovie->setSubtitle(std::to_string(r.TotalRecordCount));
+                } else if (r.Items.size() > 0) {
+                    auto dataSrc = dynamic_cast<VideoDataSource*>(this->movie->getDataSource());
+                    dataSrc->appendData(r.Items);
+                    this->movie->notifyDataChanged();
                 }
             },
-            [ASYNC_TOKEN, recyler, title](const std::string& ex) {
+            [ASYNC_TOKEN](const std::string& ex) {
                 ASYNC_RELEASE
-                recyler->setVisibility(brls::Visibility::GONE);
-                title->setVisibility(brls::Visibility::GONE);
+                this->movie->setVisibility(brls::Visibility::GONE);
+                this->titleMovie->setSubtitle(ex);
+            },
+            jellyfin::apiUserLibrary, AppConfig::instance().getUserId(), query);
+    }
+
+    void doSeries() {
+        std::string query = HTTP::encode_form({
+            {"PersonIds", this->peopleId},
+            {"fields", "PrimaryImageAspectRatio,Chapters,BasicSyncInfo"},
+            {"EnableImageTypes", "Primary"},
+            {"Recursive", "true"},
+            {"IncludeItemTypes", jellyfin::mediaTypeSeries},
+            {"limit", std::to_string(this->pageSize)},
+            {"startIndex", std::to_string(this->startSeries)},
+        });
+
+        ASYNC_RETAIN
+        jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
+            [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
+                ASYNC_RELEASE
+                this->startSeries = r.StartIndex + this->pageSize;
+                if (r.TotalRecordCount == 0) {
+                    this->series->setVisibility(brls::Visibility::GONE);
+                    this->titleSeries->setVisibility(brls::Visibility::GONE);
+                } else if (r.StartIndex == 0) {
+                    this->titleSeries->setVisibility(brls::Visibility::VISIBLE);
+                    this->series->setVisibility(brls::Visibility::VISIBLE);
+                    this->series->setDataSource(new VideoDataSource(r.Items));
+                    this->titleSeries->setSubtitle(std::to_string(r.TotalRecordCount));
+                } else if (r.Items.size() > 0) {
+                    auto dataSrc = dynamic_cast<VideoDataSource*>(this->series->getDataSource());
+                    dataSrc->appendData(r.Items);
+                    this->series->notifyDataChanged();
+                }
+            },
+            [ASYNC_TOKEN](const std::string& ex) {
+                ASYNC_RELEASE
+                this->series->setVisibility(brls::Visibility::GONE);
+                this->titleSeries->setSubtitle(ex);
             },
             jellyfin::apiUserLibrary, AppConfig::instance().getUserId(), query);
     }
@@ -84,10 +150,15 @@ private:
     BRLS_BIND(brls::Header, headerTitle, "people/header/title");
     BRLS_BIND(brls::Label, labelOverview, "people/label/overview");
     BRLS_BIND(brls::Label, labelLocation, "people/label/location");
-    BRLS_BIND(brls::Header, titleSeries, "people/series/title");
     BRLS_BIND(brls::Header, titleMovie, "people/movie/title");
+    BRLS_BIND(brls::Header, titleSeries, "people/series/title");
     BRLS_BIND(HRecyclerFrame, movie, "people/movie");
     BRLS_BIND(HRecyclerFrame, series, "people/series");
+
+    std::string peopleId;
+    size_t pageSize = 10;
+    size_t startMovie = 0;
+    size_t startSeries = 0;
 };
 
 PeopleDataSource::PeopleDataSource(const MediaList& r) : list(std::move(r)) {}
