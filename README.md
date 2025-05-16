@@ -68,7 +68,20 @@ Switchfin is third-party PC player for Jellyfin that provides a native user inte
 
 1. Q: Subtitles didn't display?
    A: Put any ttf file at `/switch/Switchfin/subfont.ttf`
-2. Q: How to play media files on webdav server?
+2. Q: How to enable external drive on switch?
+   A: Edit config file `config.json`
+
+```json
+{
+  "setting": {
+    "ums": true
+  }
+}
+```
+
+![ums](images/ums.jpg)
+
+3. Q: How to play media files on webdav server?
    A: Edit config file `config.json`
 
 ```json
