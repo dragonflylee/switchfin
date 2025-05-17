@@ -6,12 +6,12 @@
 
     <brls:Box
         width="220"
+        maxHeight="400"
         axis="column"
         alignItems="center"
         marginRight="30">
         <brls:Image
             id="people/image/logo"
-            height="300"
             scalingType="fit"
             backgroundColor="@theme/color/grey_1"
             image="@res/img/video-card-bg.png" />

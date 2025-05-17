@@ -23,6 +23,7 @@
 
                 <brls:Box
                     width="200"
+                    maxHeight="400"
                     axis="column"
                     marginRight="15">
                     <brls:Image
