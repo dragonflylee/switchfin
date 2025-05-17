@@ -22,6 +22,7 @@ public:
 
     brls::View* getDefaultFocus() override;
     void setDataSource(RecyclingGridDataSource* source) override;
+    void clearData();
 
     // 重新加载数据
     void reloadData();

@@ -9,6 +9,7 @@
 #include "view/auto_tab_frame.hpp"
 #include "view/recycling_grid.hpp"
 #include "view/h_recycling.hpp"
+#include "view/recyling_video.hpp"
 #include "view/video_progress_slider.hpp"
 #include "view/gallery_view.hpp"
 #include "view/search_list.hpp"
@@ -83,6 +84,7 @@ int main(int argc, char* argv[]) {
     brls::Application::registerXMLView("AutoTabFrame", AutoTabFrame::create);
     brls::Application::registerXMLView("RecyclingGrid", RecyclingGrid::create);
     brls::Application::registerXMLView("HRecyclerFrame", HRecyclerFrame::create);
+    brls::Application::registerXMLView("RecylingVideo", RecylingVideo::create);
     brls::Application::registerXMLView("GalleryView", GalleryView::create);
     brls::Application::registerXMLView("SearchList", SearchList::create);
     brls::Application::registerXMLView("VideoProgressSlider", VideoProgressSlider::create);

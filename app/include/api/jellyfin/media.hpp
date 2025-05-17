@@ -4,40 +4,40 @@
 
 namespace jellyfin {
 
-const std::string apiUserViews = "/Users/{}/Views";
-const std::string apiUserLibrary = "/Users/{}/Items?{}";
-const std::string apiUserList = "/Playlists/{}/Items?{}";
-const std::string apiUserItem = "/Users/{}/Items/{}";
-const std::string apiItemSpecial = "/Users/{}/Items/{}/SpecialFeatures";
-const std::string apiUserResume = "/Users/{}/Items/Resume?{}";
-const std::string apiUserLatest = "/Users/{}/Items/Latest?{}";
-const std::string apiShowNextUp = "/Shows/NextUp?{}";
-const std::string apiShowSeanon = "/Shows/{}/Seasons?{}";
-const std::string apiShowEpisodes = "/Shows/{}/Episodes?{}";
-const std::string apiSimilar = "/Items/{}/Similar?{}";
-const std::string apiLiveChannels = "/LiveTv/Channels?{}";
+const std::string_view apiUserViews = "/Users/{}/Views";
+const std::string_view apiUserLibrary = "/Users/{}/Items?{}";
+const std::string_view apiUserList = "/Playlists/{}/Items?{}";
+const std::string_view apiUserItem = "/Users/{}/Items/{}";
+const std::string_view apiItemSpecial = "/Users/{}/Items/{}/SpecialFeatures";
+const std::string_view apiUserResume = "/Users/{}/Items/Resume?{}";
+const std::string_view apiUserLatest = "/Users/{}/Items/Latest?{}";
+const std::string_view apiShowNextUp = "/Shows/NextUp?{}";
+const std::string_view apiShowSeanon = "/Shows/{}/Seasons?{}";
+const std::string_view apiShowEpisodes = "/Shows/{}/Episodes?{}";
+const std::string_view apiSimilar = "/Items/{}/Similar?{}";
+const std::string_view apiLiveChannels = "/LiveTv/Channels?{}";
 #ifdef USE_WEBP
-const std::string apiUserImage = "/Users/{}/Images/Primary?format=Webp&{}";
-const std::string apiPrimaryImage = "/Items/{}/Images/Primary?format=Webp&{}";
-const std::string apiLogoImage = "/Items/{}/Images/Logo?format=Webp&{}";
-const std::string apiBackdropImage = "/Items/{}/Images/Backdrop?format=Webp&{}";
+const std::string_view apiUserImage = "/Users/{}/Images/Primary?format=Webp&{}";
+const std::string_view apiPrimaryImage = "/Items/{}/Images/Primary?format=Webp&{}";
+const std::string_view apiLogoImage = "/Items/{}/Images/Logo?format=Webp&{}";
+const std::string_view apiBackdropImage = "/Items/{}/Images/Backdrop?format=Webp&{}";
 #else
-const std::string apiUserImage = "/Users/{}/Images/Primary?format=Png&{}";
-const std::string apiPrimaryImage = "/Items/{}/Images/Primary?format=Png&{}";
-const std::string apiLogoImage = "/Items/{}/Images/Logo?format=Png&{}";
-const std::string apiBackdropImage = "/Items/{}/Images/Backdrop?format=Png&{}";
+const std::string_view apiUserImage = "/Users/{}/Images/Primary?format=Png&{}";
+const std::string_view apiPrimaryImage = "/Items/{}/Images/Primary?format=Png&{}";
+const std::string_view apiLogoImage = "/Items/{}/Images/Logo?format=Png&{}";
+const std::string_view apiBackdropImage = "/Items/{}/Images/Backdrop?format=Png&{}";
 #endif
 
 // danmu plugin
-const std::string apiDanmuku = "/api/danmu/{}/raw";
+const std::string_view apiDanmuku = "/api/danmu/{}/raw";
 
-const std::string apiDownload = "/Items/{}/Download?{}";
-const std::string apiPlayback = "/Items/{}/PlaybackInfo";
-const std::string apiStream = "/Videos/{}/stream?{}";
-const std::string apiAudio = "/Audio/{}/stream?{}";
-const std::string apiPlayStart = "/Sessions/Playing";
-const std::string apiPlayStop = "/Sessions/Playing/Stopped";
-const std::string apiPlaying = "/Sessions/Playing/Progress";
+const std::string_view apiDownload = "/Items/{}/Download?{}";
+const std::string_view apiPlayback = "/Items/{}/PlaybackInfo";
+const std::string_view apiStream = "/Videos/{}/stream?{}";
+const std::string_view apiAudio = "/Audio/{}/stream?{}";
+const std::string_view apiPlayStart = "/Sessions/Playing";
+const std::string_view apiPlayStop = "/Sessions/Playing/Stopped";
+const std::string_view apiPlaying = "/Sessions/Playing/Progress";
 
 const std::string imageTypePrimary = "Primary";
 const std::string imageTypeLogo = "Logo";

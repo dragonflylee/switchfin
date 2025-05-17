@@ -87,6 +87,13 @@ void HRecyclerFrame::setDataSource(RecyclingGridDataSource* source) {
     if (layouted) reloadData();
 }
 
+void HRecyclerFrame::clearData() {
+    if (dataSource) {
+        dataSource->clearData();
+        this->reloadData();
+    }
+}
+
 void HRecyclerFrame::reloadData() {
     if (!layouted) return;
 
