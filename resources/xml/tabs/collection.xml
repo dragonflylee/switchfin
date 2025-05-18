@@ -3,15 +3,26 @@
     height="auto"
     paddingLeft="@style/main/content_padding_sides"
     paddingRight="@style/main/content_padding_sides"
-    paddingTop="@style/main/content_padding_top_bottom"
     paddingBottom="@style/main/content_padding_top_bottom">
 
-    <RecyclingGrid
+    <AutoTabFrame
+        id="media/tabFrame"
         grow="1"
-        wireframe="false"
-        spanCount="6"
-        itemHeight="300"
-        id="media/series" />
+        defaultTab="0"
+        tabHeight="65"
+        tabItemActiveTextColor="@theme/color/app"
+        sidebarPosition="top">
+
+        <Tab label="@i18n/main/tabs/home"
+            fontSize="18">
+            <RecyclingGrid
+                grow="1"
+                wireframe="false"
+                spanCount="6"
+                itemHeight="300"
+                id="media/series" />
+        </Tab>
+    </AutoTabFrame>
 
     <ButtonClose
         positionType="absolute"

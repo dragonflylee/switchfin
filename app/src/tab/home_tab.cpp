@@ -13,7 +13,7 @@ HomeTab::HomeTab() {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/home.xml");
 
-    this->userResume->onQuery([this](size_t start, size_t pageSize) {
+    this->userResume->onQuery([](size_t start, size_t pageSize) {
         std::string query = HTTP::encode_form({
             {"enableImageTypes", "Primary,Backdrop,Thumb"},
             {"mediaTypes", "Video"},
@@ -24,7 +24,7 @@ HomeTab::HomeTab() {
         return fmt::format(fmt::runtime(jellyfin::apiUserResume), AppConfig::instance().getUserId(), query);
     });
 
-    this->showNextup->onQuery([this](size_t start, size_t pageSize) {
+    this->showNextup->onQuery([](size_t start, size_t pageSize) {
         std::string query = HTTP::encode_form({
             {"userId", AppConfig::instance().getUserId()},
             {"fields", "BasicSyncInfo,Chapters"},
@@ -36,7 +36,7 @@ HomeTab::HomeTab() {
         return fmt::format(fmt::runtime(jellyfin::apiShowNextUp), query);
     });
 
-    this->movieLatest->onQuery([this](size_t start, size_t pageSize) {
+    this->movieLatest->onQuery([](size_t start, size_t pageSize) {
         std::string query = HTTP::encode_form({
             {"enableImageTypes", "Primary"},
             {"includeItemTypes", "Movie"},
@@ -46,7 +46,7 @@ HomeTab::HomeTab() {
         return fmt::format(fmt::runtime(jellyfin::apiUserLatest), AppConfig::instance().getUserId(), query);
     });
 
-    this->seriesLatest->onQuery([this](size_t start, size_t pageSize) {
+    this->seriesLatest->onQuery([](size_t start, size_t pageSize) {
         std::string query = HTTP::encode_form({
             {"enableImageTypes", "Primary"},
             {"includeItemTypes", "Series"},
@@ -56,7 +56,7 @@ HomeTab::HomeTab() {
         return fmt::format(fmt::runtime(jellyfin::apiUserLatest), AppConfig::instance().getUserId(), query);
     });
 
-    this->musicLatest->onQuery([this](size_t start, size_t pageSize) {
+    this->musicLatest->onQuery([](size_t start, size_t pageSize) {
         std::string query = HTTP::encode_form({
             {"enableImageTypes", "Primary"},
             {"includeItemTypes", "MusicAlbum"},

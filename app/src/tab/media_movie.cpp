@@ -16,7 +16,7 @@ MediaMovie::MediaMovie(const jellyfin::Item& item) {
     this->people->registerCell("Cell", VideoCardCell::create);
     this->similar->registerCell("Cell", VideoCardCell::create);
 
-    this->btnPlay->registerClickAction([this, item](...) {
+    this->btnPlay->registerClickAction([item](...) {
         PlayerView* view = new PlayerView(item);
         view->setTitie(item.ProductionYear ? fmt::format("{} ({})", item.Name, item.ProductionYear) : item.Name);
         return true;

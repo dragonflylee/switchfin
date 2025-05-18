@@ -6,6 +6,7 @@
 
     <brls:Box
         width="220"
+        maxHeight="400"
         axis="column"
         marginRight="30">
         <brls:Image

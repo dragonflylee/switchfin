@@ -1,5 +1,12 @@
 # Changelog
 
+## [next]
+
+### Fixed
+
+* series/movie view logo layout
+* refactor media collection view
+
 ## [0.7.0]
 
 ### Add
