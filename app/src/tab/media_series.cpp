@@ -262,6 +262,7 @@ void MediaSeries::doNextup() {
                 auto items = std::move(r.Items);
                 items[0].SeriesName.clear();
                 this->nextUp->setDataSource(new VideoDataSource(items));
+                this->nextUp->setVisibility(brls::Visibility::VISIBLE);
                 this->labelNextup->setVisibility(brls::Visibility::VISIBLE);
             } else {
                 this->nextUp->setVisibility(brls::Visibility::GONE);
@@ -271,7 +272,8 @@ void MediaSeries::doNextup() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             this->nextUp->setVisibility(brls::Visibility::GONE);
-            this->labelNextup->setVisibility(brls::Visibility::GONE);
+            this->labelNextup->setSubtitle(ex);
+            brls::Application::notify(ex);
         },
         jellyfin::apiShowNextUp, query);
 }
@@ -289,13 +291,19 @@ void MediaSeries::doSimilar() {
             ASYNC_RELEASE
             if (r.Items.size() > 0) {
                 this->similar->setDataSource(new VideoDataSource(r.Items));
+                this->similar->setVisibility(brls::Visibility::VISIBLE);
+                this->labelSimilar->setVisibility(brls::Visibility::VISIBLE);
             } else {
                 this->similar->setVisibility(brls::Visibility::GONE);
+                this->labelSimilar->setVisibility(brls::Visibility::GONE);
+                this->similar->clearData();
             }
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             this->similar->setVisibility(brls::Visibility::GONE);
+            this->labelSimilar->setSubtitle(ex);
+            brls::Application::notify(ex);
         },
         jellyfin::apiSimilar, this->seriesId, query);
 }

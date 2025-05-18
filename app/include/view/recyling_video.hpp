@@ -17,6 +17,7 @@ public:
 
     using Callback = std::function<std::string(size_t, size_t)>;
 
+    void reset() { this->start = 0; }
     void setTitle(const std::string& text);
     void onQuery(const Callback& callback = nullptr);
     void doRequest(bool refresh = false);

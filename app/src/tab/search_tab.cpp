@@ -249,7 +249,7 @@ void SearchTab::doSuggest() {
 void SearchTab::doSearch(const std::string& searchTerm) {
     std::string query = HTTP::encode_form({
         {"searchTerm", searchTerm},
-        {"IncludeItemTypes", "Movie,Series"},
+        {"IncludeItemTypes", "Movie,Series,MusicAlbum"},
         {"Recursive", "true"},
         {"IncludeMedia", "true"},
         {"fields", "PrimaryImageAspectRatio,BasicSyncInfo"},

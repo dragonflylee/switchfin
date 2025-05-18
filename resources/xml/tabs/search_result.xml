@@ -8,7 +8,6 @@
         grow="1.0">
 
         <brls:Box
-            width="auto"
             height="auto"
             axis="column"
             paddingLeft="@style/main/content_padding_sides"
@@ -19,7 +18,6 @@
             <SearchList
                 id="search/movie"
                 title="@i18n/main/search/genres/movie"
-                width="auto"
                 height="350"
                 itemType="Movie"
                 pageSize="16" />
@@ -27,7 +25,6 @@
             <SearchList
                 id="search/series"
                 title="@i18n/main/search/genres/series"
-                width="auto"
                 height="350"
                 itemType="Series"
                 pageSize="16" />
@@ -35,9 +32,15 @@
             <SearchList
                 id="search/episode"
                 title="@i18n/main/search/genres/episode"
-                width="auto"
                 height="350"
                 itemType="Episode"
+                pageSize="16" />
+
+            <SearchList
+                id="search/music"
+                title="@i18n/main/search/genres/music"
+                height="250"
+                itemType="MusicAlbum"
                 pageSize="16" />
         </brls:Box>
 

@@ -89,8 +89,8 @@
                 marginBottom="20" />
 
             <brls:Header
-                marginBottom="10"
                 height="40"
+                id="movie/label/people"
                 title="@i18n/main/media/people" />
 
             <HRecyclerFrame
@@ -99,8 +99,8 @@
                 id="movie/people" />
 
             <brls:Header
-                marginBottom="10"
                 height="40"
+                id="movie/label/similar"
                 title="@i18n/main/media/similar" />
 
             <HRecyclerFrame

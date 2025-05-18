@@ -15,7 +15,6 @@ const std::string recylingVideoContentXML = R"xml(
             id="recycler/title"/>
 
         <HRecyclerFrame
-            grow="1"
             id="recycler/videos" />
 
     </brls:Box>
@@ -27,6 +26,8 @@ RecylingVideo::RecylingVideo() {
     this->inflateFromXMLString(recylingVideoContentXML);
 
     this->registerStringXMLAttribute("title", [this](std::string value) { this->setTitle(value); });
+
+    this->registerFloatXMLAttribute("frameHeight", [this](float value) { this->recycler->setHeight(value); });
 
     this->registerFloatXMLAttribute("itemWidth", [this](float value) {
         this->recycler->estimatedRowWidth = value;
@@ -77,7 +78,6 @@ void RecylingVideo::doRequest(bool refresh) {
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            this->recycler->setVisibility(brls::Visibility::GONE);
             this->title->setSubtitle(ex);
             brls::Application::notify(ex);
         },

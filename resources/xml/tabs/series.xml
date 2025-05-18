@@ -103,7 +103,6 @@
                             marginBottom="20" />
                         
                         <brls:Header
-                            marginBottom="10"
                             height="40"
                             id="series/label/nextup"
                             title="@i18n/main/home/nextup" />
@@ -114,8 +113,8 @@
                             id="series/nextup" />
 
                         <brls:Header
-                            marginBottom="10"
                             height="40"
+                            id="series/label/people"
                             title="@i18n/main/media/people" />
 
                         <HRecyclerFrame
@@ -124,8 +123,8 @@
                             id="series/people" />
 
                         <brls:Header
-                            marginBottom="10"
                             height="40"
+                            id="series/label/similar"
                             title="@i18n/main/media/similar" />
 
                         <HRecyclerFrame

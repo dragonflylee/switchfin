@@ -27,6 +27,7 @@ private:
     BRLS_BIND(brls::Label, labelOverview, "series/label/overview");
     BRLS_BIND(brls::Label, labelGenres, "series/label/genres");
     BRLS_BIND(brls::Header, labelNextup, "series/label/nextup");
+    BRLS_BIND(brls::Header, labelSimilar, "series/label/similar");
     BRLS_BIND(HRecyclerFrame, people, "series/people");
     BRLS_BIND(HRecyclerFrame, similar, "series/similar");
     BRLS_BIND(HRecyclerFrame, nextUp, "series/nextup");

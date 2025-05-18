@@ -19,4 +19,5 @@ private:
     BRLS_BIND(SearchList, searchMovie, "search/movie");
     BRLS_BIND(SearchList, searchSeries, "search/series");
     BRLS_BIND(SearchList, searchEpisode, "search/episode");
+    BRLS_BIND(SearchList, searchMusic, "search/music");
 };

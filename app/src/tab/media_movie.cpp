@@ -94,13 +94,19 @@ void MediaMovie::doSimilar(const std::string& itemId) {
             ASYNC_RELEASE
             if (r.Items.size() > 0) {
                 this->similar->setDataSource(new VideoDataSource(r.Items));
+                this->similar->setVisibility(brls::Visibility::VISIBLE);
+                this->labelSimilar->setVisibility(brls::Visibility::VISIBLE);
             } else {
                 this->similar->setVisibility(brls::Visibility::GONE);
+                this->labelSimilar->setVisibility(brls::Visibility::GONE);
+                this->similar->clearData();
             }
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             this->similar->setVisibility(brls::Visibility::GONE);
+            this->labelSimilar->setSubtitle(ex);
+            brls::Application::notify(ex);
         },
         jellyfin::apiSimilar, itemId, query);
 }

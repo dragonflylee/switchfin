@@ -72,20 +72,24 @@ HomeTab::~HomeTab() { brls::Logger::debug("View HomeTab: delete"); }
 brls::View* HomeTab::create() { return new HomeTab(); }
 
 void HomeTab::doRequest() {
-    this->userResume->doRequest(true);
-    this->showNextup->doRequest(true);
+    this->userResume->reset();
+    this->showNextup->reset();
+    this->userResume->doRequest();
+    this->showNextup->doRequest();
 }
 
 void HomeTab::onCreate() {
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
-        this->doRequest();
+        this->userResume->doRequest(true);
+        this->showNextup->doRequest(true);
         this->movieLatest->doLatest(true);
         this->seriesLatest->doLatest(true);
         this->musicLatest->doLatest(true);
         return true;
     });
 
-    this->doRequest();
+    this->userResume->doRequest();
+    this->showNextup->doRequest();
     this->movieLatest->doLatest();
     this->seriesLatest->doLatest();
     this->musicLatest->doLatest();

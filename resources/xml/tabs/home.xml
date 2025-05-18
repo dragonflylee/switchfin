@@ -17,7 +17,7 @@
             <RecylingVideo
                 nextPage="auto"
                 pageSize="6"
-                height="280"
+                frameHeight="240"
                 itemWidth="350"
                 id="home/user/resume"
                 title="@i18n/main/home/resume" />
@@ -25,28 +25,28 @@
             <RecylingVideo
                 nextPage="auto"
                 pageSize="6"
-                height="280"
+                frameHeight="240"
                 itemWidth="350"
                 id="home/show/nextup"
                 title="@i18n/main/home/nextup" />
 
             <RecylingVideo
                 pageSize="20"
-                height="340"
+                frameHeight="300"
                 itemWidth="180"
                 id="home/movie/latest"
                 title="@i18n/main/search/genres/movie" />
             
             <RecylingVideo
                 pageSize="20"
-                height="340"
+                frameHeight="300"
                 itemWidth="180"
                 id="home/series/latest"
                 title="@i18n/main/search/genres/series" />
 
             <RecylingVideo
                 pageSize="20"
-                height="265"
+                frameHeight="225"
                 itemWidth="180"
                 id="home/music/latest"
                 title="@i18n/main/search/genres/music" />

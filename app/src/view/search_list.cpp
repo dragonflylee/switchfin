@@ -36,14 +36,16 @@ void SearchList::doRequest(const std::string& searchTerm) {
             ASYNC_RELEASE
             if (r.Items.empty()) {
                 this->setVisibility(brls::Visibility::GONE);
+                this->recycler->clearData();
             } else {
-                this->title->setSubtitle(fmt::format("{}", r.TotalRecordCount));
+                this->title->setSubtitle(std::to_string(r.TotalRecordCount));
                 this->recycler->setDataSource(new VideoDataSource(r.Items));
             }
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            this->setVisibility(brls::Visibility::GONE);
+            this->title->setSubtitle(ex);
+            brls::Application::notify(ex);
         },
         jellyfin::apiUserLibrary, AppConfig::instance().getUserId(), query);
 }
