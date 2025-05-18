@@ -77,17 +77,16 @@ parts:
       - --enable-filter=hflip,vflip,transpose_vaapi,deinterlace_vaapi,denoise_vaapi,sharpness_vaapi
       - --enable-libv4l2
       - --enable-libdav1d
-      - --enable-libfontconfig
-      - --enable-libfreetype
+      - --enable-zlib
+      - --enable-bzlib
+      - --enable-libass
     build-packages:
       - nasm
-      - libfontconfig1-dev
       - libssl-dev
       - libv4l-dev
       - libva-dev
       - libvdpau-dev
     stage-packages:
-      - libfontconfig1
       - libssl1.1
       - libv4l-0
       - libva-drm2

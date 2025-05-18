@@ -8,47 +8,37 @@ arch=('any')
 url="https://curl.se/"
 license=('zlib')
 options=(!strip libtool staticlibs)
-depends=('switch-zlib' 'switch-mbedtls')
+depends=('switch-zlib' 'libnx')
 makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
-source=("https://curl.haxx.se/download/curl-${pkgver}.tar.xz")
+source=("https://curl.haxx.se/download/curl-${pkgver}.tar.xz" 'switch-curl.patch')
 groups=('switch-portlibs')
 
-sha256sums=('4a093979a3c2d02de2fbc00549a32771007f2e78032c6faa5ecd2f7a9e152025')
+sha256sums=('4a093979a3c2d02de2fbc00549a32771007f2e78032c6faa5ecd2f7a9e152025' 'SKIP')
 
 build() {
-  cd curl-${pkgver}
+  cd curl-$pkgver
+  patch -Np1 -i $srcdir/switch-curl.patch
 
   source ${DEVKITPRO}/switchvars.sh
+  LDFLAGS="-specs=${DEVKITPRO}/libnx/switch.specs ${LDFLAGS}"
 
-  aarch64-none-elf-cmake \
-    -DCMAKE_INSTALL_PREFIX=$PORTLIBS_PREFIX \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_CURL_EXE=OFF \
-    -DBUILD_SHARED_LIBS=OFF \
-    -DBUILD_TESTING=OFF \
-    -DBUILD_EXAMPLES=OFF \
-    -DBUILD_LIBCURL_DOCS=OFF \
-    -DBUILD_MISC_DOCS=OFF \
-    -DENABLE_CURL_MANUAL=OFF \
-    -DHTTP_ONLY=ON \
-    -DCURL_USE_MBEDTLS=ON \
-    -DCURL_DISABLE_PROGRESS_METER=ON \
-    -DCURL_DISABLE_SOCKETPAIR=ON \
-    -DCURL_DISABLE_MIME=ON \
-    -DENABLE_IPV6=OFF \
-    -DENABLE_THREADED_RESOLVER=OFF \
-    -DUSE_NGHTTP2=OFF \
-    -DUSE_LIBIDN2=OFF \
-    -DCURL_BROTLI=OFF \
-    -DCURL_ZSTD=OFF \
-    -DCURL_USE_LIBSSH2=OFF \
-    -DCURL_USE_LIBPSL=OFF \
-    .
+  autoreconf -fi
+
+  ./configure --prefix=$PORTLIBS_PREFIX --host=aarch64-none-elf \
+    --disable-shared --enable-static --disable-ipv6 --disable-unix-sockets \
+    --disable-manual --disable-threaded-resolver --disable-progress-meter \
+    --without-zstd --without-brotli --without-libpsl --enable-websockets \
+    --with-libnx --with-default-ssl-backend=libnx
   sed -i '/HAVE_SOCKETPAIR/d' lib/curl_config.h
-  make -j$(nproc)
+  make -C lib -j$(nproc)
 }
 
 package() {
-  cd curl-${pkgver}
-  make install DESTDIR="$pkgdir"
+  cd curl-$pkgver
+
+  source /opt/devkitpro/switchvars.sh
+
+  make DESTDIR="$pkgdir" -C lib install
+  make DESTDIR="$pkgdir" -C include install
+  make DESTDIR="$pkgdir" install-binSCRIPTS install-pkgconfigDATA
 }

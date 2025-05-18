@@ -17,7 +17,7 @@ depends=('switch-zlib' 'switch-bzip2' 'switch-libass' 'switch-libfribidi'
          'switch-freetype' 'switch-mbedtls' 'switch-dav1d' 'switch-libssh2')
 source=(
   "https://ffmpeg.org/releases/ffmpeg-${pkgver}.tar.xz"
-  "ffmpeg-${pkgver}.patch" "getnameinfo.patch" "avio.patch"
+  "ffmpeg-${pkgver}.patch" "tls.patch" "avio.patch"
 )
 sha256sums=('733984395e0dbbe5c046abda2dc49a5544e7e0e1e2366bba849222ae9e3a03b1' 'SKIP' 'SKIP' 'SKIP')
 
@@ -26,7 +26,7 @@ groups=('switch-portlibs')
 prepare() {
   cd ffmpeg-$pkgver
   patch -Np1 -i "$srcdir/ffmpeg-${pkgver}.patch"
-  patch -Np1 -i "$srcdir/getnameinfo.patch"
+  patch -Np1 -i "$srcdir/tls.patch"
   patch -Np1 -i "$srcdir/avio.patch"
 }
 
@@ -47,8 +47,7 @@ build() {
     --enable-swscale --enable-swresample --enable-network --enable-libssh2 \
     --disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,ftp,libssh2,rtp,crypto,httpproxy \
     --disable-filters --enable-filter=hflip,vflip,transpose,deinterlace_nvtegra,denoise_nvtegra,sharpness_nvtegra \
-    --enable-zlib --enable-bzlib --enable-libass --enable-libfreetype --enable-libfribidi --enable-libdav1d \
-    --enable-mbedtls --enable-version3 --enable-nvtegra
+    --enable-zlib --enable-bzlib --enable-libass --enable-libdav1d --enable-libnx --enable-nvtegra
 
   make -j$(nproc)
 }

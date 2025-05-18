@@ -65,8 +65,8 @@ jobs:
           -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
           -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.target }} \
           -DCMAKE_BUILD_TYPE=Release \
-          -DUSE_SHARED_MBEDTLS_LIBRARY=ON \
-          -DUSE_STATIC_MBEDTLS_LIBRARY=OFF \
+          -DUSE_SHARED_MBEDTLS_LIBRARY=OFF \
+          -DUSE_STATIC_MBEDTLS_LIBRARY=ON \
           -DENABLE_PROGRAMS=OFF -DENABLE_TESTING=OFF
         cmake --build build-mbedtls
         cmake --install build-mbedtls
@@ -128,10 +128,10 @@ jobs:
         meson install -C build-freetype
     - name: Build harfbuzz
       env:
-        pkgver: '11.2.0'
+        pkgver: '11.2.1'
       run: |
         curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/${pkgver}/harfbuzz-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        meson setup build-harfbuzz ${{ runner.temp }}/harfbuzz-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
+        meson setup build-harfbuzz ${{ runner.temp }}/harfbuzz-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} --default-library=static \
           -Dtests=disabled -Ddocs=disabled -Dicu=disabled -Dcairo=disabled \
           -Dglib=disabled -Dgobject=disabled -Dbenchmark=disabled
         meson compile -C build-harfbuzz
@@ -141,7 +141,7 @@ jobs:
         pkgver: '1.0.16'
       run: |
         curl --retry 5 -sSL https://github.com/fribidi/fribidi/releases/download/v${pkgver}/fribidi-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        meson setup build-fribidi ${{ runner.temp }}/fribidi-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
+        meson setup build-fribidi ${{ runner.temp }}/fribidi-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} --default-library=static \
           -Ddocs=false -Dbin=false -Dtests=false
         meson compile -C build-fribidi
         meson install -C build-fribidi
@@ -150,7 +150,7 @@ jobs:
         pkgver: '0.17.3'
       run: |
         curl --retry 5 -sSL https://github.com/libass/libass/releases/download/${pkgver}/libass-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        meson setup build-libass ${{ runner.temp }}/libass-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH}
+        meson setup build-libass ${{ runner.temp }}/libass-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} --default-library=shared
         meson compile -C build-libass
         meson install -C build-libass
     - name: Build dav1d

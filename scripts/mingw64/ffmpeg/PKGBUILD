@@ -72,8 +72,6 @@ build() {
     --enable-bzlib \
     --enable-libass \
     --enable-libdav1d \
-    --enable-libfreetype \
-    --enable-libfribidi \
     --enable-libssh2 \
     --enable-schannel \
     $( [[ "${MINGW_PACKAGE_PREFIX}" != *clang-aarch64* ]] \

@@ -133,8 +133,8 @@ modules:
           - --enable-vaapi
           - --enable-vdpau
           - --enable-libdav1d
-          - --enable-libfontconfig
-          - --enable-libfreetype
+          - --enable-zlib
+          - --enable-bzlib
           - --enable-libass
         sources:
           - type: archive

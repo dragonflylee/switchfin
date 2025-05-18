@@ -1,0 +1,275 @@
+diff --git a/configure b/configure
+index 566d5fb..1429aef 100755
+--- a/configure
++++ b/configure
+@@ -318,6 +318,7 @@ External library support:
+   --enable-decklink        enable Blackmagic DeckLink I/O support [no]
+   --enable-mbedtls         enable mbedTLS, needed for https support
+                            if openssl, gnutls or libtls is not used [no]
++  --enable-libnx           enable libnx, needed for https support
+   --enable-mediacodec      enable Android MediaCodec support [no]
+   --enable-mediafoundation enable encoding via MediaFoundation [auto]
+   --disable-metal          disable Apple Metal framework [autodetect]
+@@ -1852,6 +1853,7 @@ EXTERNAL_AUTODETECT_LIBRARY_LIST="
+     mediafoundation
+     metal
+     schannel
++    libnx
+     sdl2
+     securetransport
+     sndio
+@@ -3818,7 +3820,7 @@ sctp_protocol_select="network"
+ securetransport_conflict="openssl gnutls libtls mbedtls"
+ srtp_protocol_select="rtp_protocol srtp"
+ tcp_protocol_select="network"
+-tls_protocol_deps_any="gnutls openssl schannel securetransport libtls mbedtls"
++tls_protocol_deps_any="gnutls openssl schannel securetransport libtls mbedtls libnx"
+ tls_protocol_select="tcp_protocol"
+ udp_protocol_select="network"
+ udplite_protocol_select="network"
+diff --git a/libavformat/Makefile b/libavformat/Makefile
+index 7ca68a7..c1447c0 100644
+--- a/libavformat/Makefile
++++ b/libavformat/Makefile
+@@ -704,6 +704,7 @@ OBJS-$(CONFIG_IPNS_GATEWAY_PROTOCOL)     += ipfsgateway.o
+ TLS-OBJS-$(CONFIG_GNUTLS)                += tls_gnutls.o
+ TLS-OBJS-$(CONFIG_LIBTLS)                += tls_libtls.o
+ TLS-OBJS-$(CONFIG_MBEDTLS)               += tls_mbedtls.o
++TLS-OBJS-$(CONFIG_LIBNX)                 += tls_libnx.o
+ TLS-OBJS-$(CONFIG_OPENSSL)               += tls_openssl.o
+ TLS-OBJS-$(CONFIG_SECURETRANSPORT)       += tls_securetransport.o
+ TLS-OBJS-$(CONFIG_SCHANNEL)              += tls_schannel.o
+diff --git a/libavformat/network.h b/libavformat/network.h
+index ca21408..f255760 100644
+--- a/libavformat/network.h
++++ b/libavformat/network.h
+@@ -219,6 +219,14 @@ int ff_getnameinfo(const struct sockaddr *sa, int salen,
+ #define getnameinfo ff_getnameinfo
+ #endif /* !HAVE_GETADDRINFO */
+ 
++#if HAVE_GETADDRINFO && __SWITCH__
++#undef getnameinfo
++int ff_getnameinfo(const struct sockaddr *sa, int salen,
++                   char *host, int hostlen,
++                   char *serv, int servlen, int flags);
++#define getnameinfo ff_getnameinfo
++#endif
++
+ #if !HAVE_GETADDRINFO || HAVE_WINSOCK2_H
+ const char *ff_gai_strerror(int ecode);
+ #undef gai_strerror
+diff --git a/libavformat/os_support.c b/libavformat/os_support.c
+index 4d6eb8a..3a54dec 100644
+--- a/libavformat/os_support.c
++++ b/libavformat/os_support.c
+@@ -137,6 +137,10 @@ void ff_freeaddrinfo(struct addrinfo *res)
+     av_freep(&res);
+ }
+ 
++#endif 
++
++#if HAVE_GETADDRINFO && __SWITCH__
++
+ int ff_getnameinfo(const struct sockaddr *sa, int salen,
+                    char *host, int hostlen,
+                    char *serv, int servlen, int flags)
+diff --git a/libavformat/tls_libnx.c b/libavformat/tls_libnx.c
+new file mode 100644
+index 0000000..e09b8ed
+--- /dev/null
++++ b/libavformat/tls_libnx.c
+@@ -0,0 +1,194 @@
++/*
++ * TLS/SSL Protocol
++ * Copyright (c) 2018 Thomas Volkert
++ *
++ * This file is part of FFmpeg.
++ *
++ * FFmpeg is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * FFmpeg is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with FFmpeg; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
++ */
++
++#include <switch.h>
++
++#include "avformat.h"
++#include "internal.h"
++#include "url.h"
++#include "tls.h"
++#include "libavutil/parseutils.h"
++#include "libavutil/time.h"
++
++typedef struct TLSContext {
++    const AVClass *class;
++    TLSShared tls_shared;
++    SslContext context;
++    SslConnection conn;
++} TLSContext;
++
++static int tls_close(URLContext *h)
++{
++    TLSContext *tls_ctx = h->priv_data;
++
++    sslConnectionClose(&tls_ctx->conn);
++    sslContextClose(&tls_ctx->context);
++
++    ffurl_closep(&tls_ctx->tls_shared.tcp);
++    return 0;
++}
++
++static int tls_open(URLContext *h, const char *uri, int flags, AVDictionary **options)
++{
++    TLSContext *tls_ctx = h->priv_data;
++    TLSShared *shr = &tls_ctx->tls_shared;
++    int ret;
++    Result rc;
++
++    if (shr->listen) {
++        av_log(h, AV_LOG_ERROR, "TLS Listen Sockets with libnx is not implemented.\n");
++        return AVERROR(EINVAL);
++    }
++
++    if ((ret = ff_tls_open_underlying(shr, h, uri, options)) < 0)
++        goto fail;
++
++    rc = sslCreateContext(&tls_ctx->context, SslVersion_Auto);
++    if (R_FAILED(rc)) {
++        ret = AVERROR(EINVAL);
++        goto fail;
++    }
++
++    rc = sslContextCreateConnection(&tls_ctx->context, &tls_ctx->conn);
++
++    if (R_SUCCEEDED(rc)) {
++        rc = sslConnectionSetOption(&tls_ctx->conn, SslOptionType_DoNotCloseSocket, true);
++    }
++
++    if (R_SUCCEEDED(rc)) {
++        int sockfd = ffurl_get_file_handle(shr->tcp);
++        ret = socketSslConnectionSetSocketDescriptor(&tls_ctx->conn, sockfd);
++        if (ret == -1 && errno != ENOENT) {
++            ret = AVERROR(EIO);
++            goto fail;
++        }
++    }
++
++    if (R_SUCCEEDED(rc)) {
++        rc = sslConnectionSetHostName(&tls_ctx->conn, shr->host, strlen(shr->host));
++    }
++
++    /* This will fail on system-versions where this option isn't available,
++     * so ignore errors from this. */
++    if (R_SUCCEEDED(rc)) {
++        sslConnectionSetOption(&tls_ctx->conn, SslOptionType_SkipDefaultVerify, true);
++    }
++
++    if (R_SUCCEEDED(rc)) {
++        u32 verifyopt = SslVerifyOption_DateCheck;
++        if (shr->verify) verifyopt |= SslVerifyOption_PeerCa;
++        rc = sslConnectionSetVerifyOption(&tls_ctx->conn, verifyopt);
++    }
++
++    if (R_SUCCEEDED(rc)) {
++        SslIoMode iomode = SslIoMode_Blocking;
++        if (h->flags & AVIO_FLAG_NONBLOCK) iomode = SslIoMode_NonBlocking;
++        rc = sslConnectionSetIoMode(&tls_ctx->conn, iomode);
++    }
++
++    while (rc = sslConnectionDoHandshake(&tls_ctx->conn, NULL, NULL, NULL, 0)) {
++        if (R_VALUE(rc) == MAKERESULT(123, 204)) { // PR_WOULD_BLOCK_ERROR
++            av_usleep(10000);
++            continue;
++        }
++        if (R_VALUE(rc) == MAKERESULT(123, 207)) {
++            av_log(h, AV_LOG_ERROR, "The certificate is not correctly signed by the trusted CA.\n");
++        } else {
++            av_log(h, AV_LOG_ERROR, "sslConnectionDoHandshake returned: 0x%X\n", R_VALUE(rc));
++        }
++        ret = AVERROR(EIO);
++        goto fail;
++    }
++    return 0;
++
++fail:
++    tls_close(h);
++    return ret;
++}
++
++static int tls_read(URLContext *h, uint8_t *buf, int size)
++{
++    TLSContext *tls_ctx = h->priv_data;
++    Result rc = 0;
++    u32 out_size = 0;
++    rc = sslConnectionRead(&tls_ctx->conn, buf, size, &out_size);
++    if (R_SUCCEEDED(rc)) {
++        return out_size; // return read length
++    }
++    if (R_VALUE(rc) == MAKERESULT(123, 204)) { // PR_WOULD_BLOCK_ERROR
++        return AVERROR(EAGAIN);
++    }
++    av_log(h, AV_LOG_WARNING, "sslConnectionRead returned 0x%X\n", R_VALUE(rc));
++    return AVERROR(EIO);
++}
++
++static int tls_write(URLContext *h, const uint8_t *buf, int size)
++{
++    TLSContext *tls_ctx = h->priv_data;
++    Result rc = 0;
++    u32 out_size = 0;
++    rc = sslConnectionWrite(&tls_ctx->conn, buf, size, &out_size);
++    if (R_SUCCEEDED(rc)) {
++        return out_size; // return written length
++    }
++    if (R_VALUE(rc) == MAKERESULT(123, 204)) { // PR_WOULD_BLOCK_ERROR 
++        return AVERROR(EAGAIN);
++    }
++    av_log(h, AV_LOG_WARNING, "sslConnectionWrite returned 0x%X\n", R_VALUE(rc));
++    return AVERROR(EIO);
++}
++
++static int tls_get_file_handle(URLContext *h)
++{
++    TLSContext *c = h->priv_data;
++    return ffurl_get_file_handle(c->tls_shared.tcp);
++}
++
++static int tls_get_short_seek(URLContext *h)
++{
++    TLSContext *s = h->priv_data;
++    return ffurl_get_short_seek(s->tls_shared.tcp);
++}
++
++static const AVOption options[] = {
++    TLS_COMMON_OPTIONS(TLSContext, tls_shared),
++    { NULL }
++};
++
++static const AVClass tls_class = {
++    .class_name = "tls",
++    .item_name  = av_default_item_name,
++    .option     = options,
++    .version    = LIBAVUTIL_VERSION_INT,
++};
++
++const URLProtocol ff_tls_protocol = {
++    .name           = "tls",
++    .url_open2      = tls_open,
++    .url_read       = tls_read,
++    .url_write      = tls_write,
++    .url_close      = tls_close,
++    .url_get_file_handle = tls_get_file_handle,
++    .url_get_short_seek  = tls_get_short_seek,
++    .priv_data_size = sizeof(TLSContext),
++    .flags          = URL_PROTOCOL_FLAG_NETWORK,
++    .priv_data_class = &tls_class,
++};
