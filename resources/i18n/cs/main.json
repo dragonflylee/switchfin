@@ -56,6 +56,7 @@
     "clear_history": "Potvrzením vymazat historii vyhledávání?",
     "genres": {
       "movie": "Film",
+      "music": "Hudba",
       "series": "Seriál",
       "episode": "Epizoda"
     }

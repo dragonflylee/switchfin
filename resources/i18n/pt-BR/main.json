@@ -86,6 +86,7 @@
     "clear_history": "Confirmar exclusão do histórico de buscas?",
     "genres": {
       "movie": "Filme",
+      "music": "Música",
       "series": "Série",
       "episode": "Episódio"
     }

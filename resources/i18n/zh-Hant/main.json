@@ -94,6 +94,7 @@
     "clear_history": "確認清空搜索記錄？",
     "genres": {
       "movie": "電影",
+      "music": "音樂",
       "series": "節目",
       "episode": "劇集"
     }

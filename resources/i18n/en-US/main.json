@@ -90,6 +90,7 @@
     "clear_history": "Confirm to clear search histroy?",
     "genres": {
       "movie": "Movie",
+      "music": "Music",
       "series": "Series",
       "episode": "Episode"
     }

@@ -9,13 +9,13 @@ SearchList::SearchList() {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/view/search_list.xml");
 
-    this->registerStringXMLAttribute("title", [this](std::string value) { this->searchTitle->setTitle(value); });
+    this->registerStringXMLAttribute("title", [this](std::string value) { this->title->setTitle(value); });
 
     this->registerStringXMLAttribute("itemType", [this](std::string value) { this->itemType = value; });
 
     this->registerFloatXMLAttribute("pageSize", [this](float value) { this->pageSize = value; });
 
-    this->searchResult->registerCell("Cell", VideoCardCell::create);
+    this->recycler->registerCell("Cell", VideoCardCell::create);
 }
 
 SearchList::~SearchList() { brls::Logger::debug("View SearchList: delete"); }
@@ -37,8 +37,8 @@ void SearchList::doRequest(const std::string& searchTerm) {
             if (r.Items.empty()) {
                 this->setVisibility(brls::Visibility::GONE);
             } else {
-                this->searchTitle->setSubtitle(fmt::format("{}", r.TotalRecordCount));
-                this->searchResult->setDataSource(new VideoDataSource(r.Items));
+                this->title->setSubtitle(fmt::format("{}", r.TotalRecordCount));
+                this->recycler->setDataSource(new VideoDataSource(r.Items));
             }
         },
         [ASYNC_TOKEN](const std::string& ex) {

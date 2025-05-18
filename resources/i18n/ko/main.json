@@ -89,6 +89,7 @@
     "clear_history": "검색 기록을 비우시겠습니까?",
     "genres": {
       "movie": "영화",
+      "music": "음악",
       "series": "시리즈",
       "episode": "에피소드"
     }

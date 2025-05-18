@@ -90,6 +90,7 @@
     "clear_history": "検索履歴を消去しますか?",
     "genres": {
       "movie": "動画",
+      "music": "音楽",
       "series": "シリーズ",
       "episode": "エピソード"
     }

@@ -14,47 +14,42 @@
             paddingTop="@style/main/content_padding_top_bottom"
             paddingBottom="@style/main/content_padding_top_bottom">
 
-            <brls:Header
-                title="@i18n/main/home/resume"
-                height="40"
-                id="home/header/resume"/>
-            <HRecyclerFrame
-                height="240"
+            <RecylingVideo
+                nextPage="auto"
+                pageSize="6"
+                height="280"
                 itemWidth="350"
-                id="home/user/resume" />
+                id="home/user/resume"
+                title="@i18n/main/home/resume" />
 
-            <brls:Header
-                marginTop="15"
-                height="40"
-                title="@i18n/main/home/nextup"
-                id="home/header/nextup"
-                marginBottom="0px" />
-            <HRecyclerFrame
-                height="240"
+            <RecylingVideo
+                nextPage="auto"
+                pageSize="6"
+                height="280"
                 itemWidth="350"
-                id="home/show/nextup" />
+                id="home/show/nextup"
+                title="@i18n/main/home/nextup" />
 
-            <brls:Header
-                marginTop="15"
-                height="40"
-                title="@i18n/main/home/latest"
-                id="home/header/video"
-                marginBottom="0px" />
-            <HRecyclerFrame
-                height="300"
+            <RecylingVideo
+                pageSize="20"
+                height="340"
                 itemWidth="180"
-                id="home/video/latest" />
+                id="home/movie/latest"
+                title="@i18n/main/search/genres/movie" />
+            
+            <RecylingVideo
+                pageSize="20"
+                height="340"
+                itemWidth="180"
+                id="home/series/latest"
+                title="@i18n/main/search/genres/series" />
 
-            <brls:Header
-                marginTop="15"
-                height="40"
-                title="@i18n/main/home/latest"
-                id="home/header/music"
-                marginBottom="0px" />
-            <HRecyclerFrame
-                height="225"
+            <RecylingVideo
+                pageSize="20"
+                height="265"
                 itemWidth="180"
-                id="home/music/latest" />
+                id="home/music/latest"
+                title="@i18n/main/search/genres/music" />
 
         </brls:Box>
 

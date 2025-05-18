@@ -44,27 +44,19 @@
                 textColor="@theme/font/grey"
                 marginBottom="20" />
 
-            <brls:Header
-                marginBottom="10"
-                height="40"
-                id="people/movie/title"
+            <RecylingVideo
+                nextPage="auto"
+                height="290"
+                itemWidth="150"
+                id="people/movie"
                 title="@i18n/main/search/genres/movie" />
 
-            <HRecyclerFrame
-                height="250"
+            <RecylingVideo
+                nextPage="auto"
+                height="290"
                 itemWidth="150"
-                id="people/movie" />
-
-            <brls:Header
-                marginBottom="10"
-                height="40"
-                id="people/series/title"
+                id="people/series"
                 title="@i18n/main/search/genres/series" />
-
-            <HRecyclerFrame
-                height="250"
-                itemWidth="150"
-                id="people/series" />
 
         </brls:Box>
 

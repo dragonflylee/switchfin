@@ -90,6 +90,7 @@
     "clear_history": "确认清空搜索记录？",
     "genres": {
       "movie": "电影",
+      "music": "音乐",
       "series": "节目",
       "episode": "剧集"
     }
