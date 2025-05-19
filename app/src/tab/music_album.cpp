@@ -141,6 +141,15 @@ void MusicAlbum::doAlbum() {
         [ASYNC_TOKEN](const jellyfin::Album& r) {
             ASYNC_RELEASE
             this->albumAritst->setText(r.AlbumArtist);
+
+            auto logo = r.ImageTags.find(jellyfin::imageTypePrimary);
+            if (logo != r.ImageTags.end()) {
+                Image::load(this->imageCover, jellyfin::apiPrimaryImage, r.Id,
+                    HTTP::encode_form({
+                        {"tag", logo->second},
+                        {"maxWidth", "400"},
+                    }));
+            }
         },
         nullptr, jellyfin::apiUserItem, AppConfig::instance().getUserId(), this->itemId);
 }

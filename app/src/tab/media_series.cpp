@@ -213,6 +213,15 @@ void MediaSeries::doSeries() {
             } else {
                 this->people->setVisibility(brls::Visibility::GONE);
             }
+
+            auto logo = r.ImageTags.find(jellyfin::imageTypePrimary);
+            if (logo != r.ImageTags.end()) {
+                Image::load(this->imageLogo, jellyfin::apiPrimaryImage, r.Id,
+                    HTTP::encode_form({
+                        {"tag", logo->second},
+                        {"maxWidth", "400"},
+                    }));
+            }
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE

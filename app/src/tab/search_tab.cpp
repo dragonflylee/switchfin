@@ -235,8 +235,6 @@ void SearchTab::doSuggest() {
     jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
         [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
             ASYNC_RELEASE
-            this->searchSuggest->spanCount = 1;
-            this->searchSuggest->estimatedRowHeight = 30;
             this->searchSuggest->setDataSource(new SuggestDataSource(r.Items));
         },
         [ASYNC_TOKEN](const std::string& ex) {
@@ -265,8 +263,6 @@ void SearchTab::doSearch(const std::string& searchTerm) {
             if (r.TotalRecordCount == 0) {
                 this->searchSuggest->setEmpty();
             } else if (r.StartIndex == 0) {
-                this->searchSuggest->spanCount = 5;
-                this->searchSuggest->estimatedRowHeight = 240;
                 this->searchSuggest->setDataSource(new VideoDataSource(r.Items));
             } else if (r.Items.size() > 0) {
                 auto dataSrc = dynamic_cast<VideoDataSource*>(this->searchSuggest->getDataSource());
@@ -288,7 +284,9 @@ void SearchTab::updateInput() {
         if (this->historyBox->getVisibility() == brls::Visibility::GONE) {
             this->historyBox->setVisibility(brls::Visibility::VISIBLE);
         }
-        this->searchSuggest->setEmpty("hints/loading"_i18n);
+        this->searchSuggest->spanCount = 1;
+        this->searchSuggest->estimatedRowHeight = 30;
+        this->searchSuggest->showSkeleton();
         this->doSuggest();
     } else {
         this->inputLabel->setText(this->currentSearch);
@@ -297,7 +295,9 @@ void SearchTab::updateInput() {
             this->historyBox->setVisibility(brls::Visibility::GONE);
         }
         this->searchIndex = 0;
-        this->searchSuggest->setEmpty("hints/loading"_i18n);
+        this->searchSuggest->spanCount = 5;
+        this->searchSuggest->estimatedRowHeight = 240;
+        this->searchSuggest->showSkeleton();
         this->doSearch(this->currentSearch);
     }
 }
