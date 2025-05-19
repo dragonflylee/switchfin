@@ -8,6 +8,7 @@
 #include <api/jellyfin/media.hpp>
 
 class HRecyclerFrame;
+class TextBox;
 
 class MediaMovie : public brls::Box {
 public:
@@ -20,7 +21,7 @@ private:
     BRLS_BIND(brls::Label, labelYear, "movie/label/year");
     BRLS_BIND(brls::Label, parentalRating, "movie/parental/rating");
     BRLS_BIND(brls::Label, labelRating, "movie/label/rating");
-    BRLS_BIND(brls::Label, labelOverview, "movie/label/overview");
+    BRLS_BIND(TextBox, labelOverview, "movie/label/overview");
     BRLS_BIND(brls::Label, labelGenres, "movie/label/genres");
     BRLS_BIND(brls::Header, labelSimilar, "movie/label/similar");
     BRLS_BIND(brls::Button, btnPlay, "movie/play");

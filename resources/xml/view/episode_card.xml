@@ -51,7 +51,7 @@
             id="episode/card/overview"
             grow="1"
             fontSize="15"
-            maxRows="5"
+            maxRows="6"
             textColor="@theme/font/grey" />
     </brls:Box>
 

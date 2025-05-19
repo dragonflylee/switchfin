@@ -24,7 +24,7 @@ public:
 
 private:
     // 最大的行数
-    size_t maxRows = 5;
+    size_t maxRows = 20;
 
     bool parsedDone = false;
     std::string cuttedText;

@@ -1,10 +1,27 @@
 #include <borealis/core/application.hpp>
+#include <yoga/YGNode.h>
 #include "view/text_box.hpp"
+
+static YGSize textBoxMeasureFunc(
+    YGNodeRef node, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
+    auto* textBox = (TextBox*)YGNodeGetContext(node);
+    auto fullText = textBox->getFullText();
+
+    YGSize size = {.width = width, .height = height};
+    if (heightMode == YGMeasureMode::YGMeasureModeExactly) return size;
+    if (fullText.empty() || std::isnan(width)) return size;
+
+    size.height = textBox->cutText(width);
+    textBox->setParsedDone(true);
+    return size;
+}
 
 TextBox::TextBox() {
     this->setAutoAnimate(false);
 
     this->registerFloatXMLAttribute("maxRows", [this](float value) { this->maxRows = (size_t)value; });
+
+    YGNodeSetMeasureFunc(this->ygNode, textBoxMeasureFunc);
 }
 
 TextBox::~TextBox() = default;
@@ -44,21 +61,22 @@ void TextBox::setText(const std::string& text) {
 
 float TextBox::cutText(float width) {
     NVGcontext* vg = brls::Application::getNVGContext();
+    float lineh = 0;
     // Setup nvg state for the measurements
-    nvgFontSize(vg, this->getFontSize());
+    nvgFontSize(vg, this->fontSize);
     nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
-    nvgFontFaceId(vg, this->getFont());
-    nvgTextLineHeight(vg, this->getLineHeight());
+    nvgFontFaceId(vg, this->font);
+    nvgTextLineHeight(vg, this->lineHeight);
+    nvgTextMetrics(vg, nullptr, nullptr, &lineh);
 
-    float boxBounds[4];
-    nvgTextBoxBounds(vg, 0, 0, width, fullText.c_str(), nullptr, boxBounds);
-    float requiredHeight = boxBounds[3] - boxBounds[1];
+    float requiredHeight = this->fontSize;
 
     std::vector<NVGtextRow> rows(this->maxRows);
     const char* stringStart = this->fullText.c_str();
     int nrows = nvgTextBreakLines(vg, stringStart, nullptr, width, rows.data(), rows.size());
     if (nrows > 0) {
         this->cuttedText = this->fullText.substr(0, rows[nrows - 1].end - rows[0].start);
+        requiredHeight += nrows * this->lineHeight * lineh;
     }
     return requiredHeight;
 }

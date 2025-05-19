@@ -82,12 +82,10 @@
                 </brls:Box>
             </brls:Box>
 
-            <brls:Label
+            <TextBox
                 id="movie/label/overview"
                 fontSize="15"
-                animated="false"
-                textColor="@theme/font/grey"
-                marginBottom="20" />
+                textColor="@theme/font/grey" />
 
             <brls:Header
                 height="40"

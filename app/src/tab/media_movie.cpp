@@ -2,6 +2,7 @@
 #include "tab/media_movie.hpp"
 #include "view/h_recycling.hpp"
 #include "view/video_card.hpp"
+#include "view/text_box.hpp"
 #include "view/people_source.hpp"
 #include "view/video_source.hpp"
 #include "api/jellyfin.hpp"

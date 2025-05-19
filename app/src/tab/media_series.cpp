@@ -8,6 +8,7 @@
 #include "view/h_recycling.hpp"
 #include "view/auto_tab_frame.hpp"
 #include "view/svg_image.hpp"
+#include "view/text_box.hpp"
 #include "view/video_card.hpp"
 #include "view/people_source.hpp"
 #include "view/video_source.hpp"
