@@ -77,6 +77,8 @@ public:
             view = new MediaCollection(item.Id, jellyfin::mediaTypeMusicAlbum);
         else if (item.CollectionType == "playlists")
             view = new MediaCollection(item.Id, jellyfin::mediaTypePlaylist);
+        else if (item.CollectionType == "boxsets")
+            view = new MediaCollection(item.Id, jellyfin::mediaTypeBoxSet);
         else if (item.CollectionType == "livetv")
             view = new LiveTV(item.Id);
         else

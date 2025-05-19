@@ -9,7 +9,7 @@
         id="media/tabFrame"
         grow="1"
         defaultTab="0"
-        tabHeight="65"
+        tabHeight="60"
         tabItemActiveTextColor="@theme/color/app"
         sidebarPosition="top">
 

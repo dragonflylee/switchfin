@@ -16,6 +16,7 @@ const std::string_view apiShowSeanon = "/Shows/{}/Seasons?{}";
 const std::string_view apiShowEpisodes = "/Shows/{}/Episodes?{}";
 const std::string_view apiSimilar = "/Items/{}/Similar?{}";
 const std::string_view apiLiveChannels = "/LiveTv/Channels?{}";
+const std::string_view apiGenres = "/Genres?{}";
 #ifdef USE_WEBP
 const std::string_view apiUserImage = "/Users/{}/Images/Primary?format=Webp&{}";
 const std::string_view apiPrimaryImage = "/Items/{}/Images/Primary?format=Webp&{}";
@@ -48,6 +49,7 @@ const std::string mediaTypeSeason = "Season";
 const std::string mediaTypeEpisode = "Episode";
 const std::string mediaTypeMovie = "Movie";
 const std::string mediaTypeBoxSet = "BoxSet";
+const std::string mediaTypeGenre = "Genre";
 const std::string mediaTypeAudio = "Audio";
 const std::string mediaTypeVideo = "Video";
 const std::string mediaTypePhoto = "Photo";
@@ -82,6 +84,14 @@ struct MediaChapter {
     uint64_t StartPositionTicks = 0;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaChapter, Name, StartPositionTicks);
+
+struct Genres {
+    std::string Id;
+    std::string Name;
+    std::map<std::string, std::string> ImageTags;
+    int ChildCount;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Genres, Id, Name, ImageTags, ChildCount);
 
 struct Item {
     std::string Id;

@@ -12,7 +12,7 @@ const std::string recylingVideoContentXML = R"xml(
 
         <brls:Header
             height="40"
-            id="recycler/title"/>
+            id="recycler/title" />
 
         <HRecyclerFrame
             id="recycler/videos" />

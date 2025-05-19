@@ -18,9 +18,9 @@ public:
     static brls::View* create();
 
 private:
-    BRLS_BIND(brls::Header, title, "search/title");
-    BRLS_BIND(HRecyclerFrame, recycler, "search/result");
+    BRLS_BIND(brls::Header, title, "recycler/title");
+    BRLS_BIND(HRecyclerFrame, recycler, "recycler/videos");
     
     std::string itemType;
-    size_t pageSize;
+    size_t pageSize = 10;
 };

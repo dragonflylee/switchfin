@@ -7,12 +7,76 @@
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
 #include "view/media_filter.hpp"
+#include "view/auto_tab_frame.hpp"
+#include "view/h_recycling.hpp"
 #include <fmt/ranges.h>
 
 using namespace brls::literals;  // for _i18n
 
-MediaCollection::MediaCollection(const std::string& itemId, const std::string& itemType)
-    : itemId(itemId), itemType(itemType), startIndex(0) {
+class GenresDataSource : public RecyclingGridDataSource {
+public:
+    using MediaList = std::vector<jellyfin::Genres>;
+
+    explicit GenresDataSource(const MediaList& r, const std::string& itemId) : list(std::move(r)), itemId(itemId) {
+        brls::Logger::debug("GenresDataSource: create {}", r.size());
+    }
+
+    size_t getItemCount() override { return this->list.size(); }
+
+    RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
+        VideoCardCell* cell = dynamic_cast<VideoCardCell*>(recycler->dequeueReusableCell("Cell"));
+        auto& item = this->list.at(index);
+        cell->labelTitle->setText(item.Name);
+        auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
+        if (it != item.ImageTags.end()) {
+            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
+                HTTP::encode_form({{"tag", it->second}, {"maxWidth", "400"}}));
+        }
+        return cell;
+    }
+
+    void onItemSelected(brls::Box* recycler, size_t index) override {
+        auto& item = this->list.at(index);
+        recycler->present(new MediaCollection(this->itemId, jellyfin::mediaTypeGenre, item.Id));
+    }
+
+    void clearData() override { this->list.clear(); }
+
+private:
+    MediaList list;
+    std::string itemId;
+};
+
+class GenresTab : public RecyclingGrid {
+public:
+    GenresTab(const std::string& itemId, const std::string& itemType) {
+        this->setGrow(1.f);
+        this->registerCell("Cell", VideoCardCell::create);
+
+        std::string query = HTTP::encode_form({
+            {"userId", AppConfig::instance().getUserId()},
+            {"parentId", itemId},
+            {"includeItemTypes", itemType},
+            {"enableImageTypes", "Primary"},
+            {"recursive", "true"},
+        });
+
+        ASYNC_RETAIN
+        jellyfin::getJSON<jellyfin::Result<jellyfin::Genres>>(
+            [ASYNC_TOKEN, itemId](const jellyfin::Result<jellyfin::Genres>& r) {
+                ASYNC_RELEASE
+                this->setDataSource(new GenresDataSource(r.Items, itemId));
+            },
+            [ASYNC_TOKEN](const std::string& ex) {
+                ASYNC_RELEASE
+                this->setError(ex);
+            },
+            jellyfin::apiGenres, query);
+    }
+};
+
+MediaCollection::MediaCollection(const std::string& itemId, const std::string& itemType, const std::string& genresId)
+    : itemId(itemId), genresId(genresId), itemType(itemType), startIndex(0) {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/collection.xml");
     brls::Logger::debug("MediaCollection: create {} type {}", itemId, itemType);
@@ -36,7 +100,7 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
     this->recycler->registerCell("Cell", VideoCardCell::create);
     this->recycler->onNextPage([this]() { this->doRequest(); });
 
-    if (itemType == jellyfin::mediaTypePlaylist) {
+    if (this->itemType == jellyfin::mediaTypePlaylist) {
         this->doRequest();
     } else if (AppConfig::SYNC) {
         this->doPreferences();
@@ -52,6 +116,17 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
         });
 
         this->doRequest();
+    }
+
+    if (itemType == jellyfin::mediaTypeMovie || itemType == jellyfin::mediaTypeSeries) {
+        auto* item = new AutoSidebarItem();
+        item->setTabStyle(AutoTabBarStyle::ACCENT);
+        item->setFontSize(18);
+        item->setLabel("main/tabs/genres"_i18n);
+        this->tabFrame->addTab(item, [this]() { return new GenresTab(this->itemId, this->itemType); });
+    } else {
+        this->sidebar->setVisibility(brls::Visibility::GONE);
+        this->setPaddingTop(brls::getStyle().getMetric("main/content_padding_top_bottom"));
     }
 }
 
@@ -139,14 +214,17 @@ void MediaCollection::doRequest() {
         {"sortBy", MediaFilter::sortList[MediaFilter::selectedSort]},
         {"sortOrder", MediaFilter::selectedOrder ? "Descending" : "Ascending"},
         {"fields", "PrimaryImageAspectRatio,Chapters,BasicSyncInfo"},
-        {"EnableImageTypes", "Primary"},
+        {"enableImageTypes", "Primary"},
         {"filters", fmt::format("{}", fmt::join(filters, ","))},
         {"limit", std::to_string(this->pageSize)},
         {"startIndex", std::to_string(this->startIndex)},
     };
-    if (this->itemType.size() > 0) {
-        query.insert(std::make_pair("IncludeItemTypes", this->itemType));
-        query.insert(std::make_pair("Recursive", "true"));
+    if (this->genresId.size() > 0) {
+        query["genreIds"] = this->genresId;
+        query["recursive"] = "true";
+    } else if (this->itemType.size() > 0) {
+        query["includeItemTypes"] = this->itemType;
+        query["recursive"] = "true";
     }
 
     ASYNC_RETAIN
