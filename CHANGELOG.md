@@ -6,6 +6,7 @@
 
 * series/movie view logo layout
 * refactor media collection view
+* image load for search sugguest 
 
 ## [0.7.0]
 

@@ -3,7 +3,7 @@ name: mingw-packages
 on:
   push:
     tags: [ mingw-packages ]
-    paths: [ scripts/mingw64/*/* ]
+    paths: [ scripts/mingw64/** ]
 
 permissions:
   contents: write

@@ -8,9 +8,7 @@ on:
     - mingw-packages
     - macos-dylib
     paths-ignore:
-    - scripts/mingw64/*/*
-    - scripts/switch/*/*
-    - scripts/vita/*/*
+    - scripts/**
     - debian/*
     - images/*
     - CHANGELOG.md
@@ -18,8 +16,7 @@ on:
     branches: [ dev ]
   pull_request:
     paths-ignore:
-    - scripts/mingw64/*/*
-    - scripts/switch/*/*
+    - scripts/**
     branches: [ dev ]
   workflow_dispatch:
     inputs:
