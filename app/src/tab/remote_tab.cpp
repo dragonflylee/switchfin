@@ -9,16 +9,16 @@ RemoteTab::RemoteTab() {
     brls::Logger::debug("RemoteTab: create");
 
     this->registerAction(
-        "上一项", brls::ControllerButton::BUTTON_LB,
-        [this](brls::View* view) -> bool {
+        "main/play/next"_i18n, brls::BUTTON_LB,
+        [this](brls::View* view) {
             tabFrame->focus2LastTab();
             return true;
         },
         true);
 
     this->registerAction(
-        "下一项", brls::ControllerButton::BUTTON_RB,
-        [this](brls::View* view) -> bool {
+        "main/play/pref"_i18n, brls::BUTTON_RB,
+        [this](brls::View* view) {
             tabFrame->focus2NextTab();
             return true;
         },

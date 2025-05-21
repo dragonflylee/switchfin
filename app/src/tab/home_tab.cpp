@@ -39,7 +39,7 @@ HomeTab::HomeTab() {
     this->movieLatest->onQuery([](size_t start, size_t pageSize) {
         std::string query = HTTP::encode_form({
             {"enableImageTypes", "Primary"},
-            {"includeItemTypes", "Movie"},
+            {"includeItemTypes", jellyfin::mediaTypeMovie},
             {"fields", "BasicSyncInfo,Chapters"},
             {"limit", std::to_string(pageSize)},
         });
@@ -49,7 +49,7 @@ HomeTab::HomeTab() {
     this->seriesLatest->onQuery([](size_t start, size_t pageSize) {
         std::string query = HTTP::encode_form({
             {"enableImageTypes", "Primary"},
-            {"includeItemTypes", "Series"},
+            {"includeItemTypes", jellyfin::mediaTypeSeries},
             {"fields", "BasicSyncInfo,Chapters"},
             {"limit", std::to_string(pageSize)},
         });
@@ -59,7 +59,7 @@ HomeTab::HomeTab() {
     this->musicLatest->onQuery([](size_t start, size_t pageSize) {
         std::string query = HTTP::encode_form({
             {"enableImageTypes", "Primary"},
-            {"includeItemTypes", "MusicAlbum"},
+            {"includeItemTypes", jellyfin::mediaTypeMusicAlbum},
             {"fields", "BasicSyncInfo"},
             {"limit", std::to_string(pageSize)},
         });

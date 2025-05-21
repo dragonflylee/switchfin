@@ -6,8 +6,7 @@
     <brls:Box
         id="video/card/pic_box"
         axis="row"
-        width="100%"
-        grow="1.0f">
+        grow="1">
         <brls:Image
             id="video/card/picture"
             backgroundColor="@theme/color/grey_1"
@@ -65,17 +64,16 @@
     <brls:Box
         axis="column"
         height="50"
+        justifyContent="spaceEvenly"
         alignItems="center">
         <brls:Label
             wireframe="false"
-            marginTop="5"
             id="video/card/label/title"
             fontSize="18" />
         <brls:Label
             wireframe="false"
             id="video/card/label/ext"
             fontSize="13"
-            marginTop="5"
             textColor="@theme/font/grey" />
     </brls:Box>
 

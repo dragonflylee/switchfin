@@ -1,0 +1,39 @@
+<brls:Box
+    width="auto"
+    height="auto">
+
+    <brls:ScrollingFrame
+        width="auto"
+        height="auto"
+        grow="1.0">
+
+        <brls:Box
+            axis="column">
+
+            <RecylingVideo
+                nextPage="auto"
+                pageSize="6"
+                frameHeight="240"
+                itemWidth="350"
+                id="suggest/show/resume"
+                title="@i18n/main/home/resume" />
+
+            <RecylingVideo
+                pageSize="20"
+                frameHeight="240"
+                itemWidth="350"
+                id="suggest/show/latest"
+                title="@i18n/main/home/latest" />
+
+            <RecylingVideo
+                pageSize="6"
+                frameHeight="240"
+                itemWidth="350"
+                id="suggest/show/nextup"
+                title="@i18n/main/home/nextup" />
+
+        </brls:Box>
+
+    </brls:ScrollingFrame>
+
+</brls:Box>

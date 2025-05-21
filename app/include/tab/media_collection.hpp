@@ -20,7 +20,6 @@ public:
 private:
     BRLS_BIND(RecyclingGrid, recycler, "media/series");
     BRLS_BIND(AutoTabFrame, tabFrame, "media/tabFrame");
-    BRLS_BIND(brls::Box, sidebar, "auto_tab_frame/auto_sidebar");
 
     /// @brief 获取显示配置
     void doPreferences();

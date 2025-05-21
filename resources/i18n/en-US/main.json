@@ -2,6 +2,7 @@
   "tabs": {
     "home": "Home",
     "genres": "Genres",
+    "suggest": "Suggestions",
     "search": "Search",
     "setting": "Setting"
   },
@@ -9,6 +10,12 @@
     "resume": "Continue Watching",
     "nextup": "Next Up",
     "latest": "Recently Added"
+  },
+  "recommend": {
+    "like": "Because you like {}",
+    "watched": "Because you watched {}",
+    "directed": "Directed by {}",
+    "starring": "Starring {}"
   },
   "about": {
     "header": "About",

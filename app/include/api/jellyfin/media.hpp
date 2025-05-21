@@ -17,14 +17,17 @@ const std::string_view apiShowEpisodes = "/Shows/{}/Episodes?{}";
 const std::string_view apiSimilar = "/Items/{}/Similar?{}";
 const std::string_view apiLiveChannels = "/LiveTv/Channels?{}";
 const std::string_view apiGenres = "/Genres?{}";
+const std::string_view apiMovieRecommend = "/Movies/Recommendations?{}";
 #ifdef USE_WEBP
 const std::string_view apiUserImage = "/Users/{}/Images/Primary?format=Webp&{}";
 const std::string_view apiPrimaryImage = "/Items/{}/Images/Primary?format=Webp&{}";
+const std::string_view apiThumbImage = "/Items/{}/Images/Thumb?format=Webp&{}";
 const std::string_view apiLogoImage = "/Items/{}/Images/Logo?format=Webp&{}";
 const std::string_view apiBackdropImage = "/Items/{}/Images/Backdrop?format=Webp&{}";
 #else
 const std::string_view apiUserImage = "/Users/{}/Images/Primary?format=Png&{}";
 const std::string_view apiPrimaryImage = "/Items/{}/Images/Primary?format=Png&{}";
+const std::string_view apiThumbImage = "/Items/{}/Images/Thumb?format=Png&{}";
 const std::string_view apiLogoImage = "/Items/{}/Images/Logo?format=Png&{}";
 const std::string_view apiBackdropImage = "/Items/{}/Images/Backdrop?format=Png&{}";
 #endif
@@ -207,6 +210,16 @@ struct Episode : public Season {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Episode, Id, Name, Type, ImageTags, IsFolder, ProductionYear, UserData,
     Chapters, RunTimeTicks, IndexNumber, ParentIndexNumber, Overview, SeriesId, SeriesName, SeriesPrimaryImageTag,
     ParentBackdropItemId, ParentBackdropImageTags, MediaSources);
+
+struct Recommend {
+    std::string BaselineItemName;
+    std::string CategoryId;
+    std::string RecommendationType;
+    std::vector<Episode> Items;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Recommend, BaselineItemName, CategoryId, RecommendationType, Items);
+
+using Recommends = std::vector<Recommend>;
 
 struct Album : public Item {
     std::string AlbumArtist;

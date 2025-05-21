@@ -2,6 +2,7 @@
   "tabs": {
     "home": "ホーム",
     "genres": "ジャンル",
+    "suggest": "おすすめ",
     "search": "検索",
     "setting": "設定"
   },
@@ -9,6 +10,12 @@
     "resume": "視聴を続ける",
     "nextup": "次のページへ",
     "latest": "最近追加されたもの"
+  },
+  "recommend": {
+    "like": "{} がお気に入りのため",
+    "watched": "{} を視聴したので",
+    "directed": "{} 監督",
+    "starring": "{} 主演"
   },
   "about": {
     "header": "詳細",

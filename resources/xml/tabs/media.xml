@@ -1,0 +1,21 @@
+<brls:Box
+    width="auto"
+    height="auto"
+    paddingLeft="@style/main/content_padding_sides"
+    paddingRight="@style/main/content_padding_sides"
+    paddingTop="@style/main/content_padding_top_bottom"
+    paddingBottom="@style/main/content_padding_top_bottom">
+
+    <RecyclingGrid
+        grow="1"
+        wireframe="false"
+        spanCount="6"
+        itemHeight="300"
+        id="media/series" />
+
+    <ButtonClose
+        positionType="absolute"
+        positionTop="2"
+        positionRight="2" />
+
+</brls:Box>

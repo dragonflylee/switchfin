@@ -9,6 +9,8 @@
 #include "view/media_filter.hpp"
 #include "view/auto_tab_frame.hpp"
 #include "view/h_recycling.hpp"
+#include "tab/suggest_show.hpp"
+#include "tab/suggest_movie.hpp"
 #include <fmt/ranges.h>
 
 using namespace brls::literals;  // for _i18n
@@ -52,6 +54,7 @@ public:
     GenresTab(const std::string& itemId, const std::string& itemType) {
         this->setGrow(1.f);
         this->registerCell("Cell", VideoCardCell::create);
+        this->spanCount = 6;
 
         std::string query = HTTP::encode_form({
             {"userId", AppConfig::instance().getUserId()},
@@ -77,11 +80,47 @@ public:
 
 MediaCollection::MediaCollection(const std::string& itemId, const std::string& itemType, const std::string& genresId)
     : itemId(itemId), genresId(genresId), itemType(itemType), startIndex(0) {
-    // Inflate the tab from the XML file
-    this->inflateFromXMLRes("xml/tabs/collection.xml");
     brls::Logger::debug("MediaCollection: create {} type {}", itemId, itemType);
-    this->pageSize = this->recycler->spanCount * 3;
+    if (itemType == jellyfin::mediaTypeMovie || itemType == jellyfin::mediaTypeSeries) {
+        this->inflateFromXMLRes("xml/tabs/collection.xml");
+        // add genres tab
+        auto* item = new AutoSidebarItem();
+        item->setTabStyle(AutoTabBarStyle::ACCENT);
+        item->setFontSize(18);
+        item->setLabel("main/tabs/genres"_i18n);
+        this->tabFrame->addTab(item, [this]() { return new GenresTab(this->itemId, this->itemType); });
 
+        this->registerAction(
+            "main/play/next"_i18n, brls::BUTTON_LB,
+            [this](brls::View* view) {
+                tabFrame->focus2LastTab();
+                return true;
+            },
+            true);
+
+        this->registerAction(
+            "main/play/pref"_i18n, brls::BUTTON_RB,
+            [this](brls::View* view) {
+                tabFrame->focus2NextTab();
+                return true;
+            },
+            true);
+
+        // add suggest tab
+        item = new AutoSidebarItem();
+        item->setTabStyle(AutoTabBarStyle::ACCENT);
+        item->setFontSize(18);
+        item->setLabel("main/tabs/suggest"_i18n);
+        if (itemType == jellyfin::mediaTypeSeries) {
+            this->tabFrame->addTab(item, [this]() { return new SuggestShow(this->itemId); });
+        } else if (itemType == jellyfin::mediaTypeMovie) {
+            this->tabFrame->addTab(item, [this]() { return new SuggestMovie(this->itemId); });
+        }
+    } else {
+        this->inflateFromXMLRes("xml/tabs/media.xml");
+    }
+
+    this->pageSize = this->recycler->spanCount * 3;
     if (itemType == jellyfin::mediaTypeMusicAlbum) {
         this->recycler->estimatedRowHeight = 240;
     }
@@ -91,8 +130,9 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
     std::transform(this->prefKey.begin(), this->prefKey.end(), this->prefKey.begin(),
         [](unsigned char c) { return std::tolower(c); });
 
-    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
+    this->recycler->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
         this->startIndex = 0;
+        this->recycler->showSkeleton();
         this->doRequest();
         return true;
     });
@@ -116,17 +156,6 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
         });
 
         this->doRequest();
-    }
-
-    if (itemType == jellyfin::mediaTypeMovie || itemType == jellyfin::mediaTypeSeries) {
-        auto* item = new AutoSidebarItem();
-        item->setTabStyle(AutoTabBarStyle::ACCENT);
-        item->setFontSize(18);
-        item->setLabel("main/tabs/genres"_i18n);
-        this->tabFrame->addTab(item, [this]() { return new GenresTab(this->itemId, this->itemType); });
-    } else {
-        this->sidebar->setVisibility(brls::Visibility::GONE);
-        this->setPaddingTop(brls::getStyle().getMetric("main/content_padding_top_bottom"));
     }
 }
 

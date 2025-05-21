@@ -7,7 +7,7 @@
 SearchList::SearchList() {
     brls::Logger::debug("View SearchList: create");
     // Inflate the tab from the XML file
-    this->inflateFromXMLRes("xml/view/search_list.xml");
+    this->inflateFromXMLRes("xml/view/recycler_list.xml");
 
     this->registerStringXMLAttribute("title", [this](std::string value) { this->title->setTitle(value); });
 
@@ -23,9 +23,9 @@ SearchList::~SearchList() { brls::Logger::debug("View SearchList: delete"); }
 void SearchList::doRequest(const std::string& searchTerm) {
     std::string query = HTTP::encode_form({
         {"searchTerm", searchTerm},
-        {"IncludeItemTypes", this->itemType},
-        {"Recursive", "true"},
-        {"IncludeMedia", "true"},
+        {"includeItemTypes", this->itemType},
+        {"recursive", "true"},
+        {"includeMedia", "true"},
         {"fields", "PrimaryImageAspectRatio,BasicSyncInfo"},
         {"limit", std::to_string(this->pageSize)},
     });

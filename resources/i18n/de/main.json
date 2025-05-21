@@ -2,6 +2,7 @@
   "tabs": {
     "home": "Home",
     "genres": "Genres",
+    "suggest": "Vorschläge",
     "search": "Suche",
     "setting": "Einstellungen"
   },

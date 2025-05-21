@@ -2,6 +2,7 @@
   "tabs": {
     "home": "首页",
     "genres": "类型",
+    "suggest": "建议",
     "search": "搜索",
     "setting": "设置"
   },
@@ -9,6 +10,12 @@
     "resume": "继续观看",
     "nextup": "接下来",
     "latest": "最近新增"
+  },
+  "recommend": {
+    "like": "因为你喜欢 {}",
+    "watched": "因为你看过 {}",
+    "directed": "导演 {}",
+    "starring": "主演 {}"
   },
   "about": {
     "header": "关于软件",

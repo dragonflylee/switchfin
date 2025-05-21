@@ -2,6 +2,7 @@
   "tabs": {
     "home": "Domů",
     "genres": "Žánry",
+    "suggest": "Návrhy",
     "search": "Vyhledat",
     "setting": "Nastavení"
   },
@@ -9,6 +10,12 @@
     "resume": "Pokračovat ve sledování",
     "nextup": "Další",
     "latest": "Nedávno přidané"
+  },
+  "recommend": {
+    "like": "Protože se vám líbí {}",
+    "watched": "Protože jste sledovali {}",
+    "directed": "Režírováno {}",
+    "starring": "V hlavní roli {}"
   },
   "about": {
     "header": "O Aplikaci",

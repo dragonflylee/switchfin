@@ -2,6 +2,7 @@
   "tabs": {
     "home": "首頁",
     "genres": "風格",
+    "suggest": "建議",
     "search": "搜尋",
     "setting": "設定"
   },
@@ -9,6 +10,12 @@
     "resume": "繼續觀賞",
     "nextup": "即將播放",
     "latest": "最近新增"
+  },
+  "recommend": {
+    "like": "因為您喜歡 {}",
+    "watched": "因为你看过 {}",
+    "directed": "导演 {}",
+    "starring": "主演 {}"
   },
   "about": {
     "header": "關於軟體",

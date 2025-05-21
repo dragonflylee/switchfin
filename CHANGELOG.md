@@ -2,6 +2,10 @@
 
 ## [next]
 
+### Add
+
+* add suggest/genres tab for collection
+
 ### Fixed
 
 * series/movie view logo layout

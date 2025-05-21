@@ -28,7 +28,11 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
         }
         cell->labelExt->setText(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
 
-        if (item.ParentBackdropImageTags.empty()) {
+        auto it = item.ImageTags.find("Thumb");
+        if (it != item.ImageTags.end()) {
+            Image::load(cell->picture, jellyfin::apiThumbImage, item.Id,
+                HTTP::encode_form({{"tag", it->second}, {"maxWidth", "400"}}));
+        } else if (item.ParentBackdropImageTags.empty()) {
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId,
                 HTTP::encode_form({{"tag", item.SeriesPrimaryImageTag}, {"maxWidth", "400"}}));
         } else {
@@ -37,7 +41,12 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
         }
     } else {
         cell->labelTitle->setText(item.Name);
-        cell->labelExt->setText(item.ProductionYear > 0 ? std::to_string(item.ProductionYear) : "");
+
+        if (item.Type == jellyfin::mediaTypeGenre) {
+            cell->labelExt->setVisibility(brls::Visibility::GONE);
+        } else {
+            cell->labelExt->setText(item.ProductionYear > 0 ? std::to_string(item.ProductionYear) : "");
+        }
 
         auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
         if (it != item.ImageTags.end()) {

@@ -2,6 +2,7 @@
   "tabs": {
     "home": "홈",
     "genres": "장르",
+    "suggest": "제안",
     "search": "검색",
     "setting": "설정"
   },
@@ -9,6 +10,12 @@
     "resume": "계속 시청하기",
     "nextup": "다음",
     "latest": "최근 추가"
+  },
+  "recommend": {
+    "like": "{} 을(를) 좋아하기 때문에",
+    "watched": "{} 을(를) 시청했기 때문에",
+    "directed": "{} 감독",
+    "starring": "{} 출연"
   },
   "about": {
     "header": "소프트웨어 정보",
