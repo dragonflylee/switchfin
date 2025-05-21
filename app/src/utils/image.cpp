@@ -63,13 +63,12 @@ void Image::doRequest(HTTP& s) {
         std::ostringstream body;
         char* ct = nullptr;
         HTTP::set_option(s, this->isCancel, HTTP::Timeout{});
-        s._get(url, &body, &ct);
-
+        s._get(url, &body);
         std::string data = body.str();
         uint8_t* imageData = nullptr;
         int imageW = 0, imageH = 0;
 #ifdef USE_WEBP
-        if (ct && strcmp(ct, "image/webp") == 0) {
+        if (url.find("Webp") != std::string::npos || (s.getinfo(&ct) && strcmp(ct, "image/webp") == 0)) {
             imageData = WebPDecodeRGBA((const uint8_t*)data.c_str(), data.size(), &imageW, &imageH);
         } else
 #endif

@@ -50,7 +50,8 @@ public:
     ~HTTP();
 
     static std::string encode_form(const Form& form);
-    void _get(const std::string& url, std::ostream* out, char **ct = nullptr);
+    void _get(const std::string& url, std::ostream* out);
+    bool getinfo(char** arg);
     int propfind(const std::string& url, std::ostream* out, bool self = false);
     std::string _post(const std::string& url, const std::string& data);
     void set_user_agent(const std::string& agent);
