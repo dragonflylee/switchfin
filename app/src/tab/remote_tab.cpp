@@ -48,12 +48,21 @@ void RemoteTab::onCreate() {
             brls::Logger::warning("remote {} create {}", r.name, ex.what());
         }
     }
-
+#if defined(USE_LIBUSBHSFS)
     if (conf.getItem(AppConfig::UMS, false)) {
         auto* item = new AutoSidebarItem();
         item->setTabStyle(AutoTabBarStyle::ACCENT);
         item->setFontSize(22);
         item->setLabel("UMS");
         this->tabFrame->addTab(item, []() { return new UmsView(); });
+    } else
+#endif
+        if (conf.getRemotes().empty()) {
+        auto hintImage = new brls::Image();
+        hintImage->setImageFromRes("img/empty.png");
+        hintImage->setScalingType(brls::ImageScalingType::CENTER);
+        this->tabFrame->setVisibility(brls::Visibility::GONE);
+        this->setJustifyContent(brls::JustifyContent::CENTER);
+        this->addView(hintImage);
     }
 }

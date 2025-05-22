@@ -1,8 +1,8 @@
 <brls:Box
     width="auto"
     height="auto"
-    paddingLeft="@style/main/content_padding_sides"
-    paddingRight="@style/main/content_padding_sides">
+    paddingLeft="5"
+    paddingRight="5">
 
     <AutoTabFrame
         id="remote/tabFrame"

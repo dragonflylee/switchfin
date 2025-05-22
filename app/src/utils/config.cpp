@@ -393,7 +393,7 @@ bool AppConfig::init() {
         SwitchSys::setClock(true);
     };
 #endif
-#ifdef USE_LIBUSBHSFS
+#if defined(USE_LIBUSBHSFS)
     if (getItem(AppConfig::UMS, false)) {
         Ums::instance().init();
     };
