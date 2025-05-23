@@ -17,6 +17,8 @@ public:
 
     brls::View* getDefaultFocus() override;
 
+    static void clearPref() { customPrefs.clear(); }
+
 private:
     BRLS_BIND(RecyclingGrid, recycler, "media/series");
     BRLS_BIND(AutoTabFrame, tabFrame, "media/tabFrame");
@@ -36,5 +38,5 @@ private:
 
     std::string prefId;
     std::string prefKey;
-    std::map<std::string, std::string> customPrefs;
+    static std::map<std::string, std::string> customPrefs;
 };

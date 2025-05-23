@@ -8,6 +8,7 @@
 #include "view/auto_tab_frame.hpp"
 #include "tab/server_add.hpp"
 #include "tab/server_login.hpp"
+#include "tab/media_collection.hpp"
 #include "utils/image.hpp"
 #include "utils/dialog.hpp"
 #include "api/jellyfin.hpp"
@@ -103,6 +104,7 @@ public:
                     brls::Application::unblockInputs();
                     brls::Application::clear();
                     brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
+                    MediaCollection::clearPref();
                 });
             } catch (const std::exception& ex) {
                 std::string msg = ex.what();

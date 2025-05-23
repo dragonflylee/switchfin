@@ -15,6 +15,8 @@
 
 using namespace brls::literals;  // for _i18n
 
+std::map<std::string, std::string> MediaCollection::customPrefs;
+
 class GenresDataSource : public RecyclingGridDataSource {
 public:
     using MediaList = std::vector<jellyfin::Genres>;
@@ -143,12 +145,18 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
     if (this->itemType == jellyfin::mediaTypePlaylist) {
         this->doRequest();
     } else if (AppConfig::SYNC) {
-        this->doPreferences();
+        if (MediaCollection::customPrefs.empty()) {
+            this->doPreferences();
+        } else {
+            this->loadFilter();
+            this->doRequest();
+        }
     } else {
         this->registerAction("main/media/sort"_i18n, brls::BUTTON_Y, [this](...) {
             MediaFilter* filter = new MediaFilter();
             filter->getEvent()->subscribe([this]() {
                 this->startIndex = 0;
+                this->recycler->showSkeleton();
                 this->doRequest();
             });
             brls::Application::pushActivity(new brls::Activity(filter));
@@ -169,7 +177,7 @@ void MediaCollection::doPreferences() {
             this->prefId = std::move(r.Id);
             for (const auto& item : r.CustomPrefs.items()) {
                 if (item.value().is_string()) {
-                    this->customPrefs[item.key()] = item.value().get<std::string>();
+                    MediaCollection::customPrefs[item.key()] = item.value().get<std::string>();
                 }
             }
             this->loadFilter();
@@ -180,17 +188,6 @@ void MediaCollection::doPreferences() {
             this->recycler->setError(ex);
         },
         jellyfin::apiUserSetting, AppConfig::instance().getUserId());
-
-    this->registerAction("main/media/sort"_i18n, brls::BUTTON_Y, [this](...) {
-        MediaFilter* filter = new MediaFilter();
-        filter->getEvent()->subscribe([this]() {
-            this->startIndex = 0;
-            this->doRequest();
-            this->saveFilter();
-        });
-        brls::Application::pushActivity(new brls::Activity(filter));
-        return true;
-    });
 }
 
 struct DisplaySort {
@@ -200,8 +197,20 @@ struct DisplaySort {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(DisplaySort, SortBy, SortOrder);
 
 void MediaCollection::loadFilter() {
-    auto it = this->customPrefs.find(this->prefKey);
-    if (it == this->customPrefs.end()) return;
+    this->recycler->registerAction("main/media/sort"_i18n, brls::BUTTON_Y, [this](...) {
+        MediaFilter* filter = new MediaFilter();
+        filter->getEvent()->subscribe([this]() {
+            this->startIndex = 0;
+            this->recycler->showSkeleton();
+            this->doRequest();
+            this->saveFilter();
+        });
+        brls::Application::pushActivity(new brls::Activity(filter));
+        return true;
+    });
+
+    auto it = MediaCollection::customPrefs.find(this->prefKey);
+    if (it == MediaCollection::customPrefs.end()) return;
 
     try {
         DisplaySort s = nlohmann::json::parse(it->second);
@@ -212,7 +221,7 @@ void MediaCollection::loadFilter() {
             }
         }
     } catch (const std::exception& ex) {
-        brls::Logger::warning("MediaCollection loadFilter: {}", ex.what());
+        brls::Application::notify(ex.what());
     }
 }
 
@@ -221,16 +230,15 @@ void MediaCollection::saveFilter() {
         {"SortBy", MediaFilter::sortList[MediaFilter::selectedSort]},
         {"SortOrder", MediaFilter::selectedOrder ? "Descending" : "Ascending"},
     };
-    this->customPrefs[this->prefKey] = value.dump();
+    MediaCollection::customPrefs[this->prefKey] = value.dump();
 
     jellyfin::postJSON(
         {
             {"Id", this->prefId},
-            {"CustomPrefs", this->customPrefs},
+            {"CustomPrefs", MediaCollection::customPrefs},
             {"Client", "emby"},
         },
-        [](...) {}, [](const std::string& ex) { brls::Logger::warning("usersettings upload: {}", ex); },
-        jellyfin::apiUserSetting, AppConfig::instance().getUserId());
+        [](...) {}, nullptr, jellyfin::apiUserSetting, AppConfig::instance().getUserId());
 }
 
 void MediaCollection::doRequest() {
