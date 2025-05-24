@@ -13,22 +13,22 @@
             <RecylingVideo
                 nextPage="auto"
                 pageSize="6"
-                frameHeight="240"
-                itemWidth="350"
+                frameHeight="235"
+                itemWidth="335"
                 id="suggest/show/resume"
                 title="@i18n/main/home/resume" />
 
             <RecylingVideo
                 pageSize="20"
-                frameHeight="240"
-                itemWidth="350"
+                frameHeight="235"
+                itemWidth="335"
                 id="suggest/show/latest"
                 title="@i18n/main/home/latest" />
 
             <RecylingVideo
                 pageSize="6"
-                frameHeight="240"
-                itemWidth="350"
+                frameHeight="235"
+                itemWidth="335"
                 id="suggest/show/nextup"
                 title="@i18n/main/home/nextup" />
 

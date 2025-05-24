@@ -154,6 +154,7 @@ float HRecyclerFrame::getWidthByCellIndex(size_t index, size_t start) {
 void HRecyclerFrame::cellsRecyclingLoop() {
     if (!dataSource) return;
     brls::Rect visibleFrame = getVisibleFrame();
+    float cellWidth = estimatedRowWidth + estimatedRowSpace;
 
     // 左侧元素自动销毁
     while (true) {
@@ -161,14 +162,10 @@ void HRecyclerFrame::cellsRecyclingLoop() {
         for (auto it : contentBox->getChildren())
             if (*((size_t*)it->getParentUserData()) == visibleMin) minCell = (RecyclingGridItem*)it;
 
-        if (!minCell ||
-            minCell->getDetachedPosition().x + estimatedRowWidth + estimatedRowSpace >= visibleFrame.getMinX())
-            break;
+        if (!minCell || minCell->getDetachedPosition().x + cellWidth >= visibleFrame.getMinX()) break;
 
-        float cellWidth = estimatedRowWidth;
-
-        renderedFrame.origin.x += cellWidth + estimatedRowSpace;
-        renderedFrame.size.width -= cellWidth + estimatedRowSpace;
+        renderedFrame.origin.x += cellWidth;
+        renderedFrame.size.width -= cellWidth;
 
         queueReusableCell(minCell);
         this->removeCell(minCell);
@@ -184,11 +181,9 @@ void HRecyclerFrame::cellsRecyclingLoop() {
         for (auto it : contentBox->getChildren())
             if (*((size_t*)it->getParentUserData()) == visibleMax) maxCell = (RecyclingGridItem*)it;
 
-        if (!maxCell || maxCell->getDetachedPosition().x <= visibleFrame.getMaxX()) break;
+        if (!maxCell || maxCell->getDetachedPosition().x - cellWidth <= visibleFrame.getMaxX()) break;
 
-        float cellWidth = estimatedRowWidth;
-
-        renderedFrame.size.width -= cellWidth + estimatedRowSpace;
+        renderedFrame.size.width -= cellWidth;
 
         queueReusableCell(maxCell);
         this->removeCell(maxCell);
@@ -200,13 +195,13 @@ void HRecyclerFrame::cellsRecyclingLoop() {
 
     // 左侧元素自动添加
     while (visibleMin - 1 < dataSource->getItemCount()) {
-        if (renderedFrame.getMinX() < visibleFrame.getMinX() - paddingLeft) break;
+        if (renderedFrame.getMinX() + cellWidth < visibleFrame.getMinX() - paddingLeft) break;
         addCellAt(visibleMin - 1, false);
     }
 
     // 右侧元素自动添加
     while (visibleMax + 1 < dataSource->getItemCount()) {
-        if (renderedFrame.getMaxX() > visibleFrame.getMaxX() - paddingRight) {
+        if (renderedFrame.getMaxX() - cellWidth > visibleFrame.getMaxX() - paddingRight) {
             requestNextPage = false;  // 允许加载下一页
             break;
         }

@@ -17,16 +17,16 @@
             <RecylingVideo
                 nextPage="auto"
                 pageSize="6"
-                frameHeight="240"
-                itemWidth="350"
+                frameHeight="235"
+                itemWidth="335"
                 id="home/user/resume"
                 title="@i18n/main/home/resume" />
 
             <RecylingVideo
                 nextPage="auto"
                 pageSize="6"
-                frameHeight="240"
-                itemWidth="350"
+                frameHeight="235"
+                itemWidth="335"
                 id="home/show/nextup"
                 title="@i18n/main/home/nextup" />
 
