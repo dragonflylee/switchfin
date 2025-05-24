@@ -8,7 +8,12 @@
 CustomButton::CustomButton() {
     brls::Logger::debug("View CustomButton: create");
     this->icon = new SVGImage();
+    this->icon->setHeight(35.f);
+    this->icon->setWidth(35.f);
     this->addView(this->icon);
+    this->setAlignItems(brls::AlignItems::CENTER);
+    this->setJustifyContent(brls::JustifyContent::CENTER);
+    this->setFocusable(true);
 
     this->registerFilePathXMLAttribute("icon", [this](std::string value) {
         this->iconDefault = value;

@@ -101,17 +101,16 @@ struct Item {
     std::string Name;
     std::string Type;
     std::map<std::string, std::string> ImageTags;
-    bool IsFolder = false;
     long ProductionYear = 0;
-    float CommunityRating = 0.0f;
     uint64_t RunTimeTicks = 0;
     UserDataResult UserData;
     std::vector<MediaChapter> Chapters;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
-    Item, Id, Name, Type, ImageTags, IsFolder, ProductionYear, CommunityRating, RunTimeTicks, UserData, Chapters);
+    Item, Id, Name, Type, ImageTags, ProductionYear, RunTimeTicks, UserData, Chapters);
 
 struct Collection : public Item {
+    bool IsFolder;
     std::string CollectionType;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Collection, Id, Name, Type, ImageTags, IsFolder, CollectionType);
@@ -128,17 +127,18 @@ struct Detail : public Item {
     std::string OriginalTitle;
     std::string Overview;
     std::string OfficialRating;
+    float CommunityRating = 0.0f;
     std::vector<std::string> Genres;
     std::vector<MediaPeople> People;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Detail, Id, Name, Type, ImageTags, IsFolder, ProductionYear,
-    OriginalTitle, Overview, OfficialRating, CommunityRating, Genres, People, UserData);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Detail, Id, Name, Type, ImageTags, ProductionYear, OriginalTitle,
+    Overview, OfficialRating, CommunityRating, Genres, People, UserData);
 
 struct Season : public Item {
     long IndexNumber = 0;
     std::string SeriesId;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Season, Id, Name, Type, ImageTags, IsFolder, SeriesId, IndexNumber);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Season, Id, Name, Type, ImageTags, SeriesId, IndexNumber);
 
 struct PeopleItem {
     std::string Id;
@@ -207,8 +207,8 @@ struct Episode : public Season {
     std::vector<std::string> ParentBackdropImageTags;
     std::vector<Source> MediaSources;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Episode, Id, Name, Type, ImageTags, IsFolder, ProductionYear, UserData,
-    Chapters, RunTimeTicks, IndexNumber, ParentIndexNumber, Overview, SeriesId, SeriesName, SeriesPrimaryImageTag,
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Episode, Id, Name, Type, ImageTags, ProductionYear, UserData, Chapters,
+    RunTimeTicks, IndexNumber, ParentIndexNumber, Overview, SeriesId, SeriesName, SeriesPrimaryImageTag,
     ParentBackdropItemId, ParentBackdropImageTags, MediaSources);
 
 struct Recommend {
@@ -226,7 +226,7 @@ struct Album : public Item {
     long RecursiveItemCount = 0;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
-    Album, Id, Name, Type, ImageTags, IsFolder, ProductionYear, AlbumArtist, RunTimeTicks, RecursiveItemCount);
+    Album, Id, Name, Type, ImageTags, ProductionYear, AlbumArtist, RunTimeTicks, RecursiveItemCount);
 
 struct Track : public Item {
     long IndexNumber = 0;
@@ -239,6 +239,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
 struct Playlist : public Item {
     long IndexNumber = 0;
     long ParentIndexNumber = 0;
+    float CommunityRating = 0.0f;
     std::string AlbumId;
     std::string AlbumPrimaryImageTag;
     std::vector<std::string> Artists;
