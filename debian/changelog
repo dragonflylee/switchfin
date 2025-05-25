@@ -1,3 +1,12 @@
+switchfin (0.7.1-1) unstable; urgency=medium
+
+  * add suggest/genres tab for collection
+  * fixed series/movie view logo layout
+  * refactor media collection view
+  * fixed image load for search sugguest 
+
+ -- dragonflylee <dragonflylee@outlook.com>  Sun, 25 May 2025 22:46:00 +0800
+
 switchfin (0.7.0-1) unstable; urgency=medium
 
   * refactor series view layout
