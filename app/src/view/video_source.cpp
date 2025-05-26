@@ -60,9 +60,13 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
         cell->badgeTopRight->setVisibility(brls::Visibility::VISIBLE);
         cell->labelRating->setVisibility(brls::Visibility::INVISIBLE);
     } else if (item.UserData.PlaybackPositionTicks) {
-        cell->labelRating->setText(
-            fmt::format("{}/{}", misc::sec2Time(item.UserData.PlaybackPositionTicks / jellyfin::PLAYTICKS),
-                misc::sec2Time(item.RunTimeTicks / jellyfin::PLAYTICKS)));
+        if (item.Type == jellyfin::mediaTypeEpisode || item.Type == jellyfin::mediaTypeMovie) {
+            cell->labelRating->setText(
+                fmt::format("{}/{}", misc::sec2Time(item.UserData.PlaybackPositionTicks / jellyfin::PLAYTICKS),
+                    misc::sec2Time(item.RunTimeTicks / jellyfin::PLAYTICKS)));
+        } else {
+            cell->labelRating->setText(fmt::format("{:.2f}%", item.UserData.PlayedPercentage));
+        }
         cell->labelRating->setVisibility(brls::Visibility::VISIBLE);
         cell->rectProgress->setWidthPercentage(item.UserData.PlayedPercentage);
         cell->rectProgress->getParent()->setVisibility(brls::Visibility::VISIBLE);

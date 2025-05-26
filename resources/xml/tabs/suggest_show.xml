@@ -20,12 +20,13 @@
 
             <RecylingVideo
                 pageSize="20"
-                frameHeight="235"
-                itemWidth="335"
+                frameHeight="300"
+                itemWidth="180"
                 id="suggest/show/latest"
                 title="@i18n/main/home/latest" />
 
             <RecylingVideo
+                nextPage="auto"
                 pageSize="6"
                 frameHeight="235"
                 itemWidth="335"
