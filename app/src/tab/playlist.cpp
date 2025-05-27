@@ -122,7 +122,7 @@ Playlist::Playlist(const jellyfin::Item& item) : itemId(item.Id) {
         Image::load(this->cover, jellyfin::apiPrimaryImage, itemId,
             HTTP::encode_form({
                 {"tag", it->second},
-                {"maxWidth", "400"},
+                {"maxWidth", "240"},
             }));
         this->cover->setVisibility(brls::Visibility::VISIBLE);
     }

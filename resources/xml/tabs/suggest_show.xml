@@ -14,14 +14,14 @@
                 nextPage="auto"
                 pageSize="6"
                 frameHeight="235"
-                itemWidth="335"
+                itemWidth="325"
                 id="suggest/show/resume"
                 title="@i18n/main/home/resume" />
 
             <RecylingVideo
                 pageSize="20"
                 frameHeight="300"
-                itemWidth="180"
+                itemWidth="175"
                 id="suggest/show/latest"
                 title="@i18n/main/home/latest" />
 
@@ -29,7 +29,7 @@
                 nextPage="auto"
                 pageSize="6"
                 frameHeight="235"
-                itemWidth="335"
+                itemWidth="325"
                 id="suggest/show/nextup"
                 title="@i18n/main/home/nextup" />
 

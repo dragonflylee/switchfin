@@ -163,7 +163,7 @@ MediaSeries::MediaSeries(const jellyfin::Item& item) : seriesId(item.Id) {
         Image::load(this->imageLogo, jellyfin::apiPrimaryImage, item.Id,
             HTTP::encode_form({
                 {"tag", logo->second},
-                {"maxWidth", "400"},
+                {"maxWidth", "240"},
             }));
         this->imageLogo->setVisibility(brls::Visibility::VISIBLE);
     }
@@ -220,7 +220,7 @@ void MediaSeries::doSeries() {
                 Image::load(this->imageLogo, jellyfin::apiPrimaryImage, r.Id,
                     HTTP::encode_form({
                         {"tag", logo->second},
-                        {"maxWidth", "400"},
+                        {"maxWidth", "240"},
                     }));
             }
         },

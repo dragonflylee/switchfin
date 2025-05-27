@@ -31,7 +31,7 @@ MediaMovie::MediaMovie(const jellyfin::Item& item) {
         Image::load(this->imageLogo, jellyfin::apiPrimaryImage, item.Id,
             HTTP::encode_form({
                 {"tag", logo->second},
-                {"maxWidth", "400"},
+                {"maxWidth", "240"},
             }));
         this->imageLogo->setVisibility(brls::Visibility::VISIBLE);
     }
@@ -80,7 +80,7 @@ void MediaMovie::doMovie(const std::string& itemId) {
                 Image::load(this->imageLogo, jellyfin::apiPrimaryImage, r.Id,
                     HTTP::encode_form({
                         {"tag", logo->second},
-                        {"maxWidth", "400"},
+                        {"maxWidth", "240"},
                     }));
             }
         },

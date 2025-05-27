@@ -100,7 +100,7 @@ MusicAlbum::MusicAlbum(const jellyfin::Item& item) : itemId(item.Id) {
         Image::load(this->imageCover, jellyfin::apiPrimaryImage, itemId,
             HTTP::encode_form({
                 {"tag", it->second},
-                {"maxWidth", "400"},
+                {"maxWidth", "240"},
             }));
         this->imageCover->setVisibility(brls::Visibility::VISIBLE);
     }
@@ -147,7 +147,7 @@ void MusicAlbum::doAlbum() {
                 Image::load(this->imageCover, jellyfin::apiPrimaryImage, r.Id,
                     HTTP::encode_form({
                         {"tag", logo->second},
-                        {"maxWidth", "400"},
+                        {"maxWidth", "240"},
                     }));
             }
         },

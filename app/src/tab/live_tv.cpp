@@ -30,7 +30,7 @@ public:
         auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
         if (it != item.ImageTags.end()) {
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
-                HTTP::encode_form({{"tag", it->second}, {"maxWidth", "400"}}));
+                HTTP::encode_form({{"tag", it->second}, {"maxWidth", "300"}}));
         }
         return cell;
     }
@@ -51,7 +51,7 @@ private:
 
 LiveTV::LiveTV(const std::string& itemId) {
     // Inflate the tab from the XML file
-    this->inflateFromXMLRes("xml/tabs/collection.xml");
+    this->inflateFromXMLRes("xml/tabs/media.xml");
     brls::Logger::debug("LiveTV: create {}", itemId);
 
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {

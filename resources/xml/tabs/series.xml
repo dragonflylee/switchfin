@@ -107,7 +107,7 @@
 
                         <HRecyclerFrame
                             height="240"
-                            itemWidth="335"
+                            itemWidth="325"
                             id="series/nextup" />
 
                         <brls:Header
@@ -117,7 +117,7 @@
 
                         <HRecyclerFrame
                             height="250"
-                            itemWidth="150"
+                            itemWidth="140"
                             id="series/people" />
 
                         <brls:Header
@@ -127,7 +127,7 @@
 
                         <HRecyclerFrame
                             height="250"
-                            itemWidth="150"
+                            itemWidth="140"
                             id="series/similar" />
 
                     </brls:Box>

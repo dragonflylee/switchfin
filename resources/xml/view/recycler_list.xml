@@ -11,6 +11,6 @@
     <HRecyclerFrame
         width="auto"
         grow="1.0"
-        itemWidth="180"
+        itemWidth="175"
         id="recycler/videos" />
 </brls:Box>

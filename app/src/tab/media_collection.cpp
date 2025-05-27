@@ -34,7 +34,7 @@ public:
         auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
         if (it != item.ImageTags.end()) {
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
-                HTTP::encode_form({{"tag", it->second}, {"maxWidth", "400"}}));
+                HTTP::encode_form({{"tag", it->second}, {"maxWidth", "300"}}));
         }
         return cell;
     }

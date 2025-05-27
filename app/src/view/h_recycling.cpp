@@ -223,13 +223,13 @@ void HRecyclerFrame::addCellAt(size_t index, int downSide) {
     //获取到一个填充好数据的cell
     RecyclingGridItem* cell = dataSource->cellForRow(this, index);
 
-    float cellWidth = estimatedRowWidth;
+    float cellWidth = estimatedRowWidth + estimatedRowSpace;
 
     cell->setHeight(renderedFrame.getHeight() - paddingTop - paddingBottom);
-    cell->setWidth(cellWidth - estimatedRowSpace);
+    cell->setWidth(estimatedRowWidth);
 
-    cell->setDetachedPositionX(downSide ? renderedFrame.getMaxX() : renderedFrame.getMinX() + paddingLeft - cellWidth);
-    cell->setDetachedPositionY(paddingTop);
+    cell->setDetachedPositionX(index * cellWidth + paddingLeft);
+    cell->setDetachedPositionY(renderedFrame.getMinY() + paddingTop);
     cell->setIndex(index);
 
     this->contentBox->getChildren().insert(this->contentBox->getChildren().end(), cell);
@@ -247,8 +247,8 @@ void HRecyclerFrame::addCellAt(size_t index, int downSide) {
 
     if (index > visibleMax) visibleMax = index;
 
-    if (!downSide) renderedFrame.origin.x -= cellWidth + estimatedRowSpace;
-    renderedFrame.size.width += cellWidth + estimatedRowSpace;
+    if (!downSide) renderedFrame.origin.x -= cellWidth;
+    renderedFrame.size.width += cellWidth;
 
     brls::Logger::verbose("HRecyclerFrame Cell #{} - added", index);
 }

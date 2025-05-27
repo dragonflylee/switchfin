@@ -36,7 +36,7 @@ public:
     static brls::View* create();
 
     /// 元素间距
-    float estimatedRowSpace = 10;
+    float estimatedRowSpace = 20;
 
     /// 默认宽度 (元素实际宽度 = 默认宽度 - 元素间隔)
     float estimatedRowWidth = 240;

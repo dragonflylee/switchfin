@@ -94,7 +94,7 @@
 
             <HRecyclerFrame
                 height="250"
-                itemWidth="150"
+                itemWidth="140"
                 id="movie/people" />
 
             <brls:Header
@@ -104,7 +104,7 @@
 
             <HRecyclerFrame
                 height="250"
-                itemWidth="150"
+                itemWidth="140"
                 id="movie/similar" />
 
         </brls:Box>

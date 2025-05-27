@@ -47,14 +47,14 @@
             <RecylingVideo
                 nextPage="auto"
                 frameHeight="250"
-                itemWidth="150"
+                itemWidth="140"
                 id="people/movie"
                 title="@i18n/main/search/genres/movie" />
 
             <RecylingVideo
                 nextPage="auto"
                 frameHeight="250"
-                itemWidth="150"
+                itemWidth="140"
                 id="people/series"
                 title="@i18n/main/search/genres/series" />
 
