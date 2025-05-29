@@ -71,7 +71,7 @@ ffmpeg: libssh2 dav1d
 	make -C build/ffmpeg install
 
 libplacebo:
-	git clone https://github.com/haasn/libplacebo.git -b v7.349.0 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
+	git clone https://github.com/haasn/libplacebo.git -b v7.351.0 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
 	meson setup build/libplacebo $(TMPDIR)/libplacebo --prefix=$(PREFIX) --libdir=lib \
 		--buildtype=release --default-library=shared \
 		-Ddemos=false -Dtests=false -Dlcms=disabled -Dvulkan=disabled

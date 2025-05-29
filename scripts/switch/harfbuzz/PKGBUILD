@@ -1,0 +1,31 @@
+# Maintainer:  Mary Strodl <ipadlover8322@gmail.com>
+
+pkgname=switch-harfbuzz
+pkgver=11.2.1
+pkgrel=1
+pkgdesc='HarfBuzz is a text shaping library. Using the HarfBuzz library allows programs to convert a sequence of Unicode input into properly formatted and positioned glyph output—for any writing system and language.'
+arch=('any')
+url='https://harfbuzz.github.io/'
+license=(LGPL)
+options=(!strip libtool staticlibs)
+source=("https://github.com/harfbuzz/harfbuzz/releases/download/${pkgver}/harfbuzz-${pkgver}.tar.xz")
+sha256sums=('093714c8548a285094685f0bdc999e202d666b59eeb3df2ff921ab68b8336a49')
+makedepends=('dkp-toolchain-vars' 'dkp-meson-scripts')
+depends=('switch-freetype')
+
+groups=('switch-portlibs')
+
+build() {
+  cd harfbuzz-${pkgver}
+  /opt/devkitpro/meson-cross.sh switch ../crossfile.txt build -Dc_std=gnu11 -Db_ndebug=true \
+    -Dicu=disabled -Dglib=disabled -Dcairo=disabled -Dgobject=disabled -Dtests=disabled \
+    -Ddocs=disabled -Dbenchmark=disabled
+  meson compile -C build
+}
+
+package() {
+
+  cd harfbuzz-${pkgver}
+  DESTDIR="${pkgdir}" meson install -C build
+
+}

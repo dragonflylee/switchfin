@@ -76,7 +76,7 @@ modules:
         sources:
           - type: git
             url: https://github.com/haasn/libplacebo.git
-            tag: v7.349.0
+            tag: v7.351.0
             x-checker-data:
               type: git
               tag-pattern: ^v([\d.]+)$

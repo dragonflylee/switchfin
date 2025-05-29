@@ -131,9 +131,9 @@ jobs:
         pkgver: '11.2.1'
       run: |
         curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/${pkgver}/harfbuzz-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        meson setup build-harfbuzz ${{ runner.temp }}/harfbuzz-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} --default-library=static \
+        meson setup build-harfbuzz ${{ runner.temp }}/harfbuzz-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
           -Dtests=disabled -Ddocs=disabled -Dicu=disabled -Dcairo=disabled \
-          -Dglib=disabled -Dgobject=disabled -Dbenchmark=disabled
+          -Dglib=disabled -Dgobject=disabled -Dbenchmark=disabled -Dutilities=disabled
         meson compile -C build-harfbuzz
         meson install -C build-harfbuzz
     - name: Build fribidi
@@ -204,7 +204,7 @@ jobs:
         make install
     - name: Build libplacebo
       run: |
-        git clone https://github.com/haasn/libplacebo.git -b v7.349.0 --depth 1 --recurse-submodules ${{ runner.temp }}/libplacebo
+        git clone https://github.com/haasn/libplacebo.git -b v7.351.0 --depth 1 --recurse-submodules ${{ runner.temp }}/libplacebo
         meson setup build-libplacebo ${{ runner.temp }}/libplacebo ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
           -Ddemos=false -Dtests=false -Dopengl=enabled -Dlcms=disabled -Dvulkan=disabled
         meson compile -C build-libplacebo

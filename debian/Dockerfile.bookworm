@@ -3,8 +3,8 @@
 
 FROM debian:bookworm-backports
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y -t bookworm-backports --no-install-recommends \
-    wget xz-utils ca-certificates debhelper cmake build-essential nasm meson git fakeroot \
+RUN apt-get update && apt-get install -y -t bookworm-backports --no-install-recommends git \
+    wget xz-utils ca-certificates debhelper cmake build-essential nasm meson fakeroot lzip \
   && rm -rf /var/lib/apt/lists/* /usr/share/man/*
 
 RUN apt-get update && apt-get install -y --no-install-recommends xorg-dev libdbus-1-dev \

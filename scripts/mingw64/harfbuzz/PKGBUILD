@@ -43,6 +43,7 @@ build() {
       -Dtests=disabled \
       -Ddocs=disabled \
       -Dbenchmark=disabled \
+      -Dutilities=disabled \
       "build-${MSYSTEM}" \
       "${srcdir}/${_realname}-${pkgver}"
 
