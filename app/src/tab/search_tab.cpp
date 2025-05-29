@@ -210,7 +210,7 @@ SearchTab::SearchTab() {
 }
 
 void SearchTab::onCreate() {
-    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
+    this->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, [this](...) {
         this->updateInput();
         return true;
     });

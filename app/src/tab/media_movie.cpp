@@ -14,7 +14,7 @@ MediaMovie::MediaMovie(const jellyfin::Item& item) {
     this->inflateFromXMLRes("xml/tabs/movie.xml");
 
     this->headerTitle->setTitle(item.Name);
-    this->people->registerCell("Cell", VideoCardCell::create);
+    this->people->registerCell("Cell", MediaCardCell::create);
     this->similar->registerCell("Cell", VideoCardCell::create);
 
     this->btnPlay->registerClickAction([item](...) {

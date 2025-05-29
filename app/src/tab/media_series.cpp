@@ -17,7 +17,7 @@
 
 using namespace brls::literals;  // for _i18n
 
-class EpisodeCardCell : public BaseVideoCard {
+class EpisodeCardCell : public BaseCardCell {
 public:
     EpisodeCardCell() { this->inflateFromXMLRes("xml/view/episode_card.xml"); }
 
@@ -132,7 +132,7 @@ MediaSeries::MediaSeries(const jellyfin::Item& item) : seriesId(item.Id) {
     this->inflateFromXMLRes("xml/tabs/series.xml");
 
     this->headerTitle->setTitle(item.Name);
-    this->people->registerCell("Cell", VideoCardCell::create);
+    this->people->registerCell("Cell", MediaCardCell::create);
     this->similar->registerCell("Cell", VideoCardCell::create);
     this->nextUp->registerCell("Cell", VideoCardCell::create);
 

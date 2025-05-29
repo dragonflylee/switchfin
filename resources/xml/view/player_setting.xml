@@ -26,10 +26,10 @@
                 width="auto"
                 height="auto"
                 axis="column"
-                marginTop="30px"
-                paddingLeft="40"
-                paddingRight="@style/brls/tab_frame/content_padding_sides"
-                paddingBottom="@style/brls/tab_frame/content_padding_top_bottom"
+                paddingTop="@style/main/content_padding_top_bottom"
+                paddingLeft="@style/main/content_padding_sides"
+                paddingRight="@style/main/content_padding_sides"
+                paddingBottom="@style/main/content_padding_top_bottom"
                 alignItems="stretch">
 
                 <brls:Header

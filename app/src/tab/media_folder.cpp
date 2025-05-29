@@ -107,7 +107,7 @@ MediaFolders::~MediaFolders() { brls::Logger::debug("MediaFolders: deleted"); }
 brls::View* MediaFolders::create() { return new MediaFolders(); }
 
 void MediaFolders::onCreate() {
-    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
+    this->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, [this](...) {
         this->doRequest();
         return true;
     });

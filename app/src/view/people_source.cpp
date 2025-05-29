@@ -41,7 +41,7 @@ public:
             return fmt::format(fmt::runtime(jellyfin::apiUserLibrary), AppConfig::instance().getUserId(), query);
         });
 
-        this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
+        this->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, [this](...) {
             this->doPeople();
             this->movie->doRequest(true);
             this->series->doRequest(true);
@@ -102,7 +102,7 @@ PeopleDataSource::PeopleDataSource(const MediaList& r) : list(std::move(r)) {}
 size_t PeopleDataSource::getItemCount() { return this->list.size(); }
 
 RecyclingGridItem* PeopleDataSource::cellForRow(RecyclingView* recycler, size_t index) {
-    VideoCardCell* cell = dynamic_cast<VideoCardCell*>(recycler->dequeueReusableCell("Cell"));
+    MediaCardCell* cell = dynamic_cast<MediaCardCell*>(recycler->dequeueReusableCell("Cell"));
     auto& item = this->list.at(index);
 
     cell->setId(item.Id);

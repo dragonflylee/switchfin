@@ -21,7 +21,7 @@ public:
     size_t getItemCount() override { return this->list.size(); }
 
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
-        VideoCardCell* cell = dynamic_cast<VideoCardCell*>(recycler->dequeueReusableCell("Cell"));
+        MediaCardCell* cell = dynamic_cast<MediaCardCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
         cell->labelTitle->setText(item.Name);
         cell->labelExt->setText(item.CurrentProgram.Name);
@@ -54,14 +54,14 @@ LiveTV::LiveTV(const std::string& itemId) {
     this->inflateFromXMLRes("xml/tabs/media.xml");
     brls::Logger::debug("LiveTV: create {}", itemId);
 
-    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
+    this->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, [this](...) {
         this->doRequest();
         return true;
     });
 
     this->recycler->spanCount = 3;
     this->recycler->estimatedRowHeight = 250;
-    this->recycler->registerCell("Cell", VideoCardCell::create);
+    this->recycler->registerCell("Cell", MediaCardCell::create);
 
     this->doRequest();
 }

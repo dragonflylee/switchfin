@@ -132,7 +132,7 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
     std::transform(this->prefKey.begin(), this->prefKey.end(), this->prefKey.begin(),
         [](unsigned char c) { return std::tolower(c); });
 
-    this->recycler->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
+    this->recycler->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, [this](...) {
         this->startIndex = 0;
         this->recycler->showSkeleton();
         this->doRequest();

@@ -79,7 +79,7 @@ void HomeTab::doRequest() {
 }
 
 void HomeTab::onCreate() {
-    this->registerAction("hints/refresh"_i18n, brls::BUTTON_X, [this](...) {
+    this->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, [this](...) {
         this->userResume->doRequest(true);
         this->showNextup->doRequest(true);
         this->movieLatest->doLatest(true);
