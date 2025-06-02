@@ -15,7 +15,7 @@ ServerAdd::ServerAdd() {
     this->inflateFromXMLRes("xml/tabs/server_add.xml");
     brls::Logger::debug("ServerAdd: create");
 
-    inputUrl->init("URL", "https://", [](std::string) {}, "", "", 255);
+    inputUrl->init("URL", "", [](std::string) {}, "http://<Server IP>:8096", "", 255);
 
     btnConnect->registerClickAction([this](...) { return this->onConnect(); });
 }
