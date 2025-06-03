@@ -43,6 +43,7 @@ modules:
       - -Dtests=false
       - -Dlibarchive=disabled
       - -Dmanpage-build=disabled
+      - -Dvulkan=disabled
     sources:
       - type: archive
         url: https://github.com/mpv-player/mpv/archive/v0.40.0.tar.gz
@@ -64,6 +65,25 @@ modules:
               project-id: 17166
               stable-only: true
               url-template: https://xorg.freedesktop.org/archive/individual/lib/libXpresent-$version.tar.xz
+
+      - name: libdisplay-info
+        cleanup:
+          - /bin/di-edid-decode
+        buildsystem: meson
+        sources:
+          - type: archive
+            url: https://gitlab.freedesktop.org/emersion/libdisplay-info/-/releases/0.2.0/downloads/libdisplay-info-0.2.0.tar.xz
+            sha256: 5a2f002a16f42dd3540c8846f80a90b8f4bdcd067a94b9d2087bc2feae974176
+        modules:
+          - name: hwdata
+            cleanup:
+              - "*"
+            config-opts:
+              - --disable-blacklist
+            sources:
+              - type: archive
+                url: https://github.com/vcrhonek/hwdata/archive/v0.396.tar.gz
+                sha256: 6ed6ff6eb9d137b9669af6966974643a015cf302a39237ef84dd2efa5e20bae8
 
       - name: libplacebo
         buildsystem: meson
@@ -111,8 +131,6 @@ modules:
 
       - name: ffmpeg
         cleanup:
-          - /include
-          - /lib/pkgconfig
           - /share/ffmpeg/examples
         config-opts:
           - --enable-shared
@@ -130,6 +148,7 @@ modules:
           - --enable-protocol=file,http,tcp,udp,hls,https,tls,ftp,libssh2,rtp,crypto,httpproxy
           - --enable-filter=hflip,vflip,transpose_vaapi,deinterlace_vaapi,denoise_vaapi,sharpness_vaapi
           - --enable-libssh2
+          - --enable-libdrm
           - --enable-vaapi
           - --enable-vdpau
           - --enable-libdav1d

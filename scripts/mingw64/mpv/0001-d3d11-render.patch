@@ -87,6 +87,21 @@ index 7572769e0e..b02a7ce458 100644
      install_headers(headers, subdir: 'mpv')
  
      # Allow projects to build with libmpv by cloning into ./subprojects/mpv
+diff --git a/misc/language.c b/misc/language.c
+index d7cdffebd3..b00b2ada49 100644
+--- a/misc/language.c
++++ b/misc/language.c
+@@ -26,8 +26,8 @@
+ #define L(s) { #s, sizeof(#s) - 1 }
+ 
+ static const struct lang {
+-    struct { const char s[3]; uint8_t l; } match;
+-    struct { const char s[3]; uint8_t l; } canonical;
++    struct { const char s[3] MP_NONSTRING; uint8_t l; } match;
++    struct { const char s[3] MP_NONSTRING; uint8_t l; } canonical;
+ } langmap[] = {
+     {L(aa), L(aar)},
+     {L(ab), L(abk)},
 diff --git a/misc/path_utils.c b/misc/path_utils.c
 index 8e4ac6c22a..fc8bfc9a49 100644
 --- a/misc/path_utils.c
@@ -118,6 +133,27 @@ index 8e4ac6c22a..fc8bfc9a49 100644
  #else
      char *result = talloc_strdup(tmp, "");
      const char *next;
+diff --git a/osdep/compiler.h b/osdep/compiler.h
+index cb04fed81f..fec54226a1 100644
+--- a/osdep/compiler.h
++++ b/osdep/compiler.h
+@@ -22,6 +22,16 @@
+ #define MP_UNUSED
+ #endif
+ 
++#ifndef __has_attribute
++#define __has_attribute(x) 0
++#endif
++
++#if __has_attribute(nonstring)
++#define MP_NONSTRING __attribute__((nonstring))
++#else
++#define MP_NONSTRING
++#endif
++
+ #if defined(__GNUC__) || defined(__clang__)
+ #define PRINTF_ATTRIBUTE(a1, a2) __attribute__((format(printf, a1, a2)))
+ #define SCANF_ATTRIBUTE(a1, a2) __attribute__((format(scanf, a1, a2)))
 diff --git a/video/out/d3d11/libmpv_d3d11.c b/video/out/d3d11/libmpv_d3d11.c
 new file mode 100644
 index 0000000000..a7d26e3837
@@ -216,9 +252,18 @@ index 0000000000..a7d26e3837
 +};
 \ No newline at end of file
 diff --git a/video/out/d3d11/ra_d3d11.c b/video/out/d3d11/ra_d3d11.c
-index e36c9eee19..c56db1909b 100644
+index e36c9eee19..77b1546011 100644
 --- a/video/out/d3d11/ra_d3d11.c
 +++ b/video/out/d3d11/ra_d3d11.c
+@@ -1500,7 +1500,7 @@ static size_t vbuf_upload(struct ra *ra, void *data, size_t size)
+     return offset;
+ }
+ 
+-static const char cache_magic[4] = "RD11";
++static const char cache_magic[4] MP_NONSTRING = "RD11";
+ static const uint32_t cache_version = 4;
+ 
+ struct cache_header {
 @@ -2233,13 +2233,6 @@ static void destroy(struct ra *ra)
      SAFE_RELEASE(p->ctx1);
      SAFE_RELEASE(p->dev1);
@@ -256,6 +301,20 @@ index 497dcc3f69..fad1a00c0a 100644
  
  extern const struct libmpv_gpu_context_fns libmpv_gpu_context_gl;
 +extern const struct libmpv_gpu_context_fns libmpv_gpu_context_d3d11;
+diff --git a/video/out/opengl/common.h b/video/out/opengl/common.h
+index a6b02c9366..b79fd4c531 100644
+--- a/video/out/opengl/common.h
++++ b/video/out/opengl/common.h
+@@ -37,6 +37,9 @@
+ #include <windows.h>
+ #endif
+ 
++// Collision with <winnt.h>
++#undef MemoryBarrier
++
+ struct GL;
+ typedef struct GL GL;
+ 
 diff --git a/video/out/w32_common.c b/video/out/w32_common.c
 index 26dd2c36f7..551201a7fe 100644
 --- a/video/out/w32_common.c

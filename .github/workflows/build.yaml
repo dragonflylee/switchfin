@@ -188,31 +188,26 @@ jobs:
         path: build/Switchfin.velf
 
   build-flatpak:
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        include:
+        - { arch: x86_64, runner: ubuntu-24.04 }
+        - { arch: aarch64, runner: ubuntu-24.04-arm }
         arch: [ x86_64, aarch64 ]
     container:
-      image: bilelmoussaoui/flatpak-github-actions:freedesktop-24.08
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-24.08
       options: --privileged
+    runs-on: ${{ matrix.runner }}
     if: ${{ inputs.platform == 'flatpak' || github.event_name != 'workflow_dispatch' }}
     steps:
     - uses: actions/checkout@v4
-      if: ${{ matrix.arch == 'x86_64' || inputs.platform == 'flatpak' || startsWith(github.ref, 'refs/tags/') }}
       with:
         submodules: recursive
-    - name: Install docker
-      if: ${{ matrix.arch == 'aarch64' && (inputs.platform == 'flatpak' || startsWith(github.ref, 'refs/tags/')) }}
-      run: dnf -y install docker
-    - name: Set up QEMU
-      if: ${{ matrix.arch == 'aarch64' && (inputs.platform == 'flatpak' || startsWith(github.ref, 'refs/tags/')) }}
-      uses: docker/setup-qemu-action@v3
     - name: Set workspace permissions
       run: git config --system --add safe.directory $GITHUB_WORKSPACE
     - name: Build flatpak
-      uses: flatpak/flatpak-github-actions/flatpak-builder@master
-      if: ${{ matrix.arch == 'x86_64' || inputs.platform == 'flatpak' || startsWith(github.ref, 'refs/tags/') }}
+      uses: flatpak/flatpak-github-actions/flatpak-builder@v6.5
       with:
         bundle: Switchfin-Linux-${{ matrix.arch }}-${{ github.run_number }}.flatpak
         manifest-path: scripts/flatpak.yaml
@@ -221,7 +216,6 @@ jobs:
         arch: ${{ matrix.arch }}
     - name: Upload Assets
       uses: actions/upload-artifact@v4
-      if: ${{ matrix.arch == 'x86_64' || inputs.platform == 'flatpak' || startsWith(github.ref, 'refs/tags/') }}
       with:
         name: Switchfin-Flatpak-${{ matrix.arch }}-${{ github.run_number }}
         path: Switchfin-*.flatpak
@@ -235,10 +229,14 @@ jobs:
         - { img: ubuntu, tag: focal }
         - { img: ubuntu, tag: noble }
         - { img: debian, tag: bookworm }
-    runs-on: ubuntu-latest
+        - { arch: x86_64, runner: ubuntu-24.04 }
+        - { arch: aarch64, runner: ubuntu-24.04-arm }
+        arch: [ x86_64, aarch64 ]
+        tag: [ focal, noble, bookworm ]
+    runs-on: ${{ matrix.runner }}
     container:
       image: ghcr.io/${{ github.repository_owner }}/build:${{ matrix.img }}-${{ matrix.tag }}
-    if: ${{ inputs.platform == 'deb' || github.event_name != 'workflow_dispatch' }}
+    if: ${{ inputs.platform == 'deb' }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -248,7 +246,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: /opt/switchfin
-        key: deps-${{ matrix.img }}-${{ matrix.tag }}-${{ hashFiles('debian/rules') }}
+        key: deps-${{ matrix.arch }}-${{ matrix.img }}-${{ matrix.tag }}-${{ hashFiles('debian/rules') }}
     - name: Build depends
       if: steps.cache-deps.outputs.cache-hit != 'true'
       run: make -f debian/rules curl glfw mpv
@@ -262,7 +260,7 @@ jobs:
     - name: Upload Assets
       uses: actions/upload-artifact@v4
       with:
-        name: Switchfin-${{ matrix.img }}-${{ matrix.tag }}-${{ github.run_number }}
+        name: Switchfin-${{ matrix.img }}-${{ matrix.tag }}-${{ matrix.arch }}-${{ github.run_number }}
         path: switchfin_*.deb
 
   build-aur:
@@ -337,17 +335,24 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - { arch: x64, msystem: MINGW64 }
-        - { arch: x86, msystem: MINGW32 }
-        arch: [ x64, x86 ]
-    runs-on: windows-latest
-    env:
-      MSYSTEM: ${{ matrix.msystem }}
-      MSYS2_PATH_TYPE: inherit
+        - { arch: x64, sys: mingw64, env: x86_64 }
+        - { arch: x86, sys: mingw32, env: i686 }
+        - { arch: arm64, sys: clangarm64, env: clang-aarch64 }
+        arch: [ x64, x86, arm64 ]
+    runs-on: ${{ contains(matrix.sys, 'arm64') && 'windows-11-arm' || 'windows-latest' }}
     defaults:
       run:
-        shell: C:\shells\msys2bash.cmd {0}
+        shell: msys2 {0}
     steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.sys }}
+        path-type: inherit
+        cache: false
+        release: ${{ contains(matrix.sys, 'arm64') }}
+        install: >-
+          mingw-w64-${{ matrix.env }}-ninja
+          mingw-w64-${{ matrix.env }}-cc
     - uses: actions/checkout@v4
       with:
         submodules: recursive
@@ -357,13 +362,7 @@ jobs:
           curl -sLO https://github.com/dragonflylee/switchfin/releases/download/mingw-packages/${MINGW_PACKAGE_PREFIX}-${pkg}-any.pkg.tar.zst
         done
         pacman -U --noconfirm *.pkg.tar.zst
-        pacman -S --needed --noconfirm \
-          ${MINGW_PACKAGE_PREFIX}-cc \
-          ${MINGW_PACKAGE_PREFIX}-ninja unzip
-
-        curl -sLO https://github.com/rainers/cv2pdb/releases/download/v0.53/cv2pdb-0.53.zip
-        unzip cv2pdb-0.53.zip cv2pdb64.exe -d /usr/bin
-    - if: matrix.msystem == 'MINGW32'
+    - if: matrix.sys == 'mingw32'
       name: Config Editbin
       shell: powershell
       run: |
@@ -371,9 +370,11 @@ jobs:
         $cc1_path = Get-ChildItem -Path "C:\msys64\mingw32\lib\gcc" -Filter cc1plus.exe -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
         cmd.exe /c "call ""$vcvarsall_path"" x86_amd64 && editbin /LARGEADDRESSAWARE $cc1_path"
     - name: Build
+      env:
+        MSYS2_PATH_TYPE: inherit
       run: |
         cmake -B build -G Ninja \
-          -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+          -DCMAKE_BUILD_TYPE=Release \
           -DPLATFORM_DESKTOP=ON \
           -DWIN32_TERMINAL=OFF \
           -DZLIB_USE_STATIC_LIBS=ON \
@@ -382,7 +383,7 @@ jobs:
           -DUSE_LIBROMFS=ON \
           -DVERSION_BUILD=${{ github.run_number }}
         cmake --build build
-        cv2pdb64 build/Switchfin.exe
+        strip build/Switchfin.exe
         cp -a README.md ${MINGW_PREFIX}/bin/libmpv-2.dll build
     - name: Upload Assets
       uses: actions/upload-artifact@v4
@@ -392,8 +393,3 @@ jobs:
           build/Switchfin.exe
           build/libmpv-2.dll
           build/README.md
-    - name: Upload pdb
-      uses: actions/upload-artifact@v4
-      with:
-        name: windows-pdb-${{ matrix.arch }}-${{ github.run_number }}
-        path: build/Switchfin.pdb

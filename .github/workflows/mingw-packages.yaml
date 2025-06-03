@@ -13,29 +13,36 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        msystem: [ MINGW64, MINGW32 ]
-    runs-on: windows-latest
-    env:
-      MSYSTEM: ${{ matrix.msystem }}
+        include:
+        - { sys: mingw64, env: x86_64 }
+        - { sys: mingw32, env: i686 }
+        - { sys: clangarm64, env: clang-aarch64 }
+        sys: [ mingw64, mingw32, clangarm64 ]
+    runs-on: ${{ contains(matrix.sys, 'arm64') && 'windows-11-arm' || 'windows-latest' }}
     defaults:
       run:
-        shell: C:\shells\msys2bash.cmd {0}
+        shell: msys2 {0}
     steps:
     - name: Disable autocrlf
       shell: bash
       run: git config --global core.autocrlf false
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.sys }}
+        cache: false
+        install: >-
+          patch
+          lzip
+          unzip
+          mingw-w64-${{ matrix.env }}-make
+          mingw-w64-${{ matrix.env }}-autotools
+          mingw-w64-${{ matrix.env }}-nasm
+          mingw-w64-${{ matrix.env }}-meson
+          mingw-w64-${{ matrix.env }}-cmake
+          mingw-w64-${{ matrix.env }}-cc
     - uses: actions/checkout@v4
       with:
         sparse-checkout: scripts/mingw64
-    - name: Install dependency
-      run: |
-        pacman -S --needed --noconfirm \
-          ${MINGW_PACKAGE_PREFIX}-make \
-          ${MINGW_PACKAGE_PREFIX}-autotools \
-          ${MINGW_PACKAGE_PREFIX}-cmake \
-          ${MINGW_PACKAGE_PREFIX}-meson \
-          ${MINGW_PACKAGE_PREFIX}-nasm \
-          ${MINGW_PACKAGE_PREFIX}-cc patch p7zip
     - name: Build packages
       run: |
         cd scripts/mingw64
