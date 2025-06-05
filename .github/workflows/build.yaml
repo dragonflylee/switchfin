@@ -285,12 +285,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - tag: Silicon
-          arch: arm64
-          target: "11.0"
-        - tag: Intel
-          arch: x86_64
-          target: "10.15"
+        - { tag: Silicon, arch: arm64, target: "11.0" }
+        - { tag: Intel, arch: x86_64, target: "10.15" }
         tag: [ Silicon, Intel ]
     steps:
     - uses: actions/checkout@v4
@@ -299,12 +295,12 @@ jobs:
     - name: Install deps
       run: |
         brew install create-dmg dylibbundler
-        curl -sSL https://github.com/dragonflylee/switchfin/releases/download/macos-dylib/dylib-ffmpeg71-mpv40-${{ matrix.tag }}.tar.gz | tar zxf - -C /tmp
+        curl -sSL https://github.com/dragonflylee/switchfin/releases/download/macos-dylib/dylib-ffmpeg71-mpv40-${{ matrix.tag }}.tar.gz | tar zxf - -C ${{ runner.temp }}
     - name: Build App
       env:
-        DYLD_LIBRARY_PATH: /tmp/lib
+        DYLD_LIBRARY_PATH: ${{ runner.temp }}/lib
       run: |
-        cmake -B build -DCMAKE_PREFIX_PATH=/tmp \
+        cmake -B build -DCMAKE_PREFIX_PATH=${{ runner.temp }} \
           -DCMAKE_BUILD_TYPE=Release \
           -DPLATFORM_DESKTOP=ON \
           -DUSE_SYSTEM_GLFW=ON \

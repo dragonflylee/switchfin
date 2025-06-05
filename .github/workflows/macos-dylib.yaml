@@ -14,20 +14,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - tag: Silicon
-          arch: arm64
-          target: "11.0"
-          ffmpeg: "--disable-x86asm"
-          meson: --cross-file $GITHUB_WORKSPACE/scripts/macos/macos_arm64.txt
-        - tag: Intel
-          arch: x86_64
-          target: "10.15"
-          meson: --cross-file $GITHUB_WORKSPACE/scripts/macos/macos_x86_64.txt
+        - { tag: Silicon, arch: arm64 }
+        - { tag: Intel, arch: x86_64 }
         tag: [ Silicon, Intel ]
     runs-on: macos-latest
-    env:
-      CMAKE_PREFIX_PATH: /tmp
-      PKG_CONFIG_LIBDIR: /tmp/lib/pkgconfig
     steps:
     - uses: actions/checkout@v4
       with:
@@ -38,202 +28,20 @@ jobs:
         brew unlink python && brew link --overwrite python
     - name: Install dependency
       run: brew reinstall ninja nasm meson
-    - name: Build glfw
-      run: |
-        curl --retry 5 -sSL https://github.com/dragonflylee/glfw/archive/switchfin.tar.gz | tar zxf - -C ${{ runner.temp }}
-        cmake -P ${{ runner.temp }}/glfw-switchfin/CMake/GenerateMappings.cmake \
-          ${{ runner.temp }}/glfw-switchfin/src/mappings.h.in \
-          ${{ runner.temp }}/glfw-switchfin/src/mappings.h
-
-        cmake -B build-glfw -G Ninja ${{ runner.temp }}/glfw-switchfin \
-          -DCMAKE_INSTALL_PREFIX=$CMAKE_PREFIX_PATH \
-          -DCMAKE_INSTALL_NAME_DIR=$CMAKE_PREFIX_PATH/lib \
-          -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
-          -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.target }} \
-          -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON \
-          -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_DOCS=OFF
-        cmake --build build-glfw
-        cmake --install build-glfw
-    - name: Build mbedtls
-      env:
-        pkgver: '3.6.3'
-      run: |
-        curl --retry 5 -sSL https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-${pkgver}/mbedtls-${pkgver}.tar.bz2 | tar jxf - -C ${{ runner.temp }}
-        cmake -B build-mbedtls -G Ninja -S ${{ runner.temp }}/mbedtls-${pkgver} \
-          -DCMAKE_INSTALL_PREFIX=${CMAKE_PREFIX_PATH} \
-          -DCMAKE_INSTALL_NAME_DIR=${CMAKE_PREFIX_PATH}/lib \
-          -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
-          -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.target }} \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DUSE_SHARED_MBEDTLS_LIBRARY=OFF \
-          -DUSE_STATIC_MBEDTLS_LIBRARY=ON \
-          -DENABLE_PROGRAMS=OFF -DENABLE_TESTING=OFF
-        cmake --build build-mbedtls
-        cmake --install build-mbedtls
-    - name: Build libcurl
-      env:
-        pkgver: '8.13.0'
-      run: |
-        curl --retry 5 -sSL https://curl.se/download/curl-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cmake -B build-curl -G Ninja -S ${{ runner.temp }}/curl-${pkgver} \
-          -DCMAKE_INSTALL_PREFIX=${CMAKE_PREFIX_PATH} \
-          -DCMAKE_INSTALL_NAME_DIR=${CMAKE_PREFIX_PATH}/lib \
-          -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
-          -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.target }} \
-          -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON \
-          -DHTTP_ONLY=ON -DCURL_DISABLE_PROGRESS_METER=ON -DCURL_USE_SECTRANSP=ON \
-          -DBUILD_CURL_EXE=OFF -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF \
-          -DBUILD_LIBCURL_DOCS=OFF -DBUILD_MISC_DOCS=OFF -DENABLE_CURL_MANUAL=OFF \
-          -DCURL_USE_LIBSSH2=OFF -DCURL_USE_LIBPSL=OFF -DCURL_BROTLI=OFF -DCURL_ZSTD=OFF \
-          -DUSE_NGHTTP2=OFF -DUSE_LIBIDN2=OFF  
-        cmake --build build-curl
-        cmake --install build-curl
-    - name: Build libssh2
-      env:
-        pkgver: '1.11.1'
-      run: |
-        curl --retry 5 -sSL https://libssh2.org/download/libssh2-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cmake -B build-libssh2 -G Ninja -S ${{ runner.temp }}/libssh2-${pkgver} \
-          -DCMAKE_INSTALL_PREFIX=${CMAKE_PREFIX_PATH} \
-          -DCMAKE_INSTALL_NAME_DIR=${CMAKE_PREFIX_PATH}/lib \
-          -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
-          -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.target }} \
-          -DCMAKE_BUILD_TYPE=Release -DCRYPTO_BACKEND=mbedTLS \
-          -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON \
-          -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF
-        cmake --build build-libssh2
-        cmake --install build-libssh2
-    - name: Build uchardet
-      env:
-        pkgver: '0.0.8'
-      run: |
-        curl --retry 5 -sSL https://www.freedesktop.org/software/uchardet/releases/uchardet-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        cmake -B build-uchardet -G Ninja -S ${{ runner.temp }}/uchardet-${pkgver} \
-          -DCMAKE_INSTALL_PREFIX=${CMAKE_PREFIX_PATH} \
-          -DCMAKE_INSTALL_NAME_DIR=${CMAKE_PREFIX_PATH}/lib \
-          -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
-          -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.target }} \
-          -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
-          -DBUILD_BINARY=OFF
-        cmake --build build-uchardet
-        cmake --install build-uchardet
-    - name: Build freetype
-      env:
-        pkgver: '2.13.3'
-      run: |
-        curl --retry 5 -sSL https://downloads.sourceforge.net/project/freetype/freetype2/${pkgver}/freetype-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        meson setup build-freetype ${{ runner.temp }}/freetype-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
-          -Dharfbuzz=disabled -Dbrotli=disabled -Dzlib=system
-        meson compile -C build-freetype
-        meson install -C build-freetype
-    - name: Build harfbuzz
-      env:
-        pkgver: '11.2.1'
-      run: |
-        curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/${pkgver}/harfbuzz-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        meson setup build-harfbuzz ${{ runner.temp }}/harfbuzz-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
-          -Dtests=disabled -Ddocs=disabled -Dicu=disabled -Dcairo=disabled \
-          -Dglib=disabled -Dgobject=disabled -Dbenchmark=disabled -Dutilities=disabled
-        meson compile -C build-harfbuzz
-        meson install -C build-harfbuzz
-    - name: Build fribidi
-      env:
-        pkgver: '1.0.16'
-      run: |
-        curl --retry 5 -sSL https://github.com/fribidi/fribidi/releases/download/v${pkgver}/fribidi-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        meson setup build-fribidi ${{ runner.temp }}/fribidi-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} --default-library=static \
-          -Ddocs=false -Dbin=false -Dtests=false
-        meson compile -C build-fribidi
-        meson install -C build-fribidi
-    - name: Build libass
-      env:
-        pkgver: '0.17.3'
-      run: |
-        curl --retry 5 -sSL https://github.com/libass/libass/releases/download/${pkgver}/libass-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        meson setup build-libass ${{ runner.temp }}/libass-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} --default-library=shared
-        meson compile -C build-libass
-        meson install -C build-libass
-    - name: Build dav1d
-      env:
-        pkgver: '1.5.1'
-      run: |
-        curl --retry 5 -sSL https://downloads.videolan.org/pub/videolan/dav1d/${pkgver}/dav1d-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        meson setup build-dav1d ${{ runner.temp }}/dav1d-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
-          -Denable_tools=false -Denable_examples=false -Denable_tests=false -Denable_docs=false
-        meson compile -C build-dav1d
-        meson install -C build-dav1d
-    - name: Build libwebp
-      env:
-        pkgver: '1.5.0'
-      run: |
-        curl --retry 5 -sSL https://github.com/webmproject/libwebp/archive/v${pkgver}.tar.gz | tar zxf - -C ${{ runner.temp }}
-        cmake -B build-libwebp -G Ninja -S ${{ runner.temp }}/libwebp-${pkgver} \
-          -DCMAKE_INSTALL_PREFIX=${CMAKE_PREFIX_PATH} \
-          -DCMAKE_INSTALL_NAME_DIR=${CMAKE_PREFIX_PATH}/lib \
-          -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
-          -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.target }} \
-          -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON \
-          -DWEBP_BUILD_EXTRAS=OFF -DWEBP_BUILD_ANIM_UTILS=OFF \
-          -DWEBP_BUILD_CWEBP=OFF -DWEBP_BUILD_DWEBP=OFF \
-          -DWEBP_BUILD_GIF2WEBP=OFF -DWEBP_BUILD_IMG2WEBP=OFF \
-          -DWEBP_BUILD_VWEBP=OFF -DWEBP_BUILD_WEBPINFO=OFF \
-          -DWEBP_BUILD_WEBPMUX=OFF -DWEBP_BUILD_LIBWEBPMUX=OFF
-        cmake --build build-libwebp
-        cmake --install build-libwebp
-    - name: Build ffmpeg
-      env:
-        pkgver: '7.1.1'
-      run: |
-        curl --retry 5 -sSL https://ffmpeg.org/releases/ffmpeg-${pkgver}.tar.xz | tar Jxf - -C ${{ runner.temp }}
-        patch -d ${{ runner.temp }}/ffmpeg-${pkgver} -Nbp1 -i ${{ github.workspace }}/scripts/mingw64/ffmpeg/avio.patch
-        mkdir -p build-ffmpeg && cd build-ffmpeg
-        ${{ runner.temp }}/ffmpeg-${pkgver}/configure --enable-shared --disable-static --pkg-config-flags=-static \
-          --prefix=$CMAKE_PREFIX_PATH --enable-pthreads --disable-runtime-cpudetect \
-          --cc=clang --enable-cross-compile --target-os=darwin --arch=${{ matrix.arch }} \
-          --extra-cflags='-arch ${{ matrix.arch }} -mmacosx-version-min=${{ matrix.target }}' \
-          --extra-cxxflags='-arch ${{ matrix.arch }} -mmacosx-version-min=${{ matrix.target }}' \
-          --extra-ldflags='-arch ${{ matrix.arch }} -mmacosx-version-min=${{ matrix.target }}' \
-          --disable-autodetect --disable-encoders --enable-pic ${{ matrix.ffmpeg }} \
-          --disable-programs --disable-doc --disable-debug --disable-avdevice --enable-libssh2 \
-          --disable-filters --enable-filter=hflip,vflip,transpose --disable-muxers \
-          --disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,ftp,libssh2,rtp,crypto,httpproxy \
-          --disable-libjack --disable-indev=jack --disable-postproc --enable-network \
-          --enable-libdav1d --enable-libass --enable-libfreetype --enable-zlib --enable-bzlib \
-          --enable-videotoolbox --enable-audiotoolbox --enable-mbedtls --enable-version3
-        make -j$(sysctl -n hw.ncpu)
-        make install
-    - name: Build libplacebo
-      run: |
-        git clone https://github.com/haasn/libplacebo.git -b v7.351.0 --depth 1 --recurse-submodules ${{ runner.temp }}/libplacebo
-        meson setup build-libplacebo ${{ runner.temp }}/libplacebo ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
-          -Ddemos=false -Dtests=false -Dopengl=enabled -Dlcms=disabled -Dvulkan=disabled
-        meson compile -C build-libplacebo
-        meson install -C build-libplacebo
-    - name: Build mpv
-      env:
-        pkgver: '0.40.0'
-      run: |
-        curl --retry 5 -sSL https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz | tar zxf - -C ${{ runner.temp }}
-        meson setup build-mpv ${{ runner.temp }}/mpv-${pkgver} ${{ matrix.meson }} --prefix=${CMAKE_PREFIX_PATH} \
-          -Dlibmpv=true -Dcplayer=false -Dtests=false -Dswift-build=disabled -Dcocoa=disabled \
-          -Dmacos-cocoa-cb=disabled -Dmacos-media-player=disabled -Dmacos-touchbar=disabled \
-          -Dlibarchive=disabled -Dlcms2=disabled -Djpeg=disabled -Dlua=disabled \
-          -Dmanpage-build=disabled -Dhtml-build=disabled 
-        meson compile -C build-mpv
-        meson install -C build-mpv
+    - name: Build dylib
+      run: make -C scripts/macos ARCH=${{ matrix.arch }} TMPDIR=${{ runner.temp }} PREFIX=${{ runner.temp }}
     - name: Build packages
       run: |
-        cd ${CMAKE_PREFIX_PATH}
-        tar zcf ${{ github.workspace }}/dylib-ffmpeg71-mpv40-${{ matrix.tag }}.tar.gz \
-          include lib/pkgconfig lib/cmake lib/*.dylib
+        tar zcf dylib-ffmpeg71-mpv40-${{ matrix.tag }}.tar.gz --exclude=lib/*.a \
+          -C ${{ runner.temp }} include lib
     - name: Archive Build Logs
       if: ${{ failure() }}
       uses: actions/upload-artifact@v4
       with:
         name: logs-${{ matrix.tag }}
         path: |
-          build-ffmpeg/ffbuild/*.log
-          build-*/meson-logs/*.txt
+          build-ffmpeg/ffbuild
+          build-*/meson-logs
     - name: Upload packages
       uses: softprops/action-gh-release@v2
       with:

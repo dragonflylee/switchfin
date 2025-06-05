@@ -1,106 +1,83 @@
-diff --git a/TOOLS/macos-sdk-version.py b/TOOLS/macos-sdk-version.py
-index e3a973e857..12e1071d75 100755
---- a/TOOLS/macos-sdk-version.py
-+++ b/TOOLS/macos-sdk-version.py
-@@ -1,14 +1,13 @@
- #!/usr/bin/env python3
+diff --git a/input/input.c b/input/input.c
+index cffe8ccca8..a6734f9bb1 100644
+--- a/input/input.c
++++ b/input/input.c
+@@ -1526,7 +1526,7 @@ static void reload_opts(struct input_ctx *ictx, bool shutdown)
+ {
+     m_config_cache_update(ictx->opts_cache);
  
--# Logic copied from compiler_swift.py in the waf build. This checks for the sdk
--# path, the sdk version, and the sdk build version. The sdk path is returned
--# along with what is selected as the sdk version.
-+# This checks for the sdk path, the sdk version, and
-+# the sdk build version.
+-#if HAVE_COCOA
++#if HAVE_SWIFT
+     struct input_opts *opts = ictx->opts;
  
- import re
- import os
- import string
-+import subprocess
- import sys
--from distutils.version import StrictVersion
- from shutil import which
- from subprocess import check_output
- 
-@@ -16,6 +15,7 @@ def find_macos_sdk():
-     sdk = os.environ.get('MACOS_SDK', '')
-     sdk_version = os.environ.get('MACOS_SDK_VERSION', '0.0')
-     xcrun = which('xcrun')
-+    xcodebuild = which('xcodebuild')
- 
-     if not xcrun:
-         return sdk,sdk_version
-@@ -26,42 +26,20 @@ def find_macos_sdk():
- 
-     # find macOS SDK paths and version
-     if sdk_version == '0.0':
--        # show-sdk-build-version: is not available on older command line tools, but returns a build version (eg 17A360)
--        # show-sdk-version: is always available, but on older dev tools it's only the major version
--        sdk_build_version = check_output([xcrun, '--sdk', 'macosx',
--                                          '--show-sdk-build-version'], encoding="UTF-8")
--
-         sdk_version = check_output([xcrun, '--sdk', 'macosx', '--show-sdk-version'],
-                                     encoding="UTF-8")
- 
--    if sdk:
--        build_version = '10.10.0'
--
--    # convert build version to a version string
--    # first 2 two digits are the major version, starting with 15 which is 10.11 (offset of 4)
--    # 1 char is the minor version, A => 0, B => 1 and ongoing
--    # last digits are bugfix version, which are not relevant for us
--    # eg 16E185 => 10.12.4, 17A360 => 10.13, 18B71 => 10.14.1
--    if sdk_build_version and isinstance(sdk_build_version, str):
--        verRe = re.compile("(\d+)(\D+)(\d+)")
--        version_parts = verRe.search(sdk_build_version)
--        major = int(version_parts.group(1)) - 4
--        minor = string.ascii_lowercase.index(version_parts.group(2).lower())
--        build_version = '10.' + str(major) + '.' + str(minor)
--        # from 20 onwards macOS 11.0 starts
--        if int(version_parts.group(1)) >= 20:
--            build_version = '11.' + str(minor)
-+        # use xcode tools when installed, still necessary for xcode versions <12.0
-+        try:
-+            sdk_version = check_output([xcodebuild, '-sdk', 'macosx', '-version', 'ProductVersion'],
-+                                        encoding="UTF-8", stderr=subprocess.DEVNULL)
-+        except:
-+            pass
- 
-     if not isinstance(sdk_version, str):
-         sdk_version = '10.10.0'
- 
--    # pick the higher version, always pick sdk over build if newer
--    if StrictVersion(build_version) > StrictVersion(sdk_version):
--        return sdk,build_version
--    else:
--        return sdk,sdk_version
--
--    return sdk,sdk_version
-+    return sdk.strip(),sdk_version.strip()
- 
- if __name__ == "__main__":
-     sdk_info = find_macos_sdk()
+     if (ictx->using_cocoa_media_keys != (opts->use_media_keys && !shutdown)) {
 diff --git a/meson.build b/meson.build
-index 75a3e500c3..7694e94ca5 100644
+index 7572769e0e..3eee192d5b 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -1474,13 +1474,17 @@ endif
- 
- 
- # macOS features
--macos_sdk_version_py = find_program(join_paths(source_root, 'TOOLS', 'macos-sdk-version.py'),
--                                    required: get_option('swift-build').require(darwin))
-+macos_sdk_version_py = ''
-+if darwin
-+    macos_sdk_version_py = find_program(join_paths(source_root, 'TOOLS', 'macos-sdk-version.py'),
-+                                                   required: true)
-+endif
-+
- macos_sdk_path = ''
- macos_sdk_version = '0.0'
--if macos_sdk_version_py.found()
-+if darwin and macos_sdk_version_py.found()
-     macos_sdk_info = run_command(macos_sdk_version_py, check: true).stdout().split(',')
--    macos_sdk_path = macos_sdk_info[0].strip()
-+    macos_sdk_path = macos_sdk_info[0]
-     macos_sdk_version = macos_sdk_info[1]
+@@ -413,9 +413,7 @@ if features['cocoa']
+     sources += files('osdep/language-mac.c',
+                      'osdep/path-mac.m',
+                      'osdep/utils-mac.c',
+-                     'osdep/mac/app_bridge.m',
+-                     'player/clipboard/clipboard-mac.m')
+-    main_fn_source = files('osdep/main-fn-mac.c')
++                     'osdep/mac/app_bridge.m')
  endif
  
+ if posix
+@@ -1575,7 +1573,9 @@ if features['cocoa'] and features['swift']
+                            'video/out/mac/common.swift',
+                            'video/out/mac/title_bar.swift',
+                            'video/out/mac/view.swift',
+-                           'video/out/mac/window.swift')
++                           'video/out/mac/window.swift',
++                           'player/clipboard/clipboard-mac.m')
++    main_fn_source = files('osdep/main-fn-mac.c')
+ endif
+ 
+ macos_10_15_4_features = get_option('macos-10-15-4-features').require(
+diff --git a/player/clipboard/clipboard.c b/player/clipboard/clipboard.c
+index c9456ad7fb..9e35da9c7c 100644
+--- a/player/clipboard/clipboard.c
++++ b/player/clipboard/clipboard.c
+@@ -37,7 +37,7 @@ static const struct clipboard_backend *const clipboard_backend_list[] = {
+ #if HAVE_WIN32_DESKTOP
+     &clipboard_backend_win32,
+ #endif
+-#if HAVE_COCOA
++#if HAVE_SWIFT
+     &clipboard_backend_mac,
+ #endif
+ #if HAVE_WAYLAND_PROTOCOLS_1_39
+diff --git a/player/main.c b/player/main.c
+index 8898ed0305..701af79bb6 100644
+--- a/player/main.c
++++ b/player/main.c
+@@ -188,7 +188,7 @@ void mp_destroy(struct MPContext *mpctx)
+ 
+     osd_free(mpctx->osd);
+ 
+-#if HAVE_COCOA
++#if HAVE_SWIFT
+     cocoa_set_input_context(NULL);
+ #endif
+ 
+@@ -311,7 +311,7 @@ struct MPContext *mp_create(void)
+     mp_clients_init(mpctx);
+     mpctx->osd = osd_create(mpctx->global);
+ 
+-#if HAVE_COCOA
++#if HAVE_SWIFT
+     cocoa_set_input_context(mpctx->input);
+ #endif
+ 
+@@ -401,7 +401,7 @@ int mp_initialize(struct MPContext *mpctx, char **options)
+ 
+     MP_STATS(mpctx, "start init");
+ 
+-#if HAVE_COCOA
++#if HAVE_SWIFT
+     mpv_handle *ctx = mp_new_client(mpctx->clients, "mac");
+     cocoa_set_mpv_handle(ctx);
+ #endif
