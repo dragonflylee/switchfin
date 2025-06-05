@@ -9,7 +9,7 @@ RemoteTab::RemoteTab() {
     brls::Logger::debug("RemoteTab: create");
 
     this->registerAction(
-        "main/play/next"_i18n, brls::BUTTON_LB,
+        "main/player/next"_i18n, brls::BUTTON_LB,
         [this](brls::View* view) {
             tabFrame->focus2LastTab();
             return true;
@@ -17,7 +17,7 @@ RemoteTab::RemoteTab() {
         true);
 
     this->registerAction(
-        "main/play/pref"_i18n, brls::BUTTON_RB,
+        "main/player/prev"_i18n, brls::BUTTON_RB,
         [this](brls::View* view) {
             tabFrame->focus2NextTab();
             return true;

@@ -93,7 +93,7 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
         this->tabFrame->addTab(item, [this]() { return new GenresTab(this->itemId, this->itemType); });
 
         this->registerAction(
-            "main/play/next"_i18n, brls::BUTTON_LB,
+            "main/player/next"_i18n, brls::BUTTON_LB,
             [this](brls::View* view) {
                 tabFrame->focus2LastTab();
                 return true;
@@ -101,7 +101,7 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
             true);
 
         this->registerAction(
-            "main/play/pref"_i18n, brls::BUTTON_RB,
+            "main/player/prev"_i18n, brls::BUTTON_RB,
             [this](brls::View* view) {
                 tabFrame->focus2NextTab();
                 return true;

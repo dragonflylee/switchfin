@@ -137,7 +137,7 @@ MediaSeries::MediaSeries(const jellyfin::Item& item) : seriesId(item.Id) {
     this->nextUp->registerCell("Cell", VideoCardCell::create);
 
     this->registerAction(
-        "main/play/next"_i18n, brls::BUTTON_LB,
+        "main/player/next"_i18n, brls::BUTTON_LB,
         [this](brls::View* view) {
             tabFrame->focus2LastTab();
             return true;
@@ -145,7 +145,7 @@ MediaSeries::MediaSeries(const jellyfin::Item& item) : seriesId(item.Id) {
         true);
 
     this->registerAction(
-        "main/play/pref"_i18n, brls::BUTTON_RB,
+        "main/player/prev"_i18n, brls::BUTTON_RB,
         [this](brls::View* view) {
             tabFrame->focus2NextTab();
             return true;

@@ -56,6 +56,7 @@ const std::string mediaTypeGenre = "Genre";
 const std::string mediaTypeAudio = "Audio";
 const std::string mediaTypeVideo = "Video";
 const std::string mediaTypePhoto = "Photo";
+const std::string mediaTypeBook = "Book";
 const std::string mediaTypePhotoAlbum = "PhotoAlbum";
 const std::string mediaTypeMusicAlbum = "MusicAlbum";
 const std::string mediaTypeMusicVideo = "MusicVideo";
