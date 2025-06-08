@@ -12,7 +12,7 @@
 
 using namespace brls::literals;  // for _i18n
 
-VideoDataSource::VideoDataSource(const MediaList& r) : list(std::move(r)) {}
+VideoDataSource::VideoDataSource(const MediaList& r, bool resume) : list(std::move(r)), resume(resume) {}
 
 size_t VideoDataSource::getItemCount() { return this->list.size(); }
 
@@ -85,7 +85,12 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
     if (item.Type == jellyfin::mediaTypeSeries) {
         recycler->present(new MediaSeries(item));
     } else if (item.Type == jellyfin::mediaTypeMovie) {
-        recycler->present(new MediaMovie(item));
+        if (this->resume) {
+            PlayerView* view = new PlayerView(item);
+            view->setTitie(item.ProductionYear ? fmt::format("{} ({})", item.Name, item.ProductionYear) : item.Name);
+        } else {
+            recycler->present(new MediaMovie(item));
+        }
     } else if (item.Type == jellyfin::mediaTypeFolder || item.Type == jellyfin::mediaTypeBoxSet ||
                item.Type == jellyfin::mediaTypePhotoAlbum) {
         recycler->present(new MediaCollection(item.Id));

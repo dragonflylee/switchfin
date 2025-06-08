@@ -16,6 +16,7 @@
 
             <RecylingVideo
                 nextPage="auto"
+                resume="true"
                 pageSize="6"
                 frameHeight="235"
                 itemWidth="325"

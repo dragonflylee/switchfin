@@ -5,12 +5,13 @@
 #pragma once
 
 #include <borealis.hpp>
+#include <view/presenter.hpp>
 #include <api/jellyfin/media.hpp>
 
 class HRecyclerFrame;
 class TextBox;
 
-class MediaMovie : public brls::Box {
+class MediaMovie : public brls::Box, public Presenter {
 public:
     MediaMovie(const jellyfin::Item& item);
     ~MediaMovie() override;
@@ -28,6 +29,10 @@ private:
     BRLS_BIND(HRecyclerFrame, people, "movie/people");
     BRLS_BIND(HRecyclerFrame, similar, "movie/similar");
 
-    void doMovie(const std::string& itemId);
-    void doSimilar(const std::string& itemId);
+    void doRequest() override;
+    void doMovie();
+    void doSimilar();
+
+    int64_t playTicks = 0;
+    std::string itemId;
 };

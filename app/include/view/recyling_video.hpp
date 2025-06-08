@@ -28,6 +28,7 @@ private:
     BRLS_BIND(HRecyclerFrame, recycler, "recycler/videos");
 
     Callback queryCallback = nullptr;
+    bool resume = false;
     size_t start = 0;
     size_t pageSize = 10;
 };

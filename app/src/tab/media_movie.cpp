@@ -5,10 +5,14 @@
 #include "view/text_box.hpp"
 #include "view/people_source.hpp"
 #include "view/video_source.hpp"
+#include "view/mpv_core.hpp"
 #include "api/jellyfin.hpp"
+#include "utils/misc.hpp"
 #include <fmt/ranges.h>
 
-MediaMovie::MediaMovie(const jellyfin::Item& item) {
+using namespace brls::literals;  // for _i18n
+
+MediaMovie::MediaMovie(const jellyfin::Item& item) : itemId(item.Id) {
     brls::Logger::debug("Tab MediaMovie: create");
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/movie.xml");
@@ -17,14 +21,14 @@ MediaMovie::MediaMovie(const jellyfin::Item& item) {
     this->people->registerCell("Cell", MediaCardCell::create);
     this->similar->registerCell("Cell", VideoCardCell::create);
 
-    this->btnPlay->registerClickAction([item](...) {
-        PlayerView* view = new PlayerView(item);
+    this->btnPlay->registerClickAction([this, item](...) {
+        PlayerView* view = new PlayerView(item, this->playTicks);
         view->setTitie(item.ProductionYear ? fmt::format("{} ({})", item.Name, item.ProductionYear) : item.Name);
         return true;
     });
 
-    this->doMovie(item.Id);
-    this->doSimilar(item.Id);
+    this->doMovie();
+    this->doSimilar();
 
     auto logo = item.ImageTags.find(jellyfin::imageTypePrimary);
     if (logo != item.ImageTags.end()) {
@@ -42,7 +46,13 @@ MediaMovie::~MediaMovie() {
     Image::cancel(this->imageLogo);
 }
 
-void MediaMovie::doMovie(const std::string& itemId) {
+void MediaMovie::doRequest() {
+    int64_t ticks = MPVCore::instance().playback_time;
+    this->playTicks = ticks * jellyfin::PLAYTICKS;
+    this->btnPlay->setText(ticks > 0 ? misc::sec2Time(ticks) : "main/media/play"_i18n);
+}
+
+void MediaMovie::doMovie() {
     ASYNC_RETAIN
     jellyfin::getJSON<jellyfin::Detail>(
         [ASYNC_TOKEN](const jellyfin::Detail& r) {
@@ -83,15 +93,19 @@ void MediaMovie::doMovie(const std::string& itemId) {
                         {"maxWidth", "240"},
                     }));
             }
+
+            this->playTicks = r.UserData.PlaybackPositionTicks;
+            this->btnPlay->setText(
+                this->playTicks > 0 ? misc::sec2Time(this->playTicks / jellyfin::PLAYTICKS) : "main/media/play"_i18n);
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             this->people->setVisibility(brls::Visibility::GONE);
         },
-        jellyfin::apiUserItem, AppConfig::instance().getUserId(), itemId);
+        jellyfin::apiUserItem, AppConfig::instance().getUserId(), this->itemId);
 }
 
-void MediaMovie::doSimilar(const std::string& itemId) {
+void MediaMovie::doSimilar() {
     std::string query = HTTP::encode_form({
         {"userId", AppConfig::instance().getUserId()},
         {"limit", "12"},
@@ -118,5 +132,5 @@ void MediaMovie::doSimilar(const std::string& itemId) {
             this->labelSimilar->setSubtitle(ex);
             brls::Application::notify(ex);
         },
-        jellyfin::apiSimilar, itemId, query);
+        jellyfin::apiSimilar, this->itemId, query);
 }
