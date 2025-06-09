@@ -16,6 +16,7 @@ private:
 enum class EntryType {
     FILE,
     DIR,
+    DEVICE,
     VIDEO,
     AUDIO,
     IMAGE,

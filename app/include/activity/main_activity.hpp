@@ -26,6 +26,8 @@ public:
 
     MainActivity();
 
+    void onContentAvailable() override;
+
 private:
     std::unique_ptr<websocket> ws;
 };

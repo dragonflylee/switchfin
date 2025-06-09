@@ -1,7 +1,6 @@
 #ifdef __SWITCH__
 #include <switch.h>
 #include "utils/overclock.hpp"
-#include "utils/ums.hpp"
 #elif defined(__PSV__)
 #include <psp2/kernel/cpu.h>
 #include <psp2/kernel/threadmgr/thread.h>
@@ -55,6 +54,7 @@ namespace fs = std::experimental::filesystem;
 #include "api/jellyfin.hpp"
 #include "utils/config.hpp"
 #include "utils/misc.hpp"
+#include "utils/ums.hpp"
 #include "view/mpv_core.hpp"
 #include "view/danmaku_core.hpp"
 #include "view/video_view.hpp"
@@ -393,11 +393,9 @@ bool AppConfig::init() {
         SwitchSys::setClock(true);
     };
 #endif
-#if defined(USE_LIBUSBHSFS)
     if (getItem(AppConfig::UMS, false)) {
         Ums::instance().init();
     };
-#endif
 
     // init custom font path
     brls::FontLoader::USER_FONT_PATH = configDir() + "/font.ttf";

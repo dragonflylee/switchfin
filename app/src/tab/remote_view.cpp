@@ -151,6 +151,11 @@ public:
             this->size->setText("main/remote/folder"_i18n);
             return;
         }
+        if (item.type == remote::EntryType::DEVICE) {
+            this->icon->setImageFromSVGRes("icon/ico-folder.svg");
+            this->size->setText(item.path);
+            return;
+        }
         this->size->setText(misc::formatSize(item.fileSize));
         switch (item.type) {
         case remote::EntryType::VIDEO:
@@ -222,7 +227,7 @@ public:
             return;
         }
 
-        if (item.type == remote::EntryType::DIR) {
+        if (item.type == remote::EntryType::DIR || item.type == remote::EntryType::DEVICE) {
             auto* view = dynamic_cast<RemoteView*>(recycler->getParent());
             if (view) view->push(item.path);
             return;
@@ -276,11 +281,8 @@ UmsView::UmsView() : RemoteView(std::make_shared<remote::Local>()) {
         DirList dirs;
         dirs.reserve(r.size());
         for (auto& it : r) {
-            dirs.push_back({
-                .name = it.second.name,
-                .path = it.second.mount_name + "/",
-                .type = remote::EntryType::DIR,
-            });
+            auto t = it.id < 0 ? remote::EntryType::DIR : remote::EntryType::DEVICE;
+            dirs.push_back({.name = it.name, .path = it.mount + "/", .type = t});
         }
         view->setDataSource(new FileDataSource(dirs, this->client));
     });

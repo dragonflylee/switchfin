@@ -6,11 +6,11 @@
 class Ums : public brls::Singleton<Ums> {
 public:
     struct Device {
-        int32_t intf_id;
-        std::string name, mount_name;
+        int32_t id;
+        std::string name, mount;
     };
 
-    using DeviceList = std::unordered_map<int32_t, Device>;
+    using DeviceList = std::vector<Device>;
     using DeviceEvent = brls::Event<const DeviceList &>;
 
 public:
