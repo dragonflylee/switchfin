@@ -149,7 +149,7 @@ parts:
       - -usr/share
 
   libass:
-    source: https://github.com/libass/libass/releases/download/0.17.3/libass-0.17.3.tar.gz
+    source: https://github.com/libass/libass/releases/download/0.17.4/libass-0.17.4.tar.gz
     source-type: tar
     plugin: autotools
     autotools-configure-parameters:

@@ -194,7 +194,10 @@ jobs:
         include:
         - { arch: x86_64, runner: ubuntu-24.04 }
         - { arch: aarch64, runner: ubuntu-24.04-arm }
+        exclude:
+        - { arch: x86_64, driver: gles2 }
         arch: [ x86_64, aarch64 ]
+        driver: [ gl, gles2 ]
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-24.08
       options: --privileged
@@ -206,18 +209,21 @@ jobs:
         submodules: recursive
     - name: Set workspace permissions
       run: git config --system --add safe.directory $GITHUB_WORKSPACE
+    - name: Add OpenGL ES 2.0 build option
+      if: matrix.driver == 'gles2'
+      run: sed -i 's/USE_GLES2=OFF/USE_GLES2=ON/' scripts/flatpak.yaml
     - name: Build flatpak
       uses: flatpak/flatpak-github-actions/flatpak-builder@v6.5
       with:
-        bundle: Switchfin-Linux-${{ matrix.arch }}-${{ github.run_number }}.flatpak
+        bundle: Switchfin-Linux-${{ matrix.arch }}-${{ matrix.driver }}-${{ github.run_number }}.flatpak
         manifest-path: scripts/flatpak.yaml
-        cache-key: flatpak-builder-${{ hashFiles('scripts/flatpak.yaml') }}
+        cache-key: flatpak-${{ matrix.driver }}-${{ hashFiles('scripts/flatpak.yaml') }}
         upload-artifact: false
         arch: ${{ matrix.arch }}
     - name: Upload Assets
       uses: actions/upload-artifact@v4
       with:
-        name: Switchfin-Flatpak-${{ matrix.arch }}-${{ github.run_number }}
+        name: Switchfin-Flatpak-${{ matrix.arch }}-${{ matrix.driver }}-${{ github.run_number }}
         path: Switchfin-*.flatpak
         if-no-files-found: error
 
@@ -341,6 +347,7 @@ jobs:
         shell: msys2 {0}
     steps:
     - uses: msys2/setup-msys2@v2
+      id: msys2
       with:
         msystem: ${{ matrix.sys }}
         path-type: inherit
@@ -363,7 +370,7 @@ jobs:
       shell: powershell
       run: |
         $vcvarsall_path = vswhere.exe -latest -products * -find "VC\Auxiliary\Build\vcvarsall.bat"
-        $cc1_path = Get-ChildItem -Path "C:\msys64\mingw32\lib\gcc" -Filter cc1plus.exe -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
+        $cc1_path = Get-ChildItem -Path "${{ steps.msys2.outputs.msys2-location }}\mingw32\lib\gcc" -Filter cc1plus.exe -Recurse -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
         cmd.exe /c "call ""$vcvarsall_path"" x86_amd64 && editbin /LARGEADDRESSAWARE $cc1_path"
     - name: Build
       env:

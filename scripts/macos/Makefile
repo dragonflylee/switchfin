@@ -26,7 +26,7 @@ download:
 	curl --retry 5 -sSL https://downloads.sourceforge.net/project/freetype/freetype2/2.13.3/freetype-2.13.3.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/11.2.1/harfbuzz-11.2.1.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz | tar Jxf - -C $(TMPDIR)
-	curl --retry 5 -sSL https://github.com/libass/libass/releases/download/0.17.3/libass-0.17.3.tar.xz | tar Jxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://github.com/libass/libass/releases/download/0.17.4/libass-0.17.4.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://downloads.videolan.org/pub/videolan/dav1d/1.5.1/dav1d-1.5.1.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://ffmpeg.org/releases/ffmpeg-7.1.1.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/mpv-player/mpv/archive/v0.40.0.tar.gz | tar zxf - -C $(TMPDIR)
@@ -99,7 +99,7 @@ fribidi:
 	meson install -C build/fribidi
 
 libass: harfbuzz fribidi
-	meson setup build/libass $(TMPDIR)/libass-0.17.3 --default-library=shared \
+	meson setup build/libass $(TMPDIR)/libass-0.17.4 --default-library=shared \
 		--cross-file "$(CURDIR)/$(ARCH).meson" --prefix=$(PREFIX)
 	meson compile -C build/libass
 	meson install -C build/libass

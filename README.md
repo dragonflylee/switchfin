@@ -64,6 +64,12 @@ Switchfin is third-party PC player for Jellyfin that provides a native user inte
 - R Stick Button Toggle Video Quality Select
 - \+ Show video profile
 
+## System Requirements
+
+* Windows 7 or later with DirectX 11.1 support
+* Intel or Apple Silicon Mac models 10.15 or later
+* Linux flatpak x86_64/arm64v8 with OpenGL3 support
+
 ## FAQ
 
 1. Q: Subtitles didn't display?
@@ -114,6 +120,9 @@ Switchfin is third-party PC player for Jellyfin that provides a native user inte
 ```bash
 rclone serve http --addr :8000 --read-only /media/downloads
 ```
+
+4. Q: Can't open app under macOS ?
+   A: Please run this command in your terminal: `sudo xattr -rd com.apple.quarantine /Applications/Switchfin.app`
 
 ## TODO list
 
