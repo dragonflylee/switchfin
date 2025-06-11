@@ -1,5 +1,13 @@
 # Changelog
 
+## [next]
+
+### Fixed
+
+* audio/sub selection when transcode
+* vita: compress image texture
+* movie resume play
+
 ## [0.7.1]
 
 ### Add

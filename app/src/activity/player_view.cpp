@@ -67,7 +67,7 @@ PlayerView::PlayerView(const jellyfin::Item& item, const uint64_t seekTicks) : i
                     }
                 }
             }
-            if (PlayerSetting::selectedSubtitle > 0) {
+            if (PlayerSetting::selectedSubtitle > 0 && this->playMethod == jellyfin::methodDirectPlay) {
                 mpv.setInt("sid", PlayerSetting::selectedSubtitle);
             }
             if (DanmakuCore::PLUGIN_ACTIVE && this->stream.Protocol != "Http") {
@@ -297,12 +297,18 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
         },
     };
 
+    brls::Logger::debug("PlaybackInfo Audio:{} Sub:{}", PlayerSetting::selectedAudio, PlayerSetting::selectedSubtitle);
+
     ASYNC_RETAIN
     jellyfin::postJSON(
         {
             {"UserId", AppConfig::instance().getUserId()},
+            {"MediaSourceId", this->itemId},
             {"AudioStreamIndex", PlayerSetting::selectedAudio},
             {"SubtitleStreamIndex", PlayerSetting::selectedSubtitle},
+#if defined(__PSV__)
+            {"AlwaysBurnInSubtitleWhenTranscoding", true},
+#endif
             {"AllowAudioStreamCopy", true},
             {"DeviceProfile", profile},
         },
