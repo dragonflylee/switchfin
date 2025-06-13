@@ -78,7 +78,18 @@ libplacebo:
 	meson compile -C build/libplacebo
 	meson install -C build/libplacebo
 
-mpv: ffmpeg libplacebo
+hwdata:
+	wget -qO- https://github.com/vcrhonek/hwdata/archive/v0.396.tar.gz | tar zxf - -C $(TMPDIR)
+	cd $(TMPDIR)/hwdata-0.396 && ./configure --disable-blacklist
+	make -C $(TMPDIR)/hwdata-0.396 install
+
+libdisplay-info: hwdata
+	wget -qO- https://gitlab.freedesktop.org/emersion/libdisplay-info/-/releases/0.2.0/downloads/libdisplay-info-0.2.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	meson setup build/libdisplay-info $(TMPDIR)/libdisplay-info-0.2.0 --prefix=$(PREFIX) --libdir=lib --default-library=static
+	meson compile -C build/libdisplay-info
+	meson install -C build/libdisplay-info
+
+mpv: ffmpeg libplacebo libdisplay-info
 	wget -qO- https://github.com/mpv-player/mpv/archive/v0.40.0.tar.gz | tar zxf - -C $(TMPDIR)
 	meson setup build/mpv $(TMPDIR)/mpv-0.40.0 --prefix=$(PREFIX) --libdir=lib \
 		--buildtype=release --default-library=shared -Dlibmpv=true -Dcplayer=false \
