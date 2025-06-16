@@ -5,14 +5,23 @@ TMPDIR ?= /tmp
 DESTDIR=$(CURDIR)/debian/switchfin$(PREFIX)
 export PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig
 
+include /usr/share/dpkg/architecture.mk
+
 WAYLAND := $(if $(shell dpkg -s libxkbcommon-dev 2>/dev/null),ON,OFF)
+
+ifeq ($(DEB_BUILD_ARCH),amd64)
+	FFMPEG_FLAGS=--enable-asm --enable-nvdec --enable-ffnvcodec
+else
+	FFMPEG_FLAGS=--enable-neon --enable-v4l2_m2m --enable-libudev --enable-v4l2-request
+	CMAKE_FLAGS=-DUSE_GLES3=ON
+endif
 
 mbedtls:
 	wget -qO- https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.3/mbedtls-3.6.3.tar.bz2 | tar jxf - -C $(TMPDIR)
 	cmake -B build/mbedtls -G Ninja -S $(TMPDIR)/mbedtls-3.6.3 -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_RPATH=$(PREFIX)/lib \
-		-DUSE_SHARED_MBEDTLS_LIBRARY=ON -DUSE_STATIC_MBEDTLS_LIBRARY=OFF \
-		-DENABLE_PROGRAMS=OFF -DENABLE_TESTING=OFF
+		-DUSE_SHARED_MBEDTLS_LIBRARY=OFF -DUSE_STATIC_MBEDTLS_LIBRARY=ON \
+		-DENABLE_PROGRAMS=OFF -DENABLE_TESTING=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 	cmake --build build/mbedtls
 	cmake --install build/mbedtls
 
@@ -42,39 +51,43 @@ libssh2:
 	wget -qO- https://libssh2.org/download/libssh2-1.11.1.tar.xz | tar Jxf - -C $(TMPDIR)
 	cmake -B build/libssh2 -G Ninja -S $(TMPDIR)/libssh2-1.11.1 -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_RPATH=$(PREFIX)/lib \
-		-DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=OFF -DCRYPTO_BACKEND=mbedTLS \
-		-DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF
+		-DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON -DCRYPTO_BACKEND=mbedTLS \
+		-DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 	cmake --build build/libssh2
 	cmake --install build/libssh2
 
 dav1d:
 	wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.5.1/dav1d-1.5.1.tar.xz | tar Jxf - -C $(TMPDIR)
 	meson setup build/dav1d $(TMPDIR)/dav1d-1.5.1 --prefix=$(PREFIX) --libdir=lib \
-		--buildtype=release --default-library=shared \
-		-Denable_tools=false -Denable_examples=false -Denable_tests=false -Denable_docs=false
+		--buildtype=release --default-library=shared -Denable_tools=false \
+		-Denable_examples=false -Denable_tests=false -Denable_docs=false
 	meson compile -C build/dav1d
 	meson install -C build/dav1d
 
-ffmpeg: libssh2 dav1d
+nv-codec-headers:
+	wget -qO- https://github.com/FFmpeg/nv-codec-headers/archive/n13.0.19.0.tar.gz | tar zxf - -C $(TMPDIR)
+	make -C $(TMPDIR)/nv-codec-headers-n13.0.19.0 PREFIX=$(PREFIX) install
+
+ffmpeg: libssh2 dav1d nv-codec-headers
 	wget -qO- https://ffmpeg.org/releases/ffmpeg-7.1.1.tar.xz | tar Jxf - -C $(TMPDIR)
+	patch -d $(TMPDIR)/ffmpeg-7.1.1 -Nbp1 -i $(CURDIR)/scripts/patches/ffmpeg-v4l2-request.patch
+	patch -d $(TMPDIR)/ffmpeg-7.1.1 -Nbp1 -i $(CURDIR)/scripts/patches/ffmpeg-v4l2-drmprime.patch
 	patch -d $(TMPDIR)/ffmpeg-7.1.1 -Nbp1 -i $(CURDIR)/scripts/mingw64/ffmpeg/avio.patch
 	mkdir -p build/ffmpeg && cd build/ffmpeg && \
 	$(TMPDIR)/ffmpeg-7.1.1/configure --prefix=$(PREFIX) --enable-shared --disable-static --enable-rpath \
-		--disable-programs --disable-debug --disable-doc --disable-autodetect --enable-pic --enable-asm \
-		--disable-avdevice --enable-libv4l2 --enable-vaapi --enable-vdpau --disable-encoders --disable-muxers \
-		--enable-libdrm --enable-libssh2 --enable-zlib --enable-libfreetype --enable-libass --enable-libdav1d \
+		--enable-pthreads --enable-runtime-cpudetect --pkg-config-flags=--static $(FFMPEG_FLAGS)\
+		--disable-programs --disable-debug --disable-doc --disable-autodetect --enable-pic --disable-avdevice \
+		--enable-libdrm --enable-vaapi --enable-vdpau --disable-encoders --disable-muxers \
+		--enable-libssh2 --enable-zlib --enable-libass --enable-libdav1d --enable-mbedtls --enable-version3 \
 		--disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,ftp,libssh2,rtp,crypto,httpproxy \
-		--disable-filters --enable-filter=hflip,vflip,transpose_vaapi,deinterlace_vaapi,denoise_vaapi,sharpness_vaapi \
-		--enable-mbedtls --enable-version3 --enable-opengl
-		
+		--disable-filters --enable-filter=hflip,vflip,transpose_vaapi,deinterlace_vaapi,denoise_vaapi,sharpness_vaapi
 	make -C build/ffmpeg -j$(shell nproc)
 	make -C build/ffmpeg install
 
 libplacebo:
 	git clone https://github.com/haasn/libplacebo.git -b v7.351.0 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
-	meson setup build/libplacebo $(TMPDIR)/libplacebo --prefix=$(PREFIX) --libdir=lib \
-		--buildtype=release --default-library=shared \
-		-Ddemos=false -Dtests=false -Dlcms=disabled -Dvulkan=disabled
+	meson setup build/libplacebo $(TMPDIR)/libplacebo --prefix=$(PREFIX) --libdir=lib --buildtype=release \
+		--default-library=static -Ddovi=enabled -Ddemos=false -Dtests=false -Dlcms=disabled -Dvulkan=disabled
 	meson compile -C build/libplacebo
 	meson install -C build/libplacebo
 
@@ -109,7 +122,9 @@ override_dh_auto_configure:
 		-DCUSTOM_RESOURCES_DIR=$(PREFIX) \
 		-DPLATFORM_DESKTOP=ON \
 		-DCMAKE_INSTALL=ON \
-		-DUSE_SYSTEM_GLFW=ON
+		-DUSE_SYSTEM_GLFW=ON \
+		-DUSE_SYSTEM_CURL=ON \
+		$(CMAKE_FLAGS)
 
 override_dh_auto_test:
 

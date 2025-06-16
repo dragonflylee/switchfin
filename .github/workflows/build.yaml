@@ -232,17 +232,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - { img: ubuntu, tag: focal }
         - { img: ubuntu, tag: noble }
         - { img: debian, tag: bookworm }
         - { arch: x86_64, runner: ubuntu-24.04 }
         - { arch: aarch64, runner: ubuntu-24.04-arm }
         arch: [ x86_64, aarch64 ]
-        tag: [ focal, noble, bookworm ]
+        tag: [ noble, bookworm ]
     runs-on: ${{ matrix.runner }}
     container:
       image: ghcr.io/${{ github.repository_owner }}/build:${{ matrix.img }}-${{ matrix.tag }}
-    if: ${{ inputs.platform == 'deb' }}
+    if: ${{ inputs.platform == 'deb' || github.event_name != 'workflow_dispatch' }}
     steps:
     - uses: actions/checkout@v4
       with:
