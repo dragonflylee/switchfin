@@ -1,12 +1,13 @@
 # Changelog
 
-## [next]
+## [0.7.2]
 
 ### Fixed
 
 * audio/sub selection when transcode
 * vita: compress image texture
-* movie resume play
+* resume play on movie tab
+* linux/macos fixed zero-copy hwdec
 
 ## [0.7.1]
 
