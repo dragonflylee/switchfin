@@ -18,5 +18,5 @@ Vcs-Git: https://github.com/dragonflylee/switchfin.git
 Package: switchfin
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Architecture: any
-Recommends: va-driver-all, vdpau-driver-all
+Recommends: va-driver-all
 Description: Third-party native Jellyfin client for Nintendo Switch

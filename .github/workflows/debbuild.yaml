@@ -12,10 +12,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - { img: ubuntu, tag: focal, file: debian/Dockerfile.focal }
         - { img: ubuntu, tag: noble }
-        - { img: debian, tag: bookworm, file: debian/Dockerfile.bookworm }
-        tag: [ focal, noble, bookworm ]
+        - { img: debian, tag: bookworm }
+        tag: [ noble, bookworm ]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -34,7 +33,6 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         context: debian
-        file: ${{ matrix.file }}
         push: true
         provenance: false
         platforms: linux/amd64,linux/arm64

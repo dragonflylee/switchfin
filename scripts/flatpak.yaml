@@ -43,6 +43,7 @@ modules:
       - -Dtests=false
       - -Dlibarchive=disabled
       - -Dmanpage-build=disabled
+      - -Dlua=disabled
       - -Dvulkan=disabled
     sources:
       - type: archive
@@ -68,7 +69,7 @@ modules:
 
       - name: libdisplay-info
         cleanup:
-          - /bin/di-edid-decode
+          - /bin
         buildsystem: meson
         sources:
           - type: archive
@@ -137,7 +138,6 @@ modules:
           - --disable-static
           - --enable-gnutls
           - --enable-gpl
-          - --enable-asm
           - --disable-autodetect
           - --disable-doc
           - --disable-programs
@@ -151,6 +151,11 @@ modules:
           - --enable-libdrm
           - --enable-vaapi
           - --enable-vdpau
+          - --enable-nvdec
+          - --enable-ffnvcodec
+          - --enable-v4l2_m2m
+          - --enable-libudev
+          - --enable-v4l2-request
           - --enable-libdav1d
           - --enable-zlib
           - --enable-bzlib
@@ -163,6 +168,10 @@ modules:
               type: anitya
               project-id: 5405
               url-template: https://ffmpeg.org/releases/ffmpeg-$version.tar.xz
+          - type: patch
+            path: patches/ffmpeg-v4l2-request.patch
+          - type: patch
+            path: patches/ffmpeg-v4l2-drmprime.patch
           - type: patch
             path: mingw64/ffmpeg/avio.patch
         modules:
