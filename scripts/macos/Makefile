@@ -120,8 +120,7 @@ ffmpeg: mbedtls libass dav1d
 		--extra-cxxflags="-arch $(ARCH) -mmacosx-version-min=$(OSX_TARGET)" \
 		--extra-ldflags="-arch $(ARCH) -mmacosx-version-min=$(OSX_TARGET)" \
 		--disable-autodetect --disable-encoders --enable-pic --disable-asm \
-		--disable-programs --disable-doc --disable-debug --disable-avdevice \
-		--disable-filters --enable-filter=hflip,vflip,transpose --disable-muxers \
+		--disable-programs --disable-doc --disable-debug --disable-avdevice --disable-muxers \
 		--disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,httpproxy \
 		--disable-libjack --disable-indev=jack --disable-postproc --enable-network \
 		--enable-libdav1d --enable-libass --enable-libfreetype --enable-zlib --enable-bzlib \

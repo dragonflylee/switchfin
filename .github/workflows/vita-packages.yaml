@@ -3,7 +3,6 @@ name: vita-packages
 on:
   push:
     tags: [ vita-packages ]
-    paths: [ scripts/vita/** ]
 
 permissions:
   contents: write

@@ -59,7 +59,6 @@ build() {
     --disable-avdevice \
     --disable-encoders \
     --disable-muxers \
-    --disable-filters \
     --enable-swscale \
     --enable-swresample \
     --enable-network  \
@@ -67,7 +66,6 @@ build() {
     --enable-dxva2 \
     --enable-d3d11va \
     --enable-protocol=file,http,tcp,udp,hls,https,tls,ftp,libssh2,rtp,crypto,httpproxy \
-    --enable-filter=hflip,vflip,transpose \
     --enable-zlib \
     --enable-bzlib \
     --enable-libass \

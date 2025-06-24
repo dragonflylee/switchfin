@@ -3,7 +3,6 @@ name: switch-portlibs
 on:
   push:
     tags: [ switch-portlibs ]
-    paths: [ scripts/switch/** ]
 
 permissions:
   contents: write

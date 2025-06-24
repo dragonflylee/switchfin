@@ -56,6 +56,28 @@ libssh2:
 	cmake --build build/libssh2
 	cmake --install build/libssh2
 
+harfbuzz:
+	wget -qO- https://github.com/harfbuzz/harfbuzz/releases/download/11.2.1/harfbuzz-11.2.1.tar.xz | tar Jxf - -C $(TMPDIR)
+	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-11.2.1 --prefix=$(PREFIX) --libdir=lib \
+	    --buildtype=release --default-library=static -Dtests=disabled -Ddocs=disabled -Dicu=disabled \
+		-Dcairo=disabled -Dgobject=disabled -Dbenchmark=disabled -Dutilities=disabled
+	meson compile -C build/harfbuzz
+	meson install -C build/harfbuzz
+
+fribidi:
+	wget -qO- https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz | tar Jxf - -C $(TMPDIR)
+	meson setup build/fribidi $(TMPDIR)/fribidi-1.0.16 --prefix=$(PREFIX) --libdir=lib \
+	    --buildtype=release --default-library=static -Dbin=false -Ddocs=false -Dtests=false
+	meson compile -C build/fribidi
+	meson install -C build/fribidi
+
+libass: harfbuzz fribidi
+	wget -qO- https://github.com/libass/libass/releases/download/0.17.4/libass-0.17.4.tar.xz | tar Jxf - -C $(TMPDIR)
+	meson setup build/libass $(TMPDIR)/libass-0.17.4 --prefix=$(PREFIX) --libdir=lib \
+	    --buildtype=release --default-library=shared
+	meson compile -C build/libass
+	meson install -C build/libass
+
 dav1d:
 	wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.5.1/dav1d-1.5.1.tar.xz | tar Jxf - -C $(TMPDIR)
 	meson setup build/dav1d $(TMPDIR)/dav1d-1.5.1 --prefix=$(PREFIX) --libdir=lib \
@@ -68,19 +90,18 @@ nv-codec-headers:
 	wget -qO- https://github.com/FFmpeg/nv-codec-headers/archive/n13.0.19.0.tar.gz | tar zxf - -C $(TMPDIR)
 	make -C $(TMPDIR)/nv-codec-headers-n13.0.19.0 PREFIX=$(PREFIX) install
 
-ffmpeg: libssh2 dav1d nv-codec-headers
+ffmpeg: libssh2 libass dav1d nv-codec-headers
 	wget -qO- https://ffmpeg.org/releases/ffmpeg-7.1.1.tar.xz | tar Jxf - -C $(TMPDIR)
 	patch -d $(TMPDIR)/ffmpeg-7.1.1 -Nbp1 -i $(CURDIR)/scripts/patches/ffmpeg-v4l2-request.patch
 	patch -d $(TMPDIR)/ffmpeg-7.1.1 -Nbp1 -i $(CURDIR)/scripts/patches/ffmpeg-v4l2-drmprime.patch
 	patch -d $(TMPDIR)/ffmpeg-7.1.1 -Nbp1 -i $(CURDIR)/scripts/mingw64/ffmpeg/avio.patch
 	mkdir -p build/ffmpeg && cd build/ffmpeg && \
-	$(TMPDIR)/ffmpeg-7.1.1/configure --prefix=$(PREFIX) --enable-shared --disable-static --enable-rpath \
-		--enable-pthreads --enable-runtime-cpudetect --pkg-config-flags=--static $(FFMPEG_FLAGS)\
+	$(TMPDIR)/ffmpeg-7.1.1/configure --prefix=$(PREFIX) --incdir=/usr/include --enable-shared --disable-static \
+		--enable-pthreads --enable-runtime-cpudetect --pkg-config-flags=--static --enable-rpath $(FFMPEG_FLAGS)\
 		--disable-programs --disable-debug --disable-doc --disable-autodetect --enable-pic --disable-avdevice \
 		--enable-libdrm --enable-vaapi --enable-vdpau --disable-encoders --disable-muxers \
 		--enable-libssh2 --enable-zlib --enable-libass --enable-libdav1d --enable-mbedtls --enable-version3 \
-		--disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,ftp,libssh2,rtp,crypto,httpproxy \
-		--disable-filters --enable-filter=hflip,vflip,transpose_vaapi,deinterlace_vaapi,denoise_vaapi,sharpness_vaapi
+		--disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,ftp,libssh2,rtp,crypto,httpproxy
 	make -C build/ffmpeg -j$(shell nproc)
 	make -C build/ffmpeg install
 
@@ -104,6 +125,7 @@ libdisplay-info: hwdata
 
 mpv: ffmpeg libplacebo libdisplay-info
 	wget -qO- https://github.com/mpv-player/mpv/archive/v0.40.0.tar.gz | tar zxf - -C $(TMPDIR)
+	patch -d $(TMPDIR)/mpv-0.40.0 -Nbp1 -i $(CURDIR)/scripts/patches/mpv-v4l2request.patch
 	meson setup build/mpv $(TMPDIR)/mpv-0.40.0 --prefix=$(PREFIX) --libdir=lib \
 		--buildtype=release --default-library=shared -Dlibmpv=true -Dcplayer=false \
 		-Dtests=false -Dlibarchive=disabled -Dlua=disabled -Dvulkan=disabled

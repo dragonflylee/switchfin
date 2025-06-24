@@ -8,7 +8,6 @@ Build-Depends: debhelper (>= 10),
                xorg-dev,
                libdbus-1-dev,
                libwebp-dev,
-               libass-dev,
                libuchardet-dev,
                libxpresent-dev,
                libpulse-dev

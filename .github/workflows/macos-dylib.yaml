@@ -3,7 +3,6 @@ name: macos-dylib
 on:
   push:
     tags: [ macos-dylib ]
-    paths: [ scripts/macos/* ]
 
 permissions:
   contents: write

@@ -39,8 +39,6 @@ build() {
         --enable-network \
         --disable-protocols \
         --enable-protocol='file,http,tcp,tls,hls,https,ftp,rtp,crypto,httpproxy' \
-        --disable-filters \
-        --enable-filter='hflip,vflip,transpose' \
         --disable-iconv \
         --disable-lzma \
         --disable-sdl2 \

@@ -54,6 +54,8 @@ modules:
           project-id: 5348
           stable-only: true
           url-template: https://github.com/mpv-player/mpv/archive/v$version.tar.gz
+      - type: patch
+        path: patches/mpv-v4l2request.patch
     modules:
       - name: libXpresent
         buildsystem: autotools
@@ -144,9 +146,7 @@ modules:
           - --disable-protocols
           - --disable-encoders
           - --disable-muxers
-          - --disable-filters
           - --enable-protocol=file,http,tcp,udp,hls,https,tls,ftp,libssh2,rtp,crypto,httpproxy
-          - --enable-filter=hflip,vflip,transpose_vaapi,deinterlace_vaapi,denoise_vaapi,sharpness_vaapi
           - --enable-libssh2
           - --enable-libdrm
           - --enable-vaapi
