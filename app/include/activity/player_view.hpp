@@ -31,6 +31,7 @@ private:
 
     // Playinfo
     std::string itemId;
+    std::string itemType;
     /// @brief DirectPlay, Transcode
     std::string playMethod;
     std::string playSessionId;

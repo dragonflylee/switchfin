@@ -11,7 +11,7 @@
 
 using namespace brls::literals;
 
-PlayerView::PlayerView(const jellyfin::Item& item, const uint64_t seekTicks) : itemId(item.Id) {
+PlayerView::PlayerView(const jellyfin::Item& item, const uint64_t seekTicks) : itemId(item.Id), itemType(item.Type) {
     float width = brls::Application::contentWidth;
     float height = brls::Application::contentHeight;
     view = new VideoView();
@@ -303,7 +303,7 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
     jellyfin::postJSON(
         {
             {"UserId", AppConfig::instance().getUserId()},
-            {"MediaSourceId", this->itemId},
+            {"MediaSourceId", this->itemType == jellyfin::mediaTypeTvChannel ? nullptr : this->itemId},
             {"AudioStreamIndex", PlayerSetting::selectedAudio},
             {"SubtitleStreamIndex", PlayerSetting::selectedSubtitle},
 #if defined(__PSV__)
