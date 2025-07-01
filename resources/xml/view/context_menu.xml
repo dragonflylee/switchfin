@@ -1,0 +1,45 @@
+<brls:Box
+    width="auto"
+    height="auto"
+    justifyContent="flexEnd"
+    backgroundColor="@theme/brls/backdrop">
+
+    <brls:Box
+        id="video/cancel"
+        height="100%"
+        hideClickAnimation="true"
+        grow="1" />
+
+    <brls:Box
+        width="350"
+        height="100%"
+        axis="column"
+        backgroundColor="@theme/brls/background">
+
+        <brls:ScrollingFrame
+            id="video/context/menu"
+            width="100%"
+            grow="1"
+            scrollingBehavior="centered">
+
+            <brls:Box
+                width="100%"
+                height="auto"
+                axis="column"
+                paddingTop="@style/main/content_padding_top_bottom"
+                paddingLeft="@style/main/content_padding_sides"
+                paddingRight="@style/main/content_padding_sides"
+                paddingBottom="@style/main/content_padding_top_bottom"
+                alignItems="stretch">
+
+                <brls:RadioCell
+                    title="@i18n/main/media/add_favorite"
+                    id="menu/favorite" />
+                <brls:RadioCell
+                    title="@i18n/main/media/mark_played"
+                    id="menu/mark/play" />
+
+            </brls:Box>
+        </brls:ScrollingFrame>
+    </brls:Box>
+</brls:Box>

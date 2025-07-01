@@ -28,7 +28,7 @@ public:
 
 class VideoCardCell : public BaseCardCell {
 public:
-    VideoCardCell() { this->inflateFromXMLRes("xml/view/video_card.xml"); }
+    VideoCardCell();
 
     static VideoCardCell* create() { return new VideoCardCell(); }
 
