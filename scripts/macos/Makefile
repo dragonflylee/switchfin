@@ -19,8 +19,8 @@ clean:
 	@rm -rf build
 
 download:
-	curl --retry 5 -sSL https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.3/mbedtls-3.6.3.tar.bz2 | tar jxf - -C $(TMPDIR)
-	curl --retry 5 -sSL https://curl.se/download/curl-8.13.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.4/mbedtls-3.6.4.tar.bz2 | tar jxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://curl.se/download/curl-8.14.1.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/webmproject/libwebp/archive/v1.5.0.tar.gz | tar zxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/dragonflylee/glfw/archive/switchfin.tar.gz | tar zxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://downloads.sourceforge.net/project/freetype/freetype2/2.13.3/freetype-2.13.3.tar.xz | tar Jxf - -C $(TMPDIR)
@@ -34,7 +34,7 @@ download:
 	patch -d $(TMPDIR)/mpv-0.40.0 -Nbp1 -i $(CURDIR)/mpv.patch
 
 curl:
-	cmake -B build/curl -S $(TMPDIR)/curl-8.13.0 -G Ninja -DCMAKE_BUILD_TYPE=Release \
+	cmake -B build/curl -S $(TMPDIR)/curl-8.14.1 -G Ninja -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_OSX_ARCHITECTURES=$(ARCH) -DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_TARGET) \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_NAME_DIR=$(PREFIX)/lib \
 		-DHTTP_ONLY=ON -DCURL_DISABLE_PROGRESS_METER=ON -DCURL_USE_SECTRANSP=ON \
@@ -58,7 +58,7 @@ glfw:
 	cmake --install build/glfw
 
 mbedtls:
-	cmake -B build/mbedtls -S $(TMPDIR)/mbedtls-3.6.3 -G Ninja -DCMAKE_BUILD_TYPE=Release \
+	cmake -B build/mbedtls -S $(TMPDIR)/mbedtls-3.6.4 -G Ninja -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_OSX_ARCHITECTURES=$(ARCH) -DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_TARGET) \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_NAME_DIR=$(PREFIX)/lib \
 		-DUSE_SHARED_MBEDTLS_LIBRARY=OFF -DUSE_STATIC_MBEDTLS_LIBRARY=ON \

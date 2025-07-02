@@ -1,156 +1,43 @@
 #!/usr/bin/make -f
 
-PREFIX ?= /opt/switchfin
 TMPDIR ?= /tmp
-DESTDIR=$(CURDIR)/debian/switchfin$(PREFIX)
-export PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig
 
 include /usr/share/dpkg/architecture.mk
 
 WAYLAND := $(if $(shell dpkg -s libxkbcommon-dev 2>/dev/null),ON,OFF)
-
-ifeq ($(DEB_BUILD_ARCH),amd64)
-	FFMPEG_FLAGS=--enable-asm --enable-nvdec --enable-ffnvcodec
-else
-	FFMPEG_FLAGS=--enable-neon --enable-v4l2_m2m --enable-libudev --enable-v4l2-request
+ifneq ($(DEB_BUILD_ARCH),amd64)
 	CMAKE_FLAGS=-DUSE_GLES3=ON
 endif
 
-mbedtls:
-	wget -qO- https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.3/mbedtls-3.6.3.tar.bz2 | tar jxf - -C $(TMPDIR)
-	cmake -B build/mbedtls -G Ninja -S $(TMPDIR)/mbedtls-3.6.3 -DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_RPATH=$(PREFIX)/lib \
-		-DUSE_SHARED_MBEDTLS_LIBRARY=OFF -DUSE_STATIC_MBEDTLS_LIBRARY=ON \
-		-DENABLE_PROGRAMS=OFF -DENABLE_TESTING=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-	cmake --build build/mbedtls
-	cmake --install build/mbedtls
-
-curl: mbedtls
-	wget -qO- https://curl.se/download/curl-8.13.0.tar.xz | tar Jxf - -C $(TMPDIR)
-	cmake -B build/curl -G Ninja -S $(TMPDIR)/curl-8.13.0 -DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_RPATH=$(PREFIX)/lib \
-		-DBUILD_SHARED_LIBS=ON -DHTTP_ONLY=ON -DCURL_DISABLE_PROGRESS_METER=ON -DCURL_USE_MBEDTLS=ON \
+curl:
+	wget -qO- https://curl.se/download/curl-8.14.1.tar.xz | tar Jxf - -C $(TMPDIR)
+	cmake -B build-curl -G Ninja -S $(TMPDIR)/curl-8.14.1 -DCMAKE_BUILD_TYPE=Release \
+		-DBUILD_SHARED_LIBS=OFF -DHTTP_ONLY=ON -DCURL_DISABLE_PROGRESS_METER=ON -DCURL_USE_OPENSSL=ON \
 		-DBUILD_CURL_EXE=OFF -DUSE_NGHTTP2=OFF -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF \
 		-DBUILD_LIBCURL_DOCS=OFF -DBUILD_MISC_DOCS=OFF -DENABLE_CURL_MANUAL=OFF \
 		-DUSE_LIBIDN2=OFF -DCURL_USE_LIBSSH2=OFF -DCURL_BROTLI=OFF -DCURL_ZSTD=OFF -DCURL_USE_LIBPSL=OFF
-	cmake --build build/curl
-	cmake --install build/curl
+	cmake --build build-curl
+	cmake --install build-curl
 
 glfw:
 	wget -qO- https://github.com/dragonflylee/glfw/archive/switchfin.tar.gz | tar zxf - -C $(TMPDIR)
 	cmake -P $(TMPDIR)/glfw-switchfin/CMake/GenerateMappings.cmake \
 		$(TMPDIR)/glfw-switchfin/src/mappings.h.in $(TMPDIR)/glfw-switchfin/src/mappings.h
-	cmake -B build/glfw -G Ninja -S $(TMPDIR)/glfw-switchfin -DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_RPATH=$(PREFIX)/lib \
-		-DBUILD_SHARED_LIBS=ON -DGLFW_BUILD_X11=ON -DGLFW_BUILD_WAYLAND=$(WAYLAND) \
+	cmake -B build-glfw -G Ninja -S $(TMPDIR)/glfw-switchfin -DCMAKE_BUILD_TYPE=Release \
+		-DBUILD_SHARED_LIBS=OFF -DGLFW_BUILD_X11=ON -DGLFW_BUILD_WAYLAND=$(WAYLAND) \
 		-DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_DOCS=OFF
-	cmake --build build/glfw
-	cmake --install build/glfw
-
-libssh2:
-	wget -qO- https://libssh2.org/download/libssh2-1.11.1.tar.xz | tar Jxf - -C $(TMPDIR)
-	cmake -B build/libssh2 -G Ninja -S $(TMPDIR)/libssh2-1.11.1 -DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_RPATH=$(PREFIX)/lib \
-		-DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON -DCRYPTO_BACKEND=mbedTLS \
-		-DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-	cmake --build build/libssh2
-	cmake --install build/libssh2
-
-harfbuzz:
-	wget -qO- https://github.com/harfbuzz/harfbuzz/releases/download/11.2.1/harfbuzz-11.2.1.tar.xz | tar Jxf - -C $(TMPDIR)
-	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-11.2.1 --prefix=$(PREFIX) --libdir=lib \
-	    --buildtype=release --default-library=static -Dtests=disabled -Ddocs=disabled -Dicu=disabled \
-		-Dcairo=disabled -Dgobject=disabled -Dbenchmark=disabled -Dutilities=disabled
-	meson compile -C build/harfbuzz
-	meson install -C build/harfbuzz
-
-fribidi:
-	wget -qO- https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz | tar Jxf - -C $(TMPDIR)
-	meson setup build/fribidi $(TMPDIR)/fribidi-1.0.16 --prefix=$(PREFIX) --libdir=lib \
-	    --buildtype=release --default-library=static -Dbin=false -Ddocs=false -Dtests=false
-	meson compile -C build/fribidi
-	meson install -C build/fribidi
-
-libass: harfbuzz fribidi
-	wget -qO- https://github.com/libass/libass/releases/download/0.17.4/libass-0.17.4.tar.xz | tar Jxf - -C $(TMPDIR)
-	meson setup build/libass $(TMPDIR)/libass-0.17.4 --prefix=$(PREFIX) --libdir=lib \
-	    --buildtype=release --default-library=shared
-	meson compile -C build/libass
-	meson install -C build/libass
-
-dav1d:
-	wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.5.1/dav1d-1.5.1.tar.xz | tar Jxf - -C $(TMPDIR)
-	meson setup build/dav1d $(TMPDIR)/dav1d-1.5.1 --prefix=$(PREFIX) --libdir=lib \
-		--buildtype=release --default-library=shared -Denable_tools=false \
-		-Denable_examples=false -Denable_tests=false -Denable_docs=false
-	meson compile -C build/dav1d
-	meson install -C build/dav1d
-
-nv-codec-headers:
-	wget -qO- https://github.com/FFmpeg/nv-codec-headers/archive/n13.0.19.0.tar.gz | tar zxf - -C $(TMPDIR)
-	make -C $(TMPDIR)/nv-codec-headers-n13.0.19.0 PREFIX=$(PREFIX) install
-
-ffmpeg: libssh2 libass dav1d nv-codec-headers
-	wget -qO- https://ffmpeg.org/releases/ffmpeg-7.1.1.tar.xz | tar Jxf - -C $(TMPDIR)
-	patch -d $(TMPDIR)/ffmpeg-7.1.1 -Nbp1 -i $(CURDIR)/scripts/patches/ffmpeg-v4l2-request.patch
-	patch -d $(TMPDIR)/ffmpeg-7.1.1 -Nbp1 -i $(CURDIR)/scripts/patches/ffmpeg-v4l2-drmprime.patch
-	patch -d $(TMPDIR)/ffmpeg-7.1.1 -Nbp1 -i $(CURDIR)/scripts/mingw64/ffmpeg/avio.patch
-	mkdir -p build/ffmpeg && cd build/ffmpeg && \
-	$(TMPDIR)/ffmpeg-7.1.1/configure --prefix=$(PREFIX) --incdir=/usr/include --enable-shared --disable-static \
-		--enable-pthreads --enable-runtime-cpudetect --pkg-config-flags=--static --enable-rpath $(FFMPEG_FLAGS)\
-		--disable-programs --disable-debug --disable-doc --disable-autodetect --enable-pic --disable-avdevice \
-		--enable-libdrm --enable-vaapi --enable-vdpau --disable-encoders --disable-muxers \
-		--enable-libssh2 --enable-zlib --enable-libass --enable-libdav1d --enable-mbedtls --enable-version3 \
-		--disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,ftp,libssh2,rtp,crypto,httpproxy
-	make -C build/ffmpeg -j$(shell nproc)
-	make -C build/ffmpeg install
-
-libplacebo:
-	git clone https://github.com/haasn/libplacebo.git -b v7.351.0 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
-	meson setup build/libplacebo $(TMPDIR)/libplacebo --prefix=$(PREFIX) --libdir=lib --buildtype=release \
-		--default-library=static -Ddovi=enabled -Ddemos=false -Dtests=false -Dlcms=disabled -Dvulkan=disabled
-	meson compile -C build/libplacebo
-	meson install -C build/libplacebo
-
-hwdata:
-	wget -qO- https://github.com/vcrhonek/hwdata/archive/v0.396.tar.gz | tar zxf - -C $(TMPDIR)
-	cd $(TMPDIR)/hwdata-0.396 && ./configure --disable-blacklist
-	make -C $(TMPDIR)/hwdata-0.396 install
-
-libdisplay-info: hwdata
-	wget -qO- https://gitlab.freedesktop.org/emersion/libdisplay-info/-/releases/0.2.0/downloads/libdisplay-info-0.2.0.tar.xz | tar Jxf - -C $(TMPDIR)
-	meson setup build/libdisplay-info $(TMPDIR)/libdisplay-info-0.2.0 --prefix=$(PREFIX) --libdir=lib --default-library=static
-	meson compile -C build/libdisplay-info
-	meson install -C build/libdisplay-info
-
-mpv: ffmpeg libplacebo libdisplay-info
-	wget -qO- https://github.com/mpv-player/mpv/archive/v0.40.0.tar.gz | tar zxf - -C $(TMPDIR)
-	patch -d $(TMPDIR)/mpv-0.40.0 -Nbp1 -i $(CURDIR)/scripts/patches/mpv-v4l2request.patch
-	meson setup build/mpv $(TMPDIR)/mpv-0.40.0 --prefix=$(PREFIX) --libdir=lib \
-		--buildtype=release --default-library=shared -Dlibmpv=true -Dcplayer=false \
-		-Dtests=false -Dlibarchive=disabled -Dlua=disabled -Dvulkan=disabled
-	meson compile -C build/mpv
-	meson install -C build/mpv
+	cmake --build build-glfw
+	cmake --install build-glfw
 
 %:
 	dh $@ --buildsystem=cmake+ninja --builddirectory=build
 
-override_dh_auto_configure:
+override_dh_auto_configure: curl glfw
 	dh_auto_configure -- \
-		-DCMAKE_INSTALL_PREFIX=$(PREFIX) \
-		-DCMAKE_INSTALL_RPATH=$(PREFIX)/lib \
-		-DCMAKE_INSTALL_SHARE_DIR=/usr/share \
-		-DCMAKE_PREFIX_PATH=$(PREFIX) \
-		-DCUSTOM_RESOURCES_DIR=$(PREFIX) \
+		-DCMAKE_INSTALL_PREFIX=/usr \
 		-DPLATFORM_DESKTOP=ON \
 		-DCMAKE_INSTALL=ON \
 		-DUSE_SYSTEM_GLFW=ON \
-		-DUSE_SYSTEM_CURL=ON \
-		$(CMAKE_FLAGS)
+		-DUSE_SYSTEM_CURL=ON $(CMAKE_FLAGS)
 
 override_dh_auto_test:
-
-override_dh_shlibdeps:
-	mkdir -p $(DESTDIR)/lib && ldd $(DESTDIR)/bin/Switchfin | \
-		grep '$(PREFIX)' | awk '{print $$3}' | xargs install -t $(DESTDIR)/lib
-	dh_shlibdeps -l$(PREFIX)/lib --dpkg-shlibdeps-params=--ignore-missing-info

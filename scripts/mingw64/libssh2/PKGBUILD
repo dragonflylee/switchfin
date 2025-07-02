@@ -1,0 +1,45 @@
+# Maintainer: Alexey Pavlov <alexpux@gmail.com>
+
+_realname=libssh2
+pkgbase=mingw-w64-${_realname}
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}-mbedtls"
+pkgver=1.11.1
+pkgrel=1
+pkgdesc="A library implementing the SSH2 protocol as defined by Internet Drafts (mingw-w64)"
+provides=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}" "${MINGW_PACKAGE_PREFIX}-${_realname}-wincng")
+arch=('any')
+mingw_arch=('mingw32' 'mingw64' 'clangarm64')
+url="https://libssh2.org/"
+msys2_references=(
+  'cpe: cpe:/a:libssh2:libssh2'
+)
+msys2_repository_url='https://github.com/libssh2/libssh2'
+license=("spdx:BSD-3-Clause")
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-mbedtls"
+)
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "${MINGW_PACKAGE_PREFIX}-cmake"
+  "${MINGW_PACKAGE_PREFIX}-zlib"
+)
+source=("https://github.com/libssh2/libssh2/releases/download/${_realname}-${pkgver}/${_realname}-${pkgver}.tar.xz")
+sha256sums=('9954cb54c4f548198a7cbebad248bdc87dd64bd26185708a294b2b50771e3769')
+
+build() {
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    ${MINGW_PREFIX}/bin/cmake.exe -B "build-${MSYSTEM}" -G Ninja \
+      -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}" \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_DLL_NAME_WITH_SOVERSION=ON \
+      -DBUILD_EXAMPLES=OFF \
+      -DBUILD_TESTING=OFF \
+      -DCRYPTO_BACKEND=mbedTLS \
+      "${srcdir}/${_realname}-${pkgver}"
+  ${MINGW_PREFIX}/bin/cmake.exe --build "build-${MSYSTEM}"
+}
+
+package() {
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake.exe --install "build-${MSYSTEM}"
+}

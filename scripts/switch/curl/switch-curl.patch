@@ -1,8 +1,8 @@
 diff --git a/configure.ac b/configure.ac
-index 7f5a2bff59..50644ae3e8 100644
+index 9a5dd60f6c..065cb54045 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -143,7 +143,7 @@ AC_SUBST(VERSIONNUM)
+@@ -144,7 +144,7 @@ AC_SUBST(VERSIONNUM)
  
  dnl
  dnl initialize all the info variables
@@ -11,7 +11,7 @@ index 7f5a2bff59..50644ae3e8 100644
      curl_ssh_msg="no      (--with-{libssh,libssh2})"
     curl_zlib_msg="no      (--with-zlib)"
   curl_brotli_msg="no      (--with-brotli)"
-@@ -295,6 +295,15 @@ AS_HELP_STRING([--with-rustls=PATH],[where to look for Rustls, PATH points to th
+@@ -296,6 +296,15 @@ AS_HELP_STRING([--with-rustls=PATH],[where to look for Rustls, PATH points to th
    fi
  ])
  
@@ -27,7 +27,7 @@ index 7f5a2bff59..50644ae3e8 100644
  TEST_NGHTTPX=nghttpx
  AC_ARG_WITH(test-nghttpx,dnl
  AS_HELP_STRING([--with-test-nghttpx=PATH],[where to find nghttpx for testing]),
-@@ -406,6 +415,7 @@ Select from these:
+@@ -419,6 +428,7 @@ Select from these:
    --with-mbedtls
    --with-openssl (also works for BoringSSL and LibreSSL)
    --with-rustls
@@ -35,7 +35,7 @@ index 7f5a2bff59..50644ae3e8 100644
    --with-schannel
    --with-secure-transport
    --with-wolfssl
-@@ -2112,6 +2122,7 @@ CURL_WITH_MBEDTLS
+@@ -2126,6 +2136,7 @@ CURL_WITH_MBEDTLS
  CURL_WITH_WOLFSSL
  CURL_WITH_BEARSSL
  CURL_WITH_RUSTLS
@@ -43,7 +43,7 @@ index 7f5a2bff59..50644ae3e8 100644
  
  dnl link required libraries for USE_WIN32_CRYPTO or SCHANNEL_ENABLED
  if test "x$USE_WIN32_CRYPTO" = "x1" -o "x$SCHANNEL_ENABLED" = "x1"; then
-@@ -2126,10 +2137,10 @@ if test "x$curl_cv_native_windows" = "xyes" -a "$curl_cv_wince" = 'no'; then
+@@ -2140,10 +2151,10 @@ if test "x$curl_cv_native_windows" = "xyes" -a "$curl_cv_wince" = 'no'; then
    LIBS="-lbcrypt $LIBS"
  fi
  
@@ -56,7 +56,7 @@ index 7f5a2bff59..50644ae3e8 100644
      ;;
    x1)
      # one SSL backend is enabled
-@@ -5177,6 +5188,7 @@ if test "x$CURL_DISABLE_HTTP" != "x1"; then
+@@ -5258,6 +5269,7 @@ if test "x$CURL_DISABLE_HTTP" != "x1"; then
          -o "x$BEARSSL_ENABLED" = "x1" \
          -o "x$SCHANNEL_ENABLED" = "x1" \
          -o "x$GNUTLS_ENABLED" = "x1" \
@@ -65,7 +65,7 @@ index 7f5a2bff59..50644ae3e8 100644
        SUPPORT_FEATURES="$SUPPORT_FEATURES HTTPS-proxy"
        AC_MSG_RESULT([yes])
 diff --git a/include/curl/curl.h b/include/curl/curl.h
-index 84966e81e4..a10047741e 100644
+index fb225c7903..303473ad95 100644
 --- a/include/curl/curl.h
 +++ b/include/curl/curl.h
 @@ -93,7 +93,8 @@
@@ -89,10 +89,10 @@ index 84966e81e4..a10047741e 100644
  
  /* aliases for library clones and renames */
 diff --git a/lib/Makefile.inc b/lib/Makefile.inc
-index a8e4da1cf9..207197a64e 100644
+index b384e09623..63de6c61f5 100644
 --- a/lib/Makefile.inc
 +++ b/lib/Makefile.inc
-@@ -42,6 +42,7 @@ LIB_VAUTH_HFILES =      \
+@@ -69,6 +69,7 @@ LIB_VAUTH_HFILES =      \
    vauth/vauth.h
  
  LIB_VTLS_CFILES =           \
@@ -100,7 +100,7 @@ index a8e4da1cf9..207197a64e 100644
    vtls/bearssl.c            \
    vtls/cipher_suite.c       \
    vtls/gtls.c               \
-@@ -61,6 +62,7 @@ LIB_VTLS_CFILES =           \
+@@ -88,6 +89,7 @@ LIB_VTLS_CFILES =           \
    vtls/x509asn1.c
  
  LIB_VTLS_HFILES =           \
@@ -109,10 +109,10 @@ index a8e4da1cf9..207197a64e 100644
    vtls/cipher_suite.h       \
    vtls/gtls.h               \
 diff --git a/lib/curl_setup.h b/lib/curl_setup.h
-index ff63d3d72f..5049baf4ec 100644
+index 1d484c61ab..0a511730a9 100644
 --- a/lib/curl_setup.h
 +++ b/lib/curl_setup.h
-@@ -744,7 +744,7 @@
+@@ -740,7 +740,7 @@
  
  #if defined(USE_GNUTLS) || defined(USE_OPENSSL) || defined(USE_MBEDTLS) || \
    defined(USE_WOLFSSL) || defined(USE_SCHANNEL) || defined(USE_SECTRANSP) || \
@@ -123,7 +123,7 @@ index ff63d3d72f..5049baf4ec 100644
  
 diff --git a/lib/vtls/libnx.c b/lib/vtls/libnx.c
 new file mode 100644
-index 0000000000..310d624836
+index 0000000000..1dec598ac1
 --- /dev/null
 +++ b/lib/vtls/libnx.c
 @@ -0,0 +1,913 @@
@@ -162,7 +162,7 @@ index 0000000000..310d624836
 +
 +#include "urldata.h"
 +#include "sendf.h"
-+#include "inet_pton.h"
++#include "../curlx/inet_pton.h"
 +#include "libnx.h"
 +#include "vtls.h"
 +#include "vtls_int.h"
@@ -1079,7 +1079,7 @@ index 0000000000..67b8fae286
 +#endif /* USE_LIBNX */
 +#endif /* HEADER_CURL_LIBNX_H */
 diff --git a/lib/vtls/vtls.c b/lib/vtls/vtls.c
-index b44b76473d..0a0eb581dd 100644
+index c6fb60d0a4..cbe6c33089 100644
 --- a/lib/vtls/vtls.c
 +++ b/lib/vtls/vtls.c
 @@ -65,6 +65,7 @@
@@ -1088,9 +1088,9 @@ index b44b76473d..0a0eb581dd 100644
  #include "rustls.h"         /* Rustls versions */
 +#include "libnx.h"         /* libnx versions */
  
- #include "slist.h"
- #include "sendf.h"
-@@ -986,6 +987,8 @@ const struct Curl_ssl *Curl_ssl =
+ #include "../slist.h"
+ #include "../sendf.h"
+@@ -994,6 +995,8 @@ const struct Curl_ssl *Curl_ssl =
    &Curl_ssl_schannel;
  #elif defined(USE_BEARSSL)
    &Curl_ssl_bearssl;
@@ -1099,7 +1099,7 @@ index b44b76473d..0a0eb581dd 100644
  #else
  #error "Missing struct Curl_ssl for selected SSL backend"
  #endif
-@@ -1014,6 +1017,9 @@ static const struct Curl_ssl *available_backends[] = {
+@@ -1022,6 +1025,9 @@ static const struct Curl_ssl *available_backends[] = {
  #endif
  #if defined(USE_RUSTLS)
    &Curl_ssl_rustls,
@@ -1110,7 +1110,7 @@ index b44b76473d..0a0eb581dd 100644
    NULL
  };
 diff --git a/lib/vtls/x509asn1.c b/lib/vtls/x509asn1.c
-index 1d272c04e7..c36c88e3f8 100644
+index c6246cbd09..3a3a6c37e4 100644
 --- a/lib/vtls/x509asn1.c
 +++ b/lib/vtls/x509asn1.c
 @@ -26,15 +26,15 @@
@@ -1133,7 +1133,7 @@ index 1d272c04e7..c36c88e3f8 100644
  #endif
  
 diff --git a/lib/vtls/x509asn1.h b/lib/vtls/x509asn1.h
-index e1abff06c8..9818a54266 100644
+index 1c9c35c3d4..3264f445c1 100644
 --- a/lib/vtls/x509asn1.h
 +++ b/lib/vtls/x509asn1.h
 @@ -29,7 +29,7 @@
@@ -1143,8 +1143,8 @@ index e1abff06c8..9818a54266 100644
 -  defined(USE_MBEDTLS) || defined(USE_RUSTLS)
 +  defined(USE_MBEDTLS) || defined(USE_RUSTLS) || defined(USE_LIBNX)
  
- #include "cfilters.h"
- #include "urldata.h"
+ #include "../cfilters.h"
+ #include "../urldata.h"
 diff --git a/m4/curl-libnx.m4 b/m4/curl-libnx.m4
 new file mode 100644
 index 0000000000..3e79642c4d

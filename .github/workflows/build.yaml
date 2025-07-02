@@ -98,7 +98,7 @@ jobs:
       run: |
         dkp-pacman --noconfirm -U $BASE_URL/hacBrewPack-3.05-1-x86_64.pkg.tar.zst
         dkp-pacman --noconfirm -U $BASE_URL/libnx-4.9.0-1-any.pkg.tar.zst
-        for pkg in curl-8.13.0-1 ffmpeg-7.1.1-6 libmpv${{ matrix.shuffix }}-0.36.0-5 nspmini-main-1; do
+        for pkg in curl-8.14.1-1 ffmpeg-7.1.1-6 libmpv${{ matrix.shuffix }}-0.36.0-5 nspmini-main-1; do
           dkp-pacman --noconfirm -U $BASE_URL/switch-${pkg}-any.pkg.tar.zst
         done
         git config --system --add safe.directory $GITHUB_WORKSPACE
@@ -166,7 +166,7 @@ jobs:
       env:
         BASE_URL: https://github.com/dragonflylee/switchfin/releases/download/vita-packages
       run: |
-        for pkg in mbedtls-3.4.1-1 curl-8.13.0-2 ffmpeg-n6.0-3 mpv-0.36.0-3; do
+        for pkg in mbedtls-3.4.1-1 curl-8.14.1-2 ffmpeg-n6.0-3 mpv-0.36.0-3; do
           wget $BASE_URL/${pkg}-arm.tar.xz
         done
         vdpm libass harfbuzz fribidi freetype libpng libwebp $PWD/*-arm.tar.xz
@@ -240,21 +240,20 @@ jobs:
         tag: [ noble, bookworm ]
     runs-on: ${{ matrix.runner }}
     container:
-      image: ghcr.io/${{ github.repository_owner }}/build:${{ matrix.img }}-${{ matrix.tag }}
-    if: ${{ inputs.platform == 'deb' || github.event_name != 'workflow_dispatch' }}
+      image: ${{ matrix.img }}:${{ matrix.tag }}
+    if: ${{ inputs.platform == 'deb' }}
     steps:
+    - name: Install dependency
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        apt-get update
+        apt-get install -y --no-install-recommends debhelper cmake build-essential \
+          ninja-build git wget ca-certificates xorg-dev libdbus-1-dev libssl-dev \
+          libwayland-dev libxkbcommon-dev libwebp-dev libmpv-dev
     - uses: actions/checkout@v4
       with:
         submodules: recursive
-    - name: Cache depends
-      id: cache-deps
-      uses: actions/cache@v4
-      with:
-        path: /opt/switchfin
-        key: deps-${{ matrix.arch }}-${{ matrix.img }}-${{ matrix.tag }}-${{ hashFiles('debian/rules') }}
-    - name: Build depends
-      if: steps.cache-deps.outputs.cache-hit != 'true'
-      run: make -f debian/rules curl glfw mpv
     - name: Build deb
       env:
         DH_QUIET: "1"
@@ -360,7 +359,7 @@ jobs:
         submodules: recursive
     - name: Install dependency
       run: |
-        for pkg in glfw-3.5.0-1 curl-8.13.0-1 mpv-0.40.0-1 libwebp-1.5.0-1; do
+        for pkg in glfw-3.5.0-1 curl-8.14.1-1 mpv-0.40.0-1 libwebp-1.5.0-1; do
           curl -sLO https://github.com/dragonflylee/switchfin/releases/download/mingw-packages/${MINGW_PACKAGE_PREFIX}-${pkg}-any.pkg.tar.zst
         done
         pacman -U --noconfirm *.pkg.tar.zst

@@ -1,9 +1,9 @@
 pkgname=curl
-pkgver=8.13.0
+pkgver=8.14.1
 pkgrel=2
 url="https://curl.se/"
 source=("https://curl.haxx.se/download/curl-${pkgver}.tar.xz")
-sha256sums=('4a093979a3c2d02de2fbc00549a32771007f2e78032c6faa5ecd2f7a9e152025')
+sha256sums=('f4619a1e2474c4bbfedc88a7c2191209c8334b48fa1f4e53fd584cc12e9120dd')
 depends=('mbedtls' 'zlib')
 
 build() {
@@ -30,6 +30,7 @@ build() {
     -DCURL_ZSTD=OFF \
     -DCURL_USE_LIBSSH2=OFF \
     -DCURL_USE_LIBPSL=OFF
+  sed -i '/HAVE_PIPE2/d' build/lib/curl_config.h
   cmake --build build -j$(nproc)
 }
 

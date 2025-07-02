@@ -4,14 +4,11 @@ Priority: optional
 Maintainer: dragonflylee <dragonflylee@outlook.com>
 Build-Depends: debhelper (>= 10),
                cmake,
-               g++,
+               ninja-build,
                xorg-dev,
                libdbus-1-dev,
                libwebp-dev,
-               libuchardet-dev,
-               libxpresent-dev,
-               libpulse-dev
-Standards-Version: 0.7.2
+               libmpv-dev
 Vcs-Git: https://github.com/dragonflylee/switchfin.git
 
 Package: switchfin
