@@ -98,7 +98,8 @@ std::string AppVersion::getDeviceName() {
         if (f.is_open()) {
             std::string name;
             std::getline(f, name);
-            return name;
+            while (!std::isprint(name.back())) name.pop_back();
+            if (name.size() > 0) return name;
         }
     }
 #endif
