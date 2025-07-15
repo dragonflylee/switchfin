@@ -18,7 +18,7 @@ std::vector<DirEntry> Apache::list(const std::string &path) {
     this->c._get(path, &ss);
     std::string resp = ss.str();
 
-    std::vector<DirEntry> s = {{.type = EntryType::UP}};
+    std::vector<DirEntry> s = {{EntryType::UP}};
     size_t index = 0;
     while (index < resp.size()) {
         std::string link;

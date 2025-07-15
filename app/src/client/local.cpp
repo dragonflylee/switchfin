@@ -16,7 +16,7 @@ namespace fs = std::experimental::filesystem;
 namespace remote {
 
 std::vector<DirEntry> Local::list(const std::string& path) {
-    std::vector<DirEntry> s = {{.type = EntryType::UP}};
+    std::vector<DirEntry> s = {{EntryType::UP}};
     std::string p = path.rfind("file://") == 0 ? path.substr(7) : path;
     auto it = fs::directory_iterator(p);
     for (const auto& fp : it) {
@@ -24,7 +24,7 @@ std::vector<DirEntry> Local::list(const std::string& path) {
         auto& p = fp.path();
         item.name = p.filename().string();
         item.path = p.string();
-        if (fp.is_directory()) {
+        if (fs::is_directory(fp)) {
             item.type = EntryType::DIR;
         } else {
             item.type = EntryType::FILE;

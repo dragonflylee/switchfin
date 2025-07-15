@@ -281,8 +281,11 @@ UmsView::UmsView() : RemoteView(std::make_shared<remote::Local>()) {
         DirList dirs;
         dirs.reserve(r.size());
         for (auto& it : r) {
-            auto t = it.id < 0 ? remote::EntryType::DIR : remote::EntryType::DEVICE;
-            dirs.push_back({.name = it.name, .path = it.mount + "/", .type = t});
+            remote::DirEntry entry;
+            entry.type = it.id < 0 ? remote::EntryType::DIR : remote::EntryType::DEVICE;
+            entry.name = it.name;
+            entry.path = it.mount + "/";
+            dirs.push_back(entry);
         }
         view->setDataSource(new FileDataSource(dirs, this->client));
     });

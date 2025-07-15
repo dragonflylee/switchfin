@@ -20,7 +20,7 @@ std::vector<DirEntry> AVIO::list(const std::string& path) {
     int ret = avio_open_dir(&ctx, path.c_str(), nullptr);
     if (ret < 0) throw remote_error(fmt::format("avio_open_dir {:#x}", ret));
 
-    std::vector<DirEntry> s = {{.type = EntryType::UP}};
+    std::vector<DirEntry> s = {{EntryType::UP}};
     while (avio_read_dir(ctx, &next) >= 0) {
         if (!next) break;
 

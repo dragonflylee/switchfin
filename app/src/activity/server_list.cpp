@@ -205,15 +205,21 @@ void ServerList::onServer(const AppServer& s) {
     this->inputUrl->registerAction("hints/preset"_i18n, brls::BUTTON_X, [this, s](...) {
         return brls::Application::getImeManager()->openForText(
             [this, s](const std::string& text) {
-                AppConfig::instance().addServer({.id = s.id, .urls = {text}});
+                AppServer server;
+                server.id = s.id;
+                server.urls.push_back(text);
+                AppConfig::instance().addServer(server);
                 this->inputUrl->setDetailText(text);
             },
             "main/setting/url"_i18n, "", 255, this->inputUrl->detail->getFullText());
     });
     this->inputUrl->registerClickAction([this, s](...) {
         brls::Dropdown* dropdown = new brls::Dropdown("main/setting/url"_i18n, s.urls, [this, s](int selected) {
+            AppServer server;
             const std::string& url = s.urls[selected];
-            AppConfig::instance().addServer({.id = s.id, .urls = {url}});
+            server.id = s.id;
+            server.urls.push_back(url);
+            AppConfig::instance().addServer(server);
             this->inputUrl->setDetailText(url);
         });
         brls::Application::pushActivity(new brls::Activity(dropdown));

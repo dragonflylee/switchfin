@@ -27,10 +27,10 @@ enum class EntryType {
 };
 
 struct DirEntry {
+    EntryType type;
     std::string name;
     std::string path;
     uint64_t fileSize;
-    EntryType type;
     std::tm modified;
 
     const std::string& url() const { return this->path; }
