@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.3]
+
+### Fixed
+
+* LiveTV not working
+
 ## [0.7.2]
 
 ### Fixed

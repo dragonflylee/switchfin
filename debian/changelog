@@ -1,3 +1,9 @@
+switchfin (0.7.3-1) unstable; urgency=medium
+
+  * fixed livetv not working
+
+ -- dragonflylee <dragonflylee@outlook.com>  Sat, 15 Jul 2025 09:27:00 +0800
+
 switchfin (0.7.2-1) unstable; urgency=medium
 
   * fixed audio/sub selection when transcode
