@@ -303,7 +303,7 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
     jellyfin::postJSON(
         {
             {"UserId", AppConfig::instance().getUserId()},
-            {"MediaSourceId", this->itemType == jellyfin::mediaTypeTvChannel ? nullptr : this->itemId},
+            {"MediaSourceId", this->itemType == jellyfin::mediaTypeTvChannel ? "" : this->itemId},
             {"AudioStreamIndex", PlayerSetting::selectedAudio},
             {"SubtitleStreamIndex", PlayerSetting::selectedSubtitle},
 #if defined(__PSV__)
