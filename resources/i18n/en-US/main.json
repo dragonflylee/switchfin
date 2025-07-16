@@ -125,7 +125,7 @@
       "detail": "Server Details",
       "connect_new": "New Server",
       "connect_to": "Connect to a Jellyfin server",
-      "invalid": "Invalid Server Address!",
+      "invalid": "Url must be start with `http://` or `https://`",
       "connect": "Connect",
       "delete": "Confirm to delete?",
       "local": "Local Servers",
