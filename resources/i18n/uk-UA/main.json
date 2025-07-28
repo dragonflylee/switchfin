@@ -90,6 +90,7 @@
       "force_directplay": "Примусове пряме відтворення",
       "osd_on_toggle": "Показати екранне меню під час паузи",
       "transcodec": "Транскодек",
+      "audio_channels": "Аудіоканали",
       "video_quality": "Якість відео"
     },
     "network": {

@@ -129,6 +129,7 @@
       "touch_gesture": "Cảm ứng để tua nhanh",
       "clip_point": "Hiển thị các chương trong video",
       "transcodec": "Chuyển mã",
+      "audio_channels": "Kênh âm thanh",
       "video_quality": "Chất lượng video",
       "subsync": "Đồng bộ phụ đề"
     },

@@ -158,6 +158,11 @@ public:
     inline static int VIDEO_ROTATION = 0;
     // 强制的视频比例 (-1 为自动)
     inline static std::string VIDEO_ASPECT = "auto";
+#if defined(__PS4__)
+    inline static std::string AUDIO_CHANNELS = "stereo";
+#else
+    inline static std::string AUDIO_CHANNELS = "auto-safe";
+#endif
 
 private:
     mpv_handle *mpv = nullptr;

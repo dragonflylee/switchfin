@@ -147,7 +147,8 @@
       "clip_point": "チャプターのクリップポイントを表示",
       "transcodec": "トランスコーデック",
       "video_quality": "ビデオ品質",
-      "subsync": "字幕同期"
+      "subsync": "字幕同期",
+      "audio_channels": "オーディオチャンネル"
     },
     "transcode": {
       "header": "トランスコーディングプロファイル"
