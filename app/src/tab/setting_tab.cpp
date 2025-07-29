@@ -199,14 +199,9 @@ void SettingTab::onCreate() {
         });
 #endif
     
-#ifdef PS4
-#define AUDIO_CHANNELS_DEFAULT_OPTION 1
-#else
-#define AUDIO_CHANNELS_DEFAULT_OPTION 0
-#endif
     auto& audioChannelsOption = conf.getOptions(AppConfig::AUDIO_CHANNELS);
     selectorAudioChannels->init("main/setting/playback/audio_channels"_i18n, {"Auto", "Stereo", "Mono"},
-        conf.getOptionIndex(AppConfig::AUDIO_CHANNELS, AUDIO_CHANNELS_DEFAULT_OPTION), [&audioChannelsOption](int selected) {
+        conf.getOptionIndex(AppConfig::AUDIO_CHANNELS), [&audioChannelsOption](int selected) {
             MPVCore::AUDIO_CHANNELS = audioChannelsOption.options[selected];
             AppConfig::instance().setItem(AppConfig::AUDIO_CHANNELS, MPVCore::AUDIO_CHANNELS);
             MPVCore::instance().restart();
