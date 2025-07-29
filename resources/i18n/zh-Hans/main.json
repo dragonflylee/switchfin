@@ -146,6 +146,7 @@
       "touch_gesture": "启用播放进度手势",
       "clip_point": "进度条显示章节位置",
       "transcodec": "转码格式",
+      "audio_channels": "音频通道",
       "video_quality": "视频质量",
       "subsync": "字幕同步"
     },

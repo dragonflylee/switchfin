@@ -52,6 +52,8 @@
                     id="setting/video/inmemory" />
                 <brls:BooleanCell
                     id="setting/video/subs_fallback" />
+                 <brls:SelectorCell
+                    id="setting/playback/audio_channels" />
                 <brls:BooleanCell
                     id="setting/player/osd_on_toggle" />
                 <brls:BooleanCell

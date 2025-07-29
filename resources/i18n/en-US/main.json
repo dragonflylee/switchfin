@@ -146,6 +146,7 @@
       "touch_gesture": "Touch gesture for seeking step",
       "clip_point": "Show clip point of chapter",
       "transcodec": "Codec",
+      "audio_channels": "Audio Channels",
       "video_quality": "Video Quality",
       "subsync": "Subtitle Sync"
     },

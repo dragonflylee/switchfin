@@ -159,6 +159,8 @@ public:
     // 强制的视频比例 (-1 为自动)
     inline static std::string VIDEO_ASPECT = "auto";
 
+    inline static std::string AUDIO_CHANNELS = "auto-safe";
+
 private:
     mpv_handle *mpv = nullptr;
     mpv_render_context *mpv_context = nullptr;

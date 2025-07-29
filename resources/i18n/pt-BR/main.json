@@ -132,6 +132,7 @@
       "touch_gesture": "Gestos de toque para pular",
       "clip_point": "Mostrar ponto de clipe do capítulo",
       "transcodec": "Codec",
+      "audio_channels": "Canais de Áudio",
       "video_quality": "Qualidade do Vídeo",
       "subsync": "Sincronização de Legendas"
     },

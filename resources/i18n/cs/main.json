@@ -103,7 +103,8 @@
       "clip_point": "Zobrazit bod klipu kapitoly",
       "transcodec": "Transcodec",
       "video_quality": "Kvalita videa",
-      "subsync": "Synchronizace titulků"
+      "subsync": "Synchronizace titulků",
+      "audio_channels": "Zvukové kanály"
     },
     "filter": {
       "mirror": "Překlopení videa",

@@ -198,6 +198,14 @@ void SettingTab::onCreate() {
             AppConfig::instance().setItem(AppConfig::TRANSCODEC, MPVCore::VIDEO_CODEC);
         });
 #endif
+    
+    auto& audioChannelsOption = conf.getOptions(AppConfig::AUDIO_CHANNELS);
+    selectorAudioChannels->init("main/setting/playback/audio_channels"_i18n, {"Auto", "Stereo", "Mono"},
+        conf.getOptionIndex(AppConfig::AUDIO_CHANNELS), [&audioChannelsOption](int selected) {
+            MPVCore::AUDIO_CHANNELS = audioChannelsOption.options[selected];
+            AppConfig::instance().setItem(AppConfig::AUDIO_CHANNELS, MPVCore::AUDIO_CHANNELS);
+            MPVCore::instance().restart();
+        });
 
     auto& inmemoryOption = conf.getOptions(AppConfig::PLAYER_INMEMORY_CACHE);
     selectorInmemory->init("main/setting/playback/in_memory_cache"_i18n, inmemoryOption.options,

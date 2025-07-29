@@ -66,6 +66,7 @@ public:
         APP_THEME,
         APP_LANG,
         APP_UPDATE,
+        AUDIO_CHANNELS,
         KEYMAP,
         WINDOW_STATE,
         TRANSCODEC,
