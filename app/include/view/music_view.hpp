@@ -31,7 +31,7 @@ public:
 
     const std::string& currentId();
 
-    void play(const jellyfin::Item& item);
+    void play(const std::vector<jellyfin::Playlist>& items, size_t index);
 
     void load(const std::vector<jellyfin::Track>& items, size_t index);
 

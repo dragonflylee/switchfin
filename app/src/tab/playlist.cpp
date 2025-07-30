@@ -83,12 +83,10 @@ public:
         auto& stats = MusicView::instance();
 
         if (item.Type == jellyfin::mediaTypeAudio) {
-            stats.play(item);
+            stats.play(this->list, index);
             return;
         }
-        // remove mpvEvent from MusicView
-        // stats.setParent(nullptr);
-        
+
         if (item.Type == jellyfin::mediaTypeMovie || item.Type == jellyfin::mediaTypeMusicVideo) {
             PlayerView* view = new PlayerView(item);
             view->setTitie(item.ProductionYear ? fmt::format("{} ({})", item.Name, item.ProductionYear) : item.Name);
