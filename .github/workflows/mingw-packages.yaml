@@ -29,6 +29,7 @@ jobs:
       with:
         msystem: ${{ matrix.sys }}
         cache: false
+        release: ${{ contains(matrix.sys, 'arm64') }}
         install: >-
           patch
           lzip
