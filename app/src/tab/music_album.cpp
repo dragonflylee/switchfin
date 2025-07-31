@@ -16,10 +16,10 @@ public:
         this->selected = !this->id.compare(itemId);
         if (this->selected) {
             this->trackIndex->setMarginLeft(20);
-            this->setBackgroundColor(brls::Application::getTheme().getColor("color/grey_2"));
+            this->setBackgroundColor(brls::Application::getTheme().getColor("color/grey_3"));
         } else {
             this->trackIndex->setMarginLeft(0);
-            this->setBackgroundColor(RGBA(0, 0, 0, 0));
+            this->setBackgroundColor(brls::Application::getTheme().getColor("color/grey_2"));
         }
     }
 

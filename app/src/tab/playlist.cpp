@@ -21,11 +21,7 @@ public:
 
     void setSelected(const std::string& itemId) {
         this->selected = !this->id.compare(itemId);
-        if (this->selected) {
-            this->setBackgroundColor(brls::Application::getTheme().getColor("color/grey_2"));
-        } else {
-            this->setBackgroundColor(RGBA(0, 0, 0, 0));
-        }
+        this->setBackgroundColor(brls::Application::getTheme().getColor(selected ? "color/grey_3" : "color/grey_2"));
     }
 
     BRLS_BIND(brls::Label, name, "playlist/item/name");

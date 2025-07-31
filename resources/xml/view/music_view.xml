@@ -10,17 +10,14 @@
             wireframe="false"
             horizontalAlign="right"
             id="music/left/status"
-            textColor="#FFFFFF"
             text="--:--" />
         <brls:Label
             horizontalAlign="center"
-            textColor="#FFFFFF"
             text="/" />
         <brls:Label
             wireframe="false"
             horizontalAlign="left"
             id="music/right/status"
-            textColor="#FFFFFF"
             text="--:--" />
     </brls:Box>
 
