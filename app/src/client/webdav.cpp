@@ -70,7 +70,10 @@ std::vector<DirEntry> Webdav::list(const std::string& path) {
             tinyxml2::XMLElement* propElem = propstatElem->FirstChildElement((nsPrefix + "prop").c_str());
             if (propElem) {
                 tinyxml2::XMLElement* displaynameElem = propElem->FirstChildElement((nsPrefix + "displayname").c_str());
-                if (displaynameElem) item.name = displaynameElem->GetText();
+                if (displaynameElem) {
+                    const char* displayname = displaynameElem->GetText();
+                    if (displayname) item.name = displayname;
+                }
 
                 tinyxml2::XMLElement* resElem = propElem->FirstChildElement((nsPrefix + "resourcetype").c_str());
                 if (resElem)
