@@ -141,32 +141,6 @@ void MusicView::registerViewAction(brls::View* view) {
 
 const std::string& MusicView::currentId() { return this->itemId; }
 
-void MusicView::play(const std::vector<jellyfin::Playlist>& items, size_t index) {
-    auto& conf = AppConfig::instance();
-    auto& mpv = MPVCore::instance();
-
-    if (!this->playSession) this->registerMpvEvent();
-
-    std::string query = HTTP::encode_form({
-        {"static", "true"},
-        {"PlaySessionId", std::to_string(playSession)},
-    });
-    std::stringstream ssextra;
-    ssextra << fmt::format("network-timeout={}", HTTP::TIMEOUT / 100);
-    if (HTTP::PROXY_STATUS) ssextra << ",http-proxy=\"" << HTTP::PROXY << "\"";
-    ssextra << fmt::format(",http-header-fields='X-Emby-Token: {}'", conf.getToken());
-
-    mpv.stop();
-    mpv.enableVO(false);
-
-    for (auto& item : items) {
-        uint64_t userdata = reinterpret_cast<uint64_t>(&item);
-        std::string url = fmt::format(fmt::runtime(jellyfin::apiAudio), item.Id, query);
-        mpv.setUrl(conf.getUrl() + url, ssextra.str(), "append", userdata);
-    }
-    mpv.command("playlist-play-index", std::to_string(index).c_str());
-}
-
 void MusicView::load(const std::vector<jellyfin::Track>& items, size_t index) {
     auto& conf = AppConfig::instance();
     auto& mpv = MPVCore::instance();

@@ -1,22 +1,22 @@
+/*
+    Copyright 2025 dragonflylee
+*/
+
 #pragma once
 
 #include <borealis.hpp>
-#include <api/jellyfin/media.hpp>
 #include <utils/event.hpp>
 
 class RecyclingGrid;
 
-class Playlist : public brls::Box {
+class SongList : public brls::Box {
 public:
-    Playlist(const jellyfin::Item& item);
-    ~Playlist() override;
-
-    brls::View* getDefaultFocus() override;
+    SongList(const std::string& itemId);
+    ~SongList() override;
 
 private:
     BRLS_BIND(brls::Label, title, "album/label/title");
     BRLS_BIND(brls::Label, subtitle, "album/label/artist");
-    BRLS_BIND(brls::Label, misc, "album/label/year");
     BRLS_BIND(brls::Image, cover, "album/image/cover");
     BRLS_BIND(RecyclingGrid, list, "album/tracks");
     BRLS_BIND(brls::Box, stats, "album/stats");
@@ -24,5 +24,7 @@ private:
     void doList();
 
     std::string itemId;
+    size_t start = 0;
+    size_t pageSize = 30;
     MPVCustomEvent::Subscription customEventSubscribeID;
 };

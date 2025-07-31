@@ -11,6 +11,7 @@
 #include "view/h_recycling.hpp"
 #include "tab/suggest_show.hpp"
 #include "tab/suggest_movie.hpp"
+#include "tab/song_list.hpp"
 #include <fmt/ranges.h>
 
 using namespace brls::literals;  // for _i18n
@@ -21,7 +22,8 @@ class GenresDataSource : public RecyclingGridDataSource {
 public:
     using MediaList = std::vector<jellyfin::Genres>;
 
-    explicit GenresDataSource(const MediaList& r, const std::string& itemId) : list(std::move(r)), itemId(itemId) {
+    explicit GenresDataSource(const MediaList& r, const std::string& itemId, const std::string& itemType)
+        : list(std::move(r)), itemId(itemId), itemType(itemType) {
         brls::Logger::debug("GenresDataSource: create {}", r.size());
     }
 
@@ -41,7 +43,7 @@ public:
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
         auto& item = this->list.at(index);
-        recycler->present(new MediaCollection(this->itemId, jellyfin::mediaTypeGenre, item.Id));
+        recycler->present(new MediaCollection(this->itemId, this->itemType, item.Id));
     }
 
     void clearData() override { this->list.clear(); }
@@ -49,6 +51,7 @@ public:
 private:
     MediaList list;
     std::string itemId;
+    std::string itemType;
 };
 
 class GenresTab : public RecyclingGrid {
@@ -68,9 +71,9 @@ public:
 
         ASYNC_RETAIN
         jellyfin::getJSON<jellyfin::Result<jellyfin::Genres>>(
-            [ASYNC_TOKEN, itemId](const jellyfin::Result<jellyfin::Genres>& r) {
+            [ASYNC_TOKEN, itemId, itemType](const jellyfin::Result<jellyfin::Genres>& r) {
                 ASYNC_RELEASE
-                this->setDataSource(new GenresDataSource(r.Items, itemId));
+                this->setDataSource(new GenresDataSource(r.Items, itemId, itemType));
             },
             [ASYNC_TOKEN](const std::string& ex) {
                 ASYNC_RELEASE
@@ -83,7 +86,10 @@ public:
 MediaCollection::MediaCollection(const std::string& itemId, const std::string& itemType, const std::string& genresId)
     : itemId(itemId), genresId(genresId), itemType(itemType), startIndex(0) {
     brls::Logger::debug("MediaCollection: create {} type {}", itemId, itemType);
-    if (itemType == jellyfin::mediaTypeMovie || itemType == jellyfin::mediaTypeSeries) {
+    if (genresId.size() > 0) {
+        this->inflateFromXMLRes("xml/tabs/media.xml");
+    } else if (itemType == jellyfin::mediaTypeMovie || itemType == jellyfin::mediaTypeSeries ||
+               itemType == jellyfin::mediaTypeMusicAlbum) {
         this->inflateFromXMLRes("xml/tabs/collection.xml");
         // add genres tab
         auto* item = new AutoSidebarItem();
@@ -112,11 +118,15 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
         item = new AutoSidebarItem();
         item->setTabStyle(AutoTabBarStyle::ACCENT);
         item->setFontSize(18);
-        item->setLabel("main/tabs/suggest"_i18n);
         if (itemType == jellyfin::mediaTypeSeries) {
+            item->setLabel("main/tabs/suggest"_i18n);
             this->tabFrame->addTab(item, [this]() { return new SuggestShow(this->itemId); });
         } else if (itemType == jellyfin::mediaTypeMovie) {
+            item->setLabel("main/tabs/suggest"_i18n);
             this->tabFrame->addTab(item, [this]() { return new SuggestMovie(this->itemId); });
+        } else if (itemType == jellyfin::mediaTypeMusicAlbum) {
+            item->setLabel("main/tabs/songs"_i18n);
+            this->tabFrame->addTab(item, [this]() { return new SongList(this->itemId); });
         }
     } else {
         this->inflateFromXMLRes("xml/tabs/media.xml");
@@ -258,8 +268,8 @@ void MediaCollection::doRequest() {
     };
     if (this->genresId.size() > 0) {
         query["genreIds"] = this->genresId;
-        query["recursive"] = "true";
-    } else if (this->itemType.size() > 0) {
+    }
+    if (this->itemType.size() > 0) {
         query["includeItemTypes"] = this->itemType;
         query["recursive"] = "true";
     }

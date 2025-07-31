@@ -89,8 +89,8 @@ MusicAlbum::MusicAlbum(const jellyfin::Item& item) : itemId(item.Id) {
     this->inflateFromXMLRes("xml/tabs/music_album.xml");
     brls::Logger::debug("Tab MusicAlbum: create {}", itemId);
 
-    this->albumTracks->estimatedRowHeight = 60;
-    this->albumTracks->registerCell("Cell", []() { return new MusicTrackCell(); });
+    this->tracks->estimatedRowHeight = 60;
+    this->tracks->registerCell("Cell", []() { return new MusicTrackCell(); });
 
     this->albumTitle->setText(item.Name);
     if (item.ProductionYear) this->albumYear->setText(std::to_string(item.ProductionYear));
@@ -116,7 +116,7 @@ MusicAlbum::MusicAlbum(const jellyfin::Item& item) : itemId(item.Id) {
     this->customEventSubscribeID = mpvce->subscribe([this](const std::string& event, void* data) {
         if (event == TRACK_START) {
             auto item = reinterpret_cast<jellyfin::Item*>(data);
-            for (auto i : this->albumTracks->getGridItems()) {
+            for (auto i : this->tracks->getGridItems()) {
                 auto* cell = dynamic_cast<MusicTrackCell*>(i);
                 if (cell) cell->setSelected(item->Id);
             }
@@ -165,11 +165,11 @@ void MusicAlbum::doTracks() {
     jellyfin::getJSON<jellyfin::Result<jellyfin::Track>>(
         [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Track>& r) {
             ASYNC_RELEASE
-            this->albumTracks->setDataSource(new TracksDataSource(r.Items));
+            this->tracks->setDataSource(new TracksDataSource(r.Items));
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            this->albumTracks->setError(ex);
+            this->tracks->setError(ex);
         },
         jellyfin::apiUserLibrary, AppConfig::instance().getUserId(), query);
 }
