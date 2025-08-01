@@ -115,7 +115,7 @@ MusicAlbum::MusicAlbum(const jellyfin::Item& item) : itemId(item.Id) {
     auto mpvce = MPVCore::instance().getCustomEvent();
     this->customEventSubscribeID = mpvce->subscribe([this](const std::string& event, void* data) {
         if (event == TRACK_START) {
-            auto item = reinterpret_cast<jellyfin::Item*>(data);
+            auto item = reinterpret_cast<MusicView::Track*>(data);
             for (auto i : this->tracks->getGridItems()) {
                 auto* cell = dynamic_cast<MusicTrackCell*>(i);
                 if (cell) cell->setSelected(item->Id);

@@ -91,11 +91,18 @@ SongList::SongList(const std::string& itemId) : itemId(itemId) {
     auto mpvce = MPVCore::instance().getCustomEvent();
     this->customEventSubscribeID = mpvce->subscribe([this](const std::string& event, void* data) {
         if (event == TRACK_START) {
-            auto item = reinterpret_cast<jellyfin::Item*>(data);
+            auto item = reinterpret_cast<MusicView::Track*>(data);
             for (auto i : this->list->getGridItems()) {
                 auto* cell = dynamic_cast<SongCell*>(i);
                 if (cell) cell->setSelected(item->Id);
             }
+            if (item->ImageTag.size() > 0)
+                Image::load(this->cover, jellyfin::apiPrimaryImage, item->ImageId,
+                    HTTP::encode_form({
+                        {"tag", item->ImageTag},
+                        {"maxWidth", "240"},
+                    }));
+            this->title->setText(item->Album);
         }
     });
 }
@@ -125,14 +132,10 @@ void SongList::doList() {
     jellyfin::getJSON<jellyfin::Result<jellyfin::Track>>(
         [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Track>& r) {
             ASYNC_RELEASE
-            this->list->setDataSource(new SongsDataSource(r.Items));
-
             this->start = r.StartIndex + this->pageSize;
             if (r.TotalRecordCount == 0) {
-                this->setVisibility(brls::Visibility::GONE);
                 this->list->clearData();
             } else if (r.StartIndex == 0) {
-                this->setVisibility(brls::Visibility::VISIBLE);
                 this->list->setDataSource(new SongsDataSource(r.Items));
             } else if (r.Items.size() > 0) {
                 auto dataSrc = dynamic_cast<SongsDataSource*>(this->list->getDataSource());

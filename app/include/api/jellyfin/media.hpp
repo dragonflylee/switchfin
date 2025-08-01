@@ -233,13 +233,14 @@ struct Track : public Item {
     long IndexNumber = 0;
     long ParentIndexNumber = 0;
     float CommunityRating = 0.0f;
+    std::string Album;
     std::string AlbumId;
     std::string AlbumPrimaryImageTag;
     std::vector<std::string> Artists;
     std::string SeriesName;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Track, Id, Name, Type, IndexNumber, ParentIndexNumber, RunTimeTicks,
-    ProductionYear, Chapters, CommunityRating, SeriesName, ImageTags, AlbumId, AlbumPrimaryImageTag, Artists, UserData);
+    ProductionYear, Chapters, CommunityRating, SeriesName, Album, AlbumId, AlbumPrimaryImageTag, Artists, UserData);
 
 struct Program {
     std::string Name;
