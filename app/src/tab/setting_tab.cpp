@@ -341,16 +341,17 @@ void SettingTab::onCreate() {
     selectorLang->init("main/setting/others/language/header"_i18n,
         {
             "main/setting/others/language/auto"_i18n,
-            "main/setting/others/language/english"_i18n,
-            "main/setting/others/language/chinese_s"_i18n,
-            "main/setting/others/language/chinese_t"_i18n,
-            "main/setting/others/language/japanese"_i18n,
-            "main/setting/others/language/korean"_i18n,
-            "main/setting/others/language/german"_i18n,
-            "main/setting/others/language/portuguese"_i18n,
-            "main/setting/others/language/czech"_i18n,
-            "main/setting/others/language/ukrainian"_i18n,
-            "main/setting/others/language/vietnam"_i18n,
+            "English",
+            "简体中文",
+            "繁體中文",
+            "日本語",
+            "한국어",
+            "Русский",
+            "Deutsch",
+            "Portuguese"
+            "Czech",
+            "Українська",
+            "Tiếng việt",
         },
         langIndex, [langIndex](int selected) {
             if (langIndex == selected) return;

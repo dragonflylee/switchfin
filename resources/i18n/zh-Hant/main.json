@@ -151,7 +151,7 @@
       "touch_gesture": "啟用播放進度手勢",
       "clip_point": "進度條顯示章節位置",
       "transcodec": "轉碼格式",
-      "audio_channels": "音訊通道",
+      "audio_channels": "音訊聲道數",
       "video_quality": "視頻質量",
       "subsync": "字幕同步"
     },
@@ -233,17 +233,7 @@
       },
       "language": {
         "header": "語言 (需要重啟)",
-        "auto": "跟隨系統",
-        "chinese_s": "簡體中文",
-        "chinese_t": "繁體中文",
-        "japanese": "日本語",
-        "korean": "한국어",
-        "czech": "Czech",
-        "english": "English",
-        "german": "Deutsch",
-        "ukrainian": "Українська",
-        "vietnam": "Tiếng việt",
-        "portuguese": "Portuguese"
+        "auto": "跟隨系統"
       },
       "keymap": {
         "header": "按鍵圖示",
