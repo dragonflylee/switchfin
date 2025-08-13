@@ -372,3 +372,11 @@ RecyclingGrid* RemoteView::newRecycler() {
     });
     return view;
 }
+
+void RemoteView::play(const std::string& path) {
+    remote::DirEntry it;
+    it.name = path;
+    RemotePlayer* view = new RemotePlayer(it);
+    brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
+    MPVCore::instance().setUrl(it.name);
+}

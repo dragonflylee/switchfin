@@ -27,16 +27,17 @@
 #include "tab/media_folder.hpp"
 #include "tab/search_tab.hpp"
 #include "tab/remote_tab.hpp"
+#include "tab/remote_view.hpp"
 #include "tab/setting_tab.hpp"
 
-#if defined(IOS) || defined(ANDROID)
+#if defined(__SDL2__)
 #include <SDL2/SDL_main.h>
 #endif
 
 using namespace brls::literals;  // for _i18n
 
 int main(int argc, char* argv[]) {
-    std::string itemId;
+    std::vector<std::string> items;
     for (int i = 1; i < argc; i++) {
         if (std::strcmp(argv[i], "-d") == 0) {
             brls::Logger::setLogLevel(brls::LogLevel::LOG_DEBUG);
@@ -47,11 +48,11 @@ int main(int argc, char* argv[]) {
         } else if (std::strcmp(argv[i], "-o") == 0) {
             const char* path = (i + 1 < argc) ? argv[++i] : "switchfin.log";
             brls::Logger::setLogOutput(std::fopen(path, "w+"));
-        } else if (std::strcmp(argv[i], "-i") == 0) {
-            if (i + 1 < argc) itemId = argv[++i];
         } else if (std::strcmp(argv[i], "-version") == 0) {
             brls::Logger::info("{} {}", AppVersion::getDeviceName(), AppVersion::getCommit());
             return 0;
+        } else {
+            items.push_back(argv[i]);
         }
     }
 
@@ -120,11 +121,10 @@ int main(int argc, char* argv[]) {
         brls::Application::pushActivity(new HintActivity());
     } else if (!conf.checkLogin()) {
         brls::Application::pushActivity(new ServerList());
-    } else if (itemId.empty()) {
+    } else if (items.empty()) {
         brls::Application::pushActivity(new MainActivity());
     } else {
-        //brls::View* view = new VideoView(itemId);
-        //brls::sync([view]() { brls::Application::giveFocus(view); });
+        RemoteView::play(items.front());
     }
 
     GA("open_app",
