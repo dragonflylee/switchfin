@@ -55,6 +55,7 @@ namespace fs = std::experimental::filesystem;
 #include "utils/config.hpp"
 #include "utils/misc.hpp"
 #include "utils/ums.hpp"
+#include "utils/thread.hpp"
 #include "view/mpv_core.hpp"
 #include "view/danmaku_core.hpp"
 #include "view/video_view.hpp"
@@ -308,6 +309,8 @@ bool AppConfig::init() {
     DanmakuCore::DANMAKU_STYLE_FONTSIZE = this->getItem(DANMAKU_STYLE_FONTSIZE, 30);
     DanmakuCore::DANMAKU_STYLE_LINE_HEIGHT = this->getItem(DANMAKU_STYLE_LINE_HEIGHT, 120);
     DanmakuCore::DANMAKU_STYLE_SPEED = this->getItem(DANMAKU_STYLE_SPEED, 100);
+
+    ThreadPool::max_thread_num = this->getItem(REQUEST_THREADS, ThreadPool::max_thread_num);
 
     // 初始化 deviceId
     if (this->device.empty()) this->device = generateDeviceId();

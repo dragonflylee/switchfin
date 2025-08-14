@@ -15,15 +15,12 @@ size_t ThreadPool::max_thread_num = 4;
 #endif
 
 ThreadPool::ThreadPool() {
-    size_t num = AppConfig::instance().getItem(AppConfig::REQUEST_THREADS, max_thread_num);
-    this->start(num < max_thread_num ? num : max_thread_num);
+    this->start(max_thread_num > 0 ? max_thread_num : 1);
 }
 
 ThreadPool::~ThreadPool() {}
 
 void ThreadPool::start(size_t num) {
-    brls::Logger::info("ThreadPool start {}", num);
-
     while (this->threads.size() < num) {
 #ifdef BOREALIS_USE_STD_THREAD
         Thread th = std::make_shared<std::thread>(task_loop, this);
@@ -34,6 +31,7 @@ void ThreadPool::start(size_t num) {
         std::lock_guard<std::mutex> locker(this->threadMutex);
         this->threads.push_back(th);
     }
+    brls::Logger::info("ThreadPool start {}", this->threads.size());
 }
 
 void *ThreadPool::task_loop(void *ptr) {
