@@ -225,6 +225,7 @@ modules:
       - -DPLATFORM_DESKTOP=ON
       - -DUSE_SYSTEM_GLFW=ON
       - -USE_GLES2=OFF
+      - -DUSE_EGL=ON
       - -DCMAKE_INSTALL=ON
     builddir: true
     sources:
