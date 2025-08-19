@@ -1,6 +1,10 @@
 {
   "tabs": {
     "home": "Nhà",
+    "genres": "Thể Loại",
+    "suggest": "Đề Xuất",
+    "artists": "Ca Sĩ",
+    "songs": "Bài Hát",
     "search": "Tìm",
     "setting": "Cài đặt"
   },

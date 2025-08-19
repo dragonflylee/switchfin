@@ -83,6 +83,55 @@ public:
     }
 };
 
+class ArtistsTab : public RecyclingGrid {
+public:
+    ArtistsTab(const std::string& itemId) : itemId(itemId) {
+        this->setGrow(1.f);
+        this->registerCell("Cell", VideoCardCell::create);
+        this->spanCount = 6;
+
+        this->onNextPage([this] { this->doRequest(); });
+        this->doRequest();
+    }
+
+    void doRequest() {
+        std::string query = HTTP::encode_form({
+            {"userId", AppConfig::instance().getUserId()},
+            {"parentId", this->itemId},
+            {"limit", std::to_string(this->pageSize)},
+            {"startIndex", std::to_string(this->start)},
+            {"enableImageTypes", "Primary"},
+            {"recursive", "true"},
+        });
+
+        ASYNC_RETAIN
+        jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
+            [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
+                ASYNC_RELEASE
+                this->start = r.StartIndex + this->pageSize;
+                if (r.TotalRecordCount == 0) {
+                    this->clearData();
+                } else if (r.StartIndex == 0) {
+                    this->setDataSource(new VideoDataSource(r.Items));
+                } else if (r.Items.size() > 0) {
+                    auto dataSrc = dynamic_cast<VideoDataSource*>(this->getDataSource());
+                    dataSrc->appendData(r.Items);
+                    this->notifyDataChanged();
+                }
+            },
+            [ASYNC_TOKEN](const std::string& ex) {
+                ASYNC_RELEASE
+                this->setError(ex);
+            },
+            jellyfin::apiAlbumArtists, query);
+    }
+
+private:
+    std::string itemId;
+    size_t start = 0;
+    size_t pageSize = 60;
+};
+
 MediaCollection::MediaCollection(const std::string& itemId, const std::string& itemType, const std::string& genresId)
     : itemId(itemId), genresId(genresId), itemType(itemType), startIndex(0) {
     brls::Logger::debug("MediaCollection: create {} type {}", itemId, itemType);
@@ -125,6 +174,12 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
             item->setLabel("main/tabs/suggest"_i18n);
             this->tabFrame->addTab(item, [this]() { return new SuggestMovie(this->itemId); });
         } else if (itemType == jellyfin::mediaTypeMusicAlbum) {
+            item->setLabel("main/tabs/artists"_i18n);
+            this->tabFrame->addTab(item, [this]() { return new ArtistsTab(this->itemId); });
+
+            item = new AutoSidebarItem();
+            item->setTabStyle(AutoTabBarStyle::ACCENT);
+            item->setFontSize(18);
             item->setLabel("main/tabs/songs"_i18n);
             this->tabFrame->addTab(item, [this]() { return new SongList(this->itemId); });
         }

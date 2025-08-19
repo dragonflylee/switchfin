@@ -17,6 +17,7 @@ const std::string_view apiShowEpisodes = "/Shows/{}/Episodes?{}";
 const std::string_view apiSimilar = "/Items/{}/Similar?{}";
 const std::string_view apiLiveChannels = "/LiveTv/Channels?{}";
 const std::string_view apiGenres = "/Genres?{}";
+const std::string_view apiAlbumArtists = "/Artists/AlbumArtists?{}";
 const std::string_view apiMovieRecommend = "/Movies/Recommendations?{}";
 #ifdef USE_WEBP
 const std::string_view apiUserImage = "/Users/{}/Images/Primary?format=Webp&{}";
@@ -60,6 +61,7 @@ const std::string mediaTypeBook = "Book";
 const std::string mediaTypePhotoAlbum = "PhotoAlbum";
 const std::string mediaTypeMusicAlbum = "MusicAlbum";
 const std::string mediaTypeMusicVideo = "MusicVideo";
+const std::string mediaTypeMusicArtist = "MusicArtist";
 const std::string mediaTypePlaylist = "Playlist";
 const std::string mediaTypeTvChannel = "TvChannel";
 
