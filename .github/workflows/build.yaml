@@ -363,6 +363,9 @@ jobs:
           curl -sLO https://github.com/dragonflylee/switchfin/releases/download/mingw-packages/${MINGW_PACKAGE_PREFIX}-${pkg}-any.pkg.tar.zst
         done
         pacman -U --noconfirm *.pkg.tar.zst
+
+        curl -sLO https://github.com/rainers/cv2pdb/releases/download/v0.54/cv2pdb-0.54.zip
+        unzip cv2pdb-0.54.zip cv2pdb64.exe -d /usr/bin
     - if: matrix.sys == 'mingw32'
       name: Config Editbin
       shell: powershell
@@ -375,7 +378,7 @@ jobs:
         MSYS2_PATH_TYPE: inherit
       run: |
         cmake -B build -G Ninja \
-          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo \
           -DPLATFORM_DESKTOP=ON \
           -DWIN32_TERMINAL=OFF \
           -DZLIB_USE_STATIC_LIBS=ON \
@@ -384,7 +387,7 @@ jobs:
           -DUSE_LIBROMFS=ON \
           -DVERSION_BUILD=${{ github.run_number }}
         cmake --build build
-        strip build/Switchfin.exe
+        cv2pdb64 build/Switchfin.exe
         cp -a README.md ${MINGW_PREFIX}/bin/libmpv-2.dll build
     - name: Upload Assets
       uses: actions/upload-artifact@v4
@@ -392,5 +395,6 @@ jobs:
         name: Switchfin-windows-${{ matrix.arch }}-${{ github.run_number }}
         path: |
           build/Switchfin.exe
+          build/Switchfin.pdb
           build/libmpv-2.dll
           build/README.md
