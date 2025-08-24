@@ -376,9 +376,10 @@ void SettingTab::onCreate() {
         });
 
     auto& threadOpt = conf.getOptions(AppConfig::REQUEST_THREADS);
-    int thIndex = std::log2(ThreadPool::max_thread_num);
+    auto thIt = std::find(threadOpt.values.begin(), threadOpt.values.end(), ThreadPool::max_thread_num);
+    size_t thIndex = thIt != threadOpt.values.end() ? thIt - threadOpt.values.begin() : 0;
     inputThreads->init("main/setting/network/threads"_i18n, threadOpt.options,
-         conf.getValueIndex(AppConfig::REQUEST_THREADS, thIndex), [&threadOpt](int selected) {
+        conf.getValueIndex(AppConfig::REQUEST_THREADS, thIndex), [&threadOpt](int selected) {
             long threads = threadOpt.values[selected];
             ThreadPool::instance().start(threads);
             AppConfig::instance().setItem(AppConfig::REQUEST_THREADS, threads);
