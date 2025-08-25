@@ -23,5 +23,6 @@ private:
     void doTracks();
 
     std::string itemId;
+    brls::Box *prevParent = nullptr;
     MPVCustomEvent::Subscription customEventSubscribeID;
 };

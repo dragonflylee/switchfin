@@ -109,6 +109,9 @@ MusicAlbum::MusicAlbum(const jellyfin::Item& item) : itemId(item.Id) {
     this->doTracks();
 
     auto& stats = MusicView::instance();
+    this->prevParent = stats.getParent();
+    if (this->prevParent) this->prevParent->clearViews(false);
+
     this->albumStats->addView(&stats);
     stats.registerViewAction(this);
 
@@ -131,8 +134,12 @@ MusicAlbum::~MusicAlbum() {
     auto mpvce = MPVCore::instance().getCustomEvent();
     mpvce->unsubscribe(this->customEventSubscribeID);
     /// 通知 MusicView 已关闭
-    MusicView::instance().setParent(nullptr);
     this->albumStats->clearViews(false);
+    auto& stats = MusicView::instance();
+    if (this->prevParent)
+        this->prevParent->addView(&stats);
+    else
+        MusicView::instance().setParent(nullptr);
 }
 
 void MusicAlbum::doAlbum() {
