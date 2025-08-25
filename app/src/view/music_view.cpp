@@ -4,6 +4,7 @@
 #include "view/video_progress_slider.hpp"
 #include "utils/config.hpp"
 #include "utils/misc.hpp"
+#include "utils/image.hpp"
 #include "api/http.hpp"
 
 using namespace brls::literals;
@@ -140,6 +141,18 @@ void MusicView::registerViewAction(brls::View* view) {
 }
 
 const std::string& MusicView::currentId() { return this->itemId; }
+
+void MusicView::image(brls::Image* image) {
+    for (auto& it : this->playList) {
+        if (it.second.Id == this->itemId) {
+            Image::load(image, jellyfin::apiPrimaryImage, it.second.ImageId,
+                HTTP::encode_form({
+                    {"tag", it.second.ImageTag},
+                    {"maxWidth", "240"},
+                }));
+        }
+    }
+}
 
 void MusicView::load(const std::vector<jellyfin::Track>& items, size_t index) {
     auto& conf = AppConfig::instance();

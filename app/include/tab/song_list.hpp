@@ -11,7 +11,7 @@ class RecyclingGrid;
 
 class SongList : public brls::Box {
 public:
-    SongList(const std::string& itemId);
+    SongList(const std::string& itemId, const std::string& artistIds = "");
     ~SongList() override;
 
 private:
@@ -24,7 +24,9 @@ private:
     void doList();
 
     std::string itemId;
+    std::string artistIds;
     size_t start = 0;
     size_t pageSize = 30;
+    brls::Box *prevParent = nullptr;
     MPVCustomEvent::Subscription customEventSubscribeID;
 };

@@ -17,7 +17,7 @@ const std::string_view apiShowEpisodes = "/Shows/{}/Episodes?{}";
 const std::string_view apiSimilar = "/Items/{}/Similar?{}";
 const std::string_view apiLiveChannels = "/LiveTv/Channels?{}";
 const std::string_view apiGenres = "/Genres?{}";
-const std::string_view apiAlbumArtists = "/Artists/AlbumArtists?{}";
+const std::string_view apiArtists = "/Artists?{}";
 const std::string_view apiMovieRecommend = "/Movies/Recommendations?{}";
 #ifdef USE_WEBP
 const std::string_view apiUserImage = "/Users/{}/Images/Primary?format=Webp&{}";

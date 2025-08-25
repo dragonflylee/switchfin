@@ -123,7 +123,7 @@ public:
                 ASYNC_RELEASE
                 this->setError(ex);
             },
-            jellyfin::apiAlbumArtists, query);
+            jellyfin::apiArtists, query);
     }
 
 private:

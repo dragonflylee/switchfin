@@ -26,6 +26,8 @@ public:
 
     const std::string& currentId();
 
+    void image(brls::Image *image);
+
     void load(const std::vector<jellyfin::Track>& items, size_t index);
 
     void load(const std::vector<remote::DirEntry>& items, size_t index, const std::string& extra);

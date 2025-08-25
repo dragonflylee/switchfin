@@ -74,7 +74,7 @@ private:
     MediaList list;
 };
 
-SongList::SongList(const std::string& itemId) : itemId(itemId) {
+SongList::SongList(const std::string& itemId, const std::string& artistIds) : itemId(itemId), artistIds(artistIds) {
     this->inflateFromXMLRes("xml/tabs/music_album.xml");
     brls::Logger::debug("Tab SongList: create {}", itemId);
 
@@ -85,8 +85,12 @@ SongList::SongList(const std::string& itemId) : itemId(itemId) {
     this->doList();
 
     auto& stats = MusicView::instance();
+    this->prevParent = stats.getParent();
+    if (this->prevParent) this->prevParent->clearViews(false);
+
     this->stats->addView(&stats);
     stats.registerViewAction(this);
+    stats.image(this->cover);
 
     auto mpvce = MPVCore::instance().getCustomEvent();
     this->customEventSubscribeID = mpvce->subscribe([this](const std::string& event, void* data) {
@@ -113,13 +117,18 @@ SongList::~SongList() {
     auto mpvce = MPVCore::instance().getCustomEvent();
     mpvce->unsubscribe(this->customEventSubscribeID);
     /// 通知 MusicView 已关闭
-    MusicView::instance().setParent(nullptr);
     this->stats->clearViews(false);
+    auto& stats = MusicView::instance();
+    if (this->prevParent)
+        this->prevParent->addView(&stats);
+    else
+        MusicView::instance().setParent(nullptr);
 }
 
 void SongList::doList() {
     std::string query = HTTP::encode_form({
         {"parentId", this->itemId},
+        {"artistIds", this->artistIds},
         {"enableImageTypes", "Primary"},
         {"fields", "ParentId"},
         {"includeItemTypes", jellyfin::mediaTypeAudio},

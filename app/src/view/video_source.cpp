@@ -4,6 +4,7 @@
 #include "tab/media_series.hpp"
 #include "tab/media_movie.hpp"
 #include "tab/music_album.hpp"
+#include "tab/song_list.hpp"
 #include "tab/playlist.hpp"
 #include "utils/misc.hpp"
 #include "view/svg_image.hpp"
@@ -103,6 +104,8 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
         view->setSeries(item.SeriesId);
     } else if (item.Type == jellyfin::mediaTypeMusicAlbum) {
         recycler->present(new MusicAlbum(item));
+    } else if (item.Type == jellyfin::mediaTypeMusicArtist) {
+        recycler->present(new SongList("", item.Id));
     } else if (item.Type == jellyfin::mediaTypePlaylist) {
         recycler->present(new Playlist(item));
     } else if (item.Type == jellyfin::mediaTypePhoto) {
