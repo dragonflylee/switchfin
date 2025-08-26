@@ -1,5 +1,18 @@
 # Changelog
 
+## [next]
+
+### Add
+
+* add song/artist tab for music
+* support receive media files as args
+* i18n: add russian localization @wildrun0
+
+### Fixed
+
+* ps4: image load thread config
+* ps4: 5.1 audio is in slow motion
+
 ## [0.7.4]
 
 ### Fixed

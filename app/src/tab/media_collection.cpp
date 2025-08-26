@@ -112,7 +112,7 @@ public:
                 if (r.TotalRecordCount == 0) {
                     this->clearData();
                 } else if (r.StartIndex == 0) {
-                    this->setDataSource(new VideoDataSource(r.Items));
+                    this->setDataSource(new VideoDataSource(r.Items, this->itemId));
                 } else if (r.Items.size() > 0) {
                     auto dataSrc = dynamic_cast<VideoDataSource*>(this->getDataSource());
                     dataSrc->appendData(r.Items);

@@ -219,6 +219,7 @@ std::string HTTP::encode_form(const Form& form) {
     std::ostringstream ss;
     char* escaped;
     for (auto it = form.begin(); it != form.end(); ++it) {
+        if (it->second.empty()) continue;
         if (it != form.begin()) ss << '&';
         escaped = curl_escape(it->second.c_str(), it->second.size());
         ss << it->first << '=' << escaped;

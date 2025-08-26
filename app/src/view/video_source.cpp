@@ -13,7 +13,10 @@
 
 using namespace brls::literals;  // for _i18n
 
+VideoDataSource::VideoDataSource(const MediaList& r) : list(std::move(r)) {}
 VideoDataSource::VideoDataSource(const MediaList& r, bool resume) : list(std::move(r)), resume(resume) {}
+VideoDataSource::VideoDataSource(const MediaList& r, const std::string& parentId)
+    : list(std::move(r)), parentId(parentId) {}
 
 size_t VideoDataSource::getItemCount() { return this->list.size(); }
 
@@ -105,7 +108,7 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
     } else if (item.Type == jellyfin::mediaTypeMusicAlbum) {
         recycler->present(new MusicAlbum(item));
     } else if (item.Type == jellyfin::mediaTypeMusicArtist) {
-        recycler->present(new SongList("", item.Id));
+        recycler->present(new SongList(this->parentId, item.Id));
     } else if (item.Type == jellyfin::mediaTypePlaylist) {
         recycler->present(new Playlist(item));
     } else if (item.Type == jellyfin::mediaTypePhoto) {
