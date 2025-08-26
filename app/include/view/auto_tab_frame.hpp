@@ -126,8 +126,9 @@ public:
 
     View* getDefaultFocus() override { return brls::Box::getDefaultFocus(); }
 
-    void registerTabAction(std::string hintText, enum brls::ControllerButton button, brls::ActionListener action,
-        bool hidden = false, bool allowRepeating = false, enum brls::Sound sound = brls::SOUND_NONE);
+    void registerTabAction(std::string hintText, enum brls::ControllerButton button, const brls::BrlsKeyCombination key,
+        brls::ActionListener action, bool hidden = false, bool allowRepeating = false,
+        enum brls::Sound sound = brls::SOUND_NONE);
 
 private:
     AutoSidebarItem* tab = nullptr;
@@ -182,8 +183,7 @@ public:
 
     View* getActiveTab();
 
-    void focus2NextTab();
-    void focus2LastTab();
+    void registerTabAction(View* view);
 
     static void focus2Sidebar(View* tabView);
 
@@ -204,7 +204,6 @@ public:
 
     int getActiveIndex();
 
-
     void setTabChangedAction(const std::function<void(size_t)>& event);
 
 private:
@@ -220,6 +219,9 @@ private:
     float sidebarWidth = 100;
 
     std::function<void(size_t)> tabChangedAction = nullptr;
+
+    void focus2NextTab();
+    void focus2LastTab();
 
     NVGcolor skeletonBackground = brls::Application::getTheme()["color/grey_3"];
     NVGcolor tabItemBackgroundColor = nvgRGBA(0, 0, 0, 0);

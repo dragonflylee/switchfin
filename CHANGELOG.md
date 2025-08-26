@@ -5,6 +5,7 @@
 ### Add
 
 * add song/artist tab for music
+* add keyboard action binding config
 * support receive media files as args
 * i18n: add russian localization @wildrun0
 

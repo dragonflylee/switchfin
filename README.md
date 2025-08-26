@@ -55,14 +55,16 @@ Switchfin is third-party PC player for Jellyfin that provides a native user inte
 
 ## Input mapping during playback
 
-- A Play/Pause
-- B Stop during
-- Y Toggle OSD
-- X Show Menu 
-- R/L Seek +/-
-- L Stick Button Toggle Speed Select
-- R Stick Button Toggle Video Quality Select
-- \+ Show video profile
+gamepad | keyboard | describe
+---|-------|---------
+ A | space | Play/Pause
+ B | esc | Stop during
+ Y | o | Toggle OSD
+ X | f4 | Show Menu 
+ R/L | [/] | Seek +/-
+ \+ | f1 | Show video profile
+ R | f2 | Stick Button Toggle Video Quality
+ L | f3 | Stick Button Toggle Speed Select
 
 ## System Requirements
 

@@ -2,6 +2,7 @@
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
 #include "utils/gesture.hpp"
+#include "utils/keybind.hpp"
 #include "utils/misc.hpp"
 #include "view/danmaku_core.hpp"
 #include "view/danmaku_setting.hpp"
@@ -48,8 +49,8 @@ VideoView::VideoView() {
 
     this->input = brls::Application::getPlatform()->getInputManager();
 
-    this->registerAction(
-        "hints/back"_i18n, brls::BUTTON_B,
+    this->registerActions(
+        "hints/back"_i18n, brls::BUTTON_B, KeyBind::getVideoOsd(),
         [this](brls::View* view) {
             if (isOsdLock) {
                 this->toggleOSD();
@@ -59,8 +60,8 @@ VideoView::VideoView() {
         },
         true);
 
-    this->registerAction(
-        "\uE08F", brls::BUTTON_LB,
+    this->registerActions(
+        "\uE08F", brls::BUTTON_LB, KeyBind::getRewind(),
         [this](brls::View* view) -> bool {
             CHECK_OSD(true);
             this->seekingRange -= getSeekRange(this->seekingRange);
@@ -69,8 +70,8 @@ VideoView::VideoView() {
         },
         false, true);
 
-    this->registerAction(
-        "\uE08E", brls::BUTTON_RB,
+    this->registerActions(
+        "\uE08E", brls::BUTTON_RB, KeyBind::getForward(),
         [this](brls::View* view) -> bool {
             CHECK_OSD(true);
             this->seekingRange += getSeekRange(this->seekingRange);
@@ -79,8 +80,8 @@ VideoView::VideoView() {
         },
         false, true);
 
-    this->registerAction(
-        "toggleOSD", brls::BUTTON_Y,
+    this->registerActions(
+        "toggleOSD", brls::BUTTON_Y, KeyBind::getVideoOsd(),
         [this](brls::View* view) -> bool {
             // 拖拽进度时不要影响显示 OSD
             if (!this->seekingRange) this->toggleOSD();
@@ -94,8 +95,8 @@ VideoView::VideoView() {
         return true;
     });
     this->btnSetting->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnSetting));
-    this->registerAction(
-        "main/player/setting"_i18n, brls::BUTTON_X,
+    this->registerActions(
+        "main/player/setting"_i18n, brls::BUTTON_X, KeyBind::getSetting(),
         [this](brls::View* view) {
             CHECK_OSD(true);
             this->settingEvent.fire();
@@ -103,8 +104,8 @@ VideoView::VideoView() {
         },
         true);
 
-    this->registerAction(
-        "volumeUp", brls::BUTTON_NAV_UP,
+    this->registerActions(
+        "volumeUp", brls::BUTTON_NAV_UP, KeyBind::getVolumeUp(),
         [this](brls::View* view) -> bool {
             CHECK_OSD(true);
             brls::ControllerState state{};
@@ -117,8 +118,8 @@ VideoView::VideoView() {
         },
         true, true);
 
-    this->registerAction(
-        "volumeDown", brls::BUTTON_NAV_DOWN,
+    this->registerActions(
+        "volumeDown", brls::BUTTON_NAV_DOWN, KeyBind::getVolumeDown(),
         [this](brls::View* view) -> bool {
             CHECK_OSD(true);
             brls::ControllerState state{};
@@ -137,6 +138,7 @@ VideoView::VideoView() {
 
     /// 弹幕切换按钮
     this->btnDanmakuToggle->registerClickAction([this](...) { return this->toggleDanmaku(); });
+    this->registerAction(KeyBind::getDanmaku(), [this](...) { return this->toggleDanmaku(); });
     this->btnDanmakuToggle->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnDanmakuToggle));
 
     /// 弹幕设置按钮
@@ -296,27 +298,31 @@ VideoView::VideoView() {
     });
     this->btnForward->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnForward));
 
-    this->registerAction("main/player/toggle"_i18n, brls::BUTTON_A, [this](brls::View* view) {
-        CHECK_OSD(false);
-        MPVCore::instance().togglePlay();
-        if (MPVCore::OSD_ON_TOGGLE) {
-            this->showOSD(true);
-        }
-        return true;
-    });
+    this->registerActions(
+        "main/player/toggle"_i18n, brls::BUTTON_A, KeyBind::getVideoPause(), [this](brls::View* view) {
+            CHECK_OSD(true);
+            MPVCore::instance().togglePlay();
+            if (MPVCore::OSD_ON_TOGGLE) {
+                this->showOSD(true);
+            }
+            return true;
+        });
 
     /// 视频详情信息
     this->profile = new VideoProfile();
     this->addView(this->profile);
-    this->registerAction(
-        "profile", brls::BUTTON_BACK, [this](brls::View* view) { return this->toggleProfile(); }, true);
+    this->registerActions(
+        "profile", brls::BUTTON_BACK, KeyBind::getVideoProfile(),
+        [this](brls::View* view) { return this->toggleProfile(); }, true);
     this->btnCast->registerClickAction([this](...) { return this->toggleProfile(); });
     this->btnCast->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnCast));
 
     /// 倍速按钮
     this->btnVideoSpeed->registerClickAction([this](...) { return this->toggleSpeed(); });
     this->btnVideoSpeed->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoSpeed));
-    this->registerAction("main/player/speed"_i18n, brls::BUTTON_LSB, [this](...) { return this->toggleSpeed(); }, true);
+    this->registerActions(
+        "main/player/speed"_i18n, brls::BUTTON_LSB, KeyBind::getVideoSpeed(),
+        [this](...) { return this->toggleSpeed(); }, true);
 }
 
 VideoView::~VideoView() {
@@ -853,5 +859,11 @@ void VideoView::hideVideoQuality() {
 void VideoView::registerVideoQuality(brls::ActionListener action) {
     this->btnVideoQuality->registerClickAction(action);
     this->btnVideoQuality->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoQuality));
-    this->registerAction("main/player/quality"_i18n, brls::BUTTON_RSB, action, true);
+    this->registerActions("main/player/quality"_i18n, brls::BUTTON_RSB, KeyBind::getVideoQuality(), action, true);
+}
+
+void VideoView::registerActions(const std::string& hintText, const brls::ControllerButton button,
+    const brls::BrlsKeyCombination key, const brls::ActionListener& actionListener, bool hidden, bool allowRepeating) {
+    this->registerAction(hintText, button, actionListener, hidden, allowRepeating);
+    this->registerAction(key, actionListener, allowRepeating);
 }

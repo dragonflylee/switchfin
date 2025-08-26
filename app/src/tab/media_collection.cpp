@@ -12,6 +12,7 @@
 #include "tab/suggest_show.hpp"
 #include "tab/suggest_movie.hpp"
 #include "tab/song_list.hpp"
+#include "utils/keybind.hpp"
 #include <fmt/ranges.h>
 
 using namespace brls::literals;  // for _i18n
@@ -147,21 +148,7 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
         item->setLabel("main/tabs/genres"_i18n);
         this->tabFrame->addTab(item, [this]() { return new GenresTab(this->itemId, this->itemType); });
 
-        this->registerAction(
-            "main/player/next"_i18n, brls::BUTTON_LB,
-            [this](brls::View* view) {
-                tabFrame->focus2LastTab();
-                return true;
-            },
-            true);
-
-        this->registerAction(
-            "main/player/prev"_i18n, brls::BUTTON_RB,
-            [this](brls::View* view) {
-                tabFrame->focus2NextTab();
-                return true;
-            },
-            true);
+        this->tabFrame->registerTabAction(this);
 
         // add suggest tab
         item = new AutoSidebarItem();
@@ -194,10 +181,16 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
 
     std::string serverUrl = AppConfig::instance().getUrl();
     this->prefKey = fmt::format("{}/web/index.html{}", serverUrl, itemType);
-    std::transform(this->prefKey.begin(), this->prefKey.end(), this->prefKey.begin(),
-        [](unsigned char c) { return std::tolower(c); });
+    std::transform(this->prefKey.begin(), this->prefKey.end(), this->prefKey.begin(), ::tolower);
 
     this->recycler->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, [this](...) {
+        this->startIndex = 0;
+        this->recycler->showSkeleton();
+        this->doRequest();
+        return true;
+    });
+
+    this->registerAction(KeyBind::getRefresh(), [this](...) {
         this->startIndex = 0;
         this->recycler->showSkeleton();
         this->doRequest();

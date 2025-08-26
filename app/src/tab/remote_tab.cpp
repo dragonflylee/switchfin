@@ -7,22 +7,7 @@ using namespace brls::literals;
 RemoteTab::RemoteTab() {
     this->inflateFromXMLRes("xml/tabs/remote.xml");
     brls::Logger::debug("RemoteTab: create");
-
-    this->registerAction(
-        "main/player/next"_i18n, brls::BUTTON_LB,
-        [this](brls::View* view) {
-            tabFrame->focus2LastTab();
-            return true;
-        },
-        true);
-
-    this->registerAction(
-        "main/player/prev"_i18n, brls::BUTTON_RB,
-        [this](brls::View* view) {
-            tabFrame->focus2NextTab();
-            return true;
-        },
-        true);
+    this->tabFrame->registerTabAction(this);
 }
 
 RemoteTab::~RemoteTab() { brls::Logger::debug("RemoteTab: deleted"); }

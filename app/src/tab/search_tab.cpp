@@ -9,6 +9,7 @@
 #include "view/video_card.hpp"
 #include "tab/search_result.hpp"
 #include "utils/dialog.hpp"
+#include "utils/keybind.hpp"
 #include "api/jellyfin.hpp"
 #include <fstream>
 
@@ -211,6 +212,10 @@ SearchTab::SearchTab() {
 
 void SearchTab::onCreate() {
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, [this](...) {
+        this->updateInput();
+        return true;
+    });
+    this->registerAction(KeyBind::getRefresh(), [this](...) {
         this->updateInput();
         return true;
     });

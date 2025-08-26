@@ -5,6 +5,7 @@
 #include "tab/home_tab.hpp"
 #include "view/recyling_video.hpp"
 #include "api/jellyfin.hpp"
+#include "utils/keybind.hpp"
 
 using namespace brls::literals;  // for _i18n
 
@@ -80,6 +81,15 @@ void HomeTab::doRequest() {
 
 void HomeTab::onCreate() {
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, [this](...) {
+        this->userResume->doRequest(true);
+        this->showNextup->doRequest(true);
+        this->movieLatest->doLatest(true);
+        this->seriesLatest->doLatest(true);
+        this->musicLatest->doLatest(true);
+        return true;
+    });
+
+    this->registerAction(KeyBind::getRefresh(), [this](...) {
         this->userResume->doRequest(true);
         this->showNextup->doRequest(true);
         this->movieLatest->doLatest(true);

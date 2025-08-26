@@ -102,6 +102,21 @@ public:
         REQUEST_TIMEOUT,
         HTTP_PROXY_STATUS,
         HTTP_PROXY,
+
+        KEY_REFRESH,        // 刷新快捷键
+        KEY_LAST,           // 上一个Tab快捷键
+        KEY_NEXT,           // 下一个Tab快捷键
+        KEY_VOLUME_UP,      // 音量增大快捷键
+        KEY_VOLUME_DOWN,    // 音量减小快捷键
+        KEY_VIDEO_PROFILE,  // 视频详情快捷键
+        KEY_DANMAKU,        // 弹幕快捷键
+        KEY_FORWARD,        // 快进快捷键
+        KEY_REWIND,         // 快退快捷键
+        KEY_SETTING,        // 设置快捷键
+        KEY_VIDEO_QUALITY,  // 视频清晰度菜单快捷键
+        KEY_VIDEO_SPEED,    // 视频倍速菜单快捷键
+        KEY_VIDEO_OSD,      // 切换OSD显示
+        KEY_VIDEO_PAUSE,    // 视频播放暂停快捷键
     };
 
     AppConfig() = default;

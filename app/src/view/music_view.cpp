@@ -3,6 +3,7 @@
 #include "view/svg_image.hpp"
 #include "view/video_progress_slider.hpp"
 #include "utils/config.hpp"
+#include "utils/keybind.hpp"
 #include "utils/misc.hpp"
 #include "utils/image.hpp"
 #include "api/http.hpp"
@@ -133,8 +134,16 @@ void MusicView::registerViewAction(brls::View* view) {
         mpv.command("playlist-prev");
         return true;
     });
+    view->registerAction(KeyBind::getLast(), [&mpv](brls::View* view) {
+        mpv.command("playlist-prev");
+        return true;
+    });
 
     view->registerAction("main/player/next"_i18n, brls::BUTTON_RB, [&mpv](brls::View* view) {
+        mpv.command("playlist-next");
+        return true;
+    });
+    view->registerAction(KeyBind::getNext(), [&mpv](brls::View* view) {
         mpv.command("playlist-next");
         return true;
     });

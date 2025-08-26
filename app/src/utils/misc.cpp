@@ -180,7 +180,7 @@ std::vector<std::string> misc::split(const std::string& data, char seq) {
     std::vector<std::string> result;
     std::stringstream ss(data);
 
-    while (std::getline(ss, s, ',')) {
+    while (std::getline(ss, s, seq)) {
         result.push_back(s);
     }
     return result;

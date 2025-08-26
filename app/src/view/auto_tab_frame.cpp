@@ -20,6 +20,7 @@
 #include <tinyxml2.h>
 #include "view/auto_tab_frame.hpp"
 #include "view/svg_image.hpp"
+#include "utils/keybind.hpp"
 
 /**
  * auto tab frame
@@ -157,6 +158,34 @@ void AutoTabFrame::addTab(AutoSidebarItem* tab, TabViewCreator creator) {
 }
 
 void AutoTabFrame::focusTab(int position) { brls::Application::giveFocus(this->getItem(position)); }
+
+void AutoTabFrame::registerTabAction(brls::View* view) {
+    view->registerAction(
+        "last", brls::BUTTON_LB,
+        [this](brls::View* view) {
+            this->focus2LastTab();
+            return true;
+        },
+        true);
+
+    view->registerAction(KeyBind::getLast(), [this](brls::View* view) {
+        this->focus2LastTab();
+        return true;
+    });
+
+    this->registerAction(
+        "next", brls::BUTTON_RB,
+        [this](brls::View* view) {
+            this->focus2NextTab();
+            return true;
+        },
+        true);
+
+    this->registerAction(KeyBind::getNext(), [this](brls::View* view) {
+        this->focus2NextTab();
+        return true;
+    });
+}
 
 void AutoTabFrame::focus2NextTab() {
     size_t sideBarNum = this->sidebar->getChildren().size();
@@ -930,9 +959,13 @@ AutoSidebarItem* AttachedView::getTabBar() { return this->tab; }
 void AttachedView::onCreate() {}
 
 void AttachedView::registerTabAction(std::string hintText, enum brls::ControllerButton button,
-    brls::ActionListener action, bool hidden, bool allowRepeating, enum brls::Sound sound) {
+    const brls::BrlsKeyCombination key, brls::ActionListener action, bool hidden, bool allowRepeating,
+    enum brls::Sound sound) {
     this->registerAction(hintText, button, action, hidden, allowRepeating, sound);
-    if (this->tab) this->tab->registerAction(hintText, button, action, hidden, allowRepeating, sound);
+    if (this->tab) {
+        this->tab->registerAction(hintText, button, action, hidden, allowRepeating, sound);
+        this->tab->registerAction(key, action, allowRepeating);
+    }
 }
 
 AttachedView::AttachedView() { this->setGrow(1); }

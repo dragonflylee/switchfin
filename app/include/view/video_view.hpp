@@ -60,6 +60,9 @@ public:
     void hideVideoProgressSlider();
     void hideVideoQuality();
     void registerVideoQuality(brls::ActionListener action);
+    void registerActions(const std::string& hintText, const brls::ControllerButton button,
+        const brls::BrlsKeyCombination key, const brls::ActionListener& actionListener, bool hidden = false,
+        bool allowRepeating = false);
 
     void showOSD(bool autoHide = true);
 

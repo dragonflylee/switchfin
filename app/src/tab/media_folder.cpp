@@ -9,6 +9,7 @@
 #include "view/auto_tab_frame.hpp"
 #include "api/jellyfin.hpp"
 #include "utils/image.hpp"
+#include "utils/keybind.hpp"
 
 using namespace brls::literals;  // for _i18n
 
@@ -108,6 +109,12 @@ brls::View* MediaFolders::create() { return new MediaFolders(); }
 
 void MediaFolders::onCreate() {
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, [this](...) {
+        this->recycler->showSkeleton();
+        this->doRequest();
+        return true;
+    });
+    this->registerAction(KeyBind::getRefresh(), [this](...) {
+        this->recycler->showSkeleton();
         this->doRequest();
         return true;
     });
