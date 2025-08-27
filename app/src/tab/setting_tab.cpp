@@ -220,11 +220,10 @@ void SettingTab::onCreate() {
             MPVCore::instance().restart();
         });
 
-    btnBottomBar->init(
-        "main/setting/playback/bottom_bar"_i18n, conf.getItem(AppConfig::PLAYER_BOTTOM_BAR, true), [&conf](bool value) {
-            MPVCore::BOTTOM_BAR = value;
-            conf.setItem(AppConfig::PLAYER_BOTTOM_BAR, value);
-        });
+    btnBottomBar->init("main/setting/playback/bottom_bar"_i18n, MPVCore::BOTTOM_BAR, [&conf](bool value) {
+        MPVCore::BOTTOM_BAR = value;
+        conf.setItem(AppConfig::PLAYER_BOTTOM_BAR, value);
+    });
 
     btnShowFPS->init("main/setting/ui/show_fps"_i18n, brls::Application::getFPSStatus(), [&conf](bool value) {
         brls::Application::setFPSStatus(value);
@@ -237,23 +236,25 @@ void SettingTab::onCreate() {
             conf.setItem(AppConfig::SWAP_INTERVAL, selected);
         });
 
-    btnOSDOnToggle->init(
-        "main/setting/playback/osd_on_toggle"_i18n, conf.getItem(AppConfig::OSD_ON_TOGGLE, true), [&conf](bool value) {
-            MPVCore::OSD_ON_TOGGLE = value;
-            conf.setItem(AppConfig::OSD_ON_TOGGLE, value);
-        });
+    btnOSDOnToggle->init("main/setting/playback/osd_on_toggle"_i18n, MPVCore::OSD_ON_TOGGLE, [&conf](bool value) {
+        MPVCore::OSD_ON_TOGGLE = value;
+        conf.setItem(AppConfig::OSD_ON_TOGGLE, value);
+    });
 
-    btnTouchGesture->init(
-        "main/setting/playback/touch_gesture"_i18n, conf.getItem(AppConfig::TOUCH_GESTURE, true), [&conf](bool value) {
-            MPVCore::TOUCH_GESTURE = value;
-            conf.setItem(AppConfig::TOUCH_GESTURE, value);
-        });
+    btnTouchGesture->init("main/setting/playback/touch_gesture"_i18n, MPVCore::TOUCH_GESTURE, [&conf](bool value) {
+        MPVCore::TOUCH_GESTURE = value;
+        conf.setItem(AppConfig::TOUCH_GESTURE, value);
+    });
 
-    btnClipPoint->init(
-        "main/setting/playback/clip_point"_i18n, conf.getItem(AppConfig::CLIP_POINT, true), [&conf](bool value) {
-            MPVCore::CLIP_POINT = value;
-            conf.setItem(AppConfig::CLIP_POINT, value);
-        });
+    btnTvOsdMode->init("main/setting/control/tv_osd"_i18n, MPVCore::OSD_TV_MODE, [&conf](bool value) {
+        MPVCore::OSD_TV_MODE = value;
+        conf.setItem(AppConfig::PLAYER_TV_MODE, value);
+    });
+
+    btnClipPoint->init("main/setting/playback/clip_point"_i18n, MPVCore::CLIP_POINT, [&conf](bool value) {
+        MPVCore::CLIP_POINT = value;
+        conf.setItem(AppConfig::CLIP_POINT, value);
+    });
 
 #ifdef __SWITCH__
     btnTutorialOpenApp->registerClickAction([](...) -> bool {

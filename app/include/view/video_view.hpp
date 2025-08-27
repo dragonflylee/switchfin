@@ -82,6 +82,9 @@ private:
     BRLS_BIND(brls::Box, btnVolume, "video/osd/volume");
     BRLS_BIND(brls::Box, btnClose, "video/close/box");
     BRLS_BIND(brls::Box, osdLockBox, "video/osd/lock/box");
+    BRLS_BIND(brls::Box, iconBox, "video/osd/icon/box");
+    BRLS_BIND(brls::Label, iconVideoQuality, "video/quality/label");
+    BRLS_BIND(brls::Label, iconVideoSpeed, "video/speed/label");
     BRLS_BIND(SVGImage, osdLockIcon, "video/osd/lock/icon");
     BRLS_BIND(SVGImage, toggleIcon, "video/osd/toggle/icon");
     BRLS_BIND(SVGImage, volumeIcon, "video/osd/volume/icon");
@@ -127,6 +130,7 @@ private:
     bool toggleSpeed();
     bool toggleVolume(brls::View* view);
     void showHint(const std::string& value);
+    void setTvMode(bool state);
 
     /// @brief 延迟 200ms 触发进度跳转到 seeking_range
     void requestSeeking(int seek, int delay = 400);

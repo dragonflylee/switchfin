@@ -48,6 +48,7 @@ private:
     BRLS_BIND(brls::BooleanCell, btnShowFPS, "setting/ui/show_fps");
     BRLS_BIND(brls::BooleanCell, btnOSDOnToggle, "setting/player/osd_on_toggle");
     BRLS_BIND(brls::BooleanCell, btnTouchGesture, "setting/player/touch_gesture");
+    BRLS_BIND(brls::BooleanCell, btnTvOsdMode, "setting/player/tv_model");
     BRLS_BIND(brls::BooleanCell, btnClipPoint, "setting/player/clip_point");
     BRLS_BIND(brls::BooleanCell, btnFullscreen, "setting/fullscreen");
     BRLS_BIND(brls::BooleanCell, btnAlwaysOnTop, "setting/always_on_top");

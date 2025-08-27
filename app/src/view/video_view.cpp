@@ -47,12 +47,18 @@ VideoView::VideoView() {
     mpv.reset();
     mpv.enableVO(true);
 
+    if (MPVCore::OSD_TV_MODE) this->setTvMode(true);
+
     this->input = brls::Application::getPlatform()->getInputManager();
 
-    this->registerActions(
-        "hints/back"_i18n, brls::BUTTON_B, KeyBind::getVideoOsd(),
+    this->registerAction(
+        "hints/back"_i18n, brls::BUTTON_B,
         [this](brls::View* view) {
             if (isOsdLock) {
+                this->toggleOSD();
+                return true;
+            }
+            if (MPVCore::OSD_TV_MODE && this->isOsdShown) {
                 this->toggleOSD();
                 return true;
             }
@@ -715,6 +721,17 @@ void VideoView::showHint(const std::string& value) {
     this->hintBox->setVisibility(brls::Visibility::VISIBLE);
     this->hintLastShowTime = brls::getCPUTimeUsec() + VideoView::OSD_SHOW_TIME;
     this->showOSD();
+}
+
+void VideoView::setTvMode(bool state) {
+    btnToggle->setCustomNavigationRoute(brls::FocusDirection::RIGHT, state ? osdSlider : iconBox);
+    volumeIcon->setCustomNavigationRoute(brls::FocusDirection::UP, state ? osdSlider : osdLockBox);
+    danmakuSettingIcon->setCustomNavigationRoute(brls::FocusDirection::UP, state ? osdSlider : osdLockBox);
+    danmakuIcon->setCustomNavigationRoute(brls::FocusDirection::UP, state ? osdSlider : osdLockBox);
+    iconVideoQuality->setCustomNavigationRoute(brls::FocusDirection::UP, state ? osdSlider : osdLockBox);
+    iconVideoSpeed->setCustomNavigationRoute(brls::FocusDirection::UP, state ? osdSlider : osdLockBox);
+    osdLockBox->setCustomNavigationRoute(brls::FocusDirection::DOWN, state ? osdSlider : iconBox);
+    osdSlider->setFocusable(state);
 }
 
 bool VideoView::toggleOSDLock() {

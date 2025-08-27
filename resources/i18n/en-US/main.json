@@ -155,6 +155,10 @@
     "transcode": {
       "header": "Transcode"
     },
+    "control": {
+      "header": "Control",
+      "tv_osd": "TV style OSD control"
+    },
     "filter": {
       "mirror": "Video flip",
       "hflip": "Horizontally flip",

@@ -155,6 +155,10 @@
     "transcode": {
       "header": "转码配置"
     },
+    "control": {
+      "header": "播放控制",
+      "tv_osd": "电视风格播放器"
+    },
     "filter": {
       "mirror": "镜像画面",
       "hflip": "水平镜像",

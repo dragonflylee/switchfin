@@ -50,14 +50,28 @@
                     id="setting/video/low_quality" />
                 <brls:SelectorCell
                     id="setting/video/inmemory" />
+                <brls:SelectorCell
+                    id="setting/playback/audio_channels" />
                 <brls:BooleanCell
                     id="setting/video/subs_fallback" />
-                 <brls:SelectorCell
-                    id="setting/playback/audio_channels" />
+            </brls:Box>
+
+            <brls:Header
+                width="auto"
+                height="auto"
+                title="@i18n/main/setting/control/header"
+                marginBottom="0px" />
+            <brls:Box
+                width="100%"
+                height="auto"
+                axis="column"
+                marginBottom="30px">
                 <brls:BooleanCell
                     id="setting/player/osd_on_toggle" />
                 <brls:BooleanCell
                     id="setting/player/touch_gesture" />
+                <brls:BooleanCell
+                    id="setting/player/tv_model" />
             </brls:Box>
 
             <brls:Header
