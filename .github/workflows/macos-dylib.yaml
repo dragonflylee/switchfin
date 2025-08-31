@@ -28,7 +28,7 @@ jobs:
     - name: Install dependency
       run: brew reinstall ninja nasm meson
     - name: Build dylib
-      run: make -C scripts/macos ARCH=${{ matrix.arch }} TMPDIR=${{ runner.temp }} PREFIX=${{ runner.temp }}
+      run: make -C scripts/macos OSX_ARCH=${{ matrix.arch }} TMPDIR=${{ runner.temp }} PREFIX=${{ runner.temp }}
     - name: Build packages
       run: |
         tar zcf dylib-ffmpeg71-mpv40-${{ matrix.tag }}.tar.gz --exclude=lib/*.a \

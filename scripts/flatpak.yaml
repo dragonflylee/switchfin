@@ -171,8 +171,6 @@ modules:
           - type: patch
             path: patches/ffmpeg-v4l2-request.patch
           - type: patch
-            path: patches/ffmpeg-v4l2-drmprime.patch
-          - type: patch
             path: mingw64/ffmpeg/avio.patch
         modules:
           - name: nv-codec-headers

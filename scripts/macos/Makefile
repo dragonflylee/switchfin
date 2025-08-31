@@ -1,13 +1,13 @@
-ARCH ?= x86_64
-PREFIX ?= $(CURDIR)/dylib/$(ARCH)
+OSX_ARCH ?= x86_64
+PREFIX ?= $(CURDIR)/dylib/$(OSX_ARCH)
 TMPDIR ?= $(CURDIR)/src
 
 export CMAKE_PREFIX_PATH=$(PREFIX)
 export PKG_CONFIG_LIBDIR=$(PREFIX)/lib/pkgconfig
 
-ifeq ($(ARCH),arm64)
+ifeq ($(OSX_ARCH),arm64)
 	OSX_TARGET=11.0
-else ifeq ($(ARCH),x86_64)
+else ifeq ($(OSX_ARCH),x86_64)
 	OSX_TARGET=10.15
 endif
 
@@ -35,7 +35,7 @@ download:
 
 curl:
 	cmake -B build/curl -S $(TMPDIR)/curl-8.14.1 -G Ninja -DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_OSX_ARCHITECTURES=$(ARCH) -DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_TARGET) \
+		-DCMAKE_OSX_ARCHITECTURES=$(OSX_ARCH) -DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_TARGET) \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_NAME_DIR=$(PREFIX)/lib \
 		-DHTTP_ONLY=ON -DCURL_DISABLE_PROGRESS_METER=ON -DCURL_USE_SECTRANSP=ON \
 		-DBUILD_SHARED_LIBS=ON -DBUILD_CURL_EXE=OFF -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF \
@@ -50,7 +50,7 @@ glfw:
 		$(TMPDIR)/glfw-switchfin/src/mappings.h.in \
 		$(TMPDIR)/glfw-switchfin/src/mappings.h
 	cmake -B build/glfw -S $(TMPDIR)/glfw-switchfin -G Ninja -DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_OSX_ARCHITECTURES=$(ARCH) -DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_TARGET) \
+		-DCMAKE_OSX_ARCHITECTURES=$(OSX_ARCH) -DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_TARGET) \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_NAME_DIR=$(PREFIX)/lib \
 		-DBUILD_SHARED_LIBS=ON -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF \
 		-DGLFW_BUILD_DOCS=OFF
@@ -59,7 +59,7 @@ glfw:
 
 mbedtls:
 	cmake -B build/mbedtls -S $(TMPDIR)/mbedtls-3.6.4 -G Ninja -DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_OSX_ARCHITECTURES=$(ARCH) -DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_TARGET) \
+		-DCMAKE_OSX_ARCHITECTURES=$(OSX_ARCH) -DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_TARGET) \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_NAME_DIR=$(PREFIX)/lib \
 		-DUSE_SHARED_MBEDTLS_LIBRARY=OFF -DUSE_STATIC_MBEDTLS_LIBRARY=ON \
 		-DENABLE_PROGRAMS=OFF -DENABLE_TESTING=OFF
@@ -68,7 +68,7 @@ mbedtls:
 
 libwebp:
 	cmake -B build/libwebp -S $(TMPDIR)/libwebp-1.6.0 -G Ninja -DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_OSX_ARCHITECTURES=$(ARCH) -DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_TARGET) \
+		-DCMAKE_OSX_ARCHITECTURES=$(OSX_ARCH) -DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_TARGET) \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_NAME_DIR=$(PREFIX)/lib \
 		-DWEBP_BUILD_EXTRAS=OFF -DWEBP_BUILD_ANIM_UTILS=OFF -DWEBP_BUILD_CWEBP=OFF -DWEBP_BUILD_DWEBP=OFF \
 		-DWEBP_BUILD_GIF2WEBP=OFF -DWEBP_BUILD_IMG2WEBP=OFF -DWEBP_BUILD_VWEBP=OFF -DWEBP_BUILD_WEBPINFO=OFF \
@@ -78,14 +78,14 @@ libwebp:
 
 freetype:
 	meson setup build/freetype $(TMPDIR)/freetype-2.13.3 \
-		--cross-file "$(CURDIR)/$(ARCH).meson" --prefix=$(PREFIX) \
+		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX) \
 		-Dharfbuzz=disabled -Dbrotli=disabled -Dzlib=system
 	meson compile -C build/freetype
 	meson install -C build/freetype
 
 harfbuzz: freetype
 	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-11.3.3 \
-		--cross-file "$(CURDIR)/$(ARCH).meson" --prefix=$(PREFIX) \
+		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX) \
 		-Dtests=disabled -Ddocs=disabled -Dicu=disabled -Dcairo=disabled \
 		-Dglib=disabled -Dgobject=disabled -Dbenchmark=disabled -Dutilities=disabled
 	meson compile -C build/harfbuzz
@@ -93,20 +93,20 @@ harfbuzz: freetype
 
 fribidi:
 	meson setup build/fribidi $(TMPDIR)/fribidi-1.0.16 \
-		--cross-file "$(CURDIR)/$(ARCH).meson" --prefix=$(PREFIX) \
+		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX) \
 		--default-library=static -Dbin=false -Ddocs=false -Dtests=false
 	meson compile -C build/fribidi
 	meson install -C build/fribidi
 
 libass: harfbuzz fribidi
 	meson setup build/libass $(TMPDIR)/libass-0.17.4 --default-library=shared \
-		--cross-file "$(CURDIR)/$(ARCH).meson" --prefix=$(PREFIX)
+		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX)
 	meson compile -C build/libass
 	meson install -C build/libass
 
 dav1d:
 	meson setup build/dav1d $(TMPDIR)/dav1d-1.5.1 \
-		--cross-file "$(CURDIR)/$(ARCH).meson" --prefix=$(PREFIX) \
+		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX) \
 		-Denable_tools=false -Denable_examples=false -Denable_tests=false -Denable_docs=false
 	meson compile -C build/dav1d
 	meson install -C build/dav1d
@@ -115,12 +115,12 @@ ffmpeg: mbedtls libass dav1d
 	mkdir -p build/ffmpeg && cd build/ffmpeg && \
 	$(TMPDIR)/ffmpeg-7.1.1/configure --enable-shared --disable-static --prefix=$(PREFIX) \
 		--enable-pthreads --enable-runtime-cpudetect --pkg-config-flags=--static \
-		--cc=clang --enable-cross-compile --target-os=darwin --arch=$(ARCH) \
-		--extra-cflags="-arch $(ARCH) -mmacosx-version-min=$(OSX_TARGET)" \
-		--extra-cxxflags="-arch $(ARCH) -mmacosx-version-min=$(OSX_TARGET)" \
-		--extra-ldflags="-arch $(ARCH) -mmacosx-version-min=$(OSX_TARGET)" \
-		--disable-autodetect --disable-encoders --enable-pic --disable-asm \
-		--disable-programs --disable-doc --disable-debug --disable-avdevice --disable-muxers \
+		--cc=clang --enable-cross-compile --target-os=darwin --arch=$(OSX_ARCH) \
+		--extra-cflags="-arch $(OSX_ARCH) -mmacosx-version-min=$(OSX_TARGET)" \
+		--extra-cxxflags="-arch $(OSX_ARCH) -mmacosx-version-min=$(OSX_TARGET)" \
+		--extra-ldflags="-arch $(OSX_ARCH) -mmacosx-version-min=$(OSX_TARGET)" \
+		--disable-autodetect --disable-encoders --enable-pic --disable-muxers \
+		--disable-programs --disable-doc --disable-debug --disable-avdevice \
 		--disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,httpproxy \
 		--disable-libjack --disable-indev=jack --disable-postproc --enable-network \
 		--enable-libdav1d --enable-libass --enable-libfreetype --enable-zlib --enable-bzlib \
@@ -130,14 +130,14 @@ ffmpeg: mbedtls libass dav1d
 
 libplacebo:
 	meson setup build/libplacebo $(TMPDIR)/libplacebo \
-		--cross-file "$(CURDIR)/$(ARCH).meson" --prefix=$(PREFIX) \
+		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX) \
 		-Ddemos=false -Dtests=false -Dopengl=enabled -Dlcms=disabled -Dvulkan=disabled
 	meson compile -C build/libplacebo
 	meson install -C build/libplacebo
 
 mpv: ffmpeg libplacebo
 	meson setup build/mpv $(TMPDIR)/mpv-0.40.0 --default-library=shared \
-		--cross-file "$(CURDIR)/$(ARCH).meson" --prefix=$(PREFIX) -Dtests=false \
+		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX) -Dtests=false \
 		-Dlibmpv=true -Dcplayer=false -Dswift-build=disabled -Dlua=disabled \
 		-Dmacos-cocoa-cb=disabled -Dmacos-media-player=disabled -Dmacos-touchbar=disabled \
 		-Dlibarchive=disabled -Dlcms2=disabled -Dmanpage-build=disabled -Dhtml-build=disabled

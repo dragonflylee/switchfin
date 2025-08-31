@@ -114,8 +114,7 @@ VideoView::VideoView() {
         "volumeUp", brls::BUTTON_NAV_UP, KeyBind::getVolumeUp(),
         [this](brls::View* view) -> bool {
             CHECK_OSD(true);
-            brls::ControllerState state{};
-            input->updateUnifiedControllerState(&state);
+            auto& state = brls::Application::getControllerState();
             if (state.buttons[brls::BUTTON_RT]) {
                 this->requestVolume((int)MPVCore::instance().volume + 5, 400);
                 return true;
@@ -128,8 +127,7 @@ VideoView::VideoView() {
         "volumeDown", brls::BUTTON_NAV_DOWN, KeyBind::getVolumeDown(),
         [this](brls::View* view) -> bool {
             CHECK_OSD(true);
-            brls::ControllerState state{};
-            input->updateUnifiedControllerState(&state);
+            auto& state = brls::Application::getControllerState();
             if (state.buttons[brls::BUTTON_RT]) {
                 this->requestVolume((int)MPVCore::instance().volume - 5, 400);
                 return true;
@@ -572,8 +570,7 @@ void VideoView::onChildFocusGained(View* directChild, View* focusedView) {
 
 void VideoView::buttonProcessing() {
     // 获取按键数据
-    brls::ControllerState state;
-    input->updateUnifiedControllerState(&state);
+    auto& state = brls::Application::getControllerState();
     // 当OSD显示时上下左右切换选择按钮，持续显示OSD
     if (this->isOsdShown) {
         if (state.buttons[brls::BUTTON_NAV_RIGHT] || state.buttons[brls::BUTTON_NAV_LEFT] ||
