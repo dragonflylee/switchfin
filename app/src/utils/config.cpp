@@ -146,6 +146,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {KEY_SETTING, {"key_setting"}},
     {KEY_VIDEO_QUALITY, {"key_video_quality"}},
     {KEY_VIDEO_SPEED, {"key_video_speed"}},
+    {KEY_VIDEO_OSD, {"key_video_osd"}},
     {KEY_VIDEO_PAUSE, {"key_video_pause"}},
 };
 

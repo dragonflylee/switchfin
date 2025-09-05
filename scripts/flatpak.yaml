@@ -61,8 +61,8 @@ modules:
         buildsystem: autotools
         sources:
           - type: archive
-            url: https://xorg.freedesktop.org/archive/individual/lib/libXpresent-1.0.1.tar.xz
-            sha256: b964df9e5a066daa5e08d2dc82692c57ca27d00b8cc257e8e960c9f1cf26231b
+            url: https://xorg.freedesktop.org/archive/individual/lib/libXpresent-1.0.2.tar.xz
+            sha256: 4e5b21b4812206a4b223013606ae31170502c1043038777a1ef8f70c09d37602
             x-checker-data:
               type: anitya
               project-id: 17166
@@ -75,8 +75,8 @@ modules:
         buildsystem: meson
         sources:
           - type: archive
-            url: https://gitlab.freedesktop.org/emersion/libdisplay-info/-/releases/0.2.0/downloads/libdisplay-info-0.2.0.tar.xz
-            sha256: 5a2f002a16f42dd3540c8846f80a90b8f4bdcd067a94b9d2087bc2feae974176
+            url: https://gitlab.freedesktop.org/emersion/libdisplay-info/-/releases/0.3.0/downloads/libdisplay-info-0.3.0.tar.xz
+            sha256: 6ae77cd937f9cf7d1321d35c116062c4911e8447010a6a713ac4286f7a9d5987
         modules:
           - name: hwdata
             cleanup:
@@ -85,8 +85,8 @@ modules:
               - --disable-blacklist
             sources:
               - type: archive
-                url: https://github.com/vcrhonek/hwdata/archive/v0.396.tar.gz
-                sha256: 6ed6ff6eb9d137b9669af6966974643a015cf302a39237ef84dd2efa5e20bae8
+                url: https://github.com/vcrhonek/hwdata/archive/v0.399.tar.gz
+                sha256: 74872355e14d5ddc48a0f63036227ffb5f7796a3012c6377ac1fc7432ffe2b41
 
       - name: libplacebo
         buildsystem: meson

@@ -20,6 +20,7 @@ SET(_MPV_REQUIRED_VARS MPV_INCLUDE_DIR MPV_LIBRARY)
 #
 ### MPV uses pkgconfig.
 #
+find_package(PkgConfig QUIET)
 if (PKG_CONFIG_FOUND)
     pkg_check_modules(PC_MPV QUIET mpv)
 endif (PKG_CONFIG_FOUND)
@@ -42,6 +43,7 @@ find_path(
 #
 set(_MPV_LIBRARY_NAMES mpv)
 if (PC_MPV_LIBRARIES)
+    list(REMOVE_DUPLICATES PC_MPV_LIBRARIES)
     set(_MPV_LIBRARY_NAMES ${PC_MPV_LIBRARIES})
 endif ()
 
