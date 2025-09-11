@@ -175,15 +175,10 @@ std::string misc::hexEncode(const unsigned char* data, size_t len) {
     return ss.str();
 }
 
-std::vector<std::string> misc::split(const std::string& data, char seq) {
+void misc::split(const std::string& data, std::vector<std::string>& result, char seq) {
     std::string s;
-    std::vector<std::string> result;
     std::stringstream ss(data);
-
-    while (std::getline(ss, s, seq)) {
-        result.push_back(s);
-    }
-    return result;
+    while (std::getline(ss, s, seq)) result.push_back(s);
 }
 
 bool misc::sendIPC(const std::string& sock, const std::string& payload) {

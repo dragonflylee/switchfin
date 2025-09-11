@@ -23,6 +23,22 @@ static std::unordered_map<std::string, brls::BrlsKeyboardScancode> functionMap =
     {"f10", brls::BRLS_KBD_KEY_F10},
     {"f11", brls::BRLS_KBD_KEY_F11},
     {"f12", brls::BRLS_KBD_KEY_F12},
+    {"f13", brls::BRLS_KBD_KEY_F13},
+    {"f14", brls::BRLS_KBD_KEY_F14},
+    {"f15", brls::BRLS_KBD_KEY_F15},
+    {"f16", brls::BRLS_KBD_KEY_F16},
+    {"f17", brls::BRLS_KBD_KEY_F17},
+    {"f18", brls::BRLS_KBD_KEY_F18},
+    {"f19", brls::BRLS_KBD_KEY_F19},
+    {"f20", brls::BRLS_KBD_KEY_F20},
+    {"f21", brls::BRLS_KBD_KEY_F21},
+    {"f22", brls::BRLS_KBD_KEY_F22},
+    {"f23", brls::BRLS_KBD_KEY_F23},
+    {"f24", brls::BRLS_KBD_KEY_F24},
+    {"tab", brls::BRLS_KBD_KEY_TAB},
+    {"backspace", brls::BRLS_KBD_KEY_BACKSPACE},
+    {"insert", brls::BRLS_KBD_KEY_INSERT},
+    {"delete", brls::BRLS_KBD_KEY_DELETE},
     {"pgup", brls::BRLS_KBD_KEY_PAGE_UP},
     {"pgdn", brls::BRLS_KBD_KEY_PAGE_DOWN},
     {"home", brls::BRLS_KBD_KEY_HOME},
@@ -31,13 +47,22 @@ static std::unordered_map<std::string, brls::BrlsKeyboardScancode> functionMap =
     {"down", brls::BRLS_KBD_KEY_DOWN},
     {"left", brls::BRLS_KBD_KEY_LEFT},
     {"right", brls::BRLS_KBD_KEY_RIGHT},
+    {"pause", brls::BRLS_KBD_KEY_PAUSE},
+    {"menu", brls::BRLS_KBD_KEY_MENU},
     {"space", brls::BRLS_KBD_KEY_SPACE},
+     /* support literal names of some printable keys */
+    {",", brls::BRLS_KBD_KEY_COMMA},
+    {".", brls::BRLS_KBD_KEY_PERIOD},
+    {"/", brls::BRLS_KBD_KEY_SLASH},
+    {";", brls::BRLS_KBD_KEY_SEMICOLON},
+    {"=", brls::BRLS_KBD_KEY_EQUAL},
     {"[", brls::BRLS_KBD_KEY_LEFT_BRACKET},
     {"]", brls::BRLS_KBD_KEY_RIGHT_BRACKET},
 };
 
 brls::BrlsKeyCombination KeyBind::parseKey(const std::string& config) {
-    auto keys = misc::split(config, '-');
+    std::vector<std::string> keys;
+    misc::split(config, keys, '-');
     if (keys.empty()) {
         brls::Logger::error("Invalid key configuration: {}", config);
         return {brls::BRLS_KBD_KEY_UNKNOWN};

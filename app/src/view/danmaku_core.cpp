@@ -18,7 +18,8 @@
 #endif
 
 DanmakuItem::DanmakuItem(std::string content, const char *attributes) : msg(std::move(content)) {
-    std::vector<std::string> attrs = misc::split(attributes, ',');
+    std::vector<std::string> attrs;
+    misc::split(attributes, attrs, ',');
 
     if (attrs.size() < 9) {
         brls::Logger::error("error decode danmaku: {} {}", msg, attributes);
