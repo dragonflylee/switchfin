@@ -478,6 +478,22 @@ void AppConfig::save() {
 }
 
 bool AppConfig::checkLogin() {
+    for (auto& s : this->servers) {
+        if (s.id.empty() && s.urls.size() > 0) {
+            try {
+                std::string url = s.urls.front() + jellyfin::apiPublicInfo;
+                std::string resp = HTTP::get(url, HTTP::Timeout{3000});
+                jellyfin::PublicSystemInfo info = nlohmann::json::parse(resp);
+                s.id = info.Id;
+                s.name = info.ServerName;
+                s.version = info.Version;
+            } catch (const std::exception& ex) {
+                brls::Logger::warning("AppConfig {} checkServer: {}", s.urls.front(), ex.what());
+                return false;
+            }
+        }
+    }
+
     auto is_user = [this](const AppUser& u) { return u.id == this->user_id; };
     this->user = std::find_if(this->users.begin(), this->users.end(), is_user);
     if (this->user == this->users.end()) return false;
