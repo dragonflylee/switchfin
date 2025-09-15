@@ -232,7 +232,7 @@ bool AppConfig::init() {
     misc::initCrashDump();
 #endif
 
-#if (defined(__APPLE__) || defined(__linux__) || defined(_WIN32)) && !defined(ANDROID)
+#if (defined(__APPLE__) || defined(__linux__) || defined(_WIN32)) && !defined(ANDROID) && !defined(TRIMUI)
     if (this->getItem(AppConfig::SINGLE, false) && misc::sendIPC(this->ipcSocket(), "{}")) {
         brls::Logger::warning("AppConfig single instance");
         return false;
@@ -355,8 +355,12 @@ bool AppConfig::init() {
 
     // 初始化一些在创建窗口之后才能初始化的内容
     brls::Application::getWindowCreationDoneEvent()->subscribe([this]() {
-        // 是否交换按键
-        if (this->getItem(APP_SWAP_ABXY, false)) {
+#if defined(TRIMUI)
+        if (this->getItem(APP_SWAP_ABXY, true))
+#else
+        if (this->getItem(APP_SWAP_ABXY, false))
+#endif
+        {
             // 对于 PSV/PS4 来说，初始化时会加载系统设置，可能在那时已经交换过按键
             // 所以这里需要读取 isSwapInputKeys 的值，而不是直接设置为 true
             brls::Application::setSwapInputKeys(!brls::Application::isSwapInputKeys());

@@ -102,7 +102,7 @@ void MPVCore::init() {
     mpv_set_option_string(mpv, "reset-on-next-file", "speed,pause");
     mpv_set_option_string(mpv, "subs-fallback", SUBS_FALLBACK ? "yes" : "no");
     mpv_set_option_string(mpv, "vo", MPVCore::VO.c_str());
-#if defined(__PS4__) || defined(__PSV__)
+#if defined(__PS4__) || defined(__PSV__) || defined(TRIMUI)
     mpv_set_option_string(mpv, "audio-channels", "stereo");
 #else
     mpv_set_option_string(mpv, "audio-channels", MPVCore::AUDIO_CHANNELS.c_str());

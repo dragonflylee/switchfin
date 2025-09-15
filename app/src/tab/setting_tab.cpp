@@ -199,7 +199,7 @@ void SettingTab::onCreate() {
         });
 #endif
 
-#if defined(__PS4__) || defined(__PSV__)
+#if defined(__PS4__) || defined(__PSV__) || defined(TRIMUI)
     selectorAudioChannels->setVisibility(brls::Visibility::GONE);
 #else
     auto& audioChannelsOption = conf.getOptions(AppConfig::AUDIO_CHANNELS);
@@ -295,7 +295,7 @@ void SettingTab::onCreate() {
     });
 
 /// Fullscreen
-#if (defined(__APPLE__) || defined(__linux__) || defined(_WIN32)) && !defined(ANDROID)
+#if (defined(__APPLE__) || defined(__linux__) || defined(_WIN32)) && !defined(ANDROID) && !defined(TRIMUI)
     btnFullscreen->init(
         "main/setting/others/fullscreen"_i18n, conf.getItem(AppConfig::FULLSCREEN, false), [](bool value) {
             VideoContext::FULLSCREEN = value;
@@ -319,7 +319,7 @@ void SettingTab::onCreate() {
     btnSingle->setVisibility(brls::Visibility::GONE);
 #endif
 
-#if defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
+#if (defined(__APPLE__) || defined(__linux__) || defined(_WIN32)) && !defined(TRIMUI)
     int keyIndex = conf.getOptionIndex(AppConfig::KEYMAP);
     selectorKeymap->init("main/setting/others/keymap/header"_i18n,
         {
