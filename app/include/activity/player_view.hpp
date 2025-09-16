@@ -18,6 +18,19 @@ public:
     void setSeries(const std::string& seriesId);
     void setTitie(const std::string& title);
 
+#ifdef ANDROID
+    void willDisappear(bool resetState) override {
+        if (brls::Application::getThemeVariant() == brls::ThemeVariant::LIGHT)
+            brls::Application::getTheme().addColor("brls/clear", nvgRGBA(235, 235, 235, 255));
+        else
+            brls::Application::getTheme().addColor("brls/clear", nvgRGBA(45, 45, 45, 255));
+    }
+
+    void willAppear(bool resetState) override {
+        brls::Application::getTheme().addColor("brls/clear", nvgRGBA(0, 0, 0, 0));
+    }
+#endif
+
 private:
     void setChapters(const std::vector<jellyfin::MediaChapter>& chaps, uint64_t duration);
     /// @brief get video url

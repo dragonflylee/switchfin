@@ -23,6 +23,7 @@ extern in_addr_t secondary_dns;
 }
 #elif defined(ANDROID)
 #include <SDL2/SDL_system.h>
+#include <jni.h>
 #elif defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
 #include <unistd.h>
 #include <borealis/platforms/desktop/desktop_platform.hpp>
@@ -173,6 +174,19 @@ static std::string generateDeviceId() {
             cid[0x0], cid[0x1], cid[0x2], cid[0x3], cid[0x4], cid[0x5], cid[0x6], cid[0x7], cid[0x8], cid[0x9],
             cid[0xA], cid[0xB], cid[0xC], cid[0xD], cid[0xE], cid[0xF]);
         return text;
+    }
+#elif defined(ANDROID)
+    JNIEnv* env = static_cast<JNIEnv*>(SDL_AndroidGetJNIEnv());
+    jclass utilsClass = env->FindClass("org/libsdl/app/PlatformUtils");
+    if (utilsClass) {
+        jmethodID jmethod = env->GetStaticMethodID(utilsClass, "getAndroidId", "()Ljava/lang/String;");
+        jstring jname = (jstring)env->CallStaticObjectMethod(utilsClass, jmethod);
+        const char* name = env->GetStringUTFChars(jname, nullptr);
+        std::string deviceId = name;
+        env->ReleaseStringUTFChars(jname, name);
+        env->DeleteLocalRef(jname);
+        env->DeleteLocalRef(utilsClass);
+        return deviceId;
     }
 #elif defined(_WIN32)
     HW_PROFILE_INFOW profile;
@@ -561,7 +575,7 @@ std::string AppConfig::configDir() {
     WideCharToMultiByte(CP_UTF8, 0, wpath, std::wcslen(wpath), lpath.data(), lpath.size(), nullptr, nullptr);
     return fmt::format("{}\\{}", lpath.data(), AppVersion::getPackageName());
 #elif defined(ANDROID)
-    return SDL_AndroidGetInternalStoragePath();
+    return SDL_AndroidGetExternalStoragePath();
 #elif __linux__
     char* config_home = getenv("XDG_CONFIG_HOME");
     if (config_home) return fmt::format("{}/{}", config_home, AppVersion::getPackageName());

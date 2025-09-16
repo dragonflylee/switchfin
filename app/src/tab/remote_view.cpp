@@ -60,6 +60,19 @@ public:
         mpv.command("write-watch-later-config");
     }
 
+#ifdef ANDROID
+    void willDisappear(bool resetState) override {
+        if (brls::Application::getThemeVariant() == brls::ThemeVariant::LIGHT)
+            brls::Application::getTheme().addColor("brls/clear", nvgRGBA(235, 235, 235, 255));
+        else
+            brls::Application::getTheme().addColor("brls/clear", nvgRGBA(45, 45, 45, 255));
+    }
+
+    void willAppear(bool resetState) override {
+        brls::Application::getTheme().addColor("brls/clear", nvgRGBA(0, 0, 0, 0));
+    }
+#endif
+
     void setList(const DirList& list, size_t index, const std::string& extra) {
         // 播放列表
         DirList urls;

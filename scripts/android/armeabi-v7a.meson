@@ -1,0 +1,19 @@
+[built-in options]
+buildtype = 'release'
+default_library = 'static'
+wrap_mode = 'nodownload'
+prefix = '/usr/local'
+
+[binaries]
+c = 'armv7a-linux-androideabi21-clang'
+cpp = 'armv7a-linux-androideabi21-clang++'
+ar = 'llvm-ar'
+nm = 'llvm-nm'
+strip = 'llvm-strip'
+pkg-config = 'pkg-config'
+
+[host_machine]
+system = 'android'
+cpu_family = 'arm'
+cpu = 'armv7a'
+endian = 'little'

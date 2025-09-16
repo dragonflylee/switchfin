@@ -1,0 +1,19 @@
+[built-in options]
+buildtype = 'release'
+default_library = 'static'
+wrap_mode = 'nodownload'
+prefix = '/usr/local'
+
+[binaries]
+c = 'aarch64-linux-android21-clang'
+cpp = 'aarch64-linux-android21-clang++'
+ar = 'llvm-ar'
+nm = 'llvm-nm'
+strip = 'llvm-strip'
+pkg-config = 'pkg-config'
+
+[host_machine]
+system = 'android'
+cpu_family = 'aarch64'
+cpu = 'arm64'
+endian = 'little'
