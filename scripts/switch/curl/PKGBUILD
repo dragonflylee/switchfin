@@ -2,22 +2,21 @@
 # Maintainer: WinterMute <davem@devkitpro.org>
 pkgname=switch-curl
 pkgver=8.14.1
-pkgrel=1
+pkgrel=2
 pkgdesc='An URL retrieval utility and library'
 arch=('any')
 url="https://curl.se/"
 license=('zlib')
 options=(!strip libtool staticlibs)
-depends=('switch-zlib' 'libnx')
+depends=('switch-zlib' 'switch-mbedtls')
 makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
-source=("https://curl.haxx.se/download/curl-${pkgver}.tar.xz" 'switch-curl.patch')
+source=("https://curl.haxx.se/download/curl-${pkgver}.tar.xz")
 groups=('switch-portlibs')
 
-sha256sums=('f4619a1e2474c4bbfedc88a7c2191209c8334b48fa1f4e53fd584cc12e9120dd' 'SKIP')
+sha256sums=('f4619a1e2474c4bbfedc88a7c2191209c8334b48fa1f4e53fd584cc12e9120dd')
 
 build() {
   cd curl-$pkgver
-  patch -Np1 -i $srcdir/switch-curl.patch
 
   source ${DEVKITPRO}/switchvars.sh
   LDFLAGS="-specs=${DEVKITPRO}/libnx/switch.specs ${LDFLAGS}"
@@ -28,7 +27,7 @@ build() {
     --disable-shared --enable-static --disable-ipv6 --disable-unix-sockets \
     --disable-manual --disable-threaded-resolver --disable-progress-meter \
     --without-zstd --without-brotli --without-libpsl --enable-websockets \
-    --with-libnx --with-default-ssl-backend=libnx
+    --with-mbedtls --with-default-ssl-backend=mbedtls
   sed -i '/HAVE_SOCKETPAIR/d' lib/curl_config.h
   make -C lib -j$(nproc)
 }

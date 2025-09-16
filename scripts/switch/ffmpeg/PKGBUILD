@@ -6,7 +6,7 @@
 
 pkgname=switch-ffmpeg
 pkgver=7.1.2
-pkgrel=6
+pkgrel=5
 pkgdesc='ffmpeg port (for Nintendo Switch homebrew development)'
 arch=('any')
 url='https://ffmpeg.org/'
@@ -17,7 +17,7 @@ depends=('switch-zlib' 'switch-bzip2' 'switch-libass' 'switch-libfribidi'
          'switch-freetype' 'switch-mbedtls' 'switch-dav1d' 'switch-libssh2')
 source=(
   "https://ffmpeg.org/releases/ffmpeg-${pkgver}.tar.xz"
-  "ffmpeg-${pkgver}.patch" "tls.patch" "avio.patch"
+  "ffmpeg-${pkgver}.patch" "getnameinfo.patch" "avio.patch"
 )
 sha256sums=('089bc60fb59d6aecc5d994ff530fd0dcb3ee39aa55867849a2bbc4e555f9c304' 'SKIP' 'SKIP' 'SKIP')
 
@@ -26,7 +26,7 @@ groups=('switch-portlibs')
 prepare() {
   cd ffmpeg-$pkgver
   patch -Np1 -i "$srcdir/ffmpeg-${pkgver}.patch"
-  patch -Np1 -i "$srcdir/tls.patch"
+  patch -Np1 -i "$srcdir/getnameinfo.patch"
   patch -Np1 -i "$srcdir/avio.patch"
 }
 
@@ -42,11 +42,11 @@ build() {
     --extra-cxxflags='-D__SWITCH__ -D_GNU_SOURCE -O2 -march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIC -ftls-model=local-exec' \
     --extra-ldflags='-fPIE -L${PORTLIBS_PREFIX}/lib -L${DEVKITPRO}/libnx/lib' \
     --disable-runtime-cpudetect --disable-programs --disable-debug --disable-doc \
-    --enable-asm --enable-neon --disable-autodetect \
+    --enable-asm --enable-neon --disable-autodetect --enable-mbedtls --enable-version3 \
     --disable-avdevice --disable-encoders --disable-muxers \
     --enable-swscale --enable-swresample --enable-network --enable-libssh2 \
     --disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,ftp,libssh2,rtp,crypto,httpproxy \
-    --enable-zlib --enable-bzlib --enable-libass --enable-libdav1d --enable-libnx --enable-nvtegra
+    --enable-zlib --enable-bzlib --enable-libass --enable-libdav1d --enable-nvtegra
 
   make -j$(nproc)
 }

@@ -29,7 +29,7 @@ jobs:
         echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder
 
         chown -R builder:builder scripts/switch
-        for pkg in libnx ffmpeg libuam; do
+        for pkg in libnx mbedtls libssh2 ffmpeg libuam; do
           echo building $pkg
           su - builder -c "cd $pkg && dkp-makepkg -siCf --noconfirm"
         done
