@@ -651,8 +651,7 @@ void VideoView::registerMpvEvent() {
             break;
         case MpvEventEnum::MPV_FILE_ERROR: {
             auto dialog = new brls::Dialog("main/player/error"_i18n);
-            dialog->addButton("hints/back"_i18n, []() { VideoView::close(); });
-            dialog->addButton("hints/cancel"_i18n, []() {});
+            dialog->addButton("hints/back"_i18n, []() { VideoView::close(true); });
             dialog->open();
             break;
         }
@@ -808,7 +807,22 @@ bool VideoView::toggleVolume(brls::View* view) {
     return true;
 }
 
-bool VideoView::close() { return brls::Application::popActivity(brls::TransitionAnimation::NONE); }
+bool VideoView::close(bool quit) {
+    if (brls::Application::getActivitiesStack().size() > 1) {
+        return brls::Application::popActivity(brls::TransitionAnimation::NONE);
+    }
+
+    if (quit) {
+        brls::Application::quit();
+        return true;
+    }
+
+    auto dialog = new brls::Dialog("hints/exit_hint"_i18n);
+    dialog->addButton("hints/cancel"_i18n, []() {});
+    dialog->addButton("hints/ok"_i18n, []() { brls::Application::quit(); });
+    dialog->open();
+    return false;
+}
 
 void VideoView::disableDimming(bool disable) {
     brls::Application::getPlatform()->disableScreenDimming(disable, "Playing video", AppVersion::getPackageName());

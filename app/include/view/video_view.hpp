@@ -66,7 +66,7 @@ public:
 
     void showOSD(bool autoHide = true);
 
-    static bool close();
+    static bool close(bool quit = false);
 
 private:
     /// OSD

@@ -88,7 +88,7 @@ public:
 
         playSubscribeID = view->getPlayEvent()->subscribe([this, list, urls, extra](int index) {
             if (index < 0 || index >= (int)urls.size()) {
-                return VideoView::close();
+                return VideoView::close(true);
             }
             MPVCore::instance().reset();
             auto& item = urls.at(index);
@@ -114,6 +114,11 @@ public:
         });
 
         view->getPlayEvent()->fire(index);
+    }
+
+    void setUrl(const std::string& path) {
+        playSubscribeID = view->getPlayEvent()->subscribe([](int index) { return VideoView::close(true); });
+        MPVCore::instance().setUrl(path);
     }
 
     void loadList() {
@@ -389,7 +394,8 @@ RecyclingGrid* RemoteView::newRecycler() {
 void RemoteView::play(const std::string& path) {
     remote::DirEntry it;
     it.name = path;
+
     RemotePlayer* view = new RemotePlayer(it);
     brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
-    MPVCore::instance().setUrl(it.name);
+    view->setUrl(path);
 }

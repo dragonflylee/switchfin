@@ -119,12 +119,12 @@ int main(int argc, char* argv[]) {
 
     if (!brls::Application::getPlatform()->isApplicationMode()) {
         brls::Application::pushActivity(new HintActivity());
+    } else if (items.size() > 0) {
+        RemoteView::play(items.front());
     } else if (!conf.checkLogin()) {
         brls::Application::pushActivity(new ServerList());
-    } else if (items.empty()) {
-        brls::Application::pushActivity(new MainActivity());
     } else {
-        RemoteView::play(items.front());
+        brls::Application::pushActivity(new MainActivity());
     }
 
     GA("open_app",
