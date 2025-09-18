@@ -4,7 +4,9 @@
 #elif defined(__PSV__)
 #include <psp2/kernel/cpu.h>
 #include <psp2/kernel/threadmgr/thread.h>
+#include <psp2/appmgr.h>
 #include <psp2/vshbridge.h>
+#include <borealis/platforms/desktop/desktop_platform.hpp>
 
 extern "C" {
 unsigned int _newlib_heap_size_user = 220 * 1024 * 1024;
@@ -599,11 +601,15 @@ std::string AppConfig::ipcSocket() {
 }
 
 void AppConfig::checkRestart(char* argv[]) {
-#if defined(__PS4__) || defined(__PSV__) || defined(ANDROID)
-#elif defined(__APPLE__) || defined(__linux__) || defined(_WIN32)
+#if !defined(__PS4__) && !defined(__SWITCH__) && !defined(ANDROID)
     if (brls::DesktopPlatform::RESTART_APP) {
         brls::Logger::info("Restart app {}", argv[0]);
+
+#if defined(__PSV__)
+        sceAppMgrLoadExec(argv[0], argv, nullptr);
+#else
         execv(argv[0], argv);
+#endif
     }
 #endif
 }
