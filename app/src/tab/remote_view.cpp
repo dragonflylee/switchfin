@@ -392,10 +392,7 @@ RecyclingGrid* RemoteView::newRecycler() {
 }
 
 void RemoteView::play(const std::string& path) {
-    remote::DirEntry it;
-    it.name = path;
-
-    RemotePlayer* view = new RemotePlayer(it);
+    RemotePlayer* view = new RemotePlayer({ remote::EntryType::VIDEO, path });
     brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
     view->setUrl(path);
 }
