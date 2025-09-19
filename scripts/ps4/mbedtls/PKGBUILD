@@ -1,0 +1,38 @@
+# Maintainer: cpasjuste <cpasjuste@gmail.com>
+
+pkgname=ps4-openorbis-mbedtls
+pkgver=2.28.10
+pkgrel=2
+pkgdesc='An open source, portable, easy to use, readable and flexible SSL library'
+arch=('any')
+url='https://tls.mbed.org'
+license=('apache')
+options=(!strip !debug libtool staticlibs)
+depends=(ps4-openorbis-zlib)
+makedepends=('ps4-openorbis-pkg-config' 'ps4-openorbis-vars')
+source=("https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-${pkgver}/mbedtls-${pkgver}.tar.bz2")
+groups=('ps4-openorbis-portlibs')
+sha256sums=('19e5b81fdac0fe22009b9e2bdcd52d7dcafbf62bc67fc59cf0a76b5b5540d149')
+
+build() {
+  cd mbedtls-$pkgver
+
+  sed -i '/#if (defined(__FreeBSD__) || defined(__NetBSD__)) && !defined(HAVE_GETRANDOM)/s/$/ \&\& !defined(__PS4__)/' library/entropy_poll.c
+
+  source /opt/pacbrew/ps4/openorbis/ps4vars.sh
+
+  mkdir -p build && cd build
+
+  openorbis-cmake \
+    -DCMAKE_INSTALL_PREFIX=${OPENORBIS}/usr \
+    -DENABLE_TESTING=FALSE -DENABLE_PROGRAMS=FALSE \
+    ..
+
+  make -j$(nproc)
+
+}
+
+package() {
+  cd mbedtls-$pkgver/build
+  make install DESTDIR="$pkgdir"
+}

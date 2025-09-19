@@ -1,0 +1,45 @@
+name: pacbrew
+
+on:
+  push:
+    tags: [ pacbrew ]
+
+permissions:
+  contents: write
+
+jobs:
+  build-portlibs:
+    runs-on: ubuntu-latest
+    container:
+      image: xfangfang/pacbrew:250221
+    steps:
+    - name: Disable autocrlf
+      run: git config --global core.autocrlf false
+    - uses: actions/checkout@v4
+      with:
+        sparse-checkout: scripts/ps4
+    - name: Install dependency
+      run: |
+        apt-get update
+        apt-get install -y --no-install-recommends sudo xz-utils lzma fakeroot file \
+          autoconf automake libtool nasm makepkg meson
+    - name: Build portlibs
+      run: |
+        adduser --gecos '' --home ${GITHUB_WORKSPACE}/scripts/ps4 --disabled-password builder
+        echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder
+
+        chown -R builder:builder scripts/ps4
+        for pkg in musl dav1d mbedtls SDL2 ffmpeg libmpv libcurl; do
+          echo building $pkg
+          su - builder -c "cd $pkg && makepkg -siCf --noconfirm"
+        done
+
+    - name: Upload portlibs
+      uses: softprops/action-gh-release@v2
+      with:
+        name: pacbrew
+        tag_name: pacbrew
+        prerelease: true
+        files: scripts/ps4/*/*.pkg.tar.gz
+        body: |
+          ![download](https://img.shields.io/github/downloads/${{ github.repository }}/pacbrew/total?label=Downloads)

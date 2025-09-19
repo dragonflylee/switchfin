@@ -1,0 +1,18 @@
+[binaries]
+c = '/opt/pacbrew/ps4/openorbis/bin/clang'
+cpp = '/opt/pacbrew/ps4/openorbis/bin/clang++'
+ar = '/opt/pacbrew/ps4/openorbis/bin/llvm-ar'
+strip = '/opt/pacbrew/ps4/openorbis/bin/llvm-strip'
+pkgconfig = '/opt/pacbrew/ps4/openorbis/usr/bin/openorbis-pkg-config'
+
+[host_machine]
+system = 'freebsd'
+cpu_family = 'x86_64'
+cpu = 'x86_64'
+endian = 'little'
+
+[target_machine]
+system = 'freebsd'
+cpu_family = 'x86_64'
+cpu = 'x86_64'
+endian = 'little'

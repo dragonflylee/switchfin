@@ -5,6 +5,7 @@ on:
     tags-ignore:
     - switch-portlibs
     - vita-packages
+    - pacbrew
     - mingw-packages
     - macos-dylib
     paths-ignore:
@@ -129,15 +130,26 @@ jobs:
   build-ps4:
     runs-on: ubuntu-latest
     if: ${{ inputs.platform == 'ps4' || github.event_name != 'workflow_dispatch' }}
+    container:
+      image: xfangfang/pacbrew:250221
+    env:
+      BASE_URL: https://github.com/dragonflylee/switchfin/releases/download/pacbrew
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
-    - name: Build
+    - name: Update dependencies
       run: |
-        docker run --rm -v $(pwd):/src -u $(id -u):$(id -g) xfangfang/wiliwili_ps4_builder \
-            "cmake -B build -DPLATFORM_PS4=ON -DVERSION_BUILD=${{ github.run_number }} && \
-             make -C build -j$(nproc)"
+        for pkg in musl-1.5-3 mbedtls-2.28.10-2 sdl2-2.0.18-19 libcurl-7.80.0-5 dav1d-1.5.1-1 ffmpeg-7.1.2-3 libmpv-0.36.0-2; do
+          pacman --noconfirm -U $BASE_URL/ps4-openorbis-${pkg}-any.pkg.tar.gz
+        done
+        git config --system --add safe.directory $GITHUB_WORKSPACE
+    - name: Build
+      env:
+        OPENORBIS: /opt/pacbrew/ps4/openorbis
+      run: |
+        cmake -B build -DPLATFORM_PS4=ON -DVERSION_BUILD=${{ github.run_number }}
+        make -C build -j$(nproc)
     - name: Upload pkg
       uses: actions/upload-artifact@v4
       with:
