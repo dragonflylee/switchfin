@@ -37,7 +37,7 @@ prefix:
 download:
 	wget -qO- https://github.com/libsdl-org/SDL/releases/download/release-2.32.10/SDL2-2.32.10.tar.gz | tar zxf - -C $(TMPDIR)
 	wget -qO- https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.4/mbedtls-3.6.4.tar.bz2 | tar jxf - -C $(TMPDIR)
-	wget -qO- https://curl.se/download/curl-8.14.1.tar.xz | tar Jxf - -C $(TMPDIR)
+	wget -qO- https://curl.se/download/curl-8.16.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/webmproject/libwebp/archive/v1.6.0.tar.gz | tar zxf - -C $(TMPDIR)
 	wget -qO- https://downloads.sourceforge.net/project/freetype/freetype2/2.14.1/freetype-2.14.1.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/harfbuzz/harfbuzz/releases/download/11.5.0/harfbuzz-11.5.0.tar.xz | tar Jxf - -C $(TMPDIR)
@@ -68,7 +68,7 @@ mbedtls:
 	DESTDIR=$(PREFIX) cmake --install build/mbedtls
 
 curl:
-	cmake -B build/curl -S $(TMPDIR)/curl-8.14.1 -G Ninja -DCMAKE_BUILD_TYPE=Release \
+	cmake -B build/curl -S $(TMPDIR)/curl-8.16.0 -G Ninja -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_TOOLCHAIN_FILE="$(ANDROID_NDK)/build/cmake/android.toolchain.cmake" \
 		-DANDROID_ABI=$(ABI) -DANDROID_PLATFORM=android-$(apilvl) -DCMAKE_WARN_DEPRECATED=FALSE \
 		-DBUILD_SHARED_LIBS=ON -DBUILD_CURL_EXE=OFF -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF \

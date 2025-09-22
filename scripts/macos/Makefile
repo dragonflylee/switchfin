@@ -20,7 +20,7 @@ clean:
 
 download:
 	curl --retry 5 -sSL https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.4/mbedtls-3.6.4.tar.bz2 | tar jxf - -C $(TMPDIR)
-	curl --retry 5 -sSL https://curl.se/download/curl-8.14.1.tar.xz | tar Jxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://curl.se/download/curl-8.16.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/webmproject/libwebp/archive/v1.6.0.tar.gz | tar zxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/dragonflylee/glfw/archive/switchfin.tar.gz | tar zxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://downloads.sourceforge.net/project/freetype/freetype2/2.14.1/freetype-2.14.1.tar.xz | tar Jxf - -C $(TMPDIR)
@@ -32,13 +32,13 @@ download:
 	curl --retry 5 -sSL https://github.com/mpv-player/mpv/archive/v0.40.0.tar.gz | tar zxf - -C $(TMPDIR)
 	git clone https://github.com/haasn/libplacebo.git -b v7.351.0 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
 	patch -d $(TMPDIR)/mpv-0.40.0 -Nbp1 -i $(CURDIR)/mpv.patch
-	curl -sSL https://github.com/mpv-player/mpv/commit/26b29fba02a2782f68e2906f837d21201fc6f1b9.patch | patch -d $(TMPDIR)/mpv-0.40.0 -Nbp1 -i -
+	curl -sSL https://github.com/mpv-player/mpv/commit/26b29fba.patch | patch -d $(TMPDIR)/mpv-0.40.0 -Nbp1 -i -
 
 curl:
-	cmake -B build/curl -S $(TMPDIR)/curl-8.14.1 -G Ninja -DCMAKE_BUILD_TYPE=Release \
+	cmake -B build/curl -S $(TMPDIR)/curl-8.16.0 -G Ninja -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_OSX_ARCHITECTURES=$(OSX_ARCH) -DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_TARGET) \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_NAME_DIR=$(PREFIX)/lib \
-		-DHTTP_ONLY=ON -DCURL_DISABLE_PROGRESS_METER=ON -DCURL_USE_SECTRANSP=ON \
+		-DHTTP_ONLY=ON -DCURL_DISABLE_PROGRESS_METER=ON -DCURL_USE_MBEDTLS=ON \
 		-DBUILD_SHARED_LIBS=ON -DBUILD_CURL_EXE=OFF -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF \
 		-DBUILD_LIBCURL_DOCS=OFF -DBUILD_MISC_DOCS=OFF -DENABLE_CURL_MANUAL=OFF \
 		-DUSE_LIBIDN2=OFF -DUSE_NGHTTP2=OFF -DCURL_BROTLI=OFF -DCURL_ZSTD=OFF \
@@ -62,7 +62,7 @@ mbedtls:
 	cmake -B build/mbedtls -S $(TMPDIR)/mbedtls-3.6.4 -G Ninja -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_OSX_ARCHITECTURES=$(OSX_ARCH) -DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_TARGET) \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_NAME_DIR=$(PREFIX)/lib \
-		-DUSE_SHARED_MBEDTLS_LIBRARY=OFF -DUSE_STATIC_MBEDTLS_LIBRARY=ON \
+		-DUSE_SHARED_MBEDTLS_LIBRARY=ON -DUSE_STATIC_MBEDTLS_LIBRARY=OFF \
 		-DENABLE_PROGRAMS=OFF -DENABLE_TESTING=OFF
 	cmake --build build/mbedtls
 	cmake --install build/mbedtls
