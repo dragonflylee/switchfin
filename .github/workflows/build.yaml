@@ -31,6 +31,7 @@ on:
         - psvita
         - ps4
         - flatpak
+        - android
         - aur
         - deb
       disable_builtin_nsp:
@@ -42,7 +43,7 @@ permissions:
 
 jobs:
   upload-release:
-    needs: [ build-mingw, build-nx, build-macos, build-flatpak, build-aur, build-ps4, build-vita ]
+    needs: [ build-mingw, build-nx, build-macos, build-flatpak, build-aur, build-ps4, build-vita, build-android ]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
@@ -69,6 +70,7 @@ jobs:
           Switchfin-Vita-*/*.vpk
           Switchfin-Flatpak-*/*.flatpak
           Switchfin-Archlinux-*/*.pkg.tar.*
+          Switchfin-android-*/*.apk
         body: |
           ![download](https://img.shields.io/github/downloads/${{ github.repository }}/${{ github.ref_name }}/total?label=Downloads)
 
@@ -410,3 +412,43 @@ jobs:
           build/Switchfin.pdb
           build/libmpv-2.dll
           build/README.md
+
+  build-android:
+    if: ${{ inputs.platform == 'android' || startsWith(github.ref, 'refs/tags/') }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - uses: nttld/setup-ndk@v1
+      id: setup-ndk
+      with:
+        ndk-version: r26d
+        link-to-sdk: true
+    - name: Install dependency
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build pkg-config meson nasm
+    - name: Cache depends
+      id: cache-deps
+      uses: actions/cache@v4
+      with:
+        path: jniLibs
+        key: jniLibs-${{ hashFiles('scripts/android/Makefile') }}
+    - name: Build packages
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      run: |
+        make -C scripts/android TMPDIR=${{ runner.temp }} download
+        make -C scripts/android TMPDIR=${{ runner.temp }} ABI=armeabi-v7a \
+          ANDROID_NDK=${{ steps.setup-ndk.outputs.ndk-path }} build
+        make -C scripts/android TMPDIR=${{ runner.temp }} ABI=arm64-v8a \
+          ANDROID_NDK=${{ steps.setup-ndk.outputs.ndk-path }} build
+    - name: Build APK
+      run: |
+        ${{ github.workspace }}/library/borealis/build_libromfs_generator.sh
+        cd app/platform/android && ./gradlew assembleRelease
+    - name: Upload dist
+      uses: actions/upload-artifact@v4
+      with:
+        name: Switchfin-android-${{ github.run_number }}
+        path: app/platform/android/app/build/outputs/apk/release/*.apk

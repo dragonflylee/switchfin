@@ -34,12 +34,14 @@ endif()
 # Add git info
 if (NOT DEFINED GIT_TAG_SHORT)
     execute_process(COMMAND git rev-parse --short HEAD
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         TIMEOUT 5 OUTPUT_VARIABLE GIT_TAG_SHORT
         OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif ()
 
 if (NOT DEFINED VERSION_BUILD)
     execute_process(COMMAND git rev-list --count --all
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         TIMEOUT 5 OUTPUT_VARIABLE VERSION_BUILD
         OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif ()

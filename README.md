@@ -107,7 +107,7 @@ gamepad | keyboard | describe
     },
     {
       "name": "rpi",
-      "url": "sftp//pi:raspberry@192.168.1.5/media"
+      "url": "sftp://pi:raspberry@192.168.1.5/media"
     },
     {
       "name": "rclone",
