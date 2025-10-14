@@ -29,6 +29,7 @@ HomeTab::HomeTab() {
         std::string query = HTTP::encode_form({
             {"userId", AppConfig::instance().getUserId()},
             {"fields", "BasicSyncInfo,Chapters"},
+            {"enableImageTypes", "Primary,Backdrop,Thumb"},
             {"enableResumable", "false"},
             {"enableRewatching", "false"},
             {"limit", std::to_string(pageSize)},

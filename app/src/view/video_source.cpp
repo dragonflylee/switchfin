@@ -32,7 +32,7 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
         }
         cell->labelExt->setText(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
 
-        auto it = item.ImageTags.find("Thumb");
+        auto it = item.ImageTags.find(jellyfin::imageTypeThumb);
         if (it != item.ImageTags.end()) {
             Image::load(cell->picture, jellyfin::apiThumbImage, item.Id,
                 HTTP::encode_form({{"tag", it->second}, {"maxWidth", "325"}}));
@@ -52,10 +52,13 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
             cell->labelExt->setText(item.ProductionYear > 0 ? std::to_string(item.ProductionYear) : "");
         }
 
-        auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
+        auto it = item.ImageTags.find(jellyfin::imageTypeThumb);
         if (it != item.ImageTags.end()) {
+            Image::load(cell->picture, jellyfin::apiThumbImage, item.Id,
+                HTTP::encode_form({{"tag", it->second}, {"maxWidth", "325"}}));
+        } else {
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
-                HTTP::encode_form({{"tag", it->second}, {"maxWidth", "240"}}));
+                HTTP::encode_form({{"tag", item.ImageTags[jellyfin::imageTypePrimary]}, {"maxWidth", "240"}}));
         }
     }
 

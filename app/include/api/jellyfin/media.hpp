@@ -46,6 +46,8 @@ const std::string_view apiPlaying = "/Sessions/Playing/Progress";
 
 const std::string imageTypePrimary = "Primary";
 const std::string imageTypeLogo = "Logo";
+const std::string imageTypeThumb = "Thumb";
+const std::string imageTypeBackdrop = "Backdrop";
 
 const std::string mediaTypeFolder = "Folder";
 const std::string mediaTypeSeries = "Series";
