@@ -26,8 +26,7 @@ build() {
     --pkg-config=openorbis-pkg-config \
     --disable-programs --disable-debug --disable-doc \
     --disable-avdevice --disable-hwaccels --disable-encoders --disable-muxers \
-    --enable-swscale --enable-swresample --enable-network  \
-    --disable-protocols --enable-protocol=file,http,https,ftp,tcp,udp,rtmp,rtp,crypto,httpproxy --enable-version3 \
+    --enable-swscale --enable-swresample --enable-network --enable-version3 \
     --enable-zlib --enable-bzlib --enable-libass --enable-libdav1d --enable-mbedtls \
     --cc=$CC --cxx=$CXX --nm=$NM --strip=$STRIP --ar=$AR --ranlib=$RANLIB
 

@@ -36,11 +36,11 @@ prefix:
 
 download:
 	wget -qO- https://github.com/libsdl-org/SDL/releases/download/release-2.32.10/SDL2-2.32.10.tar.gz | tar zxf - -C $(TMPDIR)
-	wget -qO- https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.4/mbedtls-3.6.4.tar.bz2 | tar jxf - -C $(TMPDIR)
+	wget -qO- https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.5/mbedtls-3.6.5.tar.bz2 | tar jxf - -C $(TMPDIR)
 	wget -qO- https://curl.se/download/curl-8.16.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/webmproject/libwebp/archive/v1.6.0.tar.gz | tar zxf - -C $(TMPDIR)
 	wget -qO- https://downloads.sourceforge.net/project/freetype/freetype2/2.14.1/freetype-2.14.1.tar.xz | tar Jxf - -C $(TMPDIR)
-	wget -qO- https://github.com/harfbuzz/harfbuzz/releases/download/11.5.0/harfbuzz-11.5.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	wget -qO- https://github.com/harfbuzz/harfbuzz/releases/download/12.1.0/harfbuzz-12.1.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/libass/libass/releases/download/0.17.4/libass-0.17.4.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.5.1/dav1d-1.5.1.tar.xz | tar Jxf - -C $(TMPDIR)
@@ -59,7 +59,7 @@ SDL2:
 	DESTDIR=$(PREFIX) cmake --install build/SDL2
 
 mbedtls:
-	cmake -B build/mbedtls -S $(TMPDIR)/mbedtls-3.6.4 -G Ninja -DCMAKE_BUILD_TYPE=Release \
+	cmake -B build/mbedtls -S $(TMPDIR)/mbedtls-3.6.5 -G Ninja -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_TOOLCHAIN_FILE="$(ANDROID_NDK)/build/cmake/android.toolchain.cmake" \
 		-DANDROID_ABI=$(ABI) -DANDROID_PLATFORM=android-$(apilvl) -DCMAKE_WARN_DEPRECATED=FALSE \
 		-DUSE_SHARED_MBEDTLS_LIBRARY=OFF -DUSE_STATIC_MBEDTLS_LIBRARY=ON \
@@ -97,7 +97,7 @@ freetype:
 	meson install -C build/freetype --destdir $(PREFIX)
 
 harfbuzz: freetype
-	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-11.5.0 \
+	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-12.1.0 \
 		--cross-file "$(CURDIR)/$(ABI).meson" \
 		-Dfreetype=enabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled \
 		-Dchafa=disabled -Dtests=disabled -Dintrospection=disabled \
@@ -136,8 +136,7 @@ ffmpeg: mbedtls libass dav1d libwebp
 		--disable-programs --disable-debug --disable-doc --disable-stripping \
 		--disable-vulkan --disable-devices --disable-autodetect --enable-jni \
 		--enable-mediacodec --enable-libass --enable-libdav1d --enable-zlib \
-		--disable-muxers --disable-encoders --enable-network --enable-mbedtls --enable-version3 \
-		--disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,ftp,rtp,crypto,httpproxy
+		--disable-muxers --disable-encoders --enable-network --enable-mbedtls --enable-version3
 	make -C build/ffmpeg -j$(shell nproc)
 	make -C build/ffmpeg install DESTDIR=$(PREFIX)
 

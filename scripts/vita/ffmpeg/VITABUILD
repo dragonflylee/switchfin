@@ -37,8 +37,6 @@ build() {
         --disable-decoders \
         --enable-decoder='h264,aac,ac3,bmp,flv,flac,mjpeg,srt,aac_vita,mp3_vita,h264_vita,ass,ssa,srt,dvbsub,dvdsub,pgssub' \
         --enable-network \
-        --disable-protocols \
-        --enable-protocol='file,http,tcp,tls,hls,https,ftp,rtp,crypto,httpproxy' \
         --disable-iconv \
         --disable-lzma \
         --disable-sdl2 \

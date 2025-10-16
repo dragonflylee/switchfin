@@ -1,7 +1,7 @@
 # Maintainer:  Mary Strodl <ipadlover8322@gmail.com>
 
 pkgname=switch-harfbuzz
-pkgver=11.5.0
+pkgver=12.1.0
 pkgrel=1
 pkgdesc='HarfBuzz is a text shaping library. Using the HarfBuzz library allows programs to convert a sequence of Unicode input into properly formatted and positioned glyph output—for any writing system and language.'
 arch=('any')
@@ -9,7 +9,7 @@ url='https://harfbuzz.github.io/'
 license=(LGPL)
 options=(!strip libtool staticlibs)
 source=("https://github.com/harfbuzz/harfbuzz/releases/download/${pkgver}/harfbuzz-${pkgver}.tar.xz")
-sha256sums=('2d30ba45c4c8ec4de661a1002b4f88d0841ff1a3087f34629275f5436d722109')
+sha256sums=('e5c81b7f6e0b102dfb000cfa424538b8e896ab78a2f4b8a5ec8cae62ab43369e')
 makedepends=('dkp-toolchain-vars' 'dkp-meson-scripts')
 depends=('switch-freetype')
 

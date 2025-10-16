@@ -4,7 +4,7 @@
 _realname=glslang
 pkgbase=mingw-w64-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
-pkgver=15.4.0
+pkgver=16.0.0
 pkgrel=1
 pkgdesc='An OpenGL and OpenGL ES shader front end and validator (mingw-w64)'
 arch=('any')
@@ -21,7 +21,7 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-ninja"
              "${MINGW_PACKAGE_PREFIX}-python")
 source=("https://github.com/KhronosGroup/glslang/archive/${pkgver}/${_realname}-${pkgver}.tar.gz")
-sha256sums=('b16c78e7604b9be9f546ee35ad8b6db6f39bbbbfb19e8d038b6fe2ea5bba4ff4')
+sha256sums=('172385478520335147d3b03a1587424af0935398184095f24beab128a254ecc7')
 
 build() {
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \

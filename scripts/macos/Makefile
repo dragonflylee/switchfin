@@ -19,12 +19,12 @@ clean:
 	@rm -rf build
 
 download:
-	curl --retry 5 -sSL https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.4/mbedtls-3.6.4.tar.bz2 | tar jxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.5/mbedtls-3.6.5.tar.bz2 | tar jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://curl.se/download/curl-8.16.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/webmproject/libwebp/archive/v1.6.0.tar.gz | tar zxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/dragonflylee/glfw/archive/switchfin.tar.gz | tar zxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://downloads.sourceforge.net/project/freetype/freetype2/2.14.1/freetype-2.14.1.tar.xz | tar Jxf - -C $(TMPDIR)
-	curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/11.5.0/harfbuzz-11.5.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/12.1.0/harfbuzz-12.1.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/libass/libass/releases/download/0.17.4/libass-0.17.4.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://downloads.videolan.org/pub/videolan/dav1d/1.5.1/dav1d-1.5.1.tar.xz | tar Jxf - -C $(TMPDIR)
@@ -59,7 +59,7 @@ glfw:
 	cmake --install build/glfw
 
 mbedtls:
-	cmake -B build/mbedtls -S $(TMPDIR)/mbedtls-3.6.4 -G Ninja -DCMAKE_BUILD_TYPE=Release \
+	cmake -B build/mbedtls -S $(TMPDIR)/mbedtls-3.6.5 -G Ninja -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_OSX_ARCHITECTURES=$(OSX_ARCH) -DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_TARGET) \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_NAME_DIR=$(PREFIX)/lib \
 		-DUSE_SHARED_MBEDTLS_LIBRARY=ON -DUSE_STATIC_MBEDTLS_LIBRARY=OFF \
@@ -85,7 +85,7 @@ freetype:
 	meson install -C build/freetype
 
 harfbuzz: freetype
-	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-11.5.0 \
+	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-12.1.0 \
 		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX) \
 		-Dtests=disabled -Ddocs=disabled -Dicu=disabled -Dcairo=disabled \
 		-Dglib=disabled -Dgobject=disabled -Dbenchmark=disabled -Dutilities=disabled
@@ -122,7 +122,6 @@ ffmpeg: mbedtls libass dav1d
 		--extra-ldflags="-arch $(OSX_ARCH) -mmacosx-version-min=$(OSX_TARGET)" \
 		--disable-autodetect --disable-encoders --enable-pic --disable-muxers \
 		--disable-programs --disable-doc --disable-debug --disable-avdevice \
-		--disable-protocols --enable-protocol=file,http,tcp,udp,hls,https,tls,httpproxy \
 		--disable-libjack --disable-indev=jack --enable-network \
 		--enable-libdav1d --enable-libass --enable-libfreetype --enable-zlib --enable-bzlib \
 		--enable-videotoolbox --enable-audiotoolbox --enable-mbedtls --enable-version3

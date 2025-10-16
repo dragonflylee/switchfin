@@ -4,7 +4,7 @@
 _realname=harfbuzz
 pkgbase=mingw-w64-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
-pkgver=11.5.0
+pkgver=12.1.0
 pkgrel=1
 pkgdesc="OpenType text shaping engine (mingw-w64)"
 arch=('any')
@@ -22,7 +22,7 @@ depends=(
 )
 options=('staticlibs' '!strip')
 source=("https://github.com/harfbuzz/harfbuzz/releases/download/${pkgver}/harfbuzz-${pkgver}.tar.xz")
-sha256sums=('2d30ba45c4c8ec4de661a1002b4f88d0841ff1a3087f34629275f5436d722109')
+sha256sums=('e5c81b7f6e0b102dfb000cfa424538b8e896ab78a2f4b8a5ec8cae62ab43369e')
 noextract=("harfbuzz-${pkgver}.tar.xz")
 
 prepare() {
