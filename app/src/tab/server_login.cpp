@@ -16,7 +16,7 @@ public:
         brls::Logger::debug("View QuickConnect: create");
         this->inflateFromXMLRes("xml/view/quick_connect.xml");
         this->isCancel = std::make_shared<std::atomic_bool>(false);
-        this->header.push_back(AppConfig::instance().getDevice());
+        this->header.push_back(AppConfig::instance().getAuth());
     }
 
     void Run() {
@@ -165,7 +165,7 @@ bool ServerLogin::onSignin() {
 
     ASYNC_RETAIN
     brls::async([ASYNC_TOKEN, data]() {
-        HTTP::Header header = {"Content-Type: application/json", AppConfig::instance().getDevice()};
+        HTTP::Header header = {"Content-Type: application/json", AppConfig::instance().getAuth()};
         brls::Logger::info("login header {}", header[1]);
 
         try {

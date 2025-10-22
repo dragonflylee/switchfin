@@ -166,7 +166,7 @@ public:
     bool removeServer(const std::string& id);
     bool removeUser(const std::string& id);
     const std::string& getDeviceId() { return this->device; }
-    std::string getDevice(const std::string& token = "");
+    std::string getAuth(const std::string& token = "");
     const std::string& getUserId() const { return this->user_id; }
     const std::string& getUserName() const { return this->user->name; }
     const std::string& getToken() const { return this->user->access_token; }
@@ -186,6 +186,7 @@ private:
     std::string user_id;
     std::string server_url;
     std::string device;
+    std::string device_name;
     std::vector<AppUser> users;
     std::vector<AppServer> servers;
     std::vector<AppRemote> remotes;
