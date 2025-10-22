@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.6]
+
+### Fixed
+
+* **login issue on jellyfin 10.11**
+* switch: tls1.3 support by mbedtls
+* ps4: av1 direct playback
+
 ## [0.7.5]
 
 ### Add

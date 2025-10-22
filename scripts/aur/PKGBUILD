@@ -1,5 +1,5 @@
 pkgname=switchfin
-pkgver=0.7.5
+pkgver=0.7.6
 pkgrel=1
 pkgdesc='Third-party native Jellyfin client'
 arch=('x86_64' 'aarch64')
