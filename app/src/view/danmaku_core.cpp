@@ -17,11 +17,11 @@
 #define MAX_DANMAKU_LENGTH 4096
 #endif
 
-DanmakuItem::DanmakuItem(std::string content, const char *attributes) : msg(std::move(content)) {
+DanmakuItem::DanmakuItem(std::string content, const char* attributes) : msg(std::move(content)) {
     std::vector<std::string> attrs;
     misc::split(attributes, attrs, ',');
 
-    if (attrs.size() < 9) {
+    if (attrs.size() < 8) {
         brls::Logger::error("error decode danmaku: {} {}", msg, attributes);
         type = -1;
         return;
@@ -30,7 +30,7 @@ DanmakuItem::DanmakuItem(std::string content, const char *attributes) : msg(std:
     type = atoi(attrs[1].c_str());
     fontSize = atoi(attrs[2].c_str()) / 25.0f;
     fontColor = atoi(attrs[3].c_str());
-    level = atoi(attrs[8].c_str());
+    level = attrs.size() < 9 ? DanmakuCore::DANMAKU_FILTER_LEVEL : atoi(attrs[8].c_str());
 
     int r = (fontColor >> 16) & 0xff;
     int g = (fontColor >> 8) & 0xff;
@@ -47,7 +47,7 @@ DanmakuItem::DanmakuItem(std::string content, const char *attributes) : msg(std:
     }
 }
 
-void DanmakuItem::draw(NVGcontext *vg, float x, float y, float alpha, bool multiLine) const {
+void DanmakuItem::draw(NVGcontext* vg, float x, float y, float alpha, bool multiLine) const {
     float blur = DanmakuCore::DANMAKU_STYLE_FONT == DanmakuFontStyle::DANMAKU_FONT_SHADOW;
     float dilate = DanmakuCore::DANMAKU_STYLE_FONT == DanmakuFontStyle::DANMAKU_FONT_STROKE;
     float dx, dy;
@@ -106,7 +106,7 @@ void DanmakuCore::reset() {
     danmakuMutex.unlock();
 }
 
-void DanmakuCore::loadDanmakuData(const std::vector<DanmakuItem> &data) {
+void DanmakuCore::loadDanmakuData(const std::vector<DanmakuItem>& data) {
     danmakuMutex.lock();
     this->danmakuData = data;
     if (!data.empty()) danmakuLoaded = true;
@@ -130,7 +130,7 @@ void DanmakuCore::refresh() {
     danmakuIndex = 0;
 
     // 重置弹幕控制显示的信息
-    for (auto &i : danmakuData) {
+    for (auto& i : danmakuData) {
         i.showing = false;
         i.canShow = true;
     }
@@ -146,7 +146,7 @@ void DanmakuCore::refresh() {
     lineHeight = DANMAKU_STYLE_FONTSIZE * DANMAKU_STYLE_LINE_HEIGHT * 0.01f;
 
     // 更新弹幕透明度
-    for (auto &d : danmakuData) {
+    for (auto& d : danmakuData) {
         d.color.a = DanmakuCore::DANMAKU_STYLE_ALPHA * 0.01;
         d.borderColor.a = DanmakuCore::DANMAKU_STYLE_ALPHA * 0.005;
     }
@@ -167,7 +167,7 @@ void DanmakuCore::setSpeed(double speed) {
     double factor = oldSpeed / speed;
     // 修改滚动弹幕的起始播放时间，满足修改后的时间在新速度下生成的位置不变。
     for (size_t j = this->danmakuIndex; j < this->danmakuData.size(); j++) {
-        auto &i = this->danmakuData[j];
+        auto& i = this->danmakuData[j];
         if (i.type == 4 || i.type == 5) continue;
         if (!i.canShow) continue;
         if (i.time > MPVCore::instance().playback_time) return;
@@ -182,7 +182,7 @@ std::vector<DanmakuItem> DanmakuCore::getDanmakuData() {
     return data;
 }
 
-void DanmakuCore::draw(NVGcontext *vg, float x, float y, float width, float height, float alpha) {
+void DanmakuCore::draw(NVGcontext* vg, float x, float y, float width, float height, float alpha) {
     if (!DanmakuCore::DANMAKU_ON) return;
     if (!this->danmakuLoaded) return;
     if (danmakuData.empty()) return;
@@ -213,7 +213,7 @@ void DanmakuCore::draw(NVGcontext *vg, float x, float y, float width, float heig
     //取出需要的弹幕
     float bounds[4];
     for (size_t j = this->danmakuIndex; j < this->danmakuData.size(); j++) {
-        auto &i = this->danmakuData[j];
+        auto& i = this->danmakuData[j];
         // 溢出屏幕外或被过滤调不展示的弹幕
         if (!i.canShow) continue;
 
@@ -325,7 +325,7 @@ void DanmakuCore::draw(NVGcontext *vg, float x, float y, float width, float heig
                 if (fabs(playbackTime - i.time) > 0.1) continue;
                 i.showing = true;
                 i.canShow = true;
-                auto &ani = i.advancedAnimation;
+                auto& ani = i.advancedAnimation;
                 ani->alpha.stop();
                 ani->transX.stop();
                 ani->transY.stop();

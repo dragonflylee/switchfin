@@ -435,12 +435,12 @@ void PlayerView::requestDanmaku() {
             tinyxml2::XMLError error = document.Parse(resp.c_str());
 
             if (error != tinyxml2::XMLError::XML_SUCCESS) {
-                brls::Logger::error("Error decode danmaku xml[1]: {}", std::to_string(error));
+                brls::Logger::error("Parse danmaku xml[1]: {}", std::to_string(error));
                 return;
             }
             tinyxml2::XMLElement* element = document.RootElement();
             if (!element) {
-                brls::Logger::error("Error decode danmaku xml[2]: no root element");
+                brls::Logger::error("Decode danmaku xml[2]: no root element");
                 return;
             }
 
