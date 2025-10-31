@@ -21,6 +21,15 @@
                 positionRight="8"
                 height="24" />
 
+            <SVGImage
+                id="video/card/badge/favorite"
+                svg="@res/icon/ico-heart.svg"
+                visibility="invisible"
+                positionType="absolute"
+                positionBottom="8"
+                positionRight="8"
+                height="24" />
+
             <brls:Box
                 wireframe="false"
                 positionType="absolute"

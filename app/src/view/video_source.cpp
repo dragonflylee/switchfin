@@ -10,6 +10,7 @@
 #include "view/svg_image.hpp"
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
+#include "view/context_menu.hpp"
 
 using namespace brls::literals;  // for _i18n
 
@@ -60,6 +61,12 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
                 HTTP::encode_form({{"tag", item.ImageTags[jellyfin::imageTypePrimary]}, {"maxWidth", "240"}}));
         }
+    }
+
+    if (item.UserData.IsFavorite) {
+        cell->badgeFavorite->setVisibility(brls::Visibility::VISIBLE);
+    } else {
+        cell->badgeFavorite->setVisibility(brls::Visibility::INVISIBLE);
     }
 
     if (item.UserData.Played) {
@@ -124,6 +131,12 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
         dialog->addButton("hints/cancel"_i18n, []() {});
         dialog->open();
     }
+}
+
+void VideoDataSource::onContextMenu(brls::Box* recycler, size_t index) {
+    auto& item = this->list.at(index);
+    brls::Box* menu = new ContextMenu(item);
+    brls::Application::pushActivity(new brls::Activity(menu));
 }
 
 void VideoDataSource::clearData() { this->list.clear(); }

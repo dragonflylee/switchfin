@@ -17,6 +17,8 @@ public:
 
     void onItemSelected(brls::Box* recycler, size_t index) override;
 
+    void onContextMenu(brls::Box* recycler, size_t index);
+
     void clearData() override;
 
     void appendData(const MediaList& data);

@@ -1,12 +1,13 @@
 #pragma once
 
 #include <borealis.hpp>
+#include <api/jellyfin/media.hpp>
 
 class ButtonClose;
 
 class ContextMenu : public brls::Box {
 public:
-    ContextMenu(const std::string& itemId);
+    ContextMenu(const jellyfin::Item& item);
 
     bool isTranslucent() override { return true; }
 
@@ -19,5 +20,8 @@ private:
     BRLS_BIND(brls::RadioCell, btnFavorite, "menu/favorite");
     BRLS_BIND(brls::RadioCell, btnMarkPlay, "menu/mark/play");
 
-    bool onClick();
+    bool doPlayed();
+    bool doFavorite();
+
+    std::string itemId;
 };

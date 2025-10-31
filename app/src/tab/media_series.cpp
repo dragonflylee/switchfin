@@ -26,6 +26,7 @@ public:
     BRLS_BIND(brls::Label, labelName, "episode/card/name");
     BRLS_BIND(brls::Label, labelOverview, "episode/card/overview");
     BRLS_BIND(SVGImage, badgeTopRight, "video/card/badge/top");
+    BRLS_BIND(SVGImage, badgeFavorite, "video/card/badge/favorite");
     BRLS_BIND(brls::Rectangle, rectProgress, "video/card/progress");
 };
 
@@ -59,6 +60,12 @@ public:
             cell->labelName->setText(item.Name);
         }
         cell->labelOverview->setText(item.Overview);
+
+        if (item.UserData.IsFavorite) {
+            cell->badgeFavorite->setVisibility(brls::Visibility::VISIBLE);
+        } else {
+            cell->badgeFavorite->setVisibility(brls::Visibility::INVISIBLE);
+        }
 
         if (item.UserData.Played) {
             cell->badgeTopRight->setImageFromSVGRes("icon/ico-checkmark.svg");
