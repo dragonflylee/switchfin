@@ -22,6 +22,8 @@ private:
 
     bool doPlayed();
     bool doFavorite();
+    bool unPlayed();
+    bool unFavorite();
 
     std::string itemId;
 };

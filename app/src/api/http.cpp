@@ -237,7 +237,7 @@ void HTTP::_get(const std::string& url, std::ostream* out) {
 
 bool HTTP::getinfo(char** arg) { return curl_easy_getinfo(this->easy, CURLINFO_CONTENT_TYPE, arg) == CURLE_OK; }
 
-int HTTP::propfind(const std::string& url, std::ostream* out, bool self) {
+int HTTP::propfind(const std::string& url, std::ostream* out) {
     curl_easy_setopt(this->easy, CURLOPT_URL, url.c_str());
     curl_easy_setopt(this->easy, CURLOPT_CUSTOMREQUEST, "PROPFIND");
     return this->perform(out);
@@ -251,4 +251,11 @@ std::string HTTP::_post(const std::string& url, const std::string& data) {
     int code = this->perform(&body);
     if (code >= 400) throw curl_error(fmt::format("http status {}", code));
     return body.str();
+}
+
+void HTTP::_delete(const std::string& url, std::ostream* out) {
+    curl_easy_setopt(this->easy, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(this->easy, CURLOPT_CUSTOMREQUEST, "DELETE");
+    int code = this->perform(out);
+    if (code >= 400) throw curl_error(fmt::format("http status {}", code));
 }

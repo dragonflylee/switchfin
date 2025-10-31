@@ -17,11 +17,21 @@ ContextMenu::ContextMenu(const jellyfin::Item& item) : itemId(item.Id) {
     });
     this->cancel->addGestureRecognizer(new brls::TapGestureRecognizer(this->cancel));
 
-    this->btnFavorite->registerClickAction([this](brls::View* view) { return this->doFavorite(); });
+    this->btnFavorite->registerClickAction([this](brls::View* view) {
+        if (this->btnFavorite->getSelected())
+            return this->unFavorite();
+        else
+            return this->doFavorite();
+    });
     this->btnFavorite->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnFavorite));
     this->btnFavorite->setSelected(item.UserData.IsFavorite);
 
-    this->btnMarkPlay->registerClickAction([this](brls::View* view) { return this->doPlayed(); });
+    this->btnMarkPlay->registerClickAction([this](brls::View* view) {
+        if (this->btnMarkPlay->getSelected())
+            return this->unPlayed();
+        else
+            return this->doPlayed();
+    });
     this->btnMarkPlay->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnMarkPlay));
     this->btnMarkPlay->setSelected(item.UserData.Played);
 }
@@ -53,6 +63,38 @@ bool ContextMenu::doFavorite() {
             {"itemId", this->itemId},
             {"isFavorite", this->btnFavorite->getSelected()},
         },
+        [ASYNC_TOKEN](const jellyfin::UserDataResult& r) {
+            ASYNC_RELEASE
+            this->btnFavorite->setSelected(r.IsFavorite);
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
+        },
+        jellyfin::apiFavoriteItems, AppConfig::instance().getUserId(), this->itemId);
+
+    return true;
+}
+
+bool ContextMenu::unPlayed() {
+    ASYNC_RETAIN
+    jellyfin::deleteJSON<jellyfin::UserDataResult>(
+        [ASYNC_TOKEN](const jellyfin::UserDataResult& r) {
+            ASYNC_RELEASE
+            this->btnMarkPlay->setSelected(r.IsFavorite);
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
+        },
+        jellyfin::apiPlayedItems, AppConfig::instance().getUserId(), this->itemId);
+
+    return true;
+}
+
+bool ContextMenu::unFavorite() {
+    ASYNC_RETAIN
+    jellyfin::deleteJSON<jellyfin::UserDataResult>(
         [ASYNC_TOKEN](const jellyfin::UserDataResult& r) {
             ASYNC_RELEASE
             this->btnFavorite->setSelected(r.IsFavorite);
