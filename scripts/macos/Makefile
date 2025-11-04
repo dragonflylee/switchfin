@@ -27,7 +27,7 @@ download:
 	curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/12.1.0/harfbuzz-12.1.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/libass/libass/releases/download/0.17.4/libass-0.17.4.tar.xz | tar Jxf - -C $(TMPDIR)
-	curl --retry 5 -sSL https://downloads.videolan.org/pub/videolan/dav1d/1.5.1/dav1d-1.5.1.tar.xz | tar Jxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://downloads.videolan.org/pub/videolan/dav1d/1.5.2/dav1d-1.5.2.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://ffmpeg.org/releases/ffmpeg-8.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/mpv-player/mpv/archive/v0.40.0.tar.gz | tar zxf - -C $(TMPDIR)
 	git clone https://github.com/haasn/libplacebo.git -b v7.351.0 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
@@ -106,7 +106,7 @@ libass: harfbuzz fribidi
 	meson install -C build/libass
 
 dav1d:
-	meson setup build/dav1d $(TMPDIR)/dav1d-1.5.1 \
+	meson setup build/dav1d $(TMPDIR)/dav1d-1.5.2 \
 		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX) \
 		-Denable_tools=false -Denable_examples=false -Denable_tests=false -Denable_docs=false
 	meson compile -C build/dav1d

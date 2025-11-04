@@ -101,7 +101,7 @@ jobs:
       run: |
         dkp-pacman --noconfirm -U $BASE_URL/hacBrewPack-3.05-1-x86_64.pkg.tar.zst
         dkp-pacman --noconfirm -U $BASE_URL/libnx-4.9.0-1-any.pkg.tar.zst
-        for pkg in mbedtls-3.6.5-1 libssh2-1.11.1-1 curl-8.16.0-2 ffmpeg-7.1.2-5 libmpv${{ matrix.shuffix }}-0.36.0-5 nspmini-main-1; do
+        for pkg in mbedtls-3.6.5-1 libssh2-1.11.1-1 dav1d-1.5.2-1 curl-8.16.0-2 ffmpeg-7.1.2-5 libmpv${{ matrix.shuffix }}-0.36.0-5 nspmini-main-1; do
           dkp-pacman --noconfirm -U $BASE_URL/switch-${pkg}-any.pkg.tar.zst
         done
         git config --system --add safe.directory $GITHUB_WORKSPACE
@@ -142,7 +142,7 @@ jobs:
         submodules: recursive
     - name: Update dependencies
       run: |
-        for pkg in musl-1.5-3 mbedtls-2.28.10-2 sdl2-2.0.18-19 libcurl-7.80.0-5 dav1d-1.5.1-1 ffmpeg-7.1.2-3 libmpv-0.36.0-2; do
+        for pkg in musl-1.5-3 mbedtls-2.28.10-2 sdl2-2.0.18-19 libcurl-7.80.0-5 dav1d-1.5.2-1 ffmpeg-7.1.2-3 libmpv-0.36.0-2; do
           pacman --noconfirm -U $BASE_URL/ps4-openorbis-${pkg}-any.pkg.tar.gz
         done
         git config --system --add safe.directory $GITHUB_WORKSPACE

@@ -4,14 +4,14 @@
 # You can also use musl with custom DNS support to do similar things (Recommended)
 
 pkgname=ps4-openorbis-dav1d
-pkgver=1.5.1
+pkgver=1.5.2
 pkgrel=1
 pkgdesc='AV1 cross-platform decoder focused on speed and correctness'
 arch=('any')
 url='https://code.videolan.org/videolan/dav1d'
 license=('curl')
 source=("https://downloads.videolan.org/pub/videolan/dav1d/${pkgver}/dav1d-${pkgver}.tar.xz" 'cross.txt')
-sha256sums=('401813f1f89fa8fd4295805aa5284d9aed9bc7fc1fdbe554af4292f64cbabe21' 'SKIP')
+sha256sums=('cce88ebcffd3f790bde49caa75f97b9cc2dd54ca8f57e38c62707266ec71bc4e' 'SKIP')
 options=(!strip !debug libtool staticlibs)
 depends=('ps4-openorbis-zlib' 'ps4-openorbis-mbedtls')
 makedepends=('ps4-openorbis-vars')
