@@ -182,21 +182,22 @@ struct Source {
     std::string Id;
     std::string Name;
     std::string Path;
-    std::string Protocol;
     int DefaultAudioStreamIndex;
     int DefaultSubtitleStreamIndex;
     bool SupportsDirectPlay;
     bool SupportsTranscoding;
+    bool IsRemote;
+    bool IsInfiniteStream;
+    std::string ETag;
     std::string DirectStreamUrl;
     std::string TranscodingUrl;
-    std::string ETag;
     std::vector<Stream> MediaStreams;
     std::vector<Attachment> MediaAttachments;
     int64_t Bitrate;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Source, Id, Name, Path, DefaultAudioStreamIndex,
-    DefaultSubtitleStreamIndex, SupportsDirectPlay, SupportsTranscoding, DirectStreamUrl, TranscodingUrl, ETag,
-    MediaStreams, MediaAttachments, Protocol, Bitrate);
+    DefaultSubtitleStreamIndex, SupportsDirectPlay, SupportsTranscoding, IsRemote, IsInfiniteStream, ETag,
+    DirectStreamUrl, TranscodingUrl, MediaStreams, MediaAttachments, Bitrate);
 
 struct PlaybackResult {
     std::vector<Source> MediaSources;

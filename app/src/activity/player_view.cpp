@@ -70,7 +70,7 @@ PlayerView::PlayerView(const jellyfin::Item& item, const uint64_t seekTicks) : i
             if (PlayerSetting::selectedSubtitle > 0 && this->playMethod == jellyfin::methodDirectPlay) {
                 mpv.setInt("sid", PlayerSetting::selectedSubtitle);
             }
-            if (DanmakuCore::PLUGIN_ACTIVE && this->stream.Protocol != "Http") {
+            if (DanmakuCore::PLUGIN_ACTIVE && !this->stream.IsInfiniteStream) {
                 this->requestDanmaku();
             }
             break;
@@ -334,7 +334,7 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
                 ssextra << fmt::format("network-timeout={}", HTTP::TIMEOUT / 100);
                 if (seekTicks > 0) ssextra << ",start=" << misc::sec2Time(seekTicks / jellyfin::PLAYTICKS);
 
-                if (item.Protocol == "Http" && !item.SupportsDirectPlay) {
+                if (item.IsRemote && MPVCore::FORCE_DIRECTPLAY) {
                     mpv.setUrl(item.Path, ssextra.str());
                     this->stream = std::move(item);
                     return;
