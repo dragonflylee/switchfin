@@ -100,7 +100,7 @@ jobs:
     - name: Update dependencies
       run: |
         dkp-pacman --noconfirm -U $BASE_URL/hacBrewPack-3.05-1-x86_64.pkg.tar.zst
-        dkp-pacman --noconfirm -U $BASE_URL/libnx-4.9.0-1-any.pkg.tar.zst
+        dkp-pacman --noconfirm -U $BASE_URL/libnx-4.10.0-1-any.pkg.tar.zst
         for pkg in mbedtls-3.6.5-1 libssh2-1.11.1-1 dav1d-1.5.2-1 curl-8.16.0-2 ffmpeg-7.1.2-5 libmpv${{ matrix.shuffix }}-0.36.0-5 nspmini-main-1; do
           dkp-pacman --noconfirm -U $BASE_URL/switch-${pkg}-any.pkg.tar.zst
         done
