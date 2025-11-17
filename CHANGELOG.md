@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.7.7]
+
+### Fixed
+
+* switch: compatibility update for 21.0.0
+* adjust direct play logic
+
+### Add
+
+* context menu for tag favorite
+
 ## [0.7.6]
 
 ### Fixed

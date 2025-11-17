@@ -1,3 +1,9 @@
+switchfin (0.7.7-1) unstable; urgency=medium
+
+  * fix login issue on jellyfin 10.11
+
+ -- dragonflylee <dragonflylee@outlook.com>  Mon, 17 Nov 2025 10:35:00 +0800
+
 switchfin (0.7.6-1) unstable; urgency=medium
 
   * fix login issue on jellyfin 10.11
