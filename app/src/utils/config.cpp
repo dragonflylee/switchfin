@@ -90,6 +90,12 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
             {"0MB", "10MB", "20MB", "50MB", "100MB", "200MB", "500MB"},
             {0, 10, 20, 50, 100, 200, 500},
         }},
+    {PLAYER_SPEED,
+        {
+            "player_speed",
+            {"4x", "3x", "2x"},
+            {400, 300, 200},
+        }},
     {PLAYER_HWDEC, {"player_hwdec"}},
     {PLAYER_HWDEC_CUSTOM, {"player_hwdec_custom"}},
     {PLAYER_ASPECT, {"player_aspect", {"auto", "stretch", "crop", "4:3", "16:9"}}},
@@ -328,7 +334,8 @@ bool AppConfig::init() {
     MPVCore::AUDIO_CHANNELS = this->getItem(AUDIO_CHANNELS, MPVCore::AUDIO_CHANNELS);
     // 初始化自定义的硬件加速方案
     MPVCore::PLAYER_HWDEC_METHOD = this->getItem(PLAYER_HWDEC_CUSTOM, MPVCore::PLAYER_HWDEC_METHOD);
-
+    // 初始化默认的倍速设定
+    MPVCore::VIDEO_SPEED = this->getItem(PLAYER_SPEED, MPVCore::VIDEO_SPEED);
     // 初始化视频比例
     MPVCore::VIDEO_ASPECT = this->getItem(PLAYER_ASPECT, MPVCore::VIDEO_ASPECT);
     MPVCore::OSD_TV_MODE = this->getItem(PLAYER_TV_MODE, false);

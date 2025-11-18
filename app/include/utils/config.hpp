@@ -79,6 +79,7 @@ public:
         PLAYER_BOTTOM_BAR,
         PLAYER_LOW_QUALITY,
         PLAYER_INMEMORY_CACHE,
+        PLAYER_SPEED,
         PLAYER_HWDEC,
         PLAYER_HWDEC_CUSTOM,
         PLAYER_ASPECT,
