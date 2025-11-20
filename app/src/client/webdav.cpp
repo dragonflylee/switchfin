@@ -1,4 +1,5 @@
 #include "client/webdav.hpp"
+#include <curl/curl.h>
 #include <tinyxml2/tinyxml2.h>
 #include <sstream>
 
@@ -94,6 +95,17 @@ std::vector<DirEntry> Webdav::list(const std::string& path) {
                         ss >> std::get_time(&item.modified, "%a, %d %b %Y %H:%M:%S %Z");
                     }
                 }
+            }
+
+            if (item.name.empty()) {
+                std::string name = item.path;
+                if (name.back() == '/') name.pop_back();
+
+                auto pos = name.find_last_of("/");
+                if (pos > 0) name = name.substr(pos + 1);
+                char* unescape = curl_unescape(name.c_str(), name.size());
+                item.name = unescape;
+                curl_free(unescape);
             }
         }
 
