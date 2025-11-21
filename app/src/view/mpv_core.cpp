@@ -557,6 +557,7 @@ void MPVCore::eventMainLoop() {
             // event 6: 开始加载文件
             brls::Logger::info("MPVCore => EVENT_START_FILE");
             mpvCoreEvent.fire(MpvEventEnum::START_FILE);
+            mpvCoreEvent.fire(MpvEventEnum::LOADING_START);
             break;
         case MPV_EVENT_PLAYBACK_RESTART:
             // event 21: 开始播放文件（一般是播放或调整进度结束之后触发）
