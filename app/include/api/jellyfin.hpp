@@ -70,6 +70,23 @@ inline void deleteJSON(const std::function<void(Result)>& then, OnError error, s
     });
 }
 
+template <typename T>
+struct Result {
+    std::vector<T> Items;
+    long TotalRecordCount = 0;
+    long StartIndex = 0;
+};
+
+template <typename T>
+inline void to_json(nlohmann::json& nlohmann_json_j, const Result<T>& nlohmann_json_t) {
+    NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_TO, Items, TotalRecordCount, StartIndex))
+}
+
+template <typename T>
+inline void from_json(const nlohmann::json& nlohmann_json_j, Result<T>& nlohmann_json_t) {
+    NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM, Items, TotalRecordCount, StartIndex))
+}
+
 };  // namespace jellyfin
 
 #include "jellyfin/system.hpp"
