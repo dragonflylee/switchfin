@@ -40,11 +40,11 @@ download:
 	wget -qO- https://curl.se/download/curl-8.16.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/webmproject/libwebp/archive/v1.6.0.tar.gz | tar zxf - -C $(TMPDIR)
 	wget -qO- https://downloads.sourceforge.net/project/freetype/freetype2/2.14.1/freetype-2.14.1.tar.xz | tar Jxf - -C $(TMPDIR)
-	wget -qO- https://github.com/harfbuzz/harfbuzz/releases/download/12.1.0/harfbuzz-12.1.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	wget -qO- https://github.com/harfbuzz/harfbuzz/releases/download/12.2.0/harfbuzz-12.2.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/libass/libass/releases/download/0.17.4/libass-0.17.4.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.5.2/dav1d-1.5.2.tar.xz | tar Jxf - -C $(TMPDIR)
-	wget -qO- https://ffmpeg.org/releases/ffmpeg-8.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	wget -qO- https://ffmpeg.org/releases/ffmpeg-8.0.1.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/mpv-player/mpv/archive/v0.40.0.tar.gz | tar zxf - -C $(TMPDIR)
 	git clone https://github.com/haasn/libplacebo.git -b v7.351.0 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
 	patch -d $(TMPDIR)/libwebp-1.6.0 -Nbp1 -i $(PWD)/scripts/mingw64/libwebp/0001-mingw-cmake-output.patch
@@ -90,15 +90,13 @@ libwebp:
 	DESTDIR=$(PREFIX) cmake --install build/libwebp
 
 freetype:
-	meson setup build/freetype $(TMPDIR)/freetype-2.14.1 \
-		--cross-file "$(CURDIR)/$(ABI).meson" \
+	meson setup build/freetype $(TMPDIR)/freetype-2.14.1 --cross-file "$(CURDIR)/$(ABI).meson" \
 		-Dharfbuzz=disabled -Dbrotli=disabled -Dzlib=enabled
 	meson compile -C build/freetype
 	meson install -C build/freetype --destdir $(PREFIX)
 
 harfbuzz: freetype
-	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-12.1.0 \
-		--cross-file "$(CURDIR)/$(ABI).meson" \
+	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-12.2.0 --cross-file "$(CURDIR)/$(ABI).meson" \
 		-Dfreetype=enabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled \
 		-Dchafa=disabled -Dtests=disabled -Dintrospection=disabled \
 		-Ddocs=disabled -Ddoc_tests=false -Dutilities=disabled
@@ -106,22 +104,19 @@ harfbuzz: freetype
 	meson install -C build/harfbuzz --destdir $(PREFIX)
 
 fribidi:
-	meson setup build/fribidi $(TMPDIR)/fribidi-1.0.16 \
-		--cross-file "$(CURDIR)/$(ABI).meson" \
+	meson setup build/fribidi $(TMPDIR)/fribidi-1.0.16 --cross-file "$(CURDIR)/$(ABI).meson" \
 		-Dbin=false -Ddocs=false -Dtests=false
 	meson compile -C build/fribidi
 	meson install -C build/fribidi --destdir $(PREFIX)
 
 libass: harfbuzz fribidi
-	meson setup build/libass $(TMPDIR)/libass-0.17.4 \
-		--cross-file "$(CURDIR)/$(ABI).meson" \
+	meson setup build/libass $(TMPDIR)/libass-0.17.4 --cross-file "$(CURDIR)/$(ABI).meson" \
 		-Drequire-system-font-provider=false
 	meson compile -C build/libass
 	meson install -C build/libass --destdir $(PREFIX)
 
 dav1d:
-	meson setup build/dav1d $(TMPDIR)/dav1d-1.5.2 \
-		--cross-file "$(CURDIR)/$(ABI).meson" \
+	meson setup build/dav1d $(TMPDIR)/dav1d-1.5.2 --cross-file "$(CURDIR)/$(ABI).meson" \
 		-Db_lto=true -Dstack_alignment=16 -Denable_tools=false \
 		-Denable_examples=false -Denable_tests=false -Denable_docs=false
 	meson compile -C build/dav1d
@@ -129,14 +124,14 @@ dav1d:
 
 ffmpeg: mbedtls libass dav1d libwebp
 	mkdir -p build/ffmpeg && cd build/ffmpeg && \
-	$(TMPDIR)/ffmpeg-8.0/configure --enable-shared --disable-static --pkg-config=pkg-config \
+	$(TMPDIR)/ffmpeg-8.0.1/configure --enable-shared --disable-static --pkg-config=pkg-config \
 		--target-os=android --arch=$(firstword $(subst -, ,$(CC))) --cpu=$(CPU) --cc=$(CC) \
 		--enable-cross-compile --cross-prefix=llvm- --sysroot=$(TOOLCHAIN)/sysroot \
 		--extra-cflags="-I$(PREFIX)/include $(CPUFLAGS)" --extra-ldflags="-L$(PREFIX)/lib" \
-		--disable-programs --disable-debug --disable-doc --disable-stripping \
+		--disable-programs --disable-debug --disable-doc --enable-network \
 		--disable-vulkan --disable-devices --disable-autodetect --enable-jni \
 		--enable-mediacodec --enable-libass --enable-libdav1d --enable-zlib \
-		--disable-muxers --disable-encoders --enable-network --enable-mbedtls --enable-version3
+		--disable-muxers --disable-encoders --enable-mbedtls --enable-version3
 	make -C build/ffmpeg -j$(shell nproc)
 	make -C build/ffmpeg install DESTDIR=$(PREFIX)
 

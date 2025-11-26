@@ -21,9 +21,8 @@ jobs:
     - name: Install dependency
       run: |
         apt-get update
-        apt-get install -y fakeroot zstd bison flex libtool python3-mako python3-setuptools manpages-
-        wget -qO- https://github.com/mesonbuild/meson/archive/1.9.0.tar.gz | tar zxf - -C /tmp
-        cd /tmp/meson-1.9.0 && python3 setup.py install
+        apt-get install -y fakeroot zstd bison flex libtool python3-mako python3-pip manpages-
+        pip install meson
     - name: Build portlibs
       run: |
         adduser --gecos '' --home ${GITHUB_WORKSPACE}/scripts/switch --disabled-password builder
