@@ -6,6 +6,7 @@
     "artists": "藝人",
     "songs": "歌曲",
     "search": "搜尋",
+    "dashboard": "控制台",
     "setting": "設定"
   },
   "home": {
@@ -23,6 +24,15 @@
     "header": "關於軟體",
     "brief": "專為搖桿控制設計的第三方跨平台Jellyfin播放器\n滿足日常使用, 目前支援 PC 全平台和 Nintendo Switch",
     "repo_header": "原始碼連結"
+  },
+  "dashboard": {
+    "session": "会话",
+    "device": "裝置",
+    "activity": "活動",
+    "path": "路徑",
+    "restart": "重新啟動",
+    "confirm_restart": "您確定要重新啟動 Jellyfin 嗎？",
+    "scan_all": "掃描所有媒體庫"
   },
   "player": {
     "subtitle": "字幕",

@@ -1,0 +1,26 @@
+<brls:Box
+    highlightCornerRadius="8"
+    alignItems="center"
+    backgroundColor="@theme/color/grey_2"
+    padding="10">
+
+    <brls:Label
+        id="device/time"
+        fontSize="@style/brls/header/font_size"
+        width="200" />
+
+    <brls:Label
+        id="device/name"
+        fontSize="@style/brls/header/font_size"
+        width="300" />
+
+    <brls:Label
+        id="device/app"
+        fontSize="@style/brls/header/font_size"
+        width="300" />
+
+    <brls:Label
+        id="device/user"
+        fontSize="@style/brls/header/font_size"/>
+
+</brls:Box>

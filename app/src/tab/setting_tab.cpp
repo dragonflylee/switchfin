@@ -15,6 +15,7 @@
 */
 
 #include "tab/setting_tab.hpp"
+#include "tab/dashboard.hpp"
 #include "activity/server_list.hpp"
 #include "activity/hint_activity.hpp"
 #include "utils/config.hpp"
@@ -99,6 +100,7 @@ SettingTab::SettingTab() {
         this->boxStatus->setVisibility(visibility);
         this->btnServer->setVisibility(visibility);
         this->btnUser->setVisibility(visibility);
+        this->btnDashboard->setVisibility(visibility);
     });
 }
 
@@ -117,7 +119,7 @@ void SettingTab::onCreate() {
             Dialog::cancelable("main/setting/others/logout"_i18n, []() {
                 brls::async([]() {
                     auto& c = AppConfig::instance();
-                    HTTP::Header header = {"X-Emby-Token: " + c.getToken()};
+                    HTTP::Header header = {c.getAuth(c.getToken())};
                     try {
                         HTTP::post(c.getUrl() + jellyfin::apiLogout, "", header, HTTP::Timeout{});
                         c.removeUser(c.getUserId());
@@ -129,6 +131,15 @@ void SettingTab::onCreate() {
             });
             return true;
         });
+
+        if (conf.isAdmin()) {
+            this->btnDashboard->registerClickAction([this](...) {
+                this->present(new Dashboard());
+                return true;
+            });
+        } else {
+            this->btnDashboard->setVisibility(brls::Visibility::GONE);
+        }
     }
 
 /// Hardware decode

@@ -6,6 +6,7 @@
     "artists": "아티스트",
     "songs": "노래",
     "search": "검색",
+    "dashboard": "대시보드",
     "setting": "설정"
   },
   "home": {
@@ -23,6 +24,15 @@
     "header": "소프트웨어 정보",
     "brief": "게임패드 조작에 최적화된 크로스 플랫폼 Jellyfin 클라이언트\n일상적인 사용을 위해 설계되었으며, 현재 PC 전 플랫폼과 Nintendo Switch에서 실행 가능합니다.",
     "repo_header": "리포지토리"
+  },
+  "dashboard": {
+    "session": "Session",
+    "device": "장치",
+    "activity": "활동",
+    "path": "선택",
+    "restart": "재시작",
+    "confirm_restart": "Jellyfin을 다시 시작 하시겠습니까?",
+    "scan_all": "라이브러리 스캔"
   },
   "player": {
     "subtitle": "자막",

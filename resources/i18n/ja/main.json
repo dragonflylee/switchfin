@@ -6,6 +6,7 @@
     "artists": "アーティスト",
     "songs": "曲",
     "search": "検索",
+    "dashboard": "ダッシュボード",
     "setting": "設定"
   },
   "home": {
@@ -23,6 +24,15 @@
     "header": "詳細",
     "brief": "その他のサードパーティー製Jellyfinクライアント",
     "repo_header": "リポジトリ"
+  },
+  "dashboard": {
+    "session": "ユーザーセッション",
+    "device": "デバイス",
+    "activity": "アクティビティ",
+    "path": "パス",
+    "restart": "再起動",
+    "confirm_restart": "本当にJellyfinを再起動しますか？",
+    "scan_all": "ライブラリをスキャン"
   },
   "player": {
     "subtitle": "字幕",

@@ -6,6 +6,7 @@
     "artists": "Исполнители",
     "songs": "Композиции",
     "search": "Поиск",
+    "dashboard": "Панель управления",
     "setting": "Настройки"
   },
   "home": {
@@ -23,6 +24,15 @@
     "header": "О приложении",
     "brief": "Ещё один сторонний клиент Jellyfin",
     "repo_header": "Репозиторий"
+  },
+  "dashboard": {
+    "session": "сессий",
+    "device": "Устройство",
+    "activity": "События",
+    "path": "Путь",
+    "restart": "Перезапустить",
+    "confirm_restart": "Вы действительно хотите перезапустить Jellyfin?",
+    "scan_all": "Сканировать медиатеку"
   },
   "player": {
     "subtitle": "Субтитры",

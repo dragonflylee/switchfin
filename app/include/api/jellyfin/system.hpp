@@ -15,10 +15,12 @@ const std::string apiLogout = "/Sessions/Logout";
 const std::string apiBranding = "/Branding/Configuration";
 
 const std::string_view apiDevices = "/Devices?{}";
+const std::string_view apiStorage = "/System/Info/Storage";
 const std::string_view apiActivityLog = "/System/ActivityLog/Entries?{}";
 const std::string_view apiScheduledTasks = "/ScheduledTasks";
 const std::string_view apiSessionList = "/Sessions?{}";
 const std::string_view apiCapabilities = "/Sessions/Capabilities/Full";
+const std::string_view apiItemCount = "/Items/Counts";
 // apiQuickConnect
 const std::string apiQuickEnabled = "/QuickConnect/Enabled";
 const std::string apiQuickInitiate = "/QuickConnect/Initiate";
@@ -35,21 +37,45 @@ struct PublicSystemInfo {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PublicSystemInfo, Id, ServerName, Version);
 
-struct UserResult {
+struct SystemInfo : public PublicSystemInfo {
+    std::string LocalAddress;
+    std::string SystemArchitecture;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(SystemInfo, Id, ServerName, Version, LocalAddress, SystemArchitecture);
+
+struct UserPolicy {
+    bool IsAdministrator = false;
+    bool IsDisabled = false;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(UserPolicy, IsAdministrator, IsDisabled);
+
+struct UserConfig {
+    bool EnableNextEpisodeAutoPlay = false;
+    bool HidePlayedInLatest = false;
+    bool RememberAudioSelections = true;
+    bool RememberSubtitleSelections = true;
+    std::string SubtitleLanguagePreference;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(UserConfig, EnableNextEpisodeAutoPlay, HidePlayedInLatest,
+    RememberAudioSelections, RememberSubtitleSelections, SubtitleLanguagePreference);
+
+struct UserInfo {
     std::string Id;
     std::string Name;
     std::string ServerId;
-    bool HasPassword;
+    bool HasPassword = false;
+    UserPolicy Policy;
+    UserConfig Configuration;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(UserResult, Id, Name, ServerId, HasPassword);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(UserInfo, Id, Name, ServerId, HasPassword, Policy, Configuration);
 
 /// @brief /Users/authenticatebyname
 struct AuthResult {
     std::string AccessToken;
     std::string ServerId;
-    UserResult User;
+    UserInfo User;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AuthResult, AccessToken, ServerId, User);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(AuthResult, AccessToken, ServerId, User);
 
 struct QuickConnect {
     bool Authenticated;
@@ -132,13 +158,52 @@ struct Device {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Device, Id, Name, LastUserName, AppName, AppVersion, DateLastActivity);
 
 struct ActivityLog {
-    std::string Id;
     std::string Name;
     std::string ShortOverview;
     std::string Type;
     std::string Date;
     std::string UserId;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ActivityLog, Id, Name, ShortOverview, Type, Date, UserId);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ActivityLog, Name, ShortOverview, Type, Date, UserId);
+
+struct ItemCount {
+    int MovieCount;
+    int SeriesCount;
+    int EpisodeCount;
+    int SongCount;
+    int AlbumCount;
+    int MusicVideoCount;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(
+    ItemCount, MovieCount, SeriesCount, EpisodeCount, SongCount, AlbumCount, MusicVideoCount);
+
+struct FolderInfo {
+    std::string Path;
+    int64_t FreeSpace;
+    int64_t UsedSpace;
+    std::string StorageType;
+    std::string DeviceId;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(FolderInfo, Path, FreeSpace, UsedSpace, StorageType, DeviceId);
+
+struct LibraryInfo {
+    std::string Path;
+    std::string Name;
+    std::vector<FolderInfo> Folders;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(LibraryInfo, Path, Name, Folders);
+
+struct StorageInfo {
+    FolderInfo ProgramDataFolder;
+    FolderInfo WebFolder;
+    FolderInfo ImageCacheFolder;
+    FolderInfo CacheFolder;
+    FolderInfo LogFolder;
+    FolderInfo InternalMetadataFolder;
+    FolderInfo TranscodingTempFolder;
+    std::vector<LibraryInfo> Libraries;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(StorageInfo, ProgramDataFolder, WebFolder, ImageCacheFolder, CacheFolder, LogFolder,
+    InternalMetadataFolder, TranscodingTempFolder, Libraries);
 
 }  // namespace jellyfin

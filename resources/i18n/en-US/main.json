@@ -6,6 +6,7 @@
     "artists": "Artists",
     "songs": "Songs",
     "search": "Search",
+    "dashboard": "Dashboard",
     "setting": "Setting"
   },
   "home": {
@@ -23,6 +24,15 @@
     "header": "About",
     "brief": "Yet another third-party jellyfin client",
     "repo_header": "Repository"
+  },
+  "dashboard": {
+    "session": "Session",
+    "device": "Device",
+    "activity": "Activity",
+    "path": "Path",
+    "restart": "Restart",
+    "confirm_restart": "Are you sure you wish to restart Jellyfin?",
+    "scan_all": "Scan All Libraries"
   },
   "player": {
     "subtitle": "Subtitle",

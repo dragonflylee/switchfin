@@ -30,6 +30,9 @@
                 <brls:DetailCell
                     title="@i18n/main/setting/server/header"
                     id="setting/server" />
+                <brls:DetailCell
+                    title="@i18n/main/tabs/dashboard"
+                    id="setting/dashboard" />
             </brls:Box>
 
             <brls:Header

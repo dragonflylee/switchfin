@@ -1,0 +1,115 @@
+<brls:Box
+    width="auto"
+    height="auto"
+    paddingLeft="@style/main/content_padding_sides"
+    paddingRight="@style/main/content_padding_sides"
+    paddingBottom="@style/main/content_padding_top_bottom">
+
+    <AutoTabFrame
+        id="dashboard/tabFrame"
+        grow="1"
+        defaultTab="0"
+        tabItemActiveTextColor="@theme/color/app"
+        sidebarPosition="top">
+
+        <Tab label="@i18n/main/tabs/home">
+            <brls:Box
+                width="500"
+                axis="column"
+                alignItems="stretch">
+
+                <brls:Box
+                    backgroundColor="@theme/color/grey_2"
+                    width="100%"
+                    height="150"
+                    padding="30"
+                    justifyContent="center"
+                    axis="column">
+
+                    <brls:Box>
+                        <brls:Label width="150"
+                            text="@i18n/main/setting/server/header" />
+                        <brls:Label id="dashboard/server/version" text="-" />
+                    </brls:Box>
+
+                    <brls:Box
+                        marginTop="15">
+                        <brls:Label width="150"
+                            text="@i18n/main/setting/name" />
+                        <brls:Label id="dashboard/server/name" text="-" />
+                    </brls:Box>
+
+                    <brls:Box
+                        marginTop="15">
+                        <brls:Label width="150"
+                            text="@i18n/main/setting/network/host" />
+                        <brls:Label id="dashboard/server/addr" text="-" />
+                    </brls:Box>
+
+                </brls:Box>
+
+                <brls:Box
+                    margin="20">
+                    <brls:Button
+                        style="primary"
+                        text="@i18n/main/dashboard/scan_all"
+                        marginRight="20" />
+
+                    <brls:Button
+                        style="primary"
+                        text="@i18n/main/dashboard/restart" />
+                </brls:Box>
+
+                <brls:Box
+                    justifyContent="spaceBetween">
+
+                    <brls:Box
+                        backgroundColor="@theme/color/grey_2"
+                        height="80"
+                        width="150"
+                        paddingRight="20"
+                        paddingLeft="20"
+                        alignItems="center"
+                        justifyContent="spaceBetween">
+
+                        <brls:Label text="@i18n/main/search/genres/movie" />
+                        <brls:Label id="dashboard/movie/count" text="-" />
+                    </brls:Box>
+
+                    <brls:Box
+                        backgroundColor="@theme/color/grey_2"
+                        height="80"
+                        width="150"
+                        paddingRight="20"
+                        paddingLeft="20"
+                        alignItems="center"
+                        justifyContent="spaceBetween">
+
+                        <brls:Label text="@i18n/main/search/genres/series" />
+                        <brls:Label id="dashboard/series/count" text="-" />
+                    </brls:Box>
+
+                    <brls:Box
+                        backgroundColor="@theme/color/grey_2"
+                        height="80"
+                        width="150"
+                        paddingRight="20"
+                        paddingLeft="20"
+                        alignItems="center"
+                        justifyContent="spaceBetween">
+
+                        <brls:Label text="@i18n/main/search/genres/music" />
+                        <brls:Label id="dashboard/music/count" text="-" />
+                    </brls:Box>
+                </brls:Box>
+
+            </brls:Box>
+        </Tab>
+    </AutoTabFrame>
+
+    <ButtonClose
+        positionType="absolute"
+        positionTop="2"
+        positionRight="2" />
+
+</brls:Box>

@@ -530,15 +530,11 @@ bool AppConfig::checkLogin() {
 
     this->server_url = it->urls.front();
     HTTP::Header header = {this->getAuth(this->user->access_token)};
-    std::string uri = this->server_url + jellyfin::apiInfo;
+    std::string uri = fmt::format("{}/Users/{}", this->server_url, this->user_id);
     try {
         std::string resp = HTTP::get(uri, header, HTTP::Timeout{});
-        jellyfin::PublicSystemInfo info = nlohmann::json::parse(resp);
-        this->addServer(AppServer{
-            .name = info.ServerName,
-            .id = info.Id,
-            .version = info.Version,
-        });
+        jellyfin::UserInfo info = nlohmann::json::parse(resp);
+        this->user->is_admin = info.Policy.IsAdministrator;
         return true;
     } catch (const std::exception& ex) {
         brls::Logger::warning("AppConfig {} checkLogin: {}", this->server_url, ex.what());
@@ -672,6 +668,7 @@ void AppConfig::addUser(const AppUser& u, const std::string& url) {
         it->name = u.name;
         it->access_token = u.access_token;
         it->server_id = u.server_id;
+        it->is_admin = u.is_admin;
     } else {
         it = this->users.insert(it, u);
     }

@@ -171,7 +171,13 @@ bool ServerLogin::onSignin() {
         try {
             auto resp = HTTP::post(this->url + jellyfin::apiAuthByName, data.dump(), header);
             jellyfin::AuthResult r = nlohmann::json::parse(resp);
-            AppUser u = {.id = r.User.Id, .name = r.User.Name, .access_token = r.AccessToken, .server_id = r.ServerId};
+            AppUser u = {
+                .id = r.User.Id,
+                .name = r.User.Name,
+                .access_token = r.AccessToken,
+                .server_id = r.ServerId,
+                .is_admin = r.User.Policy.IsAdministrator,
+            };
             brls::sync([ASYNC_TOKEN, u]() {
                 ASYNC_RELEASE
                 AppConfig::instance().addUser(u, this->url);

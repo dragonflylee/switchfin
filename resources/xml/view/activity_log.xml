@@ -1,0 +1,27 @@
+<brls:Box
+    highlightCornerRadius="8"
+    alignItems="center"
+    backgroundColor="@theme/color/grey_2"
+    padding="10">
+
+    <brls:Label
+        id="activity/time"
+        fontSize="@style/brls/header/font_size"
+        width="200" />
+
+    <brls:Label
+        id="activity/name"
+        fontSize="@style/brls/header/font_size"
+        grow="1.0" />
+
+    <brls:Label
+        id="activity/overview"
+        fontSize="@style/brls/header/font_size"
+        width="200" />
+
+    <brls:Label
+        id="activity/type"
+        fontSize="@style/brls/header/font_size"
+        width="250" />
+
+</brls:Box>

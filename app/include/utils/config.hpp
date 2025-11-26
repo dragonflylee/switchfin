@@ -24,6 +24,7 @@ struct AppUser {
     std::string name;
     std::string access_token;
     std::string server_id;
+    bool is_admin = false;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AppUser, id, name, access_token, server_id);
 
@@ -172,6 +173,7 @@ public:
     const std::string& getUserName() const { return this->user->name; }
     const std::string& getToken() const { return this->user->access_token; }
     const std::string& getUrl() const { return this->server_url; }
+    bool isAdmin() const { return this->user->is_admin; }
     const std::vector<AppRemote>& getRemotes() const { return this->remotes; }
     const std::vector<AppServer>& getServers() const { return this->servers; }
     const std::vector<AppUser> getUsers(const std::string& id) const;
