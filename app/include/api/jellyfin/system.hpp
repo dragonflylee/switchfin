@@ -8,13 +8,14 @@
 
 namespace jellyfin {
 
-const std::string apiInfo = "/System/Info";
+const std::string apiSystemInfo = "/System/Info";
 const std::string apiPublicInfo = "/System/Info/Public";
 const std::string apiAuthByName = "/Users/authenticatebyname";
 const std::string apiLogout = "/Sessions/Logout";
 const std::string apiBranding = "/Branding/Configuration";
 
-const std::string_view apiDevices = "/Devices?{}";
+const std::string_view apiUsers = "/Users";
+const std::string_view apiDevices = "/Devices";
 const std::string_view apiStorage = "/System/Info/Storage";
 const std::string_view apiActivityLog = "/System/ActivityLog/Entries?{}";
 const std::string_view apiScheduledTasks = "/ScheduledTasks";
@@ -35,19 +36,19 @@ struct PublicSystemInfo {
     std::string ServerName;
     std::string Version;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PublicSystemInfo, Id, ServerName, Version);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PublicSystemInfo, Id, ServerName, Version);
 
 struct SystemInfo : public PublicSystemInfo {
     std::string LocalAddress;
     std::string SystemArchitecture;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(SystemInfo, Id, ServerName, Version, LocalAddress, SystemArchitecture);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SystemInfo, Id, ServerName, Version, LocalAddress, SystemArchitecture);
 
 struct UserPolicy {
     bool IsAdministrator = false;
     bool IsDisabled = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(UserPolicy, IsAdministrator, IsDisabled);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(UserPolicy, IsAdministrator, IsDisabled);
 
 struct UserConfig {
     bool EnableNextEpisodeAutoPlay = false;
@@ -63,11 +64,13 @@ struct UserInfo {
     std::string Id;
     std::string Name;
     std::string ServerId;
+    std::string PrimaryImageTag;
     bool HasPassword = false;
     UserPolicy Policy;
     UserConfig Configuration;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(UserInfo, Id, Name, ServerId, HasPassword, Policy, Configuration);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
+    UserInfo, Id, Name, ServerId, PrimaryImageTag, HasPassword, Policy, Configuration);
 
 /// @brief /Users/authenticatebyname
 struct AuthResult {
@@ -75,7 +78,7 @@ struct AuthResult {
     std::string ServerId;
     UserInfo User;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(AuthResult, AccessToken, ServerId, User);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AuthResult, AccessToken, ServerId, User);
 
 struct QuickConnect {
     bool Authenticated;
@@ -132,30 +135,17 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PluginInfo, Name, Version, Id, S
 
 typedef std::vector<PluginInfo> PluginList;
 
-struct Session {
-    std::string Id;
-    std::string UserId;
-    std::string UserName;
-    std::string Client;
-    std::string LastActivityDate;
-    std::string DeviceName;
-    std::string DeviceId;
-    std::string ApplicationVersion;
-    std::string RemoteEndPoint;
-    bool IsActive;
-};
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Session, Id, UserId, UserName, Client, LastActivityDate, DeviceName,
-    DeviceId, ApplicationVersion, RemoteEndPoint, IsActive);
-
 struct Device {
     std::string Id;
     std::string Name;
     std::string LastUserName;
+    std::string LastUserId;
     std::string AppName;
     std::string AppVersion;
     std::string DateLastActivity;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Device, Id, Name, LastUserName, AppName, AppVersion, DateLastActivity);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
+    Device, Id, Name, LastUserName, LastUserId, AppName, AppVersion, DateLastActivity);
 
 struct ActivityLog {
     std::string Name;
@@ -186,13 +176,6 @@ struct FolderInfo {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(FolderInfo, Path, FreeSpace, UsedSpace, StorageType, DeviceId);
 
-struct LibraryInfo {
-    std::string Path;
-    std::string Name;
-    std::vector<FolderInfo> Folders;
-};
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(LibraryInfo, Path, Name, Folders);
-
 struct StorageInfo {
     FolderInfo ProgramDataFolder;
     FolderInfo WebFolder;
@@ -201,9 +184,8 @@ struct StorageInfo {
     FolderInfo LogFolder;
     FolderInfo InternalMetadataFolder;
     FolderInfo TranscodingTempFolder;
-    std::vector<LibraryInfo> Libraries;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(StorageInfo, ProgramDataFolder, WebFolder, ImageCacheFolder, CacheFolder, LogFolder,
-    InternalMetadataFolder, TranscodingTempFolder, Libraries);
+    InternalMetadataFolder, TranscodingTempFolder);
 
 }  // namespace jellyfin

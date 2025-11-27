@@ -263,4 +263,21 @@ struct Channel : public Item {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Channel, Id, Name, Type, ImageTags, ChannelType, CurrentProgram);
 
+struct Session {
+    std::string Id;
+    std::string UserId;
+    std::string UserName;
+    std::string Client;
+    std::string LastActivityDate;
+    std::string DeviceName;
+    std::string DeviceId;
+    std::string ApplicationVersion;
+    std::string RemoteEndPoint;
+    std::string UserPrimaryImageTag;
+    Episode NowPlayingItem;
+    bool IsActive;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Session, Id, UserId, UserName, Client, LastActivityDate, DeviceName,
+    DeviceId, ApplicationVersion, RemoteEndPoint, UserPrimaryImageTag, NowPlayingItem, IsActive);
+
 }  // namespace jellyfin

@@ -6,21 +6,25 @@
 
     <brls:Label
         id="device/time"
-        fontSize="@style/brls/header/font_size"
-        width="200" />
+        width="250" />
 
     <brls:Label
         id="device/name"
-        fontSize="@style/brls/header/font_size"
-        width="300" />
+        grow="1.0" />
 
     <brls:Label
         id="device/app"
-        fontSize="@style/brls/header/font_size"
         width="300" />
 
+    <brls:Image
+        id="device/avatar"
+        width="40"
+        height="40"
+        marginRight="10"
+        image="@res/img/account.png"
+        cornerRadius="10" />
     <brls:Label
         id="device/user"
-        fontSize="@style/brls/header/font_size"/>
+        width="200" />
 
 </brls:Box>

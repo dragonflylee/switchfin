@@ -7,6 +7,7 @@
 #include <borealis.hpp>
 
 class AutoTabFrame;
+class RecyclingGrid;
 
 class Dashboard : public brls::Box {
 public:
@@ -21,7 +22,11 @@ private:
     BRLS_BIND(brls::Label, labelMovie, "dashboard/movie/count");
     BRLS_BIND(brls::Label, labelSeries, "dashboard/series/count");
     BRLS_BIND(brls::Label, labelMusic, "dashboard/music/count");
+    BRLS_BIND(RecyclingGrid, activity, "dashboard/activity");
+    BRLS_BIND(RecyclingGrid, sess, "dashboard/session");
 
     void doItemCount();
-    void doInfo();
+    void doSystemInfo();
+    void doActivityWarn();
+    void doSession();
 };

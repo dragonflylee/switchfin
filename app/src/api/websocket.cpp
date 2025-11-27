@@ -122,6 +122,8 @@ size_t websocket::onMsg(char* b, size_t size, size_t nitems, void* ptr) {
                 },
                 [](...) {}, nullptr, jellyfin::apiCapabilities);
             p->hb.start(30000);
+        } else if (m.MessageType == "Sessions") {
+            
         } else if (m.MessageType != "KeepAlive") {
             brls::Logger::debug("ws recv: {}", resp);
         }

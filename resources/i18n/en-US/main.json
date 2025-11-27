@@ -32,7 +32,10 @@
     "path": "Path",
     "restart": "Restart",
     "confirm_restart": "Are you sure you wish to restart Jellyfin?",
-    "scan_all": "Scan All Libraries"
+    "scan_all": "Scan All Libraries",
+    "within_minute": "Within 1 minute",
+    "minute_ago": "{} minutes ago",
+    "hour_ago": "{} hours ago"
   },
   "player": {
     "subtitle": "Subtitle",

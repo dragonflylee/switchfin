@@ -32,7 +32,10 @@
     "path": "路径",
     "restart": "重启",
     "confirm_restart": "你确定要重启 Jellyfin？",
-    "scan_all": "扫描所有媒体库"
+    "scan_all": "扫描所有媒体库",
+    "within_minute": "不到 1 分钟",
+    "minute_ago": "{} 分钟前",
+    "hour_ago": "{} 小时前"
   },
   "player": {
     "subtitle": "字幕",

@@ -1,8 +1,12 @@
 #include "utils/misc.hpp"
 #include <borealis/core/logger.hpp>
+#include <borealis/core/i18n.hpp>
+#include <fmt/chrono.h>
 #include <random>
 #include <sstream>
 #include <iomanip>
+
+using namespace brls::literals;  // for _i18n
 
 #if defined(__APPLE__) || defined(__linux__)
 #include <unistd.h>
@@ -153,6 +157,26 @@ std::string misc::formatSize(uint64_t s) {
     if (s < (1 << 20)) return fmt::format("{}KB", s / 1024);
     if (s < (1 << 30)) return fmt::format("{:.2f}MB", (s >> 10) / 1024.0f);
     return fmt::format("{:.2f}GB", (s >> 20) / 1024.0f);
+}
+
+std::string misc::formatTime(const std::string& str) {
+    std::tm t = {};
+    std::istringstream ss(str);
+    ss >> std::get_time(&t, "%Y-%m-%dT%H:%M:%S");
+    std::time_t tt = std::time(nullptr);
+    tt = std::mktime(std::gmtime(&tt));
+    int64_t diff = int64_t(std::difftime(tt, std::mktime(&t)));
+
+    if (diff < 60) {
+        return "main/dashboard/within_minute"_i18n;
+    }
+    if (diff < 1800) {
+        return fmt::format(fmt::runtime("main/dashboard/minute_ago"_i18n), diff / 60);
+    }
+    if (diff < 86400) {
+        return fmt::format(fmt::runtime("main/dashboard/hour_ago"_i18n), diff / 3600);
+    }
+    return str.substr(0, 19);
 }
 
 std::string misc::randHex(const int len) {

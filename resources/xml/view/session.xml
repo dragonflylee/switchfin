@@ -1,0 +1,47 @@
+<brls:Box
+    highlightCornerRadius="8"
+    backgroundColor="@theme/color/grey_2"
+    axis="column">
+
+    <brls:Box
+        height="70"
+        padding="10"
+        grow="1"
+        axis="column"
+        justifyContent="spaceBetween"
+        backgroundColor="@theme/color/grey_3">
+
+        <brls:Box>
+            <brls:Image
+                id="session/avatar"
+                width="50"
+                height="50"
+                image="@res/img/account.png" />
+            <brls:Box
+                axis="column"
+                marginLeft="10">
+                <brls:Label
+                    id="session/name" />
+                <brls:Label
+                    id="session/app"
+                    fontSize="18"
+                    marginTop="5" />
+            </brls:Box>
+        </brls:Box>
+
+        <brls:Box>
+            <brls:Label
+                id="session/playing" />
+        </brls:Box>
+
+    </brls:Box>
+
+    <brls:Box
+        width="100%"
+        height="40"
+        alignItems="center"
+        justifyContent="center">
+        <brls:Label
+            id="session/user" />
+    </brls:Box>
+</brls:Box>

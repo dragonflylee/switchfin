@@ -11,7 +11,7 @@ ContextMenu::ContextMenu(const jellyfin::Item& item) : itemId(item.Id) {
         brls::Application::popActivity();
         return true;
     });
-    this->cancel->registerClickAction([this](brls::View* view) {
+    this->cancel->registerClickAction([](brls::View* view) {
         brls::Application::popActivity();
         return true;
     });

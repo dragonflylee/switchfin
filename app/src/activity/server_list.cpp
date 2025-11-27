@@ -98,7 +98,7 @@ public:
             auto& u = this->list.at(index);
             HTTP::Header header = {fmt::format("X-Emby-Token: {}", u.access_token)};
             try {
-                HTTP::get(this->parent->getUrl() + jellyfin::apiInfo, header, HTTP::Timeout{});
+                HTTP::get(this->parent->getUrl() + jellyfin::apiSystemInfo, header, HTTP::Timeout{});
                 brls::sync([this, u]() {
                     AppConfig::instance().addUser(u, this->parent->getUrl());
                     brls::Application::unblockInputs();

@@ -32,7 +32,10 @@
     "path": "路徑",
     "restart": "重新啟動",
     "confirm_restart": "您確定要重新啟動 Jellyfin 嗎？",
-    "scan_all": "掃描所有媒體庫"
+    "scan_all": "掃描所有媒體庫",
+    "within_minute": "不到 1 分鐘",
+    "minute_ago": "{} 分鐘前",
+    "hour_ago": "{} 小時前"
   },
   "player": {
     "subtitle": "字幕",
