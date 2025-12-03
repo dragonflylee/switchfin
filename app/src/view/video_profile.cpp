@@ -73,7 +73,8 @@ void VideoProfile::update() {
     // subtitle
     int subId = mpv.getInt("sid");
     if (subId > 0) {
-        labelSubtitleTrack->setText(fmt::format("{} SrcID {} ", subId, mpv.getString("current-tracks/sub/src-id")));
+        labelSubTrack->setText(fmt::format("{} {}", subId, mpv.getString("current-tracks/sub/title")));
+        labelSubCodec->setText(mpv.getString("current-tracks/sub/codec-desc"));
         boxSubtitle->setVisibility(brls::Visibility::VISIBLE);
     } else {
         boxSubtitle->setVisibility(brls::Visibility::GONE);

@@ -32,7 +32,8 @@ private:
     BRLS_BIND(brls::Label, labelAudioBitrate, "profile/audio/bitrate");
 
     BRLS_BIND(brls::Box, boxSubtitle, "profile/subtitle/box");
-    BRLS_BIND(brls::Label, labelSubtitleTrack, "profile/subtitle/track");
+    BRLS_BIND(brls::Label, labelSubTrack, "profile/subtitle/track");
+    BRLS_BIND(brls::Label, labelSubCodec, "profile/subtitle/codec");
 
     BRLS_BIND(brls::Box, boxTranscode, "profile/transcode/box");
     BRLS_BIND(brls::Label, labelTranscodePercent, "profile/transcode/percent");

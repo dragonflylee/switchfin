@@ -361,5 +361,21 @@
                 textColor="@theme/font/grey"
                 fontSize="16" />
         </brls:Box>
+        <brls:Box
+            axis="row"
+            height="16"
+            marginBottom="3"
+            marginLeft="20">
+            <brls:Label
+                textColor="#FFFFFF"
+                fontSize="16"
+                shrink="0"
+                marginRight="4"
+                text="Type:" />
+            <brls:Label
+                id="profile/subtitle/codec"
+                textColor="@theme/font/grey"
+                fontSize="16" />
+        </brls:Box>
     </brls:Box>
 </brls:Box>
