@@ -67,6 +67,8 @@ void HomeTab::onCreate() {
     jellyfin::getJSON<jellyfin::Result<jellyfin::Collection>>(
         [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Collection>& r) {
             ASYNC_RELEASE
+            this->userResume->doRequest();
+            this->showNextup->doRequest();
 
             auto& excludes = AppConfig::instance().userConfig().LatestItemsExcludes;
             for (auto& item : r.Items) {
@@ -101,7 +103,4 @@ void HomeTab::onCreate() {
             brls::Application::notify(ex);
         },
         jellyfin::apiUserViews, AppConfig::instance().getUserId());
-
-    this->userResume->doRequest();
-    this->showNextup->doRequest();
 }

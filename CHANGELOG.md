@@ -1,5 +1,17 @@
 # Changelog
 
+## [next]
+
+### Fixed
+
+* webdav client for clouddrive2
+* refactor home tab
+
+### Add
+
+* dashboard tab for view devices, activities etc.
+* video profile add subtitle codec
+
 ## [0.7.7]
 
 ### Fixed
