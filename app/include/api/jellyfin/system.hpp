@@ -54,15 +54,16 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(UserPolicy, IsAdministrator, IsDisabled);
 struct UserConfig {
     bool EnableNextEpisodeAutoPlay = false;
     bool HidePlayedInLatest = false;
-    bool RememberAudioSelections = true;
+    bool RememberAudioSelections = false;
     bool RememberSubtitleSelections = false;
     bool DisplayCollectionsView = false;
     std::vector<std::string> LatestItemsExcludes;
+    std::string AudioLanguagePreference;
     std::string SubtitleLanguagePreference;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(UserConfig, EnableNextEpisodeAutoPlay, HidePlayedInLatest,
     RememberAudioSelections, RememberSubtitleSelections, DisplayCollectionsView, LatestItemsExcludes,
-    SubtitleLanguagePreference);
+    AudioLanguagePreference, SubtitleLanguagePreference);
 
 struct UserInfo {
     std::string Id;

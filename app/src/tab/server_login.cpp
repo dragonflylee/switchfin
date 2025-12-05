@@ -61,6 +61,8 @@ public:
                 .name = auth.User.Name,
                 .access_token = auth.AccessToken,
                 .server_id = auth.ServerId,
+                .is_admin = auth.User.Policy.IsAdministrator,
+                .config = std::move(auth.User.Configuration),
             };
 
             brls::sync([dialog, u, this]() {

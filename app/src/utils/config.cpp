@@ -670,6 +670,7 @@ void AppConfig::addUser(const AppUser& u, const std::string& url) {
         it->access_token = u.access_token;
         it->server_id = u.server_id;
         it->is_admin = u.is_admin;
+        it->config = std::move(u.config);
     } else {
         it = this->users.insert(it, u);
     }

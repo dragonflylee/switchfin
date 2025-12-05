@@ -96,7 +96,7 @@ public:
 
         brls::async([this, index]() {
             auto& u = this->list.at(index);
-            HTTP::Header header = {fmt::format("X-Emby-Token: {}", u.access_token)};
+            HTTP::Header header = {AppConfig::instance().getAuth(u.access_token)};
             std::string uri = fmt::format("{}/Users/{}", this->parent->getUrl(), u.id);
 
             try {
