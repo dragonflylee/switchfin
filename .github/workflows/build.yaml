@@ -225,13 +225,13 @@ jobs:
       run: git config --system --add safe.directory $GITHUB_WORKSPACE
     - name: Add OpenGL ES 2.0 build option
       if: matrix.driver == 'gles2'
-      run: sed -i 's/USE_GLES2=OFF/USE_GLES2=ON/' scripts/flatpak.yaml
+      run: sed -i 's/USE_GLES2=OFF/USE_GLES2=ON/' scripts/flatpak-manifest.yaml
     - name: Build flatpak
       uses: flatpak/flatpak-github-actions/flatpak-builder@v6.5
       with:
         bundle: Switchfin-Linux-${{ matrix.arch }}-${{ matrix.driver }}-${{ github.run_number }}.flatpak
-        manifest-path: scripts/flatpak.yaml
-        cache-key: flatpak-${{ matrix.driver }}-${{ hashFiles('scripts/flatpak.yaml') }}
+        manifest-path: scripts/flatpak-manifest.yaml
+        cache-key: flatpak-${{ matrix.driver }}-${{ hashFiles('scripts/flatpak-manifest.yaml') }}
         upload-artifact: false
         arch: ${{ matrix.arch }}
     - name: Upload Assets

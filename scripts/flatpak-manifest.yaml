@@ -85,8 +85,8 @@ modules:
               - --disable-blacklist
             sources:
               - type: archive
-                url: https://github.com/vcrhonek/hwdata/archive/v0.399.tar.gz
-                sha256: 74872355e14d5ddc48a0f63036227ffb5f7796a3012c6377ac1fc7432ffe2b41
+                url: https://github.com/vcrhonek/hwdata/archive/v0.402.tar.gz
+                sha256: e390fe2f5f5ef7ed9ccbe62eb7cd40d4ee2b57389e7869c0dc96433c81812e7a
 
       - name: libplacebo
         buildsystem: meson

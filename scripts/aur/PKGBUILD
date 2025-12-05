@@ -5,7 +5,7 @@ pkgdesc='Third-party native Jellyfin client'
 arch=('x86_64' 'aarch64')
 url='https://github.com/dragonflylee/switchfin'
 license=('GPL-3.0-or-later')
-depends=('curl' 'dbus' 'gcc-libs' 'glibc' 'hicolor-icon-theme' 'libwebp' 'mpv' 'libxcb' 'tinyxml2' 'libpng')
+depends=('curl' 'dbus' 'gcc-libs' 'glibc' 'hicolor-icon-theme' 'libwebp' 'mpv' 'libxcb' 'tinyxml2' 'libpng' 'fmt')
 makedepends=('cmake' 'git' 'libxi' 'libxinerama' 'ninja' 'python' 'wayland-protocols')
 options=(strip !debug)
 #source=("${pkgname}::git+$url.git")
@@ -20,6 +20,7 @@ build() {
     -D USE_EGL=ON \
     -D USE_SYSTEM_CURL=ON \
     -D USE_SYSTEM_TINYXML2=ON \
+    -D USE_SYSTEM_FMT=ON \
     -D GLFW_BUILD_WAYLAND=ON \
     -D GLFW_BUILD_X11=ON \
     -S "../../.."
