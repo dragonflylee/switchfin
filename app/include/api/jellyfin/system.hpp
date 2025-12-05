@@ -55,11 +55,14 @@ struct UserConfig {
     bool EnableNextEpisodeAutoPlay = false;
     bool HidePlayedInLatest = false;
     bool RememberAudioSelections = true;
-    bool RememberSubtitleSelections = true;
+    bool RememberSubtitleSelections = false;
+    bool DisplayCollectionsView = false;
+    std::vector<std::string> LatestItemsExcludes;
     std::string SubtitleLanguagePreference;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(UserConfig, EnableNextEpisodeAutoPlay, HidePlayedInLatest,
-    RememberAudioSelections, RememberSubtitleSelections, SubtitleLanguagePreference);
+    RememberAudioSelections, RememberSubtitleSelections, DisplayCollectionsView, LatestItemsExcludes,
+    SubtitleLanguagePreference);
 
 struct UserInfo {
     std::string Id;
@@ -188,5 +191,14 @@ struct StorageInfo {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(StorageInfo, ProgramDataFolder, WebFolder, ImageCacheFolder, CacheFolder, LogFolder,
     InternalMetadataFolder, TranscodingTempFolder);
+
+struct TaskInfo {
+    std::string Id;
+    std::string Name;
+    std::string State;
+    std::string Key;
+    bool IsHidden;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(TaskInfo, Id, Name, State, Key, IsHidden);
 
 }  // namespace jellyfin

@@ -37,36 +37,6 @@ HomeTab::HomeTab() {
         });
         return fmt::format(fmt::runtime(jellyfin::apiShowNextUp), query);
     });
-
-    this->movieLatest->onQuery([](size_t start, size_t pageSize) {
-        std::string query = HTTP::encode_form({
-            {"enableImageTypes", "Primary"},
-            {"includeItemTypes", jellyfin::mediaTypeMovie},
-            {"fields", "BasicSyncInfo,Chapters"},
-            {"limit", std::to_string(pageSize)},
-        });
-        return fmt::format(fmt::runtime(jellyfin::apiUserLatest), AppConfig::instance().getUserId(), query);
-    });
-
-    this->seriesLatest->onQuery([](size_t start, size_t pageSize) {
-        std::string query = HTTP::encode_form({
-            {"enableImageTypes", "Primary"},
-            {"includeItemTypes", jellyfin::mediaTypeSeries},
-            {"fields", "BasicSyncInfo,Chapters"},
-            {"limit", std::to_string(pageSize)},
-        });
-        return fmt::format(fmt::runtime(jellyfin::apiUserLatest), AppConfig::instance().getUserId(), query);
-    });
-
-    this->musicLatest->onQuery([](size_t start, size_t pageSize) {
-        std::string query = HTTP::encode_form({
-            {"enableImageTypes", "Primary"},
-            {"includeItemTypes", jellyfin::mediaTypeMusicAlbum},
-            {"fields", "BasicSyncInfo"},
-            {"limit", std::to_string(pageSize)},
-        });
-        return fmt::format(fmt::runtime(jellyfin::apiUserLatest), AppConfig::instance().getUserId(), query);
-    });
 }
 
 HomeTab::~HomeTab() { brls::Logger::debug("View HomeTab: delete"); }
@@ -81,27 +51,57 @@ void HomeTab::doRequest() {
 }
 
 void HomeTab::onCreate() {
-    this->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, [this](...) {
+    auto actionRefresh = [this](brls::View* view) {
         this->userResume->doRequest(true);
         this->showNextup->doRequest(true);
-        this->movieLatest->doLatest(true);
-        this->seriesLatest->doLatest(true);
-        this->musicLatest->doLatest(true);
+        for (auto recyler : this->latest) {
+            recyler->doLatest(true);
+        }
         return true;
-    });
+    };
 
-    this->registerAction(KeyBind::getRefresh(), [this](...) {
-        this->userResume->doRequest(true);
-        this->showNextup->doRequest(true);
-        this->movieLatest->doLatest(true);
-        this->seriesLatest->doLatest(true);
-        this->musicLatest->doLatest(true);
-        return true;
-    });
+    this->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, actionRefresh);
+    this->registerAction(KeyBind::getRefresh(), actionRefresh);
+
+    ASYNC_RETAIN
+    jellyfin::getJSON<jellyfin::Result<jellyfin::Collection>>(
+        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Collection>& r) {
+            ASYNC_RELEASE
+
+            auto& excludes = AppConfig::instance().userConfig().LatestItemsExcludes;
+            for (auto& item : r.Items) {
+                auto it = std::find(excludes.begin(), excludes.end(), item.Id);
+                if (it != excludes.end()) continue;
+
+                RecylingVideo* recyler = new RecylingVideo();
+                if (item.CollectionType == "music") {
+                    recyler->setFrameHeight(225);
+                } else if (item.CollectionType != "livetv") {
+                    recyler->setFrameHeight(300);
+                } else {
+                    continue;
+                }
+                recyler->setItemWidth(175);
+                recyler->setTitle(item.Name);
+                recyler->onQuery([&item](size_t start, size_t pageSize) {
+                    std::string query = HTTP::encode_form({
+                        {"enableImageTypes", "Primary"},
+                        {"parentId", item.Id},
+                        {"fields", "BasicSyncInfo,Chapters"},
+                        {"limit", std::to_string(pageSize)},
+                    });
+                    return fmt::format(fmt::runtime(jellyfin::apiUserLatest), AppConfig::instance().getUserId(), query);
+                });
+                recyler->doLatest();
+                boxHome->addView(recyler);
+            }
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            brls::Application::notify(ex);
+        },
+        jellyfin::apiUserViews, AppConfig::instance().getUserId());
 
     this->userResume->doRequest();
     this->showNextup->doRequest();
-    this->movieLatest->doLatest();
-    this->seriesLatest->doLatest();
-    this->musicLatest->doLatest();
 }

@@ -97,8 +97,13 @@ public:
         brls::async([this, index]() {
             auto& u = this->list.at(index);
             HTTP::Header header = {fmt::format("X-Emby-Token: {}", u.access_token)};
+            std::string uri = fmt::format("{}/Users/{}", this->parent->getUrl(), u.id);
+
             try {
-                HTTP::get(this->parent->getUrl() + jellyfin::apiSystemInfo, header, HTTP::Timeout{});
+                std::string resp = HTTP::get(uri, header, HTTP::Timeout{});
+                jellyfin::UserInfo info = nlohmann::json::parse(resp);
+                u.is_admin = info.Policy.IsAdministrator;
+                u.config = std::move(info.Configuration);
                 brls::sync([this, u]() {
                     AppConfig::instance().addUser(u, this->parent->getUrl());
                     brls::Application::unblockInputs();

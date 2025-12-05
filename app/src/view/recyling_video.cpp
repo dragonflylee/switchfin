@@ -27,12 +27,9 @@ RecylingVideo::RecylingVideo() {
 
     this->registerStringXMLAttribute("title", [this](std::string value) { this->setTitle(value); });
 
-    this->registerFloatXMLAttribute("frameHeight", [this](float value) { this->recycler->setHeight(value); });
+    this->registerFloatXMLAttribute("frameHeight", [this](float value) { this->setFrameHeight(value); });
 
-    this->registerFloatXMLAttribute("itemWidth", [this](float value) {
-        this->recycler->estimatedRowWidth = value;
-        this->recycler->reloadData();
-    });
+    this->registerFloatXMLAttribute("itemWidth", [this](float value) { this->setItemWidth(value); });
 
     this->registerFloatXMLAttribute("itemSpace", [this](float value) {
         this->recycler->estimatedRowSpace = value;
@@ -52,6 +49,13 @@ RecylingVideo::RecylingVideo() {
 RecylingVideo::~RecylingVideo() {}
 
 void RecylingVideo::setTitle(const std::string& text) { this->title->setTitle(text); }
+
+void RecylingVideo::setFrameHeight(float height) { this->recycler->setHeight(height); }
+
+void RecylingVideo::setItemWidth(float width) {
+    this->recycler->estimatedRowWidth = width;
+    this->recycler->reloadData();
+}
 
 void RecylingVideo::onQuery(const Callback& callback) { this->queryCallback = callback; }
 

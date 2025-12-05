@@ -19,6 +19,8 @@ public:
 
     void reset() { this->start = 0; }
     void setTitle(const std::string& text);
+    void setFrameHeight(float height);
+    void setItemWidth(float width);
     void onQuery(const Callback& callback = nullptr);
     void doRequest(bool refresh = false);
     void doLatest(bool refresh = false);

@@ -535,6 +535,7 @@ bool AppConfig::checkLogin() {
         std::string resp = HTTP::get(uri, header, HTTP::Timeout{});
         jellyfin::UserInfo info = nlohmann::json::parse(resp);
         this->user->is_admin = info.Policy.IsAdministrator;
+        this->user->config = std::move(info.Configuration);
         return true;
     } catch (const std::exception& ex) {
         brls::Logger::warning("AppConfig {} checkLogin: {}", this->server_url, ex.what());

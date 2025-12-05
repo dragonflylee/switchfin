@@ -177,6 +177,7 @@ bool ServerLogin::onSignin() {
                 .access_token = r.AccessToken,
                 .server_id = r.ServerId,
                 .is_admin = r.User.Policy.IsAdministrator,
+                .config = std::move(r.User.Configuration),
             };
             brls::sync([ASYNC_TOKEN, u]() {
                 ASYNC_RELEASE

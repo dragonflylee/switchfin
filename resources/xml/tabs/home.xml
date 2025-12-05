@@ -9,6 +9,7 @@
 
         <brls:Box
             axis="column"
+            id="home/box"
             paddingLeft="@style/main/content_padding_sides"
             paddingRight="@style/main/content_padding_sides"
             paddingTop="@style/main/content_padding_top_bottom"
@@ -30,27 +31,6 @@
                 itemWidth="325"
                 id="home/show/nextup"
                 title="@i18n/main/home/nextup" />
-
-            <RecylingVideo
-                pageSize="20"
-                frameHeight="300"
-                itemWidth="175"
-                id="home/movie/latest"
-                title="@i18n/main/search/genres/movie" />
-            
-            <RecylingVideo
-                pageSize="20"
-                frameHeight="300"
-                itemWidth="175"
-                id="home/series/latest"
-                title="@i18n/main/search/genres/series" />
-
-            <RecylingVideo
-                pageSize="20"
-                frameHeight="225"
-                itemWidth="175"
-                id="home/music/latest"
-                title="@i18n/main/search/genres/music" />
 
         </brls:Box>
 
