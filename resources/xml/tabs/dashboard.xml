@@ -49,24 +49,14 @@
                     </brls:Box>
 
                     <brls:Box
-                        margin="20">
-                        <brls:Button
-                            id="dashboard/scan"
-                            text="@i18n/main/dashboard/scan_all"
-                            marginRight="20" />
-
-                        <brls:Button
-                            id="dashboard/restart"
-                            text="@i18n/main/dashboard/restart" />
-                    </brls:Box>
-
-                    <brls:Box
+                        marginTop="20"
+                        marginBottom="20"
                         justifyContent="spaceBetween">
 
                         <brls:Box
                             backgroundColor="@theme/color/grey_2"
                             height="80"
-                            width="170"
+                            width="150"
                             paddingRight="20"
                             paddingLeft="20"
                             alignItems="center"
@@ -79,7 +69,7 @@
                         <brls:Box
                             backgroundColor="@theme/color/grey_2"
                             height="80"
-                            width="170"
+                            width="150"
                             paddingRight="20"
                             paddingLeft="20"
                             alignItems="center"
@@ -92,16 +82,37 @@
                         <brls:Box
                             backgroundColor="@theme/color/grey_2"
                             height="80"
-                            width="170"
+                            width="150"
+                            paddingRight="20"
+                            paddingLeft="20"
+                            alignItems="center"
+                            justifyContent="spaceBetween">
+
+                            <brls:Label text="@i18n/main/search/genres/episode" />
+                            <brls:Label id="dashboard/episode/count" text="-" />
+                        </brls:Box>
+
+                        <brls:Box
+                            backgroundColor="@theme/color/grey_2"
+                            height="80"
+                            width="150"
                             paddingRight="20"
                             paddingLeft="20"
                             alignItems="center"
                             justifyContent="spaceBetween">
 
                             <brls:Label text="@i18n/main/search/genres/music" />
-                            <brls:Label id="dashboard/music/count" text="-" />
+                            <brls:Label id="dashboard/song/count" text="-" />
                         </brls:Box>
                     </brls:Box>
+
+                    <RecyclingGrid
+                        grow="1.0"
+                        wireframe="false"
+                        spanCount="2"
+                        itemSpace="10"
+                        itemHeight="180"
+                        id="dashboard/session" />
 
                 </brls:Box>
 
@@ -110,20 +121,24 @@
                     marginLeft="20"
                     marginRight="10"
                     wireframe="false"
-                    paddingRight="10"
                     spanCount="1"
                     itemSpace="10"
-                    itemHeight="180"
+                    itemHeight="120"
                     id="dashboard/activity" />
 
-                <RecyclingGrid
-                    width="350"
-                    wireframe="false"
-                    paddingRight="10"
-                    spanCount="1"
-                    itemSpace="10"
-                    itemHeight="180"
-                    id="dashboard/session" />
+                <brls:Box
+                    width="250"
+                    axis="column">
+                    <brls:Button
+                        id="dashboard/scan"
+                        text="@i18n/main/dashboard/scan_all"
+                        marginBottom="15" />
+
+                    <brls:Button
+                        id="dashboard/restart"
+                        text="@i18n/main/dashboard/restart" />
+                </brls:Box>
+
             </brls:Box>
         </Tab>
     </AutoTabFrame>
