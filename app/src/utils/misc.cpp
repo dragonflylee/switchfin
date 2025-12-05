@@ -170,10 +170,10 @@ std::string misc::formatTime(const std::string& str) {
     if (diff < 60) {
         return "main/dashboard/within_minute"_i18n;
     }
-    if (diff < 1800) {
+    if (diff < 30 * 60) {
         return fmt::format(fmt::runtime("main/dashboard/minute_ago"_i18n), diff / 60);
     }
-    if (diff < 86400) {
+    if (diff < 60 * 60 * 24) {
         return fmt::format(fmt::runtime("main/dashboard/hour_ago"_i18n), diff / 3600);
     }
     return str.substr(0, 19);

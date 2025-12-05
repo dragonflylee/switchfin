@@ -51,12 +51,12 @@
                     <brls:Box
                         margin="20">
                         <brls:Button
-                            style="primary"
+                            id="dashboard/scan"
                             text="@i18n/main/dashboard/scan_all"
                             marginRight="20" />
 
                         <brls:Button
-                            style="primary"
+                            id="dashboard/restart"
                             text="@i18n/main/dashboard/restart" />
                     </brls:Box>
 

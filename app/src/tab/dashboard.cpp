@@ -3,9 +3,26 @@
 #include "view/auto_tab_frame.hpp"
 #include "utils/image.hpp"
 #include "utils/misc.hpp"
+#include "utils/dialog.hpp"
 #include "api/jellyfin.hpp"
 
 using namespace brls::literals;  // for _i18n
+
+inline const brls::ButtonStyle BUTTONSTYLE_DANDER = {
+    .shadowType = brls::ShadowType::GENERIC,
+    .hideHighlightBackground = true,
+
+    .highlightPadding = "brls/button/primary_highlight_padding",
+    .borderThickness = "",
+
+    .enabledBackgroundColor = "color/danger",
+    .enabledLabelColor = "brls/button/default_enabled_text",
+    .enabledBorderColor = "",
+
+    .disabledBackgroundColor = "color/danger",
+    .disabledLabelColor = "brls/button/default_disabled_text",
+    .disabledBorderColor = "",
+};
 
 // ----------------- Device Tab ----------------------------
 
@@ -285,6 +302,12 @@ Dashboard::Dashboard() {
     item->setLabel("main/dashboard/activity"_i18n);
     this->tabFrame->addTab(item, []() { return new ActivityLogTab(); });
 
+    this->btnRestart->setStyle(&BUTTONSTYLE_DANDER);
+    this->btnRestart->registerClickAction([this](...) {
+        Dialog::cancelable("main/dashboard/confirm_restart"_i18n, [this] { this->doRestart(); });
+        return true;
+    });
+
     this->tabFrame->registerTabAction(this);
     this->activity->registerCell("Cell", []() { return new ActivityLogCell("xml/view/activity_warn.xml"); });
     this->sess->registerCell("Cell", []() { return new SessionCell(); });
@@ -363,4 +386,21 @@ void Dashboard::doSession() {
             brls::Application::notify(ex);
         },
         jellyfin::apiSessionList, "activeWithinSeconds=960");
+}
+
+void Dashboard::doRestart() {
+    this->btnRestart->setState(brls::ButtonState::DISABLED);
+    ASYNC_RETAIN
+    jellyfin::postJSON(
+        {},
+        [ASYNC_TOKEN](...) {
+            ASYNC_RELEASE
+            this->btnRestart->setState(brls::ButtonState::ENABLED);
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            brls::Application::notify(ex);
+            this->btnRestart->setState(brls::ButtonState::ENABLED);
+        },
+        jellyfin::apiRestart);
 }

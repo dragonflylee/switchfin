@@ -22,6 +22,7 @@ private:
     BRLS_BIND(brls::Label, labelMovie, "dashboard/movie/count");
     BRLS_BIND(brls::Label, labelSeries, "dashboard/series/count");
     BRLS_BIND(brls::Label, labelMusic, "dashboard/music/count");
+    BRLS_BIND(brls::Button, btnRestart, "dashboard/restart");
     BRLS_BIND(RecyclingGrid, activity, "dashboard/activity");
     BRLS_BIND(RecyclingGrid, sess, "dashboard/session");
 
@@ -29,4 +30,5 @@ private:
     void doSystemInfo();
     void doActivityWarn();
     void doSession();
+    void doRestart();
 };

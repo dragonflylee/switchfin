@@ -18,6 +18,7 @@ const std::string_view apiUsers = "/Users";
 const std::string_view apiDevices = "/Devices";
 const std::string_view apiStorage = "/System/Info/Storage";
 const std::string_view apiActivityLog = "/System/ActivityLog/Entries?{}";
+const std::string_view apiRestart = "/System/Restart";
 const std::string_view apiScheduledTasks = "/ScheduledTasks";
 const std::string_view apiSessionList = "/Sessions?{}";
 const std::string_view apiCapabilities = "/Sessions/Capabilities/Full";

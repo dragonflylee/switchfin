@@ -105,8 +105,8 @@ int main(int argc, char* argv[]) {
     brls::Theme::getDarkTheme().addColor("color/grey_2", nvgRGB(51, 53, 55));
     brls::Theme::getLightTheme().addColor("color/grey_3", nvgRGBA(200, 200, 200, 16));
     brls::Theme::getDarkTheme().addColor("color/grey_3", nvgRGBA(160, 160, 160, 160));
-    brls::Theme::getLightTheme().addColor("color/pink_1", nvgRGB(252, 237, 241));
-    brls::Theme::getDarkTheme().addColor("color/pink_1", nvgRGB(44, 27, 34));
+    brls::Theme::getLightTheme().addColor("color/danger", nvgRGB(198, 28, 28));
+    brls::Theme::getDarkTheme().addColor("color/danger", nvgRGB(198, 28, 28));
     // 分割线颜色
     brls::Theme::getLightTheme().addColor("color/line", nvgRGB(208, 208, 208));
     brls::Theme::getDarkTheme().addColor("color/line", nvgRGB(100, 100, 100));
