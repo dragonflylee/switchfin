@@ -3,6 +3,7 @@
 #include "api/jellyfin.hpp"
 #include <view/mpv_core.hpp>
 #include <activity/player_view.hpp>
+#include <libretro-common/retro_timers.h>
 #include <curl/curl.h>
 
 const std::string msgKeepAlive = R"({"MessageType":"KeepAlive"})";
@@ -50,13 +51,14 @@ websocket::~websocket() {
 
 void* websocket::wsRecv(void* ptr) {
     websocket* p = reinterpret_cast<websocket*>(ptr);
-    CURLcode res = curl_easy_perform(p->easy);
-    if (res != CURLE_OK) {
+    for (uint64_t t = 500;; t *= 2) {
+        CURLcode res = curl_easy_perform(p->easy);
+        if (res == CURLE_OK) break;
+        p->hb.stop();
         brls::Logger::warning("ws perform failed: {}", curl_easy_strerror(res));
-    } else {
-        brls::Logger::info("ws recv exit");
+        retro_sleep(t);
     }
-    p->hb.stop();
+    brls::Logger::info("ws recv exit");
     return nullptr;
 }
 
@@ -121,9 +123,8 @@ size_t websocket::onMsg(char* b, size_t size, size_t nitems, void* ptr) {
                     {"SupportsMediaControl", true},
                 },
                 [](...) {}, nullptr, jellyfin::apiCapabilities);
-            p->hb.start(30000);
+            p->hb.start(20000);
         } else if (m.MessageType == "Sessions") {
-            
         } else if (m.MessageType != "KeepAlive") {
             brls::Logger::debug("ws recv: {}", resp);
         }
