@@ -288,6 +288,42 @@ private:
     ItemList list;
 };
 
+// ----------------- Storage ----------------------------
+
+class StorageView : public brls::Box {
+public:
+    StorageView(const jellyfin::FolderInfo& info) {
+        this->path = new brls::Label();
+        this->size = new brls::Label();
+        this->line = new brls::Rectangle();
+
+        brls::Theme theme = brls::Application::getTheme();
+
+        this->setPadding(25);
+        this->setMarginBottom(20);
+        this->setAxis(brls::Axis::COLUMN);
+        this->setBackgroundColor(theme["color/grey_2"]);
+
+        this->line->setColor(theme["brls/slider/line_filled"]);
+        this->line->setMarginTop(10);
+        this->line->setMarginBottom(10);
+        this->line->setHeight(7.f);
+
+        this->path->setText(info.Path);
+        this->size->setText(fmt::format("{} / {}", misc::formatSize(info.UsedSpace), misc::formatSize(info.FreeSpace)));
+        this->line->setWidthPercentage(info.UsedSpace * 100.f / (info.UsedSpace + info.FreeSpace));
+
+        this->addView(path);
+        this->addView(line);
+        this->addView(size);
+    }
+
+private:
+    brls::Label* path;
+    brls::Label* size;
+    brls::Rectangle* line;
+};
+
 Dashboard::Dashboard() {
     brls::Logger::debug("Tab Dashboard: create");
     this->inflateFromXMLRes("xml/tabs/dashboard.xml");
@@ -320,6 +356,7 @@ Dashboard::Dashboard() {
     this->doActivityWarn();
     this->doSession();
     this->doListTask();
+    this->doStorage();
 }
 
 Dashboard::~Dashboard() { brls::Logger::debug("View Dashboard: delete"); }
@@ -443,4 +480,26 @@ void Dashboard::doRunTask(const std::string& id) {
             this->btnScan->setState(brls::ButtonState::ENABLED);
         },
         jellyfin::apiRunTask, it->second);
+}
+
+void Dashboard::doStorage() {
+    brls::View *cell = new SkeletonCell();
+    cell->setGrow(1.0f);
+    this->storage->addView(cell);
+
+    ASYNC_RETAIN
+    jellyfin::getJSON<jellyfin::StorageInfo>(
+        [ASYNC_TOKEN](const jellyfin::StorageInfo& r) {
+            ASYNC_RELEASE
+            this->storage->clearViews();
+            this->storage->addView(new StorageView(r.WebFolder));
+            this->storage->addView(new StorageView(r.LogFolder));
+            this->storage->addView(new StorageView(r.CacheFolder));
+            this->storage->addView(new StorageView(r.TranscodingTempFolder));
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            this->storage->setVisibility(brls::Visibility::GONE);
+        },
+        jellyfin::apiStorage);
 }

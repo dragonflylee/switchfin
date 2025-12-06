@@ -137,6 +137,13 @@
                     <brls:Button
                         id="dashboard/restart"
                         text="@i18n/main/dashboard/restart" />
+
+                    <brls:Box
+                        marginTop="20"
+                        grow="1.0"
+                        id="dashboard/storage/box"
+                        axis="column">
+                    </brls:Box>
                 </brls:Box>
 
             </brls:Box>
