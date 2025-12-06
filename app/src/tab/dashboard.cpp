@@ -31,7 +31,7 @@ public:
     DeviceCell() { this->inflateFromXMLRes("xml/view/device.xml"); }
 
     void setCell(const jellyfin::Device& item) {
-        this->time->setText(item.DateLastActivity.substr(0, 19));
+        this->time->setText(misc::formatTime(item.DateLastActivity));
         this->name->setText(item.Name);
         this->app->setText(fmt::format("{} {}", item.AppName, item.AppVersion));
         this->user->setText(item.LastUserName);

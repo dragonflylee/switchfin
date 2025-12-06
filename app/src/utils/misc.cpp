@@ -161,22 +161,23 @@ std::string misc::formatSize(uint64_t s) {
 
 std::string misc::formatTime(const std::string& str) {
     std::tm t = {};
+    char tz[20];
     std::istringstream ss(str);
     ss >> std::get_time(&t, "%Y-%m-%dT%H:%M:%S");
     std::time_t tt = std::time(nullptr);
-    tt = std::mktime(std::gmtime(&tt));
-    int64_t diff = int64_t(std::difftime(tt, std::mktime(&t)));
+    std::time_t gt = std::mktime(std::gmtime(&tt));
 
+    int64_t diff = int64_t(std::difftime(gt, std::mktime(&t)));
     if (diff < 60) {
         return "main/dashboard/within_minute"_i18n;
     }
     if (diff < 30 * 60) {
         return fmt::format(fmt::runtime("main/dashboard/minute_ago"_i18n), diff / 60);
     }
-    if (diff < 60 * 60 * 24) {
-        return fmt::format(fmt::runtime("main/dashboard/hour_ago"_i18n), diff / 3600);
-    }
-    return str.substr(0, 19);
+
+    std::time_t lt = tt - diff;
+    std::strftime(tz, sizeof(tz), "%Y-%m-%d %H:%M:%S", std::localtime(&lt));
+    return tz;
 }
 
 std::string misc::randHex(const int len) {

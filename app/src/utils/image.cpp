@@ -211,7 +211,6 @@ void Image::clear(brls::Image* view) {
 
     it->second->image->ptrUnlock();
     it->second->image = nullptr;
-    it->second->url.clear();
     it->second->isCancel->store(true);
     pool.push_back(it->second);
     requests.erase(it);
