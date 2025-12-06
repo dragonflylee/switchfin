@@ -47,7 +47,7 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
     } else {
         cell->labelTitle->setText(item.Name);
 
-        if (item.Type == jellyfin::mediaTypeGenre) {
+        if (item.Type == jellyfin::mediaTypeGenre || item.Type == jellyfin::mediaTypeBook) {
             cell->labelExt->setVisibility(brls::Visibility::GONE);
         } else {
             cell->labelExt->setText(item.ProductionYear > 0 ? std::to_string(item.ProductionYear) : "");

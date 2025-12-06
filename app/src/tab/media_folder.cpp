@@ -76,6 +76,8 @@ public:
             view = new MediaCollection(item.Id, jellyfin::mediaTypeMovie);
         else if (item.CollectionType == "music")
             view = new MediaCollection(item.Id, jellyfin::mediaTypeMusicAlbum);
+        else if (item.CollectionType == "books")
+            view = new MediaCollection(item.Id, jellyfin::mediaTypeBook);
         else if (item.CollectionType == "playlists")
             view = new MediaCollection(item.Id, jellyfin::mediaTypePlaylist);
         else if (item.CollectionType == "boxsets")

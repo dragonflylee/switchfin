@@ -72,17 +72,18 @@
 
     <brls:Box
         axis="column"
-        height="50"
         justifyContent="spaceEvenly"
         alignItems="center">
         <brls:Label
             wireframe="false"
             id="video/card/label/title"
+            height="30"
             fontSize="18" />
         <brls:Label
             wireframe="false"
             id="video/card/label/ext"
             fontSize="13"
+            height="20"
             textColor="@theme/font/grey" />
     </brls:Box>
 

@@ -78,6 +78,8 @@ void HomeTab::onCreate() {
                 RecylingVideo* recyler = new RecylingVideo();
                 if (item.CollectionType == "music") {
                     recyler->setFrameHeight(225);
+                } else if (item.CollectionType == "books") {
+                    recyler->setFrameHeight(280);
                 } else if (item.CollectionType != "livetv") {
                     recyler->setFrameHeight(300);
                 } else {
