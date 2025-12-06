@@ -1,3 +1,11 @@
+switchfin (0.8.0-1) unstable; urgency=medium
+
+  * refactor home tab for split media
+  * dashboard tab for view devices, activities etc.
+  * video profile add subtitle codec 
+
+ -- dragonflylee <dragonflylee@outlook.com>  Sat, 06 Dec 2025 15:35:00 +0800
+
 switchfin (0.7.7-1) unstable; urgency=medium
 
   * fix login issue on jellyfin 10.11

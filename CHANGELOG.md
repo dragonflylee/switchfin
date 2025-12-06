@@ -1,11 +1,11 @@
 # Changelog
 
-## [next]
+## [0.8.0]
 
 ### Fixed
 
 * webdav client for clouddrive2
-* refactor home tab
+* refactor home tab for split media
 
 ### Add
 
