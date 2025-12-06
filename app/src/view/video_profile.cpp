@@ -85,8 +85,10 @@ void VideoProfile::onRequest() {
     std::string query = HTTP::encode_form({
         {"deviceId", AppConfig::instance().getDeviceId()},
     });
+    ASYNC_RETAIN
     jellyfin::getJSON<std::vector<jellyfin::SessionInfo>>(
-        [this](const std::vector<jellyfin::SessionInfo>& list) {
+        [ASYNC_TOKEN](const std::vector<jellyfin::SessionInfo>& list) {
+            ASYNC_RELEASE
             if (list.empty()) return;
 
             auto& s = list.front();
@@ -99,5 +101,9 @@ void VideoProfile::onRequest() {
                 this->boxTranscode->setVisibility(brls::Visibility::GONE);
             }
         },
-        [](const std::string& ex) { brls::Logger::warning("query session {}", ex); }, jellyfin::apiSessionList, query);
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            brls::Application::notify(ex);
+        },
+        jellyfin::apiSessionList, query);
 }
