@@ -299,17 +299,20 @@ public:
 
         brls::Theme theme = brls::Application::getTheme();
 
-        this->setPadding(25);
+        this->setPadding(20);
         this->setMarginBottom(20);
         this->setAxis(brls::Axis::COLUMN);
         this->setBackgroundColor(theme["color/grey_2"]);
 
         this->line->setColor(theme["brls/slider/line_filled"]);
-        this->line->setMarginTop(10);
+        this->line->setMarginTop(15);
         this->line->setMarginBottom(10);
         this->line->setHeight(7.f);
 
         this->path->setText(info.Path);
+        this->size->setFontSize(16);
+        this->size->setTextColor(theme["font/grey"]);
+        this->size->setHorizontalAlign(brls::HorizontalAlign::RIGHT);
         this->size->setText(fmt::format("{} / {}", misc::formatSize(info.UsedSpace), misc::formatSize(info.FreeSpace)));
         this->line->setWidthPercentage(info.UsedSpace * 100.f / (info.UsedSpace + info.FreeSpace));
 
