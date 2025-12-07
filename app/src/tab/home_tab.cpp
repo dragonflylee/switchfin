@@ -71,32 +71,53 @@ void HomeTab::onCreate() {
             this->showNextup->doRequest();
 
             auto& excludes = AppConfig::instance().userConfig().LatestItemsExcludes;
+
             for (auto& item : r.Items) {
                 auto it = std::find(excludes.begin(), excludes.end(), item.Id);
                 if (it != excludes.end()) continue;
 
                 RecylingVideo* recyler = new RecylingVideo();
-                if (item.CollectionType == "music") {
-                    recyler->setFrameHeight(225);
-                } else if (item.CollectionType == "books") {
-                    recyler->setFrameHeight(280);
-                } else if (item.CollectionType != "livetv") {
-                    recyler->setFrameHeight(300);
-                } else {
-                    continue;
-                }
-                recyler->setItemWidth(175);
                 recyler->setTitle(item.Name);
-                recyler->onQuery([&item](size_t start, size_t pageSize) {
-                    std::string query = HTTP::encode_form({
-                        {"enableImageTypes", "Primary"},
-                        {"parentId", item.Id},
-                        {"fields", "BasicSyncInfo,Chapters"},
-                        {"limit", std::to_string(pageSize)},
+
+                if (item.CollectionType == "livetv") {
+                    recyler->setFrameHeight(150);
+                    recyler->setItemWidth(200);
+                    recyler->setPageSize(24);
+                    recyler->onQuery([](size_t start, size_t pageSize) {
+                        std::string query = HTTP::encode_form({
+                            {"fields", "ChannelInfo"},
+                            {"enableImageTypes", "Primary"},
+                            {"isAiring", "true"},
+                            {"userId", AppConfig::instance().getUserId()},
+                            {"startIndex", std::to_string(start)},
+                            {"limit", std::to_string(pageSize)},
+                        });
+                        return fmt::format(fmt::runtime(jellyfin::apiProgramRecommend), query);
                     });
-                    return fmt::format(fmt::runtime(jellyfin::apiUserLatest), AppConfig::instance().getUserId(), query);
-                });
-                recyler->doLatest();
+                    recyler->doLiveTV();
+
+                } else {
+                    if (item.CollectionType == "music") {
+                        recyler->setFrameHeight(225);
+                    } else if (item.CollectionType == "books") {
+                        recyler->setFrameHeight(280);
+                    } else {
+                        recyler->setFrameHeight(300);
+                    }
+                    recyler->setItemWidth(175);
+                    recyler->onQuery([&item](size_t start, size_t pageSize) {
+                        std::string userId = AppConfig::instance().getUserId();
+                        std::string query = HTTP::encode_form({
+                            {"enableImageTypes", "Primary"},
+                            {"parentId", item.Id},
+                            {"fields", "BasicSyncInfo,Chapters"},
+                            {"limit", std::to_string(pageSize)},
+                        });
+                        return fmt::format(fmt::runtime(jellyfin::apiUserLatest), userId, query);
+                    });
+                    recyler->doLatest();
+                    this->latest.push_back(recyler);
+                }
                 boxHome->addView(recyler);
             }
         },

@@ -36,7 +36,7 @@ RecylingVideo::RecylingVideo() {
         this->recycler->reloadData();
     });
 
-    this->registerFloatXMLAttribute("pageSize", [this](float value) { this->pageSize = value; });
+    this->registerFloatXMLAttribute("pageSize", [this](float value) { this->setPageSize(value); });
 
     this->registerAutoXMLAttribute(
         "nextPage", [this]() { this->recycler->onNextPage([this]() { this->doRequest(); }); });
@@ -56,6 +56,8 @@ void RecylingVideo::setItemWidth(float width) {
     this->recycler->estimatedRowWidth = width;
     this->recycler->reloadData();
 }
+
+void RecylingVideo::setPageSize(size_t pageSize) { this->pageSize = pageSize; }
 
 void RecylingVideo::onQuery(const Callback& callback) { this->queryCallback = callback; }
 
@@ -114,4 +116,34 @@ void RecylingVideo::doLatest(bool refresh) {
             brls::Application::notify(ex);
         },
         this->queryCallback(0, this->pageSize));
+}
+
+void RecylingVideo::doLiveTV(bool refresh) {
+    if (refresh) {
+        this->start = 0;
+        this->recycler->showSkeleton(this->pageSize);
+    }
+    ASYNC_RETAIN
+    jellyfin::getJSON<jellyfin::Result<jellyfin::ProgramInfo>>(
+        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::ProgramInfo>& r) {
+            ASYNC_RELEASE
+            this->start = r.StartIndex + this->pageSize;
+            if (r.TotalRecordCount == 0) {
+                this->setVisibility(brls::Visibility::GONE);
+                this->recycler->clearData();
+            } else if (r.StartIndex == 0) {
+                this->setVisibility(brls::Visibility::VISIBLE);
+                this->recycler->setDataSource(new ProgramDataSource(r.Items));
+            } else if (r.Items.size() > 0) {
+                auto dataSrc = dynamic_cast<ProgramDataSource*>(this->recycler->getDataSource());
+                dataSrc->appendData(r.Items);
+                this->recycler->notifyDataChanged();
+            }
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            this->title->setSubtitle(ex);
+            brls::Application::notify(ex);
+        },
+        this->queryCallback(this->start, this->pageSize));
 }

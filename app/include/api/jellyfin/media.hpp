@@ -16,6 +16,7 @@ const std::string_view apiShowSeanon = "/Shows/{}/Seasons?{}";
 const std::string_view apiShowEpisodes = "/Shows/{}/Episodes?{}";
 const std::string_view apiSimilar = "/Items/{}/Similar?{}";
 const std::string_view apiLiveChannels = "/LiveTv/Channels?{}";
+const std::string_view apiProgramRecommend = "/LiveTv/Programs/Recommended?{}";
 const std::string_view apiGenres = "/Genres?{}";
 const std::string_view apiArtists = "/Artists?{}";
 const std::string_view apiMovieRecommend = "/Movies/Recommendations?{}";
@@ -67,6 +68,7 @@ const std::string mediaTypeMusicAlbum = "MusicAlbum";
 const std::string mediaTypeMusicVideo = "MusicVideo";
 const std::string mediaTypeMusicArtist = "MusicArtist";
 const std::string mediaTypePlaylist = "Playlist";
+const std::string mediaTypeProgram = "Program";
 const std::string mediaTypeTvChannel = "TvChannel";
 
 const std::string streamTypeVideo = "Video";
@@ -256,6 +258,12 @@ struct Program {
     std::string EndDate;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Program, Name, RunTimeTicks, StartDate, EndDate);
+
+struct ProgramInfo : public Program {
+    std::string ChannelId;
+    std::string ChannelName;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ProgramInfo, Name, ChannelId, ChannelName, RunTimeTicks, StartDate, EndDate);
 
 struct Channel : public Item {
     std::string ChannelType;

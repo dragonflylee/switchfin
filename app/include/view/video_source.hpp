@@ -28,3 +28,23 @@ protected:
     bool resume;
     std::string parentId;
 };
+
+class ProgramDataSource : public RecyclingGridDataSource {
+public:
+    using MediaList = std::vector<jellyfin::ProgramInfo>;
+
+    explicit ProgramDataSource(const MediaList& r);
+
+    size_t getItemCount() override;
+
+    RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override;
+
+    void onItemSelected(brls::Box* recycler, size_t index) override;
+
+    void clearData() override;
+
+    void appendData(const MediaList& data);
+
+private:
+    MediaList list;
+};

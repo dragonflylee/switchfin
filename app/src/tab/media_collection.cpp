@@ -34,6 +34,7 @@ public:
         VideoCardCell* cell = dynamic_cast<VideoCardCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
         cell->labelTitle->setText(item.Name);
+        cell->labelExt->setVisibility(brls::Visibility::GONE);
         auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
         if (it != item.ImageTags.end()) {
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,

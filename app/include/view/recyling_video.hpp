@@ -21,9 +21,11 @@ public:
     void setTitle(const std::string& text);
     void setFrameHeight(float height);
     void setItemWidth(float width);
+    void setPageSize( size_t pageSize);
     void onQuery(const Callback& callback = nullptr);
     void doRequest(bool refresh = false);
     void doLatest(bool refresh = false);
+    void doLiveTV(bool refresh = false);
 
 private:
     BRLS_BIND(brls::Header, title, "recycler/title");

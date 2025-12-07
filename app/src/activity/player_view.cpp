@@ -23,10 +23,6 @@ PlayerView::PlayerView(const jellyfin::Item& item, const uint64_t seekTicks) : i
     this->addView(view);
     view->registerVideoQuality([this](...) { return this->toggleQuality(); });
 
-    if (item.Type == jellyfin::mediaTypeTvChannel) {
-        view->hideVideoProgressSlider();
-    }
-
     auto& mpv = MPVCore::instance();
 
     brls::Application::pushActivity(new brls::Activity(this), brls::TransitionAnimation::NONE);
@@ -333,6 +329,7 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
 #endif
                 ssextra << fmt::format("network-timeout={}", HTTP::TIMEOUT / 100);
                 if (seekTicks > 0) ssextra << ",start=" << misc::sec2Time(seekTicks / jellyfin::PLAYTICKS);
+                if (item.IsInfiniteStream) view->hideVideoProgressSlider();
 
                 if (item.IsRemote && MPVCore::FORCE_DIRECTPLAY) {
                     mpv.setUrl(item.Path, ssextra.str());

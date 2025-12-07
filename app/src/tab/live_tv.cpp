@@ -5,11 +5,60 @@
 #include "tab/live_tv.hpp"
 #include "api/jellyfin.hpp"
 #include "view/video_card.hpp"
+#include "view/video_source.hpp"
+#include "view/auto_tab_frame.hpp"
 #include "activity/player_view.hpp"
 #include "utils/keybind.hpp"
 #include <fmt/format.h>
 
 using namespace brls::literals;  // for _i18n
+
+class ProgramTab : public RecyclingGrid {
+public:
+    ProgramTab() {
+        this->setGrow(1.f);
+        this->registerCell("Cell", VideoCardCell::create);
+        this->estimatedRowHeight = 100;
+        this->spanCount = 5;
+        this->doRequest();
+    }
+
+    void doRequest() {
+        std::string query = HTTP::encode_form({
+            {"userId", AppConfig::instance().getUserId()},
+            {"limit", std::to_string(this->pageSize)},
+            {"startIndex", std::to_string(this->start)},
+            {"fields", "ChannelInfo"},
+            {"enableImageTypes", "Primary"},
+            {"isAiring", "true"},
+        });
+
+        ASYNC_RETAIN
+        jellyfin::getJSON<jellyfin::Result<jellyfin::ProgramInfo>>(
+            [ASYNC_TOKEN](const jellyfin::Result<jellyfin::ProgramInfo>& r) {
+                ASYNC_RELEASE
+                this->start = r.StartIndex + this->pageSize;
+                if (r.TotalRecordCount == 0) {
+                    this->clearData();
+                } else if (r.StartIndex == 0) {
+                    this->setDataSource(new ProgramDataSource(r.Items));
+                } else if (r.Items.size() > 0) {
+                    auto dataSrc = dynamic_cast<ProgramDataSource*>(this->getDataSource());
+                    dataSrc->appendData(r.Items);
+                    this->notifyDataChanged();
+                }
+            },
+            [ASYNC_TOKEN](const std::string& ex) {
+                ASYNC_RELEASE
+                this->setError(ex);
+            },
+            jellyfin::apiProgramRecommend, query);
+    }
+
+private:
+    size_t start = 0;
+    size_t pageSize = 48;
+};
 
 class LiveDataSource : public RecyclingGridDataSource {
 public:
@@ -52,7 +101,7 @@ private:
 
 LiveTV::LiveTV(const std::string& itemId) {
     // Inflate the tab from the XML file
-    this->inflateFromXMLRes("xml/tabs/media.xml");
+    this->inflateFromXMLRes("xml/tabs/collection.xml");
     brls::Logger::debug("LiveTV: create {}", itemId);
 
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, [this](...) {
@@ -67,9 +116,17 @@ LiveTV::LiveTV(const std::string& itemId) {
         return true;
     });
 
-    this->recycler->spanCount = 3;
-    this->recycler->estimatedRowHeight = 250;
+    this->recycler->spanCount = 5;
+    this->recycler->estimatedRowHeight = 200;
     this->recycler->registerCell("Cell", MediaCardCell::create);
+
+    // add genres tab
+    auto* item = new AutoSidebarItem();
+    item->setTabStyle(AutoTabBarStyle::ACCENT);
+    item->setFontSize(18);
+    item->setLabel("main/tabs/program"_i18n);
+    this->tabFrame->addTab(item, []() { return new ProgramTab(); });
+    this->tabFrame->registerTabAction(this);
 
     this->doRequest();
 }

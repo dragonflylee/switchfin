@@ -7,6 +7,7 @@
 #include <borealis.hpp>
 
 class RecyclingGrid;
+class AutoTabFrame;
 
 class LiveTV : public brls::Box {
 public:
@@ -16,6 +17,7 @@ public:
 
 private:
     BRLS_BIND(RecyclingGrid, recycler, "media/series");
+    BRLS_BIND(AutoTabFrame, tabFrame, "media/tabFrame");
 
     void doRequest();
 };
