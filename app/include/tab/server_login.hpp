@@ -24,4 +24,5 @@ private:
     std::string url;
 
     void Disclaimer();
+    void doQuickLogin();
 };
