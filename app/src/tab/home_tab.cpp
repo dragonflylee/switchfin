@@ -97,6 +97,7 @@ void HomeTab::onCreate() {
                     recyler->doLiveTV();
 
                 } else {
+                    std::string itemId = std::move(item.Id);
                     if (item.CollectionType == "music") {
                         recyler->setFrameHeight(225);
                     } else if (item.CollectionType == "books") {
@@ -105,11 +106,11 @@ void HomeTab::onCreate() {
                         recyler->setFrameHeight(300);
                     }
                     recyler->setItemWidth(175);
-                    recyler->onQuery([&item](size_t start, size_t pageSize) {
+                    recyler->onQuery([itemId](size_t start, size_t pageSize) {
                         std::string userId = AppConfig::instance().getUserId();
                         std::string query = HTTP::encode_form({
                             {"enableImageTypes", "Primary"},
-                            {"parentId", item.Id},
+                            {"parentId", itemId},
                             {"fields", "BasicSyncInfo,Chapters"},
                             {"limit", std::to_string(pageSize)},
                         });
