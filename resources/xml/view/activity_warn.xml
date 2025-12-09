@@ -6,15 +6,21 @@
     justifyContent="spaceBetween">
 
     <brls:Label
-        id="activity/time" />
+        id="activity/time"
+        fontSize="16" />
     <brls:Label
-        id="activity/name" />
-    <brls:Label
-        textColor="@theme/font/grey"
-        fontSize="16"
-        id="activity/overview" />
-    <brls:Label
-        textColor="@theme/font/grey"
-        fontSize="16"
-        id="activity/type" />
+        id="activity/name"
+        singleLine="true" />
+
+    <brls:Box justifyContent="spaceBetween">
+        <brls:Label
+            textColor="@theme/font/grey"
+            singleLine="true"
+            fontSize="16"
+            id="activity/overview" />
+        <brls:Label
+            textColor="@theme/font/grey"
+            fontSize="16"
+            id="activity/type" />
+    </brls:Box>
 </brls:Box>

@@ -55,10 +55,8 @@
 
                         <brls:Box
                             backgroundColor="@theme/color/grey_2"
-                            height="80"
                             width="150"
-                            paddingRight="20"
-                            paddingLeft="20"
+                            padding="15"
                             alignItems="center"
                             justifyContent="spaceBetween">
 
@@ -68,10 +66,8 @@
 
                         <brls:Box
                             backgroundColor="@theme/color/grey_2"
-                            height="80"
                             width="150"
-                            paddingRight="20"
-                            paddingLeft="20"
+                            padding="15"
                             alignItems="center"
                             justifyContent="spaceBetween">
 
@@ -81,28 +77,24 @@
 
                         <brls:Box
                             backgroundColor="@theme/color/grey_2"
-                            height="80"
                             width="150"
-                            paddingRight="20"
-                            paddingLeft="20"
-                            alignItems="center"
-                            justifyContent="spaceBetween">
-
-                            <brls:Label text="@i18n/main/search/genres/episode" />
-                            <brls:Label id="dashboard/episode/count" text="-" />
-                        </brls:Box>
-
-                        <brls:Box
-                            backgroundColor="@theme/color/grey_2"
-                            height="80"
-                            width="150"
-                            paddingRight="20"
-                            paddingLeft="20"
+                            padding="15"
                             alignItems="center"
                             justifyContent="spaceBetween">
 
                             <brls:Label text="@i18n/main/search/genres/music" />
                             <brls:Label id="dashboard/song/count" text="-" />
+                        </brls:Box>
+
+                        <brls:Box
+                            backgroundColor="@theme/color/grey_2"
+                            width="160"
+                            padding="15"
+                            alignItems="center"
+                            justifyContent="spaceBetween">
+
+                            <brls:Label text="@i18n/main/search/genres/episode" />
+                            <brls:Label id="dashboard/episode/count" text="-" />
                         </brls:Box>
                     </brls:Box>
 
