@@ -1,3 +1,11 @@
+switchfin (0.8.1-1) unstable; urgency=medium
+
+  * stability improvement
+  * adjust dashboard view
+  * add program tab for livetv
+ 
+ -- dragonflylee <dragonflylee@outlook.com>  Tue, 09 Dec 2025 12:28:00 +0800
+
 switchfin (0.8.0-1) unstable; urgency=medium
 
   * refactor home tab for split media

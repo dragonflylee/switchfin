@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.8.1]
+
+### Fixed
+
+* stability improvement
+* adjust dashboard view
+
+### Add
+
+* program tab for livetv
+
 ## [0.8.0]
 
 ### Fixed
