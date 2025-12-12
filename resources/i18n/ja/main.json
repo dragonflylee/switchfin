@@ -33,7 +33,10 @@
     "path": "パス",
     "restart": "再起動",
     "confirm_restart": "本当にJellyfinを再起動しますか？",
-    "scan_all": "ライブラリをスキャン"
+    "scan_all": "ライブラリをスキャン",
+    "within_minute": "1分もかからない",
+    "minute_ago": "{} 分前",
+    "hour_ago": "{} 時間前"
   },
   "player": {
     "subtitle": "字幕",
@@ -87,10 +90,10 @@
     "order": "発注",
     "ascending": "上昇",
     "descending": "下降",
+    "name": "名前",
     "add_favorite": "お気に入りに追加",
     "mark_played": "再生済みにする",
     "mark_unplayed": "未再生にする",
-    "name": "名前",
     "play": "再生",
     "intro": "イントロ",
     "people": "ピープル",
@@ -159,12 +162,16 @@
       "touch_gesture": "タッチジェスチャーでステップをシーク",
       "clip_point": "チャプターのクリップポイントを表示",
       "transcodec": "トランスコーデック",
+      "audio_channels": "オーディオチャンネル",
       "video_quality": "ビデオ品質",
-      "subsync": "字幕同期",
-      "audio_channels": "オーディオチャンネル"
+      "subsync": "字幕同期"
     },
     "transcode": {
       "header": "トランスコーディングプロファイル"
+    },
+    "control": {
+      "header": "再生コントロール",
+      "tv_osd": "テレビスタイルプレーヤー"
     },
     "filter": {
       "mirror": "ビデオ反転",
@@ -197,6 +204,13 @@
     },
     "ui": {
       "header": "UI",
+      "scale": {
+        "header": "UIの大きさ（再起動が必要）",
+        "544p": "544p",
+        "720p": "720p",
+        "900p": "900p",
+        "1080p": "1080p"
+      },
       "vsync": "垂直同期",
       "show_fps": "FPSを表示"
     },

@@ -4,6 +4,7 @@
     "genres": "Žánry",
     "program": "Programy",
     "suggest": "Návrhy",
+    "artists": "Umělci",
     "songs": "Skladby",
     "search": "Vyhledat",
     "dashboard": "Nástěnka",
@@ -24,6 +25,18 @@
     "header": "O Aplikaci",
     "brief": "Jen další Jellyfin klient třetí strany",
     "repo_header": "Repozitář"
+  },
+  "dashboard": {
+    "session": "sezení",
+    "device": "Zařízení",
+    "activity": "Aktivita",
+    "path": "Cesty",
+    "restart": "Restartovat",
+    "confirm_restart": "Opravdu chcete restartovat Jellyfin?",
+    "scan_all": "Skenovat všechny knihovny",
+    "within_minute": "méně než 1 minuta",
+    "minute_ago": "před {} minutami",
+    "hour_ago": "před {} hodinami"
   },
   "player": {
     "subtitle": "Titulky",
@@ -49,6 +62,13 @@
     "ascending": "Vzestupně",
     "descending": "Sestupně",
     "name": "Jména",
+    "add_favorite": "Přidat do oblíbených",
+    "mark_played": "Označit přehrané",
+    "mark_unplayed": "Označit nepřehrané",
+    "play": "Přehrát",
+    "intro": "Přehled/Obsah",
+    "people": "Lidé",
+    "similar": "Podobné položky",
     "date_add": "Data přidání",
     "date_played": "Data přehrání",
     "premiere_date": "Data premiéry",
@@ -62,6 +82,7 @@
     "hint": "Podpora klíčových slov a jejich počátečních písmen",
     "clear": "Vyčistit",
     "delete": "Smazat",
+    "paste": "Vložit",
     "history": "Historie",
     "suggest": "Návrh",
     "clear_history": "Potvrzením vymazat historii vyhledávání?",
@@ -71,6 +92,11 @@
       "series": "Seriál",
       "episode": "Epizoda"
     }
+  },
+  "remote": {
+    "local": "místní",
+    "folder": "složka",
+    "up": "nahoru"
   },
   "setting": {
     "quit_hint": "Chystáte se ukončit aplikaci. Nastavení se projeví po příštím spuštění",

@@ -33,7 +33,10 @@
     "path": "선택",
     "restart": "재시작",
     "confirm_restart": "Jellyfin을 다시 시작 하시겠습니까?",
-    "scan_all": "라이브러리 스캔"
+    "scan_all": "라이브러리 스캔",
+    "within_minute": "1분도 안 걸려",
+    "minute_ago": "{}분 전",
+    "hour_ago": "{}시간 전"
   },
   "player": {
     "subtitle": "자막",
@@ -87,10 +90,11 @@
     "order": "순서",
     "ascending": "오름차순",
     "descending": "내림차순",
+    "name": "이름",
     "add_favorite": "즐겨찾기에 추가",
     "mark_played": "재생한 것으로 표시",
     "mark_unplayed": "재생하지 않은 것으로 표시",
-    "name": "이름",
+    "play": "재생",
     "intro": "소개",
     "people": "인물",
     "similar": "비슷한 작품",
@@ -165,6 +169,10 @@
     "transcode": {
       "header": "트랜스코딩 프로필"
     },
+    "control": {
+      "header": "재생 제어",
+      "tv_osd": "TV 스타일 플레이어"
+    },
     "filter": {
       "mirror": "화면 반전",
       "hflip": "수평 반전",
@@ -196,6 +204,13 @@
     },
     "ui": {
       "header": "사용자 인터페이스",
+      "scale": {
+        "header": "UI 스케일 (재시작 필요)",
+        "544p": "544p",
+        "720p": "720p",
+        "900p": "900p",
+        "1080p": "1080p"
+      },
       "vsync": "수직 동기화",
       "show_fps": "FPS 표시"
     },

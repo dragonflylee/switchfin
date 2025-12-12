@@ -4,6 +4,7 @@
     "genres": "Genres",
     "program": "Programme",
     "suggest": "Vorschläge",
+    "artists": "Interpreten",
     "songs": "Lieder",
     "search": "Suche",
     "dashboard": "Übersicht",
@@ -14,10 +15,28 @@
     "nextup": "Als Nächstes",
     "latest": "Neustes Hinzugefügt"
   },
+  "recommend": {
+    "like": "Weil du {} magst",
+    "watched": "Weil du {} angesehen hast",
+    "directed": "Unter der Regie von {}",
+    "starring": "In der Hauptrolle {}"
+  },
   "about": {
     "header": "Über",
     "brief": "Yet another third-party jellyfin client",
     "repo_header": "Repository"
+  },
+  "dashboard": {
+    "session": "Session",
+    "device": "Geräte",
+    "activity": "Aktivitäten",
+    "path": "Pfade",
+    "restart": "Neustarten",
+    "confirm_restart": "Willst du Jellyfin wirklich neu starten?",
+    "scan_all": "Alle Bibliotheken scannen",
+    "within_minute": "Innerhalb von 1 Minute",
+    "minute_ago": "vor {} Minuten",
+    "hour_ago": "vor {} Stunden"
   },
   "player": {
     "subtitle": "Untertitel",
@@ -26,8 +45,14 @@
     "common": "Vereint",
     "speed": "Abspielgeschwindigkeit",
     "quality": "Videoqualität",
+    "chapter": "Kapitel",
     "auto": "Auto",
-    "toggle": "Wiedergabe/Pause"
+    "toggle": "Wiedergabe/Pause",
+    "prev": "Vorheriges",
+    "next": "Nächstes",
+    "error": "Wiedergabefehler",
+    "episode": "Episoden",
+    "speed_up": "Aktuelle Geschwindigkeit {}"
   },
   "search": {
     "hint": "Support keywords and their initial letters",
@@ -56,15 +81,17 @@
       "detail": "Serverdetails",
       "connect_new": "Neuer Server",
       "connect_to": "Verbinde neuen Jellyfin-Server",
+      "invalid": "Die URL muss mit http:// oder https:// beginnen",
       "connect": "Verbinden",
+      "delete": "Bist du sicher, dass du diesen Server löschen willst?",
       "local": "Locale Server",
       "users": "{} Benutzer",
       "sigin_to": "In {} anmelden",
       "signin": "Anmelden"
     },
     "playback": {
-      "bottom_bar": "Zeige unteren Fortschrittsbalken",
       "header": "Videoplayer",
+      "bottom_bar": "Zeige unteren Fortschrittsbalken",
       "hwdec": "Hardwaredekodierung",
       "osd_on_toggle": "Zeige OSD wenn pausiert",
       "transcodec": "Transcodec",

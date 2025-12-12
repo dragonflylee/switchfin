@@ -50,7 +50,7 @@
     "toggle": "Play/Pause",
     "prev": "Prev",
     "next": "Next",
-    "error": "Play error",
+    "error": "Playback error",
     "episode": "Episode",
     "speed_up": "Current speed {}"
   },
@@ -170,7 +170,7 @@
       "header": "Transcode"
     },
     "control": {
-      "header": "Control",
+      "header": "Playback Control",
       "tv_osd": "TV style OSD control"
     },
     "filter": {
