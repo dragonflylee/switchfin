@@ -69,7 +69,7 @@
             marginLeft="20"
             marginRight="120"
             singleLine="true"
-            textColor="#FFFFFF" />
+            textColor="@theme/color/white" />
 
         <brls:Box
             id="video/osd/icon/box"
@@ -174,7 +174,7 @@
                     marginRight="8"
                     marginTop="6"
                     marginBottom="6"
-                    textColor="#FFFFFF"
+                    textColor="@theme/color/white"
                     id="video/speed/hint/label" />
             </brls:Box>
         </brls:Box>
@@ -197,7 +197,7 @@
             marginBottom="20" />
         <brls:Label
             id="video/osd/info/label"
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             fontSize="24"
             height="16"
             horizontalAlign="center"
@@ -217,7 +217,7 @@
             visibility="invisible"
             cornerRadius="4"
             backgroundColor="#303030A0"
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             fontSize="16"
             height="16"
             horizontalAlign="center"
@@ -277,12 +277,12 @@
                     id="video/left/status"
                     height="100%"
                     width="100"
-                    textColor="#FFFFFF"
+                    textColor="@theme/color/white"
                     text="00:00" />
                 <brls:Label
                     horizontalAlign="center"
                     height="100%"
-                    textColor="#FFFFFF"
+                    textColor="@theme/color/white"
                     text="/" />
                 <brls:Label
                     wireframe="false"
@@ -290,7 +290,7 @@
                     id="video/right/status"
                     height="100%"
                     width="100"
-                    textColor="#FFFFFF"
+                    textColor="@theme/color/white"
                     text="00:00" />
                 <brls:Box
                     positionType="absolute"
@@ -367,7 +367,7 @@
                         height="60">
                         <brls:Label
                             id="show/episode/label"
-                            textColor="#FFFFFF"
+                            textColor="@theme/color/white"
                             focusable="true"
                             focusUp="video/osd/lock/box"
                             focusDown="show/episode/label"
@@ -387,7 +387,7 @@
                         height="60">
                         <brls:Label
                             id="video/quality/label"
-                            textColor="#FFFFFF"
+                            textColor="@theme/color/white"
                             focusable="true"
                             focusUp="video/osd/lock/box"
                             focusDown="video/quality/label"
@@ -406,7 +406,7 @@
                         height="60">
                         <brls:Label
                             id="video/speed/label"
-                            textColor="#FFFFFF"
+                            textColor="@theme/color/white"
                             focusable="true"
                             focusUp="video/osd/lock/box"
                             focusDown="video/speed/label"
@@ -433,7 +433,7 @@
                     marginTop="4"
                     marginBottom="4"
                     maxWidth="600"
-                    textColor="#FFFFFF" />
+                    textColor="@theme/color/white" />
             </brls:Box>
         </brls:Box>
     </brls:Box>

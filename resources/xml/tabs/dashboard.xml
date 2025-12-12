@@ -9,6 +9,7 @@
         id="dashboard/tabFrame"
         grow="1"
         defaultTab="0"
+        tabHeight="60"
         tabItemActiveTextColor="@theme/color/app"
         sidebarPosition="top">
 
@@ -48,60 +49,18 @@
 
                     </brls:Box>
 
-                    <brls:Box
+                    <HRecyclerFrame
                         marginTop="20"
-                        marginBottom="20"
-                        justifyContent="spaceBetween">
-
-                        <brls:Box
-                            backgroundColor="@theme/color/grey_2"
-                            width="150"
-                            padding="15"
-                            alignItems="center"
-                            justifyContent="spaceBetween">
-
-                            <brls:Label text="@i18n/main/search/genres/movie" />
-                            <brls:Label id="dashboard/movie/count" text="-" />
-                        </brls:Box>
-
-                        <brls:Box
-                            backgroundColor="@theme/color/grey_2"
-                            width="150"
-                            padding="15"
-                            alignItems="center"
-                            justifyContent="spaceBetween">
-
-                            <brls:Label text="@i18n/main/search/genres/series" />
-                            <brls:Label id="dashboard/series/count" text="-" />
-                        </brls:Box>
-
-                        <brls:Box
-                            backgroundColor="@theme/color/grey_2"
-                            width="150"
-                            padding="15"
-                            alignItems="center"
-                            justifyContent="spaceBetween">
-
-                            <brls:Label text="@i18n/main/search/genres/music" />
-                            <brls:Label id="dashboard/song/count" text="-" />
-                        </brls:Box>
-
-                        <brls:Box
-                            backgroundColor="@theme/color/grey_2"
-                            width="160"
-                            padding="15"
-                            alignItems="center"
-                            justifyContent="spaceBetween">
-
-                            <brls:Label text="@i18n/main/search/genres/episode" />
-                            <brls:Label id="dashboard/episode/count" text="-" />
-                        </brls:Box>
-                    </brls:Box>
+                        height="50"
+                        itemSpace="10"
+                        itemWidth="160"
+                        id="dashboard/count" />
 
                     <RecyclingGrid
                         grow="1.0"
+                        marginTop="20"
                         wireframe="false"
-                        spanCount="2"
+                        spanCount="@style/app/grid/2"
                         itemSpace="10"
                         itemHeight="180"
                         id="dashboard/session" />

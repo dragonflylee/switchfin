@@ -140,6 +140,9 @@
                 <SelectorCell
                     id="setting/ui/vsync" />
                 <SelectorCell
+                    id="setting/ui/scale" 
+                    quitApp="true" />
+                <SelectorCell
                     id="setting/keymap"
                     quitApp="true" />
                 <SelectorCell

@@ -13,7 +13,7 @@
             hideHighlight="true"
             id="hint/gallery" />
         <ButtonClose
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             positionType="absolute"
             positionTop="10"
             positionRight="10" />

@@ -300,8 +300,8 @@ void SearchTab::updateInput() {
             this->historyBox->setVisibility(brls::Visibility::GONE);
         }
         this->searchIndex = 0;
-        this->searchSuggest->spanCount = 5;
-        this->searchSuggest->estimatedRowHeight = 240;
+        this->searchSuggest->spanCount = brls::getStyle().getMetric("app/grid/5");
+        this->searchSuggest->estimatedRowHeight = 220;
         this->searchSuggest->showSkeleton();
         this->doSearch(this->currentSearch);
     }

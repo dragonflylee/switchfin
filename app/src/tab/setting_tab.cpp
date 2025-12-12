@@ -241,8 +241,24 @@ void SettingTab::onCreate() {
         conf.setItem(AppConfig::SHOW_FPS, value);
     });
 
+    int scaleIndex = conf.getOptionIndex(AppConfig::APP_UI_SCALE, 1);
+    selectorScale->init("main/setting/ui/scale/header"_i18n,
+        {
+            "main/setting/ui/scale/544p"_i18n,
+            "main/setting/ui/scale/720p"_i18n,
+            "main/setting/ui/scale/900p"_i18n,
+            "main/setting/ui/scale/1080p"_i18n,
+        },
+        scaleIndex, [scaleIndex](int selected) {
+            if (scaleIndex == selected) return;
+            auto& conf = AppConfig::instance();
+            auto& scaleOption = conf.getOptions(AppConfig::APP_UI_SCALE);
+            conf.setItem(AppConfig::APP_UI_SCALE, scaleOption.options[selected]);
+        });
+
     selectorVSync->init("main/setting/ui/vsync"_i18n, {"hints/off"_i18n, "hints/on"_i18n, "1/2", "1/3", "1/4"},
         VideoContext::swapInterval, [&conf](int selected) {
+            if (selected == VideoContext::swapInterval) return;
             brls::Application::setSwapInterval(selected);
             conf.setItem(AppConfig::SWAP_INTERVAL, selected);
         });

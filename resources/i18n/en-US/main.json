@@ -204,6 +204,13 @@
     },
     "ui": {
       "header": "UI",
+      "scale": {
+        "header": "UI Scale (restart required)",
+        "544p": "544p",
+        "720p": "720p",
+        "900p": "900p",
+        "1080p": "1080p"
+      },
       "vsync": "Vertical Sync",
       "show_fps": "Show FPS"
     },

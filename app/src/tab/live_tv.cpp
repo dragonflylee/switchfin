@@ -19,7 +19,7 @@ public:
         this->setGrow(1.f);
         this->registerCell("Cell", VideoCardCell::create);
         this->estimatedRowHeight = 100;
-        this->spanCount = 5;
+        this->spanCount = brls::getStyle().getMetric("app/grid/5");
         this->doRequest();
     }
 
@@ -116,7 +116,7 @@ LiveTV::LiveTV(const std::string& itemId) {
         return true;
     });
 
-    this->recycler->spanCount = 5;
+    this->recycler->spanCount = brls::getStyle().getMetric("app/grid/5");
     this->recycler->estimatedRowHeight = 200;
     this->recycler->registerCell("Cell", MediaCardCell::create);
 

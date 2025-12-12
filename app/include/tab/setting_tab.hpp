@@ -44,6 +44,7 @@ private:
     BRLS_BIND(brls::SelectorCell, selectorCodec, "setting/transcode/codec");
     BRLS_BIND(brls::SelectorCell, selectorAudioChannels, "setting/playback/audio_channels");
     BRLS_BIND(brls::SelectorCell, selectorInmemory, "setting/video/inmemory");
+    BRLS_BIND(brls::SelectorCell, selectorScale, "setting/ui/scale");
     BRLS_BIND(brls::SelectorCell, selectorVSync, "setting/ui/vsync");
     BRLS_BIND(brls::BooleanCell, btnBottomBar, "setting/ui/bottom_bar");
     BRLS_BIND(brls::BooleanCell, btnShowFPS, "setting/ui/show_fps");

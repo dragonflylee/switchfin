@@ -74,7 +74,7 @@
                 grow="1"
                 marginLeft="10"
                 itemHeight="40"
-                spanCount="6"
+                spanCount="@style/app/grid/6"
                 itemSpace="10"
                 id="tv/search/keyboard" />
         </brls:Box>

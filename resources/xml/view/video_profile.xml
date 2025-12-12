@@ -7,7 +7,7 @@
 
     <!-- File-->
     <brls:Label
-        textColor="#FFFFFF"
+        textColor="@theme/color/white"
         margin="3"
         fontSize="16"
         text="File" />
@@ -17,7 +17,7 @@
         marginBottom="3"
         marginLeft="20">
         <brls:Label
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             fontSize="16"
             shrink="0"
             marginRight="4"
@@ -33,7 +33,7 @@
         marginBottom="3"
         marginLeft="20">
         <brls:Label
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             fontSize="16"
             shrink="0"
             marginRight="4"
@@ -49,7 +49,7 @@
         marginBottom="3"
         marginLeft="20">
         <brls:Label
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             fontSize="16"
             shrink="0"
             marginRight="4"
@@ -65,7 +65,7 @@
         marginBottom="3"
         marginLeft="20">
         <brls:Label
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             fontSize="16"
             shrink="0"
             marginRight="4"
@@ -81,7 +81,7 @@
         marginBottom="3"
         marginLeft="20">
         <brls:Label
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             fontSize="16"
             shrink="0"
             marginRight="4"
@@ -102,7 +102,7 @@
             marginBottom="3"
             marginLeft="20">
             <brls:Label
-                textColor="#FFFFFF"
+                textColor="@theme/color/white"
                 fontSize="16"
                 shrink="0"
                 marginRight="4"
@@ -118,7 +118,7 @@
             marginBottom="3"
             marginLeft="20">
             <brls:Label
-                textColor="#FFFFFF"
+                textColor="@theme/color/white"
                 fontSize="16"
                 shrink="0"
                 marginRight="4"
@@ -132,7 +132,7 @@
 
     <!-- Video-->
     <brls:Label
-        textColor="#FFFFFF"
+        textColor="@theme/color/white"
         margin="3"
         fontSize="16"
         text="Video" />
@@ -142,7 +142,7 @@
         marginBottom="3"
         marginLeft="20">
         <brls:Label
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             fontSize="16"
             shrink="0"
             marginRight="4"
@@ -158,7 +158,7 @@
         marginBottom="3"
         marginLeft="20">
         <brls:Label
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             fontSize="16"
             shrink="0"
             marginRight="4"
@@ -174,7 +174,7 @@
         marginBottom="3"
         marginLeft="20">
         <brls:Label
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             fontSize="16"
             shrink="0"
             marginRight="4"
@@ -190,7 +190,7 @@
         marginBottom="3"
         marginLeft="20">
         <brls:Label
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             fontSize="16"
             shrink="0"
             marginRight="4"
@@ -206,7 +206,7 @@
         marginBottom="3"
         marginLeft="20">
         <brls:Label
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             fontSize="16"
             shrink="0"
             marginRight="4"
@@ -222,7 +222,7 @@
         marginBottom="3"
         marginLeft="20">
         <brls:Label
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             fontSize="16"
             shrink="0"
             marginRight="4"
@@ -238,7 +238,7 @@
         marginBottom="3"
         marginLeft="20">
         <brls:Label
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             fontSize="16"
             shrink="0"
             marginRight="4"
@@ -254,7 +254,7 @@
         marginBottom="3"
         marginLeft="20">
         <brls:Label
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             fontSize="16"
             shrink="0"
             marginRight="4"
@@ -269,7 +269,7 @@
     <brls:Label
         margin="3"
         fontSize="16"
-        textColor="#FFFFFF"
+        textColor="@theme/color/white"
         text="Audio" />
     <brls:Box
         axis="row"
@@ -277,7 +277,7 @@
         marginBottom="3"
         marginLeft="20">
         <brls:Label
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             fontSize="16"
             shrink="0"
             marginRight="4"
@@ -293,7 +293,7 @@
         marginBottom="3"
         marginLeft="20">
         <brls:Label
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             fontSize="16"
             shrink="0"
             marginRight="4"
@@ -309,7 +309,7 @@
         marginBottom="3"
         marginLeft="20">
         <brls:Label
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             fontSize="16"
             shrink="0"
             marginRight="4"
@@ -325,7 +325,7 @@
         marginBottom="3"
         marginLeft="20">
         <brls:Label
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             fontSize="16"
             shrink="0"
             marginRight="4"
@@ -343,7 +343,7 @@
         <brls:Label
             margin="3"
             fontSize="16"
-            textColor="#FFFFFF"
+            textColor="@theme/color/white"
             text="Subtitles" />
         <brls:Box
             axis="row"
@@ -351,7 +351,7 @@
             marginBottom="3"
             marginLeft="20">
             <brls:Label
-                textColor="#FFFFFF"
+                textColor="@theme/color/white"
                 fontSize="16"
                 shrink="0"
                 marginRight="4"
@@ -367,7 +367,7 @@
             marginBottom="3"
             marginLeft="20">
             <brls:Label
-                textColor="#FFFFFF"
+                textColor="@theme/color/white"
                 fontSize="16"
                 shrink="0"
                 marginRight="4"

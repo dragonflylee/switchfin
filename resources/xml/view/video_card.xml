@@ -48,7 +48,7 @@
                 id="video/card/label/rating"
                 positionType="absolute"
                 positionRight="0"
-                textColor="#FFFFFF"
+                textColor="@theme/color/white"
                 fontSize="16" />
         </brls:Box>
 

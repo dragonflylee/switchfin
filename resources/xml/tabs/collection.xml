@@ -18,7 +18,7 @@
             <RecyclingGrid
                 grow="1"
                 wireframe="false"
-                spanCount="6"
+                spanCount="@style/app/grid/6"
                 itemHeight="300"
                 id="media/series" />
         </Tab>

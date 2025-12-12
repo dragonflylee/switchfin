@@ -85,7 +85,7 @@ void SuggestMovie::doRecommend() {
     });
 
     this->recycler->estimatedRowSpace = 20;
-    this->recycler->estimatedRowHeight = 240;
+    this->recycler->estimatedRowHeight = 220;
     ASYNC_RETAIN
     jellyfin::getJSON<jellyfin::Recommends>(
         [ASYNC_TOKEN](const jellyfin::Recommends& r) {

@@ -9,7 +9,7 @@
     <RecyclingGrid
         grow="1"
         wireframe="false"
-        spanCount="3"
+        spanCount="@style/app/grid/3"
         itemHeight="180"
         id="media/folders" />
 

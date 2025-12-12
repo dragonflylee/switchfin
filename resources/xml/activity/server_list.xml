@@ -102,7 +102,7 @@
                         <RecyclingGrid
                             paddingRight="20"
                             grow="1"
-                            spanCount="3"
+                            spanCount="@style/app/grid/3"
                             wireframe="false"
                             id="user/recycler" />
 

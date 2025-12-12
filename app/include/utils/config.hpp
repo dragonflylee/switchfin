@@ -2,6 +2,7 @@
 
 #include <borealis/core/singleton.hpp>
 #include <borealis/core/logger.hpp>
+#include <borealis/core/theme.hpp>
 #include <api/jellyfin/system.hpp>
 #include <atomic>
 
@@ -68,6 +69,7 @@ public:
         APP_THEME,
         APP_LANG,
         APP_UPDATE,
+        APP_UI_SCALE,
         AUDIO_CHANNELS,
         KEYMAP,
         WINDOW_STATE,
@@ -126,6 +128,7 @@ public:
     AppConfig() = default;
 
     bool init();
+    void initThemes();
     void save();
     bool checkLogin();
     /// @brief 检查是否安装Danmuku插件
@@ -196,4 +199,6 @@ private:
     std::vector<AppServer> servers;
     std::vector<AppRemote> remotes;
     nlohmann::json setting = {};
+
+    void addColor(const brls::ThemeVariant tv, const std::string& name, NVGcolor defaultColor);
 };

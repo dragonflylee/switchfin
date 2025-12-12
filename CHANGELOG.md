@@ -1,5 +1,15 @@
 # Changelog
 
+## [next]
+
+### Fixed
+
+* PS4: video freeze after fast fowarding
+
+### Add
+
+* option of ui scale
+
 ## [0.8.1]
 
 ### Fixed
