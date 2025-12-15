@@ -788,17 +788,23 @@ void AppConfig::initThemes() {
     this->addColor(brls::ThemeVariant::DARK, "font/grey", nvgRGB(148, 153, 160));
 
     if (brls::Application::ORIGINAL_WINDOW_HEIGHT == 544) {
+        brls::getStyle().addMetric("app/album/height", 215);
+        brls::getStyle().addMetric("app/books/height", 270);
+        brls::getStyle().addMetric("app/video/height", 290);
         brls::getStyle().addMetric("app/grid/6", 5);
         brls::getStyle().addMetric("app/grid/5", 4);
         brls::getStyle().addMetric("app/grid/4", 3);
         brls::getStyle().addMetric("app/grid/3", 2);
         brls::getStyle().addMetric("app/grid/2", 1);
         brls::getStyle().addMetric("brls/tab_frame/content_padding_sides", 30);
-        brls::getStyle().addMetric("main/content_padding_sides", 20);
-        brls::getStyle().addMetric("main/content_padding_top_bottom", 25);
+        brls::getStyle().addMetric("main/content_padding_sides", 15);
+        brls::getStyle().addMetric("main/content_padding_top_bottom", 20);
     } else {
         switch (brls::Application::ORIGINAL_WINDOW_HEIGHT) {
         case 1080:
+            brls::getStyle().addMetric("app/album/height", 250);
+            brls::getStyle().addMetric("app/books/height", 320);
+            brls::getStyle().addMetric("app/video/height", 340);
             brls::getStyle().addMetric("app/grid/6", 8);
             brls::getStyle().addMetric("app/grid/5", 7);
             brls::getStyle().addMetric("app/grid/4", 6);
@@ -806,6 +812,9 @@ void AppConfig::initThemes() {
             brls::getStyle().addMetric("app/grid/2", 4);
             break;
         case 900:
+            brls::getStyle().addMetric("app/album/height", 240);
+            brls::getStyle().addMetric("app/books/height", 305);
+            brls::getStyle().addMetric("app/video/height", 325);
             brls::getStyle().addMetric("app/grid/6", 7);
             brls::getStyle().addMetric("app/grid/5", 6);
             brls::getStyle().addMetric("app/grid/4", 5);
@@ -813,6 +822,9 @@ void AppConfig::initThemes() {
             brls::getStyle().addMetric("app/grid/2", 3);
             break;
         default:
+            brls::getStyle().addMetric("app/album/height", 225);
+            brls::getStyle().addMetric("app/books/height", 280);
+            brls::getStyle().addMetric("app/video/height", 300);
             brls::getStyle().addMetric("app/grid/6", 6);
             brls::getStyle().addMetric("app/grid/5", 5);
             brls::getStyle().addMetric("app/grid/4", 4);

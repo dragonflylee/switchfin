@@ -61,6 +61,7 @@ public:
     GenresTab(const std::string& itemId, const std::string& itemType) {
         this->setGrow(1.f);
         this->registerCell("Cell", VideoCardCell::create);
+        this->estimatedRowHeight = brls::getStyle().getMetric("app/album/height");
         this->spanCount = brls::getStyle().getMetric("app/grid/6");
 
         std::string query = HTTP::encode_form({
@@ -90,6 +91,7 @@ public:
     ArtistsTab(const std::string& itemId) : itemId(itemId) {
         this->setGrow(1.f);
         this->registerCell("Cell", VideoCardCell::create);
+        this->estimatedRowHeight = brls::getStyle().getMetric("app/album/height");
         this->spanCount = brls::getStyle().getMetric("app/grid/6");
 
         this->onNextPage([this] { this->doRequest(); });
@@ -177,9 +179,9 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
 
     this->pageSize = this->recycler->spanCount * 3;
     if (itemType == jellyfin::mediaTypeMusicAlbum) {
-        this->recycler->estimatedRowHeight = 220;
+        this->recycler->estimatedRowHeight = brls::getStyle().getMetric("app/album/height");
     } else if (itemType == jellyfin::mediaTypeBook) {
-        this->recycler->estimatedRowHeight = 280;
+        this->recycler->estimatedRowHeight = brls::getStyle().getMetric("app/books/height");
     }
 
     std::string serverUrl = AppConfig::instance().getUrl();

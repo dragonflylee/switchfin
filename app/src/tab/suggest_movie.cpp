@@ -85,13 +85,13 @@ void SuggestMovie::doRecommend() {
     });
 
     this->recycler->estimatedRowSpace = 20;
-    this->recycler->estimatedRowHeight = 220;
+    this->recycler->estimatedRowHeight = 300;
     ASYNC_RETAIN
     jellyfin::getJSON<jellyfin::Recommends>(
         [ASYNC_TOKEN](const jellyfin::Recommends& r) {
             ASYNC_RELEASE
             this->recycler->estimatedRowSpace = 0;
-            this->recycler->estimatedRowHeight = 350;
+            this->recycler->estimatedRowHeight = 325;
             this->recycler->setDataSource(new RecommendDataSource(r));
         },
         [ASYNC_TOKEN](const std::string& ex) {

@@ -24,16 +24,15 @@
 
                 <brls:Box
                     axis="row"
-                    paddingLeft="@style/brls/tab_frame/content_padding_sides"
-                    paddingRight="@style/brls/tab_frame/content_padding_sides"
-                    paddingTop="@style/brls/tab_frame/content_padding_top_bottom"
-                    paddingBottom="@style/brls/tab_frame/content_padding_top_bottom">
+                    paddingLeft="@style/main/content_padding_sides"
+                    paddingRight="@style/main/content_padding_sides"
+                    paddingTop="@style/main/content_padding_top_bottom"
+                    paddingBottom="@style/main/content_padding_top_bottom">
 
                     <brls:Box
                         wireframe="false"
-                        width="420"
+                        width="400"
                         axis="column"
-                        paddingRight="@style/brls/sidebar/padding_right"
                         lineColor="@theme/color/line"
                         lineRight="1">
 
@@ -62,7 +61,7 @@
 
                     <brls:Box
                         wireframe="false"
-                        paddingLeft="35"
+                        paddingLeft="@style/main/content_padding_sides"
                         axis="column"
                         id="server/detail"
                         grow="1">
@@ -103,6 +102,7 @@
                             paddingRight="20"
                             grow="1"
                             spanCount="@style/app/grid/3"
+                            itemHeight="@style/app/album/height"
                             wireframe="false"
                             id="user/recycler" />
 

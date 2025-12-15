@@ -301,7 +301,7 @@ void SearchTab::updateInput() {
         }
         this->searchIndex = 0;
         this->searchSuggest->spanCount = brls::getStyle().getMetric("app/grid/5");
-        this->searchSuggest->estimatedRowHeight = 220;
+        this->searchSuggest->estimatedRowHeight = brls::getStyle().getMetric("app/album/height");
         this->searchSuggest->showSkeleton();
         this->doSearch(this->currentSearch);
     }

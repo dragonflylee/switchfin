@@ -19,7 +19,7 @@
                 grow="1"
                 wireframe="false"
                 spanCount="@style/app/grid/6"
-                itemHeight="300"
+                itemHeight="@style/app/video/height"
                 id="media/series" />
         </Tab>
     </AutoTabFrame>

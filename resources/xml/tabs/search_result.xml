@@ -39,7 +39,7 @@
             <SearchList
                 id="search/music"
                 title="@i18n/main/search/genres/music"
-                height="250"
+                height="260"
                 itemType="MusicAlbum"
                 pageSize="16" />
         </brls:Box>
