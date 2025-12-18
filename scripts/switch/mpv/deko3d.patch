@@ -1,21 +1,8 @@
-diff --git a/audio/decode/ad_spdif.c b/audio/decode/ad_spdif.c
-index decd97206d..3e9b58230c 100644
---- a/audio/decode/ad_spdif.c
-+++ b/audio/decode/ad_spdif.c
-@@ -53,7 +53,7 @@ struct spdifContext {
-     struct mp_decoder public;
- };
- 
--static int write_packet(void *p, uint8_t *buf, int buf_size)
-+static int write_packet(void *p, const uint8_t *buf, int buf_size)
- {
-     struct spdifContext *ctx = p;
- 
 diff --git a/audio/out/ao.c b/audio/out/ao.c
-index a5aa3a9402..6dd0ba6eb2 100644
+index c5d2fb4b94..3ff97a52bd 100644
 --- a/audio/out/ao.c
 +++ b/audio/out/ao.c
-@@ -53,6 +53,7 @@ extern const struct ao_driver audio_out_wasapi;
+@@ -54,6 +54,7 @@ extern const struct ao_driver audio_out_wasapi;
  extern const struct ao_driver audio_out_pcm;
  extern const struct ao_driver audio_out_lavc;
  extern const struct ao_driver audio_out_sdl;
@@ -23,7 +10,7 @@ index a5aa3a9402..6dd0ba6eb2 100644
  
  static const struct ao_driver * const audio_out_drivers[] = {
  // native:
-@@ -95,6 +96,9 @@ static const struct ao_driver * const audio_out_drivers[] = {
+@@ -99,6 +100,9 @@ static const struct ao_driver * const audio_out_drivers[] = {
  #endif
  #if HAVE_SNDIO
      &audio_out_sndio,
@@ -337,103 +324,24 @@ index 0000000000..83bd03de7d
 +    },
 +    .options_prefix   = "ao-hos",
 +};
-diff --git a/demux/demux_lavf.c b/demux/demux_lavf.c
-index 166bc8f908..e4dfc8db45 100644
---- a/demux/demux_lavf.c
-+++ b/demux/demux_lavf.c
-@@ -1095,11 +1095,21 @@ static int demux_open_lavf(demuxer_t *demuxer, enum demux_check check)
-         MP_VERBOSE(demuxer, "...did read %d bytes.\n", r);
-     }
+diff --git a/common/common.h b/common/common.h
+index 80fb5bfb0f..2a40c6daa7 100644
+--- a/common/common.h
++++ b/common/common.h
+@@ -25,7 +25,7 @@
  
--    if (avformat_open_input(&avfc, priv->filename, priv->avif, &dopts) < 0) {
-+    bstr out = {0};
-+    bstr fn = bstr0(priv->filename);
-+    if (bstr_find0(fn, ":") > 0 && bstr_find0(fn, "://") < 0)
-+        bstr_xappend(demuxer, &out, bstr0("file:"));
-+
-+    bstr_xappend(demuxer, &out, fn);
-+
-+    if (avformat_open_input(&avfc, out.start, priv->avif, &dopts) < 0) {
-         MP_ERR(demuxer, "avformat_open_input() failed\n");
-+        talloc_free(out.start);
-         goto fail;
-     }
+ #include "config.h"
  
-+    talloc_free(out.start);
-+
-     mp_avdict_print_unset(demuxer->log, MSGL_V, dopts);
-     av_dict_free(&dopts);
- 
-diff --git a/filters/f_lavfi.c b/filters/f_lavfi.c
-index 597cf91fc0..c0596d32eb 100644
---- a/filters/f_lavfi.c
-+++ b/filters/f_lavfi.c
-@@ -1024,7 +1024,11 @@ static const char *get_avopt_type_name(enum AVOptionType type)
-     case AV_OPT_TYPE_VIDEO_RATE:        return "fps";
-     case AV_OPT_TYPE_DURATION:          return "duration";
-     case AV_OPT_TYPE_COLOR:             return "color";
-+#if LIBAVUTIL_VERSION_MAJOR < 59
-     case AV_OPT_TYPE_CHANNEL_LAYOUT:    return "channellayout";
-+#else
-+    case AV_OPT_TYPE_CHLAYOUT:          return "channellayout";
-+#endif
-     case AV_OPT_TYPE_BOOL:              return "bool";
-     case AV_OPT_TYPE_CONST: // fallthrough
-     default:
-diff --git a/filters/f_swresample.c b/filters/f_swresample.c
-index fb1ef05194..09148b5f88 100644
---- a/filters/f_swresample.c
-+++ b/filters/f_swresample.c
-@@ -23,6 +23,7 @@
- #include <libswresample/swresample.h>
- 
- #include "audio/aframe.h"
-+#include "audio/chmap_avchannel.h"
- #include "audio/fmt-conversion.h"
- #include "audio/format.h"
- #include "common/common.h"
-@@ -269,14 +270,28 @@ static bool configure_lavrr(struct priv *p, bool verbose)
- 
-     out_ch_layout = fudge_layout_conversion(p, in_ch_layout, out_ch_layout);
- 
-+#if HAVE_AV_CHANNEL_LAYOUT
-     // Real conversion; output is input to avrctx_out.
-+    AVChannelLayout in_layout, out_layout;
-+    mp_chmap_to_av_layout(&in_layout, &in_lavc);
-+    mp_chmap_to_av_layout(&out_layout, &out_lavc);
-+    av_opt_set_chlayout(p->avrctx, "in_chlayout",  &in_layout, 0);
-+    av_opt_set_chlayout(p->avrctx, "out_chlayout", &out_layout, 0);
-+#else
-     av_opt_set_int(p->avrctx, "in_channel_layout",  in_ch_layout, 0);
-     av_opt_set_int(p->avrctx, "out_channel_layout", out_ch_layout, 0);
-+#endif
-     av_opt_set_int(p->avrctx, "in_sample_rate",     p->in_rate, 0);
-     av_opt_set_int(p->avrctx, "out_sample_rate",    p->out_rate, 0);
-     av_opt_set_int(p->avrctx, "in_sample_fmt",      in_samplefmt, 0);
-     av_opt_set_int(p->avrctx, "out_sample_fmt",     out_samplefmtp, 0);
- 
-+#if HAVE_AV_CHANNEL_LAYOUT
-+    AVChannelLayout fake_layout;
-+    av_channel_layout_default(&fake_layout, map_out.num);
-+    av_opt_set_chlayout(p->avrctx_out, "in_chlayout", &fake_layout, 0);
-+    av_opt_set_chlayout(p->avrctx_out, "out_chlayout", &fake_layout, 0);
-+#else
-     // Just needs the correct number of channels for deplanarization.
-     struct mp_chmap fake_chmap;
-     mp_chmap_set_unknown(&fake_chmap, map_out.num);
-@@ -285,6 +300,7 @@ static bool configure_lavrr(struct priv *p, bool verbose)
-         goto error;
-     av_opt_set_int(p->avrctx_out, "in_channel_layout",  fake_out_ch_layout, 0);
-     av_opt_set_int(p->avrctx_out, "out_channel_layout", fake_out_ch_layout, 0);
-+#endif
- 
-     av_opt_set_int(p->avrctx_out, "in_sample_fmt",      out_samplefmtp, 0);
-     av_opt_set_int(p->avrctx_out, "out_sample_fmt",     out_samplefmt, 0);
-diff --git a/libmpv/render.h b/libmpv/render.h
-index 29f9b91e96..1f4c6ad071 100644
---- a/libmpv/render.h
-+++ b/libmpv/render.h
-@@ -421,6 +421,17 @@ typedef enum mpv_render_param_type {
+-#if HAVE_POSIX || defined(__MINGW32__)
++#if HAVE_POSIX || defined(__MINGW32__) || defined(__SWITCH__)
+ #include <strings.h>
+ #include <unistd.h>
+ #endif
+diff --git a/include/mpv/render.h b/include/mpv/render.h
+index 99aadeb5d8..76dc163a13 100644
+--- a/include/mpv/render.h
++++ b/include/mpv/render.h
+@@ -422,6 +422,17 @@ typedef enum mpv_render_param_type {
       * See MPV_RENDER_PARAM_SW_STRIDE for alignment requirements.
       */
      MPV_RENDER_PARAM_SW_POINTER = 20,
@@ -451,7 +359,7 @@ index 29f9b91e96..1f4c6ad071 100644
  } mpv_render_param_type;
  
  /**
-@@ -465,6 +476,8 @@ typedef struct mpv_render_param {
+@@ -466,6 +477,8 @@ typedef struct mpv_render_param {
   */
  // See render_gl.h
  #define MPV_RENDER_API_TYPE_OPENGL "opengl"
@@ -460,11 +368,11 @@ index 29f9b91e96..1f4c6ad071 100644
  // See section "Software renderer"
  #define MPV_RENDER_API_TYPE_SW "sw"
  
-diff --git a/libmpv/render_dk3d.h b/libmpv/render_dk3d.h
+diff --git a/include/mpv/render_dk3d.h b/include/mpv/render_dk3d.h
 new file mode 100644
 index 0000000000..85fd94eb17
 --- /dev/null
-+++ b/libmpv/render_dk3d.h
++++ b/include/mpv/render_dk3d.h
 @@ -0,0 +1,68 @@
 +/* Copyright (C) 2018 the mpv developers
 + *
@@ -535,10 +443,10 @@ index 0000000000..85fd94eb17
 +
 +#endif
 diff --git a/meson.build b/meson.build
-index f9fe4e7263..62a3d19360 100644
+index 7572769e0e..0f43549140 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -294,7 +294,8 @@ endif
+@@ -313,7 +313,8 @@ endif
  
  darwin = host_machine.system() == 'darwin'
  win32 = host_machine.system() == 'cygwin' or host_machine.system() == 'windows'
@@ -548,14 +456,23 @@ index f9fe4e7263..62a3d19360 100644
  
  features += {'darwin': darwin}
  features += {'posix': posix}
-@@ -419,6 +420,17 @@ if darwin
+@@ -337,7 +338,7 @@ if host_machine.system() == 'cygwin'
+     flags += [mswin_flags, '-mwin32']
+ endif
  
+-if posix
++if posix or hos
+     flags += ['-D_GNU_SOURCE']
+ endif
+ 
+@@ -418,6 +419,41 @@ if features['cocoa']
+     main_fn_source = files('osdep/main-fn-mac.c')
  endif
  
 +if hos
-+    sources += files('osdep/path-unix.c',
-+                     'osdep/timer-linux.c',
-+                     'osdep/subprocess-dummy.c',
++    path_source  = files('osdep/path-unix.c')
++    timer_source = files('osdep/timer-linux.c')
++    sources += files('osdep/subprocess-dummy.c',
 +                     'osdep/terminal-dummy.c',
 +                     'osdep/main-fn-unix.c',
 +                     'osdep/language-posix.c',
@@ -563,13 +480,6 @@ index f9fe4e7263..62a3d19360 100644
 +                     'sub/filter_regex.c')
 +endif
 +
- if posix and not darwin
-     sources += files('osdep/path-unix.c',
-                      'osdep/timer-linux.c')
-@@ -855,6 +867,13 @@ if features['sdl2-audio']
-     sources += files('audio/out/ao_sdl.c')
- endif
- 
 +libnx = cc.find_library('nx', required: false)
 +features += {'hos-audio': hos and libnx.found()}
 +if features['hos-audio']
@@ -577,13 +487,6 @@ index f9fe4e7263..62a3d19360 100644
 +    dependencies += libnx
 +endif
 +
- sndio = dependency('sndio', required: get_option('sndio'))
- features += {'sndio': sndio.found()}
- if features['sndio']
-@@ -893,6 +912,23 @@ if features['direct3d']
-     sources += files('video/out/vo_direct3d.c')
- endif
- 
 +deko3d_opt = get_option('deko3d').require(
 +    get_option('gpl') and hos,
 +    error_message: 'the build is not GPL or this is not a horizon os!',
@@ -601,73 +504,96 @@ index f9fe4e7263..62a3d19360 100644
 +        'video/out/hwdec/hwdec_deko3d.c')
 +endif
 +
- drm = dependency('libdrm', version: '>= 2.4.75', required: get_option('drm'))
- features += {'drm': drm.found() and (features['vt.h'] or features['consio.h'])}
- if features['drm']
-@@ -1725,6 +1761,9 @@ if get_option('libmpv')
+ if posix
+     path_source = files('osdep/path-unix.c')
+     if not get_option('fuzzers') and cc.has_function('fork', prefix : '#include <unistd.h>')
+@@ -1777,6 +1813,9 @@ if get_option('libmpv')
  
-     headers = ['libmpv/client.h', 'libmpv/render.h',
-                'libmpv/render_gl.h', 'libmpv/stream_cb.h']
+     headers = ['include/mpv/client.h', 'include/mpv/render.h',
+                'include/mpv/render_gl.h', 'include/mpv/stream_cb.h']
 +    if features['deko3d']
-+        headers += 'libmpv/render_dk3d.h'
++        headers += 'include/mpv/render_dk3d.h'
 +    endif
      install_headers(headers, subdir: 'mpv')
- endif
  
-diff --git a/meson_options.txt b/meson_options.txt
-index 5f2d31df3d..f3d46c371d 100644
---- a/meson_options.txt
-+++ b/meson_options.txt
-@@ -106,6 +106,7 @@ option('ios-gl', type: 'feature', value: 'auto', description: 'iOS OpenGL ES har
- option('rpi-mmal', type: 'feature', value: 'auto', description: 'Raspberry Pi MMAL hwaccel')
+     # Allow projects to build with libmpv by cloning into ./subprojects/mpv
+diff --git a/meson.options b/meson.options
+index dae0a333ef..9bdb4b600f 100644
+--- a/meson.options
++++ b/meson.options
+@@ -101,6 +101,7 @@ option('gl-dxinterop-d3d9', type: 'feature', value: 'auto', description: 'OpenGL
+ option('ios-gl', type: 'feature', value: 'auto', description: 'iOS OpenGL ES interop support')
  option('videotoolbox-gl', type: 'feature', value: 'auto', description: 'Videotoolbox with OpenGL')
- option('vulkan-interop', type: 'feature', value: 'auto', description: 'Vulkan graphics interop')
+ option('videotoolbox-pl', type: 'feature', value: 'auto', description: 'Videotoolbox with libplacebo')
 +option('deko3d', type: 'feature', value: 'auto', description: 'deko3d context support')
  
  # macOS features
- option('macos-10-11-features', type: 'feature', value: 'auto', description: 'macOS 10.11 SDK Features')
-diff --git a/options/path.c b/options/path.c
-index 95a79a94b1..dd75006adb 100644
---- a/options/path.c
-+++ b/options/path.c
-@@ -84,7 +84,7 @@ static const char *mp_get_platform_path(void *talloc_ctx,
-         // force all others to NULL, only first returns the path
-         for (int n = 0; n < MP_ARRAY_SIZE(config_dirs); n++) {
-             if (strcmp(config_dirs[n], type) == 0)
--                return (n == 0 && global->configdir[0]) ? global->configdir : NULL;
-+                return (n < 2 && global->configdir[0]) ? global->configdir : NULL;
-         }
-         for (int n = 0; n < MP_ARRAY_SIZE(config_dir_replaces); n++) {
-             if (strcmp(config_dir_replaces[n], type) == 0)
-@@ -283,6 +283,10 @@ char *mp_splitext(const char *path, bstr *root)
+ option('macos-10-15-4-features', type: 'feature', value: 'auto', description: 'macOS 10.15.4 SDK Features')
+diff --git a/misc/language.c b/misc/language.c
+index d7cdffebd3..b00b2ada49 100644
+--- a/misc/language.c
++++ b/misc/language.c
+@@ -26,8 +26,8 @@
+ #define L(s) { #s, sizeof(#s) - 1 }
  
- bool mp_path_is_absolute(struct bstr path)
- {
-+    // Switch extension: path with a mountpoint prefix are absolute
-+    if (path.len && strchr((char *)path.start, ':'))
-+        return true;
+ static const struct lang {
+-    struct { const char s[3]; uint8_t l; } match;
+-    struct { const char s[3]; uint8_t l; } canonical;
++    struct { const char s[3] MP_NONSTRING; uint8_t l; } match;
++    struct { const char s[3] MP_NONSTRING; uint8_t l; } canonical;
+ } langmap[] = {
+     {L(aa), L(aar)},
+     {L(ab), L(abk)},
+diff --git a/osdep/compiler.h b/osdep/compiler.h
+index cb04fed81f..fec54226a1 100644
+--- a/osdep/compiler.h
++++ b/osdep/compiler.h
+@@ -22,6 +22,16 @@
+ #define MP_UNUSED
+ #endif
+ 
++#ifndef __has_attribute
++#define __has_attribute(x) 0
++#endif
 +
-     if (path.len && strchr(mp_path_separators, path.start[0]))
-         return true;
- 
++#if __has_attribute(nonstring)
++#define MP_NONSTRING __attribute__((nonstring))
++#else
++#define MP_NONSTRING
++#endif
++
+ #if defined(__GNUC__) || defined(__clang__)
+ #define PRINTF_ATTRIBUTE(a1, a2) __attribute__((format(printf, a1, a2)))
+ #define SCANF_ATTRIBUTE(a1, a2) __attribute__((format(scanf, a1, a2)))
 diff --git a/osdep/io.c b/osdep/io.c
-index 8cd6dede85..1304c8f12f 100644
+index f7e24ba29a..3ba5f062fe 100644
 --- a/osdep/io.c
 +++ b/osdep/io.c
-@@ -62,7 +62,7 @@ bool mp_set_cloexec(int fd)
+@@ -62,7 +62,18 @@ bool mp_set_cloexec(int fd)
      return true;
  }
  
--#ifdef __MINGW32__
-+#if defined(__MINGW32__) || defined(__SWITCH__)
+-#ifndef _WIN32
++#if defined(__SWITCH__)
++int mp_make_cloexec_pipe(int pipes[2])
++{
++    pipes[0] = pipes[1] = -1;
++    return -1;
++}
++
++int mp_make_wakeup_pipe(int pipes[2])
++{
++    return mp_make_cloexec_pipe(pipes);
++}
++#elif !defined(_WIN32)
  int mp_make_cloexec_pipe(int pipes[2])
  {
-     pipes[0] = pipes[1] = -1;
+     if (pipe(pipes) != 0) {
 diff --git a/osdep/io.h b/osdep/io.h
-index 905558c284..f616f58575 100644
+index 4024454a31..4f42c6f7d9 100644
 --- a/osdep/io.h
 +++ b/osdep/io.h
-@@ -210,7 +210,7 @@ void freelocale(locale_t);
+@@ -248,7 +248,7 @@ void freelocale(locale_t);
  
  #else /* __MINGW32__ */
  
@@ -698,7 +624,7 @@ index 0000000000..398ff01729
 +
 +#endif
 diff --git a/sub/filter_regex.c b/sub/filter_regex.c
-index 8e299918ce..c7b08f5273 100644
+index 1d29ea1ac1..3218e12be5 100644
 --- a/sub/filter_regex.c
 +++ b/sub/filter_regex.c
 @@ -1,5 +1,5 @@
@@ -709,29 +635,29 @@ index 8e299918ce..c7b08f5273 100644
  #include "common/common.h"
  #include "common/msg.h"
 diff --git a/sub/osd.c b/sub/osd.c
-index 811b6c821b..1db7db8444 100644
+index 1fd9c5d9df..2d5cad0613 100644
 --- a/sub/osd.c
 +++ b/sub/osd.c
-@@ -76,7 +76,7 @@ const struct m_sub_options osd_style_conf = {
+@@ -80,7 +80,7 @@ const struct m_sub_options osd_style_conf = {
      .opts = style_opts,
      .size = sizeof(struct osd_style_opts),
      .defaults = &(const struct osd_style_opts){
 -        .font = "sans-serif",
 +        .font = "nintendo_udsg-r_std_003",
-         .font_size = 55,
+         .font_size = 30,
          .color = {255, 255, 255, 255},
-         .border_color = {0, 0, 0, 255},
-@@ -95,7 +95,7 @@ const struct m_sub_options sub_style_conf = {
+         .outline_color = {0, 0, 0, 255},
+@@ -100,7 +100,7 @@ const struct m_sub_options sub_style_conf = {
      .opts = style_opts,
      .size = sizeof(struct osd_style_opts),
      .defaults = &(const struct osd_style_opts){
 -        .font = "sans-serif",
 +        .font = "nintendo_udsg-r_std_003",
-         .font_size = 55,
+         .font_size = 38,
          .color = {255, 255, 255, 255},
-         .border_color = {0, 0, 0, 255},
+         .outline_color = {0, 0, 0, 255},
 diff --git a/sub/sd_ass.c b/sub/sd_ass.c
-index e4e5652875..6b57464b32 100644
+index 7c80ddac6f..8fef08ba7a 100644
 --- a/sub/sd_ass.c
 +++ b/sub/sd_ass.c
 @@ -21,6 +21,10 @@
@@ -745,7 +671,7 @@ index e4e5652875..6b57464b32 100644
  #include <libavutil/common.h>
  #include <ass/ass.h>
  
-@@ -198,6 +202,31 @@ static void enable_output(struct sd *sd, bool enable)
+@@ -235,6 +239,33 @@ static void enable_output(struct sd *sd, bool enable)
      } else {
          ctx->ass_renderer = ass_renderer_init(ctx->ass_library);
  
@@ -753,8 +679,10 @@ index e4e5652875..6b57464b32 100644
 +        static char * const pl_font_names[] = {
 +            [PlSharedFontType_Standard]             = "nintendo_udsg-r_std_003",
 +            [PlSharedFontType_ChineseSimplified]    = "nintendo_udsg-r_org_zh-cn_003",
++            [PlSharedFontType_ExtChineseSimplified] = "nintendo_udsg-r_ext_zh-cn_003",
 +            [PlSharedFontType_ChineseTraditional]   = "nintendo_udjxh-db_zh-tw_003",
 +            [PlSharedFontType_KO]                   = "nintendo_udsg-r_ko_003",
++            [PlSharedFontType_NintendoExt]          = "NintendoExt003",
 +        };
 +
 +        Result rc = plInitialize(PlServiceType_User);
@@ -777,8 +705,21 @@ index e4e5652875..6b57464b32 100644
          mp_ass_configure_fonts(ctx->ass_renderer, sd->opts->sub_style,
                                 sd->global, sd->log);
      }
+diff --git a/video/decode/vd_lavc.c b/video/decode/vd_lavc.c
+index 3045af9917..0a1ddbe84a 100644
+--- a/video/decode/vd_lavc.c
++++ b/video/decode/vd_lavc.c
+@@ -266,6 +266,8 @@ const struct autoprobe_info hwdec_autoprobe_info[] = {
+     {"dxva2-copy",      HWDEC_FLAG_AUTO | HWDEC_FLAG_WHITELIST},
+     {"nvdec",           HWDEC_FLAG_AUTO | HWDEC_FLAG_WHITELIST},
+     {"nvdec-copy",      HWDEC_FLAG_AUTO | HWDEC_FLAG_WHITELIST},
++    {"nvtegra",         HWDEC_FLAG_AUTO | HWDEC_FLAG_WHITELIST},
++    {"nvtegra-copy",    HWDEC_FLAG_AUTO | HWDEC_FLAG_WHITELIST},
+     {"vaapi",           HWDEC_FLAG_AUTO | HWDEC_FLAG_WHITELIST},
+     {"vaapi-copy",      HWDEC_FLAG_AUTO | HWDEC_FLAG_WHITELIST},
+     {"vulkan",          HWDEC_FLAG_AUTO | HWDEC_FLAG_WHITELIST},
 diff --git a/video/fmt-conversion.c b/video/fmt-conversion.c
-index aa7d857341..088cb8366f 100644
+index 39dead4600..f6018f9133 100644
 --- a/video/fmt-conversion.c
 +++ b/video/fmt-conversion.c
 @@ -64,6 +64,7 @@ static const struct {
@@ -788,12 +729,12 @@ index aa7d857341..088cb8366f 100644
 +    {IMGFMT_NVTEGRA, AV_PIX_FMT_NVTEGRA},
      {IMGFMT_P010, AV_PIX_FMT_P010},
      {IMGFMT_DRMPRIME, AV_PIX_FMT_DRM_PRIME},
- #if HAVE_VULKAN_INTEROP
+     {IMGFMT_VULKAN, AV_PIX_FMT_VULKAN},
 diff --git a/video/img_format.h b/video/img_format.h
-index 2091e00598..69bba528e6 100644
+index 975f58ad39..c1ec745235 100644
 --- a/video/img_format.h
 +++ b/video/img_format.h
-@@ -278,6 +278,7 @@ enum mp_imgfmt {
+@@ -272,6 +272,7 @@ enum mp_imgfmt {
      IMGFMT_MMAL,            // MMAL_BUFFER_HEADER_T
      IMGFMT_MEDIACODEC,      // AVMediaCodecBuffer
      IMGFMT_CUDA,            // CUDA Buffer
@@ -802,10 +743,10 @@ index 2091e00598..69bba528e6 100644
      // Not an actual format; base for mpv-specific descriptor table.
      // Some may still map to AV_PIX_FMT_*.
 diff --git a/video/mp_image.c b/video/mp_image.c
-index 40678d10bd..0baddd3e78 100644
+index 7890b9f9f4..4baa8de26a 100644
 --- a/video/mp_image.c
 +++ b/video/mp_image.c
-@@ -176,7 +176,7 @@ static bool mp_image_alloc_planes(struct mp_image *mpi)
+@@ -175,7 +175,7 @@ static bool mp_image_alloc_planes(struct mp_image *mpi)
          return false;
  
      // Note: mp_image_pool assumes this creates only 1 AVBufferRef.
@@ -815,7 +756,7 @@ index 40678d10bd..0baddd3e78 100644
          return false;
  
 diff --git a/video/mp_image.h b/video/mp_image.h
-index 98dd666412..376e269356 100644
+index 1064b36207..d7640110cb 100644
 --- a/video/mp_image.h
 +++ b/video/mp_image.h
 @@ -32,7 +32,7 @@
@@ -827,6 +768,19 @@ index 98dd666412..376e269356 100644
  
  #define MP_IMGFIELD_TOP_FIRST 0x02
  #define MP_IMGFIELD_REPEAT_FIRST 0x04
+diff --git a/video/out/d3d11/ra_d3d11.c b/video/out/d3d11/ra_d3d11.c
+index e36c9eee19..cd84e801b7 100644
+--- a/video/out/d3d11/ra_d3d11.c
++++ b/video/out/d3d11/ra_d3d11.c
+@@ -1500,7 +1500,7 @@ static size_t vbuf_upload(struct ra *ra, void *data, size_t size)
+     return offset;
+ }
+ 
+-static const char cache_magic[4] = "RD11";
++static const char cache_magic[4] MP_NONSTRING = "RD11";
+ static const uint32_t cache_version = 4;
+ 
+ struct cache_header {
 diff --git a/video/out/deko3d/common.h b/video/out/deko3d/common.h
 new file mode 100644
 index 0000000000..b8b6e1545a
@@ -985,7 +939,7 @@ index 0000000000..7e398311aa
 +void ra_dk_ctx_uninit(struct ra_ctx *ctx);
 diff --git a/video/out/deko3d/libmpv_dk.c b/video/out/deko3d/libmpv_dk.c
 new file mode 100644
-index 0000000000..24648793a1
+index 0000000000..93ef439af2
 --- /dev/null
 +++ b/video/out/deko3d/libmpv_dk.c
 @@ -0,0 +1,173 @@
@@ -1010,7 +964,7 @@ index 0000000000..24648793a1
 +
 +#include "common/msg.h"
 +#include "options/m_config.h"
-+#include "libmpv/render_dk3d.h"
++#include "mpv/render_dk3d.h"
 +#include "video/out/gpu/libmpv_gpu.h"
 +#include "video/out/gpu/context.h"
 +#include "video/out/gpu/ra.h"
@@ -2520,19 +2474,19 @@ index 0000000000..5a4af9909b
 +void ra_dk_register_texture(struct ra *ra, struct ra_tex *tex);
 +void ra_dk_unregister_texture(struct ra *ra, struct ra_tex_dk *tex);
 diff --git a/video/out/gpu/hwdec.c b/video/out/gpu/hwdec.c
-index 878ac148fb..72a6965dc1 100644
+index cb68c54be0..07afd3673e 100644
 --- a/video/out/gpu/hwdec.c
 +++ b/video/out/gpu/hwdec.c
-@@ -39,6 +39,7 @@ extern const struct ra_hwdec_driver ra_hwdec_drmprime;
+@@ -38,6 +38,7 @@ extern const struct ra_hwdec_driver ra_hwdec_drmprime;
  extern const struct ra_hwdec_driver ra_hwdec_drmprime_overlay;
  extern const struct ra_hwdec_driver ra_hwdec_aimagereader;
  extern const struct ra_hwdec_driver ra_hwdec_vulkan;
 +extern const struct ra_hwdec_driver ra_hwdec_nvtegra;
  
  const struct ra_hwdec_driver *const ra_hwdec_drivers[] = {
- #if HAVE_VAAPI_EGL || HAVE_VAAPI_LIBPLACEBO
-@@ -83,6 +84,9 @@ const struct ra_hwdec_driver *const ra_hwdec_drivers[] = {
- #if HAVE_VULKAN_INTEROP
+ #if HAVE_VAAPI
+@@ -79,6 +80,9 @@ const struct ra_hwdec_driver *const ra_hwdec_drivers[] = {
+ #if HAVE_VULKAN
      &ra_hwdec_vulkan,
  #endif
 +#if HAVE_DEKO3D
@@ -2542,7 +2496,7 @@ index 878ac148fb..72a6965dc1 100644
      NULL
  };
 diff --git a/video/out/gpu/libmpv_gpu.c b/video/out/gpu/libmpv_gpu.c
-index aae1d18eed..b99b7f750e 100644
+index 6c812f90b3..ed97663568 100644
 --- a/video/out/gpu/libmpv_gpu.c
 +++ b/video/out/gpu/libmpv_gpu.c
 @@ -6,6 +6,9 @@
@@ -2555,13 +2509,13 @@ index aae1d18eed..b99b7f750e 100644
  #if HAVE_GL
      &libmpv_gpu_context_gl,
  #endif
-@@ -185,6 +188,8 @@ static int render(struct render_backend *ctx, mpv_render_param *params,
+@@ -187,6 +190,8 @@ static int render(struct render_backend *ctx, mpv_render_param *params,
                                               &(int){0});
  
      struct ra_fbo target = {.tex = tex, .flip = flip};
 +    if (p->context->fns->begin_frame)
 +        p->context->fns->begin_frame(p->context, params, tex);
-     gl_video_render_frame(p->renderer, frame, target, RENDER_FRAME_DEF);
+     gl_video_render_frame(p->renderer, frame, &target, RENDER_FRAME_DEF);
      p->context->fns->done_frame(p->context, frame->display_synced);
  
 diff --git a/video/out/gpu/libmpv_gpu.h b/video/out/gpu/libmpv_gpu.h
@@ -2584,7 +2538,7 @@ index 497dcc3f69..ed04357324 100644
  extern const struct libmpv_gpu_context_fns libmpv_gpu_context_gl;
 +extern const struct libmpv_gpu_context_fns libmpv_gpu_context_dk;
 diff --git a/video/out/gpu/ra.h b/video/out/gpu/ra.h
-index 5f229f8bd6..0c2ba56f01 100644
+index d4a3c83d2d..1dd37003ba 100644
 --- a/video/out/gpu/ra.h
 +++ b/video/out/gpu/ra.h
 @@ -11,6 +11,7 @@ struct ra {
@@ -2596,10 +2550,10 @@ index 5f229f8bd6..0c2ba56f01 100644
      struct mp_log *log;
  
 diff --git a/video/out/gpu/shader_cache.c b/video/out/gpu/shader_cache.c
-index 3e051730fd..d3a1f3e131 100644
+index 889e5e85d3..3604fb7ff7 100644
 --- a/video/out/gpu/shader_cache.c
 +++ b/video/out/gpu/shader_cache.c
-@@ -272,10 +272,11 @@ static void update_uniform_params(struct gl_shader_cache *sc, struct sc_uniform
+@@ -270,10 +270,11 @@ static void update_uniform_params(struct gl_shader_cache *sc, struct sc_uniform
      // Try not using push constants for "large" values like matrices, since
      // this is likely to both exceed the VGPR budget as well as the pushc size
      // budget
@@ -2613,7 +2567,7 @@ index 3e051730fd..d3a1f3e131 100644
          struct ra_layout layout = sc->ra->fns->push_constant_layout(&u->input);
          size_t offset = MP_ALIGN_UP(sc->pushc_size, layout.align);
          // Push constants have limited size, so make sure we don't exceed this
-@@ -711,7 +712,7 @@ static void add_uniforms(struct gl_shader_cache *sc, bstr *dst)
+@@ -709,7 +710,7 @@ static void add_uniforms(struct gl_shader_cache *sc, bstr *dst)
              // source. For OpenGL it's optional, but requires higher GL version
              // so we don't do it (and instead have ra_gl update the bindings
              // after program creation).
@@ -2622,7 +2576,7 @@ index 3e051730fd..d3a1f3e131 100644
                  ADD(dst, "layout(binding=%d) ", u->input.binding);
              ADD(dst, "uniform %s %s;\n", u->glsl_type, u->input.name);
              break;
-@@ -728,7 +729,7 @@ static void add_uniforms(struct gl_shader_cache *sc, bstr *dst)
+@@ -726,7 +727,7 @@ static void add_uniforms(struct gl_shader_cache *sc, bstr *dst)
              // type of data we will be reading/writing to this image.
              const char *fmt = u->v.tex->params.format->glsl_format;
  
@@ -2631,8 +2585,8 @@ index 3e051730fd..d3a1f3e131 100644
                  if (fmt) {
                      ADD(dst, "layout(binding=%d, %s) ", u->input.binding, fmt);
                  } else {
-@@ -835,6 +836,8 @@ static void gl_sc_generate(struct gl_shader_cache *sc,
-                 assert(e->dim_v == 2 && e->type == RA_VARTYPE_FLOAT);
+@@ -833,6 +834,8 @@ static void gl_sc_generate(struct gl_shader_cache *sc,
+                 mp_assert(e->dim_v == 2 && e->type == RA_VARTYPE_FLOAT);
                  ADD(vert_head, "%s%s vec2 vertex_position;\n", loc, vert_in);
                  ADD(vert_body, "gl_Position = vec4(vertex_position, 1.0, 1.0);\n");
 +                if (sc->ra->glsl_deko3d)
@@ -2641,10 +2595,10 @@ index 3e051730fd..d3a1f3e131 100644
                  ADD(vert_head, "%s%s %s vertex_%s;\n", loc, vert_in, glsl_type, e->name);
                  ADD(vert_head, "%s%s %s %s;\n", loc, vert_out, glsl_type, e->name);
 diff --git a/video/out/gpu/video.c b/video/out/gpu/video.c
-index 4233f14336..13036ee16a 100644
+index 5796ef18e5..1c0b45fdc8 100644
 --- a/video/out/gpu/video.c
 +++ b/video/out/gpu/video.c
-@@ -3868,6 +3868,8 @@ static void check_gl_features(struct gl_video *p)
+@@ -3975,6 +3975,8 @@ static void check_gl_features(struct gl_video *p)
              .tone_map = p->opts.tone_map,
              .early_flush = p->opts.early_flush,
              .icc_opts = p->opts.icc_opts,
@@ -2948,123 +2902,14 @@ index 0000000000..d90c10333b
 +    },
 +};
 diff --git a/video/out/vo.c b/video/out/vo.c
-index c53cec36a1..820cb628e5 100644
+index 7b5df4b886..e8fb171a5f 100644
 --- a/video/out/vo.c
 +++ b/video/out/vo.c
-@@ -119,7 +119,6 @@ static const struct vo_driver *const video_out_drivers[] =
+@@ -112,7 +112,6 @@ static const struct vo_driver *const video_out_drivers[] =
  #if HAVE_SIXEL
      &video_out_sixel,
  #endif
 -    &video_out_kitty,
      &video_out_lavc,
  };
- 
-diff --git a/wscript b/wscript
-index 82f65b4afa..4c32e9c9ad 100644
---- a/wscript
-+++ b/wscript
-@@ -423,6 +423,10 @@ iconv support use --disable-iconv.",
-         'name': 'zimg-st428',
-         'desc': 'ZIMG support for ZIMG_TRANSFER_ST428',
-         'func': check_pkg_config('zimg', '>= 3.0.5'),
-+    }, {
-+        'name': '--hos',
-+        'desc': 'Horizon OS',
-+        'func': check_statement(['switch.h'], ''),
-     }
- ]
- 
-@@ -509,6 +513,11 @@ audio_output_features = [
-         'desc': 'WASAPI audio output',
-         'deps': 'os-win32 || os-cygwin',
-         'func': check_cc(fragment=load_fragment('wasapi.c')),
-+    }, {
-+        'name': '--hos-audio',
-+        'desc': 'Audren audio output',
-+        'deps': 'hos',
-+        'func': check_true,
-     }
- ]
- 
-@@ -863,6 +872,14 @@ video_output_features = [
-         'desc': "POSIX shared memory API",
-         'deps': 'posix',
-         'func': check_statement('sys/mman.h', 'shm_open("",0,0)')
-+    }, {
-+        'name': '--deko3d',
-+        'desc': 'deko3d context support',
-+        'deps': 'hos && gpl',
-+        'func': compose_checks(
-+                    check_cc(header_name='deko3d.h', lib='deko3d'),
-+                    check_pkg_config('uam'),
-+                ),
-     }
- ]
- 
-diff --git a/wscript_build.py b/wscript_build.py
-index a470808ae5..e60634f5a1 100644
---- a/wscript_build.py
-+++ b/wscript_build.py
-@@ -240,7 +240,6 @@ def build(ctx):
-         ])
- 
-     getch2_c = ctx.pick_first_matching_dep([
--        ( "osdep/terminal-unix.c",               "posix" ),
-         ( "osdep/terminal-win.c",                "win32-desktop" ),
-         ( "osdep/terminal-dummy.c" ),
-     ])
-@@ -252,13 +251,11 @@ def build(ctx):
-     ])
- 
-     ipc_c = ctx.pick_first_matching_dep([
--        ( "input/ipc-unix.c",                    "posix" ),
-         ( "input/ipc-win.c",                     "win32-desktop" ),
-         ( "input/ipc-dummy.c" ),
-     ])
- 
-     subprocess_c = ctx.pick_first_matching_dep([
--        ( "osdep/subprocess-posix.c",            "posix" ),
-         ( "osdep/subprocess-win.c",              "win32-desktop" ),
-         ( "osdep/subprocess-dummy.c" ),
-     ])
-@@ -309,6 +306,7 @@ def build(ctx):
-         ( "audio/out/ao_wasapi.c",               "wasapi" ),
-         ( "audio/out/ao_wasapi_changenotify.c",  "wasapi" ),
-         ( "audio/out/ao_wasapi_utils.c",         "wasapi" ),
-+        ( "audio/out/ao_hos.c",                  "hos-audio" ),
-         ( "audio/out/buffer.c" ),
- 
-         ## Core
-@@ -542,6 +540,10 @@ def build(ctx):
-         ( "video/out/present_sync.c",            "wayland || x11" ),
-         ( "video/out/wldmabuf/context_wldmabuf.c", "dmabuf-wayland" ),
-         ( "video/out/wldmabuf/ra_wldmabuf.c",      "dmabuf-wayland" ),
-+        ( "video/out/deko3d/context.c",          "deko3d" ),
-+        ( "video/out/deko3d/ra_dk.c",            "deko3d" ),
-+        ( "video/out/deko3d/libmpv_dk.c",        "deko3d" ),
-+        ( "video/out/hwdec/hwdec_deko3d.c",      "deko3d" ),
-         ( "video/out/vo.c" ),
-         ( "video/out/vo_caca.c",                 "caca" ),
-         ( "video/out/vo_direct3d.c",             "direct3d" ),
-@@ -621,10 +623,10 @@ def build(ctx):
-         ( "osdep/semaphore_osx.c" ),
-         ( "osdep/subprocess.c" ),
-         ( subprocess_c ),
--        ( "osdep/w32_keyboard.c",                "os-cygwin" ),
-+        ( "osdep/w32_keyboard.c",                "os-cygwin && !hos" ),
-         ( "osdep/w32_keyboard.c",                "os-win32" ),
-         ( "osdep/win32/pthread.c",               "win32-internal-pthreads"),
--        ( "osdep/windows_utils.c",               "os-cygwin" ),
-+        ( "osdep/windows_utils.c",               "os-cygwin && !hos" ),
-         ( "osdep/windows_utils.c",               "os-win32" ),
- 
-         ## tree_allocator
-@@ -779,7 +781,7 @@ def build(ctx):
-         )
- 
-         headers = ["client.h", "render.h",
--                   "render_gl.h", "stream_cb.h"]
-+                   "render_gl.h", "stream_cb.h", "render_dk3d.h"]
-         for f in headers:
-             ctx.install_as(ctx.env.INCLUDEDIR + '/mpv/' + f, 'libmpv/' + f)
  
