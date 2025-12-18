@@ -211,6 +211,8 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PlaybackResult, MediaSources, Pl
 struct Episode : public Season {
     int ParentIndexNumber = 0;
     std::string Overview;
+    std::string ParentThumbImageTag;
+    std::string ParentThumbItemId;
     std::string SeriesName;
     std::string SeriesPrimaryImageTag;
     std::string ParentBackdropItemId;
@@ -218,8 +220,8 @@ struct Episode : public Season {
     std::vector<Source> MediaSources;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Episode, Id, Name, Type, ImageTags, ProductionYear, UserData, Chapters,
-    RunTimeTicks, IndexNumber, ParentIndexNumber, Overview, SeriesId, SeriesName, SeriesPrimaryImageTag,
-    ParentBackdropItemId, ParentBackdropImageTags, MediaSources);
+    RunTimeTicks, IndexNumber, ParentIndexNumber, Overview, ParentThumbImageTag, ParentThumbItemId, SeriesId,
+    SeriesName, SeriesPrimaryImageTag, ParentBackdropItemId, ParentBackdropImageTags, MediaSources);
 
 struct Recommend {
     std::string BaselineItemName;
