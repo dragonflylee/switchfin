@@ -5,10 +5,12 @@
 ### Fixed
 
 * PS4: video freeze after fast fowarding
+* thumb image for episodes on home page
 
 ### Add
 
 * option of ui scale
+* i18n: add spanish localization @Nyaran
 
 ## [0.8.1]
 

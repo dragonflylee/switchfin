@@ -376,6 +376,8 @@ void SettingTab::onCreate() {
             "한국어",
             "Русский",
             "Deutsch",
+            "Français",
+            "Español",
             "Portuguese"
             "Czech",
             "Українська",

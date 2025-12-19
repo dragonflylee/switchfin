@@ -1,0 +1,22 @@
+{
+  "ok": "OK",
+  "back": "atrás",
+  "cancel": "cancelar",
+  "exit": "salir",
+  "on": "encendido",
+  "off": "apagado",
+  "delete": "borrar",
+  "save": "guardar",
+  "submit": "Enviar",
+  "input": "entrar",
+  "preset": "Preestablecido",
+  "default": "Por defecto",
+  "current": "actual",
+  "success": "conseguido",
+  "password": "contraseña",
+  "retry": "reintentar",
+  "exit_hint": "¿Salir de la aplicación?",
+  "loading": "cargando",
+  "refresh": "refrescar",
+  "quit": "Salir"
+}

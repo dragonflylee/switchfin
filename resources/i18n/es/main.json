@@ -1,0 +1,283 @@
+{
+  "tabs": {
+    "home": "Inicio",
+    "genres": "Géneros",
+    "program": "Programas",
+    "suggest": "Sugerencias",
+    "artists": "Artistas",
+    "songs": "Canciones",
+    "search": "Buscar",
+    "dashboard": "Panel de control",
+    "setting": "Ajustes"
+  },
+  "home": {
+    "resume": "Seguir viendo",
+    "nextup": "A continuación",
+    "latest": "Añadido recientemente"
+  },
+  "recommend": {
+    "like": "Porque te gusta {}",
+    "watched": "Porque has visto {}",
+    "directed": "Dirigido por {}",
+    "starring": "Protagonizado por {}"
+  },
+  "about": {
+    "header": "Acerca de",
+    "brief": "Otro cliente de Jellyfin de terceros",
+    "repo_header": "Repositorio"
+  },
+  "dashboard": {
+    "session": "Sesión",
+    "device": "Dispositivo",
+    "activity": "Actividad",
+    "path": "Ruta",
+    "restart": "Reiniciar",
+    "confirm_restart": "¿Estás seguro qué deseas reiniciar Jellyfin?",
+    "scan_all": "Escanear todas las bibliotecas",
+    "within_minute": "Menos de 1 minuto",
+    "minute_ago": "Hace {} minutos",
+    "hour_ago": "Hace {} horas"
+  },
+  "player": {
+    "subtitle": "Subtítulo",
+    "none": "Ninguno",
+    "audio": "Pista de audio",
+    "common": "General",
+    "speed": "Velocidad de reproducción",
+    "quality": "Calidad",
+    "chapter": "Capítulos",
+    "auto": "Automático",
+    "toggle": "Reproducir/Pausa",
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "error": "Error al iniciar la reproducción",
+    "episode": "Episodio",
+    "speed_up": "Velocidad actual {}"
+  },
+  "danmaku": {
+    "header": "Configuración de comentarios",
+    "performance": {
+      "header": "Rendimiento",
+      "render": "Escala de renderizado"
+    },
+    "style": {
+      "header": "Estilo de los comentarios",
+      "font": "Fuente de letra",
+      "font_stroke": "Contorno de fuente",
+      "font_incline": "Inclinación",
+      "font_shadow": "Sombra",
+      "font_pure": "Sólido",
+      "area": "Área de visualización",
+      "area_1_4": "Pantalla 1/4",
+      "area_2_4": "Pantalla 1/2",
+      "area_3_4": "Pantalla 3/4",
+      "area_4_4": "Pantalla completa",
+      "alpha": "Opacidad",
+      "fontsize": "Tamaño de fuente",
+      "line_height": "Altura de línea",
+      "speed": "Velocidad",
+      "speed_slow_plus": "Muy lenta",
+      "speed_slow": "Lenta",
+      "speed_fast_plus": "Muy rápida",
+      "speed_fast": "Rápida",
+      "speed_moderate": "Moderada"
+    }
+  },
+  "media": {
+    "sort": "Ordenar",
+    "sort_by": "Ordenar por",
+    "filter": "Filtrar",
+    "order": "Orden",
+    "ascending": "Ascendente",
+    "descending": "Descendente",
+    "name": "Nombre",
+    "add_favorite": "Añadir a favoritos",
+    "mark_played": "Marcar como reproducido",
+    "mark_unplayed": "Marcar como no reproducido",
+    "play": "Reproducir",
+    "intro": "Introducción",
+    "people": "Reparto y equipo",
+    "similar": "Más como esto",
+    "date_add": "Fecha en que se añadió",
+    "date_played": "Fecha de reproducción",
+    "premiere_date": "Fecha de lanzamiento",
+    "play_count": "Número de reproducciones",
+    "rating": "Calificación",
+    "random": "Aleatorio",
+    "played": "Reproducido",
+    "unplayed": "No reproducido"
+  },
+  "search": {
+    "hint": "Admitir palabras clave y sus letras iniciales",
+    "clear": "Limpiar",
+    "delete": "Eliminar",
+    "paste": "Pegar",
+    "history": "Historial",
+    "suggest": "Sugerencias",
+    "clear_history": "¿Confirmas que deseas eliminar el historial?",
+    "genres": {
+      "movie": "Película",
+      "music": "Música",
+      "series": "Series",
+      "episode": "Episodio"
+    }
+  },
+  "remote": {
+    "local": "Almacenamiento local",
+    "folder": "Carpeta",
+    "up": "Subir"
+  },
+  "setting": {
+    "quit_hint": "Vas a salir de la aplicación. La configuración tendrá efecto tras el próximo arranque",
+    "name": "Nombre",
+    "version": "Versión",
+    "os": "Sistema operativo",
+    "url": "URL",
+    "user": "Usuario",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "server": {
+      "header": "Servidor",
+      "detail": "Detalles del servidor",
+      "connect_new": "Nuevo servidor",
+      "connect_to": "Conectar a un servidor Jellyfin",
+      "invalid": "La URL debe comenzar con http:// o https://",
+      "connect": "Conectar",
+      "delete": "¿Confirmar borrado?",
+      "local": "Servidor local",
+      "users": "{} usuarios",
+      "sigin_to": "Conectar a {}",
+      "signin": "Iniciar sesión"
+    },
+    "playback": {
+      "header": "Reproducción",
+      "bottom_bar": "Mostrar barra de progreso inferior",
+      "low_quality": "Decodificación de baja calidad (menor uso de CPU)",
+      "in_memory_cache": "Caché en memoria",
+      "subs_fallback": "Cargar subtítulos automáticamente",
+      "vo": "Salida de vídeo",
+      "hwdec": "Decodificación por hardware",
+      "force_directplay": "Forzar reproducción directa",
+      "osd_on_toggle": "Mostrar panel OSD al pausar",
+      "touch_gesture": "Gesto táctil para progresión",
+      "clip_point": "Mostrar marca de capítulo",
+      "transcodec": "Codec",
+      "audio_channels": "Canales de audio",
+      "video_quality": "Calidad de vídeo",
+      "subsync": "Sincronización de subtítulos"
+    },
+    "transcode": {
+      "header": "Transcodificación"
+    },
+    "control": {
+      "header": "Control de reproducción",
+      "tv_osd": "Estilo de OSD"
+    },
+    "filter": {
+      "mirror": "Girar vídeo",
+      "hflip": "Espejo horizontal",
+      "vflip": "Espejo vertical",
+      "rotation": "Rotación"
+    },
+    "aspect": {
+      "header": "Aspecto de vídeo",
+      "crop": "Relleno",
+      "stretch": "Estirar",
+      "auto": "Automático"
+    },
+    "equalizer": {
+      "header": "Ecualizador",
+      "brightness": "Brillo",
+      "contrast": "Contraste",
+      "saturation": "Saturación",
+      "gamma": "Gama",
+      "hue": "Tono",
+      "reset": "Restablecer"
+    },
+    "network": {
+      "header": "Configuración de red",
+      "threads": "Número de hilos para cargar imágenes",
+      "timeout": "Tiempo de espera de las peticiones (ms)",
+      "proxy": "Proxy",
+      "host": "Dirección",
+      "port": "Puerto"
+    },
+    "ui": {
+      "header": "Interfaz",
+      "scale": {
+        "header": "Escala de la interfaz (requiere reinicio)",
+        "544p": "544p",
+        "720p": "720p",
+        "900p": "900p",
+        "1080p": "1080p"
+      },
+      "vsync": "Sincronización vertical",
+      "show_fps": "Mostrar FPS"
+    },
+    "tutorial": {
+      "header": "Tutorial",
+      "open": "Como instalar icono de escritorio",
+      "error": "Si encuentras un error",
+      "hot_key": "Teclas de acceso rápido",
+      "font": "Usar fuente de letra personalizada",
+      "error_q1": "Imposible acceder a la red",
+      "error_a1": "1. Asegúrate que atmosphere y el firmware del sistema están actualizados\n2. Confirma que la hora del sistema (incluida la fecha) es correcta\n3. Restaura las opciones de red por defecto, incluyendo IP, DNS, etc",
+      "error_q2": "Cierra con error aleatorio",
+      "error_a2": "1. Usa una memoria en formato Fat32\n2. Asegúrate que atmosphere y el firmware del sistema están actualizados\n3. Espera a que los desarrolladores lo reparen",
+      "font_q1": "Establecer fuente de letra o icono",
+      "font_a1": "1. Descarga la fuente o el icono de letra que quieras utilizar\n2. Renombra la fuente a  font.ttf; Renombra el icono a: icon.ttf\n3. Sitúa los archivos de fuentes en el directorio de configuración\n4. Reinicia la aplicación",
+      "font_q2": "Preguntas frecuentes",
+      "font_a2": "1. Switchfin prioriza mostrar las fuentes personalizadas, usando las integradas en caso de fallo.\n2. \"Ajustes - Tutorial\" ofrece un menú para abrir rápidamente el directorio de configuración",
+      "font_q3": "No se muestran los subtítulos",
+      "font_a3": "Coloca un fichero ttf en {}/subfont.ttf"
+    },
+    "quick_connect": {
+      "header": "Conexión rápida",
+      "code": "Código de conexión rápida",
+      "invalid": "Código de conexión rápida inválido",
+      "success": "Autorización de conexión rápida satisfactoria. Por favor continua en el otro dispositivo.",
+      "steps": "1. Abre la aplicación de Jellyfin en tu teléfono o navegador y conecta con tu cuenta\n2. Abre el menú de usuario y accede a la página de Conexión rápida\n3. Introduce en siguiente código:",
+      "disabled": "Atención: Conexión válida no habilitada"
+    },
+    "others": {
+      "header": "Miscelánea",
+      "fullscreen": "Pantalla completa",
+      "always_on_top": "Siempre visible",
+      "single": "Modo de una instancia",
+      "overclock": "Overclock de CPU",
+      "debug": "Vista de depuración",
+      "sync": "Conservar configuración de ordenación",
+      "theme": {
+        "header": "Tema (requiere reinicio)",
+        "1": "Automático",
+        "2": "Claro",
+        "3": "Oscuro"
+      },
+      "language": {
+        "header": "Idioma (necesita reiniciar)",
+        "auto": "Automático"
+      },
+      "keymap": {
+        "header": "Estilo de mapeo de teclas",
+        "xbox": "Xbox",
+        "ps": "PlayStation",
+        "keyboard": "Teclado"
+      },
+      "config_dir": "Directorio de configuración",
+      "logout": "Desconectar cuenta actual (la aplicación se cerrará)",
+      "up2date": "La aplicación está actualizada",
+      "upgrade": "¡{} está ahora disponible! ¿Listo para actualizar?",
+      "updating": "Actualización en curso, ¿cancelar ahora?",
+      "release": "Buscar actualizaciones"
+    }
+  },
+  "hints": {
+    "hint1": "Selecciona un juego de la pantalla de inicio",
+    "hint2": "Mantén pulsada la tecla  y pulsa en  para acceder a hbmenu",
+    "hint3": "En hbmenu, selecciona Switchfin",
+    "hint4": "Opcional: Usar NSP forwarder de Switchfin incluido",
+    "hint_nsp": "Pulsa  para instalar el NSP forwarder",
+    "hint_confirm": "Instalar el NSP forwarder puede resultar en un baneo\nPor favor confirma de nuevo",
+    "hint_right": "Las capturas proceden de Internet, y el copyright pertenece a Nintendo Co., Ltd"
+  }
+}

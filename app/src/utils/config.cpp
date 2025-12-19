@@ -66,9 +66,9 @@ namespace fs = std::experimental::filesystem;
 
 std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {APP_THEME, {"app_theme", {"auto", "light", "dark"}}},
-    {APP_LANG, {"app_lang",
-                   {brls::LOCALE_AUTO, brls::LOCALE_EN_US, brls::LOCALE_ZH_HANS, brls::LOCALE_ZH_HANT, brls::LOCALE_JA,
-                       brls::LOCALE_Ko, brls::LOCALE_RU, brls::LOCALE_DE, brls::LOCALE_PT_BR, "cs", "uk-UA", "vi_VN"}}},
+    {APP_LANG, {"app_lang", {brls::LOCALE_AUTO, brls::LOCALE_EN_US, brls::LOCALE_ZH_HANS, brls::LOCALE_ZH_HANT,
+                                brls::LOCALE_JA, brls::LOCALE_Ko, brls::LOCALE_RU, brls::LOCALE_DE, brls::LOCALE_FR,
+                                brls::LOCALE_ES, brls::LOCALE_PT_BR, "cs", "uk-UA", "vi_VN"}}},
     {APP_UPDATE, {"app_update"}},
     {APP_UI_SCALE, {"app_ui_scale", {"544p", "720p", "900p", "1080p"}}},
     {AUDIO_CHANNELS, {"audio-channels", {"auto-safe", "stereo", "mono"}}},

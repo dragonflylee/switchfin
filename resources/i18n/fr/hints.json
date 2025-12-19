@@ -1,0 +1,22 @@
+{
+  "ok": "Valider",
+  "back": "Retour",
+  "cancel": "Annuler",
+  "exit": "Quitter",
+  "on": "Ouvrir",
+  "off": "Fermer",
+  "delete": "Supprimer",
+  "save": "Sauvegarder",
+  "submit": "Soumettre",
+  "input": "Veuillez entrer...",
+  "preset": "Préréglé",
+  "default": "Par défaut",
+  "current": "Actuel",
+  "success": "Succès",
+  "password": "Afficher/Cacher",
+  "retry": "Réessayer",
+  "exit_hint": "Quitter l'application ?",
+  "loading": "Chargement en cours",
+  "refresh": "Rafraîchir",
+  "quit": "Quitte l'application..."
+}
