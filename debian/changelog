@@ -1,3 +1,11 @@
+switchfin (0.8.2-1) unstable; urgency=medium
+
+  * fix thumb image for episodes on home page
+  * add spanish/french localization
+  * add option of ui scale
+ 
+ -- dragonflylee <dragonflylee@outlook.com>  Fri, 19 Dec 2025 16:10:00 +0800
+
 switchfin (0.8.1-1) unstable; urgency=medium
 
   * stability improvement

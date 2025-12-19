@@ -1,11 +1,12 @@
 # Changelog
 
-## [next]
+## [0.8.2]
 
 ### Fixed
 
 * PS4: video freeze after fast fowarding
 * thumb image for episodes on home page
+* add refresh support for dashboard
 
 ### Add
 
