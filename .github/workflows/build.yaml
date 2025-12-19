@@ -38,13 +38,12 @@ on:
         description: disable builtin NSP
         type: boolean
 
-permissions:
-  contents: write
-
 jobs:
   upload-release:
     needs: [ build-mingw, build-nx, build-macos, build-flatpak, build-aur, build-ps4, build-vita, build-android ]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     if: startsWith(github.ref, 'refs/tags/')
     steps:
     - name: Download Assets

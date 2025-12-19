@@ -45,7 +45,6 @@ bool ServerAdd::onConnect() {
             AppServer s = {
                 .name = info.ServerName,
                 .id = info.Id,
-                .version = info.Version,
                 .urls = {baseUrl},
             };
             brls::sync([ASYNC_TOKEN, s]() {

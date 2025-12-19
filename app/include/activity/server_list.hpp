@@ -28,7 +28,6 @@ private:
     BRLS_BIND(brls::Box, sidebarServers, "server/sidebar");
     BRLS_BIND(brls::Box, serverDetail, "server/detail");
     BRLS_BIND(RecyclingGrid, recyclerUsers, "user/recycler");
-    BRLS_BIND(brls::DetailCell, serverVersion, "server/version");
     BRLS_BIND(brls::DetailCell, inputUrl, "selector/server/urls");
     BRLS_BIND(brls::Button, btnSignin, "btn/server/signin");
     BRLS_BIND(AutoTabFrame, tabFrame, "server/tabFrame");

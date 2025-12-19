@@ -4,6 +4,7 @@
 #include "utils/image.hpp"
 #include "utils/misc.hpp"
 #include "utils/dialog.hpp"
+#include "utils/keybind.hpp"
 #include "api/jellyfin.hpp"
 
 using namespace brls::literals;  // for _i18n
@@ -146,6 +147,14 @@ public:
         this->estimatedRowSpace = 5;
         this->estimatedRowHeight = 60;
         this->doUsers();
+
+        auto doRefresh = [this](...) {
+            this->showSkeleton();
+            this->doDevices();
+            return true;
+        };
+        this->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, doRefresh);
+        this->registerAction(KeyBind::getRefresh(), doRefresh);
     }
 
     void doDevices() {
@@ -246,6 +255,15 @@ public:
         this->estimatedRowHeight = 60;
         this->onNextPage([this]() { this->doActivityLog(); });
         this->doActivityLog();
+
+        auto doRefresh = [this](...) {
+            this->start = 0;
+            this->showSkeleton();
+            this->doActivityLog();
+            return true;
+        };
+        this->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, doRefresh);
+        this->registerAction(KeyBind::getRefresh(), doRefresh);
     }
 
     void doActivityLog() {
@@ -416,6 +434,16 @@ Dashboard::Dashboard() {
     } else {
         this->doItemCount();
     }
+
+    auto doRefresh = [this](...) {
+        this->sess->showSkeleton();
+        this->activity->showSkeleton();
+        this->doSession();
+        this->doActivityWarn();
+        return true;
+    };
+    this->mainBox->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, doRefresh);
+    this->mainBox->registerAction(KeyBind::getRefresh(), doRefresh);
 
     this->doSystemInfo();
     this->doActivityWarn();

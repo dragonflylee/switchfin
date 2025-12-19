@@ -205,7 +205,6 @@ void ServerList::willAppear(bool resetState) {
 }
 
 void ServerList::onServer(const AppServer& s) {
-    this->serverVersion->setDetailText(s.version.empty() ? "-" : s.version);
     this->inputUrl->setDetailText(s.urls.front());
     this->inputUrl->registerAction("hints/preset"_i18n, brls::BUTTON_X, [this, s](...) {
         return brls::Application::getImeManager()->openForText(

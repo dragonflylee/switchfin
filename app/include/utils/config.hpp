@@ -33,10 +33,9 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AppUser, id, name, access_token, server_id);
 struct AppServer {
     std::string name;
     std::string id;
-    std::string version;
     std::vector<std::string> urls;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(AppServer, id, name, version, urls);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(AppServer, id, name, urls);
 
 struct AppRemote {
     std::string name;

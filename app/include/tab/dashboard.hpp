@@ -25,6 +25,7 @@ private:
     BRLS_BIND(RecyclingGrid, activity, "dashboard/activity");
     BRLS_BIND(RecyclingGrid, sess, "dashboard/session");
     BRLS_BIND(HRecyclerFrame, itemCount, "dashboard/count");
+    BRLS_BIND(brls::Box, mainBox, "dashboard/main/box");
     BRLS_BIND(brls::Box, storage, "dashboard/storage/box");
 
     std::unordered_map<std::string, std::string> taskMap;

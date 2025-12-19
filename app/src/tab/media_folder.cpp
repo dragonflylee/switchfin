@@ -110,16 +110,13 @@ MediaFolders::~MediaFolders() { brls::Logger::debug("MediaFolders: deleted"); }
 brls::View* MediaFolders::create() { return new MediaFolders(); }
 
 void MediaFolders::onCreate() {
-    this->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, [this](...) {
+    auto doRefresh = [this](...) {
         this->recycler->showSkeleton();
         this->doRequest();
         return true;
-    });
-    this->registerAction(KeyBind::getRefresh(), [this](...) {
-        this->recycler->showSkeleton();
-        this->doRequest();
-        return true;
-    });
+    };
+    this->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, doRefresh);
+    this->registerAction(KeyBind::getRefresh(), doRefresh);
 
     this->doRequest();
 }

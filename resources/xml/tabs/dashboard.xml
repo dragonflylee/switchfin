@@ -17,6 +17,7 @@
             <brls:Box>
                 <brls:Box
                     grow="1"
+                    id="dashboard/main/box"
                     axis="column">
 
                     <brls:Box

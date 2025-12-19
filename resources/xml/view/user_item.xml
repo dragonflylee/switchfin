@@ -19,7 +19,6 @@
 
     <brls:Box
         axis="column"
-        height="50px"
         alignItems="center">
         <brls:Label
             wireframe="false"

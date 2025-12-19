@@ -78,11 +78,6 @@
                                 title="@i18n/main/setting/url"
                                 id="selector/server/urls" />
 
-                            <brls:DetailCell
-                                title="@i18n/main/setting/version"
-                                focusable="false"
-                                id="server/version" />
-
                         </brls:Box>
 
                         <brls:Box
