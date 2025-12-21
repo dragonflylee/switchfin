@@ -39,7 +39,7 @@
     "hour_ago": "Hace {} horas"
   },
   "player": {
-    "subtitle": "Subtítulo",
+    "subtitle": "Subtítulos",
     "none": "Ninguno",
     "audio": "Pista de audio",
     "common": "General",
@@ -180,8 +180,8 @@
       "rotation": "Rotación"
     },
     "aspect": {
-      "header": "Aspecto de vídeo",
-      "crop": "Relleno",
+      "header": "Relación de aspecto",
+      "crop": "Rellenar",
       "stretch": "Estirar",
       "auto": "Automático"
     },
