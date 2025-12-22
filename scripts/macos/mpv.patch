@@ -1,83 +1,94 @@
 diff --git a/input/input.c b/input/input.c
-index cffe8ccca8..a6734f9bb1 100644
+index 412c6db319..b6da4e584d 100644
 --- a/input/input.c
 +++ b/input/input.c
-@@ -1526,7 +1526,7 @@ static void reload_opts(struct input_ctx *ictx, bool shutdown)
+@@ -1700,7 +1700,7 @@ static void reload_opts(struct input_ctx *ictx, bool shutdown)
  {
      m_config_cache_update(ictx->opts_cache);
  
 -#if HAVE_COCOA
-+#if HAVE_SWIFT
++#if HAVE_COCOA && HAVE_SWIFT
      struct input_opts *opts = ictx->opts;
  
      if (ictx->using_cocoa_media_keys != (opts->use_media_keys && !shutdown)) {
 diff --git a/meson.build b/meson.build
-index 7572769e0e..3eee192d5b 100644
+index fb10be5078..4f620168e1 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -413,9 +413,7 @@ if features['cocoa']
+@@ -416,8 +416,7 @@ if features['cocoa']
+     path_source += files('osdep/path-mac.m')
      sources += files('osdep/language-mac.c',
-                      'osdep/path-mac.m',
                       'osdep/utils-mac.c',
 -                     'osdep/mac/app_bridge.m',
 -                     'player/clipboard/clipboard-mac.m')
--    main_fn_source = files('osdep/main-fn-mac.c')
 +                     'osdep/mac/app_bridge.m')
+     main_fn_source = files('osdep/main-fn-mac.c')
  endif
  
- if posix
-@@ -1575,7 +1573,9 @@ if features['cocoa'] and features['swift']
+@@ -1599,7 +1598,8 @@ if features['cocoa'] and features['swift']
                             'video/out/mac/common.swift',
                             'video/out/mac/title_bar.swift',
                             'video/out/mac/view.swift',
 -                           'video/out/mac/window.swift')
 +                           'video/out/mac/window.swift',
 +                           'player/clipboard/clipboard-mac.m')
-+    main_fn_source = files('osdep/main-fn-mac.c')
  endif
  
  macos_10_15_4_features = get_option('macos-10-15-4-features').require(
 diff --git a/player/clipboard/clipboard.c b/player/clipboard/clipboard.c
-index c9456ad7fb..9e35da9c7c 100644
+index 9a21ff6ddd..f7d425e76a 100644
 --- a/player/clipboard/clipboard.c
 +++ b/player/clipboard/clipboard.c
-@@ -37,7 +37,7 @@ static const struct clipboard_backend *const clipboard_backend_list[] = {
+@@ -39,7 +39,7 @@ static const struct clipboard_backend *const clipboard_backend_list[] = {
  #if HAVE_WIN32_DESKTOP
      &clipboard_backend_win32,
  #endif
 -#if HAVE_COCOA
-+#if HAVE_SWIFT
++#if HAVE_COCOA && HAVE_SWIFT
      &clipboard_backend_mac,
  #endif
- #if HAVE_WAYLAND_PROTOCOLS_1_39
+ #if HAVE_WAYLAND && HAVE_WAYLAND_PROTOCOLS_1_39
 diff --git a/player/main.c b/player/main.c
-index 8898ed0305..701af79bb6 100644
+index 37eb6b18f5..c7edac7723 100644
 --- a/player/main.c
 +++ b/player/main.c
-@@ -188,7 +188,7 @@ void mp_destroy(struct MPContext *mpctx)
+@@ -192,7 +192,7 @@ void mp_destroy(struct MPContext *mpctx)
  
      osd_free(mpctx->osd);
  
 -#if HAVE_COCOA
-+#if HAVE_SWIFT
++#if HAVE_COCOA && HAVE_SWIFT
      cocoa_set_input_context(NULL);
  #endif
  
-@@ -311,7 +311,7 @@ struct MPContext *mp_create(void)
+@@ -314,7 +314,7 @@ struct MPContext *mp_create(void)
      mp_clients_init(mpctx);
      mpctx->osd = osd_create(mpctx->global);
  
 -#if HAVE_COCOA
-+#if HAVE_SWIFT
++#if HAVE_COCOA && HAVE_SWIFT
      cocoa_set_input_context(mpctx->input);
  #endif
  
-@@ -401,7 +401,7 @@ int mp_initialize(struct MPContext *mpctx, char **options)
+@@ -409,7 +409,7 @@ int mp_initialize(struct MPContext *mpctx, char **options)
  
      MP_STATS(mpctx, "start init");
  
 -#if HAVE_COCOA
-+#if HAVE_SWIFT
++#if HAVE_COCOA && HAVE_SWIFT
      mpv_handle *ctx = mp_new_client(mpctx->clients, "mac");
      cocoa_set_mpv_handle(ctx);
  #endif
+diff --git a/video/out/vo_libmpv.c b/video/out/vo_libmpv.c
+index a91016df4f..b5cdee4333 100644
+--- a/video/out/vo_libmpv.c
++++ b/video/out/vo_libmpv.c
+@@ -710,7 +710,7 @@ static void uninit(struct vo *vo)
+ 
+ static int preinit(struct vo *vo)
+ {
+-#if HAVE_MACOS_COCOA_CB
++#if HAVE_MACOS_COCOA_CB && HAVE_SWIFT
+     cocoa_init_cocoa_cb();
+ #else
+     if (vo->probing)

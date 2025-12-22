@@ -45,10 +45,9 @@ download:
 	wget -qO- https://github.com/libass/libass/releases/download/0.17.4/libass-0.17.4.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.5.2/dav1d-1.5.2.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://ffmpeg.org/releases/ffmpeg-8.0.1.tar.xz | tar Jxf - -C $(TMPDIR)
-	wget -qO- https://github.com/mpv-player/mpv/archive/v0.40.0.tar.gz | tar zxf - -C $(TMPDIR)
+	wget -qO- https://github.com/mpv-player/mpv/archive/v0.41.0.tar.gz | tar zxf - -C $(TMPDIR)
 	git clone https://github.com/haasn/libplacebo.git -b v7.351.0 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
 	patch -d $(TMPDIR)/libwebp-1.6.0 -Nbp1 -i $(PWD)/scripts/mingw64/libwebp/0001-mingw-cmake-output.patch
-	curl -sSL https://github.com/mpv-player/mpv/commit/26b29fba.patch | patch -d $(TMPDIR)/mpv-0.40.0 -Nbp1 -i -
 
 SDL2:
 	cmake -B build/SDL2 -S $(TMPDIR)/SDL2-2.32.10 -G Ninja -DCMAKE_BUILD_TYPE=Release \
@@ -143,9 +142,10 @@ libplacebo:
 	meson install -C build/libplacebo --destdir $(PREFIX)
 
 mpv: SDL2 ffmpeg libplacebo
-	meson setup build/mpv $(TMPDIR)/mpv-0.40.0 \
+	meson setup build/mpv $(TMPDIR)/mpv-0.41.0 \
 		--cross-file "$(CURDIR)/$(ABI).meson" --default-library=shared \
-		-Dlibmpv=true -Dcplayer=false -Dtests=false -Dsdl2=enabled -Diconv=disabled \
-		-Dmanpage-build=disabled -Dlibarchive=disabled -Dlua=disabled
+		-Dlibmpv=true -Dcplayer=false -Dtests=false -Diconv=disabled \
+		-Dsdl2-audio=enabled -Dsdl2-video=enabled -Dlua=disabled \
+		-Dmanpage-build=disabled -Dlibarchive=disabled 
 	meson compile -C build/mpv
 	meson install -C build/mpv --destdir $(PREFIX)

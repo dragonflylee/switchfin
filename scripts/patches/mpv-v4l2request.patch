@@ -1,37 +1,15 @@
-diff --git a/demux/demux_mkv.c b/demux/demux_mkv.c
-index 135edcc23d..cc7ce3e98f 100644
---- a/demux/demux_mkv.c
-+++ b/demux/demux_mkv.c
-@@ -2200,16 +2200,16 @@ static int demux_mkv_open_sub(demuxer_t *demuxer, mkv_track_t *track)
-             // [0x30..0x37] are component tags utilized for
-             // non-mobile captioning service ("profile A").
-             if (component_tag >= 0x30 && component_tag <= 0x37)
--                lav->profile = FF_PROFILE_ARIB_PROFILE_A;
-+                lav->profile = AV_PROFILE_ARIB_PROFILE_A;
-             break;
-         case 0x0012:
-             // component tag 0x87 signifies a mobile/partial reception
-             // (1seg) captioning service ("profile C").
-             if (component_tag == 0x87)
--                lav->profile = FF_PROFILE_ARIB_PROFILE_C;
-+                lav->profile = AV_PROFILE_ARIB_PROFILE_C;
-             break;
-         }
--        if (lav->profile == FF_PROFILE_UNKNOWN)
-+        if (lav->profile == AV_PROFILE_UNKNOWN)
-             MP_WARN(demuxer, "ARIB caption profile %02x / %04x not supported.\n",
-                     component_tag, data_component_id);
-     }
 diff --git a/meson.build b/meson.build
-index 7572769e0e..46c69ea025 100644
+index e37564b034..68b5c0899d 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -1411,6 +1411,14 @@ if features['ios-gl']
+@@ -1430,6 +1430,16 @@ if features['ios-gl']
      sources += files('video/out/hwdec/hwdec_ios_gl.m')
  endif
  
 +v4l2request = get_option('v4l2request').require(
-+    cc.has_header_symbol('libavutil/hwcontext.h', 'AV_HWDEVICE_TYPE_V4L2REQUEST')
++    cc.has_header_symbol('libavutil/hwcontext.h',
++                         'AV_HWDEVICE_TYPE_V4L2REQUEST',
++                         dependencies: libavutil)
 +)
 +features += {'v4l2request': v4l2request.allowed()}
 +if features['v4l2request']
@@ -41,7 +19,7 @@ index 7572769e0e..46c69ea025 100644
  libva = dependency('libva', version: '>= 1.1.0', required: get_option('vaapi'))
  
  vaapi_drm = dependency('libva-drm', version: '>= 1.1.0', required:
-@@ -1868,6 +1876,7 @@ summary({'d3d11': features['d3d11'],
+@@ -1901,6 +1911,7 @@ summary({'cocoa': features['cocoa'] and features['swift'],
           'libmpv': get_option('libmpv'),
           'lua': features['lua'],
           'opengl': features['gl'],
@@ -50,10 +28,10 @@ index 7572769e0e..46c69ea025 100644
           'wayland': features['wayland'],
           'x11': features['x11']},
 diff --git a/meson.options b/meson.options
-index dae0a333ef..3dba7a1451 100644
+index 52782f73d6..a793115400 100644
 --- a/meson.options
 +++ b/meson.options
-@@ -99,6 +99,7 @@ option('d3d-hwaccel', type: 'feature', value: 'auto', description: 'D3D11VA hwac
+@@ -101,6 +101,7 @@ option('d3d-hwaccel', type: 'feature', value: 'auto', description: 'D3D11VA hwac
  option('d3d9-hwaccel', type: 'feature', value: 'auto', description: 'DXVA2 hwaccel')
  option('gl-dxinterop-d3d9', type: 'feature', value: 'auto', description: 'OpenGL/DirectX DXVA2 hwaccel')
  option('ios-gl', type: 'feature', value: 'auto', description: 'iOS OpenGL ES interop support')
@@ -76,10 +54,10 @@ index deba518e82..de2ffecc40 100644
      &hwcontext_fns_vaapi,
  #endif
 diff --git a/video/hwdec.h b/video/hwdec.h
-index c83d20783d..ad74fb9f0d 100644
+index e7734e5d7e..bf337389cb 100644
 --- a/video/hwdec.h
 +++ b/video/hwdec.h
-@@ -121,6 +121,7 @@ extern const struct hwcontext_fns hwcontext_fns_cuda;
+@@ -119,6 +119,7 @@ extern const struct hwcontext_fns hwcontext_fns_cuda;
  extern const struct hwcontext_fns hwcontext_fns_d3d11;
  extern const struct hwcontext_fns hwcontext_fns_drmprime;
  extern const struct hwcontext_fns hwcontext_fns_dxva2;
@@ -417,29 +395,17 @@ index 61514f8e89..689e9b04e5 100644
  };
 +#endif
 diff --git a/video/out/vo_dmabuf_wayland.c b/video/out/vo_dmabuf_wayland.c
-index 70614c82a6..c1aa81bcce 100644
+index 6b7c511d9a..df97cd57f4 100644
 --- a/video/out/vo_dmabuf_wayland.c
 +++ b/video/out/vo_dmabuf_wayland.c
-@@ -837,13 +837,12 @@ static int preinit(struct vo *vo)
-         }
-     }
+@@ -860,6 +860,7 @@ static int preinit(struct vo *vo)
+     // Initialize all possible hwdec drivers.
+     ra_hwdec_ctx_init(&p->hwdec_ctx, vo->hwdec_devs, "vaapi", false);
+     ra_hwdec_ctx_init(&p->hwdec_ctx, vo->hwdec_devs, "drmprime", false);
++    ra_hwdec_ctx_init(&p->hwdec_ctx, vo->hwdec_devs, "v4l2request", false);
  
--    for (int i = 0; i < p->hwdec_ctx.num_hwdecs; i++) {
--        struct ra_hwdec *hw = p->hwdec_ctx.hwdecs[i];
--        if (ra_get_native_resource(p->ctx->ra, "VADisplay")) {
--            p->hwdec_type = HWDEC_VAAPI;
--        } else if (strcmp(hw->driver->name, "drmprime") == 0) {
--            p->hwdec_type = HWDEC_DRMPRIME;
--        }
-+    // TODO: Handle the possibility of multiple loaded hwdecs that support
-+    // different image formats.
-+    if (ra_get_native_resource(p->ctx->ra, "VADisplay")) {
-+        p->hwdec_type = HWDEC_VAAPI;
-+    } else {
-+        p->hwdec_type = HWDEC_DRMPRIME;
-     }
- 
-     if (p->hwdec_type == HWDEC_NONE) {
+     p->src = (struct mp_rect){0, 0, 0, 0};
+     return 0;
 diff --git a/video/v4l2request.c b/video/v4l2request.c
 new file mode 100644
 index 0000000000..2aa4d14fea

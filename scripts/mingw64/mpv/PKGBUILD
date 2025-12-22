@@ -4,7 +4,7 @@
 _realname=mpv
 pkgbase="mingw-w64-${_realname}"
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=0.40.0
+pkgver=0.41.0
 pkgrel=1
 pkgdesc="Video player based on MPlayer/mplayer2 (mingw-w64)"
 url="https://mpv.io/"
@@ -27,14 +27,13 @@ makedepends=(
 options=('strip')
 source=(
   "${_realname}-${pkgver}.tar.gz"::"https://github.com/mpv-player/${_realname}/archive/v${pkgver}.tar.gz"
-  "0001-d3d11-render.patch" "https://github.com/mpv-player/mpv/commit/26b29fba.patch"
+  "0001-d3d11-render.patch"
 )
-sha256sums=('10a0f4654f62140a6dd4d380dcf0bbdbdcf6e697556863dc499c296182f081a3' 'SKIP' 'SKIP')
+sha256sums=('ee21092a5ee427353392360929dc64645c54479aefdb5babc5cfbb5fad626209' 'SKIP')
 
 prepare() {
   cd "${srcdir}/${_realname}-${pkgver}"
   patch -Nbp1 -i "${srcdir}/0001-d3d11-render.patch"
-  patch -Nbp1 -i "${srcdir}/26b29fba.patch"
 }
 
 build() {

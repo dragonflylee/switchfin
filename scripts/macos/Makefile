@@ -29,10 +29,9 @@ download:
 	curl --retry 5 -sSL https://github.com/libass/libass/releases/download/0.17.4/libass-0.17.4.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://downloads.videolan.org/pub/videolan/dav1d/1.5.2/dav1d-1.5.2.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://ffmpeg.org/releases/ffmpeg-8.0.1.tar.xz | tar Jxf - -C $(TMPDIR)
-	curl --retry 5 -sSL https://github.com/mpv-player/mpv/archive/v0.40.0.tar.gz | tar zxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://github.com/mpv-player/mpv/archive/v0.41.0.tar.gz | tar zxf - -C $(TMPDIR)
 	git clone https://github.com/haasn/libplacebo.git -b v7.351.0 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
-	patch -d $(TMPDIR)/mpv-0.40.0 -Nbp1 -i $(CURDIR)/mpv.patch
-	curl -sSL https://github.com/mpv-player/mpv/commit/26b29fba.patch | patch -d $(TMPDIR)/mpv-0.40.0 -Nbp1 -i -
+	patch -d $(TMPDIR)/mpv-0.41.0 -Nbp1 -i $(CURDIR)/mpv.patch
 
 curl:
 	cmake -B build/curl -S $(TMPDIR)/curl-8.16.0 -G Ninja -DCMAKE_BUILD_TYPE=Release \
@@ -136,7 +135,7 @@ libplacebo:
 	meson install -C build/libplacebo
 
 mpv: ffmpeg libplacebo
-	meson setup build/mpv $(TMPDIR)/mpv-0.40.0 --default-library=shared \
+	meson setup build/mpv $(TMPDIR)/mpv-0.41.0 --default-library=shared \
 		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX) -Dtests=false \
 		-Dlibmpv=true -Dcplayer=false -Dswift-build=disabled -Dlua=disabled \
 		-Dmacos-cocoa-cb=disabled -Dmacos-media-player=disabled -Dmacos-touchbar=disabled \

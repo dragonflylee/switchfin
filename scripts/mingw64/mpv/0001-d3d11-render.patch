@@ -47,10 +47,10 @@ index 0000000000..5614cc99d9
 +#endif
 +#endif // MPV_CLIENT_API_RENDER_DXGI_H_
 diff --git a/meson.build b/meson.build
-index 7572769e0e..b02a7ce458 100644
+index fb10be5078..d31b5e875f 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -319,7 +319,7 @@ features += {'darwin': darwin}
+@@ -320,7 +320,7 @@ features += {'darwin': darwin}
  features += {'posix': posix}
  features += {'dos-paths': win32, 'win32': win32}
  
@@ -59,7 +59,7 @@ index 7572769e0e..b02a7ce458 100644
                 '-DCOBJMACROS', '-DINITGUID', '-DNOMINMAX',
                 '-D_USE_MATH_DEFINES', '-DWIN32_LEAN_AND_MEAN',
                 '-D_CRT_DECLARE_NONSTDC_NAMES', '-D_CRT_NONSTDC_NO_WARNINGS',
-@@ -500,7 +500,6 @@ if features['win32-desktop']
+@@ -503,7 +503,6 @@ if features['win32-desktop']
                            cc.find_library('imm32'),
                            cc.find_library('ntdll'),
                            cc.find_library('ole32'),
@@ -67,17 +67,32 @@ index 7572769e0e..b02a7ce458 100644
                            cc.find_library('shcore'),
                            cc.find_library('user32'),
                            cc.find_library('uuid'),
-@@ -1004,7 +1003,8 @@ d3d11 = get_option('d3d11').require(
+@@ -516,11 +515,13 @@ if features['win32-desktop']
+     else
+         sources += files('osdep/subprocess-dummy.c')
+     endif
++    if features['win32-executable']
++        sources += files('osdep/w32_register.c')
++    endif
+     sources += files('input/ipc-win.c',
+                      'player/clipboard/clipboard-win.c',
+                      'osdep/language-win.c',
+                      'osdep/terminal-win.c',
+-                     'osdep/w32_register.c',
+                      'video/out/w32_common.c',
+                      'video/out/win32/displayconfig.c',
+                      'video/out/win32/droptarget.c',
+@@ -1029,7 +1030,8 @@ d3d11 = get_option('d3d11').require(
  features += {'d3d11': d3d11.allowed()}
  if features['d3d11']
      sources += files('video/out/d3d11/context.c',
 -                     'video/out/d3d11/ra_d3d11.c')
 +                     'video/out/d3d11/ra_d3d11.c',
 +                     'video/out/d3d11/libmpv_d3d11.c')
-     features += {'dxgi-debug-d3d11': cc.has_header_symbol('d3d11sdklayers.h', 'DXGI_DEBUG_D3D11')}
  endif
  
-@@ -1777,6 +1777,9 @@ if get_option('libmpv')
+ wayland = {
+@@ -1797,6 +1799,9 @@ if get_option('libmpv')
  
      headers = ['include/mpv/client.h', 'include/mpv/render.h',
                 'include/mpv/render_gl.h', 'include/mpv/stream_cb.h']
@@ -87,23 +102,8 @@ index 7572769e0e..b02a7ce458 100644
      install_headers(headers, subdir: 'mpv')
  
      # Allow projects to build with libmpv by cloning into ./subprojects/mpv
-diff --git a/misc/language.c b/misc/language.c
-index d7cdffebd3..b00b2ada49 100644
---- a/misc/language.c
-+++ b/misc/language.c
-@@ -26,8 +26,8 @@
- #define L(s) { #s, sizeof(#s) - 1 }
- 
- static const struct lang {
--    struct { const char s[3]; uint8_t l; } match;
--    struct { const char s[3]; uint8_t l; } canonical;
-+    struct { const char s[3] MP_NONSTRING; uint8_t l; } match;
-+    struct { const char s[3] MP_NONSTRING; uint8_t l; } canonical;
- } langmap[] = {
-     {L(aa), L(aar)},
-     {L(ab), L(abk)},
 diff --git a/misc/path_utils.c b/misc/path_utils.c
-index 8e4ac6c22a..fc8bfc9a49 100644
+index af56162aa6..dcb04c3fb2 100644
 --- a/misc/path_utils.c
 +++ b/misc/path_utils.c
 @@ -34,7 +34,7 @@
@@ -133,27 +133,33 @@ index 8e4ac6c22a..fc8bfc9a49 100644
  #else
      char *result = talloc_strdup(tmp, "");
      const char *next;
-diff --git a/osdep/compiler.h b/osdep/compiler.h
-index cb04fed81f..fec54226a1 100644
---- a/osdep/compiler.h
-+++ b/osdep/compiler.h
-@@ -22,6 +22,16 @@
- #define MP_UNUSED
- #endif
+diff --git a/options/options.c b/options/options.c
+index 716c3e6f10..7202deb625 100644
+--- a/options/options.c
++++ b/options/options.c
+@@ -531,7 +531,9 @@ static const m_option_t mp_opts[] = {
+     {"msg-module", OPT_BOOL(msg_module), .flags = UPDATE_TERM},
+     {"msg-time", OPT_BOOL(msg_time), .flags = UPDATE_TERM},
+ #if HAVE_WIN32_DESKTOP
++#if HAVE_WIN32_EXECUTABLE
+     {"", OPT_SUBSTRUCT(w32_register_opts, w32_register_conf)},
++#endif
+     {"priority", OPT_CHOICE(w32_priority,
+         {"no",          0},
+         {"realtime",    REALTIME_PRIORITY_CLASS},
+diff --git a/player/main.c b/player/main.c
+index 37eb6b18f5..09ad005f3e 100644
+--- a/player/main.c
++++ b/player/main.c
+@@ -391,7 +391,7 @@ int mp_initialize(struct MPContext *mpctx, char **options)
+     if (handle_help_options(mpctx))
+         return 1; // help
  
-+#ifndef __has_attribute
-+#define __has_attribute(x) 0
-+#endif
-+
-+#if __has_attribute(nonstring)
-+#define MP_NONSTRING __attribute__((nonstring))
-+#else
-+#define MP_NONSTRING
-+#endif
-+
- #if defined(__GNUC__) || defined(__clang__)
- #define PRINTF_ATTRIBUTE(a1, a2) __attribute__((format(printf, a1, a2)))
- #define SCANF_ATTRIBUTE(a1, a2) __attribute__((format(scanf, a1, a2)))
+-#if HAVE_WIN32_DESKTOP
++#if HAVE_WIN32_EXECUTABLE
+     if (mp_w32_handle_register(mpctx))
+         return 1; // register/unregister
+ #endif
 diff --git a/video/out/d3d11/libmpv_d3d11.c b/video/out/d3d11/libmpv_d3d11.c
 new file mode 100644
 index 0000000000..a7d26e3837
@@ -252,18 +258,9 @@ index 0000000000..a7d26e3837
 +};
 \ No newline at end of file
 diff --git a/video/out/d3d11/ra_d3d11.c b/video/out/d3d11/ra_d3d11.c
-index e36c9eee19..77b1546011 100644
+index 066278df43..b88c5f60bd 100644
 --- a/video/out/d3d11/ra_d3d11.c
 +++ b/video/out/d3d11/ra_d3d11.c
-@@ -1500,7 +1500,7 @@ static size_t vbuf_upload(struct ra *ra, void *data, size_t size)
-     return offset;
- }
- 
--static const char cache_magic[4] = "RD11";
-+static const char cache_magic[4] MP_NONSTRING = "RD11";
- static const uint32_t cache_version = 4;
- 
- struct cache_header {
 @@ -2233,13 +2233,6 @@ static void destroy(struct ra *ra)
      SAFE_RELEASE(p->ctx1);
      SAFE_RELEASE(p->dev1);
@@ -279,7 +276,7 @@ index e36c9eee19..77b1546011 100644
  
      if (p->debug) {
 diff --git a/video/out/gpu/libmpv_gpu.c b/video/out/gpu/libmpv_gpu.c
-index 6c812f90b3..e41b2ac252 100644
+index 1b13c79632..abeef947b6 100644
 --- a/video/out/gpu/libmpv_gpu.c
 +++ b/video/out/gpu/libmpv_gpu.c
 @@ -6,6 +6,9 @@
@@ -301,22 +298,8 @@ index 497dcc3f69..fad1a00c0a 100644
  
  extern const struct libmpv_gpu_context_fns libmpv_gpu_context_gl;
 +extern const struct libmpv_gpu_context_fns libmpv_gpu_context_d3d11;
-diff --git a/video/out/opengl/common.h b/video/out/opengl/common.h
-index a6b02c9366..b79fd4c531 100644
---- a/video/out/opengl/common.h
-+++ b/video/out/opengl/common.h
-@@ -37,6 +37,9 @@
- #include <windows.h>
- #endif
- 
-+// Collision with <winnt.h>
-+#undef MemoryBarrier
-+
- struct GL;
- typedef struct GL GL;
- 
 diff --git a/video/out/w32_common.c b/video/out/w32_common.c
-index 26dd2c36f7..551201a7fe 100644
+index 0393fe9df5..12540df5af 100644
 --- a/video/out/w32_common.c
 +++ b/video/out/w32_common.c
 @@ -78,6 +78,9 @@ EXTERN_C IMAGE_DOS_HEADER __ImageBase;
@@ -329,7 +312,7 @@ index 26dd2c36f7..551201a7fe 100644
      BOOLEAN (WINAPI *pShouldAppsUseDarkMode)(void);
      DWORD (WINAPI *pSetPreferredAppMode)(DWORD mode);
  };
-@@ -194,7 +197,9 @@ struct vo_w32_state {
+@@ -195,7 +198,9 @@ struct vo_w32_state {
  
  static inline int get_system_metrics(struct vo_w32_state *w32, int metric)
  {
@@ -340,7 +323,7 @@ index 26dd2c36f7..551201a7fe 100644
  }
  
  static void adjust_window_rect(struct vo_w32_state *w32, HWND hwnd, RECT *rc)
-@@ -202,8 +207,13 @@ static void adjust_window_rect(struct vo_w32_state *w32, HWND hwnd, RECT *rc)
+@@ -203,8 +208,13 @@ static void adjust_window_rect(struct vo_w32_state *w32, HWND hwnd, RECT *rc)
      if (!w32->opts->border && !IsMaximized(w32->window))
          return;
  
@@ -356,7 +339,7 @@ index 26dd2c36f7..551201a7fe 100644
  }
  
  static bool check_windows10_build(DWORD build)
-@@ -669,7 +679,8 @@ static void update_dpi(struct vo_w32_state *w32)
+@@ -670,7 +680,8 @@ static void update_dpi(struct vo_w32_state *w32)
      HDC hdc = NULL;
      int dpi = 0;
  
@@ -366,7 +349,7 @@ index 26dd2c36f7..551201a7fe 100644
          dpi = (int)dpiX;
          MP_VERBOSE(w32, "DPI detected from the new API: %d\n", dpi);
      } else if ((hdc = GetDC(NULL))) {
-@@ -2012,6 +2023,18 @@ void vo_w32_config(struct vo *vo)
+@@ -2013,6 +2024,18 @@ void vo_w32_config(struct vo *vo)
  
  static void w32_api_load(struct vo_w32_state *w32)
  {

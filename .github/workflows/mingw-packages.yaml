@@ -3,6 +3,7 @@ name: mingw-packages
 on:
   push:
     tags: [ mingw-packages ]
+    branches: [ mingw, mpv ]
 
 permissions:
   contents: write
