@@ -124,7 +124,10 @@ void HomeTab::onCreate() {
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            brls::Application::notify(ex);
+            auto dialog = new brls::Dialog(ex);
+            dialog->addButton("hints/retry"_i18n, [this]() { brls::sync([this]() { this->onCreate(); }); });
+            dialog->addButton("hints/cancel"_i18n, []() {});
+            dialog->open();
         },
         jellyfin::apiUserViews, AppConfig::instance().getUserId());
 }
