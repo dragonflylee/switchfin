@@ -1,5 +1,15 @@
 # Changelog
 
+## [next]
+
+### Fixed
+
+* add home tab retry dialog when request failed
+
+### Add
+
+* bonus video view for series tab 
+
 ## [0.8.2]
 
 ### Fixed

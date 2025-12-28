@@ -29,8 +29,10 @@ private:
     BRLS_BIND(brls::Label, labelGenres, "series/label/genres");
     BRLS_BIND(brls::Header, labelNextup, "series/label/nextup");
     BRLS_BIND(brls::Header, labelSimilar, "series/label/similar");
+    BRLS_BIND(brls::Header, labelSpecial, "series/label/special");
     BRLS_BIND(HRecyclerFrame, people, "series/people");
     BRLS_BIND(HRecyclerFrame, similar, "series/similar");
+    BRLS_BIND(HRecyclerFrame, special, "series/special");
     BRLS_BIND(HRecyclerFrame, nextUp, "series/nextup");
     BRLS_BIND(AutoTabFrame, tabFrame, "series/tabFrame");
 
@@ -38,6 +40,7 @@ private:
     void doSeason();
     void doSimilar();
     void doNextup();
+    void doSpecial();
 
     std::string seriesId;
 };

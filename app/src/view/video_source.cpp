@@ -52,17 +52,16 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
 
         if (item.Type == jellyfin::mediaTypeGenre || item.Type == jellyfin::mediaTypeBook) {
             cell->labelExt->setVisibility(brls::Visibility::GONE);
+        } else if (item.Type == jellyfin::mediaTypeVideo || item.ProductionYear == 0) {
+            cell->labelExt->setText(misc::sec2Time(item.RunTimeTicks / jellyfin::PLAYTICKS));
         } else {
-            cell->labelExt->setText(item.ProductionYear > 0 ? std::to_string(item.ProductionYear) : "");
+            cell->labelExt->setText(std::to_string(item.ProductionYear));
         }
 
-        auto it = item.ImageTags.find(jellyfin::imageTypeThumb);
+        auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
         if (it != item.ImageTags.end()) {
-            Image::load(cell->picture, jellyfin::apiThumbImage, item.Id,
-                HTTP::encode_form({{"tag", it->second}, {"maxWidth", "325"}}));
-        } else {
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
-                HTTP::encode_form({{"tag", item.ImageTags[jellyfin::imageTypePrimary]}, {"maxWidth", "240"}}));
+                HTTP::encode_form({{"tag", it->second}, {"maxWidth", "325"}}));
         }
     }
 

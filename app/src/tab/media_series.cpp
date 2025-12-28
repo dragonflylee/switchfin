@@ -142,12 +142,14 @@ MediaSeries::MediaSeries(const jellyfin::Item& item) : seriesId(item.Id) {
     this->people->registerCell("Cell", MediaCardCell::create);
     this->similar->registerCell("Cell", VideoCardCell::create);
     this->nextUp->registerCell("Cell", VideoCardCell::create);
+    this->special->registerCell("Cell", VideoCardCell::create);
     this->tabFrame->registerTabAction(this);
 
     this->doSeason();
     this->doSeries();
     this->doNextup();
     this->doSimilar();
+    this->doSpecial();
 
     // loading Logo
     auto logo = item.ImageTags.find(jellyfin::imageTypePrimary);
@@ -284,6 +286,7 @@ void MediaSeries::doSimilar() {
     std::string query = HTTP::encode_form({
         {"userId", AppConfig::instance().getUserId()},
         {"limit", "12"},
+        {"enableImageTypes", "Primary"},
         {"fields", "ItemCounts"},
     });
 
@@ -308,4 +311,28 @@ void MediaSeries::doSimilar() {
             brls::Application::notify(ex);
         },
         jellyfin::apiSimilar, this->seriesId, query);
+}
+
+void MediaSeries::doSpecial() {
+    ASYNC_RETAIN
+    jellyfin::getJSON<std::vector<jellyfin::Episode>>(
+        [ASYNC_TOKEN](const std::vector<jellyfin::Episode>& r) {
+            ASYNC_RELEASE
+            if (r.size() > 0) {
+                this->special->setDataSource(new VideoDataSource(r));
+                this->special->setVisibility(brls::Visibility::VISIBLE);
+                this->labelSpecial->setVisibility(brls::Visibility::VISIBLE);
+            } else {
+                this->special->setVisibility(brls::Visibility::GONE);
+                this->labelSpecial->setVisibility(brls::Visibility::GONE);
+                this->special->clearData();
+            }
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            this->special->setVisibility(brls::Visibility::GONE);
+            this->labelSpecial->setSubtitle(ex);
+            brls::Application::notify(ex);
+        },
+        jellyfin::apiItemSpecial, AppConfig::instance().getUserId(), this->seriesId);
 }

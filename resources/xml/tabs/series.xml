@@ -122,6 +122,16 @@
 
                         <brls:Header
                             height="40"
+                            id="series/label/special"
+                            title="@i18n/main/media/special" />
+
+                        <HRecyclerFrame
+                            height="190"
+                            itemWidth="250"
+                            id="series/special" />
+
+                        <brls:Header
+                            height="40"
                             id="series/label/similar"
                             title="@i18n/main/media/similar" />
 
