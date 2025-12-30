@@ -35,8 +35,7 @@ jobs:
           patch
           lzip
           unzip
-          mingw-w64-${{ matrix.env }}-make
-          mingw-w64-${{ matrix.env }}-autotools
+          make
           mingw-w64-${{ matrix.env }}-nasm
           mingw-w64-${{ matrix.env }}-meson
           mingw-w64-${{ matrix.env }}-cmake
