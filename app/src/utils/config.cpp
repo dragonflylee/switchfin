@@ -228,7 +228,9 @@ static std::string generateDeviceId() {
             std::string name;
             std::getline(f, name);
             while (!std::isprint(name.back())) name.pop_back();
-            if (name.size() > 0) return name;
+            if (name.size() > 0) {
+                return misc::hexEncode((uint8_t*)name.data(), name.size());
+            }
         }
     }
 #endif

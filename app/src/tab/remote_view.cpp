@@ -199,9 +199,9 @@ private:
     BRLS_BIND(brls::Label, size, "file/misc");
 };
 
-static std::set<std::string> videoExt = {".mp4", ".mkv", ".avi", ".flv", ".mov", ".wmv", ".webm"};
-static std::set<std::string> audioExt = {".mp3", ".flac", ".wav", ".ogg", ".m4a"};
-static std::set<std::string> imageExt = {".jpg", ".jpeg", ".png", ".bmp", ".gif"};
+static std::set<std::string> videoExt = {".mp4", ".mkv", ".avi", ".flv", ".mov", ".wmv", ".webm", ".rm", ".rmvb", ".mpg"};
+static std::set<std::string> audioExt = {".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma", ".ape"};
+static std::set<std::string> imageExt = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"};
 static std::set<std::string> playlistExt = {".m3u", ".m3u8"};
 static std::set<std::string> subtitleExt = {".srt", ".ass", ".ssa", ".sub", ".smi"};
 
@@ -392,7 +392,7 @@ RecyclingGrid* RemoteView::newRecycler() {
 }
 
 void RemoteView::play(const std::string& path) {
-    RemotePlayer* view = new RemotePlayer({ remote::EntryType::VIDEO, path });
+    RemotePlayer* view = new RemotePlayer({remote::EntryType::VIDEO, path});
     brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
     view->setUrl(path);
 }
