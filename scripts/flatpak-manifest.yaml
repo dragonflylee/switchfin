@@ -145,6 +145,8 @@ modules:
           - --disable-programs
           - --disable-encoders
           - --disable-muxers
+          - --disable-filters
+          - --enable-filter=hflip,vflip,transpose
           - --enable-libssh2
           - --enable-libdrm
           - --enable-vaapi

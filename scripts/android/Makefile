@@ -130,7 +130,8 @@ ffmpeg: mbedtls libass dav1d libwebp
 		--disable-programs --disable-debug --disable-doc --enable-network \
 		--disable-vulkan --disable-devices --disable-autodetect --enable-jni \
 		--enable-mediacodec --enable-libass --enable-libdav1d --enable-zlib \
-		--disable-muxers --disable-encoders --enable-mbedtls --enable-version3
+		--disable-muxers --disable-encoders --enable-mbedtls --enable-version3 \
+		--disable-filters --enable-filter=hflip,vflip,transpose
 	make -C build/ffmpeg -j$(shell nproc)
 	make -C build/ffmpeg install DESTDIR=$(PREFIX)
 

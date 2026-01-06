@@ -123,7 +123,8 @@ ffmpeg: mbedtls libass dav1d
 		--disable-programs --disable-doc --disable-debug --disable-avdevice \
 		--disable-libjack --disable-indev=jack --enable-network \
 		--enable-libdav1d --enable-libass --enable-libfreetype --enable-zlib --enable-bzlib \
-		--enable-videotoolbox --enable-audiotoolbox --enable-mbedtls --enable-version3
+		--enable-videotoolbox --enable-audiotoolbox --enable-mbedtls --enable-version3 \
+		--disable-filters --enable-filter=hflip,vflip,transpose
 	$(MAKE) -C build/ffmpeg -j$(shell sysctl -n hw.ncpu)
 	$(MAKE) -C build/ffmpeg install
 

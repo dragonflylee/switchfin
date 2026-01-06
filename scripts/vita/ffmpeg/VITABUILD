@@ -36,6 +36,8 @@ build() {
         --enable-parser='aac,aac_latm,ac3,bmp,flac,h264,hdr,hevc,mjpeg,mpeg4video,mpeg4audio,mpegvideo,dvbsub' \
         --disable-decoders \
         --enable-decoder='h264,aac,ac3,bmp,flv,flac,mjpeg,srt,aac_vita,mp3_vita,h264_vita,ass,ssa,srt,dvbsub,dvdsub,pgssub' \
+        --disable-filters \
+        --enable-filter='hflip,vflip,transpose' \
         --enable-network \
         --disable-iconv \
         --disable-lzma \
