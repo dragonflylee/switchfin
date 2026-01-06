@@ -9,7 +9,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 34
         versionCode 1
-        versionName "1.0"
+        versionName "0.8.2"
         ndkVersion "27.3.13750724"
         externalNativeBuild {
             cmake {
@@ -17,6 +17,11 @@ android {
                 abiFilters 'armeabi-v7a', 'arm64-v8a'
                 version = '3.16.0+'
             }
+        }
+    }
+    applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            output.outputFileName = "Switchfin-${output.getFilter("ABI")}.apk"
         }
     }
     signingConfigs {
