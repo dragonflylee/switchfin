@@ -52,9 +52,9 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
 
         if (item.Type == jellyfin::mediaTypeGenre || item.Type == jellyfin::mediaTypeBook) {
             cell->labelExt->setVisibility(brls::Visibility::GONE);
-        } else if (item.Type == jellyfin::mediaTypeVideo || item.ProductionYear == 0) {
+        } else if (item.Type == jellyfin::mediaTypeVideo) {
             cell->labelExt->setText(misc::sec2Time(item.RunTimeTicks / jellyfin::PLAYTICKS));
-        } else {
+        } else if (item.ProductionYear > 0) {
             cell->labelExt->setText(std::to_string(item.ProductionYear));
         }
 
