@@ -12,6 +12,16 @@
 #include "utils/keybind.hpp"
 #include "api/jellyfin.hpp"
 #include <fstream>
+#ifdef USE_BOOST_FILESYSTEM
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
+#elif __has_include(<filesystem>)
+#include <filesystem>
+namespace fs = std::filesystem;
+#elif __has_include("experimental/filesystem")
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#endif
 
 using namespace brls::literals;  // for _i18n
 
@@ -91,10 +101,17 @@ class HistoryDataSource : public RecyclingGridDataSource {
 public:
     HistoryDataSource() {
         this->path = AppConfig::instance().configDir() + "/search.json";
-        std::ifstream readFile(this->path);
+#if !defined(USE_BOOST_FILESYSTEM) || defined(_WIN32)
+        std::ifstream readFile(fs::u8path(this->path), std::ios::binary);
+#else
+        std::ifstream readFile(this->path, std::ios::binary);
+#endif
         if (readFile.is_open()) {
             try {
-                this->list = nlohmann::json::parse(readFile);
+                // Read file content as UTF-8 and parse
+                std::string content((std::istreambuf_iterator<char>(readFile)),
+                                    std::istreambuf_iterator<char>());
+                this->list = nlohmann::json::parse(content);
             } catch (const std::exception& e) {
                 brls::Logger::error("load search history: {}", e.what());
             }
@@ -128,9 +145,14 @@ public:
     }
 
     void save() {
-        std::ofstream writeFile(this->path);
+#if !defined(USE_BOOST_FILESYSTEM) || defined(_WIN32)
+        std::ofstream writeFile(fs::u8path(this->path), std::ios::binary);
+#else
+        std::ofstream writeFile(this->path, std::ios::binary);
+#endif
         if (writeFile.is_open()) {
             nlohmann::json j(this->list);
+            // Ensure UTF-8 encoding when writing
             writeFile << j.dump(2);
             writeFile.close();
         }

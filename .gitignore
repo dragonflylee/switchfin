@@ -20,3 +20,6 @@ debian/switchfin*
 debian/.debhelper
 .wget-hsts
 /jniLibs/
+.gitmessage
+build_linux.sh
+BUILD_LINUX.md
