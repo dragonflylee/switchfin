@@ -46,7 +46,7 @@
 using namespace brls::literals;  // for _i18n
 
 int main(int argc, char* argv[]) {
-    // Set UTF-8 locale for proper character encoding (fixes Croatian characters display)
+    // Set UTF-8 locale for proper character encoding (fixes Croatian, Arabic, and other Unicode characters)
     // This must be done before any file I/O or text operations
 #if !defined(__PS4__) && !defined(__PSV__) && !defined(__SWITCH__)
     // Set environment variables first
