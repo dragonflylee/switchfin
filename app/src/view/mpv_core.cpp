@@ -112,7 +112,7 @@ MPVCore::MPVCore() {
 }
 
 void MPVCore::init() {
-    setlocale(LC_NUMERIC, "C");
+    std::setlocale(LC_NUMERIC, "C");
 #ifdef ANDROID
     auto env = static_cast<JNIEnv *>(SDL_AndroidGetJNIEnv());
     if (!env->GetJavaVM(&g_vm) && g_vm) av_jni_set_java_vm(g_vm, NULL);

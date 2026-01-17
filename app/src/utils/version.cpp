@@ -104,19 +104,9 @@ std::string AppVersion::getDeviceName() {
         return name.data();
     }
 #elif defined(__linux__)
-    static const char* dev_names[] = {
-        "/sys/devices/virtual/dmi/id/product_name",
-        "/sys/devices/virtual/dmi/id/board_name",
-        "/sys/firmware/devicetree/base/model",
-    };
-    for (size_t i = 0; i < sizeof(dev_names); i++) {
-        std::ifstream f(dev_names[i]);
-        if (f.is_open()) {
-            std::string name;
-            std::getline(f, name);
-            while (!std::isprint(name.back())) name.pop_back();
-            if (name.size() > 0) return name;
-        }
+    char name[256];
+    if (!gethostname(name, sizeof(name))) {
+        return name;
     }
 #endif
     return fmt::format("{} for {}", getPackageName(), getPlatform());

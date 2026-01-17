@@ -56,6 +56,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    std::setlocale(LC_ALL, "C.UTF-8");
     // Load cookies and settings
     auto& conf = AppConfig::instance();
     if (!conf.init()) {
