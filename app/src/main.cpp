@@ -1,10 +1,5 @@
 #include <borealis.hpp>
-#include <locale>
 #include <clocale>
-#include <cstdlib>
-#ifndef _WIN32
-#include <unistd.h>
-#endif
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -46,35 +41,12 @@
 using namespace brls::literals;  // for _i18n
 
 int main(int argc, char* argv[]) {
-    // Set UTF-8 locale for proper character encoding (fixes Croatian, Arabic, and other Unicode characters)
-    // This must be done before any file I/O or text operations
-#if !defined(__PS4__) && !defined(__PSV__) && !defined(__SWITCH__)
-    // Set environment variables first
-    setenv("LC_ALL", "en_US.UTF-8", 1);
-    setenv("LANG", "en_US.UTF-8", 1);
-    
-    try {
-        // Try to set UTF-8 locale
-        std::locale::global(std::locale("en_US.UTF-8"));
-        std::setlocale(LC_ALL, "en_US.UTF-8");
-    } catch (...) {
-        // Fallback: try C.UTF-8 or just UTF-8
-        try {
-            setenv("LC_ALL", "C.UTF-8", 1);
-            setenv("LANG", "C.UTF-8", 1);
-            std::locale::global(std::locale("C.UTF-8"));
-            std::setlocale(LC_ALL, "C.UTF-8");
-        } catch (...) {
-            // On some systems, just set UTF-8 for specific categories
-            std::setlocale(LC_CTYPE, "UTF-8");
-            std::setlocale(LC_ALL, "");
-        }
-    }
+    // Set UTF-8 locale for proper character encoding
+#if !defined(__PS4__) && !defined(__PSV__) && !defined(__SWITCH__) && !defined(_WIN32)
+    std::setlocale(LC_ALL, "C.UTF-8");
 #elif defined(_WIN32)
-    // Windows: Set UTF-8 code page
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
-    // Also set locale
     std::setlocale(LC_ALL, ".UTF8");
 #endif
 
