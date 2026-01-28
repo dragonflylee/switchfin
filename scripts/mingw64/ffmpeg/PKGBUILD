@@ -58,6 +58,8 @@ build() {
     --disable-avdevice \
     --disable-encoders \
     --disable-muxers \
+    --disable-filters \
+    --enable-filter=hflip,vflip,transpose \
     --enable-swscale \
     --enable-swresample \
     --enable-network  \

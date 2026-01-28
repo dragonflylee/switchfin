@@ -28,6 +28,7 @@ build() {
     --disable-avdevice --disable-hwaccels --disable-encoders --disable-muxers \
     --enable-swscale --enable-swresample --enable-network --enable-version3 \
     --enable-zlib --enable-bzlib --enable-libass --enable-libdav1d --enable-mbedtls \
+    --disable-filters --enable-filter=hflip,vflip,transpose \
     --cc=$CC --cxx=$CXX --nm=$NM --strip=$STRIP --ar=$AR --ranlib=$RANLIB
 
   # TODO: fix this

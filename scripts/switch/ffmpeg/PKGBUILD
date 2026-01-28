@@ -45,7 +45,8 @@ build() {
     --enable-asm --enable-neon --disable-autodetect --enable-mbedtls --enable-version3 \
     --disable-avdevice --disable-encoders --disable-muxers \
     --enable-swscale --enable-swresample --enable-network --enable-libssh2 \
-    --enable-zlib --enable-bzlib --enable-libass --enable-libdav1d --enable-nvtegra
+    --enable-zlib --enable-bzlib --enable-libass --enable-libdav1d --enable-nvtegra \
+    --disable-filters --enable-filter=hflip,vflip,transpose
 
   make -j$(nproc)
 }
