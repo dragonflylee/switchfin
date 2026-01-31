@@ -43,8 +43,8 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
         } else if (item.ParentBackdropImageTags.size() > 0) {
             Image::load(cell->picture, jellyfin::apiBackdropImage, item.ParentBackdropItemId,
                 HTTP::encode_form({{"tag", item.ParentBackdropImageTags.at(0)}, {"maxWidth", "325"}}));
-        } else {
-            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId,
+        } else if (item.SeriesId.is_string()) {
+            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId.get<std::string>(),
                 HTTP::encode_form({{"tag", item.SeriesPrimaryImageTag}, {"maxWidth", "325"}}));
         }
     } else {
@@ -116,7 +116,7 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
     } else if (item.Type == jellyfin::mediaTypeEpisode) {
         PlayerView* view = new PlayerView(item);
         view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
-        view->setSeries(item.SeriesId);
+        if (item.SeriesId.is_string()) view->setSeries(item.SeriesId.get<std::string>());
     } else if (item.Type == jellyfin::mediaTypeMusicAlbum) {
         recycler->present(new MusicAlbum(item));
     } else if (item.Type == jellyfin::mediaTypeMusicArtist) {

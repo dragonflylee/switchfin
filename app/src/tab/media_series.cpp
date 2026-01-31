@@ -49,8 +49,8 @@ public:
         if (epimage != item.ImageTags.end()) {
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
                 HTTP::encode_form({{"tag", epimage->second}, {"fillWidth", "300"}}));
-        } else {
-            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId,
+        } else if (item.SeriesId.is_string()) {
+            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId.get<std::string>(),
                 HTTP::encode_form({{"tag", item.SeriesPrimaryImageTag}, {"fillWidth", "300"}}));
         }
 
@@ -86,7 +86,7 @@ public:
         auto& item = this->list.at(index);
         PlayerView* view = new PlayerView(item);
         view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
-        view->setSeries(item.SeriesId);
+        if (item.SeriesId.is_string()) view->setSeries(item.SeriesId.get<std::string>());
         brls::sync([view]() { brls::Application::giveFocus(view); });
     }
 

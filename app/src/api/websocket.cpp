@@ -142,7 +142,7 @@ void websocket::onPlayNow(const std::string& itemId, uint64_t seekTicks) {
             PlayerView* view = new PlayerView(item, seekTicks);
             if (item.Type == jellyfin::mediaTypeEpisode) {
                 view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
-                view->setSeries(item.SeriesId);
+                if (item.SeriesId.is_string()) view->setSeries(item.SeriesId.get<std::string>());
             } else if (item.ProductionYear) {
                 view->setTitie(fmt::format("{} ({})", item.Name, item.ProductionYear));
             } else {

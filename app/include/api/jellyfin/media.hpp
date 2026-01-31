@@ -145,7 +145,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Detail, Id, Name, Type, ImageTag
 
 struct Season : public Item {
     long IndexNumber = 0;
-    std::string SeriesId;
+    nlohmann::json SeriesId;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Season, Id, Name, Type, ImageTags, SeriesId, IndexNumber);
 
