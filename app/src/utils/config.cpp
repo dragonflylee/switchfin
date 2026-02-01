@@ -218,16 +218,16 @@ static std::string generateDeviceId() {
         return deviceId.data();
     }
 #elif defined(__linux__)
-    static const char* dev_names[] = {
+    static const std::vector<std::string> dev_names = {
         "/sys/devices/virtual/dmi/id/board_serial",
+        "/proc/device-tree/serial-number",
         "/etc/machine-id",
     };
-    for (size_t i = 0; i < sizeof(dev_names); i++) {
-        std::ifstream f(dev_names[i]);
+    for (auto& path : dev_names) {
+        std::ifstream f(path.c_str());
         if (f.is_open()) {
             std::string name;
             std::getline(f, name);
-            while (!std::isprint(name.back())) name.pop_back();
             if (name.size() > 0) {
                 return misc::hexEncode((uint8_t*)name.data(), name.size());
             }
