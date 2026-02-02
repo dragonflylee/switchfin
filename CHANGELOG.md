@@ -1,10 +1,13 @@
 # Changelog
 
-## [next]
+## [0.8.3]
 
 ### Fixed
 
 * add home tab retry dialog when request failed
+* deviceId/deviceName generate on linux
+* optimize font load on desktop platform
+* json parse failed when SeriesId is null
 
 ### Add
 

@@ -1,3 +1,12 @@
+switchfin (0.8.3-1) unstable; urgency=medium
+
+  * fix deviceId/deviceName generate
+  * optimize font load
+  * fix json parse failed when SeriesId is null
+  * add bonus video view for series tab
+ 
+ -- dragonflylee <dragonflylee@outlook.com>  Mon, 02 Feb 2026 17:10:00 +0800
+
 switchfin (0.8.2-1) unstable; urgency=medium
 
   * fix thumb image for episodes on home page
