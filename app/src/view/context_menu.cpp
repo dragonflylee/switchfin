@@ -1,9 +1,10 @@
 #include "view/context_menu.hpp"
+#include "view/download_dialog.hpp"
 #include "api/jellyfin.hpp"
 
 using namespace brls::literals;
 
-ContextMenu::ContextMenu(const jellyfin::Item& item) : itemId(item.Id) {
+ContextMenu::ContextMenu(const jellyfin::Item& item) : itemId(item.Id), itemName(item.Name) {
     this->inflateFromXMLRes("xml/view/context_menu.xml");
     brls::Logger::debug("ContextMenu: create");
 
@@ -34,6 +35,11 @@ ContextMenu::ContextMenu(const jellyfin::Item& item) : itemId(item.Id) {
     });
     this->btnMarkPlay->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnMarkPlay));
     this->btnMarkPlay->setSelected(item.UserData.Played);
+
+    this->btnDownload->registerClickAction([this](brls::View* view) {
+        return this->doDownload();
+    });
+    this->btnDownload->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnDownload));
 }
 
 bool ContextMenu::doPlayed() {
@@ -104,6 +110,28 @@ bool ContextMenu::unFavorite() {
             brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
         },
         jellyfin::apiFavoriteItems, AppConfig::instance().getUserId(), this->itemId);
+
+    return true;
+}
+
+bool ContextMenu::doDownload() {
+    std::string id = this->itemId;
+    std::string name = this->itemName;
+    jellyfin::postJSON(
+        {
+            {"UserId", AppConfig::instance().getUserId()},
+            {"MediaSourceId", this->itemId},
+        },
+        [id, name](const jellyfin::PlaybackResult& r) {
+            brls::Application::popActivity(brls::TransitionAnimation::NONE, [id, name, r]() {
+                brls::Box* dialog = new DownloadDialog(id, name, r);
+                brls::Application::pushActivity(new brls::Activity(dialog));
+            });
+        },
+        [](const std::string& ex) {
+            brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
+        },
+        jellyfin::apiPlayback, this->itemId);
 
     return true;
 }

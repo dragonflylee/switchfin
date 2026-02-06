@@ -1,0 +1,102 @@
+<brls:Box
+    width="auto"
+    height="auto"
+    justifyContent="flexEnd"
+    backgroundColor="@theme/brls/backdrop">
+
+    <brls:Box
+        id="download/cancel"
+        height="100%"
+        hideClickAnimation="true"
+        grow="1" />
+
+    <brls:Box
+        width="400"
+        height="100%"
+        axis="column"
+        backgroundColor="@theme/brls/background">
+
+        <brls:ScrollingFrame
+            id="download/content"
+            width="100%"
+            grow="1"
+            scrollingBehavior="centered">
+
+            <brls:Box
+                width="auto"
+                height="auto"
+                axis="column"
+                paddingTop="@style/main/content_padding_top_bottom"
+                paddingLeft="@style/main/content_padding_sides"
+                paddingRight="@style/main/content_padding_sides"
+                paddingBottom="@style/main/content_padding_top_bottom"
+                alignItems="stretch">
+
+                <brls:Header
+                    width="auto"
+                    height="auto"
+                    title="@i18n/main/download/header" />
+
+                <brls:Box
+                    width="100%"
+                    height="auto"
+                    axis="column"
+                    marginBottom="20px">
+                    <brls:SelectorCell
+                        id="download/quality" />
+                </brls:Box>
+
+                <brls:Header
+                    id="download/progress/header"
+                    width="auto"
+                    height="auto"
+                    title=""
+                    visibility="gone" />
+
+                <brls:Box
+                    width="100%"
+                    height="8"
+                    marginBottom="10px"
+                    backgroundColor="#404040"
+                    cornerRadius="4"
+                    visibility="gone">
+                    <brls:Rectangle
+                        id="download/progress/bar"
+                        width="0%"
+                        height="100%"
+                        color="#1E90FF"
+                        cornerRadius="4" />
+                </brls:Box>
+
+                <brls:Label
+                    id="download/status"
+                    width="100%"
+                    height="auto"
+                    marginBottom="20px"
+                    text=""
+                    visibility="gone" />
+
+                <brls:Box
+                    width="100%"
+                    height="auto"
+                    axis="row"
+                    justifyContent="spaceEvenly"
+                    marginTop="20px">
+                    <brls:Button
+                        id="download/start"
+                        width="45%"
+                        height="auto"
+                        style="primary"
+                        text="@i18n/main/download/start" />
+                    <brls:Button
+                        id="download/btn/cancel"
+                        width="45%"
+                        height="auto"
+                        style="default"
+                        text="@i18n/main/download/cancel" />
+                </brls:Box>
+
+            </brls:Box>
+        </brls:ScrollingFrame>
+    </brls:Box>
+</brls:Box>

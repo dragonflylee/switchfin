@@ -19,11 +19,14 @@ private:
 
     BRLS_BIND(brls::RadioCell, btnFavorite, "menu/favorite");
     BRLS_BIND(brls::RadioCell, btnMarkPlay, "menu/mark/play");
+    BRLS_BIND(brls::RadioCell, btnDownload, "menu/download");
 
     bool doPlayed();
     bool doFavorite();
     bool unPlayed();
     bool unFavorite();
+    bool doDownload();
 
     std::string itemId;
+    std::string itemName;
 };

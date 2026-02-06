@@ -94,6 +94,7 @@
     "add_favorite": "Add to favorites",
     "mark_played": "Mark played",
     "mark_unplayed": "Mark unplayed",
+    "download": "Download",
     "play": "Play",
     "intro": "Intro",
     "people": "People",
@@ -271,6 +272,19 @@
       "updating": "Updating in progress, cancel now?",
       "release": "Check for updates"
     }
+  },
+  "download": {
+    "header": "Download",
+    "start": "Start Download",
+    "cancel": "Cancel",
+    "quality": "Quality",
+    "original": "Original",
+    "progress": "Downloading... {}%",
+    "preparing": "Preparing...",
+    "complete": "Download complete",
+    "failed": "Download failed: {}",
+    "cancelled": "Download cancelled",
+    "path": "Saved to: {}"
   },
   "hints": {
     "hint1": "Select a game from home screen",
