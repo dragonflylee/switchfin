@@ -12,7 +12,7 @@ jobs:
   build-portlibs:
     runs-on: ubuntu-latest
     container:
-      image: devkitpro/devkita64:20241023
+      image: devkitpro/devkita64:20260219
     steps:
     - name: Disable autocrlf
       run: git config --global core.autocrlf false
@@ -23,14 +23,14 @@ jobs:
       run: |
         apt-get update
         apt-get install -y fakeroot zstd bison flex libtool python3-mako python3-pip manpages-
-        pip install meson
+        pip install meson --break-system-packages
     - name: Build portlibs
       run: |
         adduser --gecos '' --home ${GITHUB_WORKSPACE}/scripts/switch --disabled-password builder
         echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder
 
         chown -R builder:builder scripts/switch
-        for pkg in libnx mbedtls libssh2 dav1d ffmpeg libuam; do
+        for pkg in mbedtls libssh2 dav1d ffmpeg libuam; do
           echo building $pkg
           su - builder -c "cd $pkg && dkp-makepkg -siCf --noconfirm"
         done

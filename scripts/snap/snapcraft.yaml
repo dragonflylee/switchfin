@@ -104,7 +104,7 @@ parts:
     plugin: meson
     source: https://github.com/haasn/libplacebo.git
     source-type: git
-    source-tag: v7.351.0
+    source-tag: v7.360.1
     source-depth: 1
     source-submodules:
       - 3rdparty/glad
