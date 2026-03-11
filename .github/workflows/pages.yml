@@ -33,7 +33,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           sparse-checkout: |
-            scripts/org.player.switchfin.svg
+            scripts/switchfin.svg
             README.md
             images
       - name: Setup Pages

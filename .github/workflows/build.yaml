@@ -211,7 +211,7 @@ jobs:
         arch: [ x86_64, aarch64 ]
         driver: [ gl, gles2 ]
     container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-24.08
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
       options: --privileged
     runs-on: ${{ matrix.runner }}
     if: ${{ inputs.platform == 'flatpak' || github.event_name != 'workflow_dispatch' }}

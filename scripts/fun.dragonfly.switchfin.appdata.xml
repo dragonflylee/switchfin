@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop">
-    <id>org.player.switchfin</id>
+    <id>fun.dragonfly.switchfin</id>
     <metadata_license>CC0-1.0</metadata_license>
     <name>Switchfin</name>
+    <project_license>Apache-2.0</project_license>
     <developer id="dragonflylee">
         <name>dragonflylee</name>
     </developer>
     <summary>Third-party native Jellyfin client designed specifically for controller users</summary>
-    <launchable type="desktop-id">org.player.switchfin.desktop</launchable>
+    <launchable type="desktop-id">fun.dragonfly.switchfin.desktop</launchable>
+    <translation type="gettext">switchfin</translation>
+    <content_rating type="oars-1.1">
+        <content_attribute id="social-info">mild</content_attribute>
+    </content_rating>
     <description>
         <p>Switchfin is third-party PC player for Jellyfin that provides a native user interface to browse and play movies and series.</p>
         <p>Features:</p>
@@ -29,11 +34,24 @@
         </release>
     </releases>
     <screenshots>
-        <screenshot>
-            <image>https://github.com/dragonflylee/switchfin/raw/dev/images/home.jpg</image>
+        <screenshot type="default">
+            <image>https://dragonflylee.github.io/switchfin/images/home.jpg</image>
             <caption>Home</caption>
         </screenshot>
+        <screenshot>
+            <image>https://dragonflylee.github.io/switchfin/images/search.jpg</image>
+            <caption>Search</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://dragonflylee.github.io/switchfin/images/series.jpg</image>
+            <caption>Series</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://dragonflylee.github.io/switchfin/images/music.jpg</image>
+            <caption>Music</caption>
+        </screenshot>
     </screenshots>
-    <url type="homepage">https://github.com/dragonflylee/switchfin</url>
+    <url type="homepage">https://dragonflylee.github.io/switchfin</url>
+    <url type="vcs-browser">https://github.com/dragonflylee/switchfin</url>
     <url type="bugtracker">https://github.com/dragonflylee/switchfin/issues</url>
 </component>

@@ -1,6 +1,6 @@
-app-id: org.player.switchfin
+app-id: fun.dragonfly.switchfin
 runtime: org.freedesktop.Platform
-runtime-version: "24.08"
+runtime-version: "25.08"
 sdk: org.freedesktop.Sdk
 command: Switchfin
 finish-args:
@@ -16,13 +16,8 @@ finish-args:
   - --talk-name=org.freedesktop.PowerManagement
   - --talk-name=org.gnome.SessionManager
   - --talk-name=org.mate.SessionManager
-  # https://github.com/mpv-player/mpv/blob/master/libmpv/client.h#L147-L149
-  # will remove it when next version release
-  - --env=LC_NUMERIC=C
   # control steam client
   - --filesystem=~/.steam
-cleanup-commands:
-  - mkdir -p /app/lib/ffmpeg
 cleanup:
   - "*.a"
   - "*.la"
@@ -121,6 +116,7 @@ modules:
       - name: uchardet
         buildsystem: cmake-ninja
         config-opts:
+          - -DCMAKE_POLICY_VERSION_MINIMUM=3.5
           - -DCMAKE_BUILD_TYPE=Release
           - -DBUILD_STATIC=0
         sources:
@@ -215,7 +211,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/dragonflylee/glfw.git
-        branch: switchfin
+        commit: db08cc163dacbabfb37fb62d70ab7f62865008c6
 
   - name: switchfin
     buildsystem: cmake-ninja

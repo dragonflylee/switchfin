@@ -57,7 +57,7 @@ set(VERSION_MINOR "8")
 set(VERSION_ALTER "3")
 set(PROJECT_TITLEID "010ff000ffff0003")
 set(PROJECT_AUTHOR "dragonflylee")
-set(PACKAGE_NAME "org.player.switchfin")
+set(PACKAGE_NAME "fun.dragonfly.switchfin")
 set(VITA_TITLEID "SWITCHFIN")
 set(PSN_TITLE_ID "SFIN00000")
 set(VITA_VERSION "00.83")
@@ -247,7 +247,7 @@ if (PLATFORM_DESKTOP)
         set(icon_dirs 32x32 48x48 64x64 128x128 256x256)
         linux_install(
             "${PROJECT_RESOURCES}" "${BRLS_RESOURCES_DIR}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/${PACKAGE_NAME}.svg"
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/switchfin.svg"
             "${CMAKE_CURRENT_SOURCE_DIR}/scripts/icons" "${icon_dirs}"
             "${CMAKE_CURRENT_SOURCE_DIR}/scripts/${PACKAGE_NAME}.appdata.xml"
             "${CMAKE_CURRENT_SOURCE_DIR}/scripts/${PACKAGE_NAME}.desktop"

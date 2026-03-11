@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "org.player.switchfin"
+    namespace = "fun.dragonfly.switchfin"
     compileSdkVersion 34
     defaultConfig {
         minSdkVersion 21

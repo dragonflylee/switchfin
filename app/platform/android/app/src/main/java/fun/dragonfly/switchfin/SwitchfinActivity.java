@@ -1,4 +1,4 @@
-package org.player.switchfin;
+package fun.dragonfly.switchfin;
 
 import android.database.ContentObserver;
 import android.graphics.PixelFormat;
