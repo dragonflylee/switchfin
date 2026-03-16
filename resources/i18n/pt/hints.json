@@ -1,0 +1,22 @@
+{
+  "ok": "OK",
+  "back": "Anterior",
+  "cancel": "Cancelar",
+  "exit": "Sair",
+  "on": "Ativado",
+  "off": "Desativado",
+  "delete": "Remover",
+  "save": "Guardar",
+  "submit": "Submeter",
+  "input": "Preencha...",
+  "preset": "Predefinição",
+  "default": "Padrão",
+  "current": "Atual",
+  "success": "Sucesso",
+  "password": "Mostrar/Esconder",
+  "retry": "Tentar novamente",
+  "exit_hint": "Pretende fechar a aplicação?",
+  "loading": "A carregar",
+  "refresh": "Atualizar",
+  "quit": "Fechando a aplicação..."
+}
