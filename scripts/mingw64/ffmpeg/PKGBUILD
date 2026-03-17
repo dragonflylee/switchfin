@@ -6,7 +6,7 @@
 _realname=ffmpeg
 pkgbase="mingw-w64-${_realname}"
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=8.0.1
+pkgver=8.1
 pkgrel=3
 pkgdesc="Complete solution to record, convert and stream audio and video (mingw-w64)"
 arch=('any')
@@ -31,7 +31,7 @@ makedepends=(
 )
 options=('staticlibs' '!strip')
 source=("https://ffmpeg.org/releases/${_realname}-${pkgver}.tar.xz" "avio.patch")
-sha256sums=('05ee0b03119b45c0bdb4df654b96802e909e0a752f72e4fe3794f487229e5a41' 'SKIP')
+sha256sums=('b072aed6871998cce9b36e7774033105ca29e33632be5b6347f3206898e0756a' 'SKIP')
 
 prepare() {
   cd ${_realname}-${pkgver}

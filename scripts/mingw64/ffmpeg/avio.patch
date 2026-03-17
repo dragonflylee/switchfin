@@ -1,56 +1,24 @@
-From 74d9d856294130464a4acffd5cce262632da79c2 Mon Sep 17 00:00:00 2001
-From: dragonflylee <dragonflylee@outlook.com>
-Date: Wed, 3 Jul 2024 11:52:21 +0800
-Subject: [PATCH] addition protocols support
-
----
- configure               |   9 ++
- libavformat/Makefile    |   2 +
- libavformat/avio.h      |  16 +-
- libavformat/libsmb2.c   | 253 +++++++++++++++++++++++++++++++
- libavformat/libssh2.c   | 326 ++++++++++++++++++++++++++++++++++++++++
- libavformat/protocols.c |   2 +
- 6 files changed, 603 insertions(+), 5 deletions(-)
- create mode 100644 libavformat/libsmb2.c
- create mode 100644 libavformat/libssh2.c
-
 diff --git a/configure b/configure
-index d77a55b653c15..69dc1a45aed29 100755
+index 1759694274..17ec2797af 100755
 --- a/configure
 +++ b/configure
-@@ -272,11 +272,13 @@ External library support:
-   --enable-libshaderc      enable GLSL->SPIRV compilation via libshaderc [no]
-   --enable-libshine        enable fixed-point MP3 encoding via libshine [no]
-   --enable-libsmbclient    enable Samba protocol via libsmbclient [no]
-+  --enable-libsmb2         enable Samba protocol via libsmb2 [no]
-   --enable-libsnappy       enable Snappy compression, needed for hap encoding [no]
-   --enable-libsoxr         enable Include libsoxr resampling [no]
+@@ -281,6 +281,7 @@ External library support:
    --enable-libspeex        enable Speex de/encoding via libspeex [no]
    --enable-libsrt          enable Haivision SRT protocol via libsrt [no]
    --enable-libssh          enable SFTP protocol via libssh [no]
 +  --enable-libssh2         enable SFTP protocol via libssh2 [no]
    --enable-libsvtav1       enable AV1 encoding via SVT [no]
+   --enable-libsvtjpegxs    enable JPEGXS encoding/decoding via SVT [no]
    --enable-libtensorflow   enable TensorFlow as a DNN module backend
-                            for DNN based filters like sr [no]
-@@ -1953,11 +1955,13 @@ EXTERNAL_LIBRARY_LIST="
-     libshaderc
-     libshine
-     libsmbclient
-+    libsmb2
-     libsnappy
-     libsoxr
+@@ -2088,6 +2089,7 @@ EXTERNAL_LIBRARY_LIST="
      libspeex
      libsrt
      libssh
 +    libssh2
      libsvtav1
+     libsvtjpegxs
      libtensorflow
-     libtesseract
-@@ -3816,9 +3820,11 @@ librtmps_protocol_deps="librtmp"
- librtmpt_protocol_deps="librtmp"
- librtmpte_protocol_deps="librtmp"
- libsmbclient_protocol_deps="libsmbclient gplv3"
-+libsmb2_protocol_deps="libsmb2"
+@@ -4076,6 +4078,7 @@ libsmbclient_protocol_deps="libsmbclient gplv3"
  libsrt_protocol_deps="libsrt"
  libsrt_protocol_select="network"
  libssh_protocol_deps="libssh"
@@ -58,36 +26,47 @@ index d77a55b653c15..69dc1a45aed29 100755
  libtls_conflict="openssl gnutls mbedtls"
  libzmq_protocol_deps="libzmq"
  libzmq_protocol_select="network"
-@@ -6991,9 +6997,12 @@ enabled libshaderc        && require_pkg_config spirv_compiler "shaderc >= 2019.
- enabled libshine          && require_pkg_config libshine shine shine/layer3.h shine_encode_buffer
- enabled libsmbclient      && { check_pkg_config libsmbclient smbclient libsmbclient.h smbc_init ||
-                                require libsmbclient libsmbclient.h smbc_init -lsmbclient; }
-+enabled libsmb2           && { check_pkg_config libsmb2 libsmb2 smb2/smb2-errors.h SMB2_STATUS_SUCCESS ||
-+                               require libsmb2 smb2/smb2-errors.h SMB2_STATUS_SUCCESS -lsmb2; }
+@@ -7372,6 +7375,7 @@ enabled libsmbclient      && { check_pkg_config libsmbclient smbclient libsmbcli
  enabled libsnappy         && require libsnappy snappy-c.h snappy_compress -lsnappy -lstdc++
  enabled libsoxr           && require libsoxr soxr.h soxr_create -lsoxr
  enabled libssh            && require_pkg_config libssh "libssh >= 0.6.0" libssh/sftp.h sftp_init
-+enabled libssh2           && require_pkg_config libssh2 libssh2 libssh2.h libssh2_init
++enabled libssh2           && require_pkg_config libssh2 libssh2 libssh2.h LIBSSH2_VERSION
  enabled libspeex          && require_pkg_config libspeex speex speex/speex.h speex_decoder_init
  enabled libsrt            && require_pkg_config libsrt "srt >= 1.3.0" srt/srt.h srt_socket
  enabled libsvtav1         && require_pkg_config libsvtav1 "SvtAv1Enc >= 0.9.0" EbSvtAv1Enc.h svt_av1_enc_init_handle
 diff --git a/libavformat/Makefile b/libavformat/Makefile
-index 7ca68a703694a..88d8f83bceb21 100644
+index 4786a9345a..2789a8de37 100644
 --- a/libavformat/Makefile
 +++ b/libavformat/Makefile
-@@ -721,8 +721,10 @@ OBJS-$(CONFIG_LIBRTMPS_PROTOCOL)         += librtmp.o
- OBJS-$(CONFIG_LIBRTMPT_PROTOCOL)         += librtmp.o
- OBJS-$(CONFIG_LIBRTMPTE_PROTOCOL)        += librtmp.o
+@@ -737,6 +737,7 @@ OBJS-$(CONFIG_LIBRTMPTE_PROTOCOL)        += librtmp.o
  OBJS-$(CONFIG_LIBSMBCLIENT_PROTOCOL)     += libsmbclient.o
-+OBJS-$(CONFIG_LIBSMB2_PROTOCOL)          += libsmb2.o
- OBJS-$(CONFIG_LIBSRT_PROTOCOL)           += libsrt.o urldecode.o
+ OBJS-$(CONFIG_LIBSRT_PROTOCOL)           += libsrt.o
  OBJS-$(CONFIG_LIBSSH_PROTOCOL)           += libssh.o
 +OBJS-$(CONFIG_LIBSSH2_PROTOCOL)          += libssh2.o
  OBJS-$(CONFIG_LIBZMQ_PROTOCOL)           += libzmq.o
  
  # Objects duplicated from other libraries for shared builds
+diff --git a/libavformat/avformat.h b/libavformat/avformat.h
+index ee0ddddf8d..c66a568ca9 100644
+--- a/libavformat/avformat.h
++++ b/libavformat/avformat.h
+@@ -1907,12 +1907,12 @@ unsigned avformat_version(void);
+ /**
+  * Return the libavformat build-time configuration.
+  */
+-const char *avformat_configuration(void);
++av_export_avio const char *avformat_configuration(void);
+ 
+ /**
+  * Return the libavformat license.
+  */
+-const char *avformat_license(void);
++av_export_avio const char *avformat_license(void);
+ 
+ /**
+  * Do global initialization of network libraries. This is optional,
 diff --git a/libavformat/avio.h b/libavformat/avio.h
-index ebf611187dcf4..dd26778feabe4 100644
+index fbcb7dbfc3..9b3e505e56 100644
 --- a/libavformat/avio.h
 +++ b/libavformat/avio.h
 @@ -35,6 +35,12 @@
@@ -147,271 +126,12 @@ index ebf611187dcf4..dd26778feabe4 100644
  
  /**
   * Allocate and initialize an AVIOContext for buffered I/O. It must be later
-diff --git a/libavformat/libsmb2.c b/libavformat/libsmb2.c
-new file mode 100644
-index 0000000000000..281c58a08898d
---- /dev/null
-+++ b/libavformat/libsmb2.c
-@@ -0,0 +1,253 @@
-+/*
-+ * libsmb2 support by proconsule
-+ * based on libsmbclient.c by Lukasz Marek <lukasz.m.luki@gmail.com>
-+ */
-+
-+#include <stdint.h>
-+#include <stdio.h>
-+#include <fcntl.h>
-+#include <time.h>
-+
-+#include <smb2/smb2.h>
-+#include <smb2/libsmb2.h>
-+#include <smb2/libsmb2-raw.h>
-+
-+#include "libavutil/avstring.h"
-+#include "libavutil/mem.h"
-+#include "libavutil/opt.h"
-+#include "avformat.h"
-+#include "internal.h"
-+#include "url.h"
-+
-+typedef struct {
-+    const AVClass *class;
-+    struct smb2_context *smb2;
-+    struct smb2fh *fh;
-+    struct smb2dir *dir;
-+    struct smb2_url *url;
-+    int64_t filesize;
-+    int trunc;
-+    int timeout;
-+    char *workgroup;
-+} LIBSMBContext;
-+
-+static av_cold int libsmbc_connect(URLContext *h, const char *url) {
-+    LIBSMBContext *libsmbc = h->priv_data;
-+
-+    libsmbc->smb2 = smb2_init_context();
-+    if (libsmbc->smb2 == NULL) {
-+        int ret = AVERROR(errno);
-+        av_log(h, AV_LOG_ERROR, "Failed to init context\n");
-+        return ret;
-+    }
-+
-+    libsmbc->url = smb2_parse_url(libsmbc->smb2, url);
-+    if (libsmbc->url == NULL) {
-+        int ret = AVERROR(errno);
-+        av_log(h, AV_LOG_ERROR, "File parse url\n");
-+        return ret;
-+    }
-+
-+    smb2_set_security_mode(libsmbc->smb2, SMB2_NEGOTIATE_SIGNING_ENABLED);
-+    if (smb2_connect_share(libsmbc->smb2, libsmbc->url->server, libsmbc->url->share, libsmbc->url->user) != 0) {
-+        int ret = AVERROR(errno);
-+        av_log(h, AV_LOG_ERROR, "smb2_connect_share failed. %s\n", smb2_get_error(libsmbc->smb2));
-+        return ret;
-+    }
-+
-+    return 0;
-+}
-+
-+static av_cold int libsmbc_close(URLContext *h) {
-+    LIBSMBContext *libsmbc = h->priv_data;
-+    if (libsmbc->fh) {
-+        smb2_close(libsmbc->smb2, libsmbc->fh);
-+        libsmbc->fh = NULL;
-+    }
-+    if (libsmbc->url) {
-+        smb2_destroy_url(libsmbc->url);
-+        libsmbc->url = NULL;
-+    }
-+    smb2_disconnect_share(libsmbc->smb2);
-+    smb2_destroy_context(libsmbc->smb2);
-+    return 0;
-+}
-+
-+static av_cold int libsmbc_open(URLContext *h, const char *url, int flags) {
-+    LIBSMBContext *libsmbc = h->priv_data;
-+    int ret;
-+    struct smb2_stat_64 st;
-+    libsmbc->filesize = -1;
-+
-+    if ((ret = libsmbc_connect(h, url)) < 0) goto fail;
-+
-+    libsmbc->fh = smb2_open(libsmbc->smb2, libsmbc->url->path, O_RDONLY);
-+    if (libsmbc->fh == NULL) {
-+        ret = AVERROR(errno);
-+        av_log(h, AV_LOG_ERROR, "File open failed: %s\n", strerror(errno));
-+        goto fail;
-+    }
-+
-+    if (smb2_stat(libsmbc->smb2, libsmbc->url->path, &st) < 0) {
-+        av_log(h, AV_LOG_WARNING, "Cannot stat file: %s\n", strerror(errno));
-+    } else {
-+        libsmbc->filesize = st.smb2_size;
-+    }
-+
-+    return 0;
-+fail:
-+    libsmbc_close(h);
-+    return ret;
-+}
-+
-+static int64_t libsmbc_seek(URLContext *h, int64_t pos, int whence) {
-+    LIBSMBContext *libsmbc = h->priv_data;
-+    int64_t newpos;
-+
-+    if (whence == AVSEEK_SIZE) {
-+        if (libsmbc->filesize == -1) {
-+            av_log(h, AV_LOG_ERROR, "Error during seeking: filesize is unknown.\n");
-+            return AVERROR(EIO);
-+        } else
-+            return libsmbc->filesize;
-+    }
-+
-+    if ((newpos = smb2_lseek(libsmbc->smb2, libsmbc->fh, pos, whence, NULL)) < 0) {
-+        int err = errno;
-+        av_log(h, AV_LOG_ERROR, "Error during seeking: %s\n", strerror(err));
-+        return AVERROR(err);
-+    }
-+
-+    return newpos;
-+}
-+
-+static int libsmbc_read(URLContext *h, unsigned char *buf, int size) {
-+    LIBSMBContext *libsmbc = h->priv_data;
-+    int bytes_read;
-+
-+    if ((bytes_read = smb2_read(libsmbc->smb2, libsmbc->fh, buf, size)) < 0) {
-+        int ret = AVERROR(errno);
-+        av_log(h, AV_LOG_ERROR, "Read error: %s\n", strerror(errno));
-+        return ret;
-+    }
-+
-+    return bytes_read ? bytes_read : AVERROR_EOF;
-+}
-+
-+static int libsmbc_write(URLContext *h, const unsigned char *buf, int size) {
-+    LIBSMBContext *libsmbc = h->priv_data;
-+    int bytes_written;
-+
-+    if ((bytes_written = smb2_write(libsmbc->smb2, libsmbc->fh, buf, size)) < 0) {
-+        int ret = AVERROR(errno);
-+        av_log(h, AV_LOG_ERROR, "Write error: %s\n", strerror(errno));
-+        return ret;
-+    }
-+
-+    return bytes_written;
-+}
-+
-+static int libsmbc_open_dir(URLContext *h) {
-+    LIBSMBContext *libsmbc = h->priv_data;
-+    int ret;
-+
-+    if ((ret = libsmbc_connect(h, h->filename)) < 0) goto fail;
-+
-+    libsmbc->dir = smb2_opendir(libsmbc->smb2, libsmbc->url->path);
-+    if (libsmbc->dir == NULL) {
-+        ret = AVERROR(errno);
-+        av_log(h, AV_LOG_ERROR, "Dir open failed: %s\n", strerror(errno));
-+        goto fail;
-+    }
-+
-+    return 0;
-+fail:
-+    libsmbc_close(h);
-+    return ret;
-+}
-+
-+static int libsmbc_read_dir(URLContext *h, AVIODirEntry **next) {
-+    LIBSMBContext *libsmbc = h->priv_data;
-+    AVIODirEntry *entry;
-+    struct smb2dirent *dirent;
-+    int skip_entry;
-+
-+    *next = entry = ff_alloc_dir_entry();
-+    if (!entry) return AVERROR(ENOMEM);
-+
-+    do {
-+        skip_entry = 0;
-+        dirent = smb2_readdir(libsmbc->smb2, libsmbc->dir);
-+        if (dirent == NULL) {
-+            av_freep(next);
-+            return AVERROR(errno);
-+        }
-+        switch (dirent->st.smb2_type) {
-+        case SMB2_TYPE_FILE:
-+            entry->type = AVIO_ENTRY_FILE;
-+            break;
-+        case SMB2_TYPE_DIRECTORY:
-+            entry->type = AVIO_ENTRY_DIRECTORY;
-+            break;
-+        case SMB2_TYPE_LINK:
-+            entry->type = AVIO_ENTRY_SYMBOLIC_LINK;
-+            break;
-+        default:
-+            skip_entry = 1;
-+        }
-+    } while (skip_entry || !strcmp(dirent->name, ".") || !strcmp(dirent->name, ".."));
-+
-+    entry->name = av_strdup(dirent->name);
-+    entry->size = dirent->st.smb2_size;
-+    entry->modification_timestamp = dirent->st.smb2_mtime;
-+    entry->access_timestamp = dirent->st.smb2_atime;
-+    entry->status_change_timestamp = dirent->st.smb2_ctime;
-+
-+    return 0;
-+}
-+
-+static int libsmbc_close_dir(URLContext *h) {
-+    LIBSMBContext *libsmbc = h->priv_data;
-+    if (libsmbc->dir) {
-+        smb2_closedir(libsmbc->smb2, libsmbc->dir);
-+        libsmbc->dir = NULL;
-+    }
-+    libsmbc_close(h);
-+    return 0;
-+}
-+
-+static int libsmbc_delete(URLContext *h) { return AVERROR(EPERM); }
-+
-+static int libsmbc_move(URLContext *h_src, URLContext *h_dst) { return AVERROR(EPERM); }
-+
-+#define OFFSET(x) offsetof(LIBSMBContext, x)
-+#define D AV_OPT_FLAG_DECODING_PARAM
-+#define E AV_OPT_FLAG_ENCODING_PARAM
-+static const AVOption options[] = {
-+    {"timeout", "set timeout in ms of socket I/O operations", OFFSET(timeout), AV_OPT_TYPE_INT, {.i64 = -1}, -1, INT_MAX, D | E},
-+    {"truncate", "truncate existing files on write", OFFSET(trunc), AV_OPT_TYPE_INT, {.i64 = 1}, 0, 1, E},
-+    {"workgroup", "set the workgroup used for making connections", OFFSET(workgroup), AV_OPT_TYPE_STRING, {0}, 0, 0, D | E}, {NULL}};
-+
-+static const AVClass libsmb2_context_class = {
-+    .class_name = "libsmb2",
-+    .item_name = av_default_item_name,
-+    .option = options,
-+    .version = LIBAVUTIL_VERSION_INT,
-+};
-+
-+const URLProtocol ff_libsmb2_protocol = {
-+    .name = "smb",
-+    .url_open = libsmbc_open,
-+    .url_read = libsmbc_read,
-+    .url_write = libsmbc_write,
-+    .url_seek = libsmbc_seek,
-+    .url_close = libsmbc_close,
-+    .url_delete = libsmbc_delete,
-+    .url_move = libsmbc_move,
-+    .url_open_dir = libsmbc_open_dir,
-+    .url_read_dir = libsmbc_read_dir,
-+    .url_close_dir = libsmbc_close_dir,
-+    .priv_data_size = sizeof(LIBSMBContext),
-+    .priv_data_class = &libsmb2_context_class,
-+    .flags = URL_PROTOCOL_FLAG_NETWORK,
-+};
 diff --git a/libavformat/libssh2.c b/libavformat/libssh2.c
 new file mode 100644
-index 0000000000000..5995dec06e413
+index 0000000000..531429c203
 --- /dev/null
 +++ b/libavformat/libssh2.c
-@@ -0,0 +1,326 @@
+@@ -0,0 +1,328 @@
 +/*
 + * libssh2 support by proconsule
 + * based on libssh.c by Lukasz Marek <lukasz.m.luki@gmail.com>
@@ -492,7 +212,6 @@ index 0000000000000..5995dec06e413
 +{
 +    LIBSSHContext *libssh2 = h->priv_data;
 +    AVDictionary *opts = NULL;
-+    struct sockaddr_in sin;
 +    char proto[10], hostname[255], credencials[1024], buf[512];
 +    int port = 22, ret;
 +    const char *user = NULL, *pass = NULL;
@@ -537,8 +256,11 @@ index 0000000000000..5995dec06e413
 +    user = av_strtok(credencials, ":", &end);
 +    pass = av_strtok(end, ":", &end);
 +
-+    if (libssh2_authentication(libssh2, user, pass))
++    ret = libssh2_authentication(libssh2, user, pass);
++    if (ret) {
++        av_log(libssh2, AV_LOG_ERROR, "Failure authentication %d\n", ret);
 +        return AVERROR(EACCES);
++    }
 +
 +    libssh2->sftp = libssh2_sftp_init(libssh2->session);
 +    if (!libssh2->sftp) {
@@ -739,16 +461,14 @@ index 0000000000000..5995dec06e413
 +    .flags = URL_PROTOCOL_FLAG_NETWORK,
 +};
 diff --git a/libavformat/protocols.c b/libavformat/protocols.c
-index 93a6d67261e8f..aafefb94408da 100644
+index 207b6bf8d9..81dafe889a 100644
 --- a/libavformat/protocols.c
 +++ b/libavformat/protocols.c
-@@ -74,7 +74,9 @@ extern const URLProtocol ff_librtmpt_protocol;
+@@ -74,6 +74,7 @@ extern const URLProtocol ff_librtmpt_protocol;
  extern const URLProtocol ff_librtmpte_protocol;
  extern const URLProtocol ff_libsrt_protocol;
  extern const URLProtocol ff_libssh_protocol;
 +extern const URLProtocol ff_libssh2_protocol;
  extern const URLProtocol ff_libsmbclient_protocol;
-+extern const URLProtocol ff_libsmb2_protocol;
  extern const URLProtocol ff_libzmq_protocol;
  extern const URLProtocol ff_ipfs_gateway_protocol;
- extern const URLProtocol ff_ipns_gateway_protocol;

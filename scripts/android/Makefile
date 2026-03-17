@@ -44,7 +44,7 @@ download:
 	wget -qO- https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/libass/libass/releases/download/0.17.4/libass-0.17.4.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.5.3/dav1d-1.5.3.tar.xz | tar Jxf - -C $(TMPDIR)
-	wget -qO- https://ffmpeg.org/releases/ffmpeg-8.0.1.tar.xz | tar Jxf - -C $(TMPDIR)
+	wget -qO- https://ffmpeg.org/releases/ffmpeg-8.1.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/mpv-player/mpv/archive/v0.41.0.tar.gz | tar zxf - -C $(TMPDIR)
 	git clone https://github.com/haasn/libplacebo.git -b v7.360.1 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
 	patch -d $(TMPDIR)/libwebp-1.6.0 -Nbp1 -i $(PWD)/scripts/mingw64/libwebp/0001-mingw-cmake-output.patch
@@ -123,7 +123,7 @@ dav1d:
 
 ffmpeg: mbedtls libass dav1d libwebp
 	mkdir -p build/ffmpeg && cd build/ffmpeg && \
-	$(TMPDIR)/ffmpeg-8.0.1/configure --enable-shared --disable-static --pkg-config=pkg-config \
+	$(TMPDIR)/ffmpeg-8.1/configure --enable-shared --disable-static --pkg-config=pkg-config \
 		--target-os=android --arch=$(firstword $(subst -, ,$(CC))) --cpu=$(CPU) --cc=$(CC) \
 		--enable-cross-compile --cross-prefix=llvm- --sysroot=$(TOOLCHAIN)/sysroot \
 		--extra-cflags="-I$(PREFIX)/include $(CPUFLAGS)" --extra-ldflags="-L$(PREFIX)/lib" \
