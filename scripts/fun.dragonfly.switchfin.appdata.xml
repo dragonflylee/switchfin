@@ -4,17 +4,17 @@
     <metadata_license>CC0-1.0</metadata_license>
     <name>Switchfin</name>
     <project_license>Apache-2.0</project_license>
-    <developer id="dragonflylee">
+    <developer id="fun.dragonfly">
         <name>dragonflylee</name>
     </developer>
-    <summary>Third-party native Jellyfin client designed specifically for controller users</summary>
+    <summary>Third-party native Jellyfin client</summary>
     <launchable type="desktop-id">fun.dragonfly.switchfin.desktop</launchable>
     <translation type="gettext">switchfin</translation>
     <content_rating type="oars-1.1">
         <content_attribute id="social-info">mild</content_attribute>
     </content_rating>
     <description>
-        <p>Switchfin is third-party PC player for Jellyfin that provides a native user interface to browse and play movies and series.</p>
+        <p>Switchfin is third-party PC player for Jellyfin that designed specifically for controller users to browse and play movies and series.</p>
         <p>Features:</p>
         <ul>
             <li>Completely native interface</li>
@@ -24,6 +24,20 @@
             <li>Search: TV style, Videos and Movie...</li>
         </ul>
     </description>
+    <categories>
+        <category>AudioVideo</category>
+        <category>Video</category>
+        <category>Player</category>
+        <category>TV</category>
+    </categories>
+    <branding>
+        <color type="primary" scheme_preference="light">#c4d8f0</color>
+        <color type="primary" scheme_preference="dark">#000b25</color>
+    </branding>
+    <keywords>
+        <keyword>media player</keyword>
+        <keyword>jellyfin client</keyword>
+    </keywords>
     <releases>
         <release date="2026-02-02" version="0.8.3">
             <description>
