@@ -12,7 +12,7 @@ class VideoView;
 
 class PlayerView : public brls::Box {
 public:
-    PlayerView(const jellyfin::Item& item, const uint64_t seekTicks = 0);
+    PlayerView(const jellyfin::Item& item, const uint64_t seekTicks = 0, const std::string& = "");
     ~PlayerView();
 
     void setSeries(const std::string& seriesId);
@@ -44,7 +44,7 @@ private:
 
     // Playinfo
     std::string itemId;
-    std::string itemType;
+    std::string sourceId;
     /// @brief DirectPlay, Transcode
     std::string playMethod;
     std::string playSessionId;

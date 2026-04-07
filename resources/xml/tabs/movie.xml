@@ -6,19 +6,25 @@
 
     <brls:Box
         width="220"
-        maxHeight="400"
         axis="column"
         marginRight="30">
         <brls:Image
             id="movie/image/logo"
             scalingType="fit"
+            maxHeight="340"
             backgroundColor="@theme/color/grey_1"
             image="@res/img/video-card-bg.png" />
+
+        <brls:SelectorCell
+            id="movie/source"
+            visibility="gone"
+            height="40"
+            marginTop="20px" />
 
         <brls:Button
             id="movie/play"
             height="50"
-            marginTop="20px"
+            marginTop="10px"
             text="@i18n/main/media/play" />
     </brls:Box>
 

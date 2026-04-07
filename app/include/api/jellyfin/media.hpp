@@ -132,33 +132,6 @@ struct MediaPeople {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaPeople, Id, Name, PrimaryImageTag, Role);
 
-struct Detail : public Item {
-    std::string OriginalTitle;
-    std::string Overview;
-    std::string OfficialRating;
-    float CommunityRating = 0.0f;
-    std::vector<std::string> Genres;
-    std::vector<MediaPeople> People;
-};
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Detail, Id, Name, Type, ImageTags, ProductionYear, OriginalTitle,
-    Overview, OfficialRating, CommunityRating, Genres, People, UserData);
-
-struct Season : public Item {
-    long IndexNumber = 0;
-    nlohmann::json SeriesId;
-};
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Season, Id, Name, Type, ImageTags, SeriesId, IndexNumber);
-
-struct PeopleItem {
-    std::string Id;
-    std::string Name;
-    std::string Overview;
-    std::vector<std::string> ProductionLocations;
-    std::map<std::string, std::string> ImageTags;
-    int MovieCount;
-    int SeriesCount;
-};
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PeopleItem, Id, Name, Overview, ProductionLocations, ImageTags)
 
 struct Attachment {
     std::string Codec;
@@ -200,6 +173,35 @@ struct Source {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Source, Id, Name, Path, DefaultAudioStreamIndex,
     DefaultSubtitleStreamIndex, SupportsDirectPlay, SupportsTranscoding, IsRemote, IsInfiniteStream, ETag,
     DirectStreamUrl, TranscodingUrl, MediaStreams, MediaAttachments, Bitrate);
+
+struct Detail : public Item {
+    std::string OriginalTitle;
+    std::string Overview;
+    std::string OfficialRating;
+    float CommunityRating = 0.0f;
+    std::vector<std::string> Genres;
+    std::vector<MediaPeople> People;
+    std::vector<Source> MediaSources;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Detail, Id, Name, Type, ImageTags, ProductionYear, OriginalTitle,
+    Overview, OfficialRating, CommunityRating, Genres, People, MediaSources, UserData);
+
+struct Season : public Item {
+    long IndexNumber = 0;
+    nlohmann::json SeriesId;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Season, Id, Name, Type, ImageTags, SeriesId, IndexNumber);
+
+struct PeopleItem {
+    std::string Id;
+    std::string Name;
+    std::string Overview;
+    std::vector<std::string> ProductionLocations;
+    std::map<std::string, std::string> ImageTags;
+    int MovieCount;
+    int SeriesCount;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PeopleItem, Id, Name, Overview, ProductionLocations, ImageTags)
 
 struct PlaybackResult {
     std::vector<Source> MediaSources;

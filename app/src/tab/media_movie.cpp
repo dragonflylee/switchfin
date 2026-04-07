@@ -22,7 +22,7 @@ MediaMovie::MediaMovie(const jellyfin::Item& item) : itemId(item.Id) {
     this->similar->registerCell("Cell", VideoCardCell::create);
 
     this->btnPlay->registerClickAction([this, item](...) {
-        PlayerView* view = new PlayerView(item, this->playTicks);
+        PlayerView* view = new PlayerView(item, this->playTicks, this->sourceId);
         view->setTitie(item.ProductionYear ? fmt::format("{} ({})", item.Name, item.ProductionYear) : item.Name);
         return true;
     });
@@ -92,6 +92,17 @@ void MediaMovie::doMovie() {
                         {"tag", logo->second},
                         {"maxWidth", "240"},
                     }));
+            }
+
+            if (r.MediaSources.size() > 1) {
+                std::vector<std::string> names, ids;
+                for (auto& it : r.MediaSources) {
+                    names.push_back(it.Name);
+                    ids.push_back(it.Id);
+                }
+                this->btnSource->init(
+                    "main/setting/version"_i18n, names, 0, [this, ids](int index) { this->sourceId = ids[index]; });
+                this->btnSource->setVisibility(brls::Visibility::VISIBLE);
             }
 
             this->playTicks = r.UserData.PlaybackPositionTicks;

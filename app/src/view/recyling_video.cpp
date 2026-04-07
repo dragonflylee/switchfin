@@ -41,8 +41,6 @@ RecylingVideo::RecylingVideo() {
     this->registerAutoXMLAttribute(
         "nextPage", [this]() { this->recycler->onNextPage([this]() { this->doRequest(); }); });
 
-    this->registerBoolXMLAttribute("resume", [this](bool value) { this->resume = value; });
-
     this->recycler->registerCell("Cell", VideoCardCell::create);
 }
 
@@ -76,7 +74,7 @@ void RecylingVideo::doRequest(bool refresh) {
                 this->recycler->clearData();
             } else if (r.StartIndex == 0) {
                 this->setVisibility(brls::Visibility::VISIBLE);
-                this->recycler->setDataSource(new VideoDataSource(r.Items, this->resume));
+                this->recycler->setDataSource(new VideoDataSource(r.Items));
                 this->title->setSubtitle(std::to_string(r.TotalRecordCount));
             } else if (r.Items.size() > 0) {
                 auto dataSrc = dynamic_cast<VideoDataSource*>(this->recycler->getDataSource());

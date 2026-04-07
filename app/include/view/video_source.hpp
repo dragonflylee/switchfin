@@ -8,7 +8,6 @@ public:
     using MediaList = std::vector<jellyfin::Episode>;
 
     explicit VideoDataSource(const MediaList& r);
-    explicit VideoDataSource(const MediaList& r, bool resume);
     explicit VideoDataSource(const MediaList& r, const std::string& parentId);
 
     size_t getItemCount() override;
@@ -25,7 +24,6 @@ public:
 
 protected:
     MediaList list;
-    bool resume;
     std::string parentId;
 };
 

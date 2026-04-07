@@ -25,6 +25,7 @@ private:
     BRLS_BIND(TextBox, labelOverview, "movie/label/overview");
     BRLS_BIND(brls::Label, labelGenres, "movie/label/genres");
     BRLS_BIND(brls::Header, labelSimilar, "movie/label/similar");
+    BRLS_BIND(brls::SelectorCell, btnSource, "movie/source");
     BRLS_BIND(brls::Button, btnPlay, "movie/play");
     BRLS_BIND(HRecyclerFrame, people, "movie/people");
     BRLS_BIND(HRecyclerFrame, similar, "movie/similar");
@@ -35,4 +36,5 @@ private:
 
     int64_t playTicks = 0;
     std::string itemId;
+    std::string sourceId;
 };
