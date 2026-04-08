@@ -172,6 +172,7 @@ bool PlayerView::playIndex(int index) {
 
     auto item = this->episodes.at(index);
     this->itemId = item.Id;
+    this->sourceId = item.Id;
     this->setChapters(item.Chapters, item.RunTimeTicks);
     this->playMedia(0);
     view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
