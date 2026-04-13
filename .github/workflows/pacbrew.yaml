@@ -16,7 +16,7 @@ jobs:
     steps:
     - name: Disable autocrlf
       run: git config --global core.autocrlf false
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         sparse-checkout: scripts/ps4
     - name: Install dependency
@@ -36,7 +36,7 @@ jobs:
         done
 
     - name: Upload portlibs
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         name: pacbrew
         tag_name: pacbrew

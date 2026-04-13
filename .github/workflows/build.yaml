@@ -47,7 +47,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     steps:
     - name: Download Assets
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v6
     - name: Package Assets
       run: |
         for p in Switchfin-windows-*; do
@@ -55,7 +55,7 @@ jobs:
         done
         tree
     - name: Release and Upload Assets
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         name: Switchfin ${{ github.ref_name }}
         tag_name: ${{ github.ref_name }}
@@ -88,7 +88,7 @@ jobs:
     env:
       BASE_URL: https://github.com/dragonflylee/switchfin/releases/download/switch-portlibs
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
     - name: Update deko3d dependencies
@@ -117,12 +117,12 @@ jobs:
           -DVERSION_BUILD=${{ github.run_number }}
         make -C build Switchfin.nro -j$(nproc)
     - name: Upload nro
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: Switchfin-NintendoSwitch${{ matrix.shuffix }}-${{ github.run_number }}
         path: build/Switchfin.nro
     - name: Upload elf
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: ns-dev-elf-${{ matrix.driver }}-${{ github.run_number }}
         path: build/Switchfin.elf
@@ -135,7 +135,7 @@ jobs:
     env:
       BASE_URL: https://github.com/dragonflylee/switchfin/releases/download/pacbrew
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
     - name: Update dependencies
@@ -151,12 +151,12 @@ jobs:
         cmake -B build -DPLATFORM_PS4=ON -DVERSION_BUILD=${{ github.run_number }}
         make -C build -j$(nproc)
     - name: Upload pkg
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: Switchfin-PS4-${{ github.run_number }}
         path: build/*.pkg
     - name: Upload oelf
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: ps4-dev-oelf-${{ github.run_number }}
         path: build/Switchfin.oelf
@@ -171,7 +171,7 @@ jobs:
       run: |
         apk update
         apk add cmake ninja git zstd tar pkgconf
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
     - name: Update dependencies
@@ -189,12 +189,12 @@ jobs:
           -DUSE_VITA_SHARK=OFF -DVERSION_BUILD=${{ github.run_number }}
         cmake --build build
     - name: Upload vpk
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: Switchfin-Vita-${{ github.run_number }}
         path: build/Switchfin.vpk
     - name: Upload velf
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: psv-dev-velf-${{ github.run_number }}
         path: build/Switchfin.velf
@@ -216,7 +216,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
     if: ${{ inputs.platform == 'flatpak' || github.event_name != 'workflow_dispatch' }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
     - name: Set workspace permissions
@@ -225,7 +225,7 @@ jobs:
       if: matrix.driver == 'gles2'
       run: sed -i 's/USE_GLES2=OFF/USE_GLES2=ON/' scripts/flatpak-manifest.yaml
     - name: Build flatpak
-      uses: flatpak/flatpak-github-actions/flatpak-builder@v6.5
+      uses: flatpak/flatpak-github-actions/flatpak-builder@v6.7
       with:
         bundle: Switchfin-Linux-${{ matrix.arch }}-${{ matrix.driver }}-${{ github.run_number }}.flatpak
         manifest-path: scripts/flatpak-manifest.yaml
@@ -233,7 +233,7 @@ jobs:
         upload-artifact: false
         arch: ${{ matrix.arch }}
     - name: Upload Assets
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: Switchfin-Flatpak-${{ matrix.arch }}-${{ matrix.driver }}-${{ github.run_number }}
         path: Switchfin-*.flatpak
@@ -263,7 +263,7 @@ jobs:
         apt-get install -y --no-install-recommends debhelper cmake build-essential \
           ninja-build git wget ca-certificates xorg-dev libdbus-1-dev libssl-dev \
           libwayland-dev libxkbcommon-dev libwebp-dev libmpv-dev
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
     - name: Build deb
@@ -274,7 +274,7 @@ jobs:
         dpkg-buildpackage -b -nc
         mv ../switchfin_*.deb $GITHUB_WORKSPACE
     - name: Upload Assets
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: Switchfin-${{ matrix.img }}-${{ matrix.tag }}-${{ matrix.arch }}-${{ github.run_number }}
         path: switchfin_*.deb
@@ -283,13 +283,13 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ inputs.platform == 'aur' || github.event_name != 'workflow_dispatch' }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
     - name: Build aur
       run: docker run --rm --tty --network host -v $PWD:/work -e PUID=$(id -u) -w /work/scripts/aur archlinux bash entrypoint.sh
     - name: Upload Assets
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: Switchfin-Archlinux-${{ github.run_number }}
         path: scripts/aur/*.pkg.tar.*
@@ -305,7 +305,7 @@ jobs:
         - { tag: Intel, arch: x86_64, target: "10.15" }
         tag: [ Silicon, Intel ]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
     - name: Install deps
@@ -336,7 +336,7 @@ jobs:
           --app-drop-link 600 185 --volicon ./scripts/macos/dmg.icns \
           --volname "Switchfin" Switchfin-macOS-${{ matrix.tag }}-${{ github.run_number }}.dmg "dist/"
     - name: Upload Assets
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: Switchfin-macOS-${{ matrix.tag }}-${{ github.run_number }}
         path: Switchfin-*.dmg
@@ -366,7 +366,7 @@ jobs:
         install: >-
           mingw-w64-${{ matrix.env }}-ninja
           mingw-w64-${{ matrix.env }}-cc
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
     - name: Install dependency
@@ -402,7 +402,7 @@ jobs:
         cv2pdb64 build/Switchfin.exe
         cp -a README.md ${MINGW_PREFIX}/bin/libmpv-2.dll build
     - name: Upload Assets
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: Switchfin-windows-${{ matrix.arch }}-${{ github.run_number }}
         path: |
@@ -415,7 +415,7 @@ jobs:
     if: ${{ inputs.platform == 'android' || startsWith(github.ref, 'refs/tags/') }}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
     - uses: nttld/setup-ndk@v1
@@ -451,7 +451,7 @@ jobs:
         ${{ github.workspace }}/library/borealis/build_libromfs_generator.sh
         cd app/platform/android && ./gradlew assembleRelease
     - name: Upload dist
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: Switchfin-android-${{ github.run_number }}
         path: app/platform/android/app/build/outputs/apk/release/*.apk

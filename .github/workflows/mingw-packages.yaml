@@ -41,7 +41,7 @@ jobs:
           mingw-w64-${{ matrix.env }}-meson
           mingw-w64-${{ matrix.env }}-cmake
           mingw-w64-${{ matrix.env }}-cc
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         sparse-checkout: scripts/mingw64
     - name: Build packages
@@ -58,7 +58,7 @@ jobs:
           pushd $pkg; makepkg-mingw -scCf --noconfirm; popd
         done
     - name: Upload packages
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         name: mingw-packages
         tag_name: mingw-packages

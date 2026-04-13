@@ -14,7 +14,7 @@ jobs:
     container:
       image: vitasdk/vitasdk:latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         sparse-checkout: scripts/vita
     - name: Install dependency
@@ -41,7 +41,7 @@ jobs:
         su - builder -c "cd mpv && vita-makepkg"
 
     - name: Upload packages
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         name: vita-packages
         tag_name: vita-packages
