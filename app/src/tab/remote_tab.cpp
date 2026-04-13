@@ -34,18 +34,9 @@ void RemoteTab::onCreate() {
         }
     }
 
-    if (conf.getItem(AppConfig::UMS, false)) {
-        auto* item = new AutoSidebarItem();
-        item->setTabStyle(AutoTabBarStyle::ACCENT);
-        item->setFontSize(22);
-        item->setLabel("main/remote/local"_i18n);
-        this->tabFrame->addTab(item, []() { return new UmsView(); });
-    } else if (conf.getRemotes().empty()) {
-        auto hintImage = new brls::Image();
-        hintImage->setImageFromRes("img/empty.png");
-        hintImage->setScalingType(brls::ImageScalingType::CENTER);
-        this->tabFrame->setVisibility(brls::Visibility::GONE);
-        this->setJustifyContent(brls::JustifyContent::CENTER);
-        this->addView(hintImage);
-    }
+    auto* item = new AutoSidebarItem();
+    item->setTabStyle(AutoTabBarStyle::ACCENT);
+    item->setFontSize(22);
+    item->setLabel("main/remote/local"_i18n);
+    this->tabFrame->addTab(item, []() { return new UmsView(); });
 }

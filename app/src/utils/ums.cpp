@@ -56,6 +56,13 @@ int Ums::init() {
     return 0;
 }
 
+#elif defined(__PS4__)
+
+int Ums::init() {
+    this->devices.push_back(Device{.id = -1, .name = "HardDisk", .mount = "/data"});
+    return 0;
+}
+
 #elif defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>

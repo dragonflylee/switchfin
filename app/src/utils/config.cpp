@@ -82,7 +82,6 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {CLIP_POINT, {"clip_point"}},
     {SYNC_SETTING, {"sync_setting"}},
     {OVERCLOCK, {"overclock"}},
-    {UMS, {"ums"}},
     {MPV_VO, {"mpv_vo", {"gpu", "gpu-next", "mediacodec_embed"}}},
     {PLAYER_BOTTOM_BAR, {"player_bottom_bar"}},
     {PLAYER_LOW_QUALITY, {"player_low_quality"}},
@@ -469,9 +468,7 @@ bool AppConfig::init() {
         SwitchSys::setClock(true);
     };
 #endif
-    if (getItem(AppConfig::UMS, false)) {
-        Ums::instance().init();
-    };
+    Ums::instance().init();
 
     // init custom font path
     brls::FontLoader::USER_FONT_PATH = configDir() + "/font.ttf";

@@ -64,7 +64,6 @@ public:
     enum Item {
         FULLSCREEN,
         OVERCLOCK,
-        UMS,
         APP_THEME,
         APP_LANG,
         APP_UPDATE,
