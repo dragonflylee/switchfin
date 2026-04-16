@@ -162,10 +162,10 @@ index 37eb6b18f5..09ad005f3e 100644
  #endif
 diff --git a/video/out/d3d11/libmpv_d3d11.c b/video/out/d3d11/libmpv_d3d11.c
 new file mode 100644
-index 0000000000..a7d26e3837
+index 0000000000..b961407388
 --- /dev/null
 +++ b/video/out/d3d11/libmpv_d3d11.c
-@@ -0,0 +1,90 @@
+@@ -0,0 +1,93 @@
 +#include "common/msg.h"
 +#include "ra_d3d11.h"
 +#include "mpv/render_dxgi.h"
@@ -173,9 +173,9 @@ index 0000000000..a7d26e3837
 +#include "osdep/windows_utils.h"
 +
 +struct priv {
-+    struct ra_tex *tex;
 +    ID3D11Device *device;
 +    IDXGISwapChain *swapchain;
++    struct ra_tex *wrapped_tex;
 +};
 +
 +static int init(struct libmpv_gpu_context *ctx, mpv_render_param *params)
@@ -185,7 +185,7 @@ index 0000000000..a7d26e3837
 +
 +    mpv_dxgi_init_params *init_params =
 +        get_mpv_render_param(params, MPV_RENDER_PARAM_DXGI_INIT_PARAMS, NULL);
-+    if (!init_params)
++    if (!init_params || !init_params->device)
 +        return MPV_ERROR_INVALID_PARAMETER;
 +
 +    p->device = init_params->device;
@@ -214,18 +214,18 @@ index 0000000000..a7d26e3837
 +    struct priv *p = ctx->priv;
 +    ID3D11Resource *backbuffer = NULL;
 +
-+    if (!p->tex) {
++    if (!p->wrapped_tex) {
 +        HRESULT hr = IDXGISwapChain_GetBuffer(p->swapchain, 0, &IID_ID3D11Texture2D,
 +                        (void**)&backbuffer);
 +        if (FAILED(hr)) {
 +            MP_ERR(ctx, "Couldn't get swapchain image\n");
 +            return MPV_ERROR_UNSUPPORTED;
 +        }
-+        p->tex = ra_d3d11_wrap_tex(ctx->ra_ctx->ra, backbuffer);
++        p->wrapped_tex = ra_d3d11_wrap_tex(ctx->ra_ctx->ra, backbuffer);
 +        SAFE_RELEASE(backbuffer);
 +    }
 +
-+    *out = p->tex;
++    *out = p->wrapped_tex;
 +    return 0;
 +}
 +
@@ -234,19 +234,22 @@ index 0000000000..a7d26e3837
 +    struct priv *p = ctx->priv;
 +
 +    ra_d3d11_flush(ctx->ra_ctx->ra);
-+    ra_tex_free(ctx->ra_ctx->ra, &p->tex);
++    ra_tex_free(ctx->ra_ctx->ra, &p->wrapped_tex);
 +}
 +
 +static void destroy(struct libmpv_gpu_context *ctx)
 +{
 +    struct priv *p = ctx->priv;
-+    struct ra_ctx *ra_ctx = ctx->ra_ctx;
-+    if (ra_ctx->ra)
-+        ra_tex_free(ra_ctx->ra, &p->tex);
++
++    if (ctx->ra_ctx && ctx->ra_ctx->ra) {
++        ra_tex_free(ctx->ra_ctx->ra, &p->wrapped_tex);
++        // ra_d3d11 frees its own struct from inside its destroy callback.
++        ctx->ra_ctx->ra->fns->destroy(ctx->ra_ctx->ra);
++        ctx->ra_ctx->ra = NULL;
++    }
++    
 +    SAFE_RELEASE(p->swapchain);
 +    SAFE_RELEASE(p->device);
-+    if (ra_ctx->ra)
-+        ra_ctx->ra->fns->destroy(ra_ctx->ra);
 +}
 +
 +const struct libmpv_gpu_context_fns libmpv_gpu_context_d3d11 = {

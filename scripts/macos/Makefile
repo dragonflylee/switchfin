@@ -19,18 +19,19 @@ clean:
 	@rm -rf build
 
 download:
-	curl --retry 5 -sSL https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.5/mbedtls-3.6.5.tar.bz2 | tar jxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.6/mbedtls-3.6.6.tar.bz2 | tar jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://curl.se/download/curl-8.16.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/webmproject/libwebp/archive/v1.6.0.tar.gz | tar zxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/dragonflylee/glfw/archive/switchfin.tar.gz | tar zxf - -C $(TMPDIR)
-	curl --retry 5 -sSL https://downloads.sourceforge.net/project/freetype/freetype2/2.14.1/freetype-2.14.1.tar.xz | tar Jxf - -C $(TMPDIR)
-	curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/12.3.2/harfbuzz-12.3.2.tar.xz | tar Jxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://downloads.sourceforge.net/project/freetype/freetype2/2.14.3/freetype-2.14.3.tar.xz | tar Jxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/14.2.0/harfbuzz-14.2.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/libass/libass/releases/download/0.17.4/libass-0.17.4.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://downloads.videolan.org/pub/videolan/dav1d/1.5.3/dav1d-1.5.3.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://ffmpeg.org/releases/ffmpeg-8.1.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/mpv-player/mpv/archive/v0.41.0.tar.gz | tar zxf - -C $(TMPDIR)
 	git clone https://github.com/haasn/libplacebo.git -b v7.360.1 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
+	curl -sL https://github.com/Mbed-TLS/mbedtls/pull/10674.patch | patch -d $(TMPDIR)/mbedtls-3.6.6 -Nbp1
 	patch -d $(TMPDIR)/mpv-0.41.0 -Nbp1 -i $(CURDIR)/mpv.patch
 
 curl:
@@ -58,7 +59,7 @@ glfw:
 	cmake --install build/glfw
 
 mbedtls:
-	cmake -B build/mbedtls -S $(TMPDIR)/mbedtls-3.6.5 -G Ninja -DCMAKE_BUILD_TYPE=Release \
+	cmake -B build/mbedtls -S $(TMPDIR)/mbedtls-3.6.6 -G Ninja -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_OSX_ARCHITECTURES=$(OSX_ARCH) -DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_TARGET) \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_NAME_DIR=$(PREFIX)/lib \
 		-DUSE_SHARED_MBEDTLS_LIBRARY=ON -DUSE_STATIC_MBEDTLS_LIBRARY=OFF \
@@ -77,14 +78,14 @@ libwebp:
 	cmake --install build/libwebp
 
 freetype:
-	meson setup build/freetype $(TMPDIR)/freetype-2.14.1 \
+	meson setup build/freetype $(TMPDIR)/freetype-2.14.3 \
 		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX) \
 		-Dharfbuzz=disabled -Dbrotli=disabled -Dzlib=system
 	meson compile -C build/freetype
 	meson install -C build/freetype
 
 harfbuzz: freetype
-	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-12.3.2 \
+	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-14.2.0 \
 		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX) \
 		-Dtests=disabled -Ddocs=disabled -Dicu=disabled -Dcairo=disabled \
 		-Dglib=disabled -Dgobject=disabled -Dbenchmark=disabled -Dutilities=disabled

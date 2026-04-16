@@ -8,7 +8,7 @@ pkgname=(
   switch-${pkgbasename}-deko3d
 )
 provides=(switch-${pkgbasename})
-pkgver=0.41.0
+pkgver=0.36.0
 pkgrel=5
 pkgdesc='Command line video player (library only)'
 arch=('any')
@@ -19,7 +19,7 @@ source=(
   "${pkgbasename}-${pkgver}.tar.gz::https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz" 
   "deko3d.patch"
 )
-sha256sums=('ee21092a5ee427353392360929dc64645c54479aefdb5babc5cfbb5fad626209' 'SKIP')
+sha256sums=('29abc44f8ebee013bb2f9fe14d80b30db19b534c679056e4851ceadf5a5e8bf6' 'SKIP')
 makedepends=("dkp-toolchain-vars" "dkp-meson-scripts")
 depends=('switch-ffmpeg' 'switch-mesa')
 groups=('switch-portlibs')
@@ -32,12 +32,12 @@ prepare() {
 build() {
   /opt/devkitpro/meson-cross.sh switch crossfile.txt build mpv-$pkgver \
     -Dlibmpv=true -Dcplayer=false -Dtests=false -Dlua=disabled -Ddeko3d=disabled \
-    -Dplain-gl=enabled -Dlibarchive=disabled
+    -Dplain-gl=enabled -Dsdl2=disabled -Dlibarchive=disabled -Dlibplacebo=disabled
   meson compile -C build
 
   /opt/devkitpro/meson-cross.sh switch crossfile-deko3d.txt build-deko3d mpv-$pkgver \
     -Dlibmpv=true -Dcplayer=false -Dtests=false -Dlua=disabled -Ddeko3d=enabled \
-    -Dgl=disabled -Dlibarchive=disabled
+    -Dgl=disabled -Dsdl2=disabled -Dlibarchive=disabled -Dlibplacebo=disabled
   meson compile -C build-deko3d
 }
 

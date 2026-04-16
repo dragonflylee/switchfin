@@ -4,7 +4,7 @@
 _realname=freetype
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=2.14.1
+pkgver=2.14.3
 pkgrel=1
 pkgdesc="TrueType font rendering library (mingw-w64)"
 arch=('any')
@@ -26,7 +26,7 @@ makedepends=(
 )
 options=('staticlibs' '!strip')
 source=("https://downloads.sourceforge.net/project/freetype/freetype2/${pkgver}/freetype-${pkgver}.tar.xz")
-sha256sums=('32427e8c471ac095853212a37aef816c60b42052d4d9e48230bab3bdf2936ccc')
+sha256sums=('36bc4f1cc413335368ee656c42afca65c5a3987e8768cc28cf11ba775e785a5f')
 
 build() {
   MSYS2_ARG_CONV_EXCL="--prefix=" \

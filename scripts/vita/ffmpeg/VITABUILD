@@ -20,7 +20,8 @@ build() {
         --disable-runtime-cpudetect \
         --disable-armv5te \
         --cross-prefix=$VITASDK/bin/arm-vita-eabi- \
-        --extra-ldflags=" -L$VITASDK/lib " \
+        --extra-cflags="-Wno-error=incompatible-pointer-types" \
+        --extra-ldflags="-L$VITASDK/lib" \
         --disable-shared \
         --enable-static \
         --disable-programs \
