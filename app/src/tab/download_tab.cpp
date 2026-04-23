@@ -125,6 +125,7 @@ DownloadTab::DownloadTab() {
 
 DownloadTab::~DownloadTab() {
     DownloadManager::instance().getStatusEvent()->unsubscribe(this->statusSubId);
+    DownloadManager::instance().getProgressEvent()->unsubscribe(this->progressSubId);
 }
 
 void DownloadTab::onCreate() {
@@ -135,6 +136,11 @@ void DownloadTab::onCreate() {
 
     this->statusSubId = DownloadManager::instance().getStatusEvent()->subscribe(
         [this](const std::string&, DownloadStatus) {
+            this->doRequest();
+        });
+
+    this->progressSubId = DownloadManager::instance().getProgressEvent()->subscribe(
+        [this](const std::string&, int64_t, int64_t) {
             this->doRequest();
         });
 

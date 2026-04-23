@@ -312,12 +312,14 @@ void DownloadManager::doDownload(DownloadItem& item) {
 
         HTTP::Progress::Callback progressCb = [this, itemId](curl_off_t total, curl_off_t now) {
             brls::sync([this, itemId, total, now]() {
-                std::lock_guard<std::mutex> lock(this->mutex);
-                for (auto& item : this->items) {
-                    if (item.itemId == itemId) {
-                        item.totalBytes = total;
-                        item.downloadedBytes = now;
-                        break;
+                {
+                    std::lock_guard<std::mutex> lock(this->mutex);
+                    for (auto& item : this->items) {
+                        if (item.itemId == itemId) {
+                            item.totalBytes = total;
+                            item.downloadedBytes = now;
+                            break;
+                        }
                     }
                 }
                 this->progressEvent.fire(itemId, now, total);
@@ -345,55 +347,62 @@ void DownloadManager::doDownload(DownloadItem& item) {
         }
 
         brls::sync([this, itemId, fileName, cancelled, success, error]() {
-            std::lock_guard<std::mutex> lock(this->mutex);
+            DownloadStatus finalStatus = DownloadStatus::Failed;
 
-            if (cancelled) {
-                for (auto it = this->items.begin(); it != this->items.end(); ++it) {
-                    if (it->itemId == itemId) {
-                        if (it->errorMessage == "removed") {
-                            this->items.erase(it);
-                        } else {
-                            it->status = DownloadStatus::Failed;
-                            it->errorMessage = "Cancelled";
+            {
+                std::lock_guard<std::mutex> lock(this->mutex);
+
+                if (cancelled) {
+                    for (auto it = this->items.begin(); it != this->items.end(); ++it) {
+                        if (it->itemId == itemId) {
+                            if (it->errorMessage == "removed") {
+                                this->items.erase(it);
+                            } else {
+                                it->status = DownloadStatus::Failed;
+                                it->errorMessage = "Cancelled";
+                            }
+                            break;
                         }
-                        break;
                     }
-                }
-                this->saveIndex();
-                this->statusEvent.fire(itemId, DownloadStatus::Failed);
-            } else if (success) {
-                for (auto& item : this->items) {
-                    if (item.itemId == itemId) {
-                        item.status = DownloadStatus::Completed;
-                        item.filePath = fileName;
+                    this->saveIndex();
+                } else if (success) {
+                    finalStatus = DownloadStatus::Completed;
+                    for (auto& item : this->items) {
+                        if (item.itemId == itemId) {
+                            item.status = DownloadStatus::Completed;
+                            item.filePath = fileName;
 
-                        std::string metaPath = this->downloadDir() + "/" + itemId + "/metadata.json";
-                        try {
-                            nlohmann::json j = item;
-                            std::ofstream f(metaPath);
-                            f << j.dump(2);
-                        } catch (...) {}
-                        break;
+                            std::string metaPath = this->downloadDir() + "/" + itemId + "/metadata.json";
+                            try {
+                                nlohmann::json j = item;
+                                std::ofstream f(metaPath);
+                                f << j.dump(2);
+                            } catch (...) {}
+                            break;
+                        }
                     }
-                }
-                this->saveIndex();
-                this->statusEvent.fire(itemId, DownloadStatus::Completed);
-                brls::Logger::info("Download completed: {}", itemId);
-            } else {
-                for (auto& item : this->items) {
-                    if (item.itemId == itemId) {
-                        item.status = DownloadStatus::Failed;
-                        item.errorMessage = error;
-                        break;
+                    this->saveIndex();
+                    brls::Logger::info("Download completed: {}", itemId);
+                } else {
+                    for (auto& item : this->items) {
+                        if (item.itemId == itemId) {
+                            item.status = DownloadStatus::Failed;
+                            item.errorMessage = error;
+                            break;
+                        }
                     }
+                    this->saveIndex();
                 }
-                this->saveIndex();
-                this->statusEvent.fire(itemId, DownloadStatus::Failed);
+
+                this->downloading = false;
+                this->currentCancel.reset();
             }
 
-            this->downloading = false;
-            this->currentCancel.reset();
-            this->processQueue();
+            this->statusEvent.fire(itemId, finalStatus);
+            {
+                std::lock_guard<std::mutex> lock(this->mutex);
+                this->processQueue();
+            }
         });
     });
 }

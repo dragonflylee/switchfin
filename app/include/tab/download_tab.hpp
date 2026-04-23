@@ -19,4 +19,5 @@ private:
     void doRequest();
 
     DownloadManager::StatusEvent::Subscription statusSubId;
+    DownloadManager::ProgressEvent::Subscription progressSubId;
 };
