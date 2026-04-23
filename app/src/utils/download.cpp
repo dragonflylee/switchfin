@@ -34,7 +34,6 @@ void DownloadManager::init() {
         }
     }
     this->saveIndex();
-    this->processQueue();
 }
 
 void DownloadManager::loadIndex() {
@@ -91,6 +90,11 @@ void DownloadManager::addDownload(const jellyfin::Item& item, DownloadQuality qu
     this->processQueue();
 }
 
+void DownloadManager::resumeQueue() {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    this->processQueue();
+}
+
 void DownloadManager::cancelDownload(const std::string& itemId) {
     bool erased = false;
     {
@@ -129,7 +133,6 @@ void DownloadManager::removeDownload(const std::string& itemId) {
         for (auto& item : this->items) {
             if (item.itemId == itemId && item.status == DownloadStatus::Downloading && this->currentCancel) {
                 this->currentCancel->store(true);
-                item.status = DownloadStatus::Failed;
                 item.errorMessage = "removed";
                 wasActive = true;
                 break;
@@ -148,14 +151,16 @@ void DownloadManager::removeDownload(const std::string& itemId) {
         }
     }
 
-    std::string dir = this->downloadDir() + "/" + itemId;
-    brls::async([dir]() {
-        try {
-            if (fs::exists(dir)) fs::remove_all(dir);
-        } catch (const std::exception& e) {
-            brls::Logger::error("Failed to remove download dir: {}", e.what());
-        }
-    });
+    if (!wasActive) {
+        std::string dir = this->downloadDir() + "/" + itemId;
+        brls::async([dir]() {
+            try {
+                if (fs::exists(dir)) fs::remove_all(dir);
+            } catch (const std::exception& e) {
+                brls::Logger::error("Failed to remove download dir: {}", e.what());
+            }
+        });
+    }
 
     if (erased) {
         brls::sync([this, itemId]() {
@@ -206,25 +211,37 @@ std::string DownloadManager::buildDownloadUrl(const DownloadItem& item) const {
     case DownloadQuality::Original:
         return server + fmt::format(fmt::runtime(jellyfin::apiDownload), item.itemId,
             HTTP::encode_form({{"api_key", token}}));
-    case DownloadQuality::HQ:
+    case DownloadQuality::Q1080p:
         return server + fmt::format(fmt::runtime(jellyfin::apiStream), item.itemId,
             HTTP::encode_form({
                 {"static", "false"},
                 {"mediaSourceId", item.itemId},
                 {"videoCodec", "h264"},
                 {"audioCodec", "aac"},
-                {"maxStreamingBitrate", "8000000"},
+                {"maxStreamingBitrate", "4000000"},
+                {"maxHeight", "1080"},
                 {"api_key", token},
             }));
-    case DownloadQuality::LQ:
+    case DownloadQuality::Q720p:
         return server + fmt::format(fmt::runtime(jellyfin::apiStream), item.itemId,
             HTTP::encode_form({
                 {"static", "false"},
                 {"mediaSourceId", item.itemId},
                 {"videoCodec", "h264"},
                 {"audioCodec", "aac"},
-                {"maxStreamingBitrate", "1500000"},
+                {"maxStreamingBitrate", "2000000"},
                 {"maxHeight", "720"},
+                {"api_key", token},
+            }));
+    case DownloadQuality::Q480p:
+        return server + fmt::format(fmt::runtime(jellyfin::apiStream), item.itemId,
+            HTTP::encode_form({
+                {"static", "false"},
+                {"mediaSourceId", item.itemId},
+                {"videoCodec", "h264"},
+                {"audioCodec", "aac"},
+                {"maxStreamingBitrate", "1000000"},
+                {"maxHeight", "480"},
                 {"api_key", token},
             }));
     }
@@ -372,10 +389,12 @@ void DownloadManager::doDownload(DownloadItem& item) {
                 std::lock_guard<std::mutex> lock(this->mutex);
 
                 if (cancelled) {
+                    bool removed = false;
                     for (auto it = this->items.begin(); it != this->items.end(); ++it) {
                         if (it->itemId == itemId) {
                             if (it->errorMessage == "removed") {
                                 this->items.erase(it);
+                                removed = true;
                             } else {
                                 it->status = DownloadStatus::Failed;
                                 it->errorMessage = "Cancelled";
@@ -384,6 +403,16 @@ void DownloadManager::doDownload(DownloadItem& item) {
                         }
                     }
                     this->saveIndex();
+                    if (removed) {
+                        std::string dir = this->downloadDir() + "/" + itemId;
+                        brls::async([dir]() {
+                            try {
+                                if (fs::exists(dir)) fs::remove_all(dir);
+                            } catch (const std::exception& e) {
+                                brls::Logger::error("Failed to remove download dir: {}", e.what());
+                            }
+                        });
+                    }
                 } else if (success) {
                     finalStatus = DownloadStatus::Completed;
                     for (auto& item : this->items) {

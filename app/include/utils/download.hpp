@@ -9,7 +9,7 @@
 #include <vector>
 
 enum class DownloadStatus { Queued, Downloading, Completed, Failed };
-enum class DownloadQuality { Original, HQ, LQ };
+enum class DownloadQuality { Original, Q1080p, Q720p, Q480p };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(DownloadStatus, {
     {DownloadStatus::Queued, "Queued"},
@@ -20,8 +20,9 @@ NLOHMANN_JSON_SERIALIZE_ENUM(DownloadStatus, {
 
 NLOHMANN_JSON_SERIALIZE_ENUM(DownloadQuality, {
     {DownloadQuality::Original, "Original"},
-    {DownloadQuality::HQ, "HQ"},
-    {DownloadQuality::LQ, "LQ"},
+    {DownloadQuality::Q1080p, "1080p"},
+    {DownloadQuality::Q720p, "720p"},
+    {DownloadQuality::Q480p, "480p"},
 })
 
 struct DownloadItem {
@@ -59,6 +60,7 @@ public:
     void addDownload(const jellyfin::Item& item, DownloadQuality quality);
     void cancelDownload(const std::string& itemId);
     void removeDownload(const std::string& itemId);
+    void resumeQueue();
 
     bool isDownloaded(const std::string& itemId) const;
     bool isDownloading(const std::string& itemId) const;

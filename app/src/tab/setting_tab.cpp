@@ -437,7 +437,7 @@ void SettingTab::onCreate() {
 
     auto& dlQualityOpt = conf.getOptions(AppConfig::DOWNLOAD_QUALITY);
     selectorDownloadQuality->init("main/download/quality"_i18n,
-        {"main/download/original"_i18n, "main/download/hq"_i18n, "main/download/lq"_i18n},
+        {"main/download/original"_i18n, "1080p", "720p", "480p"},
         conf.getValueIndex(AppConfig::DOWNLOAD_QUALITY), [&dlQualityOpt](int selected) {
             AppConfig::instance().setItem(AppConfig::DOWNLOAD_QUALITY, dlQualityOpt.values[selected]);
         });

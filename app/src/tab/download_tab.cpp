@@ -53,7 +53,8 @@ public:
                 this->status->setText(fmt::format("{}%", pct));
             } else if (item.downloadedBytes > 0 && item.quality != DownloadQuality::Original) {
                 std::string size = misc::formatSize(item.downloadedBytes);
-                int64_t bitrate = (item.quality == DownloadQuality::HQ) ? 8000000 : 1500000;
+                int64_t bitrate = item.quality == DownloadQuality::Q1080p ? 4000000
+                    : item.quality == DownloadQuality::Q720p ? 2000000 : 1000000;
                 int64_t durationSec = item.runTimeTicks / 10000000;
                 int64_t estimated = bitrate * durationSec / 8;
                 if (estimated > 0) {
@@ -123,11 +124,13 @@ public:
 
                 MPVCore::instance().setUrl(path);
             }
-        } else if (item.status == DownloadStatus::Downloading || item.status == DownloadStatus::Queued) {
+        } else if (item.status == DownloadStatus::Downloading) {
             std::string id = item.itemId;
             Dialog::cancelable("main/download/cancel"_i18n, [id]() {
                 DownloadManager::instance().cancelDownload(id);
             });
+        } else if (item.status == DownloadStatus::Queued) {
+            DownloadManager::instance().resumeQueue();
         } else if (item.status == DownloadStatus::Failed) {
             std::string id = item.itemId;
             Dialog::cancelable("main/download/confirm_remove"_i18n, [id]() {
