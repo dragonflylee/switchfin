@@ -134,6 +134,23 @@ void DownloadTab::onCreate() {
         return true;
     });
 
+    auto deleteAction = [this](brls::View*) {
+        auto* focus = dynamic_cast<RecyclingGridItem*>(brls::Application::getCurrentFocus());
+        if (!focus) return false;
+        auto* ds = dynamic_cast<DownloadDataSource*>(this->recycler->getDataSource());
+        if (!ds) return false;
+        size_t idx = focus->getIndex();
+        if (idx >= ds->items.size()) return false;
+        std::string id = ds->items[idx].itemId;
+        Dialog::cancelable("main/download/confirm_remove"_i18n, [this, id]() {
+            DownloadManager::instance().removeDownload(id);
+            this->doRequest();
+        });
+        return true;
+    };
+    this->recycler->registerAction("main/download/remove"_i18n, brls::BUTTON_X, deleteAction);
+    this->recycler->registerAction(brls::BRLS_KBD_KEY_BACKSPACE, deleteAction);
+
     this->statusSubId = DownloadManager::instance().getStatusEvent()->subscribe(
         [this](const std::string&, DownloadStatus) {
             this->doRequest();
