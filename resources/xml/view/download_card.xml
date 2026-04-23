@@ -2,16 +2,19 @@
     highlightCornerRadius="8"
     paddingLeft="20"
     paddingRight="20"
-    paddingTop="10"
-    paddingBottom="10"
+    paddingTop="5"
+    paddingBottom="5"
     alignItems="center">
 
-    <SVGImage
-        id="download/icon"
-        width="40"
-        height="40"
-        marginRight="10"
-        svg="@res/icon/ico-file-video.svg" />
+    <brls:Image
+        id="download/thumb"
+        width="80"
+        height="120"
+        marginRight="15"
+        scalingType="fill"
+        cornerRadius="4"
+        backgroundColor="@theme/color/grey_1"
+        image="@res/img/video-card-bg.png" />
 
     <brls:Box
         axis="column"

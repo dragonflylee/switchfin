@@ -1,6 +1,5 @@
 #include "tab/download_tab.hpp"
 #include "view/recycling_grid.hpp"
-#include "view/svg_image.hpp"
 #include "view/video_view.hpp"
 #include "view/mpv_core.hpp"
 #include "view/player_setting.hpp"
@@ -9,13 +8,26 @@
 #include "utils/misc.hpp"
 #include "api/jellyfin/media.hpp"
 
+#ifdef USE_BOOST_FILESYSTEM
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
+#elif __has_include(<filesystem>)
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif
+
 using namespace brls::literals;
 
 class DownloadCard : public RecyclingGridItem {
 public:
     DownloadCard() { this->inflateFromXMLRes("xml/view/download_card.xml"); }
 
-    void setItem(const DownloadItem& item) {
+    void setItem(const DownloadItem& item, const std::string& downloadDir) {
+        std::string thumbPath = downloadDir + "/" + item.itemId + "/thumb.jpg";
+        if (fs::exists(thumbPath)) {
+            this->thumb->setImageFromFile(thumbPath);
+        }
+
         this->name->setText(item.seriesName.empty() ? item.name
             : fmt::format("{} - S{}E{} {}", item.seriesName, item.seasonIndex, item.episodeIndex, item.name));
 
@@ -62,7 +74,7 @@ public:
     }
 
 private:
-    BRLS_BIND(SVGImage, icon, "download/icon");
+    BRLS_BIND(brls::Image, thumb, "download/thumb");
     BRLS_BIND(brls::Label, name, "download/name");
     BRLS_BIND(brls::Label, detail, "download/detail");
     BRLS_BIND(brls::Label, status, "download/status");
@@ -70,13 +82,14 @@ private:
 
 class DownloadDataSource : public RecyclingGridDataSource {
 public:
-    DownloadDataSource(std::vector<DownloadItem> items) : items(std::move(items)) {}
+    DownloadDataSource(std::vector<DownloadItem> items)
+        : items(std::move(items)), dlDir(AppConfig::instance().configDir() + "/downloads") {}
 
     size_t getItemCount() override { return this->items.size(); }
 
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         DownloadCard* cell = dynamic_cast<DownloadCard*>(recycler->dequeueReusableCell("Cell"));
-        cell->setItem(this->items.at(index));
+        cell->setItem(this->items.at(index), this->dlDir);
         return cell;
     }
 
@@ -128,6 +141,7 @@ public:
 
 private:
     std::vector<DownloadItem> items;
+    std::string dlDir;
 };
 
 DownloadView::DownloadView() {
@@ -170,7 +184,7 @@ void DownloadView::loadItems() {
 RecyclingGrid* DownloadView::newRecycler() {
     RecyclingGrid* grid = new RecyclingGrid();
     grid->spanCount = 1;
-    grid->estimatedRowHeight = 70;
+    grid->estimatedRowHeight = 130;
     grid->estimatedRowSpace = 5;
     grid->setDefaultCellFocus(1);
     grid->registerCell("Cell", []() { return new DownloadCard(); });

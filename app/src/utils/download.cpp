@@ -249,13 +249,12 @@ void DownloadManager::doDownload(DownloadItem& item) {
     item.status = DownloadStatus::Downloading;
 
     std::string itemId = item.itemId;
+    std::string imagePrimaryTag = item.imagePrimaryTag;
+    DownloadQuality quality = item.quality;
     std::string url = this->buildDownloadUrl(item);
     std::string itemDir = this->downloadDir() + "/" + itemId;
-    std::string ext = (item.quality == DownloadQuality::Original) ? "mkv" : "mp4";
-    std::string fileName = "video." + ext;
-    std::string filePath = itemDir + "/" + fileName;
 
-    item.filePath = fileName;
+    item.filePath = "video.mp4";
     this->saveIndex();
 
     auto cancel = std::make_shared<std::atomic_bool>(false);
@@ -265,7 +264,7 @@ void DownloadManager::doDownload(DownloadItem& item) {
         this->statusEvent.fire(itemId, DownloadStatus::Downloading);
     });
 
-    brls::async([this, itemId, url, filePath, fileName, itemDir, cancel]() {
+    brls::async([this, itemId, imagePrimaryTag, quality, url, itemDir, cancel]() {
         try {
             if (!fs::exists(itemDir)) fs::create_directories(itemDir);
         } catch (const std::exception& e) {
@@ -275,6 +274,56 @@ void DownloadManager::doDownload(DownloadItem& item) {
 
         auto& conf = AppConfig::instance();
         HTTP::Header header = {conf.getAuth(conf.getToken())};
+
+        // Determine file extension from source path
+        std::string ext = "mp4";
+        if (quality == DownloadQuality::Original) {
+            try {
+                auto resp = HTTP::get(conf.getUrl() +
+                    fmt::format(fmt::runtime(jellyfin::apiUserItem),
+                        conf.getUserId(), itemId),
+                    header, HTTP::Timeout{});
+                if (!resp.empty()) {
+                    auto detail = nlohmann::json::parse(resp).get<jellyfin::Detail>();
+                    if (!detail.MediaSources.empty()) {
+                        auto& path = detail.MediaSources[0].Path;
+                        auto dot = path.find_last_of('.');
+                        if (dot != std::string::npos) {
+                            ext = path.substr(dot + 1);
+                            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+                        }
+                    }
+                }
+            } catch (const std::exception& e) {
+                brls::Logger::warning("Failed to fetch item detail for extension: {}", e.what());
+            }
+        }
+
+        std::string fileName = "video." + ext;
+        std::string filePath = itemDir + "/" + fileName;
+
+        {
+            std::lock_guard<std::mutex> lock(this->mutex);
+            for (auto& it : this->items) {
+                if (it.itemId == itemId) {
+                    it.filePath = fileName;
+                    break;
+                }
+            }
+            this->saveIndex();
+        }
+
+        // Download thumbnail
+        if (!imagePrimaryTag.empty()) {
+            try {
+                std::string thumbUrl = conf.getUrl() +
+                    fmt::format(fmt::runtime(jellyfin::apiPrimaryImage), itemId,
+                        HTTP::encode_form({{"tag", imagePrimaryTag}, {"maxWidth", "300"}}));
+                HTTP::download(thumbUrl, itemDir + "/thumb.jpg", header, HTTP::Timeout{});
+            } catch (const std::exception& e) {
+                brls::Logger::warning("Failed to download thumbnail: {}", e.what());
+            }
+        }
 
         auto lastProgress = std::make_shared<std::chrono::steady_clock::time_point>();
         HTTP::Progress::Callback progressCb = [this, itemId, lastProgress](curl_off_t total, curl_off_t now) {
