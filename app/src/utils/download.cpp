@@ -348,8 +348,6 @@ void DownloadManager::doDownload(DownloadItem& item) {
             std::lock_guard<std::mutex> lock(this->mutex);
 
             if (cancelled) {
-                // Check if item was marked for removal
-                bool removed = true;
                 for (auto it = this->items.begin(); it != this->items.end(); ++it) {
                     if (it->itemId == itemId) {
                         if (it->errorMessage == "removed") {
@@ -357,7 +355,6 @@ void DownloadManager::doDownload(DownloadItem& item) {
                         } else {
                             it->status = DownloadStatus::Failed;
                             it->errorMessage = "Cancelled";
-                            removed = false;
                         }
                         break;
                     }
