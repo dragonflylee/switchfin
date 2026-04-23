@@ -1,22 +1,25 @@
 #pragma once
 
-#include <borealis.hpp>
-#include "view/auto_tab_frame.hpp"
+#include <view/auto_tab_frame.hpp>
 #include "utils/download.hpp"
 
 class RecyclingGrid;
 
-class DownloadTab : public AttachedView {
+class DownloadView : public AttachedView {
 public:
-    DownloadTab();
-    ~DownloadTab() override;
-    void onCreate() override;
-    static brls::View* create();
+    DownloadView();
+    ~DownloadView() override;
+
+    brls::View* getDefaultFocus() override;
+    void dismiss(std::function<void(void)> cb = [] {}) override;
 
 private:
-    BRLS_BIND(RecyclingGrid, recycler, "download/grid");
+    void loadItems();
+    RecyclingGrid* newRecycler();
+    void setContent(RecyclingGrid* view);
 
-    void doRequest();
+    std::vector<RecyclingGrid*> stack;
+    RecyclingGrid* recycler = nullptr;
 
     DownloadManager::StatusEvent::Subscription statusSubId;
     DownloadManager::ProgressEvent::Subscription progressSubId;

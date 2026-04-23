@@ -46,13 +46,6 @@
 
             <Tab label=""
                 fontSize="18"
-                icon="@res/icon/ico-download.svg"
-                iconActivate="@res/icon/ico-download-activate.svg">
-                <DownloadTab />
-            </Tab>
-
-            <Tab label=""
-                fontSize="18"
                 icon="@res/icon/ico-setting.svg"
                 iconActivate="@res/icon/ico-setting-activate.svg">
                 <SettingTab />

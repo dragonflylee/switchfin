@@ -126,24 +126,50 @@ public:
     std::vector<DownloadItem> items;
 };
 
-DownloadTab::DownloadTab() {
-    this->inflateFromXMLRes("xml/tabs/downloads.xml");
-    this->recycler->spanCount = 1;
-    this->recycler->estimatedRowHeight = 70;
-    this->recycler->estimatedRowSpace = 5;
-    this->recycler->registerCell("Cell", []() { return new DownloadCard(); });
+DownloadView::DownloadView() {
+    brls::Logger::debug("DownloadView: create");
+
+    RecyclingGrid* grid = this->newRecycler();
+    this->stack.push_back(grid);
+    this->setContent(grid);
+
+    this->statusSubId = DownloadManager::instance().getStatusEvent()->subscribe(
+        [this](const std::string&, DownloadStatus) {
+            this->loadItems();
+        });
+
+    this->progressSubId = DownloadManager::instance().getProgressEvent()->subscribe(
+        [this](const std::string&, int64_t, int64_t) {
+            this->loadItems();
+        });
+
+    this->loadItems();
 }
 
-DownloadTab::~DownloadTab() {
+DownloadView::~DownloadView() {
+    brls::Logger::debug("DownloadView: deleted");
     DownloadManager::instance().getStatusEvent()->unsubscribe(this->statusSubId);
     DownloadManager::instance().getProgressEvent()->unsubscribe(this->progressSubId);
 }
 
-void DownloadTab::onCreate() {
-    this->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, [this](...) {
-        this->doRequest();
-        return true;
-    });
+brls::View* DownloadView::getDefaultFocus() { return this->recycler; }
+
+void DownloadView::loadItems() {
+    auto items = DownloadManager::instance().getItems();
+    if (items.empty()) {
+        this->recycler->setEmpty("main/download/no_downloads"_i18n);
+    } else {
+        this->recycler->setDataSource(new DownloadDataSource(std::move(items)));
+    }
+}
+
+RecyclingGrid* DownloadView::newRecycler() {
+    RecyclingGrid* grid = new RecyclingGrid();
+    grid->spanCount = 1;
+    grid->estimatedRowHeight = 70;
+    grid->estimatedRowSpace = 5;
+    grid->setDefaultCellFocus(1);
+    grid->registerCell("Cell", []() { return new DownloadCard(); });
 
     auto deleteAction = [this](brls::View*) {
         auto* focus = dynamic_cast<RecyclingGridItem*>(brls::Application::getCurrentFocus());
@@ -155,33 +181,41 @@ void DownloadTab::onCreate() {
         std::string id = ds->items[idx].itemId;
         Dialog::cancelable("main/download/confirm_remove"_i18n, [this, id]() {
             DownloadManager::instance().removeDownload(id);
-            this->doRequest();
+            this->loadItems();
         });
         return true;
     };
-    this->recycler->registerAction("main/download/remove"_i18n, brls::BUTTON_X, deleteAction);
-    this->recycler->registerAction(brls::BRLS_KBD_KEY_BACKSPACE, deleteAction);
+    grid->registerAction("main/download/remove"_i18n, brls::BUTTON_X, deleteAction);
+    grid->registerAction(brls::BRLS_KBD_KEY_BACKSPACE, deleteAction);
 
-    this->statusSubId = DownloadManager::instance().getStatusEvent()->subscribe(
-        [this](const std::string&, DownloadStatus) {
-            this->doRequest();
-        });
+    grid->registerAction("hints/back"_i18n, brls::BUTTON_B, [this](...) {
+        this->dismiss();
+        return true;
+    });
 
-    this->progressSubId = DownloadManager::instance().getProgressEvent()->subscribe(
-        [this](const std::string&, int64_t, int64_t) {
-            this->doRequest();
-        });
-
-    this->doRequest();
+    return grid;
 }
 
-void DownloadTab::doRequest() {
-    auto items = DownloadManager::instance().getItems();
-    if (items.empty()) {
-        this->recycler->setEmpty("main/download/no_downloads"_i18n);
+void DownloadView::setContent(RecyclingGrid* view) {
+    if (this->recycler) {
+        this->removeView(this->recycler, false);
+        this->recycler = nullptr;
+    }
+    this->recycler = view;
+    this->recycler->setDimensions(brls::View::AUTO, brls::View::AUTO);
+    this->recycler->setGrow(1.0f);
+    this->addView(this->recycler);
+    brls::Application::giveFocus(this->recycler);
+}
+
+void DownloadView::dismiss(std::function<void(void)> cb) {
+    if (this->stack.size() > 1) {
+        brls::View* lastView = this->recycler;
+        this->stack.pop_back();
+        this->setContent(this->stack.back());
+        cb();
+        lastView->freeView();
     } else {
-        this->recycler->setDataSource(new DownloadDataSource(std::move(items)));
+        AutoTabFrame::focus2Sidebar(this);
     }
 }
-
-brls::View* DownloadTab::create() { return new DownloadTab(); }
