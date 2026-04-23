@@ -282,10 +282,34 @@ void DownloadManager::doDownload(DownloadItem& item) {
     });
 
     brls::async([this, itemId, imagePrimaryTag, quality, url, itemDir, cancel]() {
+        auto resetQueue = [this, itemId](const std::string& error) {
+            brls::sync([this, itemId, error]() {
+                {
+                    std::lock_guard<std::mutex> lock(this->mutex);
+                    for (auto& item : this->items) {
+                        if (item.itemId == itemId) {
+                            item.status = DownloadStatus::Failed;
+                            item.errorMessage = error;
+                            break;
+                        }
+                    }
+                    this->downloading = false;
+                    this->currentCancel.reset();
+                    this->saveIndex();
+                }
+                this->statusEvent.fire(itemId, DownloadStatus::Failed);
+                {
+                    std::lock_guard<std::mutex> lock(this->mutex);
+                    this->processQueue();
+                }
+            });
+        };
+
         try {
             if (!fs::exists(itemDir)) fs::create_directories(itemDir);
         } catch (const std::exception& e) {
             brls::Logger::error("Failed to create download dir: {}", e.what());
+            resetQueue(e.what());
             return;
         }
 
@@ -293,7 +317,10 @@ void DownloadManager::doDownload(DownloadItem& item) {
         HTTP::Header header = {conf.getAuth(conf.getToken())};
 
         std::string ext = "mp4";
-        if (cancel->load()) return;
+        if (cancel->load()) {
+            resetQueue("Cancelled");
+            return;
+        }
         if (quality == DownloadQuality::Original) {
             try {
                 auto resp = HTTP::get(conf.getUrl() +
