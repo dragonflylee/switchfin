@@ -47,7 +47,6 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(DownloadItem, itemId, name, type
 
 namespace jellyfin {
 struct Item;
-struct Episode;
 }
 
 class DownloadManager : public brls::Singleton<DownloadManager> {
@@ -58,13 +57,11 @@ public:
     void init();
 
     void addDownload(const jellyfin::Item& item, DownloadQuality quality);
-    void addEpisodeDownload(const jellyfin::Episode& ep, DownloadQuality quality);
     void cancelDownload(const std::string& itemId);
     void removeDownload(const std::string& itemId);
 
     bool isDownloaded(const std::string& itemId) const;
     bool isDownloading(const std::string& itemId) const;
-    bool hasDownload(const std::string& itemId) const;
     std::string getLocalPath(const std::string& itemId) const;
 
     std::vector<DownloadItem> getItems() const;

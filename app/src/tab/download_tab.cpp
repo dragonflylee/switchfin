@@ -123,6 +123,10 @@ public:
 
     void clearData() override { this->items.clear(); }
 
+    const std::string& getItemId(size_t index) const { return this->items.at(index).itemId; }
+    size_t itemCount() const { return this->items.size(); }
+
+private:
     std::vector<DownloadItem> items;
 };
 
@@ -177,8 +181,8 @@ RecyclingGrid* DownloadView::newRecycler() {
         auto* ds = dynamic_cast<DownloadDataSource*>(this->recycler->getDataSource());
         if (!ds) return false;
         size_t idx = focus->getIndex();
-        if (idx >= ds->items.size()) return false;
-        std::string id = ds->items[idx].itemId;
+        if (idx >= ds->itemCount()) return false;
+        std::string id = ds->getItemId(idx);
         Dialog::cancelable("main/download/confirm_remove"_i18n, [this, id]() {
             DownloadManager::instance().removeDownload(id);
             this->loadItems();

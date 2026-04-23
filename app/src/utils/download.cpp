@@ -5,6 +5,7 @@
 
 #include <borealis/core/logger.hpp>
 #include <borealis/core/thread.hpp>
+#include <chrono>
 #include <fstream>
 
 #ifdef USE_BOOST_FILESYSTEM
@@ -33,6 +34,7 @@ void DownloadManager::init() {
         }
     }
     this->saveIndex();
+    this->processQueue();
 }
 
 void DownloadManager::loadIndex() {
@@ -86,39 +88,6 @@ void DownloadManager::addDownload(const jellyfin::Item& item, DownloadQuality qu
     this->items.push_back(dl);
     this->saveIndex();
     brls::Logger::info("Download queued: {}", item.Name);
-    this->processQueue();
-}
-
-void DownloadManager::addEpisodeDownload(const jellyfin::Episode& ep, DownloadQuality quality) {
-    std::lock_guard<std::mutex> lock(this->mutex);
-
-    for (auto& existing : this->items) {
-        if (existing.itemId == ep.Id) {
-            brls::Logger::info("Download already exists: {}", ep.Name);
-            return;
-        }
-    }
-
-    DownloadItem dl;
-    dl.itemId = ep.Id;
-    dl.name = ep.Name;
-    dl.type = ep.Type;
-    dl.seriesName = ep.SeriesName;
-    dl.seasonIndex = ep.ParentIndexNumber;
-    dl.episodeIndex = ep.IndexNumber;
-    dl.productionYear = ep.ProductionYear;
-    dl.runTimeTicks = ep.RunTimeTicks;
-    dl.quality = quality;
-    dl.status = DownloadStatus::Queued;
-
-    auto primaryTag = ep.ImageTags.find(jellyfin::imageTypePrimary);
-    if (primaryTag != ep.ImageTags.end()) {
-        dl.imagePrimaryTag = primaryTag->second;
-    }
-
-    this->items.push_back(dl);
-    this->saveIndex();
-    brls::Logger::info("Download queued: {} - {}", ep.SeriesName, ep.Name);
     this->processQueue();
 }
 
@@ -181,8 +150,10 @@ void DownloadManager::removeDownload(const std::string& itemId) {
 
     std::string dir = this->downloadDir() + "/" + itemId;
     brls::async([dir]() {
-        if (fs::exists(dir)) {
-            fs::remove_all(dir);
+        try {
+            if (fs::exists(dir)) fs::remove_all(dir);
+        } catch (const std::exception& e) {
+            brls::Logger::error("Failed to remove download dir: {}", e.what());
         }
     });
 
@@ -207,14 +178,6 @@ bool DownloadManager::isDownloading(const std::string& itemId) const {
         if (item.itemId == itemId &&
             (item.status == DownloadStatus::Downloading || item.status == DownloadStatus::Queued))
             return true;
-    }
-    return false;
-}
-
-bool DownloadManager::hasDownload(const std::string& itemId) const {
-    std::lock_guard<std::mutex> lock(this->mutex);
-    for (auto& item : this->items) {
-        if (item.itemId == itemId) return true;
     }
     return false;
 }
@@ -303,14 +266,22 @@ void DownloadManager::doDownload(DownloadItem& item) {
     });
 
     brls::async([this, itemId, url, filePath, fileName, itemDir, cancel]() {
-        if (!fs::exists(itemDir)) {
-            fs::create_directories(itemDir);
+        try {
+            if (!fs::exists(itemDir)) fs::create_directories(itemDir);
+        } catch (const std::exception& e) {
+            brls::Logger::error("Failed to create download dir: {}", e.what());
+            return;
         }
 
         auto& conf = AppConfig::instance();
         HTTP::Header header = {conf.getAuth(conf.getToken())};
 
-        HTTP::Progress::Callback progressCb = [this, itemId](curl_off_t total, curl_off_t now) {
+        auto lastProgress = std::make_shared<std::chrono::steady_clock::time_point>();
+        HTTP::Progress::Callback progressCb = [this, itemId, lastProgress](curl_off_t total, curl_off_t now) {
+            auto tp = std::chrono::steady_clock::now();
+            if (tp - *lastProgress < std::chrono::milliseconds(500)) return;
+            *lastProgress = tp;
+
             brls::sync([this, itemId, total, now]() {
                 {
                     std::lock_guard<std::mutex> lock(this->mutex);
