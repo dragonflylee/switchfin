@@ -435,6 +435,13 @@ void SettingTab::onCreate() {
     });
     inputProxy->setVisibility(HTTP::PROXY_STATUS ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
 
+    auto& dlQualityOpt = conf.getOptions(AppConfig::DOWNLOAD_QUALITY);
+    selectorDownloadQuality->init("main/download/quality"_i18n,
+        {"main/download/original"_i18n, "main/download/hq"_i18n, "main/download/lq"_i18n},
+        conf.getValueIndex(AppConfig::DOWNLOAD_QUALITY), [&dlQualityOpt](int selected) {
+            AppConfig::instance().setItem(AppConfig::DOWNLOAD_QUALITY, dlQualityOpt.values[selected]);
+        });
+
     btnSync->init("main/setting/others/sync"_i18n, AppConfig::SYNC, [](bool value) {
         AppConfig::SYNC = value;
         AppConfig::instance().setItem(AppConfig::SYNC_SETTING, value);
