@@ -313,13 +313,12 @@ void DownloadManager::doDownload(DownloadItem& item) {
             this->saveIndex();
         }
 
-        // Download thumbnail
         if (!imagePrimaryTag.empty()) {
             try {
                 std::string thumbUrl = conf.getUrl() +
-                    fmt::format(fmt::runtime(jellyfin::apiPrimaryImage), itemId,
-                        HTTP::encode_form({{"tag", imagePrimaryTag}, {"maxWidth", "300"}}));
-                HTTP::download(thumbUrl, itemDir + "/thumb.jpg", header, HTTP::Timeout{});
+                    fmt::format("/Items/{}/Images/Primary?format=Png&{}",
+                        itemId, HTTP::encode_form({{"tag", imagePrimaryTag}, {"maxWidth", "300"}}));
+                HTTP::download(thumbUrl, itemDir + "/thumb.png", header, HTTP::Timeout{});
             } catch (const std::exception& e) {
                 brls::Logger::warning("Failed to download thumbnail: {}", e.what());
             }

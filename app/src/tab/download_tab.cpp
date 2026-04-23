@@ -23,7 +23,7 @@ public:
     DownloadCard() { this->inflateFromXMLRes("xml/view/download_card.xml"); }
 
     void setItem(const DownloadItem& item, const std::string& downloadDir) {
-        std::string thumbPath = downloadDir + "/" + item.itemId + "/thumb.jpg";
+        std::string thumbPath = downloadDir + "/" + item.itemId + "/thumb.png";
         if (fs::exists(thumbPath)) {
             this->thumb->setImageFromFile(thumbPath);
         }
