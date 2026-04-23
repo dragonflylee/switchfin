@@ -19,6 +19,7 @@ private:
 
     BRLS_BIND(brls::RadioCell, btnFavorite, "menu/favorite");
     BRLS_BIND(brls::RadioCell, btnMarkPlay, "menu/mark/play");
+    BRLS_BIND(brls::RadioCell, btnDownload, "menu/download");
 
     bool doPlayed();
     bool doFavorite();
@@ -26,4 +27,5 @@ private:
     bool unFavorite();
 
     std::string itemId;
+    jellyfin::Item item;
 };

@@ -26,6 +26,13 @@
             height="50"
             marginTop="10px"
             text="@i18n/main/media/play" />
+
+        <brls:Button
+            id="movie/download"
+            height="50"
+            marginTop="10px"
+            style="bordered"
+            text="@i18n/main/download/start" />
     </brls:Box>
 
     <brls:ScrollingFrame
