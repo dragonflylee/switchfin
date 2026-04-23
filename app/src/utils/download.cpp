@@ -275,8 +275,8 @@ void DownloadManager::doDownload(DownloadItem& item) {
         auto& conf = AppConfig::instance();
         HTTP::Header header = {conf.getAuth(conf.getToken())};
 
-        // Determine file extension from source path
         std::string ext = "mp4";
+        if (cancel->load()) return;
         if (quality == DownloadQuality::Original) {
             try {
                 auto resp = HTTP::get(conf.getUrl() +
@@ -313,7 +313,7 @@ void DownloadManager::doDownload(DownloadItem& item) {
             this->saveIndex();
         }
 
-        if (!imagePrimaryTag.empty()) {
+        if (!imagePrimaryTag.empty() && !cancel->load()) {
             try {
                 std::string thumbUrl = conf.getUrl() +
                     fmt::format("/Items/{}/Images/Primary?format=Png&{}",

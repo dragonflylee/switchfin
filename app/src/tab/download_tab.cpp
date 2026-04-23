@@ -23,10 +23,12 @@ public:
     DownloadCard() { this->inflateFromXMLRes("xml/view/download_card.xml"); }
 
     void setItem(const DownloadItem& item, const std::string& downloadDir) {
+        this->thumb->setImageFromRes("img/video-card-bg.png");
         std::string thumbPath = downloadDir + "/" + item.itemId + "/thumb.png";
         if (fs::exists(thumbPath)) {
             this->thumb->setImageFromFile(thumbPath);
         }
+
 
         this->name->setText(item.seriesName.empty() ? item.name
             : fmt::format("{} - S{}E{} {}", item.seriesName, item.seasonIndex, item.episodeIndex, item.name));
