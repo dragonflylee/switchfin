@@ -107,6 +107,8 @@ public:
         HTTP_PROXY_STATUS,
         HTTP_PROXY,
 
+        DOWNLOAD_QUALITY,
+
         KEY_REFRESH,        // 刷新快捷键
         KEY_LAST,           // 上一个Tab快捷键
         KEY_NEXT,           // 下一个Tab快捷键

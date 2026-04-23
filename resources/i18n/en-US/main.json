@@ -128,6 +128,23 @@
     "folder": "Folder",
     "up": "Up"
   },
+  "download": {
+    "header": "Downloads",
+    "quality": "Download Quality",
+    "original": "Original",
+    "hq": "High Quality",
+    "lq": "Low Quality",
+    "start": "Download",
+    "cancel": "Cancel Download",
+    "remove": "Remove Download",
+    "downloading": "Downloading...",
+    "completed": "Downloaded",
+    "failed": "Download Failed",
+    "queued": "Queued",
+    "no_downloads": "No Downloads",
+    "confirm_remove": "Remove this download?",
+    "play_offline": "Play Offline"
+  },
   "setting": {
     "quit_hint": "You are about to exit the application. The settings will take effect after the next startup",
     "name": "Name",

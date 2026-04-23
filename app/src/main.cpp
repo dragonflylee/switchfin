@@ -1,6 +1,7 @@
 #include <borealis.hpp>
 
 #include "utils/config.hpp"
+#include "utils/download.hpp"
 #include "utils/thread.hpp"
 #include "api/analytics.hpp"
 
@@ -70,6 +71,7 @@ int main(int argc, char* argv[]) {
     }
 
     conf.initThemes();
+    DownloadManager::instance().init();
 
     // Return directly to the desktop when closing the application (only for NX)
     brls::Application::getPlatform()->exitToHomeMode(true);
