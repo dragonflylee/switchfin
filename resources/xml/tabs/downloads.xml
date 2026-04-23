@@ -1,0 +1,14 @@
+<brls:Box
+    width="auto"
+    height="auto">
+
+    <RecyclingGrid
+        id="download/grid"
+        spanCount="1"
+        grow="1.0"
+        paddingTop="@style/main/content_padding_top_bottom"
+        paddingLeft="@style/main/content_padding_sides"
+        paddingRight="@style/main/content_padding_sides"
+        paddingBottom="@style/main/content_padding_top_bottom" />
+
+</brls:Box>

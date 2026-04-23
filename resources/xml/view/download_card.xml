@@ -1,0 +1,35 @@
+<brls:Box
+    highlightCornerRadius="8"
+    paddingLeft="20"
+    paddingRight="20"
+    paddingTop="10"
+    paddingBottom="10"
+    alignItems="center">
+
+    <SVGImage
+        id="download/icon"
+        width="40"
+        height="40"
+        marginRight="10"
+        svg="@res/icon/ico-file-video.svg" />
+
+    <brls:Box
+        axis="column"
+        grow="1">
+        <brls:Label
+            id="download/name"
+            fontSize="18" />
+        <brls:Label
+            id="download/detail"
+            fontSize="14"
+            textColor="@theme/font/grey" />
+    </brls:Box>
+
+    <brls:Label
+        id="download/status"
+        width="120"
+        fontSize="15"
+        textColor="@theme/font/grey"
+        horizontalAlign="right" />
+
+</brls:Box>

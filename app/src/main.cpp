@@ -30,6 +30,7 @@
 #include "tab/remote_tab.hpp"
 #include "tab/remote_view.hpp"
 #include "tab/setting_tab.hpp"
+#include "tab/download_tab.hpp"
 
 #if defined(__SDL2__)
 #include <SDL2/SDL_main.h>
@@ -99,6 +100,7 @@ int main(int argc, char* argv[]) {
     brls::Application::registerXMLView("MediaFolders", MediaFolders::create);
     brls::Application::registerXMLView("SearchTab", SearchTab::create);
     brls::Application::registerXMLView("RemoteTab", RemoteTab::create);
+    brls::Application::registerXMLView("DownloadTab", DownloadTab::create);
     brls::Application::registerXMLView("SettingTab", SettingTab::create);
 
     if (!brls::Application::getPlatform()->isApplicationMode()) {

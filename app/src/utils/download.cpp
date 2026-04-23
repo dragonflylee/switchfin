@@ -123,26 +123,37 @@ void DownloadManager::addEpisodeDownload(const jellyfin::Episode& ep, DownloadQu
 }
 
 void DownloadManager::cancelDownload(const std::string& itemId) {
-    std::lock_guard<std::mutex> lock(this->mutex);
+    bool erased = false;
+    {
+        std::lock_guard<std::mutex> lock(this->mutex);
 
-    for (auto& item : this->items) {
-        if (item.itemId == itemId && item.status == DownloadStatus::Downloading && this->currentCancel) {
-            this->currentCancel->store(true);
-            return;
+        for (auto& item : this->items) {
+            if (item.itemId == itemId && item.status == DownloadStatus::Downloading && this->currentCancel) {
+                this->currentCancel->store(true);
+                return;
+            }
+        }
+
+        for (auto it = this->items.begin(); it != this->items.end(); ++it) {
+            if (it->itemId == itemId && it->status == DownloadStatus::Queued) {
+                this->items.erase(it);
+                this->saveIndex();
+                erased = true;
+                break;
+            }
         }
     }
 
-    for (auto it = this->items.begin(); it != this->items.end(); ++it) {
-        if (it->itemId == itemId && it->status == DownloadStatus::Queued) {
-            this->items.erase(it);
-            this->saveIndex();
-            return;
-        }
+    if (erased) {
+        brls::sync([this, itemId]() {
+            this->statusEvent.fire(itemId, DownloadStatus::Failed);
+        });
     }
 }
 
 void DownloadManager::removeDownload(const std::string& itemId) {
     bool wasActive = false;
+    bool erased = false;
     {
         std::lock_guard<std::mutex> lock(this->mutex);
 
@@ -160,6 +171,7 @@ void DownloadManager::removeDownload(const std::string& itemId) {
             for (auto it = this->items.begin(); it != this->items.end(); ++it) {
                 if (it->itemId == itemId) {
                     this->items.erase(it);
+                    erased = true;
                     break;
                 }
             }
@@ -167,13 +179,18 @@ void DownloadManager::removeDownload(const std::string& itemId) {
         }
     }
 
-    // Clean up files on disk (safe — worker only writes to its own subdir)
     std::string dir = this->downloadDir() + "/" + itemId;
     brls::async([dir]() {
         if (fs::exists(dir)) {
             fs::remove_all(dir);
         }
     });
+
+    if (erased) {
+        brls::sync([this, itemId]() {
+            this->statusEvent.fire(itemId, DownloadStatus::Failed);
+        });
+    }
 }
 
 bool DownloadManager::isDownloaded(const std::string& itemId) const {
