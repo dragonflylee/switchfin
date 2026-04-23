@@ -37,6 +37,17 @@ public:
             if (item.totalBytes > 0) {
                 int pct = static_cast<int>(item.downloadedBytes * 100 / item.totalBytes);
                 this->status->setText(fmt::format("{}%", pct));
+            } else if (item.downloadedBytes > 0 && item.quality != DownloadQuality::Original) {
+                std::string size = misc::formatSize(item.downloadedBytes);
+                int64_t bitrate = (item.quality == DownloadQuality::HQ) ? 8000000 : 1500000;
+                int64_t durationSec = item.runTimeTicks / 10000000;
+                int64_t estimated = bitrate * durationSec / 8;
+                if (estimated > 0) {
+                    int pct = std::min(99, static_cast<int>(item.downloadedBytes * 100 / estimated));
+                    this->status->setText(fmt::format("~{}% ({})", pct, size));
+                } else {
+                    this->status->setText(size);
+                }
             } else {
                 this->status->setText("main/download/downloading"_i18n);
             }
