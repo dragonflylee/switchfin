@@ -42,7 +42,7 @@ MediaMovie::MediaMovie(const jellyfin::Item& item) : itemId(item.Id) {
             brls::Application::notify("main/download/downloading"_i18n);
         } else {
             int qi = AppConfig::instance().getValueIndex(AppConfig::DOWNLOAD_QUALITY);
-            dm.addDownload(item, static_cast<DownloadQuality>(qi));
+            dm.addDownload(item.Id, static_cast<DownloadQuality>(qi));
             this->btnDownload->setText("main/download/queued"_i18n);
             brls::Application::notify("main/download/queued"_i18n);
         }

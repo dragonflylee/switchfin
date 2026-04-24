@@ -23,8 +23,6 @@ class EpisodeCardCell : public BaseCardCell {
 public:
     EpisodeCardCell() { this->inflateFromXMLRes("xml/view/episode_card.xml"); }
 
-    static RecyclingGridItem* create() { return new EpisodeCardCell(); }
-
     BRLS_BIND(brls::Label, labelName, "episode/card/name");
     BRLS_BIND(brls::Label, labelOverview, "episode/card/overview");
     BRLS_BIND(SVGImage, badgeTopRight, "video/card/badge/top");
@@ -111,20 +109,21 @@ public:
     MediaSeason(const jellyfin::Season& item) : seriesId(item.SeriesId), seasonId(item.Id) {
         this->inflateFromXMLRes("xml/tabs/seasons.xml");
 
-        this->recycler->registerCell("Cell", EpisodeCardCell::create);
-
-        auto contextAction = [this](brls::View*) {
-            auto* focus = dynamic_cast<RecyclingGridItem*>(brls::Application::getCurrentFocus());
-            if (!focus) return false;
-            auto* ds = dynamic_cast<EpisodeDataSource*>(this->recycler->getDataSource());
-            if (!ds) return false;
-            size_t idx = focus->getIndex();
-            if (idx >= ds->getItemCount()) return false;
-            ds->onContextMenu(this->recycler, idx);
-            return true;
-        };
-        this->recycler->registerAction("hints/submit"_i18n, brls::BUTTON_X, contextAction, true);
-        this->recycler->registerAction(KeyBind::getSetting(), contextAction);
+        this->recycler->registerCell("Cell", []() {
+            auto cell = new EpisodeCardCell();
+            auto actionListener = [cell](brls::View*) -> bool {
+                brls::Box* view = cell->getParent()->getParent();
+                RecyclingView* recycler = dynamic_cast<RecyclingView*>(view);
+                if (!recycler) return false;
+                EpisodeDataSource* dataSrc = dynamic_cast<EpisodeDataSource*>(recycler->getDataSource());
+                if (!dataSrc) return false;
+                dataSrc->onContextMenu(view, cell->getIndex());
+                return true;
+            };
+            cell->registerAction("hints/submit"_i18n, brls::BUTTON_X, actionListener, true);
+            cell->registerAction(KeyBind::getSetting(), actionListener);
+            return cell;
+        });
     }
 
     void onCreate() override {

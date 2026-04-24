@@ -46,11 +46,6 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(DownloadItem, itemId, name, type
     seasonIndex, episodeIndex, productionYear, runTimeTicks, imagePrimaryTag, quality, status,
     filePath, totalBytes, downloadedBytes, errorMessage);
 
-namespace jellyfin {
-struct Item;
-struct Episode;
-}
-
 class DownloadManager : public brls::Singleton<DownloadManager> {
 public:
     using ProgressEvent = brls::Event<std::string, int64_t, int64_t>;
@@ -58,8 +53,7 @@ public:
 
     void init();
 
-    void addDownload(const jellyfin::Item& item, DownloadQuality quality);
-    void addDownload(const jellyfin::Episode& item, DownloadQuality quality);
+    void addDownload(const std::string& itemId, DownloadQuality quality);
     void cancelDownload(const std::string& itemId);
     void removeDownload(const std::string& itemId);
     void resumeQueue();

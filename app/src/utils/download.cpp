@@ -1,12 +1,7 @@
 #include "utils/download.hpp"
 #include "utils/config.hpp"
-#include "api/http.hpp"
-#include "api/jellyfin/media.hpp"
-
-#include <borealis/core/logger.hpp>
-#include <borealis/core/thread.hpp>
-#include <chrono>
-#include <fstream>
+#include "api/jellyfin.hpp"
+#include "view/mpv_core.hpp"
 
 #ifdef USE_BOOST_FILESYSTEM
 #include <boost/filesystem.hpp>
@@ -16,9 +11,7 @@ namespace fs = boost::filesystem;
 namespace fs = std::filesystem;
 #endif
 
-std::string DownloadManager::downloadDir() const {
-    return AppConfig::instance().configDir() + "/downloads";
-}
+std::string DownloadManager::downloadDir() const { return AppConfig::instance().configDir() + "/downloads"; }
 
 void DownloadManager::init() {
     auto dir = this->downloadDir();
@@ -60,67 +53,45 @@ void DownloadManager::saveIndex() {
     }
 }
 
-void DownloadManager::addDownload(const jellyfin::Item& item, DownloadQuality quality) {
+void DownloadManager::addDownload(const std::string& itemId, DownloadQuality quality) {
     std::lock_guard<std::mutex> lock(this->mutex);
 
     for (auto& existing : this->items) {
-        if (existing.itemId == item.Id) {
-            brls::Logger::info("Download already exists: {}", item.Name);
+        if (existing.itemId == itemId) {
+            brls::Logger::info("Already exists: {}", itemId);
             return;
         }
     }
 
-    DownloadItem dl;
-    dl.itemId = item.Id;
-    dl.name = item.Name;
-    dl.type = item.Type;
-    dl.productionYear = item.ProductionYear;
-    dl.runTimeTicks = item.RunTimeTicks;
-    dl.quality = quality;
-    dl.status = DownloadStatus::Queued;
+    jellyfin::getJSON<jellyfin::Episode>(
+        [this, quality](const jellyfin::Episode& item) {
+            std::lock_guard<std::mutex> lock(this->mutex);
 
-    auto primaryTag = item.ImageTags.find(jellyfin::imageTypePrimary);
-    if (primaryTag != item.ImageTags.end()) {
-        dl.imagePrimaryTag = primaryTag->second;
-    }
+            DownloadItem dl;
+            dl.itemId = item.Id;
+            dl.name = item.Name;
+            dl.type = item.Type;
+            dl.seriesName = item.SeriesName;
+            dl.seasonIndex = item.ParentIndexNumber;
+            dl.episodeIndex = item.IndexNumber;
+            dl.productionYear = item.ProductionYear;
+            dl.runTimeTicks = item.RunTimeTicks;
+            dl.quality = quality;
+            dl.status = DownloadStatus::Queued;
+            for (auto& src : item.MediaSources) {
+                dl.filePath = src.Name;
+            }
 
-    this->items.push_back(dl);
-    this->saveIndex();
-    brls::Logger::info("Download queued: {}", item.Name);
-    this->processQueue();
-}
+            auto primaryTag = item.ImageTags.find(jellyfin::imageTypePrimary);
+            if (primaryTag != item.ImageTags.end()) dl.imagePrimaryTag = primaryTag->second;
 
-void DownloadManager::addDownload(const jellyfin::Episode& item, DownloadQuality quality) {
-    std::lock_guard<std::mutex> lock(this->mutex);
-
-    for (auto& existing : this->items) {
-        if (existing.itemId == item.Id) {
-            brls::Logger::info("Download already exists: {}", item.Name);
-            return;
-        }
-    }
-
-    DownloadItem dl;
-    dl.itemId = item.Id;
-    dl.name = item.Name;
-    dl.type = item.Type;
-    dl.productionYear = item.ProductionYear;
-    dl.runTimeTicks = item.RunTimeTicks;
-    dl.quality = quality;
-    dl.status = DownloadStatus::Queued;
-    dl.seriesName = item.SeriesName;
-    dl.seasonIndex = item.ParentIndexNumber;
-    dl.episodeIndex = item.IndexNumber;
-
-    auto primaryTag = item.ImageTags.find(jellyfin::imageTypePrimary);
-    if (primaryTag != item.ImageTags.end()) {
-        dl.imagePrimaryTag = primaryTag->second;
-    }
-
-    this->items.push_back(dl);
-    this->saveIndex();
-    brls::Logger::info("Download queued: {}", item.Name);
-    this->processQueue();
+            this->items.push_back(dl);
+            this->saveIndex();
+            brls::Logger::info("Download queued: {}", item.Name);
+            this->processQueue();
+        },
+        [](const std::string& ex) { brls::Application::notify(ex); }, jellyfin::apiUserItem,
+        AppConfig::instance().getUserId(), itemId);
 }
 
 void DownloadManager::resumeQueue() {
@@ -249,7 +220,7 @@ std::string DownloadManager::buildDownloadUrl(const DownloadItem& item) const {
             HTTP::encode_form({
                 {"static", "false"},
                 {"mediaSourceId", item.itemId},
-                {"videoCodec", "h264"},
+                {"videoCodec", MPVCore::VIDEO_CODEC},
                 {"audioCodec", "aac"},
                 {"maxStreamingBitrate", "4000000"},
                 {"maxHeight", "1080"},
@@ -260,7 +231,7 @@ std::string DownloadManager::buildDownloadUrl(const DownloadItem& item) const {
             HTTP::encode_form({
                 {"static", "false"},
                 {"mediaSourceId", item.itemId},
-                {"videoCodec", "h264"},
+                {"videoCodec", MPVCore::VIDEO_CODEC},
                 {"audioCodec", "aac"},
                 {"maxStreamingBitrate", "2000000"},
                 {"maxHeight", "720"},
@@ -271,7 +242,7 @@ std::string DownloadManager::buildDownloadUrl(const DownloadItem& item) const {
             HTTP::encode_form({
                 {"static", "false"},
                 {"mediaSourceId", item.itemId},
-                {"videoCodec", "h264"},
+                {"videoCodec", MPVCore::VIDEO_CODEC},
                 {"audioCodec", "aac"},
                 {"maxStreamingBitrate", "1000000"},
                 {"maxHeight", "480"},
@@ -304,15 +275,12 @@ void DownloadManager::doDownload(DownloadItem& item) {
     std::string url = this->buildDownloadUrl(item);
     std::string itemDir = this->downloadDir() + "/" + itemId;
 
-    item.filePath = "video.mp4";
     this->saveIndex();
 
     auto cancel = std::make_shared<std::atomic_bool>(false);
     this->currentCancel = cancel;
 
-    brls::sync([this, itemId]() {
-        this->statusEvent.fire(itemId, DownloadStatus::Downloading);
-    });
+    brls::sync([this, itemId]() { this->statusEvent.fire(itemId, DownloadStatus::Downloading); });
 
     brls::async([this, itemId, imagePrimaryTag, quality, url, itemDir, cancel]() {
         auto resetQueue = [this, itemId](const std::string& error) {
@@ -356,10 +324,9 @@ void DownloadManager::doDownload(DownloadItem& item) {
         }
         if (quality == DownloadQuality::Original) {
             try {
-                auto resp = HTTP::get(conf.getUrl() +
-                    fmt::format(fmt::runtime(jellyfin::apiUserItem),
-                        conf.getUserId(), itemId),
-                    header, HTTP::Timeout{});
+                auto resp = HTTP::get(
+                    conf.getUrl() + fmt::format(fmt::runtime(jellyfin::apiUserItem), conf.getUserId(), itemId), header,
+                    HTTP::Timeout{});
                 if (!resp.empty()) {
                     auto detail = nlohmann::json::parse(resp).get<jellyfin::Detail>();
                     if (!detail.MediaSources.empty()) {
@@ -392,10 +359,9 @@ void DownloadManager::doDownload(DownloadItem& item) {
 
         if (!imagePrimaryTag.empty() && !cancel->load()) {
             try {
-                std::string thumbUrl = conf.getUrl() +
-                    fmt::format("/Items/{}/Images/Primary?format=Png&{}",
-                        itemId, HTTP::encode_form({{"tag", imagePrimaryTag}, {"maxWidth", "300"}}));
-                HTTP::download(thumbUrl, itemDir + "/thumb.png", header, HTTP::Timeout{});
+                std::string thumbUrl = fmt::format("{}/Items/{}/Images/Primary?format=Png&{}", conf.getUrl(), itemId,
+                    HTTP::encode_form({{"tag", imagePrimaryTag}, {"maxWidth", "300"}}));
+                HTTP::download(thumbUrl, itemDir + "/thumb.png", HTTP::Timeout{});
             } catch (const std::exception& e) {
                 brls::Logger::warning("Failed to download thumbnail: {}", e.what());
             }
@@ -485,7 +451,8 @@ void DownloadManager::doDownload(DownloadItem& item) {
                                 nlohmann::json j = item;
                                 std::ofstream f(metaPath);
                                 f << j.dump(2);
-                            } catch (...) {}
+                            } catch (...) {
+                            }
                             break;
                         }
                     }

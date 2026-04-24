@@ -4,20 +4,7 @@
 
 using namespace brls::literals;
 
-ContextMenu::ContextMenu(const jellyfin::Item& item) : itemId(item.Id), item(item) {
-    this->setup(item);
-}
-
-ContextMenu::ContextMenu(const jellyfin::Episode& episode)
-    : itemId(episode.Id), item(episode),
-      episodeSeriesName(episode.SeriesName),
-      episodeSeasonIndex(episode.ParentIndexNumber),
-      episodeIndex(episode.IndexNumber),
-      hasEpisodeData(true) {
-    this->setup(episode);
-}
-
-void ContextMenu::setup(const jellyfin::Item& item) {
+ContextMenu::ContextMenu(const jellyfin::Item& item) : itemId(item.Id) {
     this->inflateFromXMLRes("xml/view/context_menu.xml");
     brls::Logger::debug("ContextMenu: create");
 
@@ -61,22 +48,13 @@ void ContextMenu::setup(const jellyfin::Item& item) {
         }
         this->btnDownload->registerClickAction([this](brls::View* view) {
             auto& dm = DownloadManager::instance();
-            if (dm.isDownloaded(this->item.Id)) {
+            if (dm.isDownloaded(this->itemId)) {
                 brls::Application::notify("main/download/completed"_i18n);
-            } else if (dm.isDownloading(this->item.Id)) {
+            } else if (dm.isDownloading(this->itemId)) {
                 brls::Application::notify("main/download/downloading"_i18n);
             } else {
                 int qi = AppConfig::instance().getValueIndex(AppConfig::DOWNLOAD_QUALITY);
-                if (this->hasEpisodeData) {
-                    jellyfin::Episode ep;
-                    static_cast<jellyfin::Item&>(ep) = this->item;
-                    ep.SeriesName = this->episodeSeriesName;
-                    ep.ParentIndexNumber = this->episodeSeasonIndex;
-                    ep.IndexNumber = this->episodeIndex;
-                    dm.addDownload(ep, static_cast<DownloadQuality>(qi));
-                } else {
-                    dm.addDownload(this->item, static_cast<DownloadQuality>(qi));
-                }
+                dm.addDownload(this->itemId, static_cast<DownloadQuality>(qi));
                 brls::Application::notify("main/download/queued"_i18n);
                 this->btnDownload->setSelected(true);
             }
