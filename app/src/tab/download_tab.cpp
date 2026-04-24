@@ -120,7 +120,10 @@ public:
                     if (event == MpvEventEnum::MPV_RESUME) {
                         profile->init("Local");
                     } else if (event == MpvEventEnum::MPV_STOP) {
-                        MPVCore::instance().getEvent()->unsubscribe(*subId);
+                        auto id = *subId;
+                        brls::sync([id]() {
+                            MPVCore::instance().getEvent()->unsubscribe(id);
+                        });
                     }
                 });
 
