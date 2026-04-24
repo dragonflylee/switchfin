@@ -2,6 +2,7 @@
 #include "view/recycling_grid.hpp"
 #include "view/video_view.hpp"
 #include "view/mpv_core.hpp"
+#include "view/video_profile.hpp"
 #include "view/player_setting.hpp"
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
@@ -115,6 +116,13 @@ public:
                 view->getPlayEvent()->subscribe([](int) { return VideoView::close(true); });
                 view->getSettingEvent()->subscribe([]() {
                     brls::Application::pushActivity(new brls::Activity(new PlayerSetting()));
+                });
+
+                auto* profile = view->getProfile();
+                MPVCore::instance().getEvent()->subscribe([profile](MpvEventEnum event) {
+                    if (event == MpvEventEnum::MPV_RESUME) {
+                        profile->init("Local");
+                    }
                 });
 
                 brls::Box* container = new brls::Box();
