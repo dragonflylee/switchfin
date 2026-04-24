@@ -13,6 +13,8 @@
 #include "view/people_source.hpp"
 #include "view/video_source.hpp"
 #include "view/presenter.hpp"
+#include "view/context_menu.hpp"
+#include "utils/keybind.hpp"
 #include <fmt/ranges.h>
 
 using namespace brls::literals;  // for _i18n
@@ -90,6 +92,12 @@ public:
         brls::sync([view]() { brls::Application::giveFocus(view); });
     }
 
+    void onContextMenu(brls::Box* recycler, size_t index) {
+        auto& item = this->list.at(index);
+        brls::Box* menu = new ContextMenu(item);
+        brls::Application::pushActivity(new brls::Activity(menu));
+    }
+
     void clearData() override { this->list.clear(); }
 
     void appendData(const MediaList& data) { this->list.insert(this->list.end(), data.begin(), data.end()); }
@@ -104,6 +112,19 @@ public:
         this->inflateFromXMLRes("xml/tabs/seasons.xml");
 
         this->recycler->registerCell("Cell", EpisodeCardCell::create);
+
+        auto contextAction = [this](brls::View*) {
+            auto* focus = dynamic_cast<RecyclingGridItem*>(brls::Application::getCurrentFocus());
+            if (!focus) return false;
+            auto* ds = dynamic_cast<EpisodeDataSource*>(this->recycler->getDataSource());
+            if (!ds) return false;
+            size_t idx = focus->getIndex();
+            if (idx >= ds->getItemCount()) return false;
+            ds->onContextMenu(this->recycler, idx);
+            return true;
+        };
+        this->recycler->registerAction("hints/submit"_i18n, brls::BUTTON_X, contextAction, true);
+        this->recycler->registerAction(KeyBind::getSetting(), contextAction);
     }
 
     void onCreate() override {

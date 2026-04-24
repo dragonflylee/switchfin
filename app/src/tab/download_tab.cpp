@@ -113,16 +113,20 @@ public:
                 view->setTitie(item.name);
                 view->hideVideoQuality();
 
+                auto* profile = view->getProfile();
+                auto& mpv = MPVCore::instance();
+                auto subId = std::make_shared<MPVEvent::Subscription>();
+                *subId = mpv.getEvent()->subscribe([profile, subId](MpvEventEnum event) {
+                    if (event == MpvEventEnum::MPV_RESUME) {
+                        profile->init("Local");
+                    } else if (event == MpvEventEnum::MPV_STOP) {
+                        MPVCore::instance().getEvent()->unsubscribe(*subId);
+                    }
+                });
+
                 view->getPlayEvent()->subscribe([](int) { return VideoView::close(true); });
                 view->getSettingEvent()->subscribe([]() {
                     brls::Application::pushActivity(new brls::Activity(new PlayerSetting()));
-                });
-
-                auto* profile = view->getProfile();
-                MPVCore::instance().getEvent()->subscribe([profile](MpvEventEnum event) {
-                    if (event == MpvEventEnum::MPV_RESUME) {
-                        profile->init("Local");
-                    }
                 });
 
                 brls::Box* container = new brls::Box();
