@@ -19,7 +19,7 @@ void RemoteTab::onCreate() {
     auto* dlItem = new AutoSidebarItem();
     dlItem->setTabStyle(AutoTabBarStyle::ACCENT);
     dlItem->setFontSize(22);
-    dlItem->setLabel("main/download/header"_i18n);
+    dlItem->setLabel("main/tabs/downloads"_i18n);
     this->tabFrame->addTab(dlItem, []() { return new DownloadView(); });
 
     auto& conf = AppConfig::instance();

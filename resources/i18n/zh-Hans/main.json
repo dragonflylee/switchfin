@@ -7,6 +7,7 @@
     "artists": "艺术家",
     "songs": "歌曲",
     "search": "搜索",
+    "downloads": "下载",
     "dashboard": "控制台",
     "setting": "设置"
   },
@@ -127,6 +128,20 @@
     "local": "本地",
     "folder": "文件夹",
     "up": "上一级"
+  },
+  "download": {
+    "quality": "清晰度",
+    "original": "原始码率",
+    "start": "开始下载",
+    "cancel": "取消下载",
+    "remove": "移除下载",
+    "downloading": "下载中...",
+    "completed": "已完成",
+    "failed": "下载失败",
+    "queued": "下载任务提交成功",
+    "no_downloads": "下载记录为空",
+    "confirm_remove": "是否移除下载文件?",
+    "play_offline": "离线播放"
   },
   "setting": {
     "quit_hint": "即将退出应用, 设置内容将在下次启动后生效",

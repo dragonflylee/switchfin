@@ -124,7 +124,7 @@
             <brls:Header
                 width="auto"
                 height="auto"
-                title="@i18n/main/download/header"
+                title="@i18n/main/tabs/downloads"
                 marginBottom="0px" />
             <brls:Box
                 width="100%"

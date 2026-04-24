@@ -75,11 +75,13 @@
         alignItems="center">
         <brls:Label
             wireframe="false"
+            singleLine="true"
             id="video/card/label/title"
             height="25"
             fontSize="18" />
         <brls:Label
             wireframe="false"
+            singleLine="true"
             id="video/card/label/ext"
             fontSize="12"
             height="20"

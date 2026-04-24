@@ -7,6 +7,7 @@
     "artists": "藝人",
     "songs": "歌曲",
     "search": "搜尋",
+    "downloads": "下載",
     "dashboard": "控制台",
     "setting": "設定"
   },
@@ -131,6 +132,20 @@
     "local": "本地",
     "folder": "資料夾",
     "up": "上一級"
+  },
+  "download": {
+    "quality": "畫質",
+    "original": "原始畫質",
+    "start": "開始下載",
+    "cancel": "取消下載",
+    "remove": "移除下載",
+    "downloading": "下載中...",
+    "completed": "已完成",
+    "failed": "下載失败",
+    "queued": "下載任務提交成功",
+    "no_downloads": "下載記錄為空",
+    "confirm_remove": "是否移除下載文件?",
+    "play_offline": "離線播放"
   },
   "setting": {
     "quit_hint": "即將退出本程式, 變更的設定將在下次啟動時生效",

@@ -76,7 +76,7 @@ public:
     template <typename... Ts>
     static void download(const std::string& url, const std::string& path, Ts&&... ts) {
         HTTP s;
-        std::ofstream of(path);
+        std::ofstream of(path, std::ios_base::binary);
         set_option(s, std::forward<Ts>(ts)...);
         s._get(url, &of);
     }
