@@ -1,0 +1,38 @@
+<brls:Box
+    highlightCornerRadius="8"
+    paddingLeft="20"
+    paddingRight="20"
+    paddingTop="5"
+    paddingBottom="5"
+    alignItems="center">
+
+    <brls:Image
+        id="download/thumb"
+        width="80"
+        height="120"
+        marginRight="15"
+        scalingType="fill"
+        cornerRadius="4"
+        backgroundColor="@theme/color/grey_1"
+        image="@res/img/video-card-bg.png" />
+
+    <brls:Box
+        axis="column"
+        grow="1">
+        <brls:Label
+            id="download/name"
+            fontSize="18" />
+        <brls:Label
+            id="download/detail"
+            fontSize="14"
+            textColor="@theme/font/grey" />
+    </brls:Box>
+
+    <brls:Label
+        id="download/status"
+        width="120"
+        fontSize="15"
+        textColor="@theme/font/grey"
+        horizontalAlign="right" />
+
+</brls:Box>

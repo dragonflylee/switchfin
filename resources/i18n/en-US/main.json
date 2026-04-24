@@ -7,6 +7,7 @@
     "artists": "Artists",
     "songs": "Songs",
     "search": "Search",
+    "downloads": "Downloads",
     "dashboard": "Dashboard",
     "setting": "Setting"
   },
@@ -127,6 +128,21 @@
     "local": "Local Storage",
     "folder": "Folder",
     "up": "Up"
+  },
+  "download": {
+    "header": "Downloads",
+    "quality": "Download Quality",
+    "original": "Original",
+    "start": "Download",
+    "cancel": "Cancel Download",
+    "remove": "Remove Download",
+    "downloading": "Downloading...",
+    "completed": "Downloaded",
+    "failed": "Download Failed",
+    "queued": "Queued",
+    "no_downloads": "No Downloads",
+    "confirm_remove": "Remove this download?",
+    "play_offline": "Play Offline"
   },
   "setting": {
     "quit_hint": "You are about to exit the application. The settings will take effect after the next startup",

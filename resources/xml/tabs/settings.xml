@@ -124,6 +124,20 @@
             <brls:Header
                 width="auto"
                 height="auto"
+                title="@i18n/main/download/header"
+                marginBottom="0px" />
+            <brls:Box
+                width="100%"
+                height="auto"
+                axis="column"
+                marginBottom="30px">
+                <brls:SelectorCell
+                    id="setting/download/quality" />
+            </brls:Box>
+
+            <brls:Header
+                width="auto"
+                height="auto"
                 title="@i18n/main/setting/ui/header"
                 marginBottom="0px" />
             <brls:Box

@@ -38,6 +38,9 @@
                 <brls:RadioCell
                     title="@i18n/main/media/mark_played"
                     id="menu/mark/play" />
+                <brls:RadioCell
+                    title="@i18n/main/download/start"
+                    id="menu/download" />
 
             </brls:Box>
         </brls:ScrollingFrame>

@@ -1,5 +1,6 @@
 #include "tab/remote_tab.hpp"
 #include "tab/remote_view.hpp"
+#include "tab/download_tab.hpp"
 #include "utils/config.hpp"
 
 using namespace brls::literals;
@@ -15,6 +16,12 @@ RemoteTab::~RemoteTab() { brls::Logger::debug("RemoteTab: deleted"); }
 brls::View* RemoteTab::create() { return new RemoteTab(); }
 
 void RemoteTab::onCreate() {
+    auto* dlItem = new AutoSidebarItem();
+    dlItem->setTabStyle(AutoTabBarStyle::ACCENT);
+    dlItem->setFontSize(22);
+    dlItem->setLabel("main/download/header"_i18n);
+    this->tabFrame->addTab(dlItem, []() { return new DownloadView(); });
+
     auto& conf = AppConfig::instance();
     for (auto& r : conf.getRemotes()) {
         try {
