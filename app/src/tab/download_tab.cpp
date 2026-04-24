@@ -116,10 +116,14 @@ public:
                 auto* profile = view->getProfile();
                 auto& mpv = MPVCore::instance();
                 auto subId = std::make_shared<MPVEvent::Subscription>();
-                *subId = mpv.getEvent()->subscribe([profile, subId](MpvEventEnum event) {
+                auto unsub = std::make_shared<std::atomic_bool>(false);
+                *subId = mpv.getEvent()->subscribe([profile, subId, unsub](MpvEventEnum event) {
+                    if (unsub->load()) return;
                     if (event == MpvEventEnum::MPV_RESUME) {
                         profile->init("Local");
-                    } else if (event == MpvEventEnum::MPV_STOP) {
+                    } else if (event == MpvEventEnum::MPV_STOP || event == MpvEventEnum::END_OF_FILE ||
+                               event == MpvEventEnum::MPV_FILE_ERROR) {
+                        unsub->store(true);
                         auto id = *subId;
                         brls::sync([id]() {
                             MPVCore::instance().getEvent()->unsubscribe(id);
