@@ -90,6 +90,39 @@ void DownloadManager::addDownload(const jellyfin::Item& item, DownloadQuality qu
     this->processQueue();
 }
 
+void DownloadManager::addDownload(const jellyfin::Episode& item, DownloadQuality quality) {
+    std::lock_guard<std::mutex> lock(this->mutex);
+
+    for (auto& existing : this->items) {
+        if (existing.itemId == item.Id) {
+            brls::Logger::info("Download already exists: {}", item.Name);
+            return;
+        }
+    }
+
+    DownloadItem dl;
+    dl.itemId = item.Id;
+    dl.name = item.Name;
+    dl.type = item.Type;
+    dl.productionYear = item.ProductionYear;
+    dl.runTimeTicks = item.RunTimeTicks;
+    dl.quality = quality;
+    dl.status = DownloadStatus::Queued;
+    dl.seriesName = item.SeriesName;
+    dl.seasonIndex = item.ParentIndexNumber;
+    dl.episodeIndex = item.IndexNumber;
+
+    auto primaryTag = item.ImageTags.find(jellyfin::imageTypePrimary);
+    if (primaryTag != item.ImageTags.end()) {
+        dl.imagePrimaryTag = primaryTag->second;
+    }
+
+    this->items.push_back(dl);
+    this->saveIndex();
+    brls::Logger::info("Download queued: {}", item.Name);
+    this->processQueue();
+}
+
 void DownloadManager::resumeQueue() {
     std::lock_guard<std::mutex> lock(this->mutex);
     this->processQueue();

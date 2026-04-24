@@ -2,6 +2,7 @@
 #include "view/recycling_grid.hpp"
 #include "view/video_view.hpp"
 #include "view/mpv_core.hpp"
+#include "view/video_profile.hpp"
 #include "view/player_setting.hpp"
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
@@ -111,6 +112,24 @@ public:
                 view->setHeightPercentage(100);
                 view->setTitie(item.name);
                 view->hideVideoQuality();
+
+                auto* profile = view->getProfile();
+                auto& mpv = MPVCore::instance();
+                auto subId = std::make_shared<MPVEvent::Subscription>();
+                auto unsub = std::make_shared<std::atomic_bool>(false);
+                *subId = mpv.getEvent()->subscribe([profile, subId, unsub](MpvEventEnum event) {
+                    if (unsub->load()) return;
+                    if (event == MpvEventEnum::MPV_RESUME) {
+                        profile->init("Local");
+                    } else if (event == MpvEventEnum::MPV_STOP || event == MpvEventEnum::END_OF_FILE ||
+                               event == MpvEventEnum::MPV_FILE_ERROR) {
+                        unsub->store(true);
+                        auto id = *subId;
+                        brls::sync([id]() {
+                            MPVCore::instance().getEvent()->unsubscribe(id);
+                        });
+                    }
+                });
 
                 view->getPlayEvent()->subscribe([](int) { return VideoView::close(true); });
                 view->getSettingEvent()->subscribe([]() {

@@ -143,8 +143,7 @@ void ServerList::onContentAvailable() {
         return true;
     });
 
-    if (AppConfig::instance().getRemotes().empty() || brls::Application::getActivitiesStack().size() > 1) {
-        // Hide the remote tab if there are no remotes
+    if (brls::Application::getActivitiesStack().size() > 1) {
         brls::View* tab = this->getView("tab/remote");
         if (tab) tab->setVisibility(brls::Visibility::GONE);
     }
