@@ -37,20 +37,6 @@ constexpr uint32_t MINIMUM_WINDOW_WIDTH = 640;
 constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
 #endif
 
-#include <fstream>
-#ifdef USE_BOOST_FILESYSTEM
-#include <boost/filesystem.hpp>
-namespace fs = boost::filesystem;
-#elif __has_include(<filesystem>)
-#include <filesystem>
-namespace fs = std::filesystem;
-#elif __has_include("experimental/filesystem")
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
-#elif !defined(USE_LIBROMFS)
-#error "Failed to include <filesystem> header!"
-#endif
-#include <set>
 #include <borealis.hpp>
 #include <borealis/core/cache_helper.hpp>
 #include <borealis/views/edit_text_dialog.hpp>

@@ -9,14 +9,6 @@
 #include "utils/misc.hpp"
 #include "api/jellyfin/media.hpp"
 
-#ifdef USE_BOOST_FILESYSTEM
-#include <boost/filesystem.hpp>
-namespace fs = boost::filesystem;
-#elif __has_include(<filesystem>)
-#include <filesystem>
-namespace fs = std::filesystem;
-#endif
-
 using namespace brls::literals;
 
 class DownloadCard : public RecyclingGridItem {

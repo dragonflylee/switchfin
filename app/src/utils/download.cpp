@@ -1,15 +1,8 @@
 #include "utils/download.hpp"
 #include "utils/config.hpp"
+#include "utils/misc.hpp"
 #include "api/jellyfin.hpp"
 #include "view/mpv_core.hpp"
-
-#ifdef USE_BOOST_FILESYSTEM
-#include <boost/filesystem.hpp>
-namespace fs = boost::filesystem;
-#elif __has_include(<filesystem>)
-#include <filesystem>
-namespace fs = std::filesystem;
-#endif
 
 std::string DownloadManager::downloadDir() const { return AppConfig::instance().configDir() + "/downloads"; }
 
