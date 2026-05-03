@@ -1,7 +1,7 @@
 {
   "tabs": {
     "home": "首頁",
-    "genres": "風格",
+    "genres": "類型",
     "program": "節目",
     "suggest": "建議",
     "artists": "藝人",
@@ -18,8 +18,8 @@
   },
   "recommend": {
     "like": "因為您喜歡 {}",
-    "watched": "因为你看过 {}",
-    "directed": "导演 {}",
+    "watched": "因为你看過 {}",
+    "directed": "導演 {}",
     "starring": "主演 {}"
   },
   "about": {
@@ -28,7 +28,7 @@
     "repo_header": "原始碼連結"
   },
   "dashboard": {
-    "session": "会话",
+    "session": "工作階段",
     "device": "裝置",
     "activity": "活動",
     "path": "路徑",
@@ -52,7 +52,7 @@
     "prev": "上一個",
     "next": "下一個",
     "error": "播放錯誤",
-    "episode": "选集",
+    "episode": "選集",
     "speed_up": "{} 倍速播放中"
   },
   "danmaku": {
@@ -73,10 +73,10 @@
       "font_shadow": "重墨",
       "font_pure": "純色",
       "area": "彈幕區域",
-      "area_1_4": "1/4 荧幕",
-      "area_2_4": "1/2 荧幕",
-      "area_3_4": "3/4 荧幕",
-      "area_4_4": "全荧幕",
+      "area_1_4": "1/4 螢幕",
+      "area_2_4": "1/2 螢幕",
+      "area_3_4": "3/4 螢幕",
+      "area_4_4": "全螢幕",
       "alpha": "透明度",
       "fontsize": "字體大小",
       "line_height": "彈幕行高",
@@ -85,7 +85,7 @@
       "speed_slow": "慢速",
       "speed_fast_plus": "極速",
       "speed_fast": "快速",
-      "speed_moderate": "適當"
+      "speed_moderate": "適中"
     }
   },
   "media": {
@@ -120,7 +120,7 @@
     "paste": "貼上",
     "history": "歷史記錄",
     "suggest": "猜你想搜",
-    "clear_history": "確認清空搜索記錄？",
+    "clear_history": "確認清空搜尋記錄？",
     "genres": {
       "movie": "電影",
       "music": "音樂",
@@ -183,7 +183,7 @@
       "clip_point": "進度條顯示章節位置",
       "transcodec": "轉碼格式",
       "audio_channels": "音訊聲道數",
-      "video_quality": "視頻質量",
+      "video_quality": "視訊品質",
       "subsync": "字幕同步"
     },
     "transcode": {
@@ -220,16 +220,16 @@
       "timeout": "請求逾時時長 (毫秒)",
       "proxy": "代理伺服器",
       "host": "位址",
-      "port": "端口"
+      "port": "連接埠"
     },
     "ui": {
       "header": "介面設定",
       "scale": {
         "header": "介面縮放 (需要重啟)",
-        "544p": "適合小荧幕",
+        "544p": "適合小螢幕",
         "720p": "預設",
-        "900p": "適合大荧幕",
-        "1080p": "適合超大荧幕"
+        "900p": "適合大螢幕",
+        "1080p": "適合超大螢幕"
       },
       "vsync": "垂直同步",
       "show_fps": "顯示 FPS"
@@ -254,7 +254,7 @@
     "quick_connect": {
       "header": "快速連接",
       "code": "快速連接驗證碼",
-      "invalid": "不正確的快速連接認證碼",
+      "invalid": "不正確的快速連接驗證碼",
       "success": "成功授權快速連接。請在其他裝置上繼續。",
       "steps": "1. 從手機或網頁瀏覽器打開 Jellyfin 並登錄您的帳號\n2. 點選使用者選單並開啟快速連接頁面\n3. 輸入下列驗證碼：",
       "disabled": "注意: 未啟用快速連接功能"
@@ -284,7 +284,7 @@
         "keyboard": "鍵盤"
       },
       "config_dir": "設定檔目錄",
-      "logout": "退出登入當前的賬號 (應用將會退出)",
+      "logout": "退出登入當前的帳號 (應用將會退出)",
       "up2date": "程式已經是最新版",
       "upgrade": "發現新版本 {}，是否更新？",
       "updating": "更新進行中，是否取消更新？",
