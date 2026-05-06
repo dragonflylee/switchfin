@@ -28,7 +28,7 @@ download:
 	curl --retry 5 -sSL https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/libass/libass/releases/download/0.17.4/libass-0.17.4.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://downloads.videolan.org/pub/videolan/dav1d/1.5.3/dav1d-1.5.3.tar.xz | tar Jxf - -C $(TMPDIR)
-	curl --retry 5 -sSL https://ffmpeg.org/releases/ffmpeg-8.1.tar.xz | tar Jxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://ffmpeg.org/releases/ffmpeg-8.1.1.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/mpv-player/mpv/archive/v0.41.0.tar.gz | tar zxf - -C $(TMPDIR)
 	git clone https://github.com/haasn/libplacebo.git -b v7.360.1 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
 	curl -sL https://github.com/Mbed-TLS/mbedtls/pull/10674.patch | patch -d $(TMPDIR)/mbedtls-3.6.6 -Nbp1
@@ -114,7 +114,7 @@ dav1d:
 
 ffmpeg: mbedtls libass dav1d
 	mkdir -p build/ffmpeg && cd build/ffmpeg && \
-	$(TMPDIR)/ffmpeg-8.1/configure --enable-shared --disable-static --prefix=$(PREFIX) \
+	$(TMPDIR)/ffmpeg-8.1.1/configure --enable-shared --disable-static --prefix=$(PREFIX) \
 		--enable-pthreads --enable-runtime-cpudetect --pkg-config-flags=--static \
 		--cc=clang --enable-cross-compile --target-os=darwin --arch=$(OSX_ARCH) \
 		--extra-cflags="-arch $(OSX_ARCH) -mmacosx-version-min=$(OSX_TARGET)" \
