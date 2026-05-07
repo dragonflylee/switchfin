@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0]
+
+### Fixed
+
+* support multi source movie
+* fix zh-Hant translations @dic1911
+* update Portuguese from crowdin
+
+### Add
+
+* add offline download support @docmeth02
+
 ## [0.8.3]
 
 ### Fixed
