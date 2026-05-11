@@ -132,7 +132,7 @@ void Image::doRequest(HTTP& s) {
     try {
         std::ostringstream body;
         HTTP::set_option(s, this->isCancel, HTTP::Timeout{});
-        s._get(url, &body);
+        s._get(this->url, &body);
         std::string data = body.str();
         uint8_t* imageData = nullptr;
         int imageW = 0, imageH = 0;
@@ -152,7 +152,7 @@ void Image::doRequest(HTTP& s) {
 #ifdef BOREALIS_USE_GXM
         if (imageData) {
             size_t size = nearest_po2(imageW) * nearest_po2(imageH);
-            if (!isWebp) size >> 1;
+            if (!isWebp) size >>= 1;
             auto* compressed = (uint8_t*)malloc(size);
             dxt_compress(compressed, imageData, imageW, imageH, isWebp);
 #ifdef USE_WEBP
@@ -165,12 +165,15 @@ void Image::doRequest(HTTP& s) {
             imageData = compressed;
         }
 #endif
+        auto imagePtr = this->image;
+        auto urlCopy = this->url;
+        auto isCancelCopy = this->isCancel;
 
-        brls::Logger::verbose("request Image {} size {}", this->url, data.size());
-        brls::sync([this, imageData, imageW, imageH, isWebp] {
-            if (!this->isCancel->load()) {
+        brls::Logger::verbose("request Image {} size {}", urlCopy, data.size());
+        brls::sync([imagePtr, urlCopy, isCancelCopy, imageData, imageW, imageH, isWebp] {
+            if (!isCancelCopy->load()) {
                 // Load texture
-                int tex = brls::TextureCache::instance().getCache(url);
+                int tex = brls::TextureCache::instance().getCache(urlCopy);
                 if (tex == 0 && imageData != nullptr) {
                     NVGcontext* vg = brls::Application::getNVGContext();
 #ifdef BOREALIS_USE_GXM
@@ -179,10 +182,10 @@ void Image::doRequest(HTTP& s) {
 #else
                     tex = nvgCreateImageRGBA(vg, imageW, imageH, 0, imageData);
 #endif
-                    brls::TextureCache::instance().addCache(this->url, tex);
+                    brls::TextureCache::instance().addCache(urlCopy, tex);
                 }
-                if (tex > 0) this->image->innerSetImage(tex);
-                clear(this->image);
+                if (tex > 0) imagePtr->innerSetImage(tex);
+                clear(imagePtr);
             }
             if (imageData) {
 #ifdef BOREALIS_USE_GXM
