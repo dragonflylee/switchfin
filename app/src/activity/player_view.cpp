@@ -309,7 +309,7 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
             {"AudioStreamIndex", PlayerSetting::selectedAudio},
             {"SubtitleStreamIndex", PlayerSetting::selectedSubtitle},
 #if defined(__PSV__)
-            {"AlwaysBurnInSubtitleWhenTranscoding", true},
+            {"AlwaysBurnInSubtitleWhenTranscoding", PlayerSetting::selectedSubtitle > 0},       
 #endif
             {"AllowAudioStreamCopy", true},
             {"DeviceProfile", profile},
