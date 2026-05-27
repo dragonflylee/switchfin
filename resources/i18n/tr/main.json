@@ -1,0 +1,299 @@
+{
+  "tabs": {
+    "home": "Ana Sayfa",
+    "genres": "Türler",
+    "program": "Diziler",
+    "suggest": "Öneriler",
+    "artists": "Sanatçılar",
+    "songs": "Şarkılar",
+    "search": "Arama",
+    "downloads": "İndirmeler",
+    "dashboard": "Kontrol Paneli",
+    "setting": "Ayarlar"
+  },
+  "home": {
+    "resume": "İzlemeye Devam Et",
+    "nextup": "Sıradaki",
+    "latest": "Yakın Zamanda Eklenen"
+  },
+  "recommend": {
+    "like": "{} sevdiğiniz için",
+    "watched": "{} izlediğiniz için",
+    "directed": "{} yönetmenliğindeki içerikler",
+    "starring": "Başrolde {}"
+  },
+  "about": {
+    "header": "Hakkında",
+    "brief": "Başka bir üçüncü taraf Jellyfin yazılımı daha",
+    "repo_header": "Kaynak kodu"
+  },
+  "dashboard": {
+    "session": "Oturum",
+    "device": "Cihaz",
+    "activity": "Etkinlik",
+    "path": "Dizin",
+    "restart": "Yeniden Başlat",
+    "confirm_restart": "Jellyfin'i yeniden başlatmak istediğinize emin misiniz?",
+    "scan_all": "Tüm Kütüphaneleri Tara",
+    "within_minute": "Son 1 dakika içinde",
+    "minute_ago": "{} dakika önce",
+    "hour_ago": "{} saat önce"
+  },
+  "player": {
+    "subtitle": "Alt yazı",
+    "none": "Hiçbiri",
+    "audio": "Ses parçası",
+    "common": "Genel",
+    "speed": "Oynatma Hızı",
+    "quality": "Video Kalitesi",
+    "chapter": "Kısımlar",
+    "auto": "Otomatik",
+    "toggle": "Oynat/Durdur",
+    "prev": "Önceki",
+    "next": "Sonraki",
+    "error": "Oynatma hatası",
+    "episode": "Bölümler",
+    "speed_up": "Mevcut hız {}"
+  },
+  "danmaku": {
+    "header": "Danmaku yorum ayarları",
+    "performance": {
+      "header": "Performans",
+      "render": "İşleme kalitesi"
+    },
+    "style": {
+      "header": "Danmaku yorum stili",
+      "font": "Kontur Stili",
+      "font_stroke": "Kontur",
+      "font_incline": "Eğik",
+      "font_shadow": "Gölge",
+      "font_pure": "Tek Renkli",
+      "area": "Görüntüleme alanı",
+      "area_1_4": "Ekranın 1/4'ü",
+      "area_2_4": "Ekranın 1/2'si",
+      "area_3_4": "Ekranın 3/4'ü",
+      "area_4_4": "Tam Ekran",
+      "alpha": "Şeffaflık",
+      "fontsize": "Font Boyutu",
+      "line_height": "Metin Yüksekliği",
+      "speed": "Hız",
+      "speed_slow_plus": "Çok Yavaş",
+      "speed_slow": "Yavaş",
+      "speed_fast_plus": "Çok Hızlı",
+      "speed_fast": "Hızlı",
+      "speed_moderate": "Orta"
+    }
+  },
+  "media": {
+    "sort": "Sırala",
+    "sort_by": "Sıralama Ölçütü",
+    "filter": "Filtrele",
+    "order": "Düzenle",
+    "ascending": "Artan",
+    "descending": "Azalan",
+    "name": "Ad",
+    "add_favorite": "Favorilere ekle",
+    "mark_played": "Oynatıldı olarak işaretle",
+    "mark_unplayed": "Oynatılmadı olarak işaretle",
+    "play": "Oynat",
+    "intro": "Başlangıç Jeneriği",
+    "people": "Oyuncular",
+    "special": "Ekstralar",
+    "similar": "Bunun Gibi Daha Fazla",
+    "date_add": "Eklenme Tarihi",
+    "date_played": "Oynatılma Tarihi",
+    "premiere_date": "Ön Gösterim tarihi",
+    "play_count": "Oynatma Sayısı",
+    "rating": "Topluluk Puanı",
+    "random": "Rastgele",
+    "played": "Oynatıldı",
+    "unplayed": "Oynatılmadı"
+  },
+  "search": {
+    "hint": "Anahtar kelimeleri ve baş harflerini destekler",
+    "clear": "Temizle",
+    "delete": "Sil",
+    "paste": "Yapıştır",
+    "history": "Geçmiş",
+    "suggest": "Öneriler",
+    "clear_history": "Arama geçmişinin silinmesini onaylıyor musunuz?",
+    "genres": {
+      "movie": "Filmler",
+      "music": "Müzik",
+      "series": "Diziler",
+      "episode": "Bölüm"
+    }
+  },
+  "remote": {
+    "local": "Yerel Depolama",
+    "folder": "Klasör",
+    "up": "Üst Dizin"
+  },
+  "download": {
+    "quality": "İndirme Kalitesi",
+    "original": "Orijinal",
+    "start": "İndir",
+    "cancel": "İndirmeyi İptal Et",
+    "remove": "İndirmeyi Kaldır",
+    "downloading": "İndiriliyor...",
+    "completed": "İndirildi",
+    "failed": "İndirme Başarısız",
+    "queued": "Kuyruğa Eklendi",
+    "no_downloads": "İndirme Yok",
+    "confirm_remove": "İndirilen dosya kaldırılsın mı?",
+    "play_offline": "Çevrim Dışı Oynat"
+  },
+  "setting": {
+    "quit_hint": "Uygulamadan çıkış yapmak üzeresiniz. Değiştirilen ayarlar bir sonraki başlangıçtan sonra uygulanacak",
+    "name": "Ad",
+    "version": "Sürüm",
+    "os": "İşletim Sistemi",
+    "url": "Bağlantı",
+    "user": "Kullanıcı",
+    "username": "Kullanıcı Adı",
+    "password": "Şifre",
+    "server": {
+      "header": "Sunucu",
+      "detail": "Sunucu Ayrıntıları",
+      "connect_new": "Yeni Sunucu",
+      "connect_to": "Bir Jellyfin sunucusuna bağlan",
+      "invalid": "Bağlantı http:// veya https:// ile başlamalıdır",
+      "connect": "Bağlan",
+      "delete": "Silmeyi onaylıyor musunuz?",
+      "local": "Yerel Sunucular",
+      "users": "{} kullanıcı",
+      "sigin_to": "{} sunucusuna giriş yap",
+      "signin": "Giriş Yap"
+    },
+    "playback": {
+      "header": "Oynatma",
+      "bottom_bar": "Oynatma arayüzünde ilerleme çubuğunu göster",
+      "low_quality": "Düşük kalite video çözümü (daha az işlemci kullanır)",
+      "in_memory_cache": "Bellek içi önbellek",
+      "subs_fallback": "Alt yazıları otomatik yükle",
+      "vo": "Video çıktısı",
+      "hwdec": "Donanımsal kod çözme",
+      "force_directplay": "Doğrudan oynatmaya zorla",
+      "osd_on_toggle": "Durdurulduğunda video arayüzünü göster",
+      "touch_gesture": "İleri/geri sarma için dokunma hareketi",
+      "clip_point": "Video kısımlarında klip noktasını göster",
+      "transcodec": "Video Çözücü",
+      "audio_channels": "Ses Kanalları",
+      "video_quality": "Video Kalitesi",
+      "subsync": "Alt Yazı Eşitleme"
+    },
+    "transcode": {
+      "header": "Yeniden Kodlama"
+    },
+    "control": {
+      "header": "Oynatma Denetimleri",
+      "tv_osd": "Televizyon tarzı oynatıcı denetimleri"
+    },
+    "filter": {
+      "mirror": "Videoyu Çevir",
+      "hflip": "Yatay çevir",
+      "vflip": "Dikey çevir",
+      "rotation": "Döndürme"
+    },
+    "aspect": {
+      "header": "Video en-boy oranı",
+      "crop": "Kırp",
+      "stretch": "Sığdır",
+      "auto": "Otomatik"
+    },
+    "equalizer": {
+      "header": "Görüntü Dengeleyici",
+      "brightness": "Parlaklık",
+      "contrast": "Kontrast",
+      "saturation": "Doygunluk",
+      "gamma": "Gama",
+      "hue": "Renk Tonu",
+      "reset": "Sıfırla"
+    },
+    "network": {
+      "header": "Ağ",
+      "threads": "Görsel yükleme işlem sayısı",
+      "timeout": "İstek zaman aşımı (ms)",
+      "proxy": "Vekil Sunucu Seçenekleri",
+      "host": "Adres",
+      "port": "Bağlantı Noktası"
+    },
+    "ui": {
+      "header": "Arayüz",
+      "scale": {
+        "header": "Arayüz Ölçeği (yeniden başlatma gerekli)",
+        "544p": "544p",
+        "720p": "720p",
+        "900p": "900p",
+        "1080p": "1080p"
+      },
+      "vsync": "Dikey Eşitleme",
+      "show_fps": "FPS Değerlerini Göster"
+    },
+    "tutorial": {
+      "header": "Kılavuz",
+      "open": "Ana ekran simgesi nasıl yüklenir",
+      "error": "Eğer bir hatayla karşılaşırsanız",
+      "hot_key": "Kısayollar",
+      "font": "Özel yazı tipi ayarlama",
+      "error_q1": "Ağa erişilemiyorsa",
+      "error_a1": "1. Atmosphere ve sistem sürümünün güncel olduğundan emin olun\n2. Sistemin tarih ve saat ayarlarının doğru olduğunundan emin olun\n3. IP adresi, DNS gibi varsayılan ağ ayarlarını geri yükleyin\n4. Çin'de kullanıyorsanız da ağ ayarları sorun çıkarabilir",
+      "error_q2": "Rastgele bir hata mesajıyla uygulamadan çıkıyorsa",
+      "error_a2": "1. FAT32 ile biçimlendirilmiş bir microSD kart kullanın.\n2. Atmosphere ve sistem sürümünün güncel olduğundan emin olun.\n3. Geliştiricilerin sorunu düzeltmesini bekleyin.",
+      "font_q1": "Nasıl özel bir yazı tipi veya tuş ataması simgesi kullanılır",
+      "font_a1": "1. İstediğiniz yazı tipini veya simge yazı tipini indirin\n2. Yazı tipinin 'font.ttf', simge tipini de 'icon.ttf' olarak adlandırın\n3. Yazı tipi dosyalarını yapılandırma klasörüne yerleştirin\n4. Uygulamayı yeniden başlatın",
+      "font_q2": "Sıkça Sorulan Sorular",
+      "font_a2": "1. Switchfin, özel yazı tiplerinin görüntülenmesine öncelik verir; yerleşik yazı tipleri ise yedek olarak kullanılır.\n2. 'Ayarlar - Kılavuz' bölümünde, yapılandırma dizinini hızlıca açmak için bir menü öğesi bulunur.\n3. Linux’ta Switchfin, dizini açmak için xdg-open kullanır. Yapılandırma dizini düzgün şekilde açılamıyorsa bu aracı yüklemeyi düşünebilirsiniz.",
+      "font_q3": "Alt yazılar görünmüyor",
+      "font_a3": "Herhangi bir TTF dosyasını {}/subfont.ttf konumuna yerleştirin."
+    },
+    "quick_connect": {
+      "header": "Hızlı Bağlan",
+      "code": "Hızlı Bağlan kodu",
+      "invalid": "Geçersiz Hızlı Bağlan kodu",
+      "success": "Hızlı Bağlan başarıyla yetkilendirildi. Lütfen diğer cihazınızda devam edin.",
+      "steps": "1. Telefonunuzdaki veya web tarayıcınızdaki Jellyfin uygulamasını açın ve hesabınızla oturum açın.\n2. Kullanıcı menüsünü açın ve Hızlı Bağlan sayfasına gidin.\n3. Kodu girin:",
+      "disabled": "Not: Hızlı Bağlan etkin değil"
+    },
+    "others": {
+      "header": "Diğer",
+      "fullscreen": "Tam Ekran",
+      "always_on_top": "Her zaman üstte",
+      "single": "Birden fazla uygulama çalıştırmasını engelle",
+      "overclock": "İşlemci Hız Aşırtma",
+      "debug": "Hata Ayıklama Görünümü",
+      "sync": "Sıralama ayarlarını koru",
+      "theme": {
+        "header": "Tema (yeniden başlatma gerekli)",
+        "1": "Otomatik",
+        "2": "Aydınlık",
+        "3": "Karanlık"
+      },
+      "language": {
+        "header": "Dil (yeniden başlatma gerekli)",
+        "auto": "Otomatik"
+      },
+      "keymap": {
+        "header": "Tuş atama biçimi",
+        "xbox": "Xbox",
+        "ps": "PlayStation",
+        "keyboard": "Klavye"
+      },
+      "config_dir": "Yapılandırma dizini",
+      "logout": "Mevcut hesaptan çıkış yap (uygulamadan çıkılacaktır)",
+      "up2date": "Uygulama güncel",
+      "upgrade": "{} sürümü şimdi mevcut! Güncellensin mi?",
+      "updating": "Güncelleniyor, iptal edilsin mi?",
+      "release": "Güncellemeleri denetle"
+    }
+  },
+  "hints": {
+    "hint1": "Ana ekrandan bir oyun seçin",
+    "hint2": " tuşuna basılı tutun ve  tuşuna basarak hbmenu'ye girin",
+    "hint3": "hbmenu arayüzünden Switchfin'i seçin",
+    "hint4": "İsteğe bağlı: Gömülü gelen Switchfin NSP yönlendiricisini kullanın",
+    "hint_nsp": "NSP yönlendiricisini yüklemek için  tuşuna basın",
+    "hint_confirm": "NSP yönlendiricisini kurmak konsolunuzun çevrim içi özelliklerden yasaklanmasına neden olabilir\n\nLütfen tekrar onaylayın",
+    "hint_right": "Görseller internetten alınmıştır ve tüm telif hakları Nintendo Co., Ltd şirketine aittir"
+  }
+}

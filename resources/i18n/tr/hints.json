@@ -1,0 +1,22 @@
+{
+  "ok": "Tamam",
+  "back": "Geri",
+  "cancel": "İptal",
+  "exit": "Çıkış",
+  "on": "Açık",
+  "off": "Kapalı",
+  "delete": "Sil",
+  "save": "Kaydet",
+  "submit": "Gönder",
+  "input": "Lütfen giriş yapın...",
+  "preset": "Ön Ayar",
+  "default": "Saptanmış",
+  "current": "Mevcut",
+  "success": "Başarılı",
+  "password": "Göster/Gizle",
+  "retry": "Yeniden Dene",
+  "exit_hint": "Uygulamadan çıkacak mısınız?",
+  "loading": "Yükleniyor",
+  "refresh": "Yenile",
+  "quit": "Uygulamadan çıkılıyor..."
+}
