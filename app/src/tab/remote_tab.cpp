@@ -16,16 +16,11 @@ RemoteTab::~RemoteTab() { brls::Logger::debug("RemoteTab: deleted"); }
 brls::View* RemoteTab::create() { return new RemoteTab(); }
 
 void RemoteTab::onCreate() {
-    auto* dlItem = new AutoSidebarItem();
-    dlItem->setTabStyle(AutoTabBarStyle::ACCENT);
-    dlItem->setFontSize(22);
-    dlItem->setLabel("main/tabs/downloads"_i18n);
-    this->tabFrame->addTab(dlItem, []() { return new DownloadView(); });
-
+    AutoSidebarItem* item;
     auto& conf = AppConfig::instance();
     for (auto& r : conf.getRemotes()) {
         try {
-            auto* item = new AutoSidebarItem();
+            item = new AutoSidebarItem();
             item->setTabStyle(AutoTabBarStyle::ACCENT);
             item->setFontSize(22);
             item->setLabel(r.name);
@@ -41,7 +36,13 @@ void RemoteTab::onCreate() {
         }
     }
 
-    auto* item = new AutoSidebarItem();
+    item = new AutoSidebarItem();
+    item->setTabStyle(AutoTabBarStyle::ACCENT);
+    item->setFontSize(22);
+    item->setLabel("main/tabs/downloads"_i18n);
+    this->tabFrame->addTab(item, []() { return new DownloadView(); });
+
+    item = new AutoSidebarItem();
     item->setTabStyle(AutoTabBarStyle::ACCENT);
     item->setFontSize(22);
     item->setLabel("main/remote/local"_i18n);
