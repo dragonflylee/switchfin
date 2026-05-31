@@ -381,7 +381,7 @@ void SettingTab::onCreate() {
             "Português",
             "Czech",
             "Українська",
-            "Turkic",
+            "Türkçe",
             "Tiếng việt",
         },
         langIndex, [langIndex](int selected) {
