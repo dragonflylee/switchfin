@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <atomic>
 #ifdef BOREALIS_USE_STD_THREAD
 #include <thread>
 #else
@@ -30,5 +31,6 @@ private:
     pthread_t th;
 #endif
     brls::RepeatingTimer hb;
+    std::atomic_bool isStop;
     void *easy;
 };

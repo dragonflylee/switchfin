@@ -656,6 +656,7 @@ void MPVCore::eventMainLoop() {
                     mpvCoreEvent.fire(VIDEO_MUTE);
                 }
                 this->volume = *(int64_t *)prop->data;
+                break;
             default:
                 brls::Logger::debug("MPVCore => PROPERTY_CHANGE `{}` type {}", prop->name, int(prop->format));
             }

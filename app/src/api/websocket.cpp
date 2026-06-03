@@ -40,6 +40,7 @@ websocket::~websocket() {
 #if LIBCURL_VERSION_NUM >= 0x080000 && !defined(__PS4__)
     size_t sent;
     curl_ws_send(this->easy, "", 0, &sent, 0, CURLWS_CLOSE);
+    this->isStop.store(true);
 #ifdef BOREALIS_USE_STD_THREAD
     this->th->join();
 #else
@@ -51,7 +52,7 @@ websocket::~websocket() {
 
 void* websocket::wsRecv(void* ptr) {
     websocket* p = reinterpret_cast<websocket*>(ptr);
-    for (uint64_t t = 500;; t *= 2) {
+    for (uint64_t t = 500; !p->isStop.load(); t *= 2) {
         CURLcode res = curl_easy_perform(p->easy);
         if (res == CURLE_OK) break;
         p->hb.stop();
