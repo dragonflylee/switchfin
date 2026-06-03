@@ -32,6 +32,10 @@ int Ums::init() {
         },
         this);
 
+    if (!usbHsFsGetMountedDeviceCount()) {
+        this->devices.push_back({.id = -1, .name = "SD Card", .mount = "sdmc:"});
+    }
+
     brls::Application::getExitEvent()->subscribe([this]() {
         usbHsFsSetPopulateCallback(nullptr, nullptr);
         for (auto &dev : this->devices)
@@ -73,8 +77,7 @@ int Ums::init() {
     std::vector<char> lpath(MAX_PATH);
     SHGetSpecialFolderPathW(0, wpath, CSIDL_MYVIDEO, false);
     WideCharToMultiByte(CP_UTF8, 0, wpath, std::wcslen(wpath), lpath.data(), lpath.size(), nullptr, nullptr);
-    this->devices.push_back(Device{.id = -1, .name = lpath.data(), .mount = lpath.data()});
-    this->event.fire(this->devices);
+    this->devices.push_back({.id = -1, .name = lpath.data(), .mount = lpath.data()});
     return 0;
 }
 
