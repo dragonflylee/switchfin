@@ -25,9 +25,8 @@ depends=(
 makedepends=(
   "${MINGW_PACKAGE_PREFIX}-cc"
   "${MINGW_PACKAGE_PREFIX}-pkgconf"
-  $([[ ${MINGW_PACKAGE_PREFIX} == *-clang-aarch64* ]] || echo "${MINGW_PACKAGE_PREFIX}-amf-headers")
-  $([[ ${MINGW_PACKAGE_PREFIX} == *-clang-aarch64* ]] || echo "${MINGW_PACKAGE_PREFIX}-ffnvcodec-headers")
-  $([[ ${MINGW_PACKAGE_PREFIX} == *-clang-aarch64* ]] || echo "${MINGW_PACKAGE_PREFIX}-nasm")
+  "${MINGW_PACKAGE_PREFIX}-ffnvcodec-headers"
+  "${MINGW_PACKAGE_PREFIX}-nasm"
 )
 options=('staticlibs' '!strip')
 source=("https://ffmpeg.org/releases/${_realname}-${pkgver}.tar.xz" "avio.patch")
@@ -72,8 +71,8 @@ build() {
     --enable-libssh2 \
     --enable-mbedtls \
     --enable-version3 \
-    $( [[ "${MINGW_PACKAGE_PREFIX}" != *clang-aarch64* ]] \
-      && echo "--enable-nvdec --enable-ffnvcodec --enable-amf")
+    --enable-nvdec \
+    --enable-ffnvcodec
 
   make -j4
 }

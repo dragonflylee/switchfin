@@ -1,5 +1,5 @@
 diff --git a/configure b/configure
-index 1759694274..17ec2797af 100755
+index 1759694274..7028797b45 100755
 --- a/configure
 +++ b/configure
 @@ -281,6 +281,7 @@ External library support:
@@ -34,6 +34,15 @@ index 1759694274..17ec2797af 100755
  enabled libspeex          && require_pkg_config libspeex speex speex/speex.h speex_decoder_init
  enabled libsrt            && require_pkg_config libsrt "srt >= 1.3.0" srt/srt.h srt_socket
  enabled libsvtav1         && require_pkg_config libsvtav1 "SvtAv1Enc >= 0.9.0" EbSvtAv1Enc.h svt_av1_enc_init_handle
+@@ -7802,7 +7806,7 @@ if enabled x86; then
+     esac
+ elif enabled_any aarch64 ppc64 && ! enabled bigendian; then
+     case $target_os in
+-        linux)
++        linux|mingw32*|mingw64*|win32|win64)
+             ;;
+         *)
+             disable ffnvcodec cuvid nvdec nvenc
 diff --git a/libavformat/Makefile b/libavformat/Makefile
 index 4786a9345a..2789a8de37 100644
 --- a/libavformat/Makefile
