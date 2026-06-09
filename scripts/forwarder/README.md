@@ -1,11 +1,20 @@
-# 构建 NSP forwarder （桌面图标）
+# Forwarder NSP (tuile d'accueil Switch)
 
-bash
+Le forwarder est un NSP installable qui lance `sdmc:/switch/Switchlex.nro` comme
+un jeu (session application complète). Il est construit automatiquement avec
+`-DBUILTIN_NSP=ON` et embarqué dans le NRO (installation proposée au premier
+lancement en mode applet).
+
+Construction manuelle :
+
 ```shell
-make -C scripts/forwarder Switchfin.nacp
+make -C scripts/forwarder Switchlex.nacp
 
-hacbrewpack -k prod.keys --titleid 010FF000FFFF0003 --titlename Switchfin --noromfs --nologo
+hacbrewpack -k prod.keys --titleid 010FF000FFFF1003 --titlename Switchlex --noromfs --nologo
 ```
+
+Le keyset : fournir le vôtre via `-DPROJECT_KEYSET=/chemin/prod.keys` (dumpé avec
+Lockpick_RCM), sinon le CMake en télécharge un public (comportement CI).
 
 # Thanks to
 
