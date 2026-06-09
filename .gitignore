@@ -20,3 +20,5 @@ debian/switchfin*
 debian/.debhelper
 .wget-hsts
 /jniLibs/
+plezy/
+.prod.keys.tmp
