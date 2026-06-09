@@ -4,6 +4,7 @@
 
 #include <utility>
 #include "view/recycling_grid.hpp"
+#include "view/svg_image.hpp"
 
 /// RecyclingGridItem
 
@@ -132,10 +133,11 @@ void RecyclingView::showSkeleton(unsigned int num) { this->setDataSource(new Dat
 RecyclingGrid::RecyclingGrid() {
     brls::Logger::debug("View RecyclingGrid: create");
 
-    // Create hint views
-    this->hintImage = new brls::Image();
+    // États vide/erreur : icône sobre + texte (plus d'illustrations mascotte)
+    this->hintImage = new SVGImage();
     this->hintImage->detach();
-    this->hintImage->setImageFromRes("img/empty.png");
+    this->hintImage->setDimensions(64, 64);
+    this->hintImage->setImageFromSVGRes("icon/ico-list.svg");
     this->hintLabel = new brls::Label();
     this->hintLabel->detach();
     this->hintLabel->setFontSize(14);
@@ -403,13 +405,13 @@ void RecyclingGrid::clearData() {
 }
 
 void RecyclingGrid::setEmpty(std::string msg) {
-    this->hintImage->setImageFromRes("img/empty.png");
+    this->hintImage->setImageFromSVGRes("icon/ico-list.svg");
     this->hintLabel->setText(msg);
     this->clearData();
 }
 
 void RecyclingGrid::setError(std::string error) {
-    this->hintImage->setImageFromRes("img/net_error.png");
+    this->hintImage->setImageFromSVGRes("icon/ico-cloud.svg");
     this->hintLabel->setText(error);
     this->clearData();
 }

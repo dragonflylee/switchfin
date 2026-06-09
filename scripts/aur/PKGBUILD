@@ -1,9 +1,9 @@
-pkgname=switchfin
+pkgname=switchlex
 pkgver=0.9.0
 pkgrel=1
 pkgdesc='Third-party native Jellyfin client'
 arch=('x86_64' 'aarch64')
-url='https://github.com/dragonflylee/switchfin'
+url='https://github.com/thcolin/switchlex'
 license=('GPL-3.0-or-later')
 depends=('curl' 'dbus' 'gcc-libs' 'glibc' 'hicolor-icon-theme' 'libwebp' 'mpv' 'libxcb' 'tinyxml2' 'libpng' 'fmt')
 makedepends=('cmake' 'git' 'libxi' 'libxinerama' 'ninja' 'python' 'wayland-protocols')

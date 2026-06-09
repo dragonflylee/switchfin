@@ -3,7 +3,7 @@
 #include <borealis/core/singleton.hpp>
 #include <borealis/core/logger.hpp>
 #include <borealis/core/theme.hpp>
-#include <api/jellyfin/system.hpp>
+#include <nlohmann/json.hpp>
 #include <atomic>
 
 class AppVersion {
@@ -17,25 +17,31 @@ public:
     static void checkUpdate(int delay = 2000, bool showUpToDateDialog = false);
 
     inline static std::shared_ptr<std::atomic_bool> updating = std::make_shared<std::atomic_bool>(true);
-    inline static std::string git_repo = "dragonflylee/switchfin";
+    inline static std::string git_repo = "thcolin/switchlex";
 };
 
+/// Un profil plex.tv (compte ou utilisateur Plex Home).
+/// `access_token` est le token plex.tv de CE profil — il sert pour l'API
+/// plex.tv (resources, home users), PAS pour les requêtes au serveur.
 struct AppUser {
-    std::string id;
+    std::string id;  // uuid plex.tv
     std::string name;
     std::string access_token;
-    std::string server_id;
-    bool is_admin = false;
-    jellyfin::UserConfig config;
+    std::string server_id;  // clientIdentifier du dernier serveur utilisé
+    std::string thumb;      // avatar (URL absolue plex.tv)
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AppUser, id, name, access_token, server_id);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(AppUser, id, name, access_token, server_id, thumb);
 
+/// Un Plex Media Server connu. `access_token` est le token d'accès au serveur
+/// obtenu via /api/v2/resources pour l'utilisateur actif (rafraîchi à chaque
+/// connexion/bascule de profil). urls.front() = dernière connexion joignable.
 struct AppServer {
     std::string name;
-    std::string id;
+    std::string id;  // clientIdentifier (machine id)
+    std::string access_token;
     std::vector<std::string> urls;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(AppServer, id, name, urls);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(AppServer, id, name, access_token, urls);
 
 struct AppRemote {
     std::string name;
@@ -87,15 +93,6 @@ public:
         PLAYER_ASPECT,
         PLAYER_SUBS_FALLBACK,
         PLAYER_TV_MODE,
-        DANMAKU,
-        DANMAKU_ON,
-        DANMAKU_STYLE_AREA,
-        DANMAKU_STYLE_ALPHA,
-        DANMAKU_STYLE_FONTSIZE,
-        DANMAKU_STYLE_LINE_HEIGHT,
-        DANMAKU_STYLE_SPEED,
-        DANMAKU_STYLE_FONT,
-        DANMAKU_RENDER_QUALITY,
         ALWAYS_ON_TOP,
         SINGLE,
         SHOW_FPS,
@@ -107,7 +104,10 @@ public:
         HTTP_PROXY_STATUS,
         HTTP_PROXY,
 
-        DOWNLOAD_QUALITY,
+        /// Tris/filtres de bibliothèque, persistés localement (objet json
+        /// {itemId: "sortBy,sortOrder,filtre"} — /DisplayPreferences n'existe
+        /// pas chez Plex, cf. PLEX_MIGRATION.md §2.5)
+        LIBRARY_SORT,
 
         KEY_REFRESH,        // 刷新快捷键
         KEY_LAST,           // 上一个Tab快捷键
@@ -115,7 +115,6 @@ public:
         KEY_VOLUME_UP,      // 音量增大快捷键
         KEY_VOLUME_DOWN,    // 音量减小快捷键
         KEY_VIDEO_PROFILE,  // 视频详情快捷键
-        KEY_DANMAKU,        // 弹幕快捷键
         KEY_FORWARD,        // 快进快捷键
         KEY_REWIND,         // 快退快捷键
         KEY_SETTING,        // 设置快捷键
@@ -131,8 +130,6 @@ public:
     void initThemes();
     void save();
     bool checkLogin();
-    /// @brief 检查是否安装Danmuku插件
-    bool checkDanmuku();
 
     std::string configDir();
     std::string ipcSocket();
@@ -172,13 +169,13 @@ public:
     bool removeServer(const std::string& id);
     bool removeUser(const std::string& id);
     const std::string& getDeviceId() { return this->device; }
-    std::string getAuth(const std::string& token = "");
     const std::string& getUserId() const { return this->user_id; }
     const std::string& getUserName() const { return this->user->name; }
-    const std::string& getToken() const { return this->user->access_token; }
+    /// Token d'accès au SERVEUR actif (X-Plex-Token des requêtes PMS).
+    const std::string& getToken() const { return this->server_token; }
+    /// Token plex.tv du profil actif (resources, home users).
+    const std::string& getAccountToken() const { return this->user->access_token; }
     const std::string& getUrl() const { return this->server_url; }
-    bool isAdmin() const { return this->user->is_admin; }
-    const jellyfin::UserConfig& userConfig() const { return this->user->config; }
     const std::vector<AppRemote>& getRemotes() const { return this->remotes; }
     const std::vector<AppServer>& getServers() const { return this->servers; }
     const std::vector<AppUser> getUsers(const std::string& id) const;
@@ -193,6 +190,7 @@ private:
     UserIter user;
     std::string user_id;
     std::string server_url;
+    std::string server_token;
     std::string device;
     std::string device_name;
     std::vector<AppUser> users;

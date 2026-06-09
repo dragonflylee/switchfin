@@ -5,21 +5,22 @@
 #pragma once
 
 #include <borealis.hpp>
-#include <api/jellyfin/media.hpp>
+#include <api/plex/types.hpp>
 
 class ButtonClose;
 
 class PlayerSetting : public brls::Box {
 public:
-    PlayerSetting(const jellyfin::Source* src = nullptr);
+    PlayerSetting(const plex::Media* src = nullptr);
     ~PlayerSetting() override;
 
     bool isTranslucent() override { return true; }
 
     View* getDefaultFocus() override { return this->settings->getDefaultFocus(); }
 
-    inline static int selectedSubtitle = 0;
-    inline static int selectedAudio = 0;
+    /// IDs de Stream Plex sélectionnés pour le transcodeur (0 = aucun)
+    inline static int64_t selectedSubtitle = 0;
+    inline static int64_t selectedAudio = 0;
 
     enum class Equalizer {
         BRIGHTNESS,

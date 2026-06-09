@@ -40,14 +40,14 @@ constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
 #include <borealis.hpp>
 #include <borealis/core/cache_helper.hpp>
 #include <borealis/views/edit_text_dialog.hpp>
-#include "api/jellyfin.hpp"
+#include "api/plex/auth.hpp"
+#include "api/http.hpp"
 #include "utils/config.hpp"
 #include "utils/keybind.hpp"
 #include "utils/misc.hpp"
 #include "utils/ums.hpp"
 #include "utils/thread.hpp"
 #include "view/mpv_core.hpp"
-#include "view/danmaku_core.hpp"
 #include "view/video_view.hpp"
 
 std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
@@ -88,36 +88,6 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {PLAYER_HWDEC_CUSTOM, {"player_hwdec_custom"}},
     {PLAYER_ASPECT, {"player_aspect", {"auto", "stretch", "crop", "4:3", "16:9"}}},
     {PLAYER_TV_MODE, {"player_tv_mode"}},
-    {DANMAKU, {"danmaku"}},
-    {DANMAKU_ON, {"danmaku_on"}},
-    {DANMAKU_STYLE_AREA, {"danmaku_style_area", {"1/4", "1/2", "3/4", "1"}, {25, 50, 75, 100}}},
-    {DANMAKU_STYLE_ALPHA,
-        {
-            "danmaku_style_alpha",
-            {"10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"},
-            {10, 20, 30, 40, 50, 60, 70, 80, 90, 100},
-        }},
-    {DANMAKU_STYLE_FONTSIZE,
-        {"danmaku_style_fontsize", {"50%", "75%", "100%", "125%", "150%", "175%"}, {15, 22, 30, 37, 45, 50}}},
-    {DANMAKU_STYLE_FONT, {"danmaku_style_font", {"stroke", "incline", "shadow", "pure"}}},
-    {DANMAKU_STYLE_LINE_HEIGHT,
-        {
-            "danmaku_style_line_height",
-            {"100%", "120%", "140%", "160%", "180%", "200%"},
-            {100, 120, 140, 160, 180, 200},
-        }},
-    {DANMAKU_STYLE_SPEED,
-        {
-            "danmaku_style_speed",
-            {"0.5", "0.75", "1.0", "1.25", "1.5"},
-            {150, 125, 100, 75, 50},
-        }},
-    {DANMAKU_RENDER_QUALITY,
-        {
-            "danmaku_render_quality",
-            {"100%", "95%", "90%", "80%", "70%", "60%", "50%"},
-            {100, 95, 90, 80, 70, 60, 50},
-        }},
     {ALWAYS_ON_TOP, {"always_on_top"}},
     {SINGLE, {"single"}},
     {SHOW_FPS, {"show_fps"}},
@@ -130,7 +100,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {HTTP_PROXY_STATUS, {"http_proxy_status"}},
     {HTTP_PROXY, {"http_proxy"}},
 
-    {DOWNLOAD_QUALITY, {"download_quality", {"Original", "1080p", "720p", "480p"}, {0, 1, 2, 3}}},
+    {LIBRARY_SORT, {"library_sort"}},
 
     {KEY_REFRESH, {"key_refresh"}},
     {KEY_LAST, {"key_last"}},
@@ -138,7 +108,6 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {KEY_VOLUME_UP, {"key_volume_up"}},
     {KEY_VOLUME_DOWN, {"key_volume_down"}},
     {KEY_VIDEO_PROFILE, {"key_video_profile"}},
-    {KEY_DANMAKU, {"key_danmaku"}},
     {KEY_FORWARD, {"key_forward"}},
     {KEY_REWIND, {"key_rewind"}},
     {KEY_SETTING, {"key_setting"}},
@@ -348,14 +317,6 @@ bool AppConfig::init() {
     MPVCore::VIDEO_ASPECT = this->getItem(PLAYER_ASPECT, MPVCore::VIDEO_ASPECT);
     MPVCore::OSD_TV_MODE = this->getItem(PLAYER_TV_MODE, false);
 
-    // 初始化弹幕相关内容
-    DanmakuCore::DANMAKU_ON = this->getItem(DANMAKU_ON, true);
-    DanmakuCore::DANMAKU_STYLE_AREA = this->getItem(DANMAKU_STYLE_AREA, 100);
-    DanmakuCore::DANMAKU_STYLE_ALPHA = this->getItem(DANMAKU_STYLE_ALPHA, 80);
-    DanmakuCore::DANMAKU_STYLE_FONTSIZE = this->getItem(DANMAKU_STYLE_FONTSIZE, 30);
-    DanmakuCore::DANMAKU_STYLE_LINE_HEIGHT = this->getItem(DANMAKU_STYLE_LINE_HEIGHT, 120);
-    DanmakuCore::DANMAKU_STYLE_SPEED = this->getItem(DANMAKU_STYLE_SPEED, 100);
-
     ThreadPool::max_thread_num = this->getItem(REQUEST_THREADS, ThreadPool::max_thread_num);
 
     // 初始化 deviceId
@@ -372,7 +333,6 @@ bool AppConfig::init() {
     KeyBind::setNext(this->getItem(KEY_NEXT, std::string{"pgdn"}));
     KeyBind::setVolumeUp(this->getItem(KEY_VOLUME_UP, std::string{"0"}));
     KeyBind::setVolumeDown(this->getItem(KEY_VOLUME_DOWN, std::string{"9"}));
-    KeyBind::setDanmaku(this->getItem(KEY_DANMAKU, std::string{"d"}));
     KeyBind::setVideoProfile(this->getItem(KEY_VIDEO_PROFILE, std::string{"f1"}));
     KeyBind::setVideoQuality(this->getItem(KEY_VIDEO_QUALITY, std::string{"f2"}));
     KeyBind::setVideoSpeed(this->getItem(KEY_VIDEO_SPEED, std::string{"f3"}));
@@ -396,20 +356,6 @@ bool AppConfig::init() {
             brls::Application::setSwapInputKeys(!brls::Application::isSwapInputKeys());
         }
 
-        // 初始化弹幕字体
-        std::string danmakuFont = this->configDir() + "/danmaku.ttf";
-        // 只在应用模式下加载自定义字体 减少switch上的内存占用
-        if (brls::Application::getPlatform()->isApplicationMode() && access(danmakuFont.c_str(), F_OK) != -1 &&
-            brls::Application::loadFontFromFile("danmaku", danmakuFont)) {
-            // 自定义弹幕字体
-            int danmakuFontId = brls::Application::getFont("danmaku");
-            nvgAddFallbackFontId(
-                brls::Application::getNVGContext(), danmakuFontId, brls::Application::getDefaultFont());
-            DanmakuCore::DANMAKU_FONT = danmakuFontId;
-        } else {
-            // 使用默认弹幕字体
-            DanmakuCore::DANMAKU_FONT = brls::Application::getDefaultFont();
-        }
         // 初始化主题
         std::string appTheme = this->getItem(APP_THEME, std::string("auto"));
         if (appTheme == "light") {
@@ -510,64 +456,28 @@ void AppConfig::save() {
 }
 
 bool AppConfig::checkLogin() {
-    for (auto& s : this->servers) {
-        if (s.id.empty() && s.urls.size() > 0) {
-            try {
-                std::string url = s.urls.front() + jellyfin::apiPublicInfo;
-                std::string resp = HTTP::get(url, HTTP::Timeout{3000});
-                jellyfin::PublicSystemInfo info = nlohmann::json::parse(resp);
-                s.id = info.Id;
-                s.name = info.ServerName;
-            } catch (const std::exception& ex) {
-                brls::Logger::warning("AppConfig {} checkServer: {}", s.urls.front(), ex.what());
-                return false;
-            }
-        }
-    }
-
     auto is_user = [this](const AppUser& u) { return u.id == this->user_id; };
     this->user = std::find_if(this->users.begin(), this->users.end(), is_user);
     if (this->user == this->users.end()) return false;
 
     auto is_server = [this](const AppServer& s) { return s.id == this->user->server_id; };
     auto it = std::find_if(this->servers.begin(), this->servers.end(), is_server);
-    if (it == this->servers.end()) return false;
+    if (it == this->servers.end() || it->urls.empty()) return false;
 
-    this->server_url = it->urls.front();
-    HTTP::Header header = {this->getAuth(this->user->access_token)};
-    std::string uri = fmt::format("{}/Users/{}", this->server_url, this->user_id);
-    try {
-        std::string resp = HTTP::get(uri, header, HTTP::Timeout{});
-        jellyfin::UserInfo info = nlohmann::json::parse(resp);
-        this->user->is_admin = info.Policy.IsAdministrator;
-        this->user->config = std::move(info.Configuration);
+    // Sonde les connexions mémorisées (la dernière joignable est en tête).
+    // Pas de dépendance à plex.tv ici : un serveur LAN joignable suffit.
+    for (auto& url : it->urls) {
+        if (!plex::probeConnection(url, it->access_token)) continue;
+        this->server_url = url;
+        this->server_token = it->access_token;
+        if (url != it->urls.front()) {
+            AppServer front = *it;
+            front.urls = {url};
+            this->addServer(front);
+        }
         return true;
-    } catch (const std::exception& ex) {
-        brls::Logger::warning("AppConfig {} checkLogin: {}", this->server_url, ex.what());
-        return false;
     }
-}
-
-bool AppConfig::checkDanmuku() {
-    jellyfin::getJSON<jellyfin::PluginList>(
-        [](const jellyfin::PluginList& plugins) {
-            for (auto& p : plugins) {
-                if (p.Name == "Danmu") {
-                    DanmakuCore::PLUGIN_ACTIVE = true;
-                    brls::Logger::info("Danmaku plugin found: {}", p.Version);
-                    return;
-                }
-            }
-            DanmakuCore::PLUGIN_ACTIVE = false;
-            brls::Logger::info("Danmaku plugin not found");
-        },
-        [this](const std::string& err) {
-            const std::string locale = brls::Application::getPlatform()->getLocale();
-            bool enable = (locale == brls::LOCALE_ZH_HANS) || (locale == brls::LOCALE_ZH_HANT);
-            DanmakuCore::PLUGIN_ACTIVE = this->getItem(DANMAKU, enable);
-            brls::Logger::warning("checkDanmuku {} fallback ({})", err, DanmakuCore::PLUGIN_ACTIVE);
-        },
-        jellyfin::apiPlugins);
+    brls::Logger::warning("AppConfig checkLogin: aucun endpoint joignable pour {}", it->name);
     return false;
 }
 
@@ -653,6 +563,8 @@ bool AppConfig::addServer(const AppServer& s) {
     for (auto& o : this->servers) {
         if (s.id == o.id) {
             if (!s.name.empty()) o.name = s.name;
+            if (!s.access_token.empty()) o.access_token = s.access_token;
+            this->server_token = o.access_token;
             // remove old url
             for (auto it = o.urls.begin(); it != o.urls.end(); ++it) {
                 if (it->compare(this->server_url) == 0) {
@@ -665,6 +577,7 @@ bool AppConfig::addServer(const AppServer& s) {
             return true;
         }
     }
+    this->server_token = s.access_token;
     this->servers.push_back(s);
     this->save();
     return false;
@@ -677,14 +590,17 @@ void AppConfig::addUser(const AppUser& u, const std::string& url) {
         it->name = u.name;
         it->access_token = u.access_token;
         it->server_id = u.server_id;
-        it->is_admin = u.is_admin;
-        it->config = std::move(u.config);
+        it->thumb = u.thumb;
     } else {
         it = this->users.insert(it, u);
     }
     this->server_url = url;
     this->user_id = u.id;
     this->user = it;
+    // garde le token du serveur actif en phase avec l'utilisateur actif
+    for (auto& s : this->servers) {
+        if (s.id == u.server_id) this->server_token = s.access_token;
+    }
     this->save();
 }
 
@@ -708,19 +624,6 @@ bool AppConfig::removeUser(const std::string& id) {
         }
     }
     return false;
-}
-
-std::string AppConfig::getAuth(const std::string& token) {
-    if (this->device_name.empty()) this->device_name = AppVersion::getDeviceName();
-
-    if (token.empty())
-        return fmt::format("Authorization: MediaBrowser Client=\"{}\", Device=\"{}\", DeviceId=\"{}\", Version=\"{}\"",
-            AppVersion::getPackageName(), this->device_name, this->device, AppVersion::getVersion());
-    else
-        return fmt::format(
-            "Authorization: MediaBrowser Client=\"{}\", Device=\"{}\", DeviceId=\"{}\", Version=\"{}\", "
-            "Token=\"{}\"",
-            AppVersion::getPackageName(), this->device_name, this->device, AppVersion::getVersion(), token);
 }
 
 const std::vector<AppUser> AppConfig::getUsers(const std::string& id) const {

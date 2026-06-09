@@ -1,10 +1,10 @@
 #include "view/context_menu.hpp"
-#include "api/jellyfin.hpp"
+#include "api/plex.hpp"
 #include "utils/download.hpp"
 
 using namespace brls::literals;
 
-ContextMenu::ContextMenu(const jellyfin::Item& item) : itemId(item.Id) {
+ContextMenu::ContextMenu(const plex::Item& item) : itemId(item.ratingKey) {
     this->inflateFromXMLRes("xml/view/context_menu.xml");
     brls::Logger::debug("ContextMenu: create");
 
@@ -18,15 +18,6 @@ ContextMenu::ContextMenu(const jellyfin::Item& item) : itemId(item.Id) {
     });
     this->cancel->addGestureRecognizer(new brls::TapGestureRecognizer(this->cancel));
 
-    this->btnFavorite->registerClickAction([this](brls::View* view) {
-        if (this->btnFavorite->getSelected())
-            return this->unFavorite();
-        else
-            return this->doFavorite();
-    });
-    this->btnFavorite->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnFavorite));
-    this->btnFavorite->setSelected(item.UserData.IsFavorite);
-
     this->btnMarkPlay->registerClickAction([this](brls::View* view) {
         if (this->btnMarkPlay->getSelected())
             return this->unPlayed();
@@ -34,15 +25,15 @@ ContextMenu::ContextMenu(const jellyfin::Item& item) : itemId(item.Id) {
             return this->doPlayed();
     });
     this->btnMarkPlay->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnMarkPlay));
-    this->btnMarkPlay->setSelected(item.UserData.Played);
+    this->btnMarkPlay->setSelected(item.played());
 
     auto& dm = DownloadManager::instance();
-    if (item.Type == jellyfin::mediaTypeMovie || item.Type == jellyfin::mediaTypeEpisode ||
-        item.Type == jellyfin::mediaTypeVideo) {
-        if (dm.isDownloaded(item.Id)) {
+    if (item.type == plex::mediaTypeMovie || item.type == plex::mediaTypeEpisode ||
+        item.type == plex::mediaTypeClip) {
+        if (dm.isDownloaded(item.ratingKey)) {
             this->btnDownload->title->setText("main/download/completed"_i18n);
             this->btnDownload->setSelected(true);
-        } else if (dm.isDownloading(item.Id)) {
+        } else if (dm.isDownloading(item.ratingKey)) {
             this->btnDownload->title->setText("main/download/downloading"_i18n);
             this->btnDownload->setSelected(true);
         }
@@ -53,8 +44,7 @@ ContextMenu::ContextMenu(const jellyfin::Item& item) : itemId(item.Id) {
             } else if (dm.isDownloading(this->itemId)) {
                 brls::Application::notify("main/download/downloading"_i18n);
             } else {
-                int qi = AppConfig::instance().getValueIndex(AppConfig::DOWNLOAD_QUALITY);
-                dm.addDownload(this->itemId, static_cast<DownloadQuality>(qi));
+                dm.addDownload(this->itemId);
                 brls::Application::notify("main/download/queued"_i18n);
                 this->btnDownload->setSelected(true);
             }
@@ -67,73 +57,31 @@ ContextMenu::ContextMenu(const jellyfin::Item& item) : itemId(item.Id) {
 }
 
 bool ContextMenu::doPlayed() {
+    auto& conf = AppConfig::instance();
     ASYNC_RETAIN
-    jellyfin::postJSON(
-        {
-            {"itemId", this->itemId},
-            {"played", this->btnMarkPlay->getSelected()},
-        },
-        [ASYNC_TOKEN](const jellyfin::UserDataResult& r) {
-            ASYNC_RELEASE
-            this->btnMarkPlay->setSelected(r.Played);
-        },
+    // GET /:/scrobble (plex_client.dart:1681-1688)
+    plex::getAction(
+        conf.getUrl(), conf.getToken(),
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
         },
-        jellyfin::apiPlayedItems, AppConfig::instance().getUserId(), this->itemId);
-
-    return true;
-}
-
-bool ContextMenu::doFavorite() {
-    ASYNC_RETAIN
-    jellyfin::postJSON(
-        {
-            {"itemId", this->itemId},
-            {"isFavorite", this->btnFavorite->getSelected()},
-        },
-        [ASYNC_TOKEN](const jellyfin::UserDataResult& r) {
-            ASYNC_RELEASE
-            this->btnFavorite->setSelected(r.IsFavorite);
-        },
-        [ASYNC_TOKEN](const std::string& ex) {
-            ASYNC_RELEASE
-            brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
-        },
-        jellyfin::apiFavoriteItems, AppConfig::instance().getUserId(), this->itemId);
-
+        plex::apiScrobble, this->itemId);
+    this->btnMarkPlay->setSelected(true);
     return true;
 }
 
 bool ContextMenu::unPlayed() {
+    auto& conf = AppConfig::instance();
     ASYNC_RETAIN
-    jellyfin::deleteJSON<jellyfin::UserDataResult>(
-        [ASYNC_TOKEN](const jellyfin::UserDataResult& r) {
-            ASYNC_RELEASE
-            this->btnMarkPlay->setSelected(r.IsFavorite);
-        },
+    // GET /:/unscrobble (plex_client.dart:1693-1700)
+    plex::getAction(
+        conf.getUrl(), conf.getToken(),
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
         },
-        jellyfin::apiPlayedItems, AppConfig::instance().getUserId(), this->itemId);
-
-    return true;
-}
-
-bool ContextMenu::unFavorite() {
-    ASYNC_RETAIN
-    jellyfin::deleteJSON<jellyfin::UserDataResult>(
-        [ASYNC_TOKEN](const jellyfin::UserDataResult& r) {
-            ASYNC_RELEASE
-            this->btnFavorite->setSelected(r.IsFavorite);
-        },
-        [ASYNC_TOKEN](const std::string& ex) {
-            ASYNC_RELEASE
-            brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
-        },
-        jellyfin::apiFavoriteItems, AppConfig::instance().getUserId(), this->itemId);
-
+        plex::apiUnscrobble, this->itemId);
+    this->btnMarkPlay->setSelected(false);
     return true;
 }

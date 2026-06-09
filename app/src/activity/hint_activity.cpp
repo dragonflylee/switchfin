@@ -4,7 +4,6 @@
 
 #include "activity/hint_activity.hpp"
 #include "view/gallery_view.hpp"
-#include "api/analytics.hpp"
 
 #ifdef BUILTIN_NSP
 #include <nspmini.hpp>
@@ -71,10 +70,7 @@ private:
     BRLS_BIND(brls::Label, button, "gallery/label");
 };
 
-HintActivity::HintActivity() {
-    brls::Logger::debug("HintActivityActivity: create");
-    GA("tutorial_begin")
-}
+HintActivity::HintActivity() { brls::Logger::debug("HintActivityActivity: create"); }
 
 void HintActivity::onContentAvailable() {
     brls::Logger::debug("HintActivityActivity: onContentAvailable");
@@ -96,7 +92,4 @@ void HintActivity::onContentAvailable() {
 #endif
 }
 
-HintActivity::~HintActivity() {
-    brls::Logger::debug("HintActivityActivity: delete");
-    GA("tutorial_complete")
-}
+HintActivity::~HintActivity() { brls::Logger::debug("HintActivityActivity: delete"); }

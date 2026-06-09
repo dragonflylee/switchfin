@@ -8,32 +8,8 @@
         grow="1.0">
 
         <brls:Box
-            axis="column">
-
-            <RecylingVideo
-                nextPage="auto"
-                pageSize="6"
-                frameHeight="235"
-                itemWidth="325"
-                id="suggest/show/resume"
-                title="@i18n/main/home/resume" />
-
-            <RecylingVideo
-                pageSize="20"
-                frameHeight="300"
-                itemWidth="175"
-                id="suggest/show/latest"
-                title="@i18n/main/home/latest" />
-
-            <RecylingVideo
-                nextPage="auto"
-                pageSize="6"
-                frameHeight="235"
-                itemWidth="325"
-                id="suggest/show/nextup"
-                title="@i18n/main/home/nextup" />
-
-        </brls:Box>
+            axis="column"
+            id="suggest/box" />
 
     </brls:ScrollingFrame>
 

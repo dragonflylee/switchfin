@@ -2,17 +2,13 @@
   "tabs": {
     "home": "Accueil",
     "genres": "Genres",
-    "program": "Séries",
     "suggest": "Suggestions",
-    "artists": "Artistes",
-    "songs": "Chansons",
     "search": "Recherche",
-    "dashboard": "Tableau de bord",
     "setting": "Paramètres"
   },
   "home": {
     "resume": "Lecture",
-    "nextup": "Suivant",
+    "nextup": "À suivre",
     "latest": "Ajoutés récemment"
   },
   "recommend": {
@@ -23,20 +19,8 @@
   },
   "about": {
     "header": "A propos du logiciel",
-    "brief": "Jellyfin permet à plusieurs utilisateurs de se connecter et de diffuser des médias",
+    "brief": "Plex permet à plusieurs utilisateurs de se connecter et de diffuser des médias",
     "repo_header": "URL du projet open source"
-  },
-  "dashboard": {
-    "session": "Session",
-    "device": "Appareil",
-    "activity": "Activité",
-    "path": "Chemins",
-    "restart": "Redémarrer",
-    "confirm_restart": "Voulez-vous vraiment redémarrer Jellyfin ?",
-    "scan_all": "Actualiser toutes les médiathèques",
-    "within_minute": "Dans 1 minute",
-    "minute_ago": "Il y a {} minutes",
-    "hour_ago": "Il y a {} heures"
   },
   "player": {
     "subtitle": "Sous-titres",
@@ -54,35 +38,6 @@
     "episode": "Sélections",
     "speed_up": "Lecture en vitesse accélérée"
   },
-  "danmaku": {
-    "header": "Paramètres des sous-titres interactifs",
-    "performance": {
-      "header": "Performance des commentaires",
-      "render": "Taille de rendu"
-    },
-    "style": {
-      "header": "Style des commentaires",
-      "font": "Type de bordure",
-      "font_stroke": "Bordure",
-      "font_incline": "Projection",
-      "font_shadow": "Trait accentué",
-      "font_pure": "Couleur unie",
-      "area": "Zone d'affichage",
-      "area_1_4": "1/4 d'écran",
-      "area_2_4": "1/2 d'écran",
-      "area_3_4": "3/4 d'écran",
-      "area_4_4": "Plein écran",
-      "alpha": "Opacité",
-      "fontsize": "Taille de police des commentaires",
-      "line_height": "Hauteur de ligne des commentaires",
-      "speed": "Vitesse des commentaires",
-      "speed_slow_plus": "Très lent",
-      "speed_slow": "Plus lent",
-      "speed_fast_plus": "Très rapide",
-      "speed_fast": "Plus Rapide",
-      "speed_moderate": "Moyenne"
-    }
-  },
   "media": {
     "sort": "Trié",
     "sort_by": "Trier par",
@@ -91,11 +46,10 @@
     "ascending": "Ordre croissant",
     "descending": "Ordre décroissant",
     "name": "Nom",
-    "add_favorite": "Ajouter aux favoris",
     "mark_played": "Marquer comme lu",
     "mark_unplayed": "Marquer comme non lu",
     "play": "Lire",
-    "intro": "introduire",
+    "intro": "Aperçu",
     "people": "Personnes",
     "special": "Bonus",
     "similar": "Plus de ce genre",
@@ -106,7 +60,8 @@
     "rating": "Note",
     "random": "Aléatoire",
     "played": "Lu",
-    "unplayed": "Non lu"
+    "unplayed": "Non lu",
+    "collections": "Collections"
   },
   "search": {
     "hint": "Prise en charge des mots-clés et des premières lettres des mots-clés",
@@ -118,13 +73,12 @@
     "clear_history": "Confirmer la suppression de l'historique de recherche ?",
     "genres": {
       "movie": "Film",
-      "music": "Musiques",
       "series": "Séries",
       "episode": "Épisode"
     }
   },
   "remote": {
-    "local": "localhost",
+    "local": "Stockage local",
     "folder": "Dossier",
     "up": "Dossier parent"
   },
@@ -141,7 +95,7 @@
       "header": "Serveur",
       "detail": "Détails du serveur",
       "connect_new": "Nouveau serveur",
-      "connect_to": "Se connecter au serveur Jellyfin",
+      "connect_to": "Se connecter au serveur Plex",
       "invalid": "L'URL doit commencer par http:// ou https://",
       "connect": "Connexion",
       "delete": "Voulez-vous supprimer ?",
@@ -232,14 +186,6 @@
       "font_q3": "Les sous-titres ne peuvent être affichés correctement.",
       "font_a3": "Copiez le fichier de police TTF approprié dans {}/subfront.ttf"
     },
-    "quick_connect": {
-      "header": "Connexion rapide",
-      "code": "Code de vérification de connexion rapide.",
-      "invalid": "Code de vérification de connexion rapide invalide",
-      "success": "Autorisation de connexion rapide réussie. Veuillez continuer sur vos autres appareils",
-      "steps": "1. Ouvrez l'application mobile ou le navigateur, puis connectez-vous à votre compte Jellyfin.\n2. Ouvrez le menu utilisateur et accédez à la page de connexion rapide.\n3. Entrez le code de vérification suivant :",
-      "disabled": "Attention : La connexion rapide n'est pas activée."
-    },
     "others": {
       "header": "Autres",
       "fullscreen": "Affichage en plein écran",
@@ -275,10 +221,36 @@
   "hints": {
     "hint1": "Veuillez sélectionner n'importe quel jeu sur le bureau et maintenir la touche  enfoncée",
     "hint2": "Cliquez sur  pour ouvrir, maintenez la touche  enfoncée pendant que l'application est ouverte, jusqu'à ce que vous accédiez au hbmenu.",
-    "hint3": "Sélectionnez Switchfin dans le menu hbmenu",
-    "hint4": "Optionnel : Installez le fichier NSP de Switchfin pour ouvrir directement Switchfin via l'icône du bureau.",
+    "hint3": "Sélectionnez Switchlex dans le menu hbmenu",
+    "hint4": "Optionnel : Installez le fichier NSP de Switchlex pour ouvrir directement Switchlex via l'icône du bureau.",
     "hint_nsp": "Cliquez sur  pour installer l'icône du bureau",
     "hint_confirm": "L'installation de l'icône du bureau peut entraîner un bannissement de la console. Veuillez confirmer à nouveau",
     "hint_right": "Les images de la console portable proviennent d'Internet, et les droits d'auteur appartiennent à Nintendo Co., Ltd"
+  },
+  "plex": {
+    "link": "Se connecter avec plex.tv",
+    "link_steps": "1. Sur votre téléphone ou ordinateur, ouvrez https://plex.tv/link\n2. Connectez-vous à votre compte Plex\n3. Saisissez le code ci-dessous :",
+    "expired": "Le code a expiré, veuillez réessayer",
+    "manual_header": "Connexion manuelle",
+    "token": "Token",
+    "choose_server": "Choisir un serveur",
+    "choose_profile": "Choisir un profil",
+    "profile_pin": "Code PIN du profil",
+    "wrong_pin": "Code PIN incorrect",
+    "no_server": "Aucun serveur trouvé sur ce compte",
+    "unreachable": "Serveur injoignable"
+  },
+  "download": {
+    "start": "Télécharger",
+    "cancel": "Annuler le téléchargement",
+    "remove": "Supprimer le téléchargement",
+    "downloading": "Téléchargement…",
+    "completed": "Téléchargé",
+    "failed": "Échec du téléchargement",
+    "queued": "En attente",
+    "no_downloads": "Aucun téléchargement",
+    "confirm_remove": "Supprimer ce téléchargement ?",
+    "play_offline": "Lire hors ligne",
+    "confirm_cancel": "Annuler ce téléchargement ?"
   }
 }

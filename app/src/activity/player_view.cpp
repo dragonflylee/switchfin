@@ -1,18 +1,26 @@
+/*
+    Switchlex — lecteur vidéo Plex.
+    Pipeline vérifié : PLEX_MIGRATION.md §2.7 (citations plezy en commentaire).
+    Unités : positions mpv en secondes, API Plex en millisecondes,
+    offset du transcodeur en secondes entières.
+*/
+
 #include "activity/player_view.hpp"
-#include "api/jellyfin.hpp"
+#include "api/plex.hpp"
 #include "utils/dialog.hpp"
 #include "utils/misc.hpp"
-#include "view/danmaku_core.hpp"
 #include "view/mpv_core.hpp"
 #include "view/player_setting.hpp"
 #include "view/video_view.hpp"
 #include "view/video_profile.hpp"
-#include <tinyxml2.h>
 
 using namespace brls::literals;
 
-PlayerView::PlayerView(const jellyfin::Item& item, const uint64_t seekTicks, const std::string& sourceId)
-    : itemId(item.Id) {
+/// Seuil « vu » : valeur par défaut de la préférence serveur
+/// LibraryVideoPlayedThreshold (plex_client.dart watchedThresholdPercent)
+static const double SCROBBLE_THRESHOLD = 0.90;
+
+PlayerView::PlayerView(const plex::Item& item, const int64_t seekMs) : itemId(item.ratingKey), item(item) {
     float width = brls::Application::contentWidth;
     float height = brls::Application::contentHeight;
     view = new VideoView();
@@ -23,6 +31,9 @@ PlayerView::PlayerView(const jellyfin::Item& item, const uint64_t seekTicks, con
     this->setDimensions(width, height);
     this->addView(view);
     view->registerVideoQuality([this](...) { return this->toggleQuality(); });
+
+    // identifiant de session stable (24 caractères ; session_identifier.dart)
+    this->sessionId = misc::randHex(12);
 
     auto& mpv = MPVCore::instance();
 
@@ -37,43 +48,41 @@ PlayerView::PlayerView(const jellyfin::Item& item, const uint64_t seekTicks, con
 
     eventSubscribeID = mpv.getEvent()->subscribe([this](MpvEventEnum event) {
         auto& mpv = MPVCore::instance();
-        // brls::Logger::info("mpv event => : {}", event);
         switch (event) {
         case MpvEventEnum::MPV_RESUME:
-            this->reportPlay();
+            this->reportTimeline("playing", int64_t(mpv.video_progress) * 1000);
             view->getProfile()->init(this->playMethod);
             break;
         case MpvEventEnum::MPV_PAUSE:
-            this->reportPlay(true);
+            this->reportTimeline("paused", int64_t(mpv.video_progress) * 1000);
             break;
         case MpvEventEnum::LOADING_END:
-            this->reportStart();
+            this->reportTimeline("playing", int64_t(mpv.playback_time) * 1000);
             break;
         case MpvEventEnum::MPV_STOP:
             this->reportStop();
             break;
         case MpvEventEnum::MPV_LOADED: {
-            auto& svr = AppConfig::instance().getUrl();
+            auto& conf = AppConfig::instance();
             const char* flag = MPVCore::SUBS_FALLBACK ? "select" : "auto";
-            // 移除其他备用链接
-            for (auto& s : this->stream.MediaStreams) {
-                if (s.Type == jellyfin::streamTypeSubtitle) {
-                    if (s.DeliveryUrl.size() > 0 && (s.IsExternal || this->playMethod == jellyfin::methodTranscode)) {
-                        std::string url = svr + s.DeliveryUrl;
-                        mpv.command("sub-add", url.c_str(), flag, s.DisplayTitle.c_str());
-                    }
+            // Sous-titres externes (sidecar) : {base}{Stream.key}?encoding=utf-8
+            // (plex_client.dart:3521-3522)
+            for (auto& part : this->stream.parts) {
+                for (auto& s : part.streams) {
+                    if (s.streamType != plex::streamTypeSubtitle || s.key.empty()) continue;
+                    std::string url =
+                        fmt::format("{}{}?encoding=utf-8&X-Plex-Token={}", conf.getUrl(), s.key, conf.getToken());
+                    mpv.command("sub-add", url.c_str(), flag, s.displayTitle.c_str());
                 }
-            }
-            if (PlayerSetting::selectedSubtitle > 0 && this->playMethod == jellyfin::methodDirectPlay) {
-                mpv.setInt("sid", PlayerSetting::selectedSubtitle);
-            }
-            if (DanmakuCore::PLUGIN_ACTIVE && !this->stream.IsInfiniteStream) {
-                this->requestDanmaku();
             }
             break;
         }
         case MpvEventEnum::UPDATE_PROGRESS:
-            if (mpv.video_progress % 10 == 0) this->reportPlay();
+            // cadence de rapport : toutes les 10 s (playback_progress_tracker.dart)
+            if (mpv.video_progress % 10 == 0) {
+                this->reportTimeline("playing", int64_t(mpv.video_progress) * 1000);
+                this->maybeScrobble(int64_t(mpv.video_progress) * 1000);
+            }
             break;
         default:;
         }
@@ -81,9 +90,7 @@ PlayerView::PlayerView(const jellyfin::Item& item, const uint64_t seekTicks, con
     // 自定义的mpv事件
     customEventSubscribeID = mpv.getCustomEvent()->subscribe([this](const std::string& event, void* data) {
         if (event == QUALITY_CHANGE) {
-            this->playMedia(MPVCore::instance().playback_time * jellyfin::PLAYTICKS);
-        } else if (event == SYNC_STOP) {
-            VideoView::close();
+            this->playMedia(int64_t(MPVCore::instance().playback_time) * 1000);
         } else if (event == "PreviousTrack") {
             this->view->playNext(-1);
         } else if (event == "NextTrack") {
@@ -91,12 +98,7 @@ PlayerView::PlayerView(const jellyfin::Item& item, const uint64_t seekTicks, con
         }
     });
 
-    if (item.Type != jellyfin::mediaTypeTvChannel) {
-        this->sourceId = sourceId.empty() ? item.Id : sourceId;
-    }
-
-    this->setChapters(item.Chapters, item.RunTimeTicks);
-    this->playMedia(seekTicks > 0 ? seekTicks : item.UserData.PlaybackPositionTicks);
+    this->playMedia(seekMs > 0 ? seekMs : item.viewOffset);
 
     // Report stop when application exit
     this->exitSubscribeID = brls::Application::getExitEvent()->subscribe([this]() {
@@ -113,10 +115,6 @@ PlayerView::~PlayerView() {
 
     brls::sync([&mpv]() { mpv.getCustomEvent()->fire(VIDEO_CLOSE, nullptr); });
 
-    if (DanmakuCore::PLUGIN_ACTIVE) {
-        DanmakuCore::instance().reset();
-    }
-
     PlayerSetting::selectedSubtitle = 0;
     PlayerSetting::selectedAudio = 0;
 
@@ -125,24 +123,22 @@ PlayerView::~PlayerView() {
     brls::Logger::debug("trying delete PlayerView...");
 }
 
-void PlayerView::setSeries(const std::string& seriesId) {
-    std::string query = HTTP::encode_form({
-        {"isVirtualUnaired", "false"},
-        {"isMissing", "false"},
-        {"userId", AppConfig::instance().getUserId()},
-        {"fields", "Chapters"},
-    });
+void PlayerView::setSeries(const std::string& showRatingKey) {
+    std::string query = HTTP::encode_form({{"includeStreams", "1"}});
+    auto& conf = AppConfig::instance();
 
     ASYNC_RETAIN
-    jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
-        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
+    // tous les épisodes de la série (plex_client.dart:1497-1508)
+    plex::getJSON<plex::Container<plex::Item>>(
+        conf.getUrl(), conf.getToken(),
+        [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
             ASYNC_RELEASE
             int index = -1;
             std::vector<std::string> values;
             for (size_t i = 0; i < r.Items.size(); i++) {
-                auto& item = r.Items.at(i);
-                if (item.Id == this->itemId) index = i;
-                values.push_back(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
+                auto& it = r.Items.at(i);
+                if (it.ratingKey == this->itemId) index = i;
+                values.push_back(fmt::format("S{}E{} - {}", it.parentIndex, it.index, it.title));
             }
             view->setList(values, index);
             this->episodes = std::move(r.Items);
@@ -151,15 +147,17 @@ void PlayerView::setSeries(const std::string& seriesId) {
             ASYNC_RELEASE
             Dialog::show(error);
         },
-        jellyfin::apiShowEpisodes, seriesId, query);
+        plex::apiGrandchildren, showRatingKey, query);
 }
 
 void PlayerView::setTitie(const std::string& title) { this->view->setTitie(title); }
 
-void PlayerView::setChapters(const std::vector<jellyfin::MediaChapter>& chaps, uint64_t duration) {
+void PlayerView::setChapters(const std::vector<plex::Chapter>& chaps, int64_t durationMs) {
     std::vector<float> clips;
-    for (auto& c : chaps) {
-        clips.push_back(float(c.StartPositionTicks) / float(duration));
+    if (durationMs > 0) {
+        for (auto& c : chaps) {
+            clips.push_back(float(c.startTimeOffset) / float(durationMs));
+        }
     }
     this->view->setClipPoint(clips);
 }
@@ -170,327 +168,237 @@ bool PlayerView::playIndex(int index) {
     }
     MPVCore::instance().reset();
 
-    auto item = this->episodes.at(index);
-    this->itemId = item.Id;
-    this->sourceId = item.Id;
-    this->setChapters(item.Chapters, item.RunTimeTicks);
+    auto next = this->episodes.at(index);
+    this->itemId = next.ratingKey;
+    this->item = next;
+    this->scrobbled = false;
     this->playMedia(0);
-    view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
+    view->setTitie(fmt::format("S{}E{} - {}", next.parentIndex, next.index, next.title));
     return true;
 }
 
-void PlayerView::playMedia(const uint64_t seekTicks) {
-#if defined(__PS4__)
-    int maxAllowedHeight = 1080;
-#elif defined(__PSV__)
-    int maxAllowedHeight = 720;
-#else
-    int maxAllowedHeight = brls::Application::windowHeight;
-    if (MPVCore::VIDEO_QUALITY <= 0) {
-    } else if (MPVCore::VIDEO_QUALITY <= 420000) {
-        maxAllowedHeight = 360;
-    } else if (MPVCore::VIDEO_QUALITY <= 720000) {
-        maxAllowedHeight = 480;
-    } else if (MPVCore::VIDEO_QUALITY <= 4000000) {
-        maxAllowedHeight = 720;
-    } else if (MPVCore::VIDEO_QUALITY <= 8000000) {
-        maxAllowedHeight = 1080;
-    } else if (MPVCore::VIDEO_QUALITY <= 15000000) {
-        maxAllowedHeight = 1440;
-    } else if (MPVCore::VIDEO_QUALITY <= 120000000) {
-        maxAllowedHeight = 2160;
-    }
-#endif
-    nlohmann::json conditions = {
-#if defined(__PSV__)
-        {
-            {"Condition", "EqualsAny"},
-            {"Property", "VideoProfile"},
-            {"Value", "high|main|baseline"},
-            {"IsRequired", false},
-        },
-        {
-            {"Condition", "LessThanEqual"},
-            {"Property", "VideoLevel"},
-            {"Value", 40},
-            {"IsRequired", false},
-        },
-#endif
-        {
-            {"Condition", "LessThanEqual"},
-            {"Property", "Height"},
-            {"Value", maxAllowedHeight},
-            {"IsRequired", false},
-        },
-    };
-
-    nlohmann::json profile = {
-        {"MaxStreamingBitrate", (MPVCore::VIDEO_QUALITY <= 0) ? 120000000 : MPVCore::VIDEO_QUALITY},
-        {
-            "DirectPlayProfiles",
-            {
-                {
-                    {"Type", "Audio"},
-#if defined(__PSV__)
-                    {"AudioCodec", "aac,mp3"},
-#endif
-                },
-                {
-                    {"Type", "Video"},
-#ifdef __SWITCH__
-                    {"VideoCodec", "h264,hevc,av1,vp9"},
-#elif defined(__PSV__)
-                    {"AudioCodec", "aac,mp3"},
-                    {"VideoCodec", "h264"},
-#endif
-                },
-            },
-        },
-#if defined(__PSV__)
-        {
-            "CodecProfiles",
-            {
-                {
-                    {"Type", "Video"},
-                    {"Codec", "h264"},
-                    {"Conditions", conditions},
-                },
-            },
-        },
-#endif
-        {
-            "TranscodingProfiles",
-            {
-                {{"Type", "Audio"}},
-                {
-                    {"Container", "ts"},
-                    {"Type", "Video"},
-#if defined(__PSV__)
-                    {"VideoCodec", "h264"},
-                    {"AudioCodec", "aac,mp3"},
-#else
-                    {"VideoCodec", MPVCore::VIDEO_CODEC + ",mpeg4,mpeg2video"},
-                    {"AudioCodec", "aac,mp3,ac3,opus,vorbis"},
-#endif
-                    {"Protocol", "hls"},
-                    {"Conditions", conditions},
-                },
-            },
-        },
-        {
-            "SubtitleProfiles",
-            {
-                {{"Format", "srt"}, {"Method", "External"}},
-                {{"Format", "srt"}, {"Method", "Embed"}},
-                {{"Format", "ass"}, {"Method", "External"}},
-                {{"Format", "ass"}, {"Method", "Embed"}},
-                {{"Format", "ssa"}, {"Method", "External"}},
-                {{"Format", "ssa"}, {"Method", "Embed"}},
-                {{"Format", "sub"}, {"Method", "External"}},
-                {{"Format", "sub"}, {"Method", "Embed"}},
-                {{"Format", "smi"}, {"Method", "External"}},
-                {{"Format", "smi"}, {"Method", "Embed"}},
-                {{"Format", "vtt"}, {"Method", "External"}},
-                {{"Format", "dvdsub"}, {"Method", "Embed"}},
-                {{"Format", "dvbsub"}, {"Method", "Embed"}},
-                {{"Format", "pgssub"}, {"Method", "Embed"}},
-                {{"Format", "pgs"}, {"Method", "Embed"}},
-            },
-        },
-    };
-
-    brls::Logger::debug("PlaybackInfo Audio:{} Sub:{}", PlayerSetting::selectedAudio, PlayerSetting::selectedSubtitle);
+void PlayerView::playMedia(const int64_t seekMs) {
+    auto& conf = AppConfig::instance();
+    std::string query = HTTP::encode_form({
+        {"includeChapters", "1"},
+        {"includeMarkers", "1"},
+        {"includeStreams", "1"},
+        {"checkFiles", "1"},
+    });
 
     ASYNC_RETAIN
-    jellyfin::postJSON(
-        {
-            {"UserId", AppConfig::instance().getUserId()},
-            {"MediaSourceId", this->sourceId},
-            {"AudioStreamIndex", PlayerSetting::selectedAudio},
-            {"SubtitleStreamIndex", PlayerSetting::selectedSubtitle},
-#if defined(__PSV__)
-            {"AlwaysBurnInSubtitleWhenTranscoding", PlayerSetting::selectedSubtitle > 0},       
-#endif
-            {"AllowAudioStreamCopy", true},
-            {"DeviceProfile", profile},
-        },
-        [ASYNC_TOKEN, seekTicks](const jellyfin::PlaybackResult& r) {
+    // métadonnées fraîches : Media/Part/Stream + chapitres (plex_client.dart:1607-1626)
+    plex::getJSON<plex::Container<plex::Item>>(
+        conf.getUrl(), conf.getToken(),
+        [ASYNC_TOKEN, seekMs](const plex::Container<plex::Item>& r) {
             ASYNC_RELEASE
-
-            if (r.MediaSources.empty()) {
-                Dialog::show(r.ErrorCode, []() { VideoView::close(); });
+            if (r.Items.empty()) {
+                Dialog::show("main/plex/unreachable"_i18n, []() { VideoView::close(); });
                 return;
             }
+            this->item = r.Items.front();
 
-            auto& mpv = MPVCore::instance();
-            auto& svr = AppConfig::instance().getUrl();
-            this->playSessionId = r.PlaySessionId;
-
-            for (auto& item : r.MediaSources) {
-                std::stringstream ssextra;
-#ifdef _DEBUG
-                for (auto& s : item.MediaStreams) {
-                    brls::Logger::info("Track {} type {} => {}", s.Index, s.Type, s.DisplayTitle);
+            // première version dont le fichier est accessible
+            // (plex_playback_mapper.dart:59-130)
+            const plex::Media* chosen = nullptr;
+            for (auto& m : this->item.media) {
+                for (auto& p : m.parts) {
+                    if (p.accessible && p.exists && !p.key.empty()) {
+                        chosen = &m;
+                        break;
+                    }
                 }
-#endif
-                ssextra << fmt::format("network-timeout={}", HTTP::TIMEOUT / 100);
-                if (seekTicks > 0) ssextra << ",start=" << misc::sec2Time(seekTicks / jellyfin::PLAYTICKS);
-                if (item.IsInfiniteStream) view->hideVideoProgressSlider();
-
-                if (item.IsRemote && MPVCore::FORCE_DIRECTPLAY) {
-                    mpv.setUrl(item.Path, ssextra.str());
-                    this->stream = std::move(item);
-                    return;
-                }
-
-                if (HTTP::PROXY_STATUS) ssextra << ",http-proxy=\"" << HTTP::PROXY << "\"";
-
-                if (item.SupportsDirectPlay || MPVCore::FORCE_DIRECTPLAY) {
-                    std::string url = fmt::format(fmt::runtime(jellyfin::apiStream), this->itemId,
-                        HTTP::encode_form({
-                            {"static", "true"},
-                            {"mediaSourceId", item.Id},
-                            {"playSessionId", r.PlaySessionId},
-                            {"tag", item.ETag},
-                        }));
-                    this->playMethod = jellyfin::methodDirectPlay;
-                    mpv.setUrl(svr + url, ssextra.str());
-                    this->stream = std::move(item);
-                    return;
-                }
-
-                if (item.SupportsTranscoding) {
-                    this->playMethod = jellyfin::methodTranscode;
-                    mpv.setUrl(svr + item.TranscodingUrl, ssextra.str());
-                    this->stream = std::move(item);
-                    return;
-                }
+                if (chosen) break;
             }
+            if (!chosen) {
+                Dialog::show("main/player/error"_i18n, []() { VideoView::close(); });
+                return;
+            }
+            this->stream = *chosen;
+            this->setChapters(this->item.chapters, this->item.duration);
 
-            VideoView::close();
+            if (MPVCore::VIDEO_QUALITY <= 0 || MPVCore::FORCE_DIRECTPLAY) {
+                this->playDirect(seekMs);
+            } else {
+                this->playTranscode(seekMs);
+            }
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             Dialog::show(ex, []() { VideoView::close(); });
         },
-        jellyfin::apiPlayback, this->itemId);
+        plex::apiMetadata, this->itemId, query);
 }
 
-void PlayerView::reportStart() {
-    uint64_t ticks = MPVCore::instance().playback_time * jellyfin::PLAYTICKS;
-    jellyfin::postJSON(
-        {
-            {"ItemId", this->itemId},
-            {"PlayMethod", this->playMethod},
-            {"PlaySessionId", this->playSessionId},
-            {"PositionTicks", ticks},
-            {"MediaSourceId", this->stream.Id},
-            {"MaxStreamingBitrate", MPVCore::VIDEO_QUALITY},
-        },
-        [](...) {}, nullptr, jellyfin::apiPlayStart);
+void PlayerView::playDirect(const int64_t seekMs) {
+    auto& conf = AppConfig::instance();
+    auto& mpv = MPVCore::instance();
+
+    std::stringstream ssextra;
+    ssextra << fmt::format("network-timeout={}", HTTP::TIMEOUT / 100);
+    if (seekMs > 0) ssextra << ",start=" << misc::sec2Time(seekMs / 1000);
+    if (HTTP::PROXY_STATUS) ssextra << ",http-proxy=\"" << HTTP::PROXY << "\"";
+
+    // lecture directe : {base}{Part.key}?X-Plex-Token=… (plex_playback_mapper.dart:103)
+    const plex::Part& part = this->stream.parts.front();
+    std::string url = plex::withToken(conf.getUrl() + part.key, conf.getToken());
+    this->playMethod = "directplay";
+    mpv.setUrl(url, ssextra.str());
 }
 
-void PlayerView::reportStop() {
-    uint64_t ticks = MPVCore::instance().playback_time * jellyfin::PLAYTICKS;
-    jellyfin::postJSON(
-        {
-            {"ItemId", this->itemId},
-            {"PlayMethod", this->playMethod},
-            {"PlaySessionId", this->playSessionId},
-            {"PositionTicks", ticks},
-        },
-        [](...) {}, nullptr, jellyfin::apiPlayStop);
+void PlayerView::playTranscode(const int64_t seekMs) {
+    auto& conf = AppConfig::instance();
+    // session du transcodeur : régénérée à chaque démarrage (seeking.dart)
+    this->transcodeSession = misc::randHex(12);
 
-    brls::Logger::debug("PlayerView reportStop {}", this->playSessionId);
-    this->playSessionId.clear();
-}
+    // Paramètres du transcodeur universel (plex_client.dart:3098-3196).
+    // Révision documentée : protocol=hls (PLEX_MIGRATION.md « Révision (phase 4) »)
+    HTTP::Form form = {
+        {"hasMDE", "1"},
+        {"path", fmt::format("/library/metadata/{}", this->itemId)},
+        {"mediaIndex", "0"},
+        {"partIndex", "0"},
+        {"protocol", "hls"},
+        {"fastSeek", "1"},
+        {"directPlay", "0"},
+        {"directStream", "1"},
+        {"directStreamAudio", "0"},
+        {"subtitleSize", "100"},
+        {"audioBoost", "100"},
+        {"location", "lan"},
+        {"addDebugOverlay", "0"},
+        {"autoAdjustQuality", "0"},
+        {"mediaBufferSize", "102400"},
+        {"maxVideoBitrate", std::to_string(MPVCore::VIDEO_QUALITY / 1000)},  // kbps
+        {"session", this->transcodeSession},
+        {"X-Plex-Session-Identifier", this->sessionId},
+        {"X-Plex-Platform", "Generic"},  // obligatoire : autres valeurs → HTTP 400
+        {"X-Plex-Client-Identifier", conf.getDeviceId()},
+        {"X-Plex-Product", AppVersion::getPackageName()},
+        {"X-Plex-Version", AppVersion::getVersion()},
+        {"X-Plex-Token", conf.getToken()},
+    };
+    if (seekMs > 0) form["offset"] = std::to_string(seekMs / 1000);  // secondes entières
 
-void PlayerView::reportPlay(bool isPaused) {
-    uint64_t ticks = MPVCore::instance().video_progress * jellyfin::PLAYTICKS;
-    jellyfin::postJSON(
-        {
-            {"ItemId", this->itemId},
-            {"PlayMethod", this->playMethod},
-            {"PlaySessionId", this->playSessionId},
-            {"MediaSourceId", this->stream.Id},
-            {"IsPaused", isPaused},
-            {"PositionTicks", ticks},
-        },
-        [](...) {}, nullptr, jellyfin::apiPlaying);
-}
+    // pistes choisies : IDs de Stream Plex (pas les index mpv)
+    if (PlayerSetting::selectedAudio > 0) form["audioStreamID"] = std::to_string(PlayerSetting::selectedAudio);
+    if (PlayerSetting::selectedSubtitle > 0) {
+        form["subtitleStreamID"] = std::to_string(PlayerSetting::selectedSubtitle);
+        form["subtitles"] = "burn";  // incrustation (HLS ; cf. révision phase 4)
+    } else {
+        form["subtitles"] = "none";
+    }
 
-/// 获取视频弹幕
-void PlayerView::requestDanmaku() {
+    // Clauses de profil client, chacune percent-encodée puis jointes par « + »
+    // (plex_client.dart:3125-3143, 3235-3242)
+    std::vector<std::string> clauses = {
+        "add-settings(DirectPlayStreamSelection=true)",
+        fmt::format("add-limitation(scope=videoCodec&scopeName=*&type=upperBound&name=video.bitrate&value={}&"
+                    "replace=true)",
+            MPVCore::VIDEO_QUALITY / 1000),
+        "add-transcode-target(type=videoProfile&context=streaming&protocol=hls&container=mpegts&videoCodec=h264&"
+        "audioCodec=aac,ac3,mp3&replace=true)",
+    };
+    std::string profile;
+    for (auto& clause : clauses) {
+        HTTP::Form one = {{"p", clause}};
+        std::string encoded = HTTP::encode_form(one).substr(2);  // retire « p= »
+        profile += (profile.empty() ? "" : "+") + encoded;
+    }
+    std::string query = HTTP::encode_form(form) + "&X-Plex-Client-Profile-Extra=" + profile;
+
     ASYNC_RETAIN
-    brls::async([ASYNC_TOKEN]() {
-        auto& c = AppConfig::instance();
-        HTTP::Header header = {"X-Emby-Token: " + c.getToken()};
-        std::string url = fmt::format(fmt::runtime(jellyfin::apiDanmuku), this->itemId);
-
+    brls::async([ASYNC_TOKEN, query]() {
+        auto& conf = AppConfig::instance();
         try {
-            std::string resp = HTTP::get(c.getUrl() + url, header, HTTP::Timeout{});
+            // décision : codes ≥ 2000 = échec, 1000 = direct play seulement
+            // (plex_client.dart:3244-3278)
+            std::string url = conf.getUrl() + fmt::format(fmt::runtime(plex::apiTranscodeDecision), query);
+            nlohmann::json decision = plex::getSync(url, "", 10000);
+            const nlohmann::json& mc =
+                decision.contains("MediaContainer") ? decision.at("MediaContainer") : decision;
+            int64_t general = plex::jint(mc, "generalDecisionCode");
+            int64_t transcode = plex::jint(mc, "transcodeDecisionCode");
+            int64_t mde = plex::jint(mc, "mdeDecisionCode");
 
-            ASYNC_RELEASE
-            brls::Logger::debug("DANMAKU: start decode");
-
-            // Load XML
-            tinyxml2::XMLDocument document = tinyxml2::XMLDocument();
-            tinyxml2::XMLError error = document.Parse(resp.c_str());
-
-            if (error != tinyxml2::XMLError::XML_SUCCESS) {
-                brls::Logger::error("Parse danmaku xml[1]: {}", std::to_string(error));
-                return;
-            }
-            tinyxml2::XMLElement* element = document.RootElement();
-            if (!element) {
-                brls::Logger::error("Decode danmaku xml[2]: no root element");
-                return;
-            }
-
-            std::vector<DanmakuItem> items;
-            for (auto child = element->FirstChildElement(); child != nullptr; child = child->NextSiblingElement()) {
-                if (strcmp(child->Name(), "d")) continue;  // 简易判断是不是弹幕
-                const char* content = child->GetText();
-                if (!content) continue;
-                try {
-                    items.emplace_back(content, child->Attribute("p"));
-                } catch (...) {
-                    brls::Logger::error("DANMAKU: error decode: {}", child->GetText());
+            brls::sync([ASYNC_TOKEN, query, general, transcode, mde]() {
+                ASYNC_RELEASE
+                if (general >= 2000 || mde >= 2000) {
+                    Dialog::show(fmt::format("{} ({})", "main/player/error"_i18n, general), []() {});
+                    return;
                 }
-            }
+                if (transcode == 1000) {
+                    // le serveur refuse de transcoder : lecture directe
+                    this->playDirect(0);
+                    return;
+                }
+                auto& conf = AppConfig::instance();
+                auto& mpv = MPVCore::instance();
+                std::stringstream ssextra;
+                ssextra << fmt::format("network-timeout={}", HTTP::TIMEOUT / 100);
+                if (HTTP::PROXY_STATUS) ssextra << ",http-proxy=\"" << HTTP::PROXY << "\"";
 
-            brls::sync([items, this]() {
-                DanmakuCore::instance().loadDanmakuData(items);
-                view->setDanmakuEnable(brls::Visibility::VISIBLE);
+                std::string play =
+                    conf.getUrl() + "/video/:/transcode/universal/start.m3u8?" + query;
+                this->playMethod = "transcode";
+                mpv.setUrl(play, ssextra.str());
             });
-
-            brls::Logger::debug("DANMAKU: decode done: {}", items.size());
-
         } catch (const std::exception& ex) {
-            ASYNC_RELEASE
-            brls::Logger::warning("request danmu: {}", ex.what());
-
-            brls::sync([this]() {
-                DanmakuCore::instance().reset();
-                view->setDanmakuEnable(brls::Visibility::GONE);
+            std::string msg = ex.what();
+            brls::sync([ASYNC_TOKEN, msg]() {
+                ASYNC_RELEASE
+                Dialog::show(msg, []() { VideoView::close(); });
             });
         }
     });
 }
 
+void PlayerView::reportTimeline(const std::string& state, int64_t timeMs) {
+    auto& conf = AppConfig::instance();
+    HTTP::Form form = {
+        {"ratingKey", this->itemId},
+        {"key", fmt::format("/library/metadata/{}", this->itemId)},
+        {"state", state},
+        {"time", std::to_string(timeMs)},
+        {"X-Plex-Session-Identifier", this->sessionId},
+    };
+    if (this->item.duration > 0) form["duration"] = std::to_string(this->item.duration);
+
+    std::string url =
+        conf.getUrl() + fmt::format(fmt::runtime(plex::apiTimeline), HTTP::encode_form(form));
+    std::string token = conf.getToken();
+    brls::async([url, token]() {
+        try {
+            // POST, paramètres en query, corps vide (plex_client.dart:1703-1727)
+            plex::postSync(url, token);
+        } catch (const std::exception& ex) {
+            brls::Logger::warning("plex timeline: {}", ex.what());
+        }
+    });
+}
+
+void PlayerView::reportStop() {
+    int64_t timeMs = int64_t(MPVCore::instance().playback_time) * 1000;
+    this->reportTimeline("stopped", timeMs);
+    this->maybeScrobble(timeMs);
+    brls::Logger::debug("PlayerView reportStop {}", this->sessionId);
+}
+
+void PlayerView::maybeScrobble(int64_t timeMs) {
+    // state=stopped ne suffit PAS à marquer vu : scrobble explicite requis
+    // (plex_client.dart:4061-4065 ; playback_progress_tracker.dart:321-345)
+    if (this->scrobbled || this->item.duration <= 0) return;
+    if (double(timeMs) / double(this->item.duration) < SCROBBLE_THRESHOLD) return;
+    this->scrobbled = true;
+
+    auto& conf = AppConfig::instance();
+    plex::getAction(conf.getUrl(), conf.getToken(), nullptr, plex::apiScrobble, this->itemId);
+}
+
 bool PlayerView::toggleQuality() {
-    static std::set<std::string> codecs = {"hevc", "av1", "vp9"};
     std::vector<std::string> options = {"main/player/auto"_i18n};
     std::vector<int64_t> values = {0};
-    int64_t videoBitRate = this->stream.Bitrate;
-    if (videoBitRate <= 20000000) {
-        for (const auto& stream : this->stream.MediaStreams) {
-            if (stream.Type == "Video" && codecs.count(stream.Codec) > 0) {
-                videoBitRate = round(videoBitRate * 1.5);
-                break;
-            }
-        }
-    }
+    int64_t videoBitRate = this->stream.bitrate * 1000;  // Plex : kbps → bps
 
     if (videoBitRate >= 15000000) options.push_back("20 Mbps"), values.push_back(20000000);
     if (videoBitRate >= 10000000) options.push_back("15 Mbps"), values.push_back(15000000);

@@ -1,11 +1,11 @@
-switchfin (0.9.0-1) unstable; urgency=medium
+switchlex (0.9.0-1) unstable; urgency=medium
 
   * support multi source movie
   * add offline download support @docmeth02
  
  -- dragonflylee <dragonflylee@outlook.com>  Tur, 07 May 2026 14:25:00 +0800
 
-switchfin (0.8.3-1) unstable; urgency=medium
+switchlex (0.8.3-1) unstable; urgency=medium
 
   * fix deviceId/deviceName generate
   * optimize font load
@@ -14,7 +14,7 @@ switchfin (0.8.3-1) unstable; urgency=medium
  
  -- dragonflylee <dragonflylee@outlook.com>  Mon, 02 Feb 2026 17:10:00 +0800
 
-switchfin (0.8.2-1) unstable; urgency=medium
+switchlex (0.8.2-1) unstable; urgency=medium
 
   * fix thumb image for episodes on home page
   * add spanish/french localization
@@ -22,7 +22,7 @@ switchfin (0.8.2-1) unstable; urgency=medium
  
  -- dragonflylee <dragonflylee@outlook.com>  Fri, 19 Dec 2025 16:10:00 +0800
 
-switchfin (0.8.1-1) unstable; urgency=medium
+switchlex (0.8.1-1) unstable; urgency=medium
 
   * stability improvement
   * adjust dashboard view
@@ -30,7 +30,7 @@ switchfin (0.8.1-1) unstable; urgency=medium
  
  -- dragonflylee <dragonflylee@outlook.com>  Tue, 09 Dec 2025 12:28:00 +0800
 
-switchfin (0.8.0-1) unstable; urgency=medium
+switchlex (0.8.0-1) unstable; urgency=medium
 
   * refactor home tab for split media
   * dashboard tab for view devices, activities etc.
@@ -38,19 +38,19 @@ switchfin (0.8.0-1) unstable; urgency=medium
 
  -- dragonflylee <dragonflylee@outlook.com>  Sat, 06 Dec 2025 15:35:00 +0800
 
-switchfin (0.7.7-1) unstable; urgency=medium
+switchlex (0.7.7-1) unstable; urgency=medium
 
   * fix login issue on jellyfin 10.11
 
  -- dragonflylee <dragonflylee@outlook.com>  Mon, 17 Nov 2025 10:35:00 +0800
 
-switchfin (0.7.6-1) unstable; urgency=medium
+switchlex (0.7.6-1) unstable; urgency=medium
 
   * fix login issue on jellyfin 10.11
 
  -- dragonflylee <dragonflylee@outlook.com>  Wed, 22 Oct 2025 12:12:00 +0800
 
-switchfin (0.7.5-1) unstable; urgency=medium
+switchlex (0.7.5-1) unstable; urgency=medium
 
   * add song/artist tab for music
   * add keyboard action binding config
@@ -58,20 +58,20 @@ switchfin (0.7.5-1) unstable; urgency=medium
 
  -- dragonflylee <dragonflylee@outlook.com>  Wed, 17 Sep 2025 00:18:00 +0800
 
-switchfin (0.7.4-1) unstable; urgency=medium
+switchlex (0.7.4-1) unstable; urgency=medium
 
   * fixed livetv not working
 
  -- dragonflylee <dragonflylee@outlook.com>  Sat, 15 Jul 2025 09:27:00 +0800
 
-switchfin (0.7.2-1) unstable; urgency=medium
+switchlex (0.7.2-1) unstable; urgency=medium
 
   * fixed audio/sub selection when transcode
   * fixed resume play on movie tab
 
  -- dragonflylee <dragonflylee@outlook.com>  Sat, 21 Jun 2025 07:15:00 +0800
 
-switchfin (0.7.1-1) unstable; urgency=medium
+switchlex (0.7.1-1) unstable; urgency=medium
 
   * add suggest/genres tab for collection
   * fixed series/movie view logo layout
@@ -80,7 +80,7 @@ switchfin (0.7.1-1) unstable; urgency=medium
 
  -- dragonflylee <dragonflylee@outlook.com>  Sun, 25 May 2025 22:46:00 +0800
 
-switchfin (0.7.0-1) unstable; urgency=medium
+switchlex (0.7.0-1) unstable; urgency=medium
 
   * refactor series view layout
   * add people view of series/movie
@@ -89,7 +89,7 @@ switchfin (0.7.0-1) unstable; urgency=medium
 
  -- dragonflylee <dragonflylee@outlook.com>  Fri, 16 May 2025 00:46:00 +0800
 
-switchfin (0.6.3-1) unstable; urgency=medium
+switchlex (0.6.3-1) unstable; urgency=medium
 
   * fix vita transcode audio codec
   * upgrade ffmpeg 7.1.1
@@ -97,7 +97,7 @@ switchfin (0.6.3-1) unstable; urgency=medium
 
  -- dragonflylee <dragonflylee@outlook.com>  Sun, 10 Mar 2025 23:53:36 +0800
 
-switchfin (0.6.2-1) unstable; urgency=medium
+switchlex (0.6.2-1) unstable; urgency=medium
 
   * fix strm format support
   * improve image load speed
@@ -107,7 +107,7 @@ switchfin (0.6.2-1) unstable; urgency=medium
 
  -- dragonflylee <dragonflylee@outlook.com>  Sun, 27 Feb 2025 23:53:36 +0800
  
-switchfin (0.6.1-1) unstable; urgency=medium
+switchlex (0.6.1-1) unstable; urgency=medium
 
   * ignore save resume on m3u playlist
   * ignore save window stat when fullscreen
@@ -115,7 +115,7 @@ switchfin (0.6.1-1) unstable; urgency=medium
 
  -- dragonflylee <dragonflylee@outlook.com>  Sun, 22 Dec 2024 22:30:36 +0800
 
-switchfin (0.6.0-1) unstable; urgency=medium
+switchlex (0.6.0-1) unstable; urgency=medium
 
   * support modify server url
   * remote add ftp/sftp support
@@ -127,7 +127,7 @@ switchfin (0.6.0-1) unstable; urgency=medium
 
  -- dragonflylee <dragonflylee@outlook.com>  Sat, 7 Dec 2024 22:30:36 +0800
 
-switchfin (0.5.3-1) unstable; urgency=medium
+switchlex (0.5.3-1) unstable; urgency=medium
 
   * save windows state when exit
   * support touch input on linux
@@ -139,7 +139,7 @@ switchfin (0.5.3-1) unstable; urgency=medium
 
  -- dragonflylee <dragonflylee@outlook.com>  Sun, 27 Oct 2024 20:46:04 +0800
 
-switchfin (0.5.2-1) unstable; urgency=medium
+switchlex (0.5.2-1) unstable; urgency=medium
 
   * disable update notify when user caneled
   * fixed decode danmaku failed
@@ -148,7 +148,7 @@ switchfin (0.5.2-1) unstable; urgency=medium
 
  -- dragonflylee <dragonflylee@outlook.com>  Sun, 1 Sep 2024 20:29:01 +0800
 
-switchfin (0.5.1-1) unstable; urgency=medium
+switchlex (0.5.1-1) unstable; urgency=medium
 
   * add highlight for current play track
   * add live tv support
@@ -158,7 +158,7 @@ switchfin (0.5.1-1) unstable; urgency=medium
 
  -- dragonflylee <dragonflylee@outlook.com>  Tue, 30 Jul 2024 14:00:13 +0800
 
-switchfin (0.5.0-1) unstable; urgency=medium
+switchlex (0.5.0-1) unstable; urgency=medium
 
   * danmu plugin integration
   * video flip and subtitle sync support for player

@@ -3,7 +3,6 @@
 #include "utils/config.hpp"
 #include "utils/download.hpp"
 #include "utils/thread.hpp"
-#include "api/analytics.hpp"
 
 #include "view/svg_image.hpp"
 #include "view/custom_button.hpp"
@@ -47,7 +46,7 @@ int main(int argc, char* argv[]) {
         } else if (std::strcmp(argv[i], "-t") == 0) {
             MPVCore::DEBUG = true;
         } else if (std::strcmp(argv[i], "-o") == 0) {
-            const char* path = (i + 1 < argc) ? argv[++i] : "switchfin.log";
+            const char* path = (i + 1 < argc) ? argv[++i] : "switchlex.log";
             brls::Logger::setLogOutput(std::fopen(path, "w+"));
         } else if (std::strcmp(argv[i], "-version") == 0) {
             brls::Logger::info("{} {}", AppVersion::getDeviceName(), AppVersion::getCommit());
@@ -110,13 +109,6 @@ int main(int argc, char* argv[]) {
     } else {
         brls::Application::pushActivity(new MainActivity());
     }
-
-    GA("open_app",
-        {
-            {"version", AppVersion::getVersion()},
-            {"language", brls::Application::getLocale()},
-            {"resolution", fmt::format("{}x{}", brls::Application::windowWidth, brls::Application::windowHeight)},
-        })
 
     std::string v = conf.getItem(AppConfig::APP_UPDATE, std::string("NaN"));
     if (AppVersion::getVersion().compare(v)) AppVersion::checkUpdate();

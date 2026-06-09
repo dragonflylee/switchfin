@@ -7,8 +7,6 @@
 #include <view/auto_tab_frame.hpp>
 #include <view/presenter.hpp>
 
-class RecylingVideo;
-
 class SuggestShow : public AttachedView, public Presenter {
 public:
     explicit SuggestShow(const std::string& itemId);
@@ -19,9 +17,7 @@ public:
     void doRequest() override;
 
 private:
-    BRLS_BIND(RecylingVideo, resume, "suggest/show/resume");
-    BRLS_BIND(RecylingVideo, latest, "suggest/show/latest");
-    BRLS_BIND(RecylingVideo, nextUp, "suggest/show/nextup");
+    BRLS_BIND(brls::Box, box, "suggest/box");
 
-    std::string itemId;
+    std::string itemId;  // clé de section
 };

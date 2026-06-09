@@ -16,9 +16,9 @@ BEGIN
     BEGIN
         BLOCK "040904B0"
         BEGIN
-            VALUE "FileDescription", "Switchfin for Windows"
+            VALUE "FileDescription", "Switchlex for Windows"
             VALUE "LegalCopyright", "dragonflyee (C) Copyright 2026"
-            VALUE "OriginalFilename", "Switchfin.exe"
+            VALUE "OriginalFilename", "Switchlex.exe"
             VALUE "ProductVersion", "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}.${VERSION_BUILD}"
         END
     END

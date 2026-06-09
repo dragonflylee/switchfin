@@ -2,12 +2,8 @@
   "tabs": {
     "home": "Domů",
     "genres": "Žánry",
-    "program": "Programy",
     "suggest": "Návrhy",
-    "artists": "Umělci",
-    "songs": "Skladby",
     "search": "Vyhledat",
-    "dashboard": "Nástěnka",
     "setting": "Nastavení"
   },
   "home": {
@@ -23,20 +19,8 @@
   },
   "about": {
     "header": "O Aplikaci",
-    "brief": "Jen další Jellyfin klient třetí strany",
+    "brief": "Jen další Plex klient třetí strany",
     "repo_header": "Repozitář"
-  },
-  "dashboard": {
-    "session": "sezení",
-    "device": "Zařízení",
-    "activity": "Aktivita",
-    "path": "Cesty",
-    "restart": "Restartovat",
-    "confirm_restart": "Opravdu chcete restartovat Jellyfin?",
-    "scan_all": "Skenovat všechny knihovny",
-    "within_minute": "méně než 1 minuta",
-    "minute_ago": "před {} minutami",
-    "hour_ago": "před {} hodinami"
   },
   "player": {
     "subtitle": "Titulky",
@@ -62,7 +46,6 @@
     "ascending": "Vzestupně",
     "descending": "Sestupně",
     "name": "Jména",
-    "add_favorite": "Přidat do oblíbených",
     "mark_played": "Označit přehrané",
     "mark_unplayed": "Označit nepřehrané",
     "play": "Přehrát",
@@ -77,7 +60,8 @@
     "rating": "Komunitního hodnocení",
     "random": "Náhodně",
     "played": "Přehrané",
-    "unplayed": "Nepřehrané"
+    "unplayed": "Nepřehrané",
+    "collections": "Collections"
   },
   "search": {
     "hint": "Podpora klíčových slov a jejich počátečních písmen",
@@ -89,7 +73,6 @@
     "clear_history": "Potvrzením vymazat historii vyhledávání?",
     "genres": {
       "movie": "Film",
-      "music": "Hudba",
       "series": "Seriál",
       "episode": "Epizoda"
     }
@@ -112,7 +95,7 @@
       "header": "Server",
       "detail": "Detaily Serveru",
       "connect_new": "Nový Server",
-      "connect_to": "Připojit se k Jellyfin serveru",
+      "connect_to": "Připojit se k Plex serveru",
       "invalid": "Neplatná adresa serveru!",
       "connect": "Připojit",
       "delete": "Potvrdit smazání?",
@@ -177,17 +160,9 @@
       "font_q1": "Jak nastavit vlastní písmo nebo ikonu mapy kláves",
       "font_a1": "1. Stáhněte si požadované písmo nebo písmo ikon\n2. Přejmenujte písmo na: font.ttf; Přejmenujte ikony na: icon.ttf\n3. Umístěte soubory písem do adresáře config\n4. Restartujte aplikaci",
       "font_q2": "Často kladené otázky",
-      "font_a2": "1. Switchfin upřednostňuje zobrazení vlastních písem, s vestavěnými fonty jako záložní\n2. \"Nastavení – výukový program\" poskytuje položku nabídky pro rychlé otevření konfiguračního adresáře\n3. V Linuxu používá Switchfin k otevření adresáře xdg-open. Pokud konfigurační adresář nelze správně otevřít, můžete zvážit instalaci tohoto nástroje",
+      "font_a2": "1. Switchlex upřednostňuje zobrazení vlastních písem, s vestavěnými fonty jako záložní\n2. \"Nastavení – výukový program\" poskytuje položku nabídky pro rychlé otevření konfiguračního adresáře\n3. V Linuxu používá Switchlex k otevření adresáře xdg-open. Pokud konfigurační adresář nelze správně otevřít, můžete zvážit instalaci tohoto nástroje",
       "font_q3": "Titulky se nezobrazily",
       "font_a3": "Vložte libovolný soubor ttf do {}/subfont.ttf"
-    },
-    "quick_connect": {
-      "header": "Rychlé připojení",
-      "code": "Kód rychlého připojení",
-      "invalid": "Neplatný kód rychlého připojení",
-      "success": "Autorizace rychlého připojení byla úspěšná. Pokračujte prosím na svém druhém zařízení.",
-      "steps": "1. Otevřete aplikaci Jellyfin v telefonu nebo webovém prohlížeči a přihlaste se pomocí svého účtu\n2. Otevřete uživatelskou nabídku a přejděte na stránku Rychlé připojení\n3. Zadejte následující kód:",
-      "disabled": "Poznámka: Rychlé připojení není povoleno"
     },
     "others": {
       "header": "Ostatní",
@@ -221,11 +196,24 @@
   },
   "hints": {
     "hint1": "Vyberte hru z domovské obrazovky",
-    "hint2": "Podržte klávesu \uE0E5 a kliknutím na \uE0E0 přejděte do nabídky homebrew",
-    "hint3": "V nabídce homebrew vyberte Switchfin",
-    "hint4": "Volitelné: Odeslat Switchfin NSP na domovskou obrazovku",
-    "hint_nsp": "Kliknutím na \uE0E0 odešlete Switchfin NSP na domovskou obrazovku",
+    "hint2": "Podržte klávesu  a kliknutím na  přejděte do nabídky homebrew",
+    "hint3": "V nabídce homebrew vyberte Switchlex",
+    "hint4": "Volitelné: Odeslat Switchlex NSP na domovskou obrazovku",
+    "hint_nsp": "Kliknutím na  odešlete Switchlex NSP na domovskou obrazovku",
     "hint_confirm": "Pokud odešlete NSP na domovskou obrazovku může to vést k banu\nProsím potvrďte znovu",
     "hint_right": "Obrázky jsou z internetu a autorská práva patří společnosti Nintendo Co., Ltd"
+  },
+  "plex": {
+    "link": "Sign in with plex.tv",
+    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "expired": "The code expired, please try again",
+    "manual_header": "Manual connection",
+    "token": "Token",
+    "choose_server": "Choose a server",
+    "choose_profile": "Choose a profile",
+    "profile_pin": "Profile PIN",
+    "wrong_pin": "Wrong PIN",
+    "no_server": "No server found on this account",
+    "unreachable": "Server unreachable"
   }
 }

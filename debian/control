@@ -1,4 +1,4 @@
-Source: switchfin
+Source: switchlex
 Section: video
 Priority: optional
 Maintainer: dragonflylee <dragonflylee@outlook.com>
@@ -9,9 +9,9 @@ Build-Depends: debhelper (>= 10),
                libdbus-1-dev,
                libwebp-dev,
                libmpv-dev
-Vcs-Git: https://github.com/dragonflylee/switchfin.git
+Vcs-Git: https://github.com/thcolin/switchlex.git
 
-Package: switchfin
+Package: switchlex
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Architecture: any
 Recommends: va-driver-all

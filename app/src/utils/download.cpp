@@ -1,8 +1,10 @@
+#include <borealis.hpp>
 #include "utils/download.hpp"
 #include "utils/config.hpp"
 #include "utils/misc.hpp"
-#include "api/jellyfin.hpp"
-#include "view/mpv_core.hpp"
+#include "api/plex.hpp"
+
+using namespace brls::literals;  // for _i18n
 
 std::string DownloadManager::downloadDir() const { return AppConfig::instance().configDir() + "/downloads"; }
 
@@ -46,45 +48,66 @@ void DownloadManager::saveIndex() {
     }
 }
 
-void DownloadManager::addDownload(const std::string& itemId, DownloadQuality quality) {
-    std::lock_guard<std::mutex> lock(this->mutex);
+void DownloadManager::addDownload(const std::string& itemId) {
+    {
+        std::lock_guard<std::mutex> lock(this->mutex);
 
-    for (auto& existing : this->items) {
-        if (existing.itemId == itemId) {
-            brls::Logger::info("Already exists: {}", itemId);
-            return;
+        for (auto& existing : this->items) {
+            if (existing.itemId == itemId) {
+                brls::Logger::info("Already exists: {}", itemId);
+                return;
+            }
         }
     }
 
-    jellyfin::getJSON<jellyfin::Episode>(
-        [this, quality](const jellyfin::Episode& item) {
+    auto& conf = AppConfig::instance();
+    // métadonnées : GET /library/metadata/{ratingKey} (plex_client.dart:1607-1626)
+    plex::getJSON<plex::Container<plex::Item>>(
+        conf.getUrl(), conf.getToken(),
+        [this](const plex::Container<plex::Item>& r) {
+            if (r.Items.empty()) {
+                brls::Application::notify("main/download/failed"_i18n);
+                return;
+            }
+            auto& item = r.Items.front();
+
             std::lock_guard<std::mutex> lock(this->mutex);
 
             DownloadItem dl;
-            dl.itemId = item.Id;
-            dl.name = item.Name;
-            dl.type = item.Type;
-            dl.seriesName = item.SeriesName;
-            dl.seasonIndex = item.ParentIndexNumber;
-            dl.episodeIndex = item.IndexNumber;
-            dl.productionYear = item.ProductionYear;
-            dl.runTimeTicks = item.RunTimeTicks;
-            dl.quality = quality;
-            dl.status = DownloadStatus::Queued;
-            for (auto& src : item.MediaSources) {
-                dl.filePath = src.Name;
+            dl.itemId = item.ratingKey;
+            dl.name = item.title;
+            dl.type = item.type;
+            dl.seriesName = item.grandparentTitle;
+            dl.seasonIndex = (int)item.parentIndex;
+            dl.episodeIndex = (int)item.index;
+            dl.productionYear = (long)item.year;
+            dl.durationMs = item.duration;
+            // affiche (poster) : pour un épisode, celle de la saison/série
+            dl.thumb = item.type == plex::mediaTypeEpisode
+                           ? (!item.parentThumb.empty() ? item.parentThumb : item.grandparentThumb)
+                           : item.thumb;
+            // première Part accessible : qualité originale (PLEX_MIGRATION.md D2)
+            for (auto& media : item.media) {
+                for (auto& part : media.parts) {
+                    if (!part.key.empty()) {
+                        dl.partKey = part.key;
+                        break;
+                    }
+                }
+                if (!dl.partKey.empty()) break;
             }
-
-            auto primaryTag = item.ImageTags.find(jellyfin::imageTypePrimary);
-            if (primaryTag != item.ImageTags.end()) dl.imagePrimaryTag = primaryTag->second;
+            if (dl.partKey.empty()) {
+                brls::Application::notify("main/download/failed"_i18n);
+                return;
+            }
+            dl.status = DownloadStatus::Queued;
 
             this->items.push_back(dl);
             this->saveIndex();
-            brls::Logger::info("Download queued: {}", item.Name);
+            brls::Logger::info("Download queued: {}", item.title);
             this->processQueue();
         },
-        [](const std::string& ex) { brls::Application::notify(ex); }, jellyfin::apiUserItem,
-        AppConfig::instance().getUserId(), itemId);
+        [](const std::string& ex) { brls::Application::notify(ex); }, plex::apiMetadata, itemId, "");
 }
 
 void DownloadManager::resumeQueue() {
@@ -201,48 +224,9 @@ std::vector<DownloadItem> DownloadManager::getItems() const {
 
 std::string DownloadManager::buildDownloadUrl(const DownloadItem& item) const {
     auto& conf = AppConfig::instance();
-    std::string server = conf.getUrl();
-    std::string token = conf.getToken();
-
-    switch (item.quality) {
-    case DownloadQuality::Original:
-        return server + fmt::format(fmt::runtime(jellyfin::apiDownload), item.itemId,
-            HTTP::encode_form({{"api_key", token}}));
-    case DownloadQuality::Q1080p:
-        return server + fmt::format(fmt::runtime(jellyfin::apiStream), item.itemId,
-            HTTP::encode_form({
-                {"static", "false"},
-                {"mediaSourceId", item.itemId},
-                {"videoCodec", MPVCore::VIDEO_CODEC},
-                {"audioCodec", "aac"},
-                {"maxStreamingBitrate", "4000000"},
-                {"maxHeight", "1080"},
-                {"api_key", token},
-            }));
-    case DownloadQuality::Q720p:
-        return server + fmt::format(fmt::runtime(jellyfin::apiStream), item.itemId,
-            HTTP::encode_form({
-                {"static", "false"},
-                {"mediaSourceId", item.itemId},
-                {"videoCodec", MPVCore::VIDEO_CODEC},
-                {"audioCodec", "aac"},
-                {"maxStreamingBitrate", "2000000"},
-                {"maxHeight", "720"},
-                {"api_key", token},
-            }));
-    case DownloadQuality::Q480p:
-        return server + fmt::format(fmt::runtime(jellyfin::apiStream), item.itemId,
-            HTTP::encode_form({
-                {"static", "false"},
-                {"mediaSourceId", item.itemId},
-                {"videoCodec", MPVCore::VIDEO_CODEC},
-                {"audioCodec", "aac"},
-                {"maxStreamingBitrate", "1000000"},
-                {"maxHeight", "480"},
-                {"api_key", token},
-            }));
-    }
-    return "";
+    // fichier original : {base}{Part.key}?download=1&X-Plex-Token=…
+    // (PLEX_MIGRATION.md D2 — pas de téléchargement transcodé en v1)
+    return plex::withToken(conf.getUrl() + item.partKey + "?download=1", conf.getToken());
 }
 
 // Must be called with mutex held
@@ -263,8 +247,8 @@ void DownloadManager::doDownload(DownloadItem& item) {
     item.status = DownloadStatus::Downloading;
 
     std::string itemId = item.itemId;
-    std::string imagePrimaryTag = item.imagePrimaryTag;
-    DownloadQuality quality = item.quality;
+    std::string thumb = item.thumb;
+    std::string partKey = item.partKey;
     std::string url = this->buildDownloadUrl(item);
     std::string itemDir = this->downloadDir() + "/" + itemId;
 
@@ -275,7 +259,7 @@ void DownloadManager::doDownload(DownloadItem& item) {
 
     brls::sync([this, itemId]() { this->statusEvent.fire(itemId, DownloadStatus::Downloading); });
 
-    brls::async([this, itemId, imagePrimaryTag, quality, url, itemDir, cancel]() {
+    brls::async([this, itemId, thumb, partKey, url, itemDir, cancel]() {
         auto resetQueue = [this, itemId](const std::string& error) {
             brls::sync([this, itemId, error]() {
                 {
@@ -308,32 +292,19 @@ void DownloadManager::doDownload(DownloadItem& item) {
         }
 
         auto& conf = AppConfig::instance();
-        HTTP::Header header = {conf.getAuth(conf.getToken())};
+        HTTP::Header header = plex::headers(conf.getToken());
 
-        std::string ext = "mp4";
         if (cancel->load()) {
             resetQueue("Cancelled");
             return;
         }
-        if (quality == DownloadQuality::Original) {
-            try {
-                auto resp = HTTP::get(
-                    conf.getUrl() + fmt::format(fmt::runtime(jellyfin::apiUserItem), conf.getUserId(), itemId), header,
-                    HTTP::Timeout{});
-                if (!resp.empty()) {
-                    auto detail = nlohmann::json::parse(resp).get<jellyfin::Detail>();
-                    if (!detail.MediaSources.empty()) {
-                        auto& path = detail.MediaSources[0].Path;
-                        auto dot = path.find_last_of('.');
-                        if (dot != std::string::npos) {
-                            ext = path.substr(dot + 1);
-                            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-                        }
-                    }
-                }
-            } catch (const std::exception& e) {
-                brls::Logger::warning("Failed to fetch item detail for extension: {}", e.what());
-            }
+        // extension du fichier original, lue depuis Part.key
+        // (ex. /library/parts/{id}/{ts}/file.mkv)
+        std::string ext = "mp4";
+        auto dot = partKey.find_last_of('.');
+        if (dot != std::string::npos && dot > partKey.find_last_of('/')) {
+            ext = partKey.substr(dot + 1);
+            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
         }
 
         std::string fileName = "video." + ext;
@@ -350,10 +321,10 @@ void DownloadManager::doDownload(DownloadItem& item) {
             this->saveIndex();
         }
 
-        if (!imagePrimaryTag.empty() && !cancel->load()) {
+        if (!thumb.empty() && !cancel->load()) {
             try {
-                std::string thumbUrl = fmt::format("{}/Items/{}/Images/Primary?format=Png&{}", conf.getUrl(), itemId,
-                    HTTP::encode_form({{"tag", imagePrimaryTag}, {"maxWidth", "300"}}));
+                // vignette : {base}{thumb}?X-Plex-Token=… (PLEX_MIGRATION.md §2.5)
+                std::string thumbUrl = plex::withToken(conf.getUrl() + thumb, conf.getToken());
                 HTTP::download(thumbUrl, itemDir + "/thumb.png", HTTP::Timeout{});
             } catch (const std::exception& e) {
                 brls::Logger::warning("Failed to download thumbnail: {}", e.what());

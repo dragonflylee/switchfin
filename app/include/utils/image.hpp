@@ -13,10 +13,34 @@ public:
 
     virtual ~Image();
 
-    template <typename... Args>
-    static void load(brls::Image* view, const fmt::string_view fmt, Args&&... args) {
-        std::string path = fmt::format(fmt::runtime(fmt), std::forward<Args>(args)...);
-        return with(view, AppConfig::instance().getUrl() + path);
+    /// Charge une image du serveur Plex depuis un chemin relatif (thumb/art…).
+    /// width/height > 0 → redimensionnement serveur via /photo/:/transcode
+    /// (PLEX_MIGRATION.md §2.5 ; plex_client.dart:4019-4056).
+    static void load(brls::Image* view, const std::string& path, int width = 0, int height = 0) {
+        if (path.empty()) return;
+        // les chemins d'agents externes (visages du casting…) sont absolus
+        if (path.rfind("http", 0) == 0) return with(view, path);
+        auto& conf = AppConfig::instance();
+        std::string url;
+        if (width > 0 || height > 0) {
+            // le transcodeur photo attend TOUJOURS les deux dimensions (plezy
+            // les calcule ensemble, media_image_helper.dart:197) ; boîte carrée
+            // par défaut — minSize=1 préserve le ratio en couvrant la boîte
+            if (width <= 0) width = height;
+            if (height <= 0) height = width;
+            HTTP::Form form = {
+                {"minSize", "1"},
+                {"upscale", "1"},
+                {"url", path + "?X-Plex-Token=" + conf.getToken()},
+                {"X-Plex-Token", conf.getToken()},
+            };
+            form["width"] = std::to_string(width);
+            form["height"] = std::to_string(height);
+            url = conf.getUrl() + "/photo/:/transcode?" + HTTP::encode_form(form);
+        } else {
+            url = conf.getUrl() + path + "?X-Plex-Token=" + conf.getToken();
+        }
+        return with(view, url);
     }
 
     /// @brief 设置要加载内容的图片组件。此函数需要工作在主线程。

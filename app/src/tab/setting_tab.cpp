@@ -15,7 +15,6 @@
 */
 
 #include "tab/setting_tab.hpp"
-#include "tab/dashboard.hpp"
 #include "activity/server_list.hpp"
 #include "activity/hint_activity.hpp"
 #include "utils/config.hpp"
@@ -23,8 +22,7 @@
 #include <curl/curl.h>
 #include "view/mpv_core.hpp"
 #include "view/selector_cell.hpp"
-#include "api/analytics.hpp"
-#include "api/jellyfin.hpp"
+#include "api/plex.hpp"
 #include "utils/dialog.hpp"
 #ifdef __SWITCH__
 #include "utils/overclock.hpp"
@@ -93,14 +91,12 @@ private:
 SettingTab::SettingTab() {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/settings.xml");
-    GA("open_setting");
 
     this->registerBoolXMLAttribute("hideStatus", [this](bool value) {
         auto visibility = value ? brls::Visibility::GONE : brls::Visibility::VISIBLE;
         this->boxStatus->setVisibility(visibility);
         this->btnServer->setVisibility(visibility);
         this->btnUser->setVisibility(visibility);
-        this->btnDashboard->setVisibility(visibility);
     });
 }
 
@@ -117,29 +113,14 @@ void SettingTab::onCreate() {
         btnUser->setDetailText(conf.getUserName());
         btnUser->registerClickAction([](...) {
             Dialog::cancelable("main/setting/others/logout"_i18n, []() {
-                brls::async([]() {
-                    auto& c = AppConfig::instance();
-                    HTTP::Header header = {c.getAuth(c.getToken())};
-                    try {
-                        HTTP::post(c.getUrl() + jellyfin::apiLogout, "", header, HTTP::Timeout{});
-                        c.removeUser(c.getUserId());
-                    } catch (const std::exception& ex) {
-                        brls::Logger::warning("Logout failed: {}", ex.what());
-                    }
-                    brls::sync([]() { brls::Application::quit(); });
-                });
+                // Déconnexion locale : Plex n'a pas d'appel de signout côté
+                // serveur dans ce flux (PLEX_MIGRATION.md §2.2)
+                auto& c = AppConfig::instance();
+                c.removeUser(c.getUserId());
+                brls::Application::quit();
             });
             return true;
         });
-
-        if (conf.isAdmin()) {
-            this->btnDashboard->registerClickAction([this](...) {
-                this->present(new Dashboard());
-                return true;
-            });
-        } else {
-            this->btnDashboard->setVisibility(brls::Visibility::GONE);
-        }
     }
 
 /// Hardware decode
@@ -435,13 +416,6 @@ void SettingTab::onCreate() {
         AppConfig::instance().setItem(AppConfig::HTTP_PROXY, value);
     });
     inputProxy->setVisibility(HTTP::PROXY_STATUS ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
-
-    auto& dlQualityOpt = conf.getOptions(AppConfig::DOWNLOAD_QUALITY);
-    selectorDownloadQuality->init("main/download/quality"_i18n,
-        {"main/download/original"_i18n, "1080p", "720p", "480p"},
-        conf.getValueIndex(AppConfig::DOWNLOAD_QUALITY), [&dlQualityOpt](int selected) {
-            AppConfig::instance().setItem(AppConfig::DOWNLOAD_QUALITY, dlQualityOpt.values[selected]);
-        });
 
     btnSync->init("main/setting/others/sync"_i18n, AppConfig::SYNC, [](bool value) {
         AppConfig::SYNC = value;

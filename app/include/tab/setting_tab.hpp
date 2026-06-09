@@ -35,7 +35,6 @@ private:
     BRLS_BIND(brls::RadioCell, btnTutorialFont, "tools/tutorial_font");
     BRLS_BIND(brls::DetailCell, btnUser, "setting/user");
     BRLS_BIND(brls::DetailCell, btnServer, "setting/server");
-    BRLS_BIND(brls::DetailCell, btnDashboard, "setting/dashboard");
     BRLS_BIND(brls::BooleanCell, btnHWDEC, "setting/video/hwdec");
     BRLS_BIND(brls::BooleanCell, btnQuality, "setting/video/low_quality");
     BRLS_BIND(brls::BooleanCell, btnSubFallback, "setting/video/subs_fallback");
@@ -63,9 +62,6 @@ private:
     BRLS_BIND(brls::BooleanCell, btnTls, "setting/network/tls");
     BRLS_BIND(brls::BooleanCell, btnProxy, "setting/network/proxy_status");
     BRLS_BIND(brls::InputCell, inputProxy, "setting/network/proxy");
-
-    BRLS_BIND(brls::SelectorCell, selectorDownloadQuality, "setting/download/quality");
-
     BRLS_BIND(SelectorCell, selectorKeymap, "setting/keymap");
     BRLS_BIND(SelectorCell, selectorLang, "setting/language");
     BRLS_BIND(SelectorCell, selectorTheme, "setting/ui/theme");

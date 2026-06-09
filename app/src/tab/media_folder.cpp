@@ -4,10 +4,9 @@
 
 #include "tab/media_folder.hpp"
 #include "tab/media_collection.hpp"
-#include "tab/live_tv.hpp"
 #include "view/recycling_grid.hpp"
 #include "view/auto_tab_frame.hpp"
-#include "api/jellyfin.hpp"
+#include "api/plex.hpp"
 #include "utils/image.hpp"
 #include "utils/keybind.hpp"
 
@@ -41,7 +40,7 @@ public:
 
 class MediaFolderDataSource : public RecyclingGridDataSource {
 public:
-    using MediaList = std::vector<jellyfin::Collection>;
+    using MediaList = std::vector<plex::Section>;
 
     MediaFolderDataSource(const MediaList& r) : list(std::move(r)) {
         brls::Logger::debug("MediaFolderDataSource: create {}", r.size());
@@ -52,42 +51,16 @@ public:
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         MediaFolderCell* cell = dynamic_cast<MediaFolderCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
-        auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
-        if (it != item.ImageTags.end()) {
-            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id, HTTP::encode_form({{"tag", it->second}}));
-            cell->labelTitle->setVisibility(brls::Visibility::GONE);
-            cell->picture->setVisibility(brls::Visibility::VISIBLE);
-
-        } else {
-            cell->labelTitle->setText(item.Name);
-            cell->labelTitle->setVisibility(brls::Visibility::VISIBLE);
-            cell->picture->setVisibility(brls::Visibility::GONE);
-        }
+        // pas d'image fiable pour une section Plex (composite serveur) → titre texte
+        cell->labelTitle->setText(item.title);
+        cell->labelTitle->setVisibility(brls::Visibility::VISIBLE);
+        cell->picture->setVisibility(brls::Visibility::GONE);
         return cell;
     }
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
         auto& item = this->list.at(index);
-        brls::View* view = nullptr;
-
-        if (item.CollectionType == "tvshows")
-            view = new MediaCollection(item.Id, jellyfin::mediaTypeSeries);
-        else if (item.CollectionType == "movies")
-            view = new MediaCollection(item.Id, jellyfin::mediaTypeMovie);
-        else if (item.CollectionType == "music")
-            view = new MediaCollection(item.Id, jellyfin::mediaTypeMusicAlbum);
-        else if (item.CollectionType == "books")
-            view = new MediaCollection(item.Id, jellyfin::mediaTypeBook);
-        else if (item.CollectionType == "playlists")
-            view = new MediaCollection(item.Id, jellyfin::mediaTypePlaylist);
-        else if (item.CollectionType == "boxsets")
-            view = new MediaCollection(item.Id, jellyfin::mediaTypeBoxSet);
-        else if (item.CollectionType == "livetv")
-            view = new LiveTV(item.Id);
-        else
-            view = new MediaCollection(item.Id);
-
-        recycler->present(view);
+        recycler->present(new MediaCollection(item.key, item.type));
     }
 
     void clearData() override { this->list.clear(); }
@@ -123,13 +96,24 @@ void MediaFolders::onCreate() {
 
 void MediaFolders::doRequest() {
     ASYNC_RETAIN
-    jellyfin::getJSON<jellyfin::Result<jellyfin::Collection>>(
-        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Collection>& r) {
+    // GET /library/sections → Directory[] (plex_client.dart:901-906)
+    plex::getJSON<plex::Container<plex::Section>>(
+        AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
+        [ASYNC_TOKEN](const plex::Container<plex::Section>& r) {
             ASYNC_RELEASE
-            if (r.Items.empty())
+            // Hors périmètre v1 : musique et autres types (cf. PLEX_MIGRATION.md D2/D4)
+            MediaFolderDataSource::MediaList items;
+            for (auto& item : r.Items) {
+                if (item.hidden) continue;
+                if (item.type != plex::mediaTypeMovie && item.type != plex::mediaTypeShow &&
+                    item.type != plex::mediaTypePhoto)
+                    continue;
+                items.push_back(item);
+            }
+            if (items.empty())
                 this->recycler->setEmpty();
             else
-                this->recycler->setDataSource(new MediaFolderDataSource(r.Items));
+                this->recycler->setDataSource(new MediaFolderDataSource(items));
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
@@ -145,5 +129,5 @@ void MediaFolders::doRequest() {
             dialog->addButton("hints/cancel"_i18n, []() {});
             dialog->open();
         },
-        jellyfin::apiUserViews, AppConfig::instance().getUserId());
+        plex::apiSections);
 }

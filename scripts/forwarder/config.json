@@ -1,8 +1,8 @@
 {
-  "name": "Switchfin",
-  "program_id": "010FF000FFFF0003",
-  "program_id_range_min": "010FF000FFFF0003",
-  "program_id_range_max": "010FF000FFFF0003",
+  "name": "Switchlex",
+  "program_id": "010FF000FFFF1003",
+  "program_id_range_min": "010FF000FFFF1003",
+  "program_id_range_max": "010FF000FFFF1003",
   "main_thread_stack_size": "0x100000",
   "main_thread_priority": 44,
   "default_cpu_id": 0,

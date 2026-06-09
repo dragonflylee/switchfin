@@ -1,13 +1,13 @@
 #pragma once
 
 #include <borealis.hpp>
-#include <api/jellyfin/media.hpp>
+#include <api/plex/types.hpp>
 
 class ButtonClose;
 
 class ContextMenu : public brls::Box {
 public:
-    ContextMenu(const jellyfin::Item& item);
+    ContextMenu(const plex::Item& item);
 
     bool isTranslucent() override { return true; }
 
@@ -17,14 +17,11 @@ private:
     BRLS_BIND(brls::ScrollingFrame, context, "video/context/menu");
     BRLS_BIND(brls::Box, cancel, "video/cancel");
 
-    BRLS_BIND(brls::RadioCell, btnFavorite, "menu/favorite");
     BRLS_BIND(brls::RadioCell, btnMarkPlay, "menu/mark/play");
     BRLS_BIND(brls::RadioCell, btnDownload, "menu/download");
 
     bool doPlayed();
-    bool doFavorite();
     bool unPlayed();
-    bool unFavorite();
 
     std::string itemId;
 };

@@ -50,26 +50,26 @@ jobs:
       uses: actions/download-artifact@v6
     - name: Package Assets
       run: |
-        for p in Switchfin-windows-*; do
+        for p in Switchlex-windows-*; do
           [[ -d $p ]] && 7z a -mx=9 $p.7z ./$p/* && rm -rf $p
         done
         tree
     - name: Release and Upload Assets
       uses: softprops/action-gh-release@v3
       with:
-        name: Switchfin ${{ github.ref_name }}
+        name: Switchlex ${{ github.ref_name }}
         tag_name: ${{ github.ref_name }}
         generate_release_notes: true
         draft: true
         files: |
-          Switchfin-windows-*.7z
-          Switchfin-macOS-*/*.dmg
-          Switchfin-NintendoSwitch-deko3d-*/*.nro
-          Switchfin-PS4-*/*.pkg
-          Switchfin-Vita-*/*.vpk
-          Switchfin-Flatpak-*/*.flatpak
-          Switchfin-Archlinux-*/*.pkg.tar.*
-          Switchfin-android-*/*.apk
+          Switchlex-windows-*.7z
+          Switchlex-macOS-*/*.dmg
+          Switchlex-NintendoSwitch-deko3d-*/*.nro
+          Switchlex-PS4-*/*.pkg
+          Switchlex-Vita-*/*.vpk
+          Switchlex-Flatpak-*/*.flatpak
+          Switchlex-Archlinux-*/*.pkg.tar.*
+          Switchlex-android-*/*.apk
         body: |
           ![download](https://img.shields.io/github/downloads/${{ github.repository }}/${{ github.ref_name }}/total?label=Downloads)
 
@@ -115,17 +115,17 @@ jobs:
           -DUSE_LIBUSBHSFS=ON \
           -DBUILTIN_NSP=${{ github.event.inputs.disable_builtin_nsp && 'OFF' || 'ON' }} \
           -DVERSION_BUILD=${{ github.run_number }}
-        make -C build Switchfin.nro -j$(nproc)
+        make -C build Switchlex.nro -j$(nproc)
     - name: Upload nro
       uses: actions/upload-artifact@v6
       with:
-        name: Switchfin-NintendoSwitch${{ matrix.shuffix }}-${{ github.run_number }}
-        path: build/Switchfin.nro
+        name: Switchlex-NintendoSwitch${{ matrix.shuffix }}-${{ github.run_number }}
+        path: build/Switchlex.nro
     - name: Upload elf
       uses: actions/upload-artifact@v6
       with:
         name: ns-dev-elf-${{ matrix.driver }}-${{ github.run_number }}
-        path: build/Switchfin.elf
+        path: build/Switchlex.elf
 
   build-ps4:
     runs-on: ubuntu-latest
@@ -153,13 +153,13 @@ jobs:
     - name: Upload pkg
       uses: actions/upload-artifact@v6
       with:
-        name: Switchfin-PS4-${{ github.run_number }}
+        name: Switchlex-PS4-${{ github.run_number }}
         path: build/*.pkg
     - name: Upload oelf
       uses: actions/upload-artifact@v6
       with:
         name: ps4-dev-oelf-${{ github.run_number }}
-        path: build/Switchfin.oelf
+        path: build/Switchlex.oelf
 
   build-vita:
     runs-on: ubuntu-latest
@@ -188,13 +188,13 @@ jobs:
     - name: Upload vpk
       uses: actions/upload-artifact@v6
       with:
-        name: Switchfin-Vita-${{ github.run_number }}
-        path: build/Switchfin.vpk
+        name: Switchlex-Vita-${{ github.run_number }}
+        path: build/Switchlex.vpk
     - name: Upload velf
       uses: actions/upload-artifact@v6
       with:
         name: psv-dev-velf-${{ github.run_number }}
-        path: build/Switchfin.velf
+        path: build/Switchlex.velf
 
   build-flatpak:
     strategy:
@@ -224,7 +224,7 @@ jobs:
     - name: Build flatpak
       uses: flatpak/flatpak-github-actions/flatpak-builder@v6.7
       with:
-        bundle: Switchfin-Linux-${{ matrix.arch }}-${{ matrix.driver }}-${{ github.run_number }}.flatpak
+        bundle: Switchlex-Linux-${{ matrix.arch }}-${{ matrix.driver }}-${{ github.run_number }}.flatpak
         manifest-path: scripts/flatpak-manifest.yaml
         cache-key: flatpak-${{ matrix.driver }}-${{ hashFiles('scripts/flatpak-manifest.yaml') }}
         upload-artifact: false
@@ -232,8 +232,8 @@ jobs:
     - name: Upload Assets
       uses: actions/upload-artifact@v6
       with:
-        name: Switchfin-Flatpak-${{ matrix.arch }}-${{ matrix.driver }}-${{ github.run_number }}
-        path: Switchfin-*.flatpak
+        name: Switchlex-Flatpak-${{ matrix.arch }}-${{ matrix.driver }}-${{ github.run_number }}
+        path: Switchlex-*.flatpak
         if-no-files-found: error
 
   build-deb:
@@ -269,12 +269,12 @@ jobs:
       run: |
         git config --system --add safe.directory $GITHUB_WORKSPACE
         dpkg-buildpackage -b -nc
-        mv ../switchfin_*.deb $GITHUB_WORKSPACE
+        mv ../switchlex_*.deb $GITHUB_WORKSPACE
     - name: Upload Assets
       uses: actions/upload-artifact@v6
       with:
-        name: Switchfin-${{ matrix.img }}-${{ matrix.tag }}-${{ matrix.arch }}-${{ github.run_number }}
-        path: switchfin_*.deb
+        name: Switchlex-${{ matrix.img }}-${{ matrix.tag }}-${{ matrix.arch }}-${{ github.run_number }}
+        path: switchlex_*.deb
 
   build-aur:
     runs-on: ubuntu-latest
@@ -288,7 +288,7 @@ jobs:
     - name: Upload Assets
       uses: actions/upload-artifact@v6
       with:
-        name: Switchfin-Archlinux-${{ github.run_number }}
+        name: Switchlex-Archlinux-${{ github.run_number }}
         path: scripts/aur/*.pkg.tar.*
 
   build-macos:
@@ -308,7 +308,7 @@ jobs:
     - name: Install deps
       run: |
         brew install create-dmg dylibbundler
-        curl -sSL https://github.com/dragonflylee/switchfin/releases/download/macos-dylib/dylib-ffmpeg8-mpv41-${{ matrix.tag }}.tar.gz | tar zxf - -C ${{ runner.temp }}
+        curl -sSL https://github.com/thcolin/switchlex/releases/download/macos-dylib/dylib-ffmpeg8-mpv41-${{ matrix.tag }}.tar.gz | tar zxf - -C ${{ runner.temp }}
     - name: Build App
       env:
         DYLD_LIBRARY_PATH: ${{ runner.temp }}/lib
@@ -324,19 +324,19 @@ jobs:
     - name: Create DMG
       run: |
         mkdir -p dist
-        mv build/Switchfin.app dist/
+        mv build/Switchlex.app dist/
         cp README.md dist
-        dist/Switchfin.app/Contents/MacOS/Switchfin -version
+        dist/Switchlex.app/Contents/MacOS/Switchlex -version
         create-dmg --window-pos 200 120 --window-size 800 400 \
-          --icon-size 100 --icon "Switchfin.app" 200 190 \
-          --icon "README.md" 400 100 --hide-extension "Switchfin.app" \
+          --icon-size 100 --icon "Switchlex.app" 200 190 \
+          --icon "README.md" 400 100 --hide-extension "Switchlex.app" \
           --app-drop-link 600 185 --volicon ./scripts/macos/dmg.icns \
-          --volname "Switchfin" Switchfin-macOS-${{ matrix.tag }}-${{ github.run_number }}.dmg "dist/"
+          --volname "Switchlex" Switchlex-macOS-${{ matrix.tag }}-${{ github.run_number }}.dmg "dist/"
     - name: Upload Assets
       uses: actions/upload-artifact@v6
       with:
-        name: Switchfin-macOS-${{ matrix.tag }}-${{ github.run_number }}
-        path: Switchfin-*.dmg
+        name: Switchlex-macOS-${{ matrix.tag }}-${{ github.run_number }}
+        path: Switchlex-*.dmg
 
   build-mingw:
     if: ${{ inputs.platform == 'mingw64' || github.event_name != 'workflow_dispatch'}}
@@ -369,7 +369,7 @@ jobs:
     - name: Install dependency
       run: |
         for pkg in glfw-3.5.0-1 curl-8.16.0-1 mpv-0.41.0-1 libwebp-1.6.0-1; do
-          curl -sLO https://github.com/dragonflylee/switchfin/releases/download/mingw-packages/${MINGW_PACKAGE_PREFIX}-${pkg}-any.pkg.tar.zst
+          curl -sLO https://github.com/thcolin/switchlex/releases/download/mingw-packages/${MINGW_PACKAGE_PREFIX}-${pkg}-any.pkg.tar.zst
         done
         pacman -U --noconfirm *.pkg.tar.zst
 
@@ -396,15 +396,15 @@ jobs:
           -DUSE_LIBROMFS=ON \
           -DVERSION_BUILD=${{ github.run_number }}
         cmake --build build
-        cv2pdb64 build/Switchfin.exe
+        cv2pdb64 build/Switchlex.exe
         cp -a README.md ${MINGW_PREFIX}/bin/libmpv-2.dll build
     - name: Upload Assets
       uses: actions/upload-artifact@v6
       with:
-        name: Switchfin-windows-${{ matrix.arch }}-${{ github.run_number }}
+        name: Switchlex-windows-${{ matrix.arch }}-${{ github.run_number }}
         path: |
-          build/Switchfin.exe
-          build/Switchfin.pdb
+          build/Switchlex.exe
+          build/Switchlex.pdb
           build/libmpv-2.dll
           build/README.md
 
@@ -450,5 +450,5 @@ jobs:
     - name: Upload dist
       uses: actions/upload-artifact@v6
       with:
-        name: Switchfin-android-${{ github.run_number }}
+        name: Switchlex-android-${{ github.run_number }}
         path: app/platform/android/app/build/outputs/apk/release/*.apk

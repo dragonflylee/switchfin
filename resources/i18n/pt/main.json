@@ -2,12 +2,8 @@
   "tabs": {
     "home": "Início",
     "genres": "Géneros",
-    "program": "Séries",
     "suggest": "Sugestões",
-    "artists": "Artistas",
-    "songs": "Músicas",
     "search": "Pesquisar",
-    "dashboard": "Dashboard",
     "setting": "Configurações"
   },
   "home": {
@@ -23,20 +19,8 @@
   },
   "about": {
     "header": "Sobre a aplicação",
-    "brief": "Um cliente Jellyfin de terceiros feito especialmente para consolas\n",
+    "brief": "Um cliente Plex de terceiros feito especialmente para consolas\n",
     "repo_header": "Código Aberto"
-  },
-  "dashboard": {
-    "session": "Sessões",
-    "device": "Dispositivos",
-    "activity": "Actividades",
-    "path": "Directório",
-    "restart": "Reiniciar",
-    "confirm_restart": "Tem a certeza de que pretende reiniciar o Jellyfin?",
-    "scan_all": "Fazer o scan todas as bibliotecas de media",
-    "within_minute": "menos de 1 minuto",
-    "minute_ago": "{} minutos atrás",
-    "hour_ago": "{} horas atrás"
   },
   "player": {
     "subtitle": "Legendas",
@@ -54,35 +38,6 @@
     "episode": "Episódio",
     "speed_up": "Velocidade atual {}"
   },
-  "danmaku": {
-    "header": "Configurações de Danmaku",
-    "performance": {
-      "header": "Desempenho",
-      "render": "Qualidade de renderização"
-    },
-    "style": {
-      "header": "Estilo do Danmaku",
-      "font": "Estilo de Traçado",
-      "font_stroke": "Traçado",
-      "font_incline": "Saliência",
-      "font_shadow": "Sombra",
-      "font_pure": "Cor Sólida",
-      "area": "Área de Exibição",
-      "area_1_4": "1/4 do Ecrã",
-      "area_2_4": "1/2 do Ecrã",
-      "area_3_4": "3/4 do Ecrã",
-      "area_4_4": "Ecrã Inteiro",
-      "alpha": "Opacidade",
-      "fontsize": "Tamanho da Fonte",
-      "line_height": "Altura da Linha",
-      "speed": "Velocidade",
-      "speed_slow_plus": "Extremamente lenta",
-      "speed_slow": "Lenta",
-      "speed_fast_plus": "Extremamente rápida",
-      "speed_fast": "Rápida",
-      "speed_moderate": "Moderada"
-    }
-  },
   "media": {
     "sort": "Ordenar",
     "sort_by": "Ordenar por",
@@ -91,7 +46,6 @@
     "ascending": "Ascendente",
     "descending": "Descendente",
     "name": "Título",
-    "add_favorite": "Adicionar aos Favoritos",
     "mark_played": "Marcar como reproduzido",
     "mark_unplayed": "Desmarcar como reproduzido",
     "play": "Reproduzir",
@@ -105,7 +59,8 @@
     "rating": "Classificação",
     "random": "Aleatório",
     "played": "Reproduzido",
-    "unplayed": "Não Reproduzido"
+    "unplayed": "Não Reproduzido",
+    "collections": "Collections"
   },
   "search": {
     "hint": "Suporta palavras-chave e suas iniciais",
@@ -117,7 +72,6 @@
     "clear_history": "Confirmar limpeza do histórico de pesquisa?",
     "genres": {
       "movie": "Filme",
-      "music": "Música",
       "series": "Séries",
       "episode": "Episódio"
     }
@@ -140,7 +94,7 @@
       "header": "Servidor",
       "detail": "Detalhes do servidor",
       "connect_new": "Novo Servidor",
-      "connect_to": "Conecte ao servidor Jellyfin",
+      "connect_to": "Conecte ao servidor Plex",
       "invalid": "O URL deve começar com http:// ou https://",
       "connect": "Conexão",
       "delete": "Deseja remover?",
@@ -231,14 +185,6 @@
       "font_q3": "Subtítulos não são mostradas",
       "font_a3": "Coloque qualquer ficheiro .ttf em {}/subfont.ttf"
     },
-    "quick_connect": {
-      "header": "Ligação rápida",
-      "code": "Código de Ligação Rápida",
-      "invalid": "Código de Ligação Rápida inválido",
-      "success": "Autorização de Ligação Rápida bem-sucedida. Continue no outro aparelho.",
-      "steps": "1.º Abra o Jellyfin na aplicação móvel ou no browser e inicie sessão na sua conta\n2.º Abra o menu do utilizador e aceda à página de ligação rápida\n3.º Introduza o seguinte código de verificação:",
-      "disabled": "Nota: a ligação rápida não está ativada."
-    },
     "others": {
       "header": "Outros",
       "fullscreen": "Ecrã Inteiro",
@@ -274,10 +220,23 @@
   "hints": {
     "hint1": "Selecione qualquer jogo na área de trabalho e mantenha pressionada a tecla .",
     "hint2": "Mantenha pressionadp a tecla  e pressione em  para abrir o hbmenu",
-    "hint3": "No hbmenu, selecione Switchfin",
-    "hint4": "Opcional: Use o encaminhador NSP fornecido pelo Switchfin",
+    "hint3": "No hbmenu, selecione Switchlex",
+    "hint4": "Opcional: Use o encaminhador NSP fornecido pelo Switchlex",
     "hint_nsp": "Clique em  para instalar o encaminhador NSP",
     "hint_confirm": "A instalação do encaminhador NSP pode resultar no banimento do sistema. Confirme novamente.",
     "hint_right": "As imagens da consola portátil foram obtidas na internet e os direitos de autor pertencem à Nintendo Co., Ltd."
+  },
+  "plex": {
+    "link": "Sign in with plex.tv",
+    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "expired": "The code expired, please try again",
+    "manual_header": "Manual connection",
+    "token": "Token",
+    "choose_server": "Choose a server",
+    "choose_profile": "Choose a profile",
+    "profile_pin": "Profile PIN",
+    "wrong_pin": "Wrong PIN",
+    "no_server": "No server found on this account",
+    "unreachable": "Server unreachable"
   }
 }

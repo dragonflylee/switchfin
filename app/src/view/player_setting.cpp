@@ -6,7 +6,7 @@
 
 using namespace brls::literals;
 
-PlayerSetting::PlayerSetting(const jellyfin::Source* src) {
+PlayerSetting::PlayerSetting(const plex::Media* src) {
     this->inflateFromXMLRes("xml/view/player_setting.xml");
     brls::Logger::debug("PlayerSetting: create");
     this->audioTrack->detail->setVisibility(brls::Visibility::GONE);
@@ -26,10 +26,10 @@ PlayerSetting::PlayerSetting(const jellyfin::Source* src) {
     auto& mpv = MPVCore::instance();
 
     std::vector<std::string> audioTrack, audioSource;
-    std::vector<int> audioStream;
+    std::vector<int64_t> audioStream;
     std::vector<std::string> subTrack = {"main/player/none"_i18n};
     std::vector<std::string> subSource = {"main/player/none"_i18n};
-    std::vector<int> subStream = {0};
+    std::vector<int64_t> subStream = {0};
 
     int64_t count = mpv.getInt("track-list/count");
     for (int64_t n = 0; n < count; n++) {
@@ -43,14 +43,15 @@ PlayerSetting::PlayerSetting(const jellyfin::Source* src) {
             audioTrack.push_back(title);
     }
 
-    if (src != nullptr) {
-        for (auto& s : src->MediaStreams) {
-            if (s.Type == jellyfin::streamTypeAudio) {
-                audioSource.push_back(s.DisplayTitle);
-                audioStream.push_back(s.Index);
-            } else if (s.Type == jellyfin::streamTypeSubtitle) {
-                subSource.push_back(s.DisplayTitle);
-                subStream.push_back(s.Index);
+    if (src != nullptr && !src->parts.empty()) {
+        // les sélections serveur utilisent l'id de Stream Plex (§2.7)
+        for (auto& s : src->parts.front().streams) {
+            if (s.streamType == plex::streamTypeAudio) {
+                audioSource.push_back(s.displayTitle);
+                audioStream.push_back(s.id);
+            } else if (s.streamType == plex::streamTypeSubtitle) {
+                subSource.push_back(s.displayTitle);
+                subStream.push_back(s.id);
             }
         }
     }

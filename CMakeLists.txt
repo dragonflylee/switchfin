@@ -51,15 +51,15 @@ message(STATUS "git commit ${GIT_TAG_SHORT} build ${VERSION_BUILD}")
 include(${BOREALIS_LIBRARY}/cmake/toolchain.cmake)
 
 # project info
-project(Switchfin)
+project(Switchlex)
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "9")
 set(VERSION_ALTER "0")
-set(PROJECT_TITLEID "010ff000ffff0003")
-set(PROJECT_AUTHOR "dragonflylee")
-set(PACKAGE_NAME "fun.dragonfly.switchfin")
-set(VITA_TITLEID "SWITCHFIN")
-set(PSN_TITLE_ID "SFIN00000")
+set(PROJECT_TITLEID "010ff000ffff1003")
+set(PROJECT_AUTHOR "thcolin")
+set(PACKAGE_NAME "fun.thcolin.switchlex")
+set(VITA_TITLEID "SWITCHLEX")
+set(PSN_TITLE_ID "SLEX00000")
 set(VITA_VERSION "00.90")
 set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon.jpg)
 set(PROJECT_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/resources)
@@ -68,7 +68,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 if (CUSTOM_RESOURCES_DIR)
     set(BRLS_RESOURCES_DIR ${CUSTOM_RESOURCES_DIR})
 elseif (CMAKE_INSTALL)
-    set(BRLS_RESOURCES_DIR ${CMAKE_INSTALL_PREFIX}/share/switchfin)
+    set(BRLS_RESOURCES_DIR ${CMAKE_INSTALL_PREFIX}/share/switchlex)
 endif ()
 
 # setting src and include
@@ -93,6 +93,18 @@ if (USE_LIBROMFS)
     add_definitions(-DUSE_LIBROMFS)
     set(LIBROMFS_PROJECT_NAME ${PROJECT_NAME})
     set(LIBROMFS_RESOURCE_LOCATION "${PROJECT_RESOURCES}")
+endif ()
+
+# La cible de déploiement doit être connue AVANT add_subdirectory(library) :
+# borealis ne lie CoreWLAN que si CMAKE_OSX_DEPLOYMENT_TARGET >= 10.6
+if (PLATFORM_DESKTOP AND APPLE)
+    if (NOT CMAKE_OSX_ARCHITECTURES)
+        set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
+    endif ()
+    if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "" FORCE)
+        set(CMAKE_XCODE_ATTRIBUTE_MACOSX_DEPLOYMENT_TARGET[arch=arm64] "11.0" CACHE STRING "" FORCE)
+    endif ()
 endif ()
 
 # build borealis and other third party libraries
@@ -214,11 +226,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 # building release file
 if (PLATFORM_DESKTOP)
     if (APPLE)
-        if (NOT CMAKE_OSX_ARCHITECTURES)
-            set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
-            set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "" FORCE)
-            set(CMAKE_XCODE_ATTRIBUTE_MACOSX_DEPLOYMENT_TARGET[arch=arm64] "11.0" CACHE STRING "" FORCE)
-        endif ()
         message(STATUS "CMAKE_OSX_ARCHITECTURES: ${CMAKE_OSX_ARCHITECTURES}")
 
         set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -239,7 +246,7 @@ if (PLATFORM_DESKTOP)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND "${CMAKE_COMMAND}" -E copy_directory ${PROJECT_RESOURCES} Resources/resources
             COMMAND otool -L MacOS/${PROJECT_NAME}
-            COMMAND dylibbundler -cd -ns -b ${BUNDLE_ARG} -x MacOS/${PROJECT_NAME} -d Frameworks/ -p "@executable_path/../Frameworks/"
+            COMMAND dylibbundler -cd -ns -b -of ${BUNDLE_ARG} -x MacOS/${PROJECT_NAME} -d Frameworks/ -p "@executable_path/../Frameworks/"
             COMMAND codesign --sign - --force Frameworks/*
             WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/${PROJECT_NAME}.app/Contents"
         )
@@ -247,7 +254,7 @@ if (PLATFORM_DESKTOP)
         set(icon_dirs 32x32 48x48 64x64 128x128 256x256)
         linux_install(
             "${PROJECT_RESOURCES}" "${BRLS_RESOURCES_DIR}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/switchfin.svg"
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/switchlex.svg"
             "${CMAKE_CURRENT_SOURCE_DIR}/scripts/icons" "${icon_dirs}"
             "${CMAKE_CURRENT_SOURCE_DIR}/scripts/${PACKAGE_NAME}.appdata.xml"
             "${CMAKE_CURRENT_SOURCE_DIR}/scripts/${PACKAGE_NAME}.desktop"
@@ -297,7 +304,7 @@ elseif (PLATFORM_PS4)
     add_pkg(${PROJECT_NAME}
             ${CMAKE_BINARY_DIR}/ps4
             ${PSN_TITLE_ID}
-            "switchfin"
+            "switchlex"
             ${VITA_VERSION}
             8388608
     )

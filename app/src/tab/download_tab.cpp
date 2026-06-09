@@ -7,7 +7,6 @@
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
 #include "utils/misc.hpp"
-#include "api/jellyfin/media.hpp"
 
 using namespace brls::literals;
 
@@ -27,8 +26,8 @@ public:
             : fmt::format("{} - S{}E{} {}", item.seriesName, item.seasonIndex, item.episodeIndex, item.name));
 
         std::string detail;
-        if (item.runTimeTicks > 0) {
-            detail = misc::sec2Time(item.runTimeTicks / jellyfin::PLAYTICKS);
+        if (item.durationMs > 0) {
+            detail = misc::sec2Time(item.durationMs / 1000);
         }
         if (item.productionYear > 0) {
             if (!detail.empty()) detail += " · ";
@@ -44,18 +43,10 @@ public:
             if (item.totalBytes > 0) {
                 int pct = static_cast<int>(item.downloadedBytes * 100 / item.totalBytes);
                 this->status->setText(fmt::format("{}%", pct));
-            } else if (item.downloadedBytes > 0 && item.quality != DownloadQuality::Original) {
-                std::string size = misc::formatSize(item.downloadedBytes);
-                int64_t bitrate = item.quality == DownloadQuality::Q1080p ? 4000000
-                    : item.quality == DownloadQuality::Q720p ? 2000000 : 1000000;
-                int64_t durationSec = item.runTimeTicks / 10000000;
-                int64_t estimated = bitrate * durationSec / 8;
-                if (estimated > 0) {
-                    int pct = std::min(99, static_cast<int>(item.downloadedBytes * 100 / estimated));
-                    this->status->setText(fmt::format("~{}% ({})", pct, size));
-                } else {
-                    this->status->setText(size);
-                }
+            } else if (item.downloadedBytes > 0) {
+                // fichier original : taille totale inconnue tant que le serveur
+                // ne renvoie pas Content-Length
+                this->status->setText(misc::formatSize(item.downloadedBytes));
             } else {
                 this->status->setText("main/download/downloading"_i18n);
             }

@@ -7,6 +7,7 @@
 #include <borealis.hpp>
 
 class RecyclingView;
+class SVGImage;
 
 class RecyclingGridItem : public brls::Box {
 public:
@@ -197,7 +198,7 @@ private:
 
     std::function<void()> nextPageCallback = nullptr;
 
-    brls::Image* hintImage;
+    SVGImage* hintImage;
     brls::Label* hintLabel;
     brls::Rect renderedFrame;
     std::vector<float> cellHeightCache;

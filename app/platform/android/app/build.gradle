@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "fun.dragonfly.switchfin"
+    namespace = "fun.thcolin.switchlex"
     compileSdkVersion 34
     defaultConfig {
         minSdkVersion 21
@@ -21,7 +21,7 @@ android {
     }
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
-            output.outputFileName = "Switchfin-${output.getFilter("ABI")}.apk"
+            output.outputFileName = "Switchlex-${output.getFilter("ABI")}.apk"
         }
     }
     signingConfigs {

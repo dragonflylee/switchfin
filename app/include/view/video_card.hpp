@@ -1,7 +1,6 @@
 #pragma once
 
 #include <view/recycling_grid.hpp>
-#include <api/jellyfin/media.hpp>
 #include <utils/image.hpp>
 
 class SVGImage;
@@ -33,7 +32,6 @@ public:
     static VideoCardCell* create() { return new VideoCardCell(); }
 
     BRLS_BIND(SVGImage, badgeTopRight, "video/card/badge/top");
-    BRLS_BIND(SVGImage, badgeFavorite, "video/card/badge/favorite");
     BRLS_BIND(brls::Label, labelRating, "video/card/label/rating");
     BRLS_BIND(brls::Rectangle, rectProgress, "video/card/progress");
 };

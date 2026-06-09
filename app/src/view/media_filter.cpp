@@ -1,5 +1,4 @@
 #include "view/media_filter.hpp"
-#include "api/jellyfin.hpp"
 
 using namespace brls::literals;
 
@@ -37,7 +36,8 @@ MediaFilter::MediaFilter() {
         },
         selectedOrder, [](int selected) { selectedOrder = selected; });
 
-    this->filterPlayed->init("main/media/played"_i18n, selectedPlayed, [](bool value) { selectedPlayed = value; });
+    // Plex ne sait pas filtrer « vus seulement » sur /all → seule l'option
+    // « non vus » (unwatched=1) est conservée (cf. PLEX_MIGRATION.md §2.5)
     this->filterUnplayed->init(
         "main/media/unplayed"_i18n, selectedUnplayed, [](bool value) { selectedUnplayed = value; });
 }

@@ -17,7 +17,6 @@
 #pragma once
 
 #include <borealis.hpp>
-#include <api/websocket.hpp>
 
 class MainActivity : public brls::Activity {
 public:
@@ -25,7 +24,4 @@ public:
     CONTENT_FROM_XML_RES("activity/main.xml");
 
     MainActivity();
-
-private:
-    std::unique_ptr<websocket> ws;
 };

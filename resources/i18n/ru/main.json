@@ -2,12 +2,8 @@
   "tabs": {
     "home": "Главная",
     "genres": "Жанры",
-    "program": "Передачи",
     "suggest": "Рекомендации",
-    "artists": "Исполнители",
-    "songs": "Композиции",
     "search": "Поиск",
-    "dashboard": "Панель управления",
     "setting": "Настройки"
   },
   "home": {
@@ -23,20 +19,8 @@
   },
   "about": {
     "header": "О приложении",
-    "brief": "Ещё один сторонний клиент Jellyfin",
+    "brief": "Ещё один сторонний клиент Plex",
     "repo_header": "Репозиторий"
-  },
-  "dashboard": {
-    "session": "Сеанс",
-    "device": "Устройство",
-    "activity": "Активность",
-    "path": "Путь",
-    "restart": "Перезапустить",
-    "confirm_restart": "Вы действительно хотите перезапустить Jellyfin?",
-    "scan_all": "Сканировать медиатеку",
-    "within_minute": "В течение 1 минуты",
-    "minute_ago": "{} минуты назад",
-    "hour_ago": "{} часа назад"
   },
   "player": {
     "subtitle": "Субтитры",
@@ -54,35 +38,6 @@
     "episode": "Эпизод",
     "speed_up": "Текущая скорость {}"
   },
-  "danmaku": {
-    "header": "Настройки Danmaku",
-    "performance": {
-      "header": "Производительность",
-      "render": "Качество рендеринга"
-    },
-    "style": {
-      "header": "Стиль Danmaku",
-      "font": "Стиль обводки",
-      "font_stroke": "Обводка",
-      "font_incline": "Наклон",
-      "font_shadow": "Тень",
-      "font_pure": "Простой шрифт",
-      "area": "Область отображения",
-      "area_1_4": "1/4 экрана",
-      "area_2_4": "1/2 экрана",
-      "area_3_4": "3/4 экрана",
-      "area_4_4": "Полный экран",
-      "alpha": "Прозрачность",
-      "fontsize": "Размер шрифта",
-      "line_height": "Высота строки",
-      "speed": "Скорость",
-      "speed_slow_plus": "Очень медленно",
-      "speed_slow": "Медленно",
-      "speed_fast_plus": "Очень быстро",
-      "speed_fast": "Быстро",
-      "speed_moderate": "Умеренно"
-    }
-  },
   "media": {
     "sort": "Сортировка",
     "sort_by": "Сортировка по",
@@ -91,7 +46,6 @@
     "ascending": "По возрастанию",
     "descending": "По убыванию",
     "name": "Название",
-    "add_favorite": "Добавить в избранное",
     "mark_played": "Пометить как просмотренное",
     "mark_unplayed": "Пометить как непросмотренное",
     "play": "Воспроизвести",
@@ -106,7 +60,8 @@
     "rating": "Оценка",
     "random": "Рандом",
     "played": "Просмотрено",
-    "unplayed": "Не просмотрено"
+    "unplayed": "Не просмотрено",
+    "collections": "Collections"
   },
   "search": {
     "hint": "Название/первые буквы",
@@ -118,7 +73,6 @@
     "clear_history": "Очистить историю поиска?",
     "genres": {
       "movie": "Фильм",
-      "music": "Музыка",
       "series": "Сериал",
       "episode": "Эпизод"
     }
@@ -141,7 +95,7 @@
       "header": "Сервер",
       "detail": "Информация о сервере",
       "connect_new": "Новый сервер",
-      "connect_to": "Подключиться к серверу Jellyfin",
+      "connect_to": "Подключиться к серверу Plex",
       "invalid": "URL-адрес должен начинаться с http:// или https://",
       "connect": "Подключиться",
       "delete": "Удалить?",
@@ -232,14 +186,6 @@
       "font_q3": "Субтитры не отображаются",
       "font_a3": "Поместите .ttf файл в {}/subfont.ttf"
     },
-    "quick_connect": {
-      "header": "Быстрое подключение",
-      "code": "Код быстрого подключения",
-      "invalid": "Неверный код быстрого подключения",
-      "success": "Авторизация выполнена успешно. Пожалуйста, продолжите на другом устройстве.",
-      "steps": "1. Откройте приложение Jellyfin на вашем телефоне или в веб-браузере и войдите под своим аккаунтом\n2. Откройте меню и перейдите в \"Быстрое подключение\"\n3. Введите этот код: ",
-      "disabled": "Примечание: Быстрое подключение не включено"
-    },
     "others": {
       "header": "Другое",
       "fullscreen": "Полноэкранный режим",
@@ -275,10 +221,23 @@
   "hints": {
     "hint1": "В главном меню выберите любую игру",
     "hint2": "Удерживая  запустите игру (  ) чтобы войти в hbmenu",
-    "hint3": "В hbmenu, запустите Switchfin",
-    "hint4": "Опционально: вынесите Switchfin в главное меню",
+    "hint3": "В hbmenu, запустите Switchlex",
+    "hint4": "Опционально: вынесите Switchlex в главное меню",
     "hint_nsp": "Нажмите , чтобы установить NSP forwarder",
     "hint_confirm": "Установка NSP forwarder может привести к бану\nПодтверждаете установку?",
     "hint_right": "Изображения игровой консоли взяты из Интернета, авторские права принадлежат Nintendo Co., Ltd"
+  },
+  "plex": {
+    "link": "Sign in with plex.tv",
+    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "expired": "The code expired, please try again",
+    "manual_header": "Manual connection",
+    "token": "Token",
+    "choose_server": "Choose a server",
+    "choose_profile": "Choose a profile",
+    "profile_pin": "Profile PIN",
+    "wrong_pin": "Wrong PIN",
+    "no_server": "No server found on this account",
+    "unreachable": "Server unreachable"
   }
 }

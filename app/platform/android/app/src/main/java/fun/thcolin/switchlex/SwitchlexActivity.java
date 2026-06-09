@@ -1,4 +1,4 @@
-package fun.dragonfly.switchfin;
+package fun.thcolin.switchlex;
 
 import android.database.ContentObserver;
 import android.graphics.PixelFormat;
@@ -12,7 +12,7 @@ import org.libsdl.app.BorealisHandler;
 import org.libsdl.app.PlatformUtils;
 import org.libsdl.app.SDLActivity;
 
-public class SwitchfinActivity extends SDLActivity
+public class SwitchlexActivity extends SDLActivity
 {
     protected static SurfaceView mpvSurface;
 
@@ -76,7 +76,7 @@ public class SwitchfinActivity extends SDLActivity
         return new String[] {
                 "curl",
                 "SDL2",
-                "Switchfin"
+                "Switchlex"
         };
     }
 

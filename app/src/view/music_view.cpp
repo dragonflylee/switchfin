@@ -2,11 +2,8 @@
 #include "view/mpv_core.hpp"
 #include "view/svg_image.hpp"
 #include "view/video_progress_slider.hpp"
-#include "utils/config.hpp"
 #include "utils/keybind.hpp"
 #include "utils/misc.hpp"
-#include "utils/image.hpp"
-#include "api/http.hpp"
 
 using namespace brls::literals;
 
@@ -61,17 +58,6 @@ void MusicView::registerMpvEvent() {
     this->eventSubscribeID = mpv.getEvent()->subscribe([this](MpvEventEnum event) {
         auto& mpv = MPVCore::instance();
         switch (event) {
-        case MpvEventEnum::START_FILE:
-            if (playList.size() > 0) {
-                std::string key = fmt::format("playlist/{}/id", mpv.getInt("playlist-playing-pos"));
-                auto it = playList.find(mpv.getInt(key));
-                if (it != playList.end()) {
-                    this->playTitle->setText(it->second.Title);
-                    this->itemId = it->second.Id;
-                    mpv.getCustomEvent()->fire(TRACK_START, &it->second);
-                }
-            }
-            break;
         case MpvEventEnum::MPV_RESUME:
             this->btnToggleIcon->setImageFromSVGRes("icon/ico-pause.svg");
             break;
@@ -97,11 +83,6 @@ void MusicView::registerMpvEvent() {
         default:;
         }
     });
-    // 注冊命令回調
-    replySubscribeID = mpv.getCommandReply()->subscribe([this](uint64_t userdata, int64_t entryId) {
-        auto item = reinterpret_cast<jellyfin::Track*>(userdata);
-        if (item) playList.insert(std::make_pair(entryId, item));
-    });
 
     brls::Logger::info("MusicView: registerMpvEvent {}", this->playSession);
 }
@@ -109,7 +90,6 @@ void MusicView::registerMpvEvent() {
 void MusicView::unregisterMpvEvent() {
     auto& mpv = MPVCore::instance();
     mpv.getEvent()->unsubscribe(eventSubscribeID);
-    mpv.getCommandReply()->unsubscribe(replySubscribeID);
 
     brls::Logger::info("MusicView: unregisterMpvEvent {}", this->playSession);
     // 清空播放ID
@@ -149,50 +129,6 @@ void MusicView::registerViewAction(brls::View* view) {
     });
 }
 
-const std::string& MusicView::currentId() { return this->itemId; }
-
-void MusicView::image(brls::Image* image) {
-    for (auto& it : this->playList) {
-        if (it.second.Id == this->itemId) {
-            Image::load(image, jellyfin::apiPrimaryImage, it.second.ImageId,
-                HTTP::encode_form({
-                    {"tag", it.second.ImageTag},
-                    {"maxWidth", "240"},
-                }));
-        }
-    }
-}
-
-void MusicView::load(const std::vector<jellyfin::Track>& items, size_t index) {
-    auto& conf = AppConfig::instance();
-    auto& mpv = MPVCore::instance();
-    std::stringstream ssextra;
-    ssextra << fmt::format("network-timeout={}", HTTP::TIMEOUT / 100);
-    if (HTTP::PROXY_STATUS) ssextra << ",http-proxy=\"" << HTTP::PROXY << "\"";
-    ssextra << fmt::format(",http-header-fields='X-Emby-Token: {}'", conf.getToken());
-
-    if (!this->playSession) this->registerMpvEvent();
-
-    mpv.stop();
-    mpv.enableVO(false);
-    mpv.command("playlist-clear");
-    this->playList.clear();
-    this->btnSuffle->setBorderThickness(0);
-
-    std::string query = HTTP::encode_form({
-        {"static", "true"},
-        {"PlaySessionId", std::to_string(playSession)},
-    });
-
-    for (auto& item : items) {
-        uint64_t userdata = reinterpret_cast<uint64_t>(&item);
-        std::string url = fmt::format(fmt::runtime(jellyfin::apiAudio), item.Id, query);
-        mpv.setUrl(conf.getUrl() + url, ssextra.str(), "append", userdata);
-    }
-
-    mpv.command("playlist-play-index", std::to_string(index).c_str());
-}
-
 void MusicView::load(const std::vector<remote::DirEntry>& items, size_t index, const std::string& extra) {
     auto& mpv = MPVCore::instance();
 
@@ -201,7 +137,6 @@ void MusicView::load(const std::vector<remote::DirEntry>& items, size_t index, c
     mpv.stop();
     mpv.enableVO(false);
     mpv.command("playlist-clear");
-    this->playList.clear();
     this->btnSuffle->setBorderThickness(0);
 
     for (auto& item : items) {
@@ -216,7 +151,6 @@ void MusicView::reset() {
     this->rightStatusLabel->setText("--:--");
     this->leftStatusLabel->setText("--:--");
     this->osdSlider->setProgress(0);
-    this->itemId.clear();
 }
 
 bool MusicView::toggleShuffle() {

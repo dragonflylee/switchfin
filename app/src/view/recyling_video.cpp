@@ -2,7 +2,7 @@
 #include "view/h_recycling.hpp"
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
-#include "api/jellyfin.hpp"
+#include "api/plex.hpp"
 
 const std::string recylingVideoContentXML = R"xml(
     <brls:Box
@@ -59,14 +59,31 @@ void RecylingVideo::setPageSize(size_t pageSize) { this->pageSize = pageSize; }
 
 void RecylingVideo::onQuery(const Callback& callback) { this->queryCallback = callback; }
 
+void RecylingVideo::setItems(const std::vector<plex::Item>& items) {
+    if (items.empty()) {
+        this->setVisibility(brls::Visibility::GONE);
+        this->recycler->clearData();
+    } else {
+        this->setVisibility(brls::Visibility::VISIBLE);
+        this->recycler->setDataSource(new VideoDataSource(items));
+        this->title->setSubtitle(std::to_string(items.size()));
+    }
+}
+
 void RecylingVideo::doRequest(bool refresh) {
+    // rangée alimentée par setItems (hubs) : l'attribut XML nextPage peut
+    // déclencher doRequest sans queryCallback
+    if (!this->queryCallback) return;
     if (refresh) {
         this->start = 0;
         this->recycler->showSkeleton(this->pageSize);
     }
+    auto& conf = AppConfig::instance();
     ASYNC_RETAIN
-    jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
-        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
+    // le chemin relatif est déjà formaté par queryCallback → fmt "{}"
+    plex::getJSON<plex::Container<plex::Item>>(
+        conf.getUrl(), conf.getToken(),
+        [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
             ASYNC_RELEASE
             this->start = r.StartIndex + this->pageSize;
             if (r.TotalRecordCount == 0) {
@@ -87,24 +104,28 @@ void RecylingVideo::doRequest(bool refresh) {
             this->title->setSubtitle(ex);
             brls::Application::notify(ex);
         },
-        this->queryCallback(this->start, this->pageSize));
+        "{}", this->queryCallback(this->start, this->pageSize));
 }
 
 void RecylingVideo::doLatest(bool refresh) {
+    if (!this->queryCallback) return;
     if (refresh) {
         this->start = 0;
         this->recycler->showSkeleton(this->pageSize);
     }
+    auto& conf = AppConfig::instance();
     ASYNC_RETAIN
-    jellyfin::getJSON<std::vector<jellyfin::Episode>>(
-        [ASYNC_TOKEN](const std::vector<jellyfin::Episode>& r) {
+    // la réponse est aussi un MediaContainer (plus de tableau nu côté Plex)
+    plex::getJSON<plex::Container<plex::Item>>(
+        conf.getUrl(), conf.getToken(),
+        [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
             ASYNC_RELEASE
-            if (r.empty()) {
+            if (r.Items.empty()) {
                 this->setVisibility(brls::Visibility::GONE);
                 this->recycler->clearData();
             } else {
                 this->setVisibility(brls::Visibility::VISIBLE);
-                this->recycler->setDataSource(new VideoDataSource(r));
+                this->recycler->setDataSource(new VideoDataSource(r.Items));
             }
         },
         [ASYNC_TOKEN](const std::string& ex) {
@@ -113,35 +134,5 @@ void RecylingVideo::doLatest(bool refresh) {
             this->title->setSubtitle(ex);
             brls::Application::notify(ex);
         },
-        this->queryCallback(0, this->pageSize));
-}
-
-void RecylingVideo::doLiveTV(bool refresh) {
-    if (refresh) {
-        this->start = 0;
-        this->recycler->showSkeleton(this->pageSize);
-    }
-    ASYNC_RETAIN
-    jellyfin::getJSON<jellyfin::Result<jellyfin::ProgramInfo>>(
-        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::ProgramInfo>& r) {
-            ASYNC_RELEASE
-            this->start = r.StartIndex + this->pageSize;
-            if (r.TotalRecordCount == 0) {
-                this->setVisibility(brls::Visibility::GONE);
-                this->recycler->clearData();
-            } else if (r.StartIndex == 0) {
-                this->setVisibility(brls::Visibility::VISIBLE);
-                this->recycler->setDataSource(new ProgramDataSource(r.Items));
-            } else if (r.Items.size() > 0) {
-                auto dataSrc = dynamic_cast<ProgramDataSource*>(this->recycler->getDataSource());
-                dataSrc->appendData(r.Items);
-                this->recycler->notifyDataChanged();
-            }
-        },
-        [ASYNC_TOKEN](const std::string& ex) {
-            ASYNC_RELEASE
-            this->title->setSubtitle(ex);
-            brls::Application::notify(ex);
-        },
-        this->queryCallback(this->start, this->pageSize));
+        "{}", this->queryCallback(0, this->pageSize));
 }

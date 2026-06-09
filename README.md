@@ -1,57 +1,29 @@
-# Switchfin
+# Switchlex
 
-<img src="scripts/switchfin.svg" alt="icon" height="128" width="128" align="left">
+<img src="scripts/switchlex.svg" alt="icon" height="128" width="128" align="left">
 
-Switchfin is third-party PC player for Jellyfin that provides a native user interface to browse and play movies and series.
+Switchlex is a third-party **Plex** client that provides a native user interface to browse and play movies and series, primarily targeting the Nintendo Switch (also builds for Windows/macOS/Linux/PS4/PSVita/Android).
 <br>
 
-[![build](https://github.com/dragonflylee/switchfin/actions/workflows/build.yaml/badge.svg)](https://github.com/dragonflylee/switchfin/actions/workflows/build.yaml)
-[![NS](https://img.shields.io/badge/-Nintendo%20Switch-e4000f?style=flat&logo=Nintendo%20Switch)](https://hb-app.store/switch/Switchfin)
-[![PSVita](https://img.shields.io/badge/-PSVita-003791?style=flat&logo=PlayStation)](https://www.rinnegatamante.eu/vitadb/#/info/1258)
-[![PS4](https://img.shields.io/badge/-PS4-003791?style=flat&logo=PlayStation)](https://pkg-zone.com/details/SFIN00000)
-[![Flathub](https://img.shields.io/flathub/v/fun.dragonfly.switchfin)](https://flathub.org/apps/fun.dragonfly.switchfin)
-[![download](https://img.shields.io/github/downloads/dragonflylee/switchfin/total?label=Downloads)](https://github.com/dragonflylee/switchfin/releases/latest)
-[![nightly](https://img.shields.io/badge/nightly-build-green)](https://nightly.link/dragonflylee/switchfin/workflows/build.yaml/dev)
+[![build](https://github.com/thcolin/switchlex/actions/workflows/build.yaml/badge.svg)](https://github.com/thcolin/switchlex/actions/workflows/build.yaml)
+[![download](https://img.shields.io/github/downloads/thcolin/switchlex/total?label=Downloads)](https://github.com/thcolin/switchlex/releases/latest)
+[![nightly](https://img.shields.io/badge/nightly-build-green)](https://nightly.link/thcolin/switchlex/workflows/build.yaml/dev)
+
+> Switchlex is a fork of [Switchfin](https://github.com/dragonflylee/switchfin) (a Jellyfin client)
+> migrated to the Plex API. The migration plan and full Jellyfin↔Plex correspondence tables live in
+> [PLEX_MIGRATION.md](PLEX_MIGRATION.md). **The Plex port (phases 0-5) has not yet been validated
+> against a real server.**
 
 **This project is in its early stages so expect bugs.**
 
-## Screenshots
-
-<table>
-  <tbody>
-    <tr>
-      <th>Home</th>
-      <th>Library</th>
-    </tr>
-    <tr>
-      <td><img src="images/home.jpg" alt="Home"></td>
-      <td><img src="images/library.jpg" alt="Library"></td>
-    </tr>
-    <tr>
-      <th>Search</th>
-      <th>Music</th>
-    </tr>
-    <tr>
-      <td><img src="images/search.jpg" alt="Search"></td>
-      <td><img src="images/music.jpg" alt="Music"></td>
-    </tr>
-    <tr>
-      <th>Series</th>
-      <th>Episode</th>
-    </tr>
-    <tr>
-      <td><img src="images/series.jpg" alt="Series"></td>
-      <td><img src="images/episode.jpg" alt="Episode"></td>
-    </tr>
-  </tbody>
-</table>
-
 ## Features
+
 - Completely native interface
-- Supported media items: movies, series, seasons, episodes 
+- Supported media items: movies, series, seasons, episodes
   - Direct play and transcoding
+- Download for offline playback
 - Remote browser for Webdav/Apache/Nginx/FTP server
-- Base on MPV Player
+- Based on MPV Player
   - Container formats: mkv, mov, mp4, avi
   - Video codecs: H.264, H.265, VP8, VP9, AV1
   - Audio codecs: Opus, FLAC, MP3, AAC, AC-3, E-AC-3, TrueHD, DTS, DTS-HD
@@ -66,7 +38,7 @@ gamepad | keyboard | describe
  A | space | Play/Pause
  B | esc | Stop during
  Y | o | Toggle OSD
- X | f4 | Show Menu 
+ X | f4 | Show Menu
  R/L | [/] | Seek +/-
  \+ | f1 | Show video profile
  R | f2 | Stick Button Toggle Video Quality
@@ -81,7 +53,7 @@ gamepad | keyboard | describe
 ## FAQ
 
 1. Q: Subtitles didn't display?
-   A: Put any ttf file at `/switch/Switchfin/subfont.ttf`
+   A: Put any ttf file at `/switch/Switchlex/subfont.ttf`
 2. Q: How to enable external drive on switch?
    A: Edit config file `config.json`
 
@@ -92,8 +64,6 @@ gamepad | keyboard | describe
   }
 }
 ```
-
-<img src="images/ums.jpg" alt="ums" height="360" width="640">
 
 3. Q: How to play media files on webdav server?
    A: Edit config file `config.json`
@@ -130,20 +100,25 @@ rclone serve http --addr :8000 --read-only /media/downloads
 ```
 
 4. Q: Can't open app under macOS ?
-   A: Please run this command in your terminal: `sudo xattr -rd com.apple.quarantine /Applications/Switchfin.app`
+   A: Please run this command in your terminal: `sudo xattr -rd com.apple.quarantine /Applications/Switchlex.app`
 
-## TODO list
+## Roadmap (Plex migration)
 
-- [x] Movie view
-- [x] Series detail
-- [x] Search page
-- [x] Websocket connection (MirrorPlay)
-- [x] [danmu plugin](https://github.com/cxfksword/jellyfin-plugin-danmu) integration
+See [PLEX_MIGRATION.md](PLEX_MIGRATION.md) for details.
+
+- [x] Phase 0 — strip Jellyfin-only features (danmaku, admin dashboard, Live TV, music, favorites, remote control), rebrand
+- [x] Phase 1 — Plex API foundation (X-Plex headers, PIN auth, plex.tv resources, models)
+- [x] Phase 2 — server/profile connection UI
+- [x] Phase 3 — browsing (hubs, libraries, detail pages, search)
+- [x] Phase 4 — playback (direct play, universal transcode HLS, timeline/scrobble)
+- [x] Phase 5 — collections, downloads (offline playback), photos
+- [ ] Validation against a real Plex Media Server + Switch (devkitPro) build
+- [ ] Phase 6 — extras (intro markers, BIF trickplay, watchlist, sessions)
 
 ## Develop
 
 ```shell
-git clone https://github.com/dragonflylee/switchfin.git --recurse-submodules --shallow-submodules
+git clone https://github.com/thcolin/switchlex.git --recurse-submodules --shallow-submodules
 ```
 
 ### Building for Switch
@@ -153,9 +128,9 @@ To build for Switch, a standard development environment must first be set up. In
 ```bash
 sudo dkp-pacman -S switch-dev switch-glfw switch-libwebp switch-curl switch-libmpv
 cmake -B build_switch -DPLATFORM_SWITCH=ON
-make -C build_switch Switchfin.nro -j$(nproc)
+make -C build_switch Switchlex.nro -j$(nproc)
 # for debug
-nxlink -a <YOUR IP> -p Switchfin/Switchfin.nro -s Switchfin.nro --args -d -v
+nxlink -a <YOUR IP> -p Switchlex/Switchlex.nro -s Switchlex.nro --args -d -v
 ```
 
 ### Building for MinGW64
@@ -168,6 +143,7 @@ cmake --build build_mingw
 
 ## Thanks to
 
+- **@dragonflylee for [Switchfin](https://github.com/dragonflylee/switchfin), the Jellyfin client this project is forked from**
 - **@xfangfang for [wiliwili](https://github.com/xfangfang/wiliwili)**
 - @devkitpro and switchbrew for [libnx](https://github.com/switchbrew/libnx)
 - @natinusala and XITRIX for [borealis](https://github.com/natinusala/borealis)

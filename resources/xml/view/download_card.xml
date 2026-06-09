@@ -8,7 +8,7 @@
 
     <brls:Image
         id="download/thumb"
-        width="200"
+        width="80"
         height="120"
         marginRight="15"
         scalingType="fill"

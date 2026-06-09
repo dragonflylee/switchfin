@@ -45,8 +45,6 @@ public:
 
     void setList(const std::vector<std::string>& values, int index = -1);
 
-    void setDanmakuEnable(brls::Visibility v);
-
     void setClipPoint(const std::vector<float>& clips);
 
     void playNext(int offset);
@@ -88,11 +86,7 @@ private:
     BRLS_BIND(SVGImage, osdLockIcon, "video/osd/lock/icon");
     BRLS_BIND(SVGImage, toggleIcon, "video/osd/toggle/icon");
     BRLS_BIND(SVGImage, volumeIcon, "video/osd/volume/icon");
-    BRLS_BIND(SVGImage, danmakuIcon, "video/osd/danmaku/icon");
-    BRLS_BIND(SVGImage, danmakuSettingIcon, "video/osd/danmaku/setting/icon");
     BRLS_BIND(SVGImage, osdSettingIcon, "video/osd/setting/icon");
-    BRLS_BIND(brls::Box, btnDanmakuToggle, "video/osd/danmaku/toggle");
-    BRLS_BIND(brls::Box, btnDanmakuSetting, "video/osd/danmaku/setting");
     BRLS_BIND(brls::Box, osdTopBox, "video/osd/top/box");
     BRLS_BIND(brls::Box, osdBottomBox, "video/osd/bottom/box");
     // 用于显示缓冲组件
@@ -113,9 +107,6 @@ private:
     BRLS_BIND(brls::Box, speedHintBox, "video/speed/hint/box");
     BRLS_BIND(brls::Label, hintLabel, "video/osd/hint/label");
     BRLS_BIND(brls::Box, hintBox, "video/osd/hint/box");
-
-    bool toggleDanmaku();
-    void refreshDanmakuIcon();
 
     void registerMpvEvent();
     void unRegisterMpvEvent();
@@ -141,7 +132,6 @@ private:
     static void disableDimming(bool disable);
 
     int playIndex = -1;
-    bool enableDanmaku = true;
     brls::Event<int> playIndexEvent;
     brls::VoidEvent settingEvent;
     View* lastFocusedView = nullptr;

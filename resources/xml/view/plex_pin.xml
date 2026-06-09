@@ -7,17 +7,17 @@
 
     <brls:Header
         marginBottom="20"
-        title="@i18n/main/setting/quick_connect/header" />
+        title="@i18n/main/plex/link" />
 
     <brls:Label
-        text="@i18n/main/setting/quick_connect/steps" />
+        text="@i18n/main/plex/link_steps" />
 
     <brls:Box
         marginTop="30"
         justifyContent="center">
         <brls:Label
             fontSize="35"
-            id="quick/label/code" />
+            id="plex/label/code" />
     </brls:Box>
 
 </brls:Box>

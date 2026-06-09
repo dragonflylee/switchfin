@@ -9,7 +9,6 @@
 #include <vector>
 
 enum class DownloadStatus { Queued, Downloading, Completed, Failed };
-enum class DownloadQuality { Original, Q1080p, Q720p, Q480p };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(DownloadStatus, {
     {DownloadStatus::Queued, "Queued"},
@@ -18,24 +17,19 @@ NLOHMANN_JSON_SERIALIZE_ENUM(DownloadStatus, {
     {DownloadStatus::Failed, "Failed"},
 })
 
-NLOHMANN_JSON_SERIALIZE_ENUM(DownloadQuality, {
-    {DownloadQuality::Original, "Original"},
-    {DownloadQuality::Q1080p, "1080p"},
-    {DownloadQuality::Q720p, "720p"},
-    {DownloadQuality::Q480p, "480p"},
-})
-
+/// Téléchargement en qualité ORIGINALE uniquement (PLEX_MIGRATION.md D2) :
+/// URL = {base}{partKey}?download=1&X-Plex-Token=…
 struct DownloadItem {
-    std::string itemId;
+    std::string itemId;  // ratingKey
     std::string name;
-    std::string type;
-    std::string seriesName;
-    int seasonIndex = 0;
-    int episodeIndex = 0;
-    long productionYear = 0;
-    uint64_t runTimeTicks = 0;
-    std::string imagePrimaryTag;
-    DownloadQuality quality = DownloadQuality::Original;
+    std::string type;         // movie | episode | clip
+    std::string seriesName;   // grandparentTitle
+    int seasonIndex = 0;      // parentIndex
+    int episodeIndex = 0;     // index
+    long productionYear = 0;  // year
+    int64_t durationMs = 0;   // duration (ms)
+    std::string thumb;        // chemin relatif d'affiche
+    std::string partKey;      // Part.key (fichier original)
     DownloadStatus status = DownloadStatus::Queued;
     std::string filePath;
     int64_t totalBytes = 0;
@@ -43,7 +37,7 @@ struct DownloadItem {
     std::string errorMessage;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(DownloadItem, itemId, name, type, seriesName,
-    seasonIndex, episodeIndex, productionYear, runTimeTicks, imagePrimaryTag, quality, status,
+    seasonIndex, episodeIndex, productionYear, durationMs, thumb, partKey, status,
     filePath, totalBytes, downloadedBytes, errorMessage);
 
 class DownloadManager : public brls::Singleton<DownloadManager> {
@@ -53,7 +47,7 @@ public:
 
     void init();
 
-    void addDownload(const std::string& itemId, DownloadQuality quality);
+    void addDownload(const std::string& itemId);
     void cancelDownload(const std::string& itemId);
     void removeDownload(const std::string& itemId);
     void resumeQueue();

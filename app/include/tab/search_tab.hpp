@@ -34,6 +34,4 @@ private:
     void updateInput();
 
     std::string currentSearch;
-    size_t searchIndex = 0;
-    size_t pageSize = 20;
 };

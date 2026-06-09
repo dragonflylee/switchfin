@@ -57,8 +57,6 @@
                     axis="column"
                     marginBottom="30px">
                     <brls:BooleanCell
-                        id="media/filter/played" />
-                    <brls:BooleanCell
                         id="media/filter/unplayed" />
                 </brls:Box>
 

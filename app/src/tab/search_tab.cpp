@@ -10,7 +10,7 @@
 #include "tab/search_result.hpp"
 #include "utils/dialog.hpp"
 #include "utils/keybind.hpp"
-#include "api/jellyfin.hpp"
+#include "api/plex.hpp"
 #include <fstream>
 
 using namespace brls::literals;  // for _i18n
@@ -82,7 +82,7 @@ public:
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         auto* cell = dynamic_cast<SearchCard*>(recycler->dequeueReusableCell("Card"));
         cell->order->setText(std::to_string(index + 1));
-        cell->content->setText(this->list[index].Name);
+        cell->content->setText(this->list[index].title);
         return cell;
     }
 };
@@ -169,9 +169,6 @@ SearchTab::SearchTab() {
     }));
     this->searchSuggest->registerCell("Card", SearchCard::create);
     this->searchSuggest->registerCell("Cell", VideoCardCell::create);
-    this->searchSuggest->onNextPage([this]() {
-        if (this->currentSearch.size() > 0) this->doSearch(this->currentSearch);
-    });
 
     HistoryDataSource* history = new HistoryDataSource();
     this->searchHistory->registerCell("Card", SearchCard::create);
@@ -227,18 +224,13 @@ SearchTab::~SearchTab() { brls::Logger::debug("SearchTab: deleted"); }
 brls::View* SearchTab::create() { return new SearchTab(); }
 
 void SearchTab::doSuggest() {
-    std::string query = HTTP::encode_form({
-        {"sortBy", "IsFavoriteOrLiked,Random"},
-        {"includeItemTypes", "Movie,Series,MusicAlbum"},
-        {"limit", "24"},
-        {"Recursive", "true"},
-        {"EnableImages", "false"},
-        {"EnableTotalRecordCount", "false"},
-    });
+    HTTP::Form form;
+    plex::addPagination(form, 0, 24);
 
     ASYNC_RETAIN
-    jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
-        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
+    plex::getJSON<plex::Container<plex::Item>>(
+        AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
+        [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
             ASYNC_RELEASE
             this->searchSuggest->setDataSource(new SuggestDataSource(r.Items));
         },
@@ -246,40 +238,35 @@ void SearchTab::doSuggest() {
             ASYNC_RELEASE
             this->searchSuggest->setError(ex);
         },
-        jellyfin::apiUserLibrary, AppConfig::instance().getUserId(), query);
+        "/library/recentlyAdded?{}", HTTP::encode_form(form));
 }
 
 void SearchTab::doSearch(const std::string& searchTerm) {
     std::string query = HTTP::encode_form({
-        {"searchTerm", searchTerm},
-        {"IncludeItemTypes", "Movie,Series,MusicAlbum"},
-        {"Recursive", "true"},
-        {"IncludeMedia", "true"},
-        {"fields", "PrimaryImageAspectRatio,BasicSyncInfo"},
-        {"limit", std::to_string(this->pageSize)},
-        {"startIndex", std::to_string(this->searchIndex)},
+        {"query", searchTerm},
+        {"limit", "40"},
+        {"searchTypes", "movies,tv"},
+        {"includeCollections", "1"},
     });
 
     ASYNC_RETAIN
-    jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
-        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
+    // une seule page : /library/search ne pagine pas de façon fiable
+    // (plex_client.dart:1367-1378)
+    plex::getJSON<plex::Container<plex::Item>>(
+        AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
+        [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
             ASYNC_RELEASE
-            this->searchIndex = r.StartIndex + this->pageSize;
-            if (r.TotalRecordCount == 0) {
+            if (r.Items.empty()) {
                 this->searchSuggest->setEmpty();
-            } else if (r.StartIndex == 0) {
+            } else {
                 this->searchSuggest->setDataSource(new VideoDataSource(r.Items));
-            } else if (r.Items.size() > 0) {
-                auto dataSrc = dynamic_cast<VideoDataSource*>(this->searchSuggest->getDataSource());
-                if (dataSrc != nullptr) dataSrc->appendData(r.Items);
-                this->searchSuggest->notifyDataChanged();
             }
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Application::notify(ex);
         },
-        jellyfin::apiUserLibrary, AppConfig::instance().getUserId(), query);
+        plex::apiSearch, query);
 }
 
 void SearchTab::updateInput() {
@@ -299,7 +286,6 @@ void SearchTab::updateInput() {
         if (this->historyBox->getVisibility() == brls::Visibility::VISIBLE) {
             this->historyBox->setVisibility(brls::Visibility::GONE);
         }
-        this->searchIndex = 0;
         this->searchSuggest->spanCount = brls::getStyle().getMetric("app/grid/5");
         this->searchSuggest->estimatedRowHeight = brls::getStyle().getMetric("app/album/height");
         this->searchSuggest->showSkeleton();

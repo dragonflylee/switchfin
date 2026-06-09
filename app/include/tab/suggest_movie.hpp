@@ -6,9 +6,6 @@
 
 #include <view/auto_tab_frame.hpp>
 
-class RecyclingGrid;
-class RecommendCell;
-
 class SuggestMovie : public AttachedView {
 public:
     explicit SuggestMovie(const std::string itemId);
@@ -16,10 +13,9 @@ public:
     void onCreate() override;
 
 private:
-    RecyclingGrid *recycler = nullptr;
-    RecommendCell *latest = nullptr;
-    std::string itemId;
+    BRLS_BIND(brls::Box, box, "suggest/box");
 
-    void doLatest();
-    void doRecommend();
+    std::string itemId;  // clé de section
+
+    void doHubs();
 };

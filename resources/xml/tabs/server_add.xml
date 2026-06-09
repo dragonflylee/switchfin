@@ -25,15 +25,34 @@
             axis="column"
             marginBottom="30px">
 
+            <brls:DetailCell
+                title="@i18n/main/plex/link"
+                id="plex/link" />
+
+        </brls:Box>
+
+        <brls:Header
+            width="auto"
+            height="auto"
+            title="@i18n/main/plex/manual_header"
+            marginBottom="0px" />
+        <brls:Box
+            width="100%"
+            height="auto"
+            axis="column"
+            marginBottom="30px">
+
             <brls:InputCell
                 id="server/url" />
+
+            <brls:InputCell
+                id="server/token" />
 
             <brls:DetailCell
                 title="@i18n/main/setting/server/connect"
                 id="server/connect" />
 
         </brls:Box>
-
 
     </brls:Box>
 </brls:Box>

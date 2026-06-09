@@ -1,11 +1,9 @@
 #include "activity/player_view.hpp"
 #include "activity/gallery_activity.hpp"
+#include "api/plex.hpp"
 #include "tab/media_collection.hpp"
 #include "tab/media_series.hpp"
 #include "tab/media_movie.hpp"
-#include "tab/music_album.hpp"
-#include "tab/song_list.hpp"
-#include "tab/playlist.hpp"
 #include "utils/misc.hpp"
 #include "view/svg_image.hpp"
 #include "view/video_card.hpp"
@@ -23,67 +21,52 @@ size_t VideoDataSource::getItemCount() { return this->list.size(); }
 RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t index) {
     VideoCardCell* cell = dynamic_cast<VideoCardCell*>(recycler->dequeueReusableCell("Cell"));
     auto& item = this->list.at(index);
-    cell->setId(item.Id);
-    if (item.Type == jellyfin::mediaTypeEpisode) {
-        if (item.SeriesName.empty()) {
+    cell->setId(item.ratingKey);
+    if (item.type == plex::mediaTypeEpisode) {
+        if (item.grandparentTitle.empty()) {
             cell->labelTitle->setVisibility(brls::Visibility::GONE);
         } else {
-            cell->labelTitle->setText(item.SeriesName);
+            cell->labelTitle->setText(item.grandparentTitle);
         }
-        cell->labelExt->setText(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
+        cell->labelExt->setText(fmt::format("S{}E{} - {}", item.parentIndex, item.index, item.title));
 
-        auto it = item.ImageTags.find(jellyfin::imageTypeThumb);
-        if (it != item.ImageTags.end()) {
-            Image::load(cell->picture, jellyfin::apiThumbImage, item.Id,
-                HTTP::encode_form({{"tag", it->second}, {"maxWidth", "325"}}));
-        } else if (item.ParentThumbImageTag.size() > 0) {
-            Image::load(cell->picture, jellyfin::apiThumbImage, item.ParentThumbItemId,
-                HTTP::encode_form({{"tag", item.ParentThumbImageTag}, {"maxWidth", "325"}}));
-        } else if (item.ParentBackdropImageTags.size() > 0) {
-            Image::load(cell->picture, jellyfin::apiBackdropImage, item.ParentBackdropItemId,
-                HTTP::encode_form({{"tag", item.ParentBackdropImageTags.at(0)}, {"maxWidth", "325"}}));
-        } else if (item.SeriesId.is_string()) {
-            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId.get<std::string>(),
-                HTTP::encode_form({{"tag", item.SeriesPrimaryImageTag}, {"maxWidth", "325"}}));
+        // affiche de la saison, sinon de la série — pas la capture 16:9 de
+        // l'épisode (cartes portrait, retour utilisateur)
+        if (!item.parentThumb.empty()) {
+            Image::load(cell->picture, item.parentThumb, 325);
+        } else if (!item.grandparentThumb.empty()) {
+            Image::load(cell->picture, item.grandparentThumb, 325);
+        } else if (!item.thumb.empty()) {
+            Image::load(cell->picture, item.thumb, 325);
         }
     } else {
-        cell->labelTitle->setText(item.Name);
+        cell->labelTitle->setText(item.title);
 
-        if (item.Type == jellyfin::mediaTypeGenre || item.Type == jellyfin::mediaTypeBook) {
+        if (item.type == plex::mediaTypeCollection || item.type.empty()) {
             cell->labelExt->setVisibility(brls::Visibility::GONE);
-        } else if (item.Type == jellyfin::mediaTypeVideo) {
-            cell->labelExt->setText(misc::sec2Time(item.RunTimeTicks / jellyfin::PLAYTICKS));
-        } else if (item.ProductionYear > 0) {
-            cell->labelExt->setText(std::to_string(item.ProductionYear));
+        } else if (item.type == plex::mediaTypeClip) {
+            cell->labelExt->setText(misc::sec2Time(item.duration / 1000));
+        } else if (item.year > 0) {
+            cell->labelExt->setText(std::to_string(item.year));
         }
 
-        auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
-        if (it != item.ImageTags.end()) {
-            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
-                HTTP::encode_form({{"tag", it->second}, {"maxWidth", "325"}}));
-        }
+        Image::load(cell->picture, item.thumb, 325);
     }
 
-    if (item.UserData.IsFavorite) {
-        cell->badgeFavorite->setVisibility(brls::Visibility::VISIBLE);
-    } else {
-        cell->badgeFavorite->setVisibility(brls::Visibility::INVISIBLE);
-    }
-
-    if (item.UserData.Played) {
+    if (item.played()) {
         cell->badgeTopRight->setImageFromSVGRes("icon/ico-checkmark.svg");
         cell->badgeTopRight->setVisibility(brls::Visibility::VISIBLE);
         cell->labelRating->setVisibility(brls::Visibility::INVISIBLE);
-    } else if (item.UserData.PlaybackPositionTicks) {
-        if (item.Type == jellyfin::mediaTypeEpisode || item.Type == jellyfin::mediaTypeMovie) {
+    } else if (item.viewOffset > 0 && item.duration > 0) {
+        float percent = float(item.viewOffset) / float(item.duration) * 100.f;
+        if (item.type == plex::mediaTypeEpisode || item.type == plex::mediaTypeMovie) {
             cell->labelRating->setText(
-                fmt::format("{}/{}", misc::sec2Time(item.UserData.PlaybackPositionTicks / jellyfin::PLAYTICKS),
-                    misc::sec2Time(item.RunTimeTicks / jellyfin::PLAYTICKS)));
+                fmt::format("{}/{}", misc::sec2Time(item.viewOffset / 1000), misc::sec2Time(item.duration / 1000)));
         } else {
-            cell->labelRating->setText(fmt::format("{:.2f}%", item.UserData.PlayedPercentage));
+            cell->labelRating->setText(fmt::format("{:.2f}%", percent));
         }
         cell->labelRating->setVisibility(brls::Visibility::VISIBLE);
-        cell->rectProgress->setWidthPercentage(item.UserData.PlayedPercentage);
+        cell->rectProgress->setWidthPercentage(percent);
         cell->rectProgress->getParent()->setVisibility(brls::Visibility::VISIBLE);
         cell->badgeTopRight->setVisibility(brls::Visibility::GONE);
     } else {
@@ -97,33 +80,30 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
 void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
     auto& item = this->list.at(index);
 
-    if (item.Type == jellyfin::mediaTypeSeries) {
+    if (item.type == plex::mediaTypeShow) {
         recycler->present(new MediaSeries(item));
-    } else if (item.Type == jellyfin::mediaTypeMovie) {
+    } else if (item.type == plex::mediaTypeMovie) {
         recycler->present(new MediaMovie(item));
-    } else if (item.Type == jellyfin::mediaTypeFolder || item.Type == jellyfin::mediaTypeBoxSet ||
-               item.Type == jellyfin::mediaTypePhotoAlbum) {
-        recycler->present(new MediaCollection(item.Id));
-    } else if (item.Type == jellyfin::mediaTypeMusicVideo || item.Type == jellyfin::mediaTypeVideo) {
+    } else if (item.type == plex::mediaTypeSeason) {
+        recycler->present(new MediaSeries(item));
+    } else if (item.type == plex::mediaTypeCollection) {
+        recycler->present(new MediaCollection(item.ratingKey, plex::mediaTypeCollection));
+    } else if (item.type == plex::mediaTypeClip) {
         PlayerView* view = new PlayerView(item);
-        view->setTitie(item.ProductionYear ? fmt::format("{} ({})", item.Name, item.ProductionYear) : item.Name);
-    } else if (item.Type == jellyfin::mediaTypeEpisode) {
+        view->setTitie(item.year ? fmt::format("{} ({})", item.title, item.year) : item.title);
+    } else if (item.type == plex::mediaTypeEpisode) {
         PlayerView* view = new PlayerView(item);
-        view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
-        if (item.SeriesId.is_string()) view->setSeries(item.SeriesId.get<std::string>());
-    } else if (item.Type == jellyfin::mediaTypeMusicAlbum) {
-        recycler->present(new MusicAlbum(item));
-    } else if (item.Type == jellyfin::mediaTypeMusicArtist) {
-        recycler->present(new SongList(this->parentId, item.Id));
-    } else if (item.Type == jellyfin::mediaTypePlaylist) {
-        recycler->present(new Playlist(item));
-    } else if (item.Type == jellyfin::mediaTypePhoto) {
-        auto& conf = AppConfig::instance();
-        std::string query = HTTP::encode_form({{"api_key", conf.getToken()}});
-        std::string url = conf.getUrl() + fmt::format(fmt::runtime(jellyfin::apiDownload), item.Id, query);
-        brls::Application::pushActivity(new GalleryActivity(url));
+        view->setTitie(fmt::format("S{}E{} - {}", item.parentIndex, item.index, item.title));
+        if (!item.grandparentRatingKey.empty()) view->setSeries(item.grandparentRatingKey);
+    } else if (item.type == plex::mediaTypePhoto) {
+        // photo : fichier original servi par la Part (PLEX_MIGRATION.md §2.5)
+        if (!item.media.empty() && !item.media.front().parts.empty()) {
+            auto& conf = AppConfig::instance();
+            std::string url = plex::withToken(conf.getUrl() + item.media.front().parts.front().key, conf.getToken());
+            brls::Application::pushActivity(new GalleryActivity(url));
+        }
     } else {
-        auto dialog = new brls::Dialog(fmt::format("Unsupported media type: {}", item.Type));
+        auto dialog = new brls::Dialog(fmt::format("Unsupported media type: {}", item.type));
         dialog->addButton("hints/cancel"_i18n, []() {});
         dialog->open();
     }
@@ -138,37 +118,5 @@ void VideoDataSource::onContextMenu(brls::Box* recycler, size_t index) {
 void VideoDataSource::clearData() { this->list.clear(); }
 
 void VideoDataSource::appendData(const MediaList& data) {
-    this->list.insert(this->list.end(), data.begin(), data.end());
-}
-
-ProgramDataSource::ProgramDataSource(const MediaList& r) : list(std::move(r)) {
-    brls::Logger::debug("ProgramDataSource: create {}", r.size());
-}
-
-size_t ProgramDataSource::getItemCount() { return this->list.size(); }
-
-RecyclingGridItem* ProgramDataSource::cellForRow(RecyclingView* recycler, size_t index) {
-    VideoCardCell* cell = dynamic_cast<VideoCardCell*>(recycler->dequeueReusableCell("Cell"));
-    auto& item = this->list.at(index);
-    cell->labelTitle->setText(item.Name);
-    cell->labelExt->setText(item.ChannelName);
-    return cell;
-}
-
-void ProgramDataSource::onItemSelected(brls::Box* recycler, size_t index) {
-    jellyfin::Item channel;
-    auto& item = this->list.at(index);
-
-    channel.Id = item.ChannelId;
-    channel.Name = item.ChannelName;
-    channel.Type = jellyfin::mediaTypeTvChannel;
-    channel.RunTimeTicks = item.RunTimeTicks;
-    PlayerView* view = new PlayerView(channel);
-    view->setTitie(item.Name);
-}
-
-void ProgramDataSource::clearData() { this->list.clear(); }
-
-void ProgramDataSource::appendData(const MediaList& data) {
     this->list.insert(this->list.end(), data.begin(), data.end());
 }

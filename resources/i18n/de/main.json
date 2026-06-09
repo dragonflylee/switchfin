@@ -2,12 +2,8 @@
   "tabs": {
     "home": "Home",
     "genres": "Genres",
-    "program": "Programme",
     "suggest": "Vorschläge",
-    "artists": "Interpreten",
-    "songs": "Lieder",
     "search": "Suche",
-    "dashboard": "Übersicht",
     "setting": "Einstellungen"
   },
   "home": {
@@ -23,20 +19,8 @@
   },
   "about": {
     "header": "Über",
-    "brief": "Yet another third-party jellyfin client",
+    "brief": "Yet another third-party Plex client",
     "repo_header": "Repository"
-  },
-  "dashboard": {
-    "session": "Session",
-    "device": "Geräte",
-    "activity": "Aktivitäten",
-    "path": "Pfade",
-    "restart": "Neustarten",
-    "confirm_restart": "Willst du Jellyfin wirklich neu starten?",
-    "scan_all": "Alle Bibliotheken scannen",
-    "within_minute": "Innerhalb von 1 Minute",
-    "minute_ago": "vor {} Minuten",
-    "hour_ago": "vor {} Stunden"
   },
   "player": {
     "subtitle": "Untertitel",
@@ -80,7 +64,7 @@
       "header": "Server",
       "detail": "Serverdetails",
       "connect_new": "Neuer Server",
-      "connect_to": "Verbinde neuen Jellyfin-Server",
+      "connect_to": "Verbinde neuen Plex-Server",
       "invalid": "Die URL muss mit http:// oder https:// beginnen",
       "connect": "Verbinden",
       "delete": "Bist du sicher, dass du diesen Server löschen willst?",
@@ -116,15 +100,7 @@
       "font_q1": "Eigene Schriftart oder Icons setzen",
       "font_a1": "1. Lade Schriftart oder Icons herunter\n2. Benenne die Schriftart: font.ttf; Benenne die Icons: icon.ttf\n3. Setze die neuen Dateien in den Konfigurationsordner\n4. Starte die Applikation neu",
       "font_q2": "FAQ",
-      "font_a2": "1. Switchfin priorisiert selbst gesetzte Schriftarten, ansonsten verwendet es die selbst eingebauten Schriftarten\n2. In \"Einstellungen - Anleitungen\" befindet sich ein Knopf um den Einstellungsordner zu öffnen\n3. Auf Linux verwendet Switchfin xdg-open um diesen Ordner zu öffnen. Falls sich der Ordner sich nicht richtig öffnet, dann anstalliere xdg-open"
-    },
-    "quick_connect": {
-      "header": "Schnellverbindung",
-      "code": "Code für die Schnellverbindung",
-      "invalid": "Ungültiger Code für die Schnellverbindung",
-      "success": "Autorisierung für Schnellverbindung erfolgreich. Bitte fahre auf dem anderen Gerät fort.",
-      "steps": "1. Öffne die Jellyfin App auf deinem Smartphone oder Web Browser und logge dich mit deinem Account ein\n2. Öffne das Benutzer-Menü und gehe zur Seite für die Schnellverbindung\n3. Gib folgenden Code ein:",
-      "disabled": "Hinweis: Schnellverbindung nicht aktiviert"
+      "font_a2": "1. Switchlex priorisiert selbst gesetzte Schriftarten, ansonsten verwendet es die selbst eingebauten Schriftarten\n2. In \"Einstellungen - Anleitungen\" befindet sich ein Knopf um den Einstellungsordner zu öffnen\n3. Auf Linux verwendet Switchlex xdg-open um diesen Ordner zu öffnen. Falls sich der Ordner sich nicht richtig öffnet, dann anstalliere xdg-open"
     },
     "others": {
       "header": "Diverses",
@@ -146,18 +122,31 @@
         "ps": "PlayStation",
         "keyboard": "Tastatur"
       },
-      "up2date": "Switchfin ist auf dem neusten Stand",
+      "up2date": "Switchlex ist auf dem neusten Stand",
       "upgrade": "{} is verfügbar! Jetzt aktualisieren?",
       "release": "Suche nach Aktualisierungen"
     }
   },
   "hints": {
     "hint1": "Selektiere ein Spiel vom Homescreen",
-    "hint2": "Halte die \uE0E5-Taste drücke die \uE0E0-Taste um hbmenu zu öffnen",
-    "hint3": "Wähle Switchfin in hbmenu",
-    "hint4": "Optional: Verwende den bereitgestellten Switchfin NSP forwarder",
-    "hint_nsp": "Drücke \uE0E0 um den NSP forwarder zu installieren",
+    "hint2": "Halte die -Taste drücke die -Taste um hbmenu zu öffnen",
+    "hint3": "Wähle Switchlex in hbmenu",
+    "hint4": "Optional: Verwende den bereitgestellten Switchlex NSP forwarder",
+    "hint_nsp": "Drücke  um den NSP forwarder zu installieren",
     "hint_confirm": "NSP forwarder zu installieren kann zu einem Ban von Nintendo führen\nBitte erneut bestätigen",
     "hint_right": "Die Bilder sind vom Internet und gehören Nintendo Co., Ltd"
+  },
+  "plex": {
+    "link": "Sign in with plex.tv",
+    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "expired": "The code expired, please try again",
+    "manual_header": "Manual connection",
+    "token": "Token",
+    "choose_server": "Choose a server",
+    "choose_profile": "Choose a profile",
+    "profile_pin": "Profile PIN",
+    "wrong_pin": "Wrong PIN",
+    "no_server": "No server found on this account",
+    "unreachable": "Server unreachable"
   }
 }

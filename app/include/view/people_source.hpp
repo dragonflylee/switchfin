@@ -1,11 +1,11 @@
 #pragma once
 
 #include <view/recycling_grid.hpp>
-#include <api/jellyfin/media.hpp>
+#include <api/plex/types.hpp>
 
 class PeopleDataSource : public RecyclingGridDataSource {
 public:
-    using MediaList = std::vector<jellyfin::MediaPeople>;
+    using MediaList = std::vector<plex::Role>;
 
     explicit PeopleDataSource(const MediaList& r);
 

@@ -39,8 +39,5 @@ private:
     BRLS_BIND(brls::Label, labelTranscodePercent, "profile/transcode/percent");
     BRLS_BIND(brls::Label, labelTranscodeReasons, "profile/transcode/reasons");
 
-    void onRequest();
-
     bool inited = false;
-    brls::RepeatingTimer ticker;
 };

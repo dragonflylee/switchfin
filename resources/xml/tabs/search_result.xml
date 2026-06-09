@@ -28,20 +28,6 @@
                 height="350"
                 itemType="Series"
                 pageSize="16" />
-
-            <SearchList
-                id="search/episode"
-                title="@i18n/main/search/genres/episode"
-                height="350"
-                itemType="Episode"
-                pageSize="16" />
-
-            <SearchList
-                id="search/music"
-                title="@i18n/main/search/genres/music"
-                height="260"
-                itemType="MusicAlbum"
-                pageSize="16" />
         </brls:Box>
 
     </brls:ScrollingFrame>

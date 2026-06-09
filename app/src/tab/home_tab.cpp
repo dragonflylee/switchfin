@@ -1,133 +1,106 @@
-/*
-    Copyright 2023 dragonflylee
-*/
-
 #include "tab/home_tab.hpp"
 #include "view/recyling_video.hpp"
-#include "api/jellyfin.hpp"
+#include "api/plex.hpp"
 #include "utils/keybind.hpp"
 
 using namespace brls::literals;  // for _i18n
 
 HomeTab::HomeTab() {
     brls::Logger::debug("Tab HomeTab: create");
-    // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/home.xml");
-
-    this->userResume->onQuery([](size_t start, size_t pageSize) {
-        std::string query = HTTP::encode_form({
-            {"enableImageTypes", "Primary,Backdrop,Thumb"},
-            {"mediaTypes", "Video"},
-            {"fields", "BasicSyncInfo,Chapters"},
-            {"limit", std::to_string(pageSize)},
-            {"startIndex", std::to_string(start)},
-        });
-        return fmt::format(fmt::runtime(jellyfin::apiUserResume), AppConfig::instance().getUserId(), query);
-    });
-
-    this->showNextup->onQuery([](size_t start, size_t pageSize) {
-        std::string query = HTTP::encode_form({
-            {"userId", AppConfig::instance().getUserId()},
-            {"fields", "BasicSyncInfo,Chapters"},
-            {"enableImageTypes", "Primary,Backdrop,Thumb"},
-            {"enableResumable", "false"},
-            {"enableRewatching", "false"},
-            {"limit", std::to_string(pageSize)},
-            {"startIndex", std::to_string(start)},
-        });
-        return fmt::format(fmt::runtime(jellyfin::apiShowNextUp), query);
-    });
 }
 
 HomeTab::~HomeTab() { brls::Logger::debug("View HomeTab: delete"); }
 
 brls::View* HomeTab::create() { return new HomeTab(); }
 
+/// L'accueil reflète les rangées configurées côté serveur : « Continuer à
+/// regarder » puis les hubs de /hubs, avec leurs titres localisés
+/// (X-Plex-Language) — PLEX_MIGRATION.md §2.5.
 void HomeTab::doRequest() {
-    this->userResume->reset();
-    this->showNextup->reset();
-    this->userResume->doRequest();
-    this->showNextup->doRequest();
+    this->boxHome->clearViews();
+
+    // Rangée « Continuer à regarder » — ajoutée tout de suite pour garantir
+    // sa position en tête, remplie à la réponse (plex_client.dart:1421-1463)
+    RecylingVideo* resume = new RecylingVideo();
+    resume->setTitle("main/home/resume"_i18n);
+    resume->setFrameHeight(300);
+    resume->setItemWidth(175);
+    resume->setVisibility(brls::Visibility::GONE);
+    this->boxHome->addView(resume);
+
+    this->doResume(resume);
+    this->doHubs();
+}
+
+void HomeTab::doResume(RecylingVideo* row) {
+    auto& conf = AppConfig::instance();
+    std::string query = HTTP::encode_form({{"count", "20"}});
+
+    ASYNC_RETAIN
+    plex::getJSON<plex::Container<plex::Hub>>(
+        conf.getUrl(), conf.getToken(),
+        [ASYNC_TOKEN, row](const plex::Container<plex::Hub>& r) {
+            ASYNC_RELEASE
+            for (auto& hub : r.Items) {
+                if (hub.items.empty()) continue;
+                if (!hub.title.empty()) row->setTitle(hub.title);
+                row->setItems(hub.items);
+                return;
+            }
+            row->setItems({});
+        },
+        [ASYNC_TOKEN, row](const std::string& ex) {
+            ASYNC_RELEASE
+            row->setItems({});
+            brls::Logger::warning("home continueWatching: {}", ex);
+        },
+        plex::apiHubContinue, query);
+}
+
+void HomeTab::doHubs() {
+    auto& conf = AppConfig::instance();
+    std::string query = HTTP::encode_form({
+        {"count", "20"},
+        {"excludeContinueWatching", "1"},
+    });
+
+    ASYNC_RETAIN
+    plex::getJSON<plex::Container<plex::Hub>>(
+        conf.getUrl(), conf.getToken(),
+        [ASYNC_TOKEN](const plex::Container<plex::Hub>& r) {
+            ASYNC_RELEASE
+            for (auto& hub : r.Items) {
+                if (hub.items.empty()) continue;
+                // au cas où le serveur les renvoie malgré excludeContinueWatching
+                if (hub.hubIdentifier == "home.continue" || hub.hubIdentifier == "home.ondeck") continue;
+
+                RecylingVideo* row = new RecylingVideo();
+                row->setTitle(hub.title);
+                row->setFrameHeight(300);
+                row->setItemWidth(175);
+                row->setItems(hub.items);
+                this->boxHome->addView(row);
+            }
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            auto dialog = new brls::Dialog(ex);
+            dialog->addButton("hints/retry"_i18n, [this]() { brls::sync([this]() { this->doRequest(); }); });
+            dialog->addButton("hints/cancel"_i18n, []() {});
+            dialog->open();
+        },
+        plex::apiHubs, query);
 }
 
 void HomeTab::onCreate() {
     auto actionRefresh = [this](brls::View* view) {
-        this->userResume->doRequest(true);
-        this->showNextup->doRequest(true);
-        for (auto recyler : this->latest) {
-            recyler->doLatest(true);
-        }
+        this->doRequest();
         return true;
     };
 
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, actionRefresh);
     this->registerAction(KeyBind::getRefresh(), actionRefresh);
 
-    ASYNC_RETAIN
-    jellyfin::getJSON<jellyfin::Result<jellyfin::Collection>>(
-        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Collection>& r) {
-            ASYNC_RELEASE
-            this->userResume->doRequest();
-            this->showNextup->doRequest();
-
-            auto& excludes = AppConfig::instance().userConfig().LatestItemsExcludes;
-
-            for (auto& item : r.Items) {
-                auto it = std::find(excludes.begin(), excludes.end(), item.Id);
-                if (it != excludes.end()) continue;
-
-                RecylingVideo* recyler = new RecylingVideo();
-                recyler->setTitle(item.Name);
-
-                if (item.CollectionType == "livetv") {
-                    recyler->setFrameHeight(150);
-                    recyler->setItemWidth(200);
-                    recyler->setPageSize(24);
-                    recyler->onQuery([](size_t start, size_t pageSize) {
-                        std::string query = HTTP::encode_form({
-                            {"fields", "ChannelInfo"},
-                            {"enableImageTypes", "Primary"},
-                            {"isAiring", "true"},
-                            {"userId", AppConfig::instance().getUserId()},
-                            {"startIndex", std::to_string(start)},
-                            {"limit", std::to_string(pageSize)},
-                        });
-                        return fmt::format(fmt::runtime(jellyfin::apiProgramRecommend), query);
-                    });
-                    recyler->doLiveTV();
-
-                } else {
-                    std::string itemId = std::move(item.Id);
-                    if (item.CollectionType == "music") {
-                        recyler->setFrameHeight(225);
-                    } else if (item.CollectionType == "books") {
-                        recyler->setFrameHeight(280);
-                    } else {
-                        recyler->setFrameHeight(300);
-                    }
-                    recyler->setItemWidth(175);
-                    recyler->onQuery([itemId](size_t start, size_t pageSize) {
-                        std::string userId = AppConfig::instance().getUserId();
-                        std::string query = HTTP::encode_form({
-                            {"enableImageTypes", "Primary"},
-                            {"parentId", itemId},
-                            {"fields", "BasicSyncInfo,Chapters"},
-                            {"limit", std::to_string(pageSize)},
-                        });
-                        return fmt::format(fmt::runtime(jellyfin::apiUserLatest), userId, query);
-                    });
-                    recyler->doLatest();
-                    this->latest.push_back(recyler);
-                }
-                boxHome->addView(recyler);
-            }
-        },
-        [ASYNC_TOKEN](const std::string& ex) {
-            ASYNC_RELEASE
-            auto dialog = new brls::Dialog(ex);
-            dialog->addButton("hints/retry"_i18n, [this]() { brls::sync([this]() { this->onCreate(); }); });
-            dialog->addButton("hints/cancel"_i18n, []() {});
-            dialog->open();
-        },
-        jellyfin::apiUserViews, AppConfig::instance().getUserId());
+    this->doRequest();
 }

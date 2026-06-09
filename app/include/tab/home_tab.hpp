@@ -21,9 +21,8 @@ public:
     static brls::View* create();
 
 private:
-    BRLS_BIND(brls::Box, boxHome, "home/box");
-    BRLS_BIND(RecylingVideo, userResume, "home/user/resume");
-    BRLS_BIND(RecylingVideo, showNextup, "home/show/nextup");
+    void doResume(RecylingVideo* row);
+    void doHubs();
 
-    std::vector<RecylingVideo*> latest;
+    BRLS_BIND(brls::Box, boxHome, "home/box");
 };

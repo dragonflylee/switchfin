@@ -2,13 +2,9 @@
   "tabs": {
     "home": "首页",
     "genres": "类型",
-    "program": "节目",
     "suggest": "建议",
-    "artists": "艺术家",
-    "songs": "歌曲",
     "search": "搜索",
     "downloads": "下载",
-    "dashboard": "控制台",
     "setting": "设置"
   },
   "home": {
@@ -24,20 +20,8 @@
   },
   "about": {
     "header": "关于软件",
-    "brief": "专为手柄控制设计的第三方跨平台Jellyfin客户端\n满足日常使用, 目前可以运行在PC全平台和 Nintendo Switch 上",
+    "brief": "专为手柄控制设计的第三方跨平台Plex客户端\n满足日常使用, 目前可以运行在PC全平台和 Nintendo Switch 上",
     "repo_header": "开源地址"
-  },
-  "dashboard": {
-    "session": "会话",
-    "device": "设备",
-    "activity": "活动",
-    "path": "路径",
-    "restart": "重启",
-    "confirm_restart": "你确定要重启 Jellyfin？",
-    "scan_all": "扫描所有媒体库",
-    "within_minute": "不到 1 分钟",
-    "minute_ago": "{} 分钟前",
-    "hour_ago": "{} 小时前"
   },
   "player": {
     "subtitle": "字幕",
@@ -55,35 +39,6 @@
     "episode": "选集",
     "speed_up": "{} 倍速播放中"
   },
-  "danmaku": {
-    "header": "弹幕设置",
-    "performance": {
-      "header": "弹幕性能",
-      "render": "渲染尺寸"
-    },
-    "style": {
-      "header": "弹幕样式",
-      "font": "描边类型",
-      "font_stroke": "描边",
-      "font_incline": "投影",
-      "font_shadow": "重墨",
-      "font_pure": "纯色",
-      "area": "显示区域",
-      "area_1_4": "1/4 屏幕",
-      "area_2_4": "1/2 屏幕",
-      "area_3_4": "3/4 屏幕",
-      "area_4_4": "全屏幕",
-      "alpha": "不透明度",
-      "fontsize": "弹幕字号",
-      "line_height": "弹幕行高",
-      "speed": "弹幕速度",
-      "speed_slow_plus": "极慢",
-      "speed_slow": "较慢",
-      "speed_fast_plus": "极快",
-      "speed_fast": "较快",
-      "speed_moderate": "适中"
-    }
-  },
   "media": {
     "sort": "排序",
     "sort_by": "排序方式",
@@ -92,7 +47,6 @@
     "ascending": "升序",
     "descending": "降序",
     "name": "名称",
-    "add_favorite": "加入收藏",
     "mark_played": "标为已播放",
     "mark_unplayed": "标为未播放",
     "play": "播放",
@@ -107,7 +61,8 @@
     "rating": "评分",
     "random": "随机",
     "played": "已播放",
-    "unplayed": "未播放"
+    "unplayed": "未播放",
+    "collections": "Collections"
   },
   "search": {
     "hint": "支持关键字及关键字首字母",
@@ -119,7 +74,6 @@
     "clear_history": "确认清空搜索记录？",
     "genres": {
       "movie": "电影",
-      "music": "音乐",
       "series": "节目",
       "episode": "剧集"
     }
@@ -130,8 +84,6 @@
     "up": "上一级"
   },
   "download": {
-    "quality": "清晰度",
-    "original": "原始码率",
     "start": "开始下载",
     "cancel": "取消下载",
     "remove": "移除下载",
@@ -141,7 +93,8 @@
     "queued": "下载任务提交成功",
     "no_downloads": "下载记录为空",
     "confirm_remove": "是否移除下载文件?",
-    "play_offline": "离线播放"
+    "play_offline": "离线播放",
+    "confirm_cancel": "Cancel this download?"
   },
   "setting": {
     "quit_hint": "即将退出应用, 设置内容将在下次启动后生效",
@@ -156,7 +109,7 @@
       "header": "服务器",
       "detail": "服务器详情",
       "connect_new": "新服务器",
-      "connect_to": "连接至Jellyfin服务器",
+      "connect_to": "连接至Plex服务器",
       "invalid": "URL 必须以 http:// 或 https:// 开头",
       "connect": "连接",
       "delete": "是否删除？",
@@ -247,14 +200,6 @@
       "font_q3": "字幕无法正常显示",
       "font_a3": "将合适的 ttf 字体文件复制到 {}/subfont.ttf"
     },
-    "quick_connect": {
-      "header": "快速连接",
-      "code": "快速连接验证码",
-      "invalid": "无效的快速连接验证码",
-      "success": "成功授权快速连接。请在你的其他设备上继续。",
-      "steps": "1. 在手机APP或浏览器打开Jellyfin并登陆你的帐号\n2. 打开用户菜单并进入快速连接页面\n3. 输入下列验证码：",
-      "disabled": "注意：快速连接没有启用"
-    },
     "others": {
       "header": "其他",
       "fullscreen": "全屏显示",
@@ -290,10 +235,23 @@
   "hints": {
     "hint1": "请从桌面选择任意游戏并按住  键",
     "hint2": "点击  打开, 在应用开启期间保持按住  键，直到进入 hbmenu",
-    "hint3": "在 hbmenu 菜单中选择 Switchfin",
-    "hint4": "可选：安装 Switchfin NSP 通过桌面图标直接打开 Switchfin",
+    "hint3": "在 hbmenu 菜单中选择 Switchlex",
+    "hint4": "可选：安装 Switchlex NSP 通过桌面图标直接打开 Switchlex",
     "hint_nsp": "点击  安装桌面图标",
     "hint_confirm": "安装桌面图标可能导致ban机\n请再次确认",
     "hint_right": "掌机图片来源于网络，版权归任天堂 Nintendo Co., Ltd 所有"
+  },
+  "plex": {
+    "link": "Sign in with plex.tv",
+    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "expired": "The code expired, please try again",
+    "manual_header": "Manual connection",
+    "token": "Token",
+    "choose_server": "Choose a server",
+    "choose_profile": "Choose a profile",
+    "profile_pin": "Profile PIN",
+    "wrong_pin": "Wrong PIN",
+    "no_server": "No server found on this account",
+    "unreachable": "Server unreachable"
   }
 }

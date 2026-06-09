@@ -2,12 +2,8 @@
   "tabs": {
     "home": "Inicio",
     "genres": "Géneros",
-    "program": "Programas",
     "suggest": "Sugerencias",
-    "artists": "Artistas",
-    "songs": "Canciones",
     "search": "Buscar",
-    "dashboard": "Panel de control",
     "setting": "Ajustes"
   },
   "home": {
@@ -23,20 +19,8 @@
   },
   "about": {
     "header": "Acerca de",
-    "brief": "Otro cliente de Jellyfin de terceros",
+    "brief": "Otro cliente de Plex de terceros",
     "repo_header": "Repositorio"
-  },
-  "dashboard": {
-    "session": "Sesión",
-    "device": "Dispositivo",
-    "activity": "Actividad",
-    "path": "Ruta",
-    "restart": "Reiniciar",
-    "confirm_restart": "¿Estás seguro qué deseas reiniciar Jellyfin?",
-    "scan_all": "Escanear todas las bibliotecas",
-    "within_minute": "Menos de 1 minuto",
-    "minute_ago": "Hace {} minutos",
-    "hour_ago": "Hace {} horas"
   },
   "player": {
     "subtitle": "Subtítulos",
@@ -54,35 +38,6 @@
     "episode": "Episodio",
     "speed_up": "Velocidad actual {}"
   },
-  "danmaku": {
-    "header": "Configuración de comentarios",
-    "performance": {
-      "header": "Rendimiento",
-      "render": "Escala de renderizado"
-    },
-    "style": {
-      "header": "Estilo de los comentarios",
-      "font": "Fuente de letra",
-      "font_stroke": "Contorno de fuente",
-      "font_incline": "Inclinación",
-      "font_shadow": "Sombra",
-      "font_pure": "Sólido",
-      "area": "Área de visualización",
-      "area_1_4": "Pantalla 1/4",
-      "area_2_4": "Pantalla 1/2",
-      "area_3_4": "Pantalla 3/4",
-      "area_4_4": "Pantalla completa",
-      "alpha": "Opacidad",
-      "fontsize": "Tamaño de fuente",
-      "line_height": "Altura de línea",
-      "speed": "Velocidad",
-      "speed_slow_plus": "Muy lenta",
-      "speed_slow": "Lenta",
-      "speed_fast_plus": "Muy rápida",
-      "speed_fast": "Rápida",
-      "speed_moderate": "Moderada"
-    }
-  },
   "media": {
     "sort": "Ordenar",
     "sort_by": "Ordenar por",
@@ -91,7 +46,6 @@
     "ascending": "Ascendente",
     "descending": "Descendente",
     "name": "Nombre",
-    "add_favorite": "Añadir a favoritos",
     "mark_played": "Marcar como reproducido",
     "mark_unplayed": "Marcar como no reproducido",
     "play": "Reproducir",
@@ -106,7 +60,8 @@
     "rating": "Calificación",
     "random": "Aleatorio",
     "played": "Reproducido",
-    "unplayed": "No reproducido"
+    "unplayed": "No reproducido",
+    "collections": "Collections"
   },
   "search": {
     "hint": "Admitir palabras clave y sus letras iniciales",
@@ -118,7 +73,6 @@
     "clear_history": "¿Confirmas que deseas eliminar el historial?",
     "genres": {
       "movie": "Película",
-      "music": "Música",
       "series": "Series",
       "episode": "Episodio"
     }
@@ -141,7 +95,7 @@
       "header": "Servidor",
       "detail": "Detalles del servidor",
       "connect_new": "Nuevo servidor",
-      "connect_to": "Conectar a un servidor Jellyfin",
+      "connect_to": "Conectar a un servidor Plex",
       "invalid": "La URL debe comenzar con http:// o https://",
       "connect": "Conectar",
       "delete": "¿Confirmar borrado?",
@@ -228,17 +182,9 @@
       "font_q1": "Establecer fuente de letra o icono",
       "font_a1": "1. Descarga la fuente o el icono de letra que quieras utilizar\n2. Renombra la fuente a  font.ttf; Renombra el icono a: icon.ttf\n3. Sitúa los archivos de fuentes en el directorio de configuración\n4. Reinicia la aplicación",
       "font_q2": "Preguntas frecuentes",
-      "font_a2": "1. Switchfin prioriza mostrar las fuentes personalizadas, usando las integradas en caso de fallo.\n2. \"Ajustes - Tutorial\" ofrece un menú para abrir rápidamente el directorio de configuración",
+      "font_a2": "1. Switchlex prioriza mostrar las fuentes personalizadas, usando las integradas en caso de fallo.\n2. \"Ajustes - Tutorial\" ofrece un menú para abrir rápidamente el directorio de configuración",
       "font_q3": "No se muestran los subtítulos",
       "font_a3": "Coloca un fichero ttf en {}/subfont.ttf"
-    },
-    "quick_connect": {
-      "header": "Conexión rápida",
-      "code": "Código de conexión rápida",
-      "invalid": "Código de conexión rápida inválido",
-      "success": "Autorización de conexión rápida satisfactoria. Por favor continua en el otro dispositivo.",
-      "steps": "1. Abre la aplicación de Jellyfin en tu teléfono o navegador y conecta con tu cuenta\n2. Abre el menú de usuario y accede a la página de Conexión rápida\n3. Introduce en siguiente código:",
-      "disabled": "Atención: Conexión válida no habilitada"
     },
     "others": {
       "header": "Miscelánea",
@@ -275,10 +221,23 @@
   "hints": {
     "hint1": "Selecciona un juego de la pantalla de inicio",
     "hint2": "Mantén pulsada la tecla  y pulsa en  para acceder a hbmenu",
-    "hint3": "En hbmenu, selecciona Switchfin",
-    "hint4": "Opcional: Usar NSP forwarder de Switchfin incluido",
+    "hint3": "En hbmenu, selecciona Switchlex",
+    "hint4": "Opcional: Usar NSP forwarder de Switchlex incluido",
     "hint_nsp": "Pulsa  para instalar el NSP forwarder",
     "hint_confirm": "Instalar el NSP forwarder puede resultar en un baneo\nPor favor confirma de nuevo",
     "hint_right": "Las capturas proceden de Internet, y el copyright pertenece a Nintendo Co., Ltd"
+  },
+  "plex": {
+    "link": "Sign in with plex.tv",
+    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "expired": "The code expired, please try again",
+    "manual_header": "Manual connection",
+    "token": "Token",
+    "choose_server": "Choose a server",
+    "choose_profile": "Choose a profile",
+    "profile_pin": "Profile PIN",
+    "wrong_pin": "Wrong PIN",
+    "no_server": "No server found on this account",
+    "unreachable": "Server unreachable"
   }
 }

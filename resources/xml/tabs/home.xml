@@ -15,22 +15,6 @@
             paddingTop="@style/main/content_padding_top_bottom"
             paddingBottom="@style/main/content_padding_top_bottom">
 
-            <RecylingVideo
-                nextPage="auto"
-                pageSize="6"
-                frameHeight="235"
-                itemWidth="325"
-                id="home/user/resume"
-                title="@i18n/main/home/resume" />
-
-            <RecylingVideo
-                nextPage="auto"
-                pageSize="6"
-                frameHeight="235"
-                itemWidth="325"
-                id="home/show/nextup"
-                title="@i18n/main/home/nextup" />
-
         </brls:Box>
 
     </brls:ScrollingFrame>

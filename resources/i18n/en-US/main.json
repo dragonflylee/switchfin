@@ -2,13 +2,9 @@
   "tabs": {
     "home": "Home",
     "genres": "Genres",
-    "program": "Program",
     "suggest": "Suggestions",
-    "artists": "Artists",
-    "songs": "Songs",
     "search": "Search",
     "downloads": "Downloads",
-    "dashboard": "Dashboard",
     "setting": "Setting"
   },
   "home": {
@@ -24,20 +20,8 @@
   },
   "about": {
     "header": "About",
-    "brief": "Yet another third-party jellyfin client",
+    "brief": "Yet another third-party Plex client",
     "repo_header": "Repository"
-  },
-  "dashboard": {
-    "session": "Session",
-    "device": "Device",
-    "activity": "Activity",
-    "path": "Path",
-    "restart": "Restart",
-    "confirm_restart": "Are you sure you wish to restart Jellyfin?",
-    "scan_all": "Scan All Libraries",
-    "within_minute": "Within 1 minute",
-    "minute_ago": "{} minutes ago",
-    "hour_ago": "{} hours ago"
   },
   "player": {
     "subtitle": "Subtitle",
@@ -55,35 +39,6 @@
     "episode": "Episode",
     "speed_up": "Current speed {}"
   },
-  "danmaku": {
-    "header": "Danmaku setting",
-    "performance": {
-      "header": "Performance",
-      "render": "Rendering quality"
-    },
-    "style": {
-      "header": "Danmaku style",
-      "font": "Stroke Style",
-      "font_stroke": "Stroke",
-      "font_incline": "Incline",
-      "font_shadow": "Shadow",
-      "font_pure": "Pure",
-      "area": "Display area",
-      "area_1_4": "1/4 Screen",
-      "area_2_4": "1/2 Screen",
-      "area_3_4": "3/4 Screen",
-      "area_4_4": "Fullscreen",
-      "alpha": "Alpha",
-      "fontsize": "Fontsize",
-      "line_height": "Line Height",
-      "speed": "Speed",
-      "speed_slow_plus": "Extremely slow",
-      "speed_slow": "Slow",
-      "speed_fast_plus": "Extremely fast",
-      "speed_fast": "Fast",
-      "speed_moderate": "Moderate"
-    }
-  },
   "media": {
     "sort": "Sort",
     "sort_by": "Sort By",
@@ -92,7 +47,6 @@
     "ascending": "Ascending",
     "descending": "Descending",
     "name": "Name",
-    "add_favorite": "Add to favorites",
     "mark_played": "Mark played",
     "mark_unplayed": "Mark unplayed",
     "play": "Play",
@@ -107,7 +61,8 @@
     "rating": "Community Rating",
     "random": "Random",
     "played": "Played",
-    "unplayed": "Unplayed"
+    "unplayed": "Unplayed",
+    "collections": "Collections"
   },
   "search": {
     "hint": "Supports keywords and their initial letters",
@@ -119,7 +74,6 @@
     "clear_history": "Confirm to clear search histroy?",
     "genres": {
       "movie": "Movie",
-      "music": "Music",
       "series": "Series",
       "episode": "Episode"
     }
@@ -130,8 +84,6 @@
     "up": "Up"
   },
   "download": {
-    "quality": "Download Quality",
-    "original": "Original",
     "start": "Download",
     "cancel": "Cancel Download",
     "remove": "Remove Download",
@@ -141,7 +93,8 @@
     "queued": "Queued",
     "no_downloads": "No Downloads",
     "confirm_remove": "Remove this download?",
-    "play_offline": "Play Offline"
+    "play_offline": "Play Offline",
+    "confirm_cancel": "Cancel this download?"
   },
   "setting": {
     "quit_hint": "You are about to exit the application. The settings will take effect after the next startup",
@@ -156,7 +109,7 @@
       "header": "Server",
       "detail": "Server Details",
       "connect_new": "New Server",
-      "connect_to": "Connect to a Jellyfin server",
+      "connect_to": "Connect to a Plex server",
       "invalid": "URL must start with http:// or https://",
       "connect": "Connect",
       "delete": "Confirm to delete?",
@@ -243,17 +196,9 @@
       "font_q1": "How to set custom font or keymap icon",
       "font_a1": "1. Download the font or icon font you want\n2. Rename font to: font.ttf; Rename icon to: icon.ttf\n3. Place font files in the config directory\n4. Restart the application",
       "font_q2": "FAQ",
-      "font_a2": "1. Switchfin prioritizes the display of custom fonts, with built-in fonts as a fallback\n2. \"Settings - Tutorial\" provides a menu item to quickly open the config directory\n3. On Linux, Switchfin uses xdg-open to open the directory. If the configuration directory cannot be opened correctly, you can consider installing this tool",
+      "font_a2": "1. Switchlex prioritizes the display of custom fonts, with built-in fonts as a fallback\n2. \"Settings - Tutorial\" provides a menu item to quickly open the config directory\n3. On Linux, Switchlex uses xdg-open to open the directory. If the configuration directory cannot be opened correctly, you can consider installing this tool",
       "font_q3": "Subtitles didn't display",
       "font_a3": "Put any ttf file at {}/subfont.ttf"
-    },
-    "quick_connect": {
-      "header": "Quick Connect",
-      "code": "Quick Connect code",
-      "invalid": "Invalid Quick Connect code",
-      "success": "Authorizing Quick Connect successful. Please continue on your other device.",
-      "steps": "1. Open the Jellyfin app on your phone or web browser and sign in with your account\n2. Open the user menu and go to the Quick Connect page\n3. Enter the following code:",
-      "disabled": "Note: Quick Connect not enabled"
     },
     "others": {
       "header": "Others",
@@ -290,10 +235,23 @@
   "hints": {
     "hint1": "Select a game from home screen",
     "hint2": "Hold the  key and click  to enter hbmenu",
-    "hint3": "In the hbmenu, select Switchfin",
-    "hint4": "Optional: Using provided Switchfin NSP forwarder",
+    "hint3": "In the hbmenu, select Switchlex",
+    "hint4": "Optional: Using provided Switchlex NSP forwarder",
     "hint_nsp": "Click  to install NSP forwarder",
     "hint_confirm": "Installing NSP forwarder may result in a ban\nPlease confirm again",
     "hint_right": "The pictures are from the Internet, and the copyright belongs to Nintendo Co., Ltd"
+  },
+  "plex": {
+    "link": "Sign in with plex.tv",
+    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "expired": "The code expired, please try again",
+    "manual_header": "Manual connection",
+    "token": "Token",
+    "choose_server": "Choose a server",
+    "choose_profile": "Choose a profile",
+    "profile_pin": "Profile PIN",
+    "wrong_pin": "Wrong PIN",
+    "no_server": "No server found on this account",
+    "unreachable": "Server unreachable"
   }
 }

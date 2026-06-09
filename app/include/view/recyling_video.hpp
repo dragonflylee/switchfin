@@ -5,6 +5,7 @@
 #pragma once
 
 #include <borealis.hpp>
+#include <api/plex/types.hpp>
 
 class HRecyclerFrame;
 
@@ -25,7 +26,8 @@ public:
     void onQuery(const Callback& callback = nullptr);
     void doRequest(bool refresh = false);
     void doLatest(bool refresh = false);
-    void doLiveTV(bool refresh = false);
+    /// Alimente directement la rangée (hubs) sans requête ; GONE si vide
+    void setItems(const std::vector<plex::Item>& items);
 
 private:
     BRLS_BIND(brls::Header, title, "recycler/title");

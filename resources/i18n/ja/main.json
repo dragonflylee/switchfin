@@ -2,12 +2,8 @@
   "tabs": {
     "home": "ホーム",
     "genres": "ジャンル",
-    "program": "番組",
     "suggest": "おすすめ",
-    "artists": "アーティスト",
-    "songs": "曲",
     "search": "検索",
-    "dashboard": "ダッシュボード",
     "setting": "設定"
   },
   "home": {
@@ -23,20 +19,8 @@
   },
   "about": {
     "header": "詳細",
-    "brief": "その他のサードパーティー製Jellyfinクライアント",
+    "brief": "その他のサードパーティー製Plexクライアント",
     "repo_header": "リポジトリ"
-  },
-  "dashboard": {
-    "session": "ユーザーセッション",
-    "device": "デバイス",
-    "activity": "アクティビティ",
-    "path": "パス",
-    "restart": "再起動",
-    "confirm_restart": "本当にJellyfinを再起動しますか？",
-    "scan_all": "ライブラリをスキャン",
-    "within_minute": "1分もかからない",
-    "minute_ago": "{} 分前",
-    "hour_ago": "{} 時間前"
   },
   "player": {
     "subtitle": "字幕",
@@ -54,35 +38,6 @@
     "episode": "エピソード",
     "speed_up": "現在の速度 {}"
   },
-  "danmaku": {
-    "header": "字幕の設定",
-    "performance": {
-      "header": "性能",
-      "render": "レンダリング品質"
-    },
-    "style": {
-      "header": "字幕のスタイル",
-      "font": "ストロークスタイル",
-      "font_stroke": "ストローク",
-      "font_incline": "傾斜",
-      "font_shadow": "影",
-      "font_pure": "純粋",
-      "area": "表示エリア",
-      "area_1_4": "1/4 スクリーン",
-      "area_2_4": "1/2 スクリーン",
-      "area_3_4": "3/4 スクリーン",
-      "area_4_4": "フルスクリーン",
-      "alpha": "アルファ",
-      "fontsize": "フォントサイズ",
-      "line_height": "ラインの高さ",
-      "speed": "速度",
-      "speed_slow_plus": "極めて遅い",
-      "speed_slow": "遅い",
-      "speed_fast_plus": "極めて速い",
-      "speed_fast": "早い",
-      "speed_moderate": "中程度"
-    }
-  },
   "media": {
     "sort": "並び替え",
     "sort_by": "並び順",
@@ -91,7 +46,6 @@
     "ascending": "上昇",
     "descending": "下降",
     "name": "名前",
-    "add_favorite": "お気に入りに追加",
     "mark_played": "再生済みにする",
     "mark_unplayed": "未再生にする",
     "play": "再生",
@@ -106,7 +60,8 @@
     "rating": "コミュニティ評価",
     "random": "ランダム",
     "played": "再生済み",
-    "unplayed": "未再生"
+    "unplayed": "未再生",
+    "collections": "Collections"
   },
   "search": {
     "hint": "サポートキーワードとその頭文字",
@@ -118,7 +73,6 @@
     "clear_history": "検索履歴を消去しますか?",
     "genres": {
       "movie": "動画",
-      "music": "音楽",
       "series": "シリーズ",
       "episode": "エピソード"
     }
@@ -141,7 +95,7 @@
       "header": "サーバー",
       "detail": "サーバー詳細",
       "connect_new": "新規サーバー",
-      "connect_to": "Jellyfinサーバーに接続中",
+      "connect_to": "Plexサーバーに接続中",
       "invalid": "無効なサーバーアドレス!",
       "connect": "接続",
       "delete": "削除しますか?",
@@ -228,17 +182,9 @@
       "font_q1": "カスタムフォントやキーマップアイコンの設定方法",
       "font_a1": "1. ご希望のフォントまたはアイコンフォントをダウンロードする\n2. フォントの名前をfont.ttfに変更する; アイコンの名前をicon.ttfに変更する\n3. フォントファイルをconfigディレクトリに置く\n4. アプリを再起動する",
       "font_q2": "FAQ",
-      "font_a2": "1. Switchfinはカスタムフォントを優先的に表示し、フォールバックとしてビルトインフォントを使用します\n2. \"設定 - チュートリアル\" コンフィグディレクトリを素早く開くためのメニュー項目を提供する\n3. Linuxの場合、Switchfinはxdg-openを使ってディレクトリを開きます。設定ディレクトリを正しく開けない場合は、次のツールのインストールを検討してください。",
+      "font_a2": "1. Switchlexはカスタムフォントを優先的に表示し、フォールバックとしてビルトインフォントを使用します\n2. \"設定 - チュートリアル\" コンフィグディレクトリを素早く開くためのメニュー項目を提供する\n3. Linuxの場合、Switchlexはxdg-openを使ってディレクトリを開きます。設定ディレクトリを正しく開けない場合は、次のツールのインストールを検討してください。",
       "font_q3": "字幕が表示されませんでした",
       "font_a3": "任意のttfファイルを {}/subfont.ttf に置く"
-    },
-    "quick_connect": {
-      "header": "クイック接続",
-      "code": "クイック接続コード",
-      "invalid": "無効なクイック接続コード",
-      "success": "クイックコネクトの認証に成功しました。他のデバイスで続けてください。",
-      "steps": "1. スマートフォンまたはウェブブラウザでJellyfinアプリを開き、アカウントでサインインしてください\n2. ユーザーメニューを開き、クイック接続のページに移動する\n3. 次のコードを入力してください:",
-      "disabled": "備考: クイック接続が無効"
     },
     "others": {
       "header": "その他",
@@ -274,11 +220,24 @@
   },
   "hints": {
     "hint1": "ホーム画面からゲームを選択",
-    "hint2": " \uE0E5 ボタンを押し続けて \uE0E0 をクリックするとhbmenuが起動",
-    "hint3": "hbmenuでSwitchfinを選択する",
-    "hint4": "オプション: Switchfin NSPフォワーダーを使用する",
-    "hint_nsp": " \uE0E0 をクリックしてNSPフォーワーダーをインストールする",
+    "hint2": "  ボタンを押し続けて  をクリックするとhbmenuが起動",
+    "hint3": "hbmenuでSwitchlexを選択する",
+    "hint4": "オプション: Switchlex NSPフォワーダーを使用する",
+    "hint_nsp": "  をクリックしてNSPフォーワーダーをインストールする",
     "hint_confirm": "NSPフォワーダのインストールはBANされる可能性があります\n再度ご確認ください",
     "hint_right": "写真はインターネット上のもので、著作権は任天堂株式会社に帰属します"
+  },
+  "plex": {
+    "link": "Sign in with plex.tv",
+    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "expired": "The code expired, please try again",
+    "manual_header": "Manual connection",
+    "token": "Token",
+    "choose_server": "Choose a server",
+    "choose_profile": "Choose a profile",
+    "profile_pin": "Profile PIN",
+    "wrong_pin": "Wrong PIN",
+    "no_server": "No server found on this account",
+    "unreachable": "Server unreachable"
   }
 }

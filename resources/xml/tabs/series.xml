@@ -16,129 +16,163 @@
             fontSize="22">
 
             <brls:Box
-                paddingLeft="@style/main/content_padding_sides"
-                paddingRight="@style/main/content_padding_sides"
-                paddingTop="@style/main/content_padding_top_bottom"
-                paddingBottom="@style/main/content_padding_top_bottom">
-
-                <brls:Box
-                    width="200"
-                    maxHeight="400"
-                    axis="column"
-                    marginRight="15">
-                    <brls:Image
-                        id="series/image/logo"
-                        scalingType="fit"
-                        backgroundColor="@theme/color/grey_1"
-                        image="@res/img/video-card-bg.png" />
-                </brls:Box>
+                width="auto"
+                height="auto">
 
                 <brls:ScrollingFrame
-                    width="auto"
-                    height="auto"
                     grow="1.0">
 
                     <brls:Box
+                        axis="column"
+                        paddingLeft="@style/main/content_padding_sides"
                         paddingRight="@style/main/content_padding_sides"
-                        axis="column">
-
-                        <brls:Header
-                            marginBottom="10"
-                            height="40"
-                            id="series/header/title" />
+                        paddingTop="@style/main/content_padding_top_bottom"
+                        paddingBottom="@style/main/content_padding_top_bottom">
 
                         <brls:Box
-                            alignItems="center"
-                            marginBottom="10">
-
-                            <brls:Label
-                                id="series/label/genres"
-                                fontSize="15"
-                                animated="false"
-                                marginBottom="15" />
-
-                            <brls:Padding />
-
-                            <brls:Label
-                                id="series/label/year"
-                                marginRight="10"
-                                fontSize="15" />
-
+                            id="series/banner"
+                            width="100%"
+                            height="220"
+                            visibility="gone">
+                            <brls:Image
+                                id="series/image/backdrop"
+                                width="100%"
+                                height="100%"
+                                scalingType="fill"
+                                cornerRadius="4"
+                                backgroundColor="@theme/color/grey_1" />
                             <brls:Box
-                                wireframe="false"
-                                borderColor="@theme/brls/text"
-                                borderThickness="1"
-                                visibility="gone"
-                                paddingLeft="5"
-                                paddingRight="5"
-                                height="30"
-                                marginRight="10">
-                                <brls:Label
-                                    id="series/parental/rating"
-                                    singleLine="true"
-                                    wireframe="false"
-                                    fontSize="15" />
-                            </brls:Box>
-
-                            <brls:Box
-                                wireframe="false"
+                                positionType="absolute"
+                                positionTop="0"
+                                positionLeft="0"
+                                width="100%"
+                                height="100%"
                                 alignItems="center"
-                                visibility="gone">
-                                <SVGImage
-                                    width="15"
-                                    height="15"
-                                    svg="@res/icon/ico-star.svg" />
-                                <brls:Label
-                                    id="series/label/rating"
-                                    marginLeft="2"
-                                    fontSize="15" />
+                                justifyContent="center">
+                                <brls:Image
+                                    id="series/image/logo"
+                                    width="420"
+                                    height="120"
+                                    scalingType="fit" />
                             </brls:Box>
                         </brls:Box>
 
-                        <TextBox
-                            id="series/label/overview"
-                            fontSize="15"
-                            textColor="@theme/font/grey" />
+                        <brls:Box
+                            id="series/content/row">
 
-                        <brls:Header
-                            height="40"
-                            id="series/label/nextup"
-                            title="@i18n/main/home/nextup" />
+                            <brls:Box
+                                width="200"
+                                axis="column"
+                                marginRight="15">
+                                <brls:Image
+                                    id="series/image/poster"
+                                    height="300"
+                                    scalingType="fill"
+                                    cornerRadius="4"
+                                    backgroundColor="@theme/color/grey_1"
+                                    image="@res/img/video-card-bg.png" />
+                            </brls:Box>
 
-                        <HRecyclerFrame
-                            height="240"
-                            itemWidth="325"
-                            id="series/nextup" />
+                            <brls:Box
+                                id="series/content/info"
+                                axis="column"
+                                grow="1.0"
+                                paddingRight="@style/main/content_padding_sides">
 
-                        <brls:Header
-                            height="40"
-                            id="series/label/people"
-                            title="@i18n/main/media/people" />
+                                <brls:Header
+                                    marginBottom="10"
+                                    height="40"
+                                    id="series/header/title" />
 
-                        <HRecyclerFrame
-                            height="250"
-                            itemWidth="140"
-                            id="series/people" />
+                                <brls:Box
+                                    alignItems="center"
+                                    marginBottom="10">
 
-                        <brls:Header
-                            height="40"
-                            id="series/label/special"
-                            title="@i18n/main/media/special" />
+                                    <brls:Label
+                                        id="series/label/genres"
+                                        fontSize="15"
+                                        animated="false"
+                                        marginBottom="15" />
 
-                        <HRecyclerFrame
-                            height="190"
-                            itemWidth="250"
-                            id="series/special" />
+                                    <brls:Padding />
 
-                        <brls:Header
-                            height="40"
-                            id="series/label/similar"
-                            title="@i18n/main/media/similar" />
+                                    <brls:Label
+                                        id="series/label/year"
+                                        marginRight="10"
+                                        fontSize="15" />
 
-                        <HRecyclerFrame
-                            height="250"
-                            itemWidth="140"
-                            id="series/similar" />
+                                    <brls:Box
+                                        wireframe="false"
+                                        borderColor="@theme/brls/text"
+                                        borderThickness="1"
+                                        visibility="gone"
+                                        paddingLeft="5"
+                                        paddingRight="5"
+                                        height="30"
+                                        marginRight="10">
+                                        <brls:Label
+                                            id="series/parental/rating"
+                                            singleLine="true"
+                                            wireframe="false"
+                                            fontSize="15" />
+                                    </brls:Box>
+
+                                    <brls:Box
+                                        wireframe="false"
+                                        alignItems="center"
+                                        visibility="gone">
+                                        <SVGImage
+                                            width="15"
+                                            height="15"
+                                            svg="@res/icon/ico-star.svg" />
+                                        <brls:Label
+                                            id="series/label/rating"
+                                            marginLeft="2"
+                                            fontSize="15" />
+                                    </brls:Box>
+                                </brls:Box>
+
+                                <TextBox
+                                    id="series/label/overview"
+                                    fontSize="15"
+                                    textColor="@theme/font/grey" />
+
+                                <brls:Header
+                                    height="40"
+                                    id="series/label/nextup"
+                                    title="@i18n/main/home/nextup" />
+
+                                <HRecyclerFrame
+                                    height="240"
+                                    itemWidth="325"
+                                    id="series/nextup" />
+
+                                <brls:Header
+                                    height="40"
+                                    id="series/label/people"
+                                    title="@i18n/main/media/people" />
+
+                                <HRecyclerFrame
+                                    height="250"
+                                    itemWidth="140"
+                                    id="series/people" />
+
+                                <brls:Header
+                                    height="40"
+                                    id="series/label/special"
+                                    title="@i18n/main/media/special" />
+
+                                <HRecyclerFrame
+                                    height="190"
+                                    itemWidth="250"
+                                    id="series/special" />
+
+                                <brls:Box
+                                    id="series/related/box"
+                                    axis="column" />
+
+                            </brls:Box>
+                        </brls:Box>
 
                     </brls:Box>
 

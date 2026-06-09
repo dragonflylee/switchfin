@@ -30,9 +30,6 @@
                 <brls:DetailCell
                     title="@i18n/main/setting/server/header"
                     id="setting/server" />
-                <brls:DetailCell
-                    title="@i18n/main/tabs/dashboard"
-                    id="setting/dashboard" />
             </brls:Box>
 
             <brls:Header
@@ -119,20 +116,6 @@
                     id="setting/network/proxy_passwd"
                     type="password"
                     visibility="gone" />
-            </brls:Box>
-
-            <brls:Header
-                width="auto"
-                height="auto"
-                title="@i18n/main/tabs/downloads"
-                marginBottom="0px" />
-            <brls:Box
-                width="100%"
-                height="auto"
-                axis="column"
-                marginBottom="30px">
-                <brls:SelectorCell
-                    id="setting/download/quality" />
             </brls:Box>
 
             <brls:Header

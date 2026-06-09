@@ -4,8 +4,6 @@
 #include "utils/gesture.hpp"
 #include "utils/keybind.hpp"
 #include "utils/misc.hpp"
-#include "view/danmaku_core.hpp"
-#include "view/danmaku_setting.hpp"
 #include "view/mpv_core.hpp"
 #include "view/svg_image.hpp"
 #include "view/video_profile.hpp"
@@ -139,19 +137,6 @@ VideoView::VideoView() {
     /// 音量按钮
     this->btnVolume->registerClickAction([this](brls::View* view) { return this->toggleVolume(view); });
     this->btnVolume->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVolume));
-
-    /// 弹幕切换按钮
-    this->btnDanmakuToggle->registerClickAction([this](...) { return this->toggleDanmaku(); });
-    this->registerAction(KeyBind::getDanmaku(), [this](...) { return this->toggleDanmaku(); });
-    this->btnDanmakuToggle->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnDanmakuToggle));
-
-    /// 弹幕设置按钮
-    this->btnDanmakuSetting->registerClickAction([](...) {
-        auto setting = new DanmakuSetting();
-        brls::Application::pushActivity(new brls::Activity(setting));
-        return true;
-    });
-    this->btnDanmakuSetting->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnDanmakuSetting));
 
     this->registerMpvEvent();
 
@@ -465,8 +450,6 @@ void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::S
         nvgFill(vg);
     }
 
-    if (enableDanmaku) DanmakuCore::instance().draw(vg, x, y, w, h, alpha);
-
     // draw osd
     brls::Time current = brls::getCPUTimeUsec();
     if (current < this->osdLastShowTime) {
@@ -722,8 +705,6 @@ void VideoView::showHint(const std::string& value) {
 void VideoView::setTvMode(bool state) {
     btnToggle->setCustomNavigationRoute(brls::FocusDirection::RIGHT, state ? osdSlider : iconBox);
     volumeIcon->setCustomNavigationRoute(brls::FocusDirection::UP, state ? osdSlider : osdLockBox);
-    danmakuSettingIcon->setCustomNavigationRoute(brls::FocusDirection::UP, state ? osdSlider : osdLockBox);
-    danmakuIcon->setCustomNavigationRoute(brls::FocusDirection::UP, state ? osdSlider : osdLockBox);
     iconVideoQuality->setCustomNavigationRoute(brls::FocusDirection::UP, state ? osdSlider : osdLockBox);
     iconVideoSpeed->setCustomNavigationRoute(brls::FocusDirection::UP, state ? osdSlider : osdLockBox);
     osdLockBox->setCustomNavigationRoute(brls::FocusDirection::DOWN, state ? osdSlider : iconBox);
@@ -827,42 +808,6 @@ bool VideoView::close(bool quit) {
 void VideoView::disableDimming(bool disable) {
     brls::Application::getPlatform()->disableScreenDimming(disable, "Playing video", AppVersion::getPackageName());
     brls::Application::setAutomaticDeactivation(!disable);
-}
-
-void VideoView::setDanmakuEnable(brls::Visibility v) {
-    this->enableDanmaku = (v == brls::Visibility::VISIBLE);
-    btnDanmakuToggle->setVisibility(v);
-    danmakuIcon->setVisibility(v);
-    if (enableDanmaku) {
-        this->refreshDanmakuIcon();
-    } else {
-        btnDanmakuSetting->setVisibility(v);
-        danmakuSettingIcon->setVisibility(v);
-    }
-}
-
-bool VideoView::toggleDanmaku() {
-    if (!enableDanmaku) return false;
-    DanmakuCore::DANMAKU_ON = !DanmakuCore::DANMAKU_ON;
-    this->refreshDanmakuIcon();
-    AppConfig::instance().setItem(AppConfig::DANMAKU_ON, DanmakuCore::DANMAKU_ON);
-    return true;
-}
-
-void VideoView::refreshDanmakuIcon() {
-    if (DanmakuCore::DANMAKU_ON) {
-        this->danmakuIcon->setImageFromSVGRes("icon/ico-danmu-switch-on.svg");
-        btnDanmakuSetting->setVisibility(brls::Visibility::VISIBLE);
-        danmakuSettingIcon->setVisibility(brls::Visibility::VISIBLE);
-    } else {
-        this->danmakuIcon->setImageFromSVGRes("icon/ico-danmu-switch-off.svg");
-        // 当焦点刚好位于弹幕设置按钮时，这时通过快捷键关闭弹幕设置会导致焦点不会自动切换
-        if (brls::Application::getCurrentFocus() == btnDanmakuSetting) {
-            brls::Application::giveFocus(btnDanmakuToggle);
-        }
-        btnDanmakuSetting->setVisibility(brls::Visibility::GONE);
-        danmakuSettingIcon->setVisibility(brls::Visibility::GONE);
-    }
 }
 
 void VideoView::setClipPoint(const std::vector<float>& clips) {

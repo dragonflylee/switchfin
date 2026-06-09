@@ -2,12 +2,8 @@
   "tabs": {
     "home": "홈",
     "genres": "장르",
-    "program": "프로그램",
     "suggest": "제안",
-    "artists": "아티스트",
-    "songs": "노래",
     "search": "검색",
-    "dashboard": "대시보드",
     "setting": "설정"
   },
   "home": {
@@ -23,20 +19,8 @@
   },
   "about": {
     "header": "소프트웨어 정보",
-    "brief": "게임패드 조작에 최적화된 크로스 플랫폼 Jellyfin 클라이언트\n일상적인 사용을 위해 설계되었으며, 현재 PC 전 플랫폼과 Nintendo Switch에서 실행 가능합니다.",
+    "brief": "게임패드 조작에 최적화된 크로스 플랫폼 Plex 클라이언트\n일상적인 사용을 위해 설계되었으며, 현재 PC 전 플랫폼과 Nintendo Switch에서 실행 가능합니다.",
     "repo_header": "리포지토리"
-  },
-  "dashboard": {
-    "session": "Session",
-    "device": "장치",
-    "activity": "활동",
-    "path": "선택",
-    "restart": "재시작",
-    "confirm_restart": "Jellyfin을 다시 시작 하시겠습니까?",
-    "scan_all": "라이브러리 스캔",
-    "within_minute": "1분도 안 걸려",
-    "minute_ago": "{}분 전",
-    "hour_ago": "{}시간 전"
   },
   "player": {
     "subtitle": "자막",
@@ -54,35 +38,6 @@
     "episode": "에피소드",
     "speed_up": "{} 배속 재생 중"
   },
-  "danmaku": {
-    "header": "탄막 자막 설정",
-    "performance": {
-      "header": "탄막 자막 성능",
-      "render": "렌더링 품질"
-    },
-    "style": {
-      "header": "탄막 자막 스타일",
-      "font": "글꼴 테두리 유형",
-      "font_stroke": "글꼴 테두리",
-      "font_incline": "기울임",
-      "font_shadow": "그림자",
-      "font_pure": "단색",
-      "area": "표시 영역",
-      "area_1_4": "화면 1/4",
-      "area_2_4": "화면 1/2",
-      "area_3_4": "화면 3/4",
-      "area_4_4": "전체 화면",
-      "alpha": "불투명도",
-      "fontsize": "자막 크기",
-      "line_height": "자막 줄 높이",
-      "speed": "자막 속도",
-      "speed_slow_plus": "매우 느림",
-      "speed_slow": "느림",
-      "speed_fast_plus": "매우 빠름",
-      "speed_fast": "빠름",
-      "speed_moderate": "보통"
-    }
-  },
   "media": {
     "sort": "정렬",
     "sort_by": "정렬 방식",
@@ -91,7 +46,6 @@
     "ascending": "오름차순",
     "descending": "내림차순",
     "name": "이름",
-    "add_favorite": "즐겨찾기에 추가",
     "mark_played": "재생한 것으로 표시",
     "mark_unplayed": "재생하지 않은 것으로 표시",
     "play": "재생",
@@ -106,7 +60,8 @@
     "rating": "평점",
     "random": "무작위",
     "played": "재생됨",
-    "unplayed": "재생 안 됨"
+    "unplayed": "재생 안 됨",
+    "collections": "Collections"
   },
   "search": {
     "hint": "키워드와 키워드의 첫 글자를 지원합니다.",
@@ -118,7 +73,6 @@
     "clear_history": "검색 기록을 비우시겠습니까?",
     "genres": {
       "movie": "영화",
-      "music": "음악",
       "series": "시리즈",
       "episode": "에피소드"
     }
@@ -141,7 +95,7 @@
       "header": "서버",
       "detail": "서버 상세",
       "connect_new": "새 서버",
-      "connect_to": "Jellyfin 서버에 연결",
+      "connect_to": "Plex 서버에 연결",
       "invalid": "서버 주소가 유효하지 않습니다!",
       "connect": "연결",
       "delete": "삭제하시겠습니까?",
@@ -163,7 +117,7 @@
       "touch_gesture": "재생 진행 손가락 제스처 활성화",
       "clip_point": "챕터 위치 표시",
       "transcodec": "트랜스코딩 포맷",
-      "audio_channels": "오디오 채널",  
+      "audio_channels": "오디오 채널",
       "video_quality": "비디오 품질",
       "subsync": "자막 동기화"
     },
@@ -232,14 +186,6 @@
       "font_q3": "자막이 제대로 표시되지 않음",
       "font_a3": "적절한 ttf 글꼴 파일을 {}/subfont.ttf로 복사"
     },
-    "quick_connect": {
-      "header": "Quick Connect",
-      "code": "Quick Connect 인증 코드",
-      "invalid": "유효하지 않은 Quick Connect 인증 코드",
-      "success": "Quick Connect가 성공적으로 승인되었습니다. 다른 기기에서 계속 진행하십시오.",
-      "steps": "1. 모바일 앱 또는 브라우저에서 Jellyfin에 로그인\n2. 사용자 메뉴를 열고 Quick Connect 페이지로 이동\n3. 아래 인증 코드를 입력:",
-      "disabled": "주의: Quick Connect가 활성화되지 않았습니다."
-    },
     "others": {
       "header": "기타",
       "fullscreen": "전체 화면 표시",
@@ -275,10 +221,23 @@
   "hints": {
     "hint1": "홈 화면에서 게임 선택하세요",
     "hint2": " 키를 누르고 를 클릭하여 hbmenu로 들어갑니다",
-    "hint3": "hbmenu에서, Switchfin을 선택하세요",
-    "hint4": "선택 사항: Switchfin NSP를 설치하여 홈 화면 아이콘으로 Switchfin을 바로 여세요",
+    "hint3": "hbmenu에서, Switchlex을 선택하세요",
+    "hint4": "선택 사항: Switchlex NSP를 설치하여 홈 화면 아이콘으로 Switchlex을 바로 여세요",
     "hint_nsp": "NSP 포워더를 설치하기 위해 를 선택하세요",
     "hint_confirm": "홈 화면 아이콘 설치는 기기가 밴 될 수 있습니다. 다시 확인하세요",
     "hint_right": "사진은 인터넷에서 가져온 것이며 저작권은 Nintendo Co., Ltd에 있습니다"
+  },
+  "plex": {
+    "link": "Sign in with plex.tv",
+    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "expired": "The code expired, please try again",
+    "manual_header": "Manual connection",
+    "token": "Token",
+    "choose_server": "Choose a server",
+    "choose_profile": "Choose a profile",
+    "profile_pin": "Profile PIN",
+    "wrong_pin": "Wrong PIN",
+    "no_server": "No server found on this account",
+    "unreachable": "Server unreachable"
   }
 }

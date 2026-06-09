@@ -12,6 +12,9 @@ class MediaFilter;
 
 class MediaCollection : public brls::Box {
 public:
+    /// @param itemId clé de section OU ratingKey de collection
+    /// @param itemType type Plex : "movie" | "show" | "photo" | "collection"
+    /// @param genresId clé de genre Plex (filtre genre=)
     explicit MediaCollection(
         const std::string& itemId, const std::string& itemType = "", const std::string& genresId = "");
 
@@ -23,8 +26,6 @@ private:
     BRLS_BIND(RecyclingGrid, recycler, "media/series");
     BRLS_BIND(AutoTabFrame, tabFrame, "media/tabFrame");
 
-    /// @brief 获取显示配置
-    void doPreferences();
     void doRequest();
 
     void loadFilter();
@@ -36,7 +37,5 @@ private:
     size_t pageSize;
     size_t startIndex;
 
-    std::string prefId;
-    std::string prefKey;
     static std::map<std::string, std::string> customPrefs;
 };

@@ -1,4 +1,3 @@
-#include "api/jellyfin.hpp"
 #include "view/video_profile.hpp"
 #include "utils/misc.hpp"
 #include <fmt/ranges.h>
@@ -10,15 +9,12 @@ VideoProfile::VideoProfile() {
     this->setPositionType(brls::PositionType::ABSOLUTE);
     this->setPositionTop(25);
     this->setPositionLeft(25);
+    // statistiques de transcodage serveur : non disponibles sans session
+    // d'admin Plex — panneau local mpv uniquement
     this->boxTranscode->setVisibility(brls::Visibility::GONE);
-
-    this->ticker.setCallback([this]() { this->onRequest(); });
 }
 
-VideoProfile::~VideoProfile() {
-    brls::Logger::debug("View VideoProfile: delete");
-    this->ticker.stop();
-}
+VideoProfile::~VideoProfile() { brls::Logger::debug("View VideoProfile: delete"); }
 
 #include "view/mpv_core.hpp"
 
@@ -32,11 +28,6 @@ void VideoProfile::init(const std::string& method) {
         labelMethod->setText(mpv.getString("playlist-path"));
     else
         labelMethod->setText(method);
-
-    if (method == jellyfin::methodTranscode)
-        ticker.start(2000);
-    else
-        this->ticker.stop();
 
     this->inited = true;
     this->update();
@@ -81,29 +72,3 @@ void VideoProfile::update() {
     }
 }
 
-void VideoProfile::onRequest() {
-    std::string query = HTTP::encode_form({
-        {"deviceId", AppConfig::instance().getDeviceId()},
-    });
-    ASYNC_RETAIN
-    jellyfin::getJSON<std::vector<jellyfin::SessionInfo>>(
-        [ASYNC_TOKEN](const std::vector<jellyfin::SessionInfo>& list) {
-            ASYNC_RELEASE
-            if (list.empty()) return;
-
-            auto& s = list.front();
-            if (s.PlayState.PlayMethod == jellyfin::methodTranscode) {
-                this->boxTranscode->setVisibility(brls::Visibility::VISIBLE);
-                this->labelTranscodePercent->setText(fmt::format("{:.5f}", s.TranscodingInfo.CompletionPercentage));
-                this->labelTranscodeReasons->setText(
-                    fmt::format("{}", fmt::join(s.TranscodingInfo.TranscodeReasons, "\n")));
-            } else {
-                this->boxTranscode->setVisibility(brls::Visibility::GONE);
-            }
-        },
-        [ASYNC_TOKEN](const std::string& ex) {
-            ASYNC_RELEASE
-            brls::Application::notify(ex);
-        },
-        jellyfin::apiSessionList, query);
-}

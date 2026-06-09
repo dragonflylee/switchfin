@@ -7,11 +7,10 @@
 #include "view/recycling_grid.hpp"
 #include "view/auto_tab_frame.hpp"
 #include "tab/server_add.hpp"
-#include "tab/server_login.hpp"
 #include "tab/media_collection.hpp"
 #include "utils/image.hpp"
 #include "utils/dialog.hpp"
-#include "api/jellyfin.hpp"
+#include "api/plex/auth.hpp"
 
 using namespace brls::literals;  // for _i18n
 
@@ -86,26 +85,54 @@ public:
             return true;
         });
 
-        std::string url = fmt::format(fmt::runtime(jellyfin::apiUserImage), u.id, "");
-        Image::with(cell->picture, this->parent->getUrl() + url);
+        // avatar plex.tv (URL absolue)
+        if (!u.thumb.empty()) Image::with(cell->picture, u.thumb);
         return cell;
     }
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
         brls::Application::blockInputs();
+        std::string unreachable = "main/plex/unreachable"_i18n;
 
-        brls::async([this, index]() {
+        brls::async([this, index, unreachable]() {
             auto& u = this->list.at(index);
-            HTTP::Header header = {AppConfig::instance().getAuth(u.access_token)};
-            std::string uri = fmt::format("{}/Users/{}", this->parent->getUrl(), u.id);
 
             try {
-                std::string resp = HTTP::get(uri, header, HTTP::Timeout{});
-                jellyfin::UserInfo info = nlohmann::json::parse(resp);
-                u.is_admin = info.Policy.IsAdministrator;
-                u.config = std::move(info.Configuration);
-                brls::sync([this, u]() {
-                    AppConfig::instance().addUser(u, this->parent->getUrl());
+                AppServer target;
+                bool found = false;
+                for (auto& s : AppConfig::instance().getServers()) {
+                    if (s.id == u.server_id) {
+                        target = s;
+                        found = true;
+                    }
+                }
+                if (!found) throw std::runtime_error(unreachable);
+
+                // Rafraîchit le token serveur de ce profil quand plex.tv répond ;
+                // hors-ligne on garde le token mémorisé (LAN direct).
+                try {
+                    for (auto& r : plex::getResources(u.access_token)) {
+                        if (r.clientIdentifier == target.id && !r.accessToken.empty())
+                            target.access_token = r.accessToken;
+                    }
+                } catch (const std::exception& ex) {
+                    brls::Logger::warning("refresh resources: {}", ex.what());
+                }
+
+                std::string base;
+                for (auto& url : target.urls) {
+                    if (plex::probeConnection(url, target.access_token)) {
+                        base = url;
+                        break;
+                    }
+                }
+                if (base.empty()) throw std::runtime_error(unreachable);
+
+                brls::sync([u, target, base]() {
+                    AppServer s = target;
+                    s.urls = {base};
+                    AppConfig::instance().addServer(s);
+                    AppConfig::instance().addUser(u, base);
                     brls::Application::unblockInputs();
                     brls::Application::clear();
                     brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
@@ -155,8 +182,8 @@ void ServerList::onContentAvailable() {
 
     this->recyclerUsers->registerCell("Cell", []() { return new UserCell(); });
 
-    this->btnSignin->registerClickAction([this](brls::View* view) {
-        view->present(new ServerLogin("", this->getUrl()));
+    this->btnSignin->registerClickAction([](brls::View* view) {
+        view->present(new ServerAdd());
         return true;
     });
 }

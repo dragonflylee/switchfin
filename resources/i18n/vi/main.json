@@ -2,12 +2,8 @@
   "tabs": {
     "home": "Nhà",
     "genres": "Thể Loại",
-    "program": "Chương Trình",
     "suggest": "Đề Xuất",
-    "artists": "Ca Sĩ",
-    "songs": "Bài Hát",
     "search": "Tìm",
-    "dashboard": "Trang tổng quan",
     "setting": "Cài đặt"
   },
   "home": {
@@ -17,7 +13,7 @@
   },
   "about": {
     "header": "Về chúng tôi",
-    "brief": "Một ứng dụng jellyfin dành cho bên thứ ba",
+    "brief": "Một ứng dụng Plex dành cho bên thứ ba",
     "repo_header": "Kho lưu trữ"
   },
   "player": {
@@ -36,35 +32,6 @@
     "episode": "Tập",
     "speed_up": "Tốc độ hệ tại {}"
   },
-  "danmaku": {
-    "header": "Cài đặt Danmaku",
-    "performance": {
-      "header": "Hiệu năng",
-      "render": "Chất lượng Rendering"
-    },
-    "style": {
-      "header": "Kiểu Danmaku",
-      "font": "Kiểu nét",
-      "font_stroke": "Nét",
-      "font_incline": "Nghiên",
-      "font_shadow": "Bóng",
-      "font_pure": "Nguyên bản",
-      "area": "Khu vực hiện thị",
-      "area_1_4": "1/4 màn hình",
-      "area_2_4": "1/2 màn hình",
-      "area_3_4": "3/4 màn hình",
-      "area_4_4": "Đầy màn hình",
-      "alpha": "Alpha",
-      "fontsize": "Kích thước chữ",
-      "line_height": "Chiều cao dòng",
-      "speed": "Tốc độ",
-      "speed_slow_plus": "Cực chậm",
-      "speed_slow": "Chậm",
-      "speed_fast_plus": "Cực nhanh",
-      "speed_fast": "Nhanh",
-      "speed_moderate": "Vừa phải"
-    }
-  },
   "media": {
     "sort": "Sắp xếp",
     "sort_by": "Sắp xếp theo",
@@ -80,7 +47,8 @@
     "rating": "Đánh giá cộng đồng",
     "random": "Ngẫu nhiên",
     "played": "Đã phát",
-    "unplayed": "Chưa phát"
+    "unplayed": "Chưa phát",
+    "collections": "Collections"
   },
   "search": {
     "hint": "Từ khóa hỗ trợ và chữ cái đầu của chúng",
@@ -114,7 +82,7 @@
       "header": "Server",
       "detail": "Chi tiết máy chủ",
       "connect_new": "Máy chủ mới",
-      "connect_to": "Kết nối với máy chủ Jellyfin",
+      "connect_to": "Kết nối với máy chủ Plex",
       "invalid": "Địa chỉ máy chủ không hợp lệ!",
       "connect": "Kết nối",
       "delete": "Xác nhận xoá?",
@@ -180,17 +148,9 @@
       "font_q1": "Cách thiết lập phông chữ tùy chỉnh hoặc biểu tượng bản đồ phím",
       "font_a1": "1. Tải xuống phông chữ hoặc phông chữ biểu tượng mà bạn muốn\n2. Đổi tên phông chữ thành: font.ttf; Đổi tên biểu tượng thành: icon.ttf\n3. Đặt các tệp phông chữ vào thư mục cấu hình\n4. Khởi động lại ứng dụng",
       "font_q2": "Câu hỏi thường gập",
-      "font_a2": "1. Switchfin ưu tiên hiển thị phông chữ tùy chỉnh, với phông chữ tích hợp sẵn làm phương án dự phòng\n2. Mục \"Cài đặt - Hướng dẫn\" cung cấp một mục menu để mở nhanh thư mục cấu hình\n3. Trên Linux, Switchfin sử dụng xdg-open để mở thư mục. Nếu không thể mở đúng thư mục cấu hình, bạn có thể cân nhắc cài đặt công cụ này",
+      "font_a2": "1. Switchlex ưu tiên hiển thị phông chữ tùy chỉnh, với phông chữ tích hợp sẵn làm phương án dự phòng\n2. Mục \"Cài đặt - Hướng dẫn\" cung cấp một mục menu để mở nhanh thư mục cấu hình\n3. Trên Linux, Switchlex sử dụng xdg-open để mở thư mục. Nếu không thể mở đúng thư mục cấu hình, bạn có thể cân nhắc cài đặt công cụ này",
       "font_q3": "Phụ đề không hiển thị",
       "font_a3": "Đặt font vào {}/subfont.ttf"
-    },
-    "quick_connect": {
-      "header": "Kết nối nhanh",
-      "code": "Code kết nối nhanh",
-      "invalid": "Code kết nối nhanh không hợp lệ",
-      "success": "Xác thực kết nối nhanh thành công. Vui lòng tiếp tục trên thiết bị khác của bạn.",
-      "steps": "1. Mở ứng dụng Jellyfin trên điện thoại hoặc trình duyệt web và đăng nhập bằng tài khoản của bạn\n2. Mở menu người dùng và truy cập trang Kết nối nhanh\n3. Nhập mã sau:",
-      "disabled": "Lưu ý: Kết nối nhanh chưa được bật"
     },
     "others": {
       "header": "Khác",
@@ -225,11 +185,24 @@
   },
   "hints": {
     "hint1": "Chọn một game từ màn hình chính",
-    "hint2": "Giữ \uE0E5 và \uE0E0 để vào hbmenu",
-    "hint3": "Trong hbmenu, chọn Switchfin",
-    "hint4": "Tuỳ chọn: Cài đặt Switchfin ra màn hình chính bằng NSP forwarder",
-    "hint_nsp": "Bấm \uE0E0 để cài đặt ra màn hình chính",
+    "hint2": "Giữ  và  để vào hbmenu",
+    "hint3": "Trong hbmenu, chọn Switchlex",
+    "hint4": "Tuỳ chọn: Cài đặt Switchlex ra màn hình chính bằng NSP forwarder",
+    "hint_nsp": "Bấm  để cài đặt ra màn hình chính",
     "hint_confirm": "Cài đặt NSP forwarder có thể bị ban\nVui lòng xác nhận",
     "hint_right": "Những hình ảnh này được lấy từ Internet, và bản quyền thuộc về Nintendo Co., Ltd."
+  },
+  "plex": {
+    "link": "Sign in with plex.tv",
+    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "expired": "The code expired, please try again",
+    "manual_header": "Manual connection",
+    "token": "Token",
+    "choose_server": "Choose a server",
+    "choose_profile": "Choose a profile",
+    "profile_pin": "Profile PIN",
+    "wrong_pin": "Wrong PIN",
+    "no_server": "No server found on this account",
+    "unreachable": "Server unreachable"
   }
 }
