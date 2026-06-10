@@ -37,7 +37,7 @@
         marginBottom="15"
         axis="column">
         <brls:Label
-            textColor="#6693B6"
+            textColor="@theme/color/app"
             id="setting/about/github" />
     </brls:Box>
 

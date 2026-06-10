@@ -1,115 +1,156 @@
+<!--
+    Recherche (UI_REDESIGN.md §4.6) : colonne gauche fixe (champ + actions en
+    icônes + clavier statique 6x6 généré dans search_tab.cpp — pas de scroll),
+    zone droite = historique en chips + suggestions/résultats en grille
+    d'affiches. Budget hauteur 720p : 48 + 12 + 44 + 14 + (6x46 + 5x8) = 434
+    pour 617 utiles (720 - footer 73 - paddingTop 30).
+-->
 <brls:Box
     width="auto"
     height="auto"
     paddingLeft="@style/main/content_padding_sides"
     paddingRight="@style/main/content_padding_sides"
-    paddingTop="@style/main/content_padding_top_bottom"
-    paddingBottom="@style/main/content_padding_top_bottom">
+    paddingTop="@style/main/content_padding_top_bottom">
 
+    <!-- Colonne gauche fixe (~370 pt avec la gouttière) -->
     <brls:Box
+        id="tv/search/left"
         axis="column"
-        alignItems="center"
-        justifyContent="center"
-        marginRight="@style/main/content_padding_sides">
+        width="340"
+        marginRight="30">
 
+        <!-- Champ : loupe + texte saisi / placeholder ; clic = IME -->
         <brls:Box
             id="tv/search/box"
             focusable="true"
+            height="48"
             alignItems="center"
-            width="310">
+            paddingLeft="14"
+            paddingRight="14"
+            cornerRadius="10"
+            highlightCornerRadius="10"
+            backgroundColor="@theme/color/grey_1">
             <SVGImage
                 id="tv/search/svg"
-                width="19"
+                width="18"
                 height="18"
-                marginLeft="10"
                 marginRight="10" />
             <brls:Label
                 id="tv/search/input"
-                marginTop="8"
-                marginBottom="10" />
+                grow="1"
+                singleLine="true"
+                fontSize="16" />
         </brls:Box>
 
+        <!-- Actions en icônes : tout effacer / retour arrière / espace / rechercher -->
         <brls:Box
-            marginTop="10"
-            width="320">
-            <brls:Label
-                id="tv/search/clear"
-                grow="1"
-                backgroundColor="@theme/color/grey_2"
-                horizontalAlign="center"
+            id="tv/search/actions"
+            height="44"
+            marginTop="12">
+            <brls:Box
+                id="tv/search/action/clear"
                 focusable="true"
-                margin="10"
-                height="30"
-                cornerRadius="4"
-                text="@i18n/main/search/clear" />
-            <brls:Label
-                id="tv/search/delete"
                 grow="1"
-                backgroundColor="@theme/color/grey_2"
-                horizontalAlign="center"
+                alignItems="center"
+                justifyContent="center"
+                cornerRadius="8"
+                highlightCornerRadius="8"
+                backgroundColor="@theme/color/grey_2">
+                <SVGImage
+                    width="20"
+                    height="20"
+                    svg="@res/icon/ico-trash.svg" />
+            </brls:Box>
+            <brls:Box
+                id="tv/search/action/delete"
                 focusable="true"
-                marginTop="10"
-                height="30"
-                cornerRadius="4"
-                text="@i18n/main/search/delete" />
-            <brls:Label
-                id="tv/search/label"
                 grow="1"
-                backgroundColor="@theme/color/grey_2"
-                horizontalAlign="center"
+                marginLeft="8"
+                alignItems="center"
+                justifyContent="center"
+                cornerRadius="8"
+                highlightCornerRadius="8"
+                backgroundColor="@theme/color/grey_2">
+                <SVGImage
+                    width="20"
+                    height="20"
+                    svg="@res/icon/ico-backspace.svg" />
+            </brls:Box>
+            <brls:Box
+                id="tv/search/action/space"
                 focusable="true"
-                marginTop="10"
-                marginLeft="10"
-                height="30"
-                cornerRadius="4"
-                text="@i18n/main/tabs/search" />
+                grow="1"
+                marginLeft="8"
+                alignItems="center"
+                justifyContent="center"
+                cornerRadius="8"
+                highlightCornerRadius="8"
+                backgroundColor="@theme/color/grey_2">
+                <SVGImage
+                    width="20"
+                    height="20"
+                    svg="@res/icon/ico-space.svg" />
+            </brls:Box>
+            <brls:Box
+                id="tv/search/action/search"
+                focusable="true"
+                grow="1"
+                marginLeft="8"
+                alignItems="center"
+                justifyContent="center"
+                cornerRadius="8"
+                highlightCornerRadius="8"
+                backgroundColor="@theme/color/grey_2">
+                <SVGImage
+                    width="20"
+                    height="20"
+                    svg="@res/icon/ico-search.svg" />
+            </brls:Box>
         </brls:Box>
 
+        <!-- Clavier statique 6x6 (touches générées en code, pas de RecyclingGrid) -->
         <brls:Box
-            width="320"
+            id="tv/search/keyboard"
             axis="column"
-            height="60%">
-            <RecyclingGrid
-                width="320"
-                grow="1"
-                marginLeft="10"
-                itemHeight="40"
-                spanCount="@style/app/grid/6"
-                itemSpace="10"
-                id="tv/search/keyboard" />
-        </brls:Box>
+            marginTop="14" />
 
     </brls:Box>
 
+    <!-- Zone droite : historique (chips) puis suggestions / résultats -->
     <brls:Box
+        id="tv/search/right"
         axis="column"
         grow="1">
-        <brls:Label
-            horizontalAlign="center"
-            fontSize="24"
-            text="@i18n/main/search/suggest" />
+
+        <brls:Box
+            id="tv/history/box"
+            axis="column">
+            <brls:Header
+                title="@i18n/main/search/history" />
+            <brls:HScrollingFrame
+                height="52"
+                marginTop="2">
+                <brls:Box
+                    id="tv/search/history"
+                    alignItems="center" />
+            </brls:HScrollingFrame>
+        </brls:Box>
+
+        <brls:Header
+            id="tv/search/section"
+            marginTop="10"
+            title="@i18n/main/search/suggest" />
+
         <RecyclingGrid
             id="tv/search/suggest"
             grow="1"
-            marginTop="16"
-            itemHeight="30"
-            spanCount="1" />
-    </brls:Box>
+            marginTop="2"
+            paddingBottom="@style/main/content_padding_top_bottom"
+            itemHeight="@style/app/video/height"
+            itemImageRatio="1.5"
+            itemExtraHeight="55"
+            spanCount="@style/app/grid/6" />
 
-    <brls:Box
-        axis="column"
-        id="tv/history/box"
-        grow="1">
-        <brls:Label
-            horizontalAlign="center"
-            fontSize="24"
-            text="@i18n/main/search/history" />
-        <RecyclingGrid
-            id="tv/search/history"
-            grow="1"
-            marginTop="16"
-            itemHeight="30"
-            spanCount="1" />
     </brls:Box>
 
 </brls:Box>

@@ -4,7 +4,8 @@
     "genres": "Genres",
     "suggest": "Vorschläge",
     "search": "Suche",
-    "setting": "Einstellungen"
+    "setting": "Einstellungen",
+    "downloads": "Downloads"
   },
   "home": {
     "resume": "Weiterschauen",
@@ -49,7 +50,39 @@
       "movie": "Filme",
       "series": "Serie",
       "episode": "Folgen"
-    }
+    },
+    "no_history": "No recent searches",
+    "no_results": "No results",
+    "placeholder": "Filme & Serien suchen",
+    "results": "Ergebnisse",
+    "keyboard": "Tastatur",
+    "space": "Leerzeichen",
+    "no_results_sub": "Versuche einen anderen Titel, Schauspieler oder ein Genre.",
+    "no_history_sub": "Deine letzten Suchen erscheinen hier."
+  },
+  "person": {
+    "movies": "Filme",
+    "shows": "Serien",
+    "as": "Als {}"
+  },
+  "playlist": {
+    "title": "Wiedergabelisten",
+    "item": "Element",
+    "items": "Elemente"
+  },
+  "watchlist": {
+    "title": "Watchlist",
+    "add": "Zur Watchlist hinzufügen",
+    "remove": "Aus der Watchlist entfernen",
+    "added": "Zur Watchlist hinzugefügt",
+    "removed": "Aus der Watchlist entfernt",
+    "empty_title": "Deine Watchlist ist leer",
+    "empty_sub": "Gespeicherte Filme und Serien erscheinen hier.",
+    "not_in_library": "Dieser Titel ist nicht in deiner Bibliothek",
+    "all": "Alle",
+    "availability": "Verfügbarkeit",
+    "on_server": "Auf dem Server",
+    "not_on_server": "Nicht auf dem Server"
   },
   "setting": {
     "quit_hint": "Diese Applikation wird beended und die Einstellung tritt bei dem nächsten Start in kraft.",
@@ -100,7 +133,7 @@
       "font_q1": "Eigene Schriftart oder Icons setzen",
       "font_a1": "1. Lade Schriftart oder Icons herunter\n2. Benenne die Schriftart: font.ttf; Benenne die Icons: icon.ttf\n3. Setze die neuen Dateien in den Konfigurationsordner\n4. Starte die Applikation neu",
       "font_q2": "FAQ",
-      "font_a2": "1. Switchlex priorisiert selbst gesetzte Schriftarten, ansonsten verwendet es die selbst eingebauten Schriftarten\n2. In \"Einstellungen - Anleitungen\" befindet sich ein Knopf um den Einstellungsordner zu öffnen\n3. Auf Linux verwendet Switchlex xdg-open um diesen Ordner zu öffnen. Falls sich der Ordner sich nicht richtig öffnet, dann anstalliere xdg-open"
+      "font_a2": "1. pleNx priorisiert selbst gesetzte Schriftarten, ansonsten verwendet es die selbst eingebauten Schriftarten\n2. In \"Einstellungen - Anleitungen\" befindet sich ein Knopf um den Einstellungsordner zu öffnen\n3. Auf Linux verwendet pleNx xdg-open um diesen Ordner zu öffnen. Falls sich der Ordner sich nicht richtig öffnet, dann anstalliere xdg-open"
     },
     "others": {
       "header": "Diverses",
@@ -122,31 +155,88 @@
         "ps": "PlayStation",
         "keyboard": "Tastatur"
       },
-      "up2date": "Switchlex ist auf dem neusten Stand",
+      "up2date": "pleNx ist auf dem neusten Stand",
       "upgrade": "{} is verfügbar! Jetzt aktualisieren?",
       "release": "Suche nach Aktualisierungen"
     }
   },
   "hints": {
-    "hint1": "Selektiere ein Spiel vom Homescreen",
-    "hint2": "Halte die -Taste drücke die -Taste um hbmenu zu öffnen",
-    "hint3": "Wähle Switchlex in hbmenu",
-    "hint4": "Optional: Verwende den bereitgestellten Switchlex NSP forwarder",
-    "hint_nsp": "Drücke  um den NSP forwarder zu installieren",
-    "hint_confirm": "NSP forwarder zu installieren kann zu einem Ban von Nintendo führen\nBitte erneut bestätigen",
-    "hint_right": "Die Bilder sind vom Internet und gehören Nintendo Co., Ltd"
+    "title": "Launch pleNx as a full application",
+    "text_applet": "pleNx is running in applet mode: the available memory is not sufficient for video playback. Launch it as a full application using one of the options below.",
+    "text_app": "pleNx is running as a full application. Install the HOME menu tile to launch it this way directly.",
+    "install_title": "HOME menu tile (recommended)",
+    "install_text": "Installs the embedded NSP forwarder: the tile launches pleNx as a full application straight from the HOME menu.",
+    "install_button": "Install the tile",
+    "takeover_title": "Alternative: title takeover",
+    "takeover_text": "Hold R while launching any installed game to open the homebrew menu as a full application, then launch pleNx from there.",
+    "prompt": "Install the pleNx tile on the HOME menu?\nThe tile launches the app as a full application (required for video playback).",
+    "hint_confirm": "NSP forwarder zu installieren kann zu einem Ban von Nintendo führen\nBitte erneut bestätigen"
   },
   "plex": {
-    "link": "Sign in with plex.tv",
-    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "title": "Sign in to your Plex account",
+    "generating": "Generating code…",
+    "waiting": "Waiting for confirmation…",
+    "connected": "Connected!",
     "expired": "The code expired, please try again",
-    "manual_header": "Manual connection",
-    "token": "Token",
+    "step1": "1. On your phone or computer, open plex.tv/link",
+    "step2": "2. Sign in to your Plex account",
+    "step3": "3. Enter the code shown above",
+    "regenerate": "Generate a new code",
     "choose_server": "Choose a server",
     "choose_profile": "Choose a profile",
     "profile_pin": "Profile PIN",
     "wrong_pin": "Wrong PIN",
     "no_server": "No server found on this account",
+    "connecting": "Verbindung zum Server wird hergestellt…",
     "unreachable": "Server unreachable"
+  },
+  "media": {
+    "episode": "Episode",
+    "episodes": "Episoden",
+    "seasons_title": "Staffeln",
+    "go_series": "Zur Serie",
+    "go_season": "Zur Staffel",
+    "director": "Regie",
+    "replay": "Erneut abspielen",
+    "see_all": "Alle anzeigen"
+  },
+  "download": {
+    "season": "Staffel herunterladen",
+    "confirm_season": "{} Episoden herunterladen?",
+    "season_queued": "Staffel zu Downloads hinzugefügt",
+    "storage": "Speicher",
+    "storage_free": "{} frei von {}",
+    "section_active": "Aktiv",
+    "section_done": "Heruntergeladen",
+    "remove_all": "Alle entfernen",
+    "confirm_remove_all": "Alle Downloads entfernen?",
+    "empty_sub": "Heruntergeladene Filme und Episoden erscheinen hier, offline abspielbar."
+  },
+  "remote": {
+    "empty_title": "Keine Dateien",
+    "empty_sub": "Durchsuche den lokalen Speicher und deine WebDAV-, FTP- oder SFTP-Server.",
+    "local": "Dateien",
+    "add_server": "Server hinzufügen",
+    "edit_server": "Server bearbeiten",
+    "manage": "Server verwalten",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "delete_confirm": "„{}“ löschen?",
+    "type": "Typ",
+    "name": "Name",
+    "host": "Host",
+    "port": "Port",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "path": "Startpfad",
+    "optional": "Optional",
+    "save": "Testen und speichern",
+    "test_failed": "Verbindung fehlgeschlagen: {}",
+    "retry": "Erneut versuchen?",
+    "required": "Gib mindestens einen Namen und einen Host an."
+  },
+  "empty": {
+    "title": "Nichts anzuzeigen",
+    "error": "Laden fehlgeschlagen"
   }
 }

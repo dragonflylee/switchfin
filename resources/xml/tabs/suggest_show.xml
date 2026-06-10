@@ -2,13 +2,21 @@
     width="auto"
     height="auto">
 
+    <!-- centered : le focus saute de rangée en rangée, le scroll suit — le
+         mode natural (défaut) scrollait pixel à pixel au maintien et volait
+         le focus dès que la carte sortait du cadre (focus perdu sur la barre
+         d'onglets translatée hors écran, recette console) -->
     <brls:ScrollingFrame
         width="auto"
         height="auto"
-        grow="1.0">
+        grow="1.0"
+        scrollingBehavior="centered">
 
+        <!-- paddingTop 70 : interne au scroll, les rangées partent sous la
+             barre d'onglets flottante (60) de la bibliothèque -->
         <brls:Box
             axis="column"
+            paddingTop="70"
             id="suggest/box" />
 
     </brls:ScrollingFrame>

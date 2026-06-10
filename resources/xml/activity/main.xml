@@ -7,7 +7,7 @@
         axis="column"
         width="100%"
         height="100%">
-        <AutoTabFrame
+        <MainTabFrame
             id="main/tabFrame"
             grow="1"
             tabBackgroundColor="@theme/color/grey_1"
@@ -24,13 +24,6 @@
 
             <Tab label=""
                 fontSize="18"
-                icon="@res/icon/ico-media.svg"
-                iconActivate="@res/icon/ico-media-activate.svg">
-                <MediaFolders />
-            </Tab>
-
-            <Tab label=""
-                fontSize="18"
                 icon="@res/icon/ico-search.svg"
                 iconActivate="@res/icon/ico-search-activate.svg">
                 <SearchTab />
@@ -38,9 +31,23 @@
 
             <Tab label=""
                 fontSize="18"
+                icon="@res/icon/ico-playlist.svg"
+                iconActivate="@res/icon/ico-playlist-activate.svg">
+                <PlaylistsTab />
+            </Tab>
+
+            <Tab label=""
+                fontSize="18"
+                icon="@res/icon/ico-bookmark-fill.svg"
+                iconActivate="@res/icon/ico-bookmark-fill-activate.svg">
+                <WatchlistTab />
+            </Tab>
+
+            <Tab label=""
+                fontSize="18"
                 id="tab/remote"
-                icon="@res/icon/ico-cloud.svg"
-                iconActivate="@res/icon/ico-cloud-activate.svg">
+                icon="@res/icon/ico-download.svg"
+                iconActivate="@res/icon/ico-download-activate.svg">
                 <RemoteTab />
             </Tab>
 
@@ -51,6 +58,6 @@
                 <SettingTab />
             </Tab>
 
-        </AutoTabFrame>
+        </MainTabFrame>
     </brls:Box>
 </brls:AppletFrame>

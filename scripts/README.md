@@ -17,6 +17,6 @@ sudo apt-get install -y librsvg2-bin
 for size in 32 48 64 128 256; do
     icon_path="icons/${size}x${size}"
     mkdir -p ${icon_path}
-    rsvg-convert -w ${size} -h ${size} -o ${icon_path}/fun.thcolin.switchlex.png switchlex.svg
+    rsvg-convert -w ${size} -h ${size} -o ${icon_path}/fun.thcolin.plenx.png plenx.svg
 done
 ```

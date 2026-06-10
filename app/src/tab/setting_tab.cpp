@@ -18,6 +18,7 @@
 #include "activity/server_list.hpp"
 #include "activity/hint_activity.hpp"
 #include "utils/config.hpp"
+#include "utils/image.hpp"
 #include "utils/thread.hpp"
 #include <curl/curl.h>
 #include "view/mpv_core.hpp"
@@ -104,7 +105,24 @@ void SettingTab::onCreate() {
     auto& conf = AppConfig::instance();
 
     if (boxStatus->getVisibility() == brls::Visibility::VISIBLE) {
-        btnServer->setDetailText(conf.getUrl());
+        // bloc profil : avatar + nom + nom du serveur actif
+        const AppUser& user = conf.getUser();
+        this->profileName->setText(user.name);
+        if (!user.thumb.empty()) Image::load(this->profileAvatar, user.thumb, 64, 64);
+
+        std::string serverName;
+        for (auto& s : conf.getServers()) {
+            if (s.id == user.server_id) {
+                serverName = s.name;
+                break;
+            }
+        }
+        if (serverName.empty()) serverName = conf.getUrl();
+        this->profileServer->setText(serverName);
+
+        // le NOM du serveur plutôt que l'URL plex.direct interminable ;
+        // l'URL complète reste visible dans le sous-écran serveurs
+        btnServer->setDetailText(serverName);
         btnServer->registerClickAction([](...) {
             brls::Application::pushActivity(new ServerList(), brls::TransitionAnimation::NONE);
             return true;

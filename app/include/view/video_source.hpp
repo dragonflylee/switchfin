@@ -22,7 +22,14 @@ public:
 
     void appendData(const MediaList& data);
 
+    /// Carte « + » en fin de liste (hubs avec more=1) : ouvre la page
+    /// complète du hub (HubView sur `key`). Le recycler hôte DOIT avoir
+    /// enregistré la cellule "More" (MoreCardCell) — cf. RecylingVideo.
+    void setMore(const std::string& title, const std::string& key);
+
 protected:
     MediaList list;
     std::string parentId;
+    std::string moreTitle;
+    std::string moreKey;
 };

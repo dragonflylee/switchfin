@@ -4,7 +4,8 @@
     "genres": "Géneros",
     "suggest": "Sugerencias",
     "search": "Buscar",
-    "setting": "Ajustes"
+    "setting": "Ajustes",
+    "downloads": "Descargas"
   },
   "home": {
     "resume": "Seguir viendo",
@@ -49,6 +50,8 @@
     "mark_played": "Marcar como reproducido",
     "mark_unplayed": "Marcar como no reproducido",
     "play": "Reproducir",
+    "replay": "Reproducir de nuevo",
+    "see_all": "Ver todo",
     "intro": "Introducción",
     "people": "Reparto y equipo",
     "special": "Características Especiales",
@@ -61,7 +64,15 @@
     "random": "Aleatorio",
     "played": "Reproducido",
     "unplayed": "No reproducido",
-    "collections": "Collections"
+    "collections": "Collections",
+    "season": "season",
+    "seasons": "seasons",
+    "episode": "episodio",
+    "episodes": "episodios",
+    "seasons_title": "Temporadas",
+    "go_series": "Ir a la serie",
+    "go_season": "Ir a la temporada",
+    "director": "Dirección"
   },
   "search": {
     "hint": "Admitir palabras clave y sus letras iniciales",
@@ -75,12 +86,64 @@
       "movie": "Película",
       "series": "Series",
       "episode": "Episodio"
-    }
+    },
+    "no_history": "No recent searches",
+    "no_results": "No results",
+    "placeholder": "Buscar películas y series",
+    "results": "Resultados",
+    "keyboard": "Teclado",
+    "space": "Espacio",
+    "no_results_sub": "Prueba con otro título, actor o género.",
+    "no_history_sub": "Tus búsquedas recientes aparecerán aquí."
+  },
+  "person": {
+    "movies": "Películas",
+    "shows": "Series",
+    "as": "Como {}"
+  },
+  "playlist": {
+    "title": "Listas de reproducción",
+    "item": "elemento",
+    "items": "elementos"
+  },
+  "watchlist": {
+    "title": "Watchlist",
+    "add": "Añadir a la Watchlist",
+    "remove": "Quitar de la Watchlist",
+    "added": "Añadido a la Watchlist",
+    "removed": "Quitado de la Watchlist",
+    "empty_title": "Tu Watchlist está vacía",
+    "empty_sub": "Las películas y series que guardes aparecerán aquí.",
+    "not_in_library": "Este título no está en tu biblioteca",
+    "all": "Todos",
+    "availability": "Disponibilidad",
+    "on_server": "En el servidor",
+    "not_on_server": "No está en el servidor"
   },
   "remote": {
-    "local": "Almacenamiento local",
+    "empty_title": "No hay archivos",
+    "empty_sub": "Explora el almacenamiento local y tus servidores WebDAV, FTP o SFTP.",
+    "local": "Archivos",
     "folder": "Carpeta",
-    "up": "Subir"
+    "up": "Subir",
+    "add_server": "Añadir un servidor",
+    "edit_server": "Editar servidor",
+    "manage": "Gestionar servidor",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "delete_confirm": "¿Eliminar «{}»?",
+    "type": "Tipo",
+    "name": "Nombre",
+    "host": "Host",
+    "port": "Puerto",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "path": "Ruta inicial",
+    "optional": "Opcional",
+    "save": "Probar y guardar",
+    "test_failed": "Error de conexión: {}",
+    "retry": "¿Reintentar?",
+    "required": "Introduce al menos un nombre y un host."
   },
   "setting": {
     "quit_hint": "Vas a salir de la aplicación. La configuración tendrá efecto tras el próximo arranque",
@@ -182,7 +245,7 @@
       "font_q1": "Establecer fuente de letra o icono",
       "font_a1": "1. Descarga la fuente o el icono de letra que quieras utilizar\n2. Renombra la fuente a  font.ttf; Renombra el icono a: icon.ttf\n3. Sitúa los archivos de fuentes en el directorio de configuración\n4. Reinicia la aplicación",
       "font_q2": "Preguntas frecuentes",
-      "font_a2": "1. Switchlex prioriza mostrar las fuentes personalizadas, usando las integradas en caso de fallo.\n2. \"Ajustes - Tutorial\" ofrece un menú para abrir rápidamente el directorio de configuración",
+      "font_a2": "1. pleNx prioriza mostrar las fuentes personalizadas, usando las integradas en caso de fallo.\n2. \"Ajustes - Tutorial\" ofrece un menú para abrir rápidamente el directorio de configuración",
       "font_q3": "No se muestran los subtítulos",
       "font_a3": "Coloca un fichero ttf en {}/subfont.ttf"
     },
@@ -219,25 +282,49 @@
     }
   },
   "hints": {
-    "hint1": "Selecciona un juego de la pantalla de inicio",
-    "hint2": "Mantén pulsada la tecla  y pulsa en  para acceder a hbmenu",
-    "hint3": "En hbmenu, selecciona Switchlex",
-    "hint4": "Opcional: Usar NSP forwarder de Switchlex incluido",
-    "hint_nsp": "Pulsa  para instalar el NSP forwarder",
-    "hint_confirm": "Instalar el NSP forwarder puede resultar en un baneo\nPor favor confirma de nuevo",
-    "hint_right": "Las capturas proceden de Internet, y el copyright pertenece a Nintendo Co., Ltd"
+    "title": "Launch pleNx as a full application",
+    "text_applet": "pleNx is running in applet mode: the available memory is not sufficient for video playback. Launch it as a full application using one of the options below.",
+    "text_app": "pleNx is running as a full application. Install the HOME menu tile to launch it this way directly.",
+    "install_title": "HOME menu tile (recommended)",
+    "install_text": "Installs the embedded NSP forwarder: the tile launches pleNx as a full application straight from the HOME menu.",
+    "install_button": "Install the tile",
+    "takeover_title": "Alternative: title takeover",
+    "takeover_text": "Hold R while launching any installed game to open the homebrew menu as a full application, then launch pleNx from there.",
+    "prompt": "Install the pleNx tile on the HOME menu?\nThe tile launches the app as a full application (required for video playback).",
+    "hint_confirm": "Instalar el NSP forwarder puede resultar en un baneo\nPor favor confirma de nuevo"
   },
   "plex": {
-    "link": "Sign in with plex.tv",
-    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "title": "Sign in to your Plex account",
+    "generating": "Generating code…",
+    "waiting": "Waiting for confirmation…",
+    "connected": "Connected!",
     "expired": "The code expired, please try again",
-    "manual_header": "Manual connection",
-    "token": "Token",
+    "step1": "1. On your phone or computer, open plex.tv/link",
+    "step2": "2. Sign in to your Plex account",
+    "step3": "3. Enter the code shown above",
+    "regenerate": "Generate a new code",
     "choose_server": "Choose a server",
     "choose_profile": "Choose a profile",
     "profile_pin": "Profile PIN",
     "wrong_pin": "Wrong PIN",
     "no_server": "No server found on this account",
+    "connecting": "Conectando al servidor…",
     "unreachable": "Server unreachable"
+  },
+  "download": {
+    "season": "Descargar temporada",
+    "confirm_season": "¿Descargar {} episodios?",
+    "season_queued": "Temporada añadida a las descargas",
+    "storage": "Almacenamiento",
+    "storage_free": "{} libres de {}",
+    "section_active": "En curso",
+    "section_done": "Descargados",
+    "remove_all": "Eliminar todo",
+    "confirm_remove_all": "¿Eliminar todas las descargas?",
+    "empty_sub": "Las películas y episodios descargados aparecen aquí para verlos sin conexión."
+  },
+  "empty": {
+    "title": "Nada que mostrar",
+    "error": "No se pudo cargar"
   }
 }

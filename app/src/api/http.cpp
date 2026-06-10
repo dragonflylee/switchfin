@@ -253,6 +253,17 @@ std::string HTTP::_post(const std::string& url, const std::string& data) {
     return body.str();
 }
 
+std::string HTTP::_put(const std::string& url, const std::string& data) {
+    std::ostringstream body;
+    curl_easy_setopt(this->easy, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(this->easy, CURLOPT_POSTFIELDS, data.c_str());
+    curl_easy_setopt(this->easy, CURLOPT_POSTFIELDSIZE, data.size());
+    curl_easy_setopt(this->easy, CURLOPT_CUSTOMREQUEST, "PUT");
+    int code = this->perform(&body);
+    if (code >= 400) throw curl_error(fmt::format("http status {}", code));
+    return body.str();
+}
+
 void HTTP::_delete(const std::string& url, std::ostream* out) {
     curl_easy_setopt(this->easy, CURLOPT_URL, url.c_str());
     curl_easy_setopt(this->easy, CURLOPT_CUSTOMREQUEST, "DELETE");

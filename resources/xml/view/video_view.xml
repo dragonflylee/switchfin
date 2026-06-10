@@ -34,8 +34,8 @@
     <brls:Box
         id="video/osd/top/box"
         width="100%"
-        height="80"
-        backgroundStartColor="#000000CC"
+        height="110"
+        backgroundStartColor="#000000D5"
         backgroundEndColor="#00000000"
         background="vertical_linear">
 
@@ -227,9 +227,11 @@
     <brls:Box
         id="video/osd/bottom/box"
         width="100%"
-        height="120"
+        height="150"
         alignItems="center"
         axis="row"
+        backgroundStartColor="#00000000"
+        backgroundEndColor="#000000D5"
         background="vertical_linear">
 
         <brls:Box

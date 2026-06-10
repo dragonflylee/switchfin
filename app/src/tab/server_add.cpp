@@ -1,6 +1,7 @@
 /*
-    Switchlex — connexion à Plex.
-    Flux PIN : PLEX_MIGRATION.md §2.2 ; découverte serveurs/profils : §2.3.
+    pleNx — connexion à Plex.
+    Flux PIN (unique méthode) : PLEX_MIGRATION.md §2.2 ;
+    découverte serveurs/profils : §2.3.
 */
 
 #include "tab/server_add.hpp"
@@ -11,111 +12,91 @@
 
 using namespace brls::literals;  // for _i18n
 
-/// Dialogue d'association : affiche le code et interroge plex.tv jusqu'à
-/// validation (même mécanique que l'ancien Quick Connect Jellyfin).
-class PlexLinkView : public brls::Box {
-public:
-    PlexLinkView(const plex::PinResult& pin, std::function<void(std::string)> onToken)
-        : pin(pin), onToken(onToken) {
-        brls::Logger::debug("View PlexLinkView: create");
-        this->inflateFromXMLRes("xml/view/plex_pin.xml");
-        this->isCancel = std::make_shared<std::atomic_bool>(false);
-        this->labelCode->setText(this->pin.code);
-        this->ticker.setCallback([this]() { this->query(); });
+/// « SC4B » → « S C 4 B » : le code respire à grande taille
+static std::string spaced(const std::string& code) {
+    std::string out;
+    for (size_t i = 0; i < code.size(); i++) {
+        if (i > 0) out += ' ';
+        out += code[i];
     }
-
-    void open() {
-        auto dialog = new brls::Dialog(this);
-        dialog->addButton("hints/cancel"_i18n, [this]() {
-            this->isCancel->store(true);
-            this->ticker.stop();
-        });
-        dialog->open();
-        // expiration du PIN côté plex.tv : ~2 minutes (§2.2)
-        this->deadline = brls::getCPUTimeUsec() + 120 * 1000000;
-        this->ticker.start(2000);
-    }
-
-    void query() {
-        if (brls::getCPUTimeUsec() > this->deadline) {
-            this->ticker.stop();
-            this->labelCode->setText("main/plex/expired"_i18n);
-            return;
-        }
-        ASYNC_RETAIN
-        brls::async([ASYNC_TOKEN]() {
-            try {
-                std::string account = plex::pollPin(this->pin.id);
-                brls::sync([ASYNC_TOKEN, account]() {
-                    ASYNC_RELEASE
-                    if (account.empty() || this->isCancel->load()) return;
-                    this->ticker.stop();
-                    auto cb = this->onToken;
-                    this->dismiss([cb, account]() { cb(account); });
-                });
-            } catch (const std::exception& ex) {
-                // 404/410 = PIN expiré (plex_auth_service.dart:151-167)
-                std::string msg = ex.what();
-                brls::sync([ASYNC_TOKEN, msg]() {
-                    ASYNC_RELEASE
-                    this->ticker.stop();
-                    if (!this->isCancel->load()) this->labelCode->setText(msg);
-                });
-            }
-        });
-    }
-
-    ~PlexLinkView() override {
-        brls::Logger::debug("View PlexLinkView: delete");
-        this->ticker.stop();
-    }
-
-private:
-    BRLS_BIND(brls::Label, labelCode, "plex/label/code");
-
-    HTTP::Cancel isCancel;
-    brls::RepeatingTimer ticker;
-    brls::Time deadline = 0;
-    plex::PinResult pin;
-    std::function<void(std::string)> onToken;
-};
+    return out;
+}
 
 ServerAdd::ServerAdd() {
     this->inflateFromXMLRes("xml/tabs/server_add.xml");
     brls::Logger::debug("ServerAdd: create");
 
-    btnLink->registerClickAction([this](...) { return this->onLink(); });
-    inputUrl->init("URL", "", [](std::string) {}, "http://<IP du serveur>:32400", "", 255);
-    inputToken->init("main/plex/token"_i18n, "", [](std::string) {}, "X-Plex-Token", "", 255);
-    btnConnect->registerClickAction([this](...) { return this->onManual(); });
+    this->btnRetry->registerClickAction([this](...) {
+        this->startPin();
+        return true;
+    });
+    this->ticker.setCallback([this]() { this->pollOnce(); });
+    this->startPin();
 }
 
-ServerAdd::~ServerAdd() { brls::Logger::debug("ServerAdd Activity: delete"); }
+ServerAdd::~ServerAdd() {
+    brls::Logger::debug("ServerAdd: delete");
+    this->ticker.stop();
+}
 
-brls::View* ServerAdd::getDefaultFocus() { return this->btnLink; }
+brls::View* ServerAdd::getDefaultFocus() { return this->btnRetry; }
 
-bool ServerAdd::onLink() {
-    brls::Application::blockInputs();
+void ServerAdd::startPin() {
+    this->ticker.stop();
+    this->labelCode->setText("· · · ·");
+    this->labelStatus->setText("main/plex/generating"_i18n);
+
     ASYNC_RETAIN
     brls::async([ASYNC_TOKEN]() {
         try {
-            plex::PinResult pin = plex::requestPin();
-            brls::sync([ASYNC_TOKEN, pin]() {
+            plex::PinResult fresh = plex::requestPin();
+            brls::sync([ASYNC_TOKEN, fresh]() {
                 ASYNC_RELEASE
-                brls::Application::unblockInputs();
-                auto* view = new PlexLinkView(pin, [this](const std::string& token) { this->onAccount(token); });
-                view->open();
+                this->pin = fresh;
+                this->labelCode->setText(spaced(fresh.code));
+                this->labelStatus->setText("main/plex/waiting"_i18n);
+                // expiration du PIN côté plex.tv : ~2 minutes (§2.2)
+                this->deadline = brls::getCPUTimeUsec() + 120 * 1000000;
+                this->ticker.start(2000);
             });
         } catch (const std::exception& ex) {
             std::string msg = ex.what();
             brls::sync([ASYNC_TOKEN, msg]() {
                 ASYNC_RELEASE
-                brls::Application::unblockInputs();
-                Dialog::show(msg);
+                this->labelCode->setText("· · · ·");
+                this->labelStatus->setText(msg);
             });
         }
     });
-    return true;
+}
+
+void ServerAdd::pollOnce() {
+    if (brls::getCPUTimeUsec() > this->deadline) {
+        this->ticker.stop();
+        this->labelStatus->setText("main/plex/expired"_i18n);
+        return;
+    }
+    ASYNC_RETAIN
+    brls::async([ASYNC_TOKEN]() {
+        try {
+            std::string account = plex::pollPin(this->pin.id);
+            brls::sync([ASYNC_TOKEN, account]() {
+                ASYNC_RELEASE
+                if (account.empty()) return;
+                this->ticker.stop();
+                this->labelStatus->setText("main/plex/connected"_i18n);
+                this->onAccount(account);
+            });
+        } catch (const std::exception& ex) {
+            // 404/410 = PIN expiré (plex_auth_service.dart:151-167)
+            std::string msg = ex.what();
+            brls::sync([ASYNC_TOKEN, msg]() {
+                ASYNC_RELEASE
+                this->ticker.stop();
+                this->labelStatus->setText(msg);
+            });
+        }
+    });
 }
 
 void ServerAdd::onAccount(const std::string& accountToken) {
@@ -260,58 +241,4 @@ void ServerAdd::finish(const std::string& uuid, const std::string& name, const s
 
     brls::Application::clear();
     brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
-}
-
-bool ServerAdd::onManual() {
-    std::string baseUrl = this->inputUrl->getValue();
-    std::string serverToken = this->inputToken->getValue();
-    if (baseUrl.length() < 10 || baseUrl.substr(0, 4).compare("http")) {
-        Dialog::show("main/setting/server/invalid"_i18n);
-        return false;
-    }
-    while (baseUrl.back() == '/') baseUrl.pop_back();
-
-    brls::Application::blockInputs();
-    ASYNC_RETAIN
-    brls::async([ASYNC_TOKEN, baseUrl, serverToken]() {
-        try {
-            // /identity est accessible sans auth : machine id + nom (§2.3)
-            nlohmann::json identity = plex::getSync(baseUrl + std::string(plex::apiIdentity), "");
-            const nlohmann::json& mc = identity.contains("MediaContainer") ? identity.at("MediaContainer") : identity;
-            plex::ServerResource server;
-            server.clientIdentifier = plex::jstr(mc, "machineIdentifier");
-            server.name = plex::jstr(mc, "friendlyName", baseUrl);
-            server.accessToken = serverToken;
-            if (server.clientIdentifier.empty()) throw std::runtime_error("machineIdentifier absent");
-            if (!plex::probeConnection(baseUrl, serverToken)) throw std::runtime_error("main/plex/unreachable"_i18n);
-
-            // Le token saisi est le plus souvent un token de compte : tenter de
-            // récupérer le profil ; sinon identité locale de repli.
-            std::string uuid = "manual-" + server.clientIdentifier;
-            std::string name = server.name;
-            std::string thumb;
-            try {
-                plex::AccountUser account = plex::getUser(serverToken);
-                uuid = account.uuid;
-                name = account.username;
-                thumb = account.thumb;
-            } catch (const std::exception& ex) {
-                brls::Logger::warning("manual getUser: {}", ex.what());
-            }
-
-            brls::sync([ASYNC_TOKEN, uuid, name, thumb, serverToken, server, baseUrl]() {
-                ASYNC_RELEASE
-                brls::Application::unblockInputs();
-                this->finish(uuid, name, thumb, serverToken, server, baseUrl);
-            });
-        } catch (const std::exception& ex) {
-            std::string msg = ex.what();
-            brls::sync([ASYNC_TOKEN, msg]() {
-                ASYNC_RELEASE
-                brls::Application::unblockInputs();
-                Dialog::show(msg);
-            });
-        }
-    });
-    return true;
 }

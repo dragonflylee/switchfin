@@ -1,0 +1,43 @@
+<brls:Box
+    highlightCornerRadius="14"
+    axis="column"
+    width="auto"
+    height="auto">
+    <!-- même squelette que video_card.xml (zone affiche 2:3 + bloc labels 55)
+         pour s'aligner pixel à pixel avec les pochettes de la rangée -->
+    <brls:Box
+        id="more/card/box"
+        axis="column"
+        focusable="true"
+        highlightCornerRadius="14"
+        cornerRadius="10"
+        backgroundColor="@theme/color/grey_1"
+        alignItems="center"
+        justifyContent="center"
+        grow="1">
+
+        <SVGImage
+            width="36"
+            height="36"
+            svg="@res/icon/ico-plus.svg" />
+
+    </brls:Box>
+
+    <brls:Box
+        axis="column"
+        marginTop="10"
+        justifyContent="spaceEvenly"
+        alignItems="center">
+        <brls:Label
+            singleLine="true"
+            id="more/card/label"
+            height="25"
+            fontSize="18"
+            text="@i18n/main/media/see_all" />
+        <brls:Label
+            singleLine="true"
+            fontSize="12"
+            height="20" />
+    </brls:Box>
+
+</brls:Box>

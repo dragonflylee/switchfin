@@ -2,16 +2,18 @@
 #include "view/h_recycling.hpp"
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
+#include "view/more_card.hpp"
 #include "api/plex.hpp"
 
 const std::string recylingVideoContentXML = R"xml(
     <brls:Box
         width="auto"
         height="auto"
-        axis="column">
+        axis="column"
+        marginBottom="36">
 
         <brls:Header
-            height="40"
+            marginBottom="6"
             id="recycler/title" />
 
         <HRecyclerFrame
@@ -36,17 +38,28 @@ RecylingVideo::RecylingVideo() {
         this->recycler->reloadData();
     });
 
+    this->registerFloatXMLAttribute("sidePadding", [this](float value) { this->setSidePadding(value); });
+
     this->registerFloatXMLAttribute("pageSize", [this](float value) { this->setPageSize(value); });
 
     this->registerAutoXMLAttribute(
         "nextPage", [this]() { this->recycler->onNextPage([this]() { this->doRequest(); }); });
 
     this->recycler->registerCell("Cell", VideoCardCell::create);
+    this->recycler->registerCell("More", MoreCardCell::create);
 }
 
 RecylingVideo::~RecylingVideo() {}
 
 void RecylingVideo::setTitle(const std::string& text) { this->title->setTitle(text); }
+
+void RecylingVideo::setSidePadding(float padding) {
+    this->title->setMarginLeft(padding);
+    this->title->setMarginRight(padding);
+    // padding interne au HRecyclerFrame : les cartes glissent jusqu'aux bords
+    this->recycler->setPaddingLeft(padding);
+    this->recycler->setPaddingRight(padding);
+}
 
 void RecylingVideo::setFrameHeight(float height) { this->recycler->setHeight(height); }
 
@@ -59,14 +72,18 @@ void RecylingVideo::setPageSize(size_t pageSize) { this->pageSize = pageSize; }
 
 void RecylingVideo::onQuery(const Callback& callback) { this->queryCallback = callback; }
 
-void RecylingVideo::setItems(const std::vector<plex::Item>& items) {
+void RecylingVideo::setItems(const std::vector<plex::Item>& items) { this->setItems(items, "", ""); }
+
+void RecylingVideo::setItems(
+    const std::vector<plex::Item>& items, const std::string& moreTitle, const std::string& moreKey) {
     if (items.empty()) {
         this->setVisibility(brls::Visibility::GONE);
         this->recycler->clearData();
     } else {
         this->setVisibility(brls::Visibility::VISIBLE);
-        this->recycler->setDataSource(new VideoDataSource(items));
-        this->title->setSubtitle(std::to_string(items.size()));
+        auto* source = new VideoDataSource(items);
+        if (!moreKey.empty()) source->setMore(moreTitle, moreKey);
+        this->recycler->setDataSource(source);
     }
 }
 
@@ -92,7 +109,6 @@ void RecylingVideo::doRequest(bool refresh) {
             } else if (r.StartIndex == 0) {
                 this->setVisibility(brls::Visibility::VISIBLE);
                 this->recycler->setDataSource(new VideoDataSource(r.Items));
-                this->title->setSubtitle(std::to_string(r.TotalRecordCount));
             } else if (r.Items.size() > 0) {
                 auto dataSrc = dynamic_cast<VideoDataSource*>(this->recycler->getDataSource());
                 dataSrc->appendData(r.Items);

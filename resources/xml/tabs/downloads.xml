@@ -1,0 +1,71 @@
+<!-- Onglet Téléchargements : en-tête « Stockage » fixe (carte color/surface,
+     barre segmentée disque dessinée en nvg — SegmentedBar, download_tab.cpp)
+     au-dessus de la liste sectionnée « En cours » / « Téléchargés ». -->
+<!-- paddingTop 70 : la barre d'onglets du tab Téléchargements (60) flotte
+     au-dessus ; la carte Stockage (fixe) doit démarrer sous elle -->
+<brls:Box
+    width="auto"
+    height="auto"
+    axis="column"
+    paddingTop="70"
+    paddingLeft="@style/main/content_padding_sides"
+    paddingRight="@style/main/content_padding_sides">
+
+    <brls:Box
+        id="downloads/storage/card"
+        axis="column"
+        cornerRadius="12"
+        backgroundColor="@theme/color/surface"
+        paddingTop="20"
+        paddingBottom="20"
+        paddingLeft="20"
+        paddingRight="20">
+
+        <brls:Label
+            text="@i18n/main/download/storage"
+            fontSize="20"
+            marginBottom="16" />
+
+        <!-- piste 12px remplie par la SegmentedBar (C++) :
+             [reste du disque | pleNx (or) | libre (gris sombre)] -->
+        <brls:Box
+            id="downloads/storage/bar"
+            height="12"
+            marginBottom="14" />
+
+        <brls:Box alignItems="center">
+            <brls:Rectangle
+                width="10"
+                height="10"
+                cornerRadius="5"
+                color="@theme/color/app"
+                marginRight="8" />
+            <brls:Label
+                id="downloads/storage/app"
+                fontSize="14" />
+
+            <brls:Box grow="1.0" />
+
+            <brls:Rectangle
+                width="10"
+                height="10"
+                cornerRadius="5"
+                color="@theme/color/pill"
+                marginRight="8" />
+            <brls:Label
+                id="downloads/storage/free"
+                fontSize="14"
+                textColor="@theme/font/grey" />
+        </brls:Box>
+    </brls:Box>
+
+    <!-- flowMode : hauteurs par ligne (heightForRow) pour mêler têtes de
+         section (non focusables) et cartes -->
+    <RecyclingGrid
+        id="downloads/list"
+        grow="1.0"
+        flowMode="true"
+        itemHeight="160"
+        itemSpace="12"
+        paddingBottom="20" />
+</brls:Box>

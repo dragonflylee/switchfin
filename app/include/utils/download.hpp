@@ -55,6 +55,9 @@ public:
     bool isDownloaded(const std::string& itemId) const;
     bool isDownloading(const std::string& itemId) const;
     std::string getLocalPath(const std::string& itemId) const;
+    /// Racine des téléchargements ({config}/downloads) : vignettes, tailles
+    /// réelles et fs::space de l'en-tête « Stockage » (download_tab.cpp)
+    std::string getDownloadDir() const { return this->downloadDir(); }
 
     std::vector<DownloadItem> getItems() const;
 

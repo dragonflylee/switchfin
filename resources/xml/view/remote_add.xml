@@ -1,0 +1,90 @@
+<!-- panneau latéral d'ajout/édition d'un serveur distant, même patron
+     que player_setting.xml : zone gauche cliquable = annuler, panneau
+     droit = formulaire (titres/valeurs des cellules posés en code) -->
+<brls:Box
+    width="auto"
+    height="auto"
+    justifyContent="flexEnd"
+    backgroundColor="@theme/brls/backdrop">
+
+    <brls:Box
+        id="remote/add/cancel"
+        height="100%"
+        hideClickAnimation="true"
+        grow="1" />
+
+    <brls:Box
+        width="520"
+        height="100%"
+        axis="column"
+        backgroundColor="@theme/brls/background">
+
+        <brls:ScrollingFrame
+            width="100%"
+            grow="1"
+            scrollingBehavior="centered">
+
+            <brls:Box
+                width="auto"
+                height="auto"
+                axis="column"
+                paddingTop="@style/main/content_padding_top_bottom"
+                paddingLeft="@style/main/content_padding_sides"
+                paddingRight="@style/main/content_padding_sides"
+                paddingBottom="@style/main/content_padding_top_bottom"
+                alignItems="stretch">
+
+                <brls:Header
+                    id="remote/add/header"
+                    width="auto"
+                    height="auto"
+                    marginBottom="10" />
+
+                <brls:SelectorCell
+                    id="remote/add/type" />
+
+                <brls:InputCell
+                    id="remote/add/name" />
+
+                <brls:InputCell
+                    id="remote/add/host" />
+
+                <brls:InputNumericCell
+                    id="remote/add/port" />
+
+                <brls:InputCell
+                    id="remote/add/user" />
+
+                <brls:InputCell
+                    id="remote/add/passwd"
+                    type="password" />
+
+                <brls:InputCell
+                    id="remote/add/path" />
+
+                <brls:Box
+                    width="100%"
+                    height="auto"
+                    marginTop="24"
+                    justifyContent="center"
+                    alignItems="center">
+
+                    <brls:Button
+                        id="remote/add/save"
+                        style="primary"
+                        paddingLeft="30"
+                        paddingRight="30"
+                        text="@i18n/main/remote/save" />
+
+                    <brls:ProgressSpinner
+                        id="remote/add/spinner"
+                        width="44"
+                        height="44"
+                        visibility="gone" />
+
+                </brls:Box>
+
+            </brls:Box>
+        </brls:ScrollingFrame>
+    </brls:Box>
+</brls:Box>

@@ -2,21 +2,23 @@
     width="auto"
     height="auto">
 
+    <!-- centered : le scroll suit le focus D-pad (boutons -> casting -> rangées) -->
     <brls:ScrollingFrame
-        grow="1.0">
+        grow="1.0"
+        scrollingBehavior="centered">
 
         <brls:Box
             axis="column"
-            paddingLeft="@style/main/content_padding_sides"
-            paddingRight="@style/main/content_padding_sides"
-            paddingTop="@style/main/content_padding_top_bottom"
             paddingBottom="@style/main/content_padding_top_bottom">
 
+            <!-- bannière full-bleed : backdrop + fondu vers le fond + logo
+                 niché en bas du fondu (lisible dans l'ombre).
+                 NB : garder un cornerRadius sur les brls:Image en scalingType="fill",
+                 c'est lui qui active le clip du rendu (sinon l'image déborde). -->
             <brls:Box
                 id="movie/banner"
                 width="100%"
-                height="260"
-                visibility="gone">
+                height="320">
                 <brls:Image
                     id="movie/image/backdrop"
                     width="100%"
@@ -24,34 +26,50 @@
                     scalingType="fill"
                     cornerRadius="4"
                     backgroundColor="@theme/color/grey_1" />
-                <brls:Box
+                <brls:Image
+                    id="movie/banner/fade"
                     positionType="absolute"
-                    positionTop="0"
+                    positionBottom="0"
                     positionLeft="0"
                     width="100%"
-                    height="100%"
-                    alignItems="center"
+                    height="260"
+                    scalingType="stretch"
+                    image="@res/img/fade-bottom-dark.png" />
+                <brls:Box
+                    positionType="absolute"
+                    positionBottom="26"
+                    positionLeft="0"
+                    width="100%"
                     justifyContent="center">
                     <brls:Image
                         id="movie/image/logo"
                         width="440"
-                        height="130"
+                        height="120"
                         scalingType="fit" />
                 </brls:Box>
             </brls:Box>
 
+            <!-- le poster seul chevauche la bannière ; la colonne d'infos
+                 (titre, pills, genres, boutons, synopsis) commence SOUS la
+                 bannière : plus aucun texte sur le backdrop (recette) -->
             <brls:Box
-                id="movie/content/row">
+                id="movie/content/row"
+                marginTop="-150"
+                paddingLeft="@style/main/content_padding_sides"
+                paddingRight="@style/main/content_padding_sides">
 
+                <!-- 64 : le poster ne remonte que de ~86 px dans la bannière
+                     (recette : poster descendu, colonne d'infos inchangée) -->
                 <brls:Box
                     width="220"
                     axis="column"
-                    marginRight="30">
+                    marginTop="64"
+                    marginRight="34">
                     <brls:Image
                         id="movie/image/poster"
                         height="330"
                         scalingType="fill"
-                        cornerRadius="4"
+                        cornerRadius="10"
                         backgroundColor="@theme/color/grey_1"
                         image="@res/img/video-card-bg.png" />
 
@@ -60,78 +78,111 @@
                         visibility="gone"
                         height="40"
                         marginTop="20px" />
-
-                    <brls:Button
-                        id="movie/play"
-                        height="50"
-                        marginTop="10px"
-                        text="@i18n/main/media/play" />
-
-                    <brls:Button
-                        id="movie/download"
-                        height="50"
-                        marginTop="10px"
-                        style="bordered"
-                        text="@i18n/main/download/start" />
                 </brls:Box>
 
+                <!-- 184 = 150 de chevauchement bannière + ~34 px d'air entre
+                     le bas de la bannière et le haut du titre -->
                 <brls:Box
                     id="movie/content/info"
                     axis="column"
-                    grow="1.0"
-                    paddingRight="@style/main/content_padding_sides">
+                    marginTop="184"
+                    grow="1.0">
 
-                    <brls:Header
-                        marginBottom="10"
-                        height="40"
-                        id="movie/header/title" />
+                    <brls:Label
+                        id="movie/label/title"
+                        fontSize="42"
+                        marginBottom="14" />
 
                     <brls:Box
                         alignItems="center"
-                        marginBottom="10">
-
-                        <brls:Label
-                            id="movie/label/genres"
-                            fontSize="15"
-                            animated="false"
-                            marginBottom="15" />
-
-                        <brls:Padding />
-
-                        <brls:Label
-                            id="movie/label/year"
-                            marginRight="10"
-                            fontSize="15" />
+                        marginBottom="14">
 
                         <brls:Box
-                            wireframe="false"
-                            borderColor="@theme/brls/text"
-                            borderThickness="1"
+                            cornerRadius="14"
+                            height="28"
+                            alignItems="center"
+                            paddingLeft="12"
+                            paddingRight="12"
+                            marginRight="8"
+                            backgroundColor="@theme/color/pill">
+                            <brls:Label
+                                id="movie/label/year"
+                                singleLine="true"
+                                fontSize="14" />
+                        </brls:Box>
+
+                        <brls:Box
+                            cornerRadius="14"
+                            height="28"
+                            alignItems="center"
+                            paddingLeft="12"
+                            paddingRight="12"
+                            marginRight="8"
                             visibility="gone"
-                            paddingLeft="5"
-                            paddingRight="5"
-                            height="30"
-                            marginRight="10">
+                            backgroundColor="@theme/color/pill">
                             <brls:Label
                                 id="movie/parental/rating"
                                 singleLine="true"
-                                wireframe="false"
-                                fontSize="15" />
+                                fontSize="14" />
                         </brls:Box>
 
                         <brls:Box
-                            wireframe="false"
+                            cornerRadius="14"
+                            height="28"
                             alignItems="center"
-                            visibility="gone">
+                            paddingLeft="12"
+                            paddingRight="12"
+                            visibility="gone"
+                            backgroundColor="@theme/color/pill">
                             <SVGImage
-                                width="15"
-                                height="15"
+                                width="14"
+                                height="14"
+                                marginRight="5"
                                 svg="@res/icon/ico-star.svg" />
                             <brls:Label
                                 id="movie/label/rating"
-                                marginLeft="2"
-                                fontSize="15" />
+                                singleLine="true"
+                                fontSize="14" />
                         </brls:Box>
+                    </brls:Box>
+
+                    <brls:Label
+                        id="movie/label/genres"
+                        fontSize="14"
+                        animated="false"
+                        textColor="@theme/font/grey"
+                        marginBottom="16" />
+
+                    <!-- boutons en ligne sous les genres, avant le synopsis
+                         (recette) ; icônes sombres sur le primaire or -->
+                    <brls:Box
+                        id="movie/buttons"
+                        axis="row"
+                        marginBottom="18">
+
+                        <IconButton
+                            id="movie/play"
+                            icon="@res/icon/ico-play-dark.svg"
+                            text="@i18n/main/media/play"
+                            buttonStyle="primary" />
+
+                        <IconButton
+                            id="movie/download"
+                            icon="@res/icon/ico-download-light.svg"
+                            text="@i18n/main/download/start"
+                            buttonStyle="bordered"
+                            marginLeft="12" />
+
+                        <!-- révélé une fois l'état watchlist connu (requête
+                             provider async, media_movie.cpp) ; icône pleine
+                             = déjà dans la Watchlist -->
+                        <IconButton
+                            id="movie/watchlist"
+                            icon="@res/icon/ico-bookmark-light.svg"
+                            text="@i18n/main/watchlist/title"
+                            buttonStyle="bordered"
+                            visibility="gone"
+                            marginLeft="12" />
                     </brls:Box>
 
                     <TextBox
@@ -139,22 +190,32 @@
                         fontSize="15"
                         textColor="@theme/font/grey" />
 
-                    <brls:Header
-                        height="40"
-                        id="movie/label/people"
-                        title="@i18n/main/media/people" />
-
-                    <HRecyclerFrame
-                        height="250"
-                        itemWidth="140"
-                        id="movie/people" />
-
-                    <brls:Box
-                        id="movie/related/box"
-                        axis="column" />
-
                 </brls:Box>
             </brls:Box>
+
+            <!-- rangées pleine largeur sous le bloc affiche : retraits
+                 internes au scroll, les cartes glissent jusqu'aux bords ;
+                 ~28 entre la fin d'une rangée et le Header suivant -->
+            <brls:Header
+                marginTop="28"
+                marginBottom="6"
+                marginLeft="@style/main/content_padding_sides"
+                marginRight="@style/main/content_padding_sides"
+                id="movie/label/people"
+                title="@i18n/main/media/people" />
+
+            <HRecyclerFrame
+                height="250"
+                itemWidth="140"
+                itemSpace="18"
+                marginBottom="28"
+                paddingLeft="@style/main/content_padding_sides"
+                paddingRight="@style/main/content_padding_sides"
+                id="movie/people" />
+
+            <brls:Box
+                id="movie/related/box"
+                axis="column" />
 
         </brls:Box>
 

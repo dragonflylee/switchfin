@@ -4,11 +4,14 @@
     paddingLeft="5"
     paddingRight="5">
 
+    <!-- même style que les barres des bibliothèques (collection.xml) :
+         hauteur 60, pills centrées, barre flottante au-dessus du contenu -->
     <AutoTabFrame
         id="remote/tabFrame"
         grow="1"
         defaultTab="0"
-        tabHeight="70"
+        tabHeight="60"
+        tabJustifyContent="center"
         tabItemActiveTextColor="@theme/color/app"
         sidebarPosition="top">
 

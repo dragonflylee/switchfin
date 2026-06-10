@@ -27,12 +27,13 @@ void SuggestMovie::doHubs() {
                 row->setTitle(hub.title);
                 // vignettes paysage pour les épisodes/clips, affiches sinon
                 if (hub.type == plex::mediaTypeEpisode || hub.type == plex::mediaTypeClip) {
-                    row->setFrameHeight(235);
-                    row->setItemWidth(325);
+                    row->setFrameHeight(brls::getStyle()["app/card/wide/row"]);
+                    row->setItemWidth(brls::getStyle()["app/card/wide/width"]);
                 } else {
-                    row->setFrameHeight(300);
-                    row->setItemWidth(175);
+                    row->setFrameHeight(brls::getStyle()["app/card/poster/row"]);
+                    row->setItemWidth(brls::getStyle()["app/card/poster/width"]);
                 }
+                row->setSidePadding(brls::getStyle()["main/content_padding_sides"]);
                 row->setItems(hub.items);
                 this->box->addView(row);
             }

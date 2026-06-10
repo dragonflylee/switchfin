@@ -5,21 +5,90 @@
     footerHidden="true">
     <brls:Box
         width="100%"
-        height="100%">
-        <GalleryView
-            wireframe="false"
-            width="100%"
-            height="95%"
-            paddingLeft="100"
-            paddingRight="100"
-            hideHighlight="true"
-            id="hint/gallery" />
-        <brls:Label
-            positionType="absolute"
-            positionBottom="10"
-            positionRight="10"
-            fontSize="12"
-            textColor="@theme/font/grey"
-            text="@i18n/main/hints/hint_right" />
+        height="100%"
+        alignItems="center"
+        justifyContent="center">
+
+        <brls:Box
+            width="760"
+            axis="column"
+            alignItems="center">
+
+            <brls:Image
+                width="84"
+                height="84"
+                cornerRadius="20"
+                marginBottom="14"
+                scalingType="fit"
+                image="@res/icon/icon.png" />
+
+            <brls:Label
+                fontSize="30"
+                marginBottom="8"
+                text="@i18n/main/hints/title" />
+
+            <!-- ATTENTION : tout attribut XML inconnu de borealis (ex. textAlign)
+                 est un brls::fatal à l'inflation → crash au boot applet. Pour
+                 les Label c'est horizontalAlign (label.cpp:259). -->
+            <brls:Label
+                id="hint/text"
+                fontSize="16"
+                marginBottom="30"
+                textColor="@theme/font/grey"
+                horizontalAlign="center"
+                text="@i18n/main/hints/text_applet" />
+
+            <brls:Box
+                id="hint/install"
+                width="100%"
+                axis="column"
+                cornerRadius="14"
+                paddingTop="22"
+                paddingBottom="22"
+                paddingLeft="28"
+                paddingRight="28"
+                marginBottom="14"
+                backgroundColor="@theme/color/surface">
+
+                <brls:Label
+                    fontSize="20"
+                    marginBottom="6"
+                    text="@i18n/main/hints/install_title" />
+
+                <brls:Label
+                    fontSize="15"
+                    marginBottom="16"
+                    textColor="@theme/font/grey"
+                    text="@i18n/main/hints/install_text" />
+
+                <brls:Button
+                    id="hint/install/button"
+                    style="primary"
+                    width="260"
+                    text="@i18n/main/hints/install_button" />
+            </brls:Box>
+
+            <brls:Box
+                width="100%"
+                axis="column"
+                cornerRadius="14"
+                paddingTop="22"
+                paddingBottom="22"
+                paddingLeft="28"
+                paddingRight="28"
+                backgroundColor="@theme/color/surface">
+
+                <brls:Label
+                    fontSize="20"
+                    marginBottom="6"
+                    text="@i18n/main/hints/takeover_title" />
+
+                <brls:Label
+                    fontSize="15"
+                    textColor="@theme/font/grey"
+                    text="@i18n/main/hints/takeover_text" />
+            </brls:Box>
+
+        </brls:Box>
     </brls:Box>
 </brls:AppletFrame>

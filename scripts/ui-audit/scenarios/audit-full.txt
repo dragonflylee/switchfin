@@ -1,0 +1,56 @@
+# Parcours complet de l'UI (sans lecture vidéo) — état frais requis.
+# Sidebar (serveur à 2 bibliothèques) : Accueil, Films, Séries TV, Recherche,
+# Downloads, Réglages. Couvre : home, focus poster, menu contextuel, onglet
+# bibliothèque (sidebar visible, tabs top centrés), fiche film (logo dans la
+# colonne), casting → fiche acteur, fiche série, recherche, downloads,
+# réglages. ATTENTION : B depuis la sidebar ouvre « Quitter ? ».
+quit
+launch
+shot 00-home
+key right
+shot 01-card-focus
+key f4
+sleep 1
+shot 02-context-menu
+key b
+key b
+key down
+sleep 2.5
+shot 03-tab-films
+key right
+sleep 1
+shot 04-movies-grid
+key a
+sleep 3
+shot 05-movie-detail
+key down down right
+sleep 1
+shot 06-cast-focus
+key a
+sleep 3
+shot 07-person
+key b
+sleep 1
+key b
+sleep 1
+key b
+sleep 1
+key down
+sleep 2.5
+shot 08-tab-series
+key right a
+sleep 3
+shot 09-series-detail
+key b
+sleep 1
+key b
+sleep 1
+key down
+sleep 1.5
+shot 10-search
+key down
+sleep 1.5
+shot 11-downloads
+key down
+sleep 1.5
+shot 12-settings

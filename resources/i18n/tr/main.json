@@ -4,7 +4,7 @@
     "genres": "Türler",
     "suggest": "Öneriler",
     "search": "Arama",
-    "downloads": "İndirmeler",
+    "downloads": "İndirilenler",
     "setting": "Ayarlar"
   },
   "home": {
@@ -50,6 +50,8 @@
     "mark_played": "Oynatıldı olarak işaretle",
     "mark_unplayed": "Oynatılmadı olarak işaretle",
     "play": "Oynat",
+    "replay": "Yeniden oynat",
+    "see_all": "Tümünü gör",
     "intro": "Başlangıç Jeneriği",
     "people": "Oyuncular",
     "special": "Ekstralar",
@@ -62,7 +64,15 @@
     "random": "Rastgele",
     "played": "Oynatıldı",
     "unplayed": "Oynatılmadı",
-    "collections": "Collections"
+    "collections": "Collections",
+    "season": "season",
+    "seasons": "seasons",
+    "episode": "bölüm",
+    "episodes": "bölüm",
+    "seasons_title": "Sezonlar",
+    "go_series": "Diziye git",
+    "go_season": "Sezona git",
+    "director": "Yönetmen"
   },
   "search": {
     "hint": "Anahtar kelimeleri ve baş harflerini destekler",
@@ -76,12 +86,64 @@
       "movie": "Filmler",
       "series": "Diziler",
       "episode": "Bölüm"
-    }
+    },
+    "no_history": "No recent searches",
+    "no_results": "No results",
+    "placeholder": "Film ve dizi ara",
+    "results": "Sonuçlar",
+    "keyboard": "Klavye",
+    "space": "Boşluk",
+    "no_results_sub": "Başka bir başlık, oyuncu veya tür deneyin.",
+    "no_history_sub": "Son aramaların burada görünür."
+  },
+  "person": {
+    "movies": "Filmler",
+    "shows": "Diziler",
+    "as": "Rol: {}"
+  },
+  "playlist": {
+    "title": "Çalma listeleri",
+    "item": "öğe",
+    "items": "öğe"
+  },
+  "watchlist": {
+    "title": "İzleme Listesi",
+    "add": "İzleme Listesine ekle",
+    "remove": "İzleme Listesinden kaldır",
+    "added": "İzleme Listesine eklendi",
+    "removed": "İzleme Listesinden kaldırıldı",
+    "empty_title": "İzleme Listeniz boş",
+    "empty_sub": "Kaydettiğiniz film ve diziler burada görünecek.",
+    "not_in_library": "Bu içerik kitaplığınızda yok",
+    "all": "Tümü",
+    "availability": "Kullanılabilirlik",
+    "on_server": "Sunucuda",
+    "not_on_server": "Sunucuda değil"
   },
   "remote": {
-    "local": "Yerel Depolama",
+    "empty_title": "Dosya yok",
+    "empty_sub": "Yerel depolamayı ve WebDAV, FTP veya SFTP sunucularınızı keşfedin.",
+    "local": "Dosyalar",
     "folder": "Klasör",
-    "up": "Üst Dizin"
+    "up": "Üst Dizin",
+    "add_server": "Sunucu ekle",
+    "edit_server": "Sunucuyu düzenle",
+    "manage": "Sunucuyu yönet",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "delete_confirm": "“{}” silinsin mi?",
+    "type": "Tür",
+    "name": "Ad",
+    "host": "Ana makine",
+    "port": "Bağlantı noktası",
+    "username": "Kullanıcı adı",
+    "password": "Parola",
+    "path": "Başlangıç yolu",
+    "optional": "İsteğe bağlı",
+    "save": "Test et ve kaydet",
+    "test_failed": "Bağlantı başarısız: {}",
+    "retry": "Yeniden denensin mi?",
+    "required": "En azından bir ad ve ana makine girin."
   },
   "download": {
     "start": "İndir",
@@ -94,7 +156,17 @@
     "no_downloads": "İndirme Yok",
     "confirm_remove": "İndirilen dosya kaldırılsın mı?",
     "play_offline": "Çevrim Dışı Oynat",
-    "confirm_cancel": "Cancel this download?"
+    "confirm_cancel": "Cancel this download?",
+    "season": "Sezonu indir",
+    "confirm_season": "{} bölüm indirilsin mi?",
+    "season_queued": "Sezon indirmelere eklendi",
+    "storage": "Depolama",
+    "storage_free": "{} boş / toplam {}",
+    "section_active": "Devam ediyor",
+    "section_done": "İndirildi",
+    "remove_all": "Tümünü kaldır",
+    "confirm_remove_all": "Tüm indirmeler kaldırılsın mı?",
+    "empty_sub": "İndirilen filmler ve bölümler çevrimdışı izlemek için burada görünür."
   },
   "setting": {
     "quit_hint": "Uygulamadan çıkış yapmak üzeresiniz. Değiştirilen ayarlar bir sonraki başlangıçtan sonra uygulanacak",
@@ -196,7 +268,7 @@
       "font_q1": "Nasıl özel bir yazı tipi veya tuş ataması simgesi kullanılır",
       "font_a1": "1. İstediğiniz yazı tipini veya simge yazı tipini indirin\n2. Yazı tipinin 'font.ttf', simge tipini de 'icon.ttf' olarak adlandırın\n3. Yazı tipi dosyalarını yapılandırma klasörüne yerleştirin\n4. Uygulamayı yeniden başlatın",
       "font_q2": "Sıkça Sorulan Sorular",
-      "font_a2": "1. Switchlex, özel yazı tiplerinin görüntülenmesine öncelik verir; yerleşik yazı tipleri ise yedek olarak kullanılır.\n2. 'Ayarlar - Kılavuz' bölümünde, yapılandırma dizinini hızlıca açmak için bir menü öğesi bulunur.\n3. Linux’ta Switchlex, dizini açmak için xdg-open kullanır. Yapılandırma dizini düzgün şekilde açılamıyorsa bu aracı yüklemeyi düşünebilirsiniz.",
+      "font_a2": "1. pleNx, özel yazı tiplerinin görüntülenmesine öncelik verir; yerleşik yazı tipleri ise yedek olarak kullanılır.\n2. 'Ayarlar - Kılavuz' bölümünde, yapılandırma dizinini hızlıca açmak için bir menü öğesi bulunur.\n3. Linux’ta pleNx, dizini açmak için xdg-open kullanır. Yapılandırma dizini düzgün şekilde açılamıyorsa bu aracı yüklemeyi düşünebilirsiniz.",
       "font_q3": "Alt yazılar görünmüyor",
       "font_a3": "Herhangi bir TTF dosyasını {}/subfont.ttf konumuna yerleştirin."
     },
@@ -233,25 +305,37 @@
     }
   },
   "hints": {
-    "hint1": "Ana ekrandan bir oyun seçin",
-    "hint2": " tuşuna basılı tutun ve  tuşuna basarak hbmenu'ye girin",
-    "hint3": "hbmenu arayüzünden Switchlex'i seçin",
-    "hint4": "İsteğe bağlı: Gömülü gelen Switchlex NSP yönlendiricisini kullanın",
-    "hint_nsp": "NSP yönlendiricisini yüklemek için  tuşuna basın",
-    "hint_confirm": "NSP yönlendiricisini kurmak konsolunuzun çevrim içi özelliklerden yasaklanmasına neden olabilir\n\nLütfen tekrar onaylayın",
-    "hint_right": "Görseller internetten alınmıştır ve tüm telif hakları Nintendo Co., Ltd şirketine aittir"
+    "title": "Launch pleNx as a full application",
+    "text_applet": "pleNx is running in applet mode: the available memory is not sufficient for video playback. Launch it as a full application using one of the options below.",
+    "text_app": "pleNx is running as a full application. Install the HOME menu tile to launch it this way directly.",
+    "install_title": "HOME menu tile (recommended)",
+    "install_text": "Installs the embedded NSP forwarder: the tile launches pleNx as a full application straight from the HOME menu.",
+    "install_button": "Install the tile",
+    "takeover_title": "Alternative: title takeover",
+    "takeover_text": "Hold R while launching any installed game to open the homebrew menu as a full application, then launch pleNx from there.",
+    "prompt": "Install the pleNx tile on the HOME menu?\nThe tile launches the app as a full application (required for video playback).",
+    "hint_confirm": "NSP yönlendiricisini kurmak konsolunuzun çevrim içi özelliklerden yasaklanmasına neden olabilir\n\nLütfen tekrar onaylayın"
   },
   "plex": {
-    "link": "Sign in with plex.tv",
-    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "title": "Sign in to your Plex account",
+    "generating": "Generating code…",
+    "waiting": "Waiting for confirmation…",
+    "connected": "Connected!",
     "expired": "The code expired, please try again",
-    "manual_header": "Manual connection",
-    "token": "Token",
+    "step1": "1. On your phone or computer, open plex.tv/link",
+    "step2": "2. Sign in to your Plex account",
+    "step3": "3. Enter the code shown above",
+    "regenerate": "Generate a new code",
     "choose_server": "Choose a server",
     "choose_profile": "Choose a profile",
     "profile_pin": "Profile PIN",
     "wrong_pin": "Wrong PIN",
     "no_server": "No server found on this account",
+    "connecting": "Sunucuya bağlanılıyor…",
     "unreachable": "Server unreachable"
+  },
+  "empty": {
+    "title": "Gösterilecek bir şey yok",
+    "error": "Yüklenemedi"
   }
 }

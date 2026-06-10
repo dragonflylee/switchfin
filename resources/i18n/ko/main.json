@@ -4,7 +4,8 @@
     "genres": "장르",
     "suggest": "제안",
     "search": "검색",
-    "setting": "설정"
+    "setting": "설정",
+    "downloads": "다운로드"
   },
   "home": {
     "resume": "계속 시청하기",
@@ -49,6 +50,8 @@
     "mark_played": "재생한 것으로 표시",
     "mark_unplayed": "재생하지 않은 것으로 표시",
     "play": "재생",
+    "replay": "다시 재생",
+    "see_all": "모두 보기",
     "intro": "소개",
     "people": "인물",
     "special": "부가 영상",
@@ -61,7 +64,15 @@
     "random": "무작위",
     "played": "재생됨",
     "unplayed": "재생 안 됨",
-    "collections": "Collections"
+    "collections": "Collections",
+    "season": "season",
+    "seasons": "seasons",
+    "episode": "에피소드",
+    "episodes": "에피소드",
+    "seasons_title": "시즌",
+    "go_series": "시리즈로 이동",
+    "go_season": "시즌으로 이동",
+    "director": "감독"
   },
   "search": {
     "hint": "키워드와 키워드의 첫 글자를 지원합니다.",
@@ -75,12 +86,64 @@
       "movie": "영화",
       "series": "시리즈",
       "episode": "에피소드"
-    }
+    },
+    "no_history": "No recent searches",
+    "no_results": "No results",
+    "placeholder": "영화·시리즈 검색",
+    "results": "검색 결과",
+    "keyboard": "키보드",
+    "space": "공백",
+    "no_results_sub": "다른 제목, 배우 또는 장르로 시도해 보세요.",
+    "no_history_sub": "최근 검색이 여기에 표시됩니다."
+  },
+  "person": {
+    "movies": "영화",
+    "shows": "시리즈",
+    "as": "배역: {}"
+  },
+  "playlist": {
+    "title": "재생목록",
+    "item": "항목",
+    "items": "항목"
+  },
+  "watchlist": {
+    "title": "관심 목록",
+    "add": "관심 목록에 추가",
+    "remove": "관심 목록에서 제거",
+    "added": "관심 목록에 추가됨",
+    "removed": "관심 목록에서 제거됨",
+    "empty_title": "관심 목록이 비어 있습니다",
+    "empty_sub": "저장한 영화와 TV 프로그램이 여기에 표시됩니다.",
+    "not_in_library": "이 타이틀은 라이브러리에 없습니다",
+    "all": "전체",
+    "availability": "보유 여부",
+    "on_server": "서버에 있음",
+    "not_on_server": "서버에 없음"
   },
   "remote": {
-    "local": "로컬 파일",
+    "empty_title": "파일 없음",
+    "empty_sub": "로컬 저장소와 WebDAV, FTP, SFTP 서버를 탐색할 수 있습니다.",
+    "local": "파일",
     "folder": "폴더",
-    "up": "상위 폴더"
+    "up": "상위 폴더",
+    "add_server": "서버 추가",
+    "edit_server": "서버 편집",
+    "manage": "서버 관리",
+    "edit": "편집",
+    "delete": "삭제",
+    "delete_confirm": "“{}”을(를) 삭제할까요?",
+    "type": "유형",
+    "name": "이름",
+    "host": "호스트",
+    "port": "포트",
+    "username": "사용자 이름",
+    "password": "비밀번호",
+    "path": "시작 경로",
+    "optional": "선택 사항",
+    "save": "테스트 후 저장",
+    "test_failed": "연결 실패: {}",
+    "retry": "다시 시도할까요?",
+    "required": "이름과 호스트를 입력하세요."
   },
   "setting": {
     "quit_hint": "앱을 종료합니다. 설정 내용은 다음 실행 시 적용됩니다.",
@@ -219,25 +282,49 @@
     }
   },
   "hints": {
-    "hint1": "홈 화면에서 게임 선택하세요",
-    "hint2": " 키를 누르고 를 클릭하여 hbmenu로 들어갑니다",
-    "hint3": "hbmenu에서, Switchlex을 선택하세요",
-    "hint4": "선택 사항: Switchlex NSP를 설치하여 홈 화면 아이콘으로 Switchlex을 바로 여세요",
-    "hint_nsp": "NSP 포워더를 설치하기 위해 를 선택하세요",
-    "hint_confirm": "홈 화면 아이콘 설치는 기기가 밴 될 수 있습니다. 다시 확인하세요",
-    "hint_right": "사진은 인터넷에서 가져온 것이며 저작권은 Nintendo Co., Ltd에 있습니다"
+    "title": "Launch pleNx as a full application",
+    "text_applet": "pleNx is running in applet mode: the available memory is not sufficient for video playback. Launch it as a full application using one of the options below.",
+    "text_app": "pleNx is running as a full application. Install the HOME menu tile to launch it this way directly.",
+    "install_title": "HOME menu tile (recommended)",
+    "install_text": "Installs the embedded NSP forwarder: the tile launches pleNx as a full application straight from the HOME menu.",
+    "install_button": "Install the tile",
+    "takeover_title": "Alternative: title takeover",
+    "takeover_text": "Hold R while launching any installed game to open the homebrew menu as a full application, then launch pleNx from there.",
+    "prompt": "Install the pleNx tile on the HOME menu?\nThe tile launches the app as a full application (required for video playback).",
+    "hint_confirm": "홈 화면 아이콘 설치는 기기가 밴 될 수 있습니다. 다시 확인하세요"
   },
   "plex": {
-    "link": "Sign in with plex.tv",
-    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "title": "Sign in to your Plex account",
+    "generating": "Generating code…",
+    "waiting": "Waiting for confirmation…",
+    "connected": "Connected!",
     "expired": "The code expired, please try again",
-    "manual_header": "Manual connection",
-    "token": "Token",
+    "step1": "1. On your phone or computer, open plex.tv/link",
+    "step2": "2. Sign in to your Plex account",
+    "step3": "3. Enter the code shown above",
+    "regenerate": "Generate a new code",
     "choose_server": "Choose a server",
     "choose_profile": "Choose a profile",
     "profile_pin": "Profile PIN",
     "wrong_pin": "Wrong PIN",
     "no_server": "No server found on this account",
+    "connecting": "서버에 연결하는 중…",
     "unreachable": "Server unreachable"
+  },
+  "download": {
+    "season": "시즌 다운로드",
+    "confirm_season": "에피소드 {}개를 다운로드할까요?",
+    "season_queued": "시즌이 다운로드에 추가되었습니다",
+    "storage": "저장 공간",
+    "storage_free": "{} 사용 가능 / 전체 {}",
+    "section_active": "다운로드 중",
+    "section_done": "다운로드 완료",
+    "remove_all": "모두 삭제",
+    "confirm_remove_all": "모든 다운로드를 삭제하시겠습니까?",
+    "empty_sub": "다운로드한 영화와 에피소드가 여기에 표시되어 오프라인으로 시청할 수 있습니다."
+  },
+  "empty": {
+    "title": "표시할 항목 없음",
+    "error": "불러올 수 없음"
   }
 }

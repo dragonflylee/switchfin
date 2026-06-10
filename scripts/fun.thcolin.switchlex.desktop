@@ -1,8 +1,0 @@
-[Desktop Entry]
-Name=Switchlex
-Comment=A 3rd party jellyfin client
-Exec=${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}
-Icon=${PACKAGE_NAME}
-Terminal=false
-Type=Application
-Categories=AudioVideo;Audio;Video;

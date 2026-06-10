@@ -1,15 +1,17 @@
 <brls:Box
     width="auto"
     height="auto"
-    paddingLeft="@style/main/content_padding_sides"
-    paddingRight="@style/main/content_padding_sides"
-    paddingTop="@style/main/content_padding_top_bottom"
-    paddingBottom="@style/main/content_padding_top_bottom">
+    axis="column">
 
+    <!-- TOUT défile (en-tête compris : première cellule du flow) ; paddings
+         INTERNES au scroll : le contenu va jusqu'aux bords (full-bleed) -->
     <RecyclingGrid
         grow="1"
         wireframe="false"
-        paddingRight="10"
+        paddingLeft="@style/main/content_padding_sides"
+        paddingRight="@style/main/content_padding_sides"
+        paddingTop="@style/main/content_padding_top_bottom"
+        paddingBottom="@style/main/content_padding_top_bottom"
         spanCount="1"
         flowMode="true"
         itemSpace="10"

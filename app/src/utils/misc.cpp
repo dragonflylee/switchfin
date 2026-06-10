@@ -112,7 +112,7 @@ LONG WINAPI createMiniDump(_EXCEPTION_POINTERS* pep) {
     DWORD cbTemp = ::GetTempPathA(sizeof(tempPath), tempPath);
     ::GetLocalTime(&lt);
 
-    snprintf(tempPath + cbTemp, sizeof(tempPath) - cbTemp, "switchlex-%04d%02d%02d-%02d%02d%02d.dmp", lt.wYear,
+    snprintf(tempPath + cbTemp, sizeof(tempPath) - cbTemp, "plenx-%04d%02d%02d-%02d%02d%02d.dmp", lt.wYear,
         lt.wMonth, lt.wDay, lt.wHour, lt.wMinute, lt.wSecond);
     HANDLE hDump = ::CreateFileA(tempPath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
@@ -156,7 +156,10 @@ std::string misc::formatSize(uint64_t s) {
     if (s == 0) return "-";
     if (s < (1 << 20)) return fmt::format("{}KB", s / 1024);
     if (s < (1 << 30)) return fmt::format("{:.2f}MB", (s >> 10) / 1024.0f);
-    return fmt::format("{:.2f}GB", (s >> 20) / 1024.0f);
+    // palier TB : les capacités disque (en-tête stockage des téléchargements)
+    // dépassent couramment 1 To — « 1862.65GB » n'est pas lisible
+    if (s < (1ULL << 40)) return fmt::format("{:.2f}GB", (s >> 20) / 1024.0f);
+    return fmt::format("{:.2f}TB", (s >> 30) / 1024.0f);
 }
 
 std::string misc::randHex(const int len) {

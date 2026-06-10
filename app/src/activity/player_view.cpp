@@ -1,5 +1,5 @@
 /*
-    Switchlex — lecteur vidéo Plex.
+    pleNx — lecteur vidéo Plex.
     Pipeline vérifié : PLEX_MIGRATION.md §2.7 (citations plezy en commentaire).
     Unités : positions mpv en secondes, API Plex en millisecondes,
     offset du transcodeur en secondes entières.
@@ -173,7 +173,10 @@ bool PlayerView::playIndex(int index) {
     this->item = next;
     this->scrobbled = false;
     this->playMedia(0);
-    view->setTitie(fmt::format("S{}E{} - {}", next.parentIndex, next.index, next.title));
+    view->setTitie(next.grandparentTitle.empty()
+                       ? fmt::format("S{}E{} — {}", next.parentIndex, next.index, next.title)
+                       : fmt::format("{} · S{}E{} — {}", next.grandparentTitle, next.parentIndex, next.index,
+                             next.title));
     return true;
 }
 

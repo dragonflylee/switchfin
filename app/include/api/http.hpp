@@ -54,6 +54,7 @@ public:
     bool getinfo(char** arg);
     int propfind(const std::string& url, std::ostream* out);
     std::string _post(const std::string& url, const std::string& data);
+    std::string _put(const std::string& url, const std::string& data);
     void set_user_agent(const std::string& agent);
     void set_basic_auth(const std::string& user, const std::string& passwd);
     void _delete(const std::string& url, std::ostream* out);
@@ -94,6 +95,15 @@ public:
         HTTP s;
         set_option(s, std::forward<Ts>(ts)...);
         return s._post(url, s.encode_form(form));
+    }
+
+    // Put methods (l'API provider plex.tv utilise PUT pour les actions
+    // watchlist ; les paramètres passent en query string, corps vide)
+    template <typename... Ts>
+    static std::string put(const std::string& url, const std::string& data, Ts&&... ts) {
+        HTTP s;
+        set_option(s, std::forward<Ts>(ts)...);
+        return s._put(url, data);
     }
 
     inline static long TIMEOUT = 3000L;

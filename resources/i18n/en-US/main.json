@@ -50,6 +50,8 @@
     "mark_played": "Mark played",
     "mark_unplayed": "Mark unplayed",
     "play": "Play",
+    "replay": "Play again",
+    "see_all": "See all",
     "intro": "Intro",
     "people": "People",
     "special": "Special Features",
@@ -62,7 +64,15 @@
     "random": "Random",
     "played": "Played",
     "unplayed": "Unplayed",
-    "collections": "Collections"
+    "collections": "Collections",
+    "season": "season",
+    "seasons": "seasons",
+    "episode": "episode",
+    "episodes": "episodes",
+    "seasons_title": "Seasons",
+    "go_series": "Go to show",
+    "go_season": "Go to season",
+    "director": "Director"
   },
   "search": {
     "hint": "Supports keywords and their initial letters",
@@ -76,12 +86,64 @@
       "movie": "Movie",
       "series": "Series",
       "episode": "Episode"
-    }
+    },
+    "no_history": "No recent searches",
+    "no_results": "No results",
+    "placeholder": "Search movies & shows",
+    "results": "Results",
+    "keyboard": "Keyboard",
+    "space": "Space",
+    "no_results_sub": "Try another title, actor or genre.",
+    "no_history_sub": "Your recent searches will show up here."
+  },
+  "person": {
+    "movies": "Movies",
+    "shows": "TV Shows",
+    "as": "As {}"
+  },
+  "playlist": {
+    "title": "Playlists",
+    "item": "item",
+    "items": "items"
+  },
+  "watchlist": {
+    "title": "Watchlist",
+    "add": "Add to Watchlist",
+    "remove": "Remove from Watchlist",
+    "added": "Added to Watchlist",
+    "removed": "Removed from Watchlist",
+    "empty_title": "Your Watchlist is empty",
+    "empty_sub": "Movies and shows you save will appear here.",
+    "not_in_library": "This title is not in your library",
+    "all": "All",
+    "availability": "Availability",
+    "on_server": "On the server",
+    "not_on_server": "Not on the server"
   },
   "remote": {
-    "local": "Local Storage",
+    "empty_title": "No files",
+    "empty_sub": "Browse local storage and your WebDAV, FTP or SFTP servers.",
+    "local": "Files",
     "folder": "Folder",
-    "up": "Up"
+    "up": "Up",
+    "add_server": "Add a server",
+    "edit_server": "Edit server",
+    "manage": "Manage server",
+    "edit": "Edit",
+    "delete": "Delete",
+    "delete_confirm": "Delete “{}”?",
+    "type": "Type",
+    "name": "Name",
+    "host": "Host",
+    "port": "Port",
+    "username": "Username",
+    "password": "Password",
+    "path": "Start path",
+    "optional": "Optional",
+    "save": "Test and save",
+    "test_failed": "Connection failed: {}",
+    "retry": "Try again?",
+    "required": "Enter at least a name and a host."
   },
   "download": {
     "start": "Download",
@@ -94,7 +156,17 @@
     "no_downloads": "No Downloads",
     "confirm_remove": "Remove this download?",
     "play_offline": "Play Offline",
-    "confirm_cancel": "Cancel this download?"
+    "confirm_cancel": "Cancel this download?",
+    "season": "Download season",
+    "confirm_season": "Download {} episodes?",
+    "season_queued": "Season added to downloads",
+    "storage": "Storage",
+    "storage_free": "{} free of {}",
+    "section_active": "In Progress",
+    "section_done": "Downloaded",
+    "remove_all": "Remove All",
+    "confirm_remove_all": "Remove all downloads?",
+    "empty_sub": "Downloaded movies and episodes end up here, ready to watch offline."
   },
   "setting": {
     "quit_hint": "You are about to exit the application. The settings will take effect after the next startup",
@@ -196,7 +268,7 @@
       "font_q1": "How to set custom font or keymap icon",
       "font_a1": "1. Download the font or icon font you want\n2. Rename font to: font.ttf; Rename icon to: icon.ttf\n3. Place font files in the config directory\n4. Restart the application",
       "font_q2": "FAQ",
-      "font_a2": "1. Switchlex prioritizes the display of custom fonts, with built-in fonts as a fallback\n2. \"Settings - Tutorial\" provides a menu item to quickly open the config directory\n3. On Linux, Switchlex uses xdg-open to open the directory. If the configuration directory cannot be opened correctly, you can consider installing this tool",
+      "font_a2": "1. pleNx prioritizes the display of custom fonts, with built-in fonts as a fallback\n2. \"Settings - Tutorial\" provides a menu item to quickly open the config directory\n3. On Linux, pleNx uses xdg-open to open the directory. If the configuration directory cannot be opened correctly, you can consider installing this tool",
       "font_q3": "Subtitles didn't display",
       "font_a3": "Put any ttf file at {}/subfont.ttf"
     },
@@ -233,25 +305,37 @@
     }
   },
   "hints": {
-    "hint1": "Select a game from home screen",
-    "hint2": "Hold the  key and click  to enter hbmenu",
-    "hint3": "In the hbmenu, select Switchlex",
-    "hint4": "Optional: Using provided Switchlex NSP forwarder",
-    "hint_nsp": "Click  to install NSP forwarder",
-    "hint_confirm": "Installing NSP forwarder may result in a ban\nPlease confirm again",
-    "hint_right": "The pictures are from the Internet, and the copyright belongs to Nintendo Co., Ltd"
+    "title": "Launch pleNx as a full application",
+    "text_applet": "pleNx is running in applet mode: the available memory is not sufficient for video playback. Launch it as a full application using one of the options below.",
+    "text_app": "pleNx is running as a full application. Install the HOME menu tile to launch it this way directly.",
+    "install_title": "HOME menu tile (recommended)",
+    "install_text": "Installs the embedded NSP forwarder: the tile launches pleNx as a full application straight from the HOME menu.",
+    "install_button": "Install the tile",
+    "takeover_title": "Alternative: title takeover",
+    "takeover_text": "Hold R while launching any installed game to open the homebrew menu as a full application, then launch pleNx from there.",
+    "prompt": "Install the pleNx tile on the HOME menu?\nThe tile launches the app as a full application (required for video playback).",
+    "hint_confirm": "Installing NSP forwarder may result in a ban\nPlease confirm again"
   },
   "plex": {
-    "link": "Sign in with plex.tv",
-    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "title": "Sign in to your Plex account",
+    "generating": "Generating code…",
+    "waiting": "Waiting for confirmation…",
+    "connected": "Connected!",
     "expired": "The code expired, please try again",
-    "manual_header": "Manual connection",
-    "token": "Token",
+    "step1": "1. On your phone or computer, open plex.tv/link",
+    "step2": "2. Sign in to your Plex account",
+    "step3": "3. Enter the code shown above",
+    "regenerate": "Generate a new code",
     "choose_server": "Choose a server",
     "choose_profile": "Choose a profile",
     "profile_pin": "Profile PIN",
     "wrong_pin": "Wrong PIN",
     "no_server": "No server found on this account",
+    "connecting": "Connecting to the server…",
     "unreachable": "Server unreachable"
+  },
+  "empty": {
+    "title": "Nothing to show",
+    "error": "Unable to load"
   }
 }

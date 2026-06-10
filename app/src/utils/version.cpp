@@ -15,6 +15,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
+#include <algorithm>
+#include <cstdio>
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
 #include "utils/thread.hpp"
@@ -112,7 +114,17 @@ std::string AppVersion::getDeviceName() {
     return fmt::format("{} for {}", getPackageName(), getPlatform());
 }
 
-bool AppVersion::needUpdate(std::string latestVersion) { return false; }
+bool AppVersion::needUpdate(std::string latestVersion) {
+    // Release tags are "vX.Y.Z" while APP_VERSION is "X.Y.Z": strip the prefix and compare numerically
+    auto parse = [](const std::string& s, int out[3]) {
+        size_t start = (!s.empty() && (s[0] == 'v' || s[0] == 'V')) ? 1 : 0;
+        return std::sscanf(s.c_str() + start, "%d.%d.%d", &out[0], &out[1], &out[2]) == 3;
+    };
+    int latest[3], current[3];
+    if (!parse(latestVersion, latest) || !parse(getVersion(), current))
+        return latestVersion.compare(getVersion()) > 0;
+    return std::lexicographical_compare(current, current + 3, latest, latest + 3);
+}
 
 void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
     if (!AppVersion::updating->load()) {
@@ -125,7 +137,7 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
             auto resp = HTTP::get(url, HTTP::Timeout{});
             nlohmann::json j = nlohmann::json::parse(resp);
             std::string latest_ver = j.at("tag_name").get<std::string>();
-            if (latest_ver.compare(getVersion()) <= 0) {
+            if (!needUpdate(latest_ver)) {
                 brls::Logger::info("App is up to date");
                 if (showUpToDateDialog) brls::sync([]() { Dialog::show("main/setting/others/up2date"_i18n); });
                 return;
@@ -146,7 +158,7 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
                         std::string pkg_name = AppVersion::getPackageName();
                         std::string path = fmt::format("{}/{}_{}.nro", conf_dir, pkg_name, latest_ver);
                         std::string url = fmt::format(
-                            "https://github.com/{}/releases/download/{}/Switchlex.nro", git_repo, latest_ver);
+                            "https://github.com/{}/releases/download/{}/pleNx.nro", git_repo, latest_ver);
                         try {
                             HTTP::download(url, path, HTTP::Timeout{-1}, AppVersion::updating);
                             romfsExit();

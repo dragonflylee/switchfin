@@ -1,5 +1,5 @@
 /*
-    Switchlex — implémentation de l'authentification plex.tv.
+    pleNx — implémentation de l'authentification plex.tv.
     Spécification : PLEX_MIGRATION.md §2.2-2.3 (vérifiée dans plezy, citations en commentaire).
 */
 

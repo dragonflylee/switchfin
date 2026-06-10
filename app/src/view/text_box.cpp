@@ -9,7 +9,17 @@ static YGSize textBoxMeasureFunc(
 
     YGSize size = {.width = width, .height = height};
     if (heightMode == YGMeasureMode::YGMeasureModeExactly) return size;
-    if (fullText.empty() || std::isnan(width)) return size;
+    // jamais de NaN en sortie de mesure : en mesure libre yoga passe
+    // height=NaN, et la renvoyer telle quelle dégénère tout le layout parent
+    // (bug « Scrubs S1-8 » : overview vide → en-tête de saison plein écran)
+    if (fullText.empty()) {
+        size.height = 0;
+        return size;
+    }
+    if (std::isnan(width)) {
+        size.height = textBox->getFontSize();
+        return size;
+    }
 
     size.height = textBox->cutText(width);
     textBox->setParsedDone(true);

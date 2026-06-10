@@ -50,6 +50,8 @@
     "mark_played": "标为已播放",
     "mark_unplayed": "标为未播放",
     "play": "播放",
+    "replay": "重新播放",
+    "see_all": "查看全部",
     "intro": "简介",
     "people": "演职人员",
     "special": "花絮",
@@ -62,7 +64,15 @@
     "random": "随机",
     "played": "已播放",
     "unplayed": "未播放",
-    "collections": "Collections"
+    "collections": "Collections",
+    "season": "season",
+    "seasons": "seasons",
+    "episode": "集",
+    "episodes": "集",
+    "seasons_title": "季",
+    "go_series": "前往节目",
+    "go_season": "前往季",
+    "director": "导演"
   },
   "search": {
     "hint": "支持关键字及关键字首字母",
@@ -76,12 +86,64 @@
       "movie": "电影",
       "series": "节目",
       "episode": "剧集"
-    }
+    },
+    "no_history": "No recent searches",
+    "no_results": "No results",
+    "placeholder": "搜索电影和剧集",
+    "results": "搜索结果",
+    "keyboard": "键盘",
+    "space": "空格",
+    "no_results_sub": "试试其他标题、演员或类型。",
+    "no_history_sub": "最近的搜索会显示在这里。"
+  },
+  "person": {
+    "movies": "电影",
+    "shows": "节目",
+    "as": "饰演 {}"
+  },
+  "playlist": {
+    "title": "播放列表",
+    "item": "项",
+    "items": "项"
+  },
+  "watchlist": {
+    "title": "待看清单",
+    "add": "添加到待看清单",
+    "remove": "从待看清单中移除",
+    "added": "已添加到待看清单",
+    "removed": "已从待看清单中移除",
+    "empty_title": "待看清单为空",
+    "empty_sub": "收藏的电影和剧集将显示在这里。",
+    "not_in_library": "媒体库中没有该影片",
+    "all": "全部",
+    "availability": "可用性",
+    "on_server": "在服务器上",
+    "not_on_server": "不在服务器上"
   },
   "remote": {
-    "local": "本地",
+    "empty_title": "暂无文件",
+    "empty_sub": "浏览本地存储以及你的 WebDAV、FTP 或 SFTP 服务器。",
+    "local": "文件",
     "folder": "文件夹",
-    "up": "上一级"
+    "up": "上一级",
+    "add_server": "添加服务器",
+    "edit_server": "编辑服务器",
+    "manage": "管理服务器",
+    "edit": "编辑",
+    "delete": "删除",
+    "delete_confirm": "删除“{}”？",
+    "type": "类型",
+    "name": "名称",
+    "host": "主机",
+    "port": "端口",
+    "username": "用户名",
+    "password": "密码",
+    "path": "起始路径",
+    "optional": "可选",
+    "save": "测试并保存",
+    "test_failed": "连接失败：{}",
+    "retry": "重试？",
+    "required": "请至少填写名称和主机。"
   },
   "download": {
     "start": "开始下载",
@@ -94,7 +156,17 @@
     "no_downloads": "下载记录为空",
     "confirm_remove": "是否移除下载文件?",
     "play_offline": "离线播放",
-    "confirm_cancel": "Cancel this download?"
+    "confirm_cancel": "Cancel this download?",
+    "season": "下载本季",
+    "confirm_season": "下载 {} 集？",
+    "season_queued": "已将本季加入下载",
+    "storage": "存储空间",
+    "storage_free": "可用 {} / 共 {}",
+    "section_active": "下载中",
+    "section_done": "已下载",
+    "remove_all": "全部删除",
+    "confirm_remove_all": "删除全部下载内容？",
+    "empty_sub": "下载的电影和剧集会显示在这里，可离线观看。"
   },
   "setting": {
     "quit_hint": "即将退出应用, 设置内容将在下次启动后生效",
@@ -233,25 +305,37 @@
     }
   },
   "hints": {
-    "hint1": "请从桌面选择任意游戏并按住  键",
-    "hint2": "点击  打开, 在应用开启期间保持按住  键，直到进入 hbmenu",
-    "hint3": "在 hbmenu 菜单中选择 Switchlex",
-    "hint4": "可选：安装 Switchlex NSP 通过桌面图标直接打开 Switchlex",
-    "hint_nsp": "点击  安装桌面图标",
-    "hint_confirm": "安装桌面图标可能导致ban机\n请再次确认",
-    "hint_right": "掌机图片来源于网络，版权归任天堂 Nintendo Co., Ltd 所有"
+    "title": "Launch pleNx as a full application",
+    "text_applet": "pleNx is running in applet mode: the available memory is not sufficient for video playback. Launch it as a full application using one of the options below.",
+    "text_app": "pleNx is running as a full application. Install the HOME menu tile to launch it this way directly.",
+    "install_title": "HOME menu tile (recommended)",
+    "install_text": "Installs the embedded NSP forwarder: the tile launches pleNx as a full application straight from the HOME menu.",
+    "install_button": "Install the tile",
+    "takeover_title": "Alternative: title takeover",
+    "takeover_text": "Hold R while launching any installed game to open the homebrew menu as a full application, then launch pleNx from there.",
+    "prompt": "Install the pleNx tile on the HOME menu?\nThe tile launches the app as a full application (required for video playback).",
+    "hint_confirm": "安装桌面图标可能导致ban机\n请再次确认"
   },
   "plex": {
-    "link": "Sign in with plex.tv",
-    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "title": "Sign in to your Plex account",
+    "generating": "Generating code…",
+    "waiting": "Waiting for confirmation…",
+    "connected": "Connected!",
     "expired": "The code expired, please try again",
-    "manual_header": "Manual connection",
-    "token": "Token",
+    "step1": "1. On your phone or computer, open plex.tv/link",
+    "step2": "2. Sign in to your Plex account",
+    "step3": "3. Enter the code shown above",
+    "regenerate": "Generate a new code",
     "choose_server": "Choose a server",
     "choose_profile": "Choose a profile",
     "profile_pin": "Profile PIN",
     "wrong_pin": "Wrong PIN",
     "no_server": "No server found on this account",
+    "connecting": "正在连接服务器…",
     "unreachable": "Server unreachable"
+  },
+  "empty": {
+    "title": "暂无内容",
+    "error": "无法加载"
   }
 }

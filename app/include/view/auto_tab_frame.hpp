@@ -54,6 +54,8 @@ public:
 
     void setHorizontalMode(bool value);
 
+    bool getHorizontalMode();
+
     size_t getCurrentIndex();
 
     View* getAttachedView();
@@ -95,7 +97,11 @@ private:
     NVGcolor tabItemActiveBackgroundColor = nvgRGBA(0, 0, 0, 0);
     NVGcolor tabItemActiveTextColor = brls::Application::getTheme()["brls/text"];
 
+    /// applique les couleurs « pill » (mode horizontal ACCENT) selon l'état actif
+    void applyPillStyle();
+
     bool active = false;
+    bool horizontal = false;
     View* attachedView = nullptr;
     TabViewCreator attachedViewCreator = nullptr;
     std::string iconDefault, iconActivate;
@@ -139,6 +145,8 @@ public:
     AutoTabFrame();
     void handleXMLElement(tinyxml2::XMLElement* element) override;
     void addTab(AutoSidebarItem* tab, TabViewCreator creator);
+    /// insert the tab at the given position in the tab bar
+    void addTab(AutoSidebarItem* tab, TabViewCreator creator, size_t position);
     void focusTab(int position);
     void clearTabs();
     void clearTab(const std::string& name, bool onlyFirst = true);
@@ -175,6 +183,9 @@ public:
 
     void addItem(AutoSidebarItem* tab, TabViewCreator creator, brls::GenericEvent::Callback focusCallback);
 
+    void addItem(
+        AutoSidebarItem* tab, TabViewCreator creator, brls::GenericEvent::Callback focusCallback, size_t position);
+
     AutoSidebarItem* getItem(int position);
 
     void clearItems();
@@ -196,6 +207,10 @@ public:
     void draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style,
         brls::FrameContext* ctx) override;
 
+    /// mode TOP flottant : la barre (enfant 0, peinte en dernier) doit aussi
+    /// gagner le hit-test tactile face au contenu pleine hauteur
+    brls::View* hitTest(brls::Point point) override;
+
     /**
      * Setting the position of sidebar.
      * Only set once.
@@ -206,8 +221,46 @@ public:
 
     void setTabChangedAction(const std::function<void(size_t)>& event);
 
+    /// ---- pile de vues de détail (fiches film/série/saison/acteur…) ----
+    /// Empile `detail` dans la zone de contenu : la sidebar reste visible, le
+    /// contenu couvert passe en GONE (jamais détruit), la vue reçoit le focus
+    /// et son action B dépile. Pile multi-niveaux (fiche film → fiche acteur…).
+    void pushDetailView(brls::View* detail);
+
+    /// Dépile et détruit la vue du dessus ; restaure la visibilité du contenu
+    /// couvert et le focus mémorisé (revalidé dans l'arbre vivant : jamais de
+    /// focus sur une vue morte). false si la pile est vide.
+    bool popDetailView();
+
+    bool hasDetailView();
+
+    brls::View* getTopDetailView();
+
+    /// vide la pile sans restauration de focus (changement d'onglet,
+    /// destruction) ; le contenu de l'onglet redevient visible
+    void clearDetailViews();
+
 private:
+    /// focus du détail au sommet, retenté chaque frame tant que son contenu
+    /// asynchrone n'a rien de focusable (repli sidebar pendant l'attente —
+    /// cf. implémentation)
+    void retryDetailFocus(brls::View* detail, int attemptsLeft);
+
     BRLS_BIND(Box, sidebar, "auto_tab_frame/auto_sidebar");
+
+    struct DetailEntry {
+        View* view = nullptr;
+        /// focus au moment du push — pointeur potentiellement mort au pop,
+        /// jamais déréférencé sans revalidation (comparaison d'adresses)
+        View* previousFocus = nullptr;
+        /// si le focus vivait dans un recycler : (recycler, index de la
+        /// cellule). Les cellules sont recyclées/rebindées pendant que le
+        /// contenu est masqué (reloadData au relayout) — le pointeur de
+        /// cellule resterait « vivant » mais montrerait un autre média.
+        View* previousRecycler = nullptr;
+        size_t previousIndex = 0;
+    };
+    std::vector<DetailEntry> detailStack;
 
     View* activeTab = nullptr;
     AutoTabBarPosition tabBarPosition = AutoTabBarPosition::LEFT;
@@ -216,7 +269,9 @@ private:
     bool isHorizontal = false;
     bool isDemandMode = true;  // load pages on demand
     float itemFontSize = 22;
-    float sidebarWidth = 100;
+    /// sidebar verticale resserrée : icône 28px centrée + accent 4px collé au
+    /// bord droit (recette UI n°5 : 76px restait trop large, accent décollé)
+    float sidebarWidth = 64;
 
     std::function<void(size_t)> tabChangedAction = nullptr;
 
@@ -228,3 +283,22 @@ private:
     NVGcolor tabItemActiveBackgroundColor = nvgRGBA(0, 0, 0, 0);
     NVGcolor tabItemActiveTextColor = brls::Application::getTheme()["brls/text"];
 };
+
+namespace ui {
+
+/// Présente `detail` par-dessus le contenu du tab frame principal : remonte
+/// l'arbre depuis `from` (n'importe quelle vue vivante de l'écran) jusqu'au
+/// AutoTabFrame le plus EXTERNE (le MainTabFrame en pratique — pas les
+/// onglets imbriqués des bibliothèques) et appelle pushDetailView : la
+/// sidebar reste visible et navigable, B dépile. Repli sur l'ancien
+/// View::present (AppletFrame plein écran) quand aucun AutoTabFrame n'est
+/// trouvé (ex. vue présentée hors sidebar : résultats de recherche présentés,
+/// liste de serveurs).
+void presentDetail(brls::View* from, brls::View* detail);
+
+/// Dépile la vue de détail du dessus si `from` vit dedans (croix de
+/// fermeture, équivalent tactile de B). false si `from` n'est pas dans une
+/// vue de détail empilée — l'appelant retombe alors sur View::dismiss().
+bool popDetail(brls::View* from);
+
+}  // namespace ui

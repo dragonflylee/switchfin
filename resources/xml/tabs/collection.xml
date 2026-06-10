@@ -1,32 +1,35 @@
 <brls:Box
     width="auto"
-    height="auto"
-    paddingLeft="@style/main/content_padding_sides"
-    paddingRight="@style/main/content_padding_sides"
-    paddingBottom="@style/main/content_padding_top_bottom">
+    height="auto">
 
     <AutoTabFrame
         id="media/tabFrame"
         grow="1"
         defaultTab="0"
         tabHeight="60"
+        tabJustifyContent="center"
         tabItemActiveTextColor="@theme/color/app"
         sidebarPosition="top">
 
         <Tab label="@i18n/main/tabs/home"
             fontSize="18">
+            <!-- retraits portés par la grille (padding interne au scroll) :
+                 les affiches glissent jusqu'aux bords de la zone.
+                 paddingTop 70 : la barre d'onglets (60) flotte au-dessus de
+                 la grille, qui défile dessous -->
             <RecyclingGrid
                 grow="1"
                 wireframe="false"
+                paddingTop="70"
+                paddingLeft="@style/main/content_padding_sides"
+                paddingRight="@style/main/content_padding_sides"
+                paddingBottom="@style/main/content_padding_top_bottom"
                 spanCount="@style/app/grid/6"
                 itemHeight="@style/app/video/height"
+                itemImageRatio="1.5"
+                itemExtraHeight="55"
                 id="media/series" />
         </Tab>
     </AutoTabFrame>
-
-    <ButtonClose
-        positionType="absolute"
-        positionTop="2"
-        positionRight="2" />
 
 </brls:Box>

@@ -107,7 +107,8 @@ void GalleryView::addCustomView(GalleryItem* view) {
 
 void GalleryView::prev() {
     if (this->index <= 0) {
-        brls::Application::getCurrentFocus()->shakeHighlight(brls::FocusDirection::LEFT);
+        brls::View* focus = brls::Application::getCurrentFocus();
+        if (focus) focus->shakeHighlight(brls::FocusDirection::LEFT);
         return;
     }
     ((GalleryItem*)this->getChildren()[this->index])->animate(GalleryAnimation::EXIT_RIGHT);
@@ -118,7 +119,8 @@ void GalleryView::prev() {
 
 void GalleryView::next() {
     if (this->index + 1 >= this->getChildren().size()) {
-        brls::Application::getCurrentFocus()->shakeHighlight(brls::FocusDirection::RIGHT);
+        brls::View* focus = brls::Application::getCurrentFocus();
+        if (focus) focus->shakeHighlight(brls::FocusDirection::RIGHT);
         return;
     }
     ((GalleryItem*)this->getChildren()[this->index])->animate(GalleryAnimation::EXIT_LEFT);

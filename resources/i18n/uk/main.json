@@ -4,7 +4,8 @@
     "genres": "Жанр",
     "suggest": "Пропозиції",
     "search": "Пошук",
-    "setting": "Налаштування"
+    "setting": "Налаштування",
+    "downloads": "Завантаження"
   },
   "home": {
     "resume": "Продовжити перегляд",
@@ -45,6 +46,8 @@
     "descending": "Спадний",
     "name": "Ім'я",
     "play": "Відтворити",
+    "replay": "Відтворити знову",
+    "see_all": "Показати все",
     "date_add": "Дата додавання",
     "date_played": "Дата відтворення",
     "premiere_date": "Дата премє'ри",
@@ -53,7 +56,15 @@
     "random": "Рандом",
     "played": "Відтворено",
     "unplayed": "Невідтворено",
-    "collections": "Collections"
+    "collections": "Collections",
+    "season": "season",
+    "seasons": "seasons",
+    "episode": "серія",
+    "episodes": "серії",
+    "seasons_title": "Сезони",
+    "go_series": "До серіалу",
+    "go_season": "До сезону",
+    "director": "Режисер"
   },
   "search": {
     "hint": "Ключові слова підтримки та їх початкові літери",
@@ -67,12 +78,64 @@
       "movie": "Фільм",
       "series": "Серіал",
       "episode": "Епізод"
-    }
+    },
+    "no_history": "No recent searches",
+    "no_results": "No results",
+    "placeholder": "Пошук фільмів і серіалів",
+    "results": "Результати",
+    "keyboard": "Клавіатура",
+    "space": "Пробіл",
+    "no_results_sub": "Спробуйте іншу назву, актора чи жанр.",
+    "no_history_sub": "Тут з’являться нещодавні запити."
+  },
+  "person": {
+    "movies": "Фільми",
+    "shows": "Серіали",
+    "as": "Роль: {}"
+  },
+  "playlist": {
+    "title": "Списки відтворення",
+    "item": "елемент",
+    "items": "елементи"
+  },
+  "watchlist": {
+    "title": "Список перегляду",
+    "add": "Додати до списку перегляду",
+    "remove": "Вилучити зі списку перегляду",
+    "added": "Додано до списку перегляду",
+    "removed": "Вилучено зі списку перегляду",
+    "empty_title": "Ваш список перегляду порожній",
+    "empty_sub": "Збережені фільми та серіали з'являться тут.",
+    "not_in_library": "Цього фільму чи серіалу немає у вашій бібліотеці",
+    "all": "Усі",
+    "availability": "Доступність",
+    "on_server": "На сервері",
+    "not_on_server": "Не на сервері"
   },
   "remote": {
-    "local": "Локальний",
+    "empty_title": "Немає файлів",
+    "empty_sub": "Переглядайте локальне сховище та свої сервери WebDAV, FTP або SFTP.",
+    "local": "Файли",
     "folder": "Тека",
-    "up": "Вгору"
+    "up": "Вгору",
+    "add_server": "Додати сервер",
+    "edit_server": "Редагувати сервер",
+    "manage": "Керування сервером",
+    "edit": "Редагувати",
+    "delete": "Видалити",
+    "delete_confirm": "Видалити «{}»?",
+    "type": "Тип",
+    "name": "Назва",
+    "host": "Хост",
+    "port": "Порт",
+    "username": "Ім'я користувача",
+    "password": "Пароль",
+    "path": "Початковий шлях",
+    "optional": "Необов'язково",
+    "save": "Перевірити й зберегти",
+    "test_failed": "Не вдалося підключитися: {}",
+    "retry": "Повторити?",
+    "required": "Вкажіть принаймні назву та хост."
   },
   "setting": {
     "quit_hint": "Ви збираєтеся вийти з програми. Налаштування приміняться після наступного запуску",
@@ -157,7 +220,7 @@
       "font_q1": "Як встановити власний шрифт або іконку для клавіатури",
       "font_a1": "1. Завантажте потрібний шрифт або іконку\n2. Перейменувати шрифт на: font.ttf; Перейменувати іконку на: icon.ttf\n3. Помістіть файли шрифтів у каталог config\n4. Перезапустіть програму",
       "font_q2": "FAQ",
-      "font_a2": "1. Switchlex надає пріоритет відображенню користувацьких шрифтів, а вбудовані шрифти є запасним варіантом\n2. \"Налаштування - Туторіал\" містить пункт меню для швидкого відкриття каталогу налаштувань\n3. У Linux Switchlex використовує xdg-open для відкриття каталогу. Якщо каталог конфігурації не вдається відкрити коректно, ви можете розглянути можливість встановлення цього інструменту",
+      "font_a2": "1. pleNx надає пріоритет відображенню користувацьких шрифтів, а вбудовані шрифти є запасним варіантом\n2. \"Налаштування - Туторіал\" містить пункт меню для швидкого відкриття каталогу налаштувань\n3. У Linux pleNx використовує xdg-open для відкриття каталогу. Якщо каталог конфігурації не вдається відкрити коректно, ви можете розглянути можливість встановлення цього інструменту",
       "font_q3": "Субтитри не показуються",
       "font_a3": "Розмістіть будь-який ttf-файл до {}/subfont.ttf"
     },
@@ -194,25 +257,49 @@
     }
   },
   "hints": {
-    "hint1": "Виберіть гру на головному екрані",
-    "hint2": "Затисніть кнопку  та натисніть  для входу у hbmenu",
-    "hint3": "У hbmenu, оберіть Switchlex",
-    "hint4": "Необов'язково: Використання наданого форвардера Switchlex NSP",
-    "hint_nsp": "Натисніть  щоб встановити форвардер NSP",
-    "hint_confirm": "Встановлення форвардеру NSP може призвести до бану\nБудь ласка, підтвердіть ще раз",
-    "hint_right": "Це зображення взято з Інтернету, і авторське право належить Nintendo Co., Ltd"
+    "title": "Launch pleNx as a full application",
+    "text_applet": "pleNx is running in applet mode: the available memory is not sufficient for video playback. Launch it as a full application using one of the options below.",
+    "text_app": "pleNx is running as a full application. Install the HOME menu tile to launch it this way directly.",
+    "install_title": "HOME menu tile (recommended)",
+    "install_text": "Installs the embedded NSP forwarder: the tile launches pleNx as a full application straight from the HOME menu.",
+    "install_button": "Install the tile",
+    "takeover_title": "Alternative: title takeover",
+    "takeover_text": "Hold R while launching any installed game to open the homebrew menu as a full application, then launch pleNx from there.",
+    "prompt": "Install the pleNx tile on the HOME menu?\nThe tile launches the app as a full application (required for video playback).",
+    "hint_confirm": "Встановлення форвардеру NSP може призвести до бану\nБудь ласка, підтвердіть ще раз"
   },
   "plex": {
-    "link": "Sign in with plex.tv",
-    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "title": "Sign in to your Plex account",
+    "generating": "Generating code…",
+    "waiting": "Waiting for confirmation…",
+    "connected": "Connected!",
     "expired": "The code expired, please try again",
-    "manual_header": "Manual connection",
-    "token": "Token",
+    "step1": "1. On your phone or computer, open plex.tv/link",
+    "step2": "2. Sign in to your Plex account",
+    "step3": "3. Enter the code shown above",
+    "regenerate": "Generate a new code",
     "choose_server": "Choose a server",
     "choose_profile": "Choose a profile",
     "profile_pin": "Profile PIN",
     "wrong_pin": "Wrong PIN",
     "no_server": "No server found on this account",
+    "connecting": "Підключення до сервера…",
     "unreachable": "Server unreachable"
+  },
+  "download": {
+    "season": "Завантажити сезон",
+    "confirm_season": "Завантажити {} серій?",
+    "season_queued": "Сезон додано до завантажень",
+    "storage": "Сховище",
+    "storage_free": "Вільно {} з {}",
+    "section_active": "У процесі",
+    "section_done": "Завантажено",
+    "remove_all": "Видалити все",
+    "confirm_remove_all": "Видалити всі завантаження?",
+    "empty_sub": "Завантажені фільми та серії з’являться тут — для перегляду офлайн."
+  },
+  "empty": {
+    "title": "Немає що показати",
+    "error": "Не вдалося завантажити"
   }
 }

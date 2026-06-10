@@ -46,7 +46,6 @@ void SearchList::doRequest(const std::string& searchTerm) {
                 this->setVisibility(brls::Visibility::GONE);
                 this->recycler->clearData();
             } else {
-                this->title->setSubtitle(std::to_string(items.size()));
                 this->recycler->setDataSource(new VideoDataSource(items));
             }
         },

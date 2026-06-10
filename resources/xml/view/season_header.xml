@@ -1,0 +1,45 @@
+<brls:Box
+    axis="row"
+    paddingBottom="16">
+
+    <brls:Image
+        id="season/image/poster"
+        width="150"
+        height="225"
+        cornerRadius="10"
+        scalingType="fill"
+        backgroundColor="@theme/color/grey_1" />
+
+    <brls:Box
+        axis="column"
+        grow="1.0"
+        marginLeft="24"
+        justifyContent="center">
+
+        <brls:Label
+            id="season/label/title"
+            fontSize="26" />
+
+        <brls:Label
+            id="season/label/meta"
+            fontSize="15"
+            marginTop="8"
+            textColor="@theme/font/grey" />
+
+        <TextBox
+            id="season/label/overview"
+            fontSize="14"
+            maxRows="4"
+            marginTop="12"
+            textColor="@theme/font/grey" />
+
+        <brls:Box marginTop="14">
+            <IconButton
+                id="season/download"
+                icon="@res/icon/ico-download-light.svg"
+                text="@i18n/main/download/season"
+                buttonStyle="bordered" />
+        </brls:Box>
+
+    </brls:Box>
+</brls:Box>

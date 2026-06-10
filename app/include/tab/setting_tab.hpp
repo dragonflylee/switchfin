@@ -30,6 +30,9 @@ public:
 
 private:
     BRLS_BIND(brls::Box, boxStatus, "setting/status");
+    BRLS_BIND(brls::Image, profileAvatar, "setting/profile/avatar");
+    BRLS_BIND(brls::Label, profileName, "setting/profile/name");
+    BRLS_BIND(brls::Label, profileServer, "setting/profile/server");
     BRLS_BIND(brls::RadioCell, btnTutorialOpenApp, "tools/tutorial_open");
     BRLS_BIND(brls::RadioCell, btnTutorialError, "tools/tutorial_error");
     BRLS_BIND(brls::RadioCell, btnTutorialFont, "tools/tutorial_font");

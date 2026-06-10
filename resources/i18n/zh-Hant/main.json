@@ -50,6 +50,8 @@
     "mark_unplayed": "標記為未播放",
     "name": "名稱",
     "play": "播放",
+    "replay": "重新播放",
+    "see_all": "查看全部",
     "intro": "簡介",
     "people": "演員與工作人員",
     "special": "花絮",
@@ -62,7 +64,15 @@
     "random": "隨機",
     "played": "已播放",
     "unplayed": "未播放",
-    "collections": "Collections"
+    "collections": "Collections",
+    "season": "season",
+    "seasons": "seasons",
+    "episode": "集",
+    "episodes": "集",
+    "seasons_title": "季",
+    "go_series": "前往節目",
+    "go_season": "前往季",
+    "director": "導演"
   },
   "search": {
     "hint": "支持關鍵字及關鍵字首字母",
@@ -76,12 +86,64 @@
       "movie": "電影",
       "series": "節目",
       "episode": "劇集"
-    }
+    },
+    "no_history": "No recent searches",
+    "no_results": "No results",
+    "placeholder": "搜尋電影和影集",
+    "results": "搜尋結果",
+    "keyboard": "鍵盤",
+    "space": "空格",
+    "no_results_sub": "試試其他標題、演員或類型。",
+    "no_history_sub": "最近的搜尋會顯示在這裡。"
+  },
+  "person": {
+    "movies": "電影",
+    "shows": "節目",
+    "as": "飾演 {}"
+  },
+  "playlist": {
+    "title": "播放清單",
+    "item": "項目",
+    "items": "項目"
+  },
+  "watchlist": {
+    "title": "待看清單",
+    "add": "加入待看清單",
+    "remove": "從待看清單中移除",
+    "added": "已加入待看清單",
+    "removed": "已從待看清單中移除",
+    "empty_title": "待看清單是空的",
+    "empty_sub": "收藏的電影和影集將顯示在這裡。",
+    "not_in_library": "媒體庫中沒有此影片",
+    "all": "全部",
+    "availability": "可用性",
+    "on_server": "在伺服器上",
+    "not_on_server": "不在伺服器上"
   },
   "remote": {
-    "local": "本地",
+    "empty_title": "暫無檔案",
+    "empty_sub": "瀏覽本機儲存空間以及你的 WebDAV、FTP 或 SFTP 伺服器。",
+    "local": "檔案",
     "folder": "資料夾",
-    "up": "上一級"
+    "up": "上一級",
+    "add_server": "新增伺服器",
+    "edit_server": "編輯伺服器",
+    "manage": "管理伺服器",
+    "edit": "編輯",
+    "delete": "刪除",
+    "delete_confirm": "刪除「{}」？",
+    "type": "類型",
+    "name": "名稱",
+    "host": "主機",
+    "port": "連接埠",
+    "username": "使用者名稱",
+    "password": "密碼",
+    "path": "起始路徑",
+    "optional": "可選",
+    "save": "測試並儲存",
+    "test_failed": "連線失敗：{}",
+    "retry": "重試？",
+    "required": "請至少填寫名稱與主機。"
   },
   "download": {
     "start": "開始下載",
@@ -94,7 +156,17 @@
     "no_downloads": "下載記錄為空",
     "confirm_remove": "是否移除下載文件?",
     "play_offline": "離線播放",
-    "confirm_cancel": "Cancel this download?"
+    "confirm_cancel": "Cancel this download?",
+    "season": "下載本季",
+    "confirm_season": "下載 {} 集？",
+    "season_queued": "已將本季加入下載",
+    "storage": "儲存空間",
+    "storage_free": "可用 {} / 共 {}",
+    "section_active": "下載中",
+    "section_done": "已下載",
+    "remove_all": "全部刪除",
+    "confirm_remove_all": "刪除全部下載內容？",
+    "empty_sub": "下載的電影和劇集會顯示在這裡，可離線觀看。"
   },
   "setting": {
     "quit_hint": "即將退出本程式, 變更的設定將在下次啟動時生效",
@@ -196,7 +268,7 @@
       "font_q1": "如何設定自訂字型或按鍵圖示",
       "font_a1": "1. 下載你想要的字型或圖示檔案\n2. 字型重新命名為：font.ttf  圖示重新命名為：icon.ttf\n3. 將重新命名後的檔案放在本程式的設定檔目錄\n4. 重新啟動本程式",
       "font_q2": "常見問題",
-      "font_a2": "1. 本程式優先顯示自訂字型，以內建字型作為後備\n2. 「設定 - 使用教學」 提供快速打開設定目錄的選單\n3. 在 Linux 上，Switchlex 使用 xdg-open 來打開目錄，如果無法正常開啟設定檔目錄，可以考慮安裝此工具",
+      "font_a2": "1. 本程式優先顯示自訂字型，以內建字型作為後備\n2. 「設定 - 使用教學」 提供快速打開設定目錄的選單\n3. 在 Linux 上，pleNx 使用 xdg-open 來打開目錄，如果無法正常開啟設定檔目錄，可以考慮安裝此工具",
       "font_q3": "字幕無法顯示",
       "font_a3": "將合適的 ttf 字形複製到 {}/subfont.ttf"
     },
@@ -233,25 +305,37 @@
     }
   },
   "hints": {
-    "hint1": "請從桌面選擇任意遊戲並按住  鍵",
-    "hint2": "按下  開啟, 在遊戲開啟期間按住  鍵，直到進入 hbmenu",
-    "hint3": "在 hbmenu 選單中選擇 Switchlex",
-    "hint4": "選用：安裝 Switchlex NSP 通過桌面圖示 Switchlex",
-    "hint_nsp": "按下  安裝桌面圖示",
-    "hint_confirm": "安裝桌面圖示可能導致主機被ban\n請再次確認",
-    "hint_right": "掌機圖片來自於網路，版權歸任天堂 Nintendo Co., Ltd 所有"
+    "title": "Launch pleNx as a full application",
+    "text_applet": "pleNx is running in applet mode: the available memory is not sufficient for video playback. Launch it as a full application using one of the options below.",
+    "text_app": "pleNx is running as a full application. Install the HOME menu tile to launch it this way directly.",
+    "install_title": "HOME menu tile (recommended)",
+    "install_text": "Installs the embedded NSP forwarder: the tile launches pleNx as a full application straight from the HOME menu.",
+    "install_button": "Install the tile",
+    "takeover_title": "Alternative: title takeover",
+    "takeover_text": "Hold R while launching any installed game to open the homebrew menu as a full application, then launch pleNx from there.",
+    "prompt": "Install the pleNx tile on the HOME menu?\nThe tile launches the app as a full application (required for video playback).",
+    "hint_confirm": "安裝桌面圖示可能導致主機被ban\n請再次確認"
   },
   "plex": {
-    "link": "Sign in with plex.tv",
-    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "title": "Sign in to your Plex account",
+    "generating": "Generating code…",
+    "waiting": "Waiting for confirmation…",
+    "connected": "Connected!",
     "expired": "The code expired, please try again",
-    "manual_header": "Manual connection",
-    "token": "Token",
+    "step1": "1. On your phone or computer, open plex.tv/link",
+    "step2": "2. Sign in to your Plex account",
+    "step3": "3. Enter the code shown above",
+    "regenerate": "Generate a new code",
     "choose_server": "Choose a server",
     "choose_profile": "Choose a profile",
     "profile_pin": "Profile PIN",
     "wrong_pin": "Wrong PIN",
     "no_server": "No server found on this account",
+    "connecting": "正在連線伺服器…",
     "unreachable": "Server unreachable"
+  },
+  "empty": {
+    "title": "暫無內容",
+    "error": "無法載入"
   }
 }

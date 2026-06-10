@@ -1,4 +1,4 @@
-# Switchfin → Switchlex : plan de migration Jellyfin → Plex
+# Switchfin → pleNx : plan de migration Jellyfin → Plex
 
 > **État (2026-06-09) : phases 0 à 5 réalisées** — l'application compile (desktop macOS) et ne contient
 > plus aucune référence à l'API Jellyfin (`app/include/api/` = `http.hpp` + `plex*`).

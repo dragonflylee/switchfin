@@ -16,9 +16,13 @@ build*/
 .DS_Store
 debian/debhelper-build-stamp
 debian/files
-debian/switchfin*
+debian/plenx*
 debian/.debhelper
 .wget-hsts
 /jniLibs/
 plezy/
 .prod.keys.tmp
+
+# logos source de travail (les assets sont générés dans resources/, scripts/, app/platform/)
+/logo*.png
+/logo*.gif

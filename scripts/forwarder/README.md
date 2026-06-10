@@ -1,6 +1,6 @@
 # Forwarder NSP (tuile d'accueil Switch)
 
-Le forwarder est un NSP installable qui lance `sdmc:/switch/Switchlex.nro` comme
+Le forwarder est un NSP installable qui lance `sdmc:/switch/pleNx.nro` comme
 un jeu (session application complète). Il est construit automatiquement avec
 `-DBUILTIN_NSP=ON` et embarqué dans le NRO (installation proposée au premier
 lancement en mode applet).
@@ -8,9 +8,9 @@ lancement en mode applet).
 Construction manuelle :
 
 ```shell
-make -C scripts/forwarder Switchlex.nacp
+make -C scripts/forwarder pleNx.nacp
 
-hacbrewpack -k prod.keys --titleid 010FF000FFFF1003 --titlename Switchlex --noromfs --nologo
+hacbrewpack -k prod.keys --titleid 010FF000FFFF1003 --titlename pleNx --noromfs --nologo
 ```
 
 Le keyset : fournir le vôtre via `-DPROJECT_KEYSET=/chemin/prod.keys` (dumpé avec

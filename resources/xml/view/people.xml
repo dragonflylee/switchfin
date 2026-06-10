@@ -1,62 +1,104 @@
 <brls:Box
-    paddingLeft="@style/main/content_padding_sides"
-    paddingRight="@style/main/content_padding_sides"
-    paddingTop="@style/main/content_padding_top_bottom"
-    paddingBottom="@style/main/content_padding_top_bottom">
+    width="auto"
+    height="auto">
 
-    <brls:Box
-        width="220"
-        maxHeight="400"
-        axis="column"
-        alignItems="center"
-        marginRight="30">
-        <brls:Image
-            id="people/image/logo"
-            scalingType="fit"
-            backgroundColor="@theme/color/grey_1"
-            image="@res/img/video-card-bg.png" />
-
-        <brls:Label
-            id="people/label/location"
-            fontSize="16"
-            animated="false"
-            marginTop="15" />
-    </brls:Box>
-
+    <!-- toute la page défile (en-tête compris) : centered, le scroll suit le focus -->
     <brls:ScrollingFrame
-        width="auto"
-        height="auto"
-        grow="1.0">
+        grow="1.0"
+        scrollingBehavior="centered">
 
         <brls:Box
-            paddingRight="@style/main/content_padding_sides"
-            axis="column">
+            axis="column"
+            paddingTop="@style/main/content_padding_top_bottom"
+            paddingBottom="@style/main/content_padding_top_bottom">
 
-            <brls:Header
-                marginBottom="10"
-                height="40"
-                id="people/header/title" />
+            <brls:Box
+                height="220"
+                marginLeft="@style/main/content_padding_sides"
+                marginRight="@style/main/content_padding_sides"
+                marginBottom="30"
+                alignItems="center">
 
-            <brls:Label
-                id="people/label/overview"
-                fontSize="15"
-                animated="false"
-                textColor="@theme/font/grey"
-                marginBottom="20" />
+                <brls:Image
+                    id="people/image/photo"
+                    width="220"
+                    height="220"
+                    cornerRadius="110"
+                    scalingType="fill"
+                    backgroundColor="@theme/color/grey_1"
+                    image="@res/img/video-card-bg.png" />
+
+                <brls:Box
+                    axis="column"
+                    grow="1.0"
+                    marginLeft="34"
+                    justifyContent="center">
+
+                    <brls:Label
+                        id="people/label/name"
+                        fontSize="34" />
+
+                    <brls:Label
+                        id="people/label/role"
+                        fontSize="18"
+                        marginTop="8"
+                        visibility="gone"
+                        textColor="@theme/font/grey" />
+
+                    <brls:Box
+                        id="people/box/counts"
+                        marginTop="18">
+
+                        <brls:Box
+                            id="people/pill/movies"
+                            visibility="gone"
+                            cornerRadius="14"
+                            height="28"
+                            paddingLeft="14"
+                            paddingRight="14"
+                            marginRight="10"
+                            alignItems="center"
+                            backgroundColor="@theme/color/pill">
+                            <brls:Label
+                                id="people/label/movies"
+                                fontSize="15" />
+                        </brls:Box>
+
+                        <brls:Box
+                            id="people/pill/shows"
+                            visibility="gone"
+                            cornerRadius="14"
+                            height="28"
+                            paddingLeft="14"
+                            paddingRight="14"
+                            alignItems="center"
+                            backgroundColor="@theme/color/pill">
+                            <brls:Label
+                                id="people/label/shows"
+                                fontSize="15" />
+                        </brls:Box>
+
+                    </brls:Box>
+
+                </brls:Box>
+
+            </brls:Box>
 
             <RecylingVideo
                 nextPage="auto"
-                frameHeight="250"
-                itemWidth="140"
+                frameHeight="@style/app/card/poster/row"
+                itemWidth="@style/app/card/poster/width"
+                sidePadding="@style/main/content_padding_sides"
                 id="people/movie"
-                title="@i18n/main/search/genres/movie" />
+                title="@i18n/main/person/movies" />
 
             <RecylingVideo
                 nextPage="auto"
-                frameHeight="250"
-                itemWidth="140"
+                frameHeight="@style/app/card/poster/row"
+                itemWidth="@style/app/card/poster/width"
+                sidePadding="@style/main/content_padding_sides"
                 id="people/series"
-                title="@i18n/main/search/genres/series" />
+                title="@i18n/main/person/shows" />
 
         </brls:Box>
 

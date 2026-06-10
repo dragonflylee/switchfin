@@ -4,7 +4,8 @@
     "genres": "ジャンル",
     "suggest": "おすすめ",
     "search": "検索",
-    "setting": "設定"
+    "setting": "設定",
+    "downloads": "ダウンロード"
   },
   "home": {
     "resume": "視聴を続ける",
@@ -49,6 +50,8 @@
     "mark_played": "再生済みにする",
     "mark_unplayed": "未再生にする",
     "play": "再生",
+    "replay": "もう一度再生",
+    "see_all": "すべて表示",
     "intro": "イントロ",
     "people": "ピープル",
     "special": "特殊機能",
@@ -61,7 +64,15 @@
     "random": "ランダム",
     "played": "再生済み",
     "unplayed": "未再生",
-    "collections": "Collections"
+    "collections": "Collections",
+    "season": "season",
+    "seasons": "seasons",
+    "episode": "エピソード",
+    "episodes": "エピソード",
+    "seasons_title": "シーズン",
+    "go_series": "シリーズへ",
+    "go_season": "シーズンへ",
+    "director": "監督"
   },
   "search": {
     "hint": "サポートキーワードとその頭文字",
@@ -75,12 +86,64 @@
       "movie": "動画",
       "series": "シリーズ",
       "episode": "エピソード"
-    }
+    },
+    "no_history": "No recent searches",
+    "no_results": "No results",
+    "placeholder": "映画・番組を検索",
+    "results": "検索結果",
+    "keyboard": "キーボード",
+    "space": "スペース",
+    "no_results_sub": "別のタイトル、俳優、ジャンルで試してください。",
+    "no_history_sub": "最近の検索はここに表示されます。"
+  },
+  "person": {
+    "movies": "映画",
+    "shows": "シリーズ",
+    "as": "役: {}"
+  },
+  "playlist": {
+    "title": "プレイリスト",
+    "item": "項目",
+    "items": "項目"
+  },
+  "watchlist": {
+    "title": "ウォッチリスト",
+    "add": "ウォッチリストに追加",
+    "remove": "ウォッチリストから削除",
+    "added": "ウォッチリストに追加しました",
+    "removed": "ウォッチリストから削除しました",
+    "empty_title": "ウォッチリストは空です",
+    "empty_sub": "保存した映画やテレビ番組がここに表示されます。",
+    "not_in_library": "このタイトルはライブラリにありません",
+    "all": "すべて",
+    "availability": "提供状況",
+    "on_server": "サーバーにあり",
+    "not_on_server": "サーバーになし"
   },
   "remote": {
-    "local": "ローカル",
+    "empty_title": "ファイルがありません",
+    "empty_sub": "ローカルストレージやWebDAV、FTP、SFTPサーバーを参照できます。",
+    "local": "ファイル",
     "folder": "フォルダー",
-    "up": "上へ"
+    "up": "上へ",
+    "add_server": "サーバーを追加",
+    "edit_server": "サーバーを編集",
+    "manage": "サーバーを管理",
+    "edit": "編集",
+    "delete": "削除",
+    "delete_confirm": "「{}」を削除しますか？",
+    "type": "種類",
+    "name": "名前",
+    "host": "ホスト",
+    "port": "ポート",
+    "username": "ユーザー名",
+    "password": "パスワード",
+    "path": "開始パス",
+    "optional": "任意",
+    "save": "テストして保存",
+    "test_failed": "接続に失敗しました：{}",
+    "retry": "再試行しますか？",
+    "required": "名前とホストを入力してください。"
   },
   "setting": {
     "quit_hint": "アプリケーションを終了しようとしています。設定は次回起動時から有効になります。",
@@ -182,7 +245,7 @@
       "font_q1": "カスタムフォントやキーマップアイコンの設定方法",
       "font_a1": "1. ご希望のフォントまたはアイコンフォントをダウンロードする\n2. フォントの名前をfont.ttfに変更する; アイコンの名前をicon.ttfに変更する\n3. フォントファイルをconfigディレクトリに置く\n4. アプリを再起動する",
       "font_q2": "FAQ",
-      "font_a2": "1. Switchlexはカスタムフォントを優先的に表示し、フォールバックとしてビルトインフォントを使用します\n2. \"設定 - チュートリアル\" コンフィグディレクトリを素早く開くためのメニュー項目を提供する\n3. Linuxの場合、Switchlexはxdg-openを使ってディレクトリを開きます。設定ディレクトリを正しく開けない場合は、次のツールのインストールを検討してください。",
+      "font_a2": "1. pleNxはカスタムフォントを優先的に表示し、フォールバックとしてビルトインフォントを使用します\n2. \"設定 - チュートリアル\" コンフィグディレクトリを素早く開くためのメニュー項目を提供する\n3. Linuxの場合、pleNxはxdg-openを使ってディレクトリを開きます。設定ディレクトリを正しく開けない場合は、次のツールのインストールを検討してください。",
       "font_q3": "字幕が表示されませんでした",
       "font_a3": "任意のttfファイルを {}/subfont.ttf に置く"
     },
@@ -219,25 +282,49 @@
     }
   },
   "hints": {
-    "hint1": "ホーム画面からゲームを選択",
-    "hint2": "  ボタンを押し続けて  をクリックするとhbmenuが起動",
-    "hint3": "hbmenuでSwitchlexを選択する",
-    "hint4": "オプション: Switchlex NSPフォワーダーを使用する",
-    "hint_nsp": "  をクリックしてNSPフォーワーダーをインストールする",
-    "hint_confirm": "NSPフォワーダのインストールはBANされる可能性があります\n再度ご確認ください",
-    "hint_right": "写真はインターネット上のもので、著作権は任天堂株式会社に帰属します"
+    "title": "Launch pleNx as a full application",
+    "text_applet": "pleNx is running in applet mode: the available memory is not sufficient for video playback. Launch it as a full application using one of the options below.",
+    "text_app": "pleNx is running as a full application. Install the HOME menu tile to launch it this way directly.",
+    "install_title": "HOME menu tile (recommended)",
+    "install_text": "Installs the embedded NSP forwarder: the tile launches pleNx as a full application straight from the HOME menu.",
+    "install_button": "Install the tile",
+    "takeover_title": "Alternative: title takeover",
+    "takeover_text": "Hold R while launching any installed game to open the homebrew menu as a full application, then launch pleNx from there.",
+    "prompt": "Install the pleNx tile on the HOME menu?\nThe tile launches the app as a full application (required for video playback).",
+    "hint_confirm": "NSPフォワーダのインストールはBANされる可能性があります\n再度ご確認ください"
   },
   "plex": {
-    "link": "Sign in with plex.tv",
-    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "title": "Sign in to your Plex account",
+    "generating": "Generating code…",
+    "waiting": "Waiting for confirmation…",
+    "connected": "Connected!",
     "expired": "The code expired, please try again",
-    "manual_header": "Manual connection",
-    "token": "Token",
+    "step1": "1. On your phone or computer, open plex.tv/link",
+    "step2": "2. Sign in to your Plex account",
+    "step3": "3. Enter the code shown above",
+    "regenerate": "Generate a new code",
     "choose_server": "Choose a server",
     "choose_profile": "Choose a profile",
     "profile_pin": "Profile PIN",
     "wrong_pin": "Wrong PIN",
     "no_server": "No server found on this account",
+    "connecting": "サーバーに接続しています…",
     "unreachable": "Server unreachable"
+  },
+  "download": {
+    "season": "シーズンをダウンロード",
+    "confirm_season": "{}話をダウンロードしますか？",
+    "season_queued": "シーズンをダウンロードに追加しました",
+    "storage": "ストレージ",
+    "storage_free": "空き {} / {}",
+    "section_active": "ダウンロード中",
+    "section_done": "ダウンロード済み",
+    "remove_all": "すべて削除",
+    "confirm_remove_all": "すべてのダウンロードを削除しますか？",
+    "empty_sub": "ダウンロードした映画やエピソードはここに表示され、オフラインで視聴できます。"
+  },
+  "empty": {
+    "title": "表示する項目がありません",
+    "error": "読み込みできません"
   }
 }

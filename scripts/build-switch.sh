@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Construit Switchlex.nro pour Nintendo Switch via Docker (image devkitPro),
+# Construit pleNx.nro pour Nintendo Switch via Docker (image devkitPro),
 # en répliquant le job `build-nx` de .github/workflows/build.yaml.
 #
 # Usage :
@@ -59,8 +59,8 @@ docker run --rm --platform linux/amd64 \
         -DPLATFORM_SWITCH=ON \
         -DUSE_LIBUSBHSFS=ON \
         -DBUILTIN_NSP=ON
-    make -C $BUILD_DIR Switchlex.nro -j\$(nproc)
+    make -C $BUILD_DIR pleNx.nro -j\$(nproc)
 "
 
 echo ''
-echo ">> OK : $BUILD_DIR/Switchlex.nro"
+echo ">> OK : $BUILD_DIR/pleNx.nro"

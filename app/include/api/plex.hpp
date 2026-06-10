@@ -1,5 +1,5 @@
 /*
-    Switchlex — transport HTTP vers Plex (plex.tv et Plex Media Server).
+    pleNx — transport HTTP vers Plex (plex.tv et Plex Media Server).
     Spécification : PLEX_MIGRATION.md §2.1 (en-têtes X-Plex-*) et §2.4 (MediaContainer).
 
     Même philosophie que l'ancienne couche API Jellyfin : helpers asynchrones qui
@@ -99,6 +99,25 @@ inline void getAction(
                 brls::sync(std::bind(error, std::string(ex.what())));
             else
                 brls::Logger::warning("plex::getAction {}: {}", url, ex.what());
+        }
+    });
+}
+
+/// PUT asynchrone « fire and forget » (actions watchlist du provider plex.tv :
+/// corps vide, paramètres en query string). Succès rappelé sur le thread UI.
+template <typename... Args>
+inline void putAction(const std::string& base, const std::string& token, const std::function<void()>& then,
+    OnError error, std::string_view path, Args&&... args) {
+    std::string url = base + fmt::format(fmt::runtime(path), std::forward<Args>(args)...);
+    brls::async([then, error, url, token]() {
+        try {
+            HTTP::put(url, "", headers(token), HTTP::Timeout{});
+            if (then) brls::sync(then);
+        } catch (const std::exception& ex) {
+            if (error)
+                brls::sync(std::bind(error, std::string(ex.what())));
+            else
+                brls::Logger::warning("plex::putAction {}: {}", url, ex.what());
         }
     });
 }

@@ -1,0 +1,759 @@
+diff --git a/library/include/borealis/core/application.hpp b/library/include/borealis/core/application.hpp
+index 3171304..d8223c0 100644
+--- a/library/include/borealis/core/application.hpp
++++ b/library/include/borealis/core/application.hpp
+@@ -355,6 +355,12 @@ class Application
+ 
+     static void tryDeinitFirstResponder(View* view);
+ 
++    // Called by View::~View(): drops every reference the application may still
++    // hold on a view being destroyed (current focus, focus stack, first
++    // responder...), so that none of them can dangle. No focus event is fired:
++    // the view is already half destructed and must not be dispatched anymore.
++    static void onViewDestroyed(View* view);
++
+     static void addToWatchedKeys(const BrlsKeyCombination key);
+ 
+     static void removeWatchedKeys(const BrlsKeyCombination key);
+diff --git a/library/include/borealis/core/notification_manager.hpp b/library/include/borealis/core/notification_manager.hpp
+index 6f92431..024a5df 100644
+--- a/library/include/borealis/core/notification_manager.hpp
++++ b/library/include/borealis/core/notification_manager.hpp
+@@ -33,6 +33,8 @@ class Notification : public Box
+     explicit Notification(const std::string& text);
+     ~Notification() override;
+ 
++    void onLayout() override;
++
+     Animatable timeoutTimer;
+ 
+   private:
+diff --git a/library/include/borealis/core/view.hpp b/library/include/borealis/core/view.hpp
+index 227cd78..6f5411c 100644
+--- a/library/include/borealis/core/view.hpp
++++ b/library/include/borealis/core/view.hpp
+@@ -1263,6 +1263,19 @@ class View
+       */
+     void frameHighlight(FrameContext* ctx);
+ 
++    /**
++      * If this view clips the focus highlight of its descendants (scrolling
++      * frames whose content slides under the surrounding chrome), fills
++      * *scissor* with the clipping rect (window coordinates) and returns
++      * true. drawHighlight() intersects the scissors of every ancestor that
++      * returns true, so nested scrolling frames clip to the intersection of
++      * their visible areas. Default is false (no clipping).
++      */
++    virtual bool getHighlightScissor(Rect* scissor)
++    {
++        return false;
++    }
++
+     /**
+       * Called by frame() to draw the view onscreen.
+       * Views should not draw outside of their bounds (they
+diff --git a/library/include/borealis/views/h_scrolling_frame.hpp b/library/include/borealis/views/h_scrolling_frame.hpp
+index c83c51a..4bd52ba 100644
+--- a/library/include/borealis/views/h_scrolling_frame.hpp
++++ b/library/include/borealis/views/h_scrolling_frame.hpp
+@@ -49,6 +49,7 @@ class HScrollingFrame : public Box
+     View* getNextFocus(FocusDirection direction, View* currentView) override;
+     View* getDefaultFocus() override;
+     enum Sound getFocusSound() override;
++    bool getHighlightScissor(Rect* scissor) override;
+     Rect getVisibleFrame();
+ 
+     /**
+diff --git a/library/include/borealis/views/scrolling_frame.hpp b/library/include/borealis/views/scrolling_frame.hpp
+index bb6275a..5045411 100644
+--- a/library/include/borealis/views/scrolling_frame.hpp
++++ b/library/include/borealis/views/scrolling_frame.hpp
+@@ -61,6 +61,7 @@ class ScrollingFrame : public Box
+     View* getNextFocus(FocusDirection direction, View* currentView) override;
+     View* getDefaultFocus() override;
+     enum Sound getFocusSound() override;
++    bool getHighlightScissor(Rect* scissor) override;
+     Rect getVisibleFrame();
+ 
+     /**
+diff --git a/library/lib/core/application.cpp b/library/lib/core/application.cpp
+index c7d67dc..b66a0da 100644
+--- a/library/lib/core/application.cpp
++++ b/library/lib/core/application.cpp
+@@ -523,9 +523,10 @@ void Application::navigate(FocusDirection direction, bool repeating)
+ 
+     Application::repetitionOldFocus = Application::currentFocus;
+ 
+-    // Dismiss navigation if input type was changed
+-    if (Application::setInputType(InputType::GAMEPAD))
+-        return;
++    // Switch back to gamepad input without swallowing the navigation: eating
++    // the first arrow key after any pointer use makes desktop keyboards feel
++    // unresponsive (the focus highlight reappearing is feedback enough).
++    Application::setInputType(InputType::GAMEPAD);
+ 
+     View* currentFocus = Application::currentFocus;
+ 
+@@ -630,7 +631,10 @@ bool Application::setInputType(InputType type)
+     if (type == InputType::GAMEPAD)
+     {
+         Application::setDrawCoursor(false);
+-        Application::currentFocus->onFocusGained();
++        // currentFocus may legitimately be null (e.g. the focused view was
++        // destroyed and nothing was focused since).
++        if (Application::currentFocus)
++            Application::currentFocus->onFocusGained();
+     }
+ 
+     return true;
+@@ -1065,6 +1069,29 @@ void Application::addToFreeQueue(View* view)
+     Application::deletionPool.push_back(view);
+ }
+ 
++void Application::onViewDestroyed(View* view)
++{
++    // The view is in its destructor: do NOT call any virtual method or fire
++    // any event on it, just forget every reference we may still hold.
++    // Note that giveFocus(nullptr) cannot be used here: it is a no-op by
++    // design (it refuses to clear the current focus), which would leave
++    // Application::currentFocus dangling and crash on the next giveFocus
++    // (oldFocus->onFocusLost() on freed memory).
++    if (Application::currentFocus == view)
++        Application::currentFocus = nullptr;
++
++    if (Application::repetitionOldFocus == view)
++        Application::repetitionOldFocus = nullptr;
++
++    // The focus stack (pushActivity/popActivity) also holds raw pointers that
++    // popActivity would dereference to restore focus.
++    Application::focusStack.erase(
++        std::remove(Application::focusStack.begin(), Application::focusStack.end(), view),
++        Application::focusStack.end());
++
++    Application::tryDeinitFirstResponder(view);
++}
++
+ void Application::tryDeinitFirstResponder(View* view)
+ {
+     if (!view)
+diff --git a/library/lib/core/box.cpp b/library/lib/core/box.cpp
+index 732b3f8..ec5b57a 100644
+--- a/library/lib/core/box.cpp
++++ b/library/lib/core/box.cpp
+@@ -21,6 +21,7 @@
+ #include <borealis/core/application.hpp>
+ #include <borealis/core/box.hpp>
+ #include <borealis/core/util.hpp>
++#include <algorithm>
+ #include <cmath>
+ #include <fstream>
+ #include <functional>
+@@ -355,9 +356,42 @@ View* Box::getDefaultFocus()
+         return this;
+ 
+     if (lastFocusedView) {
+-        View* view = lastFocusedView->getDefaultFocus();
+-        if (view)
+-            return view;
++        // The remembered view may have been recycled, detached or hidden
++        // since it was focused (recycler cells, cached tabs): following a
++        // stale pointer hands the focus to an invisible or dead tree. Only
++        // honor it while every link up to us is a VISIBLE, truly ATTACHED
++        // child of its parent — pooled recycler cells keep their parent
++        // pointer but are erased from its children, so a parent walk alone
++        // is not enough. Otherwise forget it and fall through to defaults.
++        bool valid = false;
++        for (View* v = lastFocusedView; v;)
++        {
++            if (v == this)
++            {
++                valid = true;
++                break;
++            }
++            if (v->getVisibility() != Visibility::VISIBLE)
++                break;
++            View* parent = v->getParent();
++            if (Box* parentBox = dynamic_cast<Box*>(parent))
++            {
++                std::vector<View*>& siblings = parentBox->getChildren();
++                if (std::find(siblings.begin(), siblings.end(), v) == siblings.end())
++                    break;
++            }
++            v = parent;
++        }
++        if (valid)
++        {
++            View* view = lastFocusedView->getDefaultFocus();
++            if (view)
++                return view;
++        }
++        else
++        {
++            lastFocusedView = nullptr;
++        }
+     }
+ 
+     // Then try default focus
+diff --git a/library/lib/core/notification_manager.cpp b/library/lib/core/notification_manager.cpp
+index 52aefff..af5bcf5 100644
+--- a/library/lib/core/notification_manager.cpp
++++ b/library/lib/core/notification_manager.cpp
+@@ -26,10 +26,18 @@ namespace brls
+ 
+ NotificationManager::NotificationManager()
+ {
+-    float width = Application::getStyle().getMetric("brls/notification/width");
+-    this->setWidth(width);
+-    this->setTranslationX(Application::ORIGINAL_WINDOW_WIDTH - width);
++    // Toasts are bottom-centered pills: the manager is an invisible
++    // full-width column anchored right above the applet frame footer
++    // (bottom bar), whose children stack upwards from the bottom.
++    Style style        = Application::getStyle();
++    float margin       = style.getMetric("brls/notification/margin");
++    float footerHeight = style.getMetric("brls/applet_frame/footer_height");
++
++    this->setWidth(Application::ORIGINAL_WINDOW_WIDTH);
++    this->setHeight(Application::ORIGINAL_WINDOW_HEIGHT - footerHeight - margin);
+     this->setAxis(Axis::COLUMN);
++    this->setJustifyContent(JustifyContent::FLEX_END);
++    this->setAlignItems(AlignItems::CENTER);
+ }
+ 
+ void NotificationManager::notify(const std::string& text)
+@@ -38,9 +46,9 @@ void NotificationManager::notify(const std::string& text)
+     brls::Logger::debug("Showing notification \"{}\"", text);
+ 
+     auto* notification = new Notification(text);
+-    this->addView(notification, 0);
++    this->addView(notification); // newest pill closest to the bottom, older ones pushed up
+ 
+-    // Timeout timer
++    // Timeout timer: slide -> 0 (fade in + slide up), hold, 0 -> slide (fade out + slide down)
+     auto style    = Application::getStyle();
+     float timeout = style.getMetric("brls/animations/notification_timeout");
+     float show    = style.getMetric("brls/animations/notification_show");
+@@ -53,7 +61,7 @@ void NotificationManager::notify(const std::string& text)
+     notification->timeoutTimer.setTickCallback([notification, slide]()
+         {
+             float position = notification->timeoutTimer.getValue();
+-            notification->setTranslationX(position);
++            notification->setTranslationY(position);
+             notification->setAlpha(1.0f - position / slide);
+         });
+ 
+@@ -75,18 +83,32 @@ NotificationManager::~NotificationManager()
+ 
+ Notification::Notification(const std::string& text)
+ {
+-    this->setBackground(ViewBackground::BACKDROP);
+-    auto style    = Application::getStyle();
+-    float padding = style.getMetric("brls/notification/padding");
+-    this->setPadding(padding);
+-    float width = style.getMetric("brls/notification/width");
+-    this->setWidth(width);
++    auto style = Application::getStyle();
++    auto theme = Application::getTheme();
++
++    // Pill look: translucent dark rounded background hugging the text,
++    // generous lateral padding. The corner radius is kept at height/2 in
++    // onLayout() so the shape stays a pill even with multi-line text.
++    this->setBackgroundColor(theme["brls/notification/background"]);
++    float paddingSides     = style.getMetric("brls/notification/padding_sides");
++    float paddingTopBottom = style.getMetric("brls/notification/padding_top_bottom");
++    this->setPadding(paddingTopBottom, paddingSides, paddingTopBottom, paddingSides);
++    this->setMaxWidth(style.getMetric("brls/notification/max_width"));
++    this->setMarginTop(style.getMetric("brls/notification/spacing"));
++
+     this->label = new Label();
+     this->label->setText(text);
+-    this->label->setTextColor(RGB(255, 255, 255));
++    this->label->setTextColor(theme["brls/notification/text"]);
++    this->label->setHorizontalAlign(HorizontalAlign::CENTER);
+     this->addView(label);
+ }
+ 
++void Notification::onLayout()
++{
++    Box::onLayout();
++    this->setCornerRadius(this->getHeight() / 2);
++}
++
+ Notification::~Notification() = default;
+ 
+ }; // namespace brls
+diff --git a/library/lib/core/style.cpp b/library/lib/core/style.cpp
+index acc310a..bc29454 100644
+--- a/library/lib/core/style.cpp
++++ b/library/lib/core/style.cpp
+@@ -36,10 +36,13 @@ static StyleValues styleValues = {
+     { "brls/animations/notification_timeout", 4000.0f },
+     { "brls/animations/notification_show", 300.0f },
+ 
+-    // Notification
+-    { "brls/notification/width", 280.0f },
+-    { "brls/notification/padding", 16.0f },
+-    { "brls/notification/slide", 40.0f },
++    // Notification (bottom-centered toast pill)
++    { "brls/notification/max_width", 760.0f },
++    { "brls/notification/padding_sides", 24.0f },
++    { "brls/notification/padding_top_bottom", 12.0f },
++    { "brls/notification/slide", 16.0f }, // slide-up distance on show / slide-down on hide
++    { "brls/notification/margin", 16.0f }, // gap between the pill and the bottom bar
++    { "brls/notification/spacing", 8.0f }, // gap between stacked pills
+ 
+     // Highlight
+     { "brls/highlight/stroke_width", 5.0f },
+diff --git a/library/lib/core/theme.cpp b/library/lib/core/theme.cpp
+index aa63fa0..75af9ff 100644
+--- a/library/lib/core/theme.cpp
++++ b/library/lib/core/theme.cpp
+@@ -32,6 +32,10 @@ static ThemeValues lightThemeValues = {
+     { "brls/click_pulse", nvgRGBA(13, 182, 213, 38) }, // same as highlight color1 with different opacity
+     { "brls/accent", nvgRGB(49, 79, 235) },
+ 
++    // Notification (toast pill)
++    { "brls/notification/background", nvgRGBA(45, 45, 45, 230) },
++    { "brls/notification/text", nvgRGB(255, 255, 255) },
++
+     // Highlight
+     { "brls/highlight/background", nvgRGB(252, 255, 248) },
+     { "brls/highlight/color1", nvgRGB(13, 182, 213) },
+@@ -91,6 +95,10 @@ static ThemeValues darkThemeValues = {
+     { "brls/click_pulse", nvgRGBA(25, 138, 198, 38) }, // same as highlight color1 with different opacity
+     { "brls/accent", nvgRGB(0, 255, 204) },
+ 
++    // Notification (toast pill)
++    { "brls/notification/background", nvgRGBA(0, 0, 0, 217) },
++    { "brls/notification/text", nvgRGB(255, 255, 255) },
++
+     // Highlight
+     { "brls/highlight/background", nvgRGB(31, 34, 39) },
+     { "brls/highlight/color1", nvgRGB(25, 138, 198) },
+diff --git a/library/lib/core/view.cpp b/library/lib/core/view.cpp
+index 59ec77b..f30b097 100644
+--- a/library/lib/core/view.cpp
++++ b/library/lib/core/view.cpp
+@@ -307,14 +307,31 @@ void View::drawClickAnimation(NVGcontext* vg, FrameContext* ctx, Rect frame)
+ 
+     color.a *= this->clickAlpha;
+ 
++    // Let the pulse bleed slightly past the view frame so it reads as a halo
++    // behind the content (mirroring the focus highlight background) instead
++    // of a backdrop clipped to the exact bounds.
++    float overshoot = 4.0f;
++
++    // Follow the view rounding: prefer the actual corner radius, then fall
++    // back to the highlight corner radius for views that only round their
++    // highlight (e.g. card cells whose visual rounding lives on an inner
++    // image), and keep the historical small radius as a last resort. The
++    // radius grows by the overshoot so the arc stays concentric with the
++    // view corners.
++    float radius = this->cornerRadius;
++    if (radius <= 0.0f)
++        radius = this->highlightCornerRadius;
++    if (radius <= 0.0f)
++        radius = 4.0f;
++
+     nvgFillColor(vg, a(color));
+     nvgBeginPath(vg);
+-
+-    if (this->cornerRadius > 0.0f)
+-        nvgRoundedRect(vg, frame.getMinX(), frame.getMinY(), frame.getWidth(), frame.getHeight(), this->cornerRadius);
+-    else
+-        nvgRoundedRect(vg, frame.getMinX(), frame.getMinY(), frame.getWidth(), frame.getHeight(), 4);
+-
++    nvgRoundedRect(vg,
++        frame.getMinX() - overshoot,
++        frame.getMinY() - overshoot,
++        frame.getWidth() + overshoot * 2,
++        frame.getHeight() + overshoot * 2,
++        radius + overshoot);
+     nvgFill(vg);
+ }
+ 
+@@ -538,6 +555,24 @@ void View::drawHighlight(NVGcontext* vg, Theme theme, float alpha, Style style,
+     nvgSave(vg);
+     nvgResetScissor(vg);
+ 
++    // The highlight border is drawn as a screen-space overlay (frameHighlight
++    // runs after the whole activity tree), so it is NOT subject to the
++    // scissors that ScrollingFrame applies while drawing its children. During
++    // an animated scroll the focused view is already at its final position
++    // while contentOffsetY is still animating, so it can be (partially)
++    // outside the visible scrolling area and the halo used to leak over the
++    // surrounding chrome (bottom bar with battery/clock/wifi, headers...).
++    // Re-apply the clip of every scrolling ancestor here, using the
++    // INTERSECTION of their visible areas so nested scrolls (horizontal rows
++    // inside vertical pages) stay correct. Views without scrolling ancestors
++    // (sidebar, dialog buttons, pills...) are unaffected.
++    for (View* ancestor = this->getParent(); ancestor != nullptr; ancestor = ancestor->getParent())
++    {
++        Rect scissor;
++        if (ancestor->getHighlightScissor(&scissor))
++            nvgIntersectScissor(vg, scissor.getMinX(), scissor.getMinY(), scissor.getWidth(), scissor.getHeight());
++    }
++
+     float padding      = this->highlightPadding;
+     float cornerRadius = this->highlightCornerRadius;
+     float strokeWidth  = style["brls/highlight/stroke_width"];
+@@ -547,6 +582,16 @@ void View::drawHighlight(NVGcontext* vg, Theme theme, float alpha, Style style,
+     float width  = this->getWidth() + padding * 2 + strokeWidth;
+     float height = this->getHeight() + padding * 2 + strokeWidth;
+ 
++    // The highlight rect is inflated by padding + strokeWidth/2 on each side:
++    // grow the corner radius by the same offset so the highlight arcs stay
++    // concentric with the view's own rounding (same spirit as the
++    // drawClickAnimation overshoot fix). Without this, fully-rounded pills
++    // (radius = height/2) bulge outside the flatter highlight corners.
++    // Square highlights (radius 0) are left untouched. Applies to both the
++    // background fill and the border strokes below, which share this radius.
++    if (cornerRadius > 0.0f)
++        cornerRadius += padding + strokeWidth / 2;
++
+     // Shake animation
+     if (this->highlightShaking)
+     {
+@@ -1528,11 +1573,12 @@ View::~View()
+         }
+     }
+ 
+-    // Focus sanity check
+-    if (Application::getCurrentFocus() == this)
+-        Application::giveFocus(nullptr);
+-
+-    Application::tryDeinitFirstResponder(this);
++    // Focus sanity check: drop every reference the application still holds on
++    // this view (current focus, focus stack, first responder...). The previous
++    // code called Application::giveFocus(nullptr), which is a no-op by design
++    // and left Application::currentFocus dangling; the next giveFocus then
++    // called onFocusLost() on freed memory (SIGSEGV in FiniteTicking::reset).
++    Application::onViewDestroyed(this);
+     for (GestureRecognizer* recognizer : this->gestureRecognizers)
+         delete recognizer;
+ 
+diff --git a/library/lib/platforms/glfw/glfw_input.cpp b/library/lib/platforms/glfw/glfw_input.cpp
+index 9b31fcf..a6b8a8a 100644
+--- a/library/lib/platforms/glfw/glfw_input.cpp
++++ b/library/lib/platforms/glfw/glfw_input.cpp
+@@ -121,9 +121,28 @@ static void glfwTouchCallback(GLFWwindow* window, int touch, int action, double
+     Application::setActiveEvent(true);
+ }
+ 
++// Keys tapped between two polls (shorter than a frame) are latched here so
++// they still produce exactly one navigation step. Without this, fast typists
++// and synthetic keyboards (accessibility tools, UI test harnesses) lose
++// roughly half of their key presses to the polling below.
++static bool stickyKeys[GLFW_KEY_LAST + 1] = {};
++
++static inline bool stickyKeyDown(GLFWwindow* window, int key)
++{
++    bool down = glfwGetKey(window, key) != 0;
++    if (key >= 0 && key <= GLFW_KEY_LAST && stickyKeys[key])
++    {
++        stickyKeys[key] = false;
++        down            = true;
++    }
++    return down;
++}
++
+ void GLFWInputManager::keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+ {
+     auto* self = (GLFWInputManager*)Application::getPlatform()->getInputManager();
++    if (action == GLFW_PRESS && key >= 0 && key <= GLFW_KEY_LAST)
++        stickyKeys[key] = true;
+     KeyState state {};
+     state.key            = (BrlsKeyboardScancode)key;
+     state.mods           = mods;
+@@ -265,22 +284,22 @@ void GLFWInputManager::updateUnifiedControllerState(ControllerState* state)
+ 
+     // Add keyboard keys on top of gamepad buttons
+     if (Application::isSwapInputKeys()) {
+-        state->buttons[BUTTON_B] |= glfwGetKey(this->window, GLFW_KEY_KP_ENTER) != 0;
+-        state->buttons[BUTTON_B] |= glfwGetKey(this->window, GLFW_KEY_ENTER) != 0;
+-        state->buttons[BUTTON_A] |= glfwGetKey(this->window, GLFW_KEY_ESCAPE) != 0;
++        state->buttons[BUTTON_B] |= stickyKeyDown(this->window, GLFW_KEY_KP_ENTER);
++        state->buttons[BUTTON_B] |= stickyKeyDown(this->window, GLFW_KEY_ENTER);
++        state->buttons[BUTTON_A] |= stickyKeyDown(this->window, GLFW_KEY_ESCAPE);
+         state->buttons[BUTTON_A] |= glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+     } else {
+-        state->buttons[BUTTON_A] |= glfwGetKey(this->window, GLFW_KEY_KP_ENTER) != 0;
+-        state->buttons[BUTTON_A] |= glfwGetKey(this->window, GLFW_KEY_ENTER) != 0;
+-        state->buttons[BUTTON_B] |= glfwGetKey(this->window, GLFW_KEY_ESCAPE) != 0;
++        state->buttons[BUTTON_A] |= stickyKeyDown(this->window, GLFW_KEY_KP_ENTER);
++        state->buttons[BUTTON_A] |= stickyKeyDown(this->window, GLFW_KEY_ENTER);
++        state->buttons[BUTTON_B] |= stickyKeyDown(this->window, GLFW_KEY_ESCAPE);
+         state->buttons[BUTTON_B] |= glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+     }
+     state->buttons[BUTTON_X] |= (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS);
+ 
+-    state->buttons[BUTTON_UP] |= glfwGetKey(this->window, GLFW_KEY_UP) != 0;
+-    state->buttons[BUTTON_RIGHT] |= glfwGetKey(this->window, GLFW_KEY_RIGHT) != 0;
+-    state->buttons[BUTTON_DOWN] |= glfwGetKey(this->window, GLFW_KEY_DOWN) != 0;
+-    state->buttons[BUTTON_LEFT] |= glfwGetKey(this->window, GLFW_KEY_LEFT) != 0;
++    state->buttons[BUTTON_UP] |= stickyKeyDown(this->window, GLFW_KEY_UP);
++    state->buttons[BUTTON_RIGHT] |= stickyKeyDown(this->window, GLFW_KEY_RIGHT);
++    state->buttons[BUTTON_DOWN] |= stickyKeyDown(this->window, GLFW_KEY_DOWN);
++    state->buttons[BUTTON_LEFT] |= stickyKeyDown(this->window, GLFW_KEY_LEFT);
+ 
+     state->buttons[BUTTON_NAV_UP] |= state->buttons[BUTTON_UP];
+     state->buttons[BUTTON_NAV_RIGHT] |= state->buttons[BUTTON_RIGHT];
+diff --git a/library/lib/platforms/switch/switch_font.cpp b/library/lib/platforms/switch/switch_font.cpp
+index 3bba889..b2c03d6 100644
+--- a/library/lib/platforms/switch/switch_font.cpp
++++ b/library/lib/platforms/switch/switch_font.cpp
+@@ -32,30 +32,43 @@ void SwitchFontLoader::loadFonts()
+ 
+     brls::Logger::info("switch system locale: {}", brls::Application::getPlatform()->getLocale());
+ 
+-    // Standard
++    // Standard (latin proportionnel : couvre Latin-1/Latin Extended avec des
++    // métriques correctes — c'est la police du menu HOME)
+     rc = plGetSharedFontByType(&font, PlSharedFontType_Standard);
+     if (R_SUCCEEDED(rc))
+         Application::loadFontFromMemory(FONT_REGULAR, font.address, font.size, false);
+     else
+         Logger::error("switch: could not load Standard shared font: {:#x}", rc);
+ 
+-    // Simplified Chinese
+-    // custom Font
++    // Police par défaut de l'application : Application::getDefaultFont()
++    // renvoie le slot FONT_CHINESE_SIMPLIFIED sur Switch. Historiquement ce
++    // slot recevait la shared font CHINOISE : ses glyphes latins accentués
++    // (é è à…, hérités des voyelles pinyin) ont des métriques quasi pleine
++    // largeur, d'où un espacement incohérent des accents dans toute l'UI.
++    // Le slot par défaut reçoit désormais la police custom de l'utilisateur
++    // si elle existe, SINON la shared font Standard (latin) ; la chinoise
++    // passe en fallback CJK juste derrière (résolution récursive fontstash).
+     if (access(USER_FONT_PATH.c_str(), F_OK) != -1)
+     {
+         brls::Logger::info("Load custom font: {}", USER_FONT_PATH);
+         this->loadFontFromFile(FONT_CHINESE_SIMPLIFIED, USER_FONT_PATH);
++        if (R_SUCCEEDED(rc))
++            nvgAddFallbackFontId(vg, Application::getFont(FONT_CHINESE_SIMPLIFIED), Application::getFont(FONT_REGULAR));
+     }
+     else
+     {
+         brls::Logger::warning("Cannot find custom font, (Searched at: {})", USER_FONT_PATH);
+-        rc = plGetSharedFontByType(&font, PlSharedFontType_ChineseSimplified);
+-        if (R_SUCCEEDED(rc) && Application::loadFontFromMemory(FONT_CHINESE_SIMPLIFIED, font.address, font.size, false))
+-            nvgAddFallbackFontId(vg, Application::getFont(FONT_CHINESE_SIMPLIFIED), Application::getFont(FONT_REGULAR));
+-        else
+-            Logger::error("switch: could not load Chinese Simplified shared font: {:#x}", rc);
++        if (R_FAILED(rc) || !Application::loadFontFromMemory(FONT_CHINESE_SIMPLIFIED, font.address, font.size, false))
++            Logger::error("switch: could not seed default font slot with Standard shared font: {:#x}", rc);
+     }
+ 
++    // Simplified Chinese (fallback CJK du slot par défaut)
++    rc = plGetSharedFontByType(&font, PlSharedFontType_ChineseSimplified);
++    if (R_SUCCEEDED(rc) && Application::loadFontFromMemory("zh-Hans-shared", font.address, font.size, false))
++        nvgAddFallbackFontId(vg, Application::getFont(FONT_CHINESE_SIMPLIFIED), Application::getFont("zh-Hans-shared"));
++    else
++        Logger::error("switch: could not load Chinese Simplified shared font: {:#x}", rc);
++
+     // Simplified Chinese ext
+     rc = plGetSharedFontByType(&font, PlSharedFontType_ExtChineseSimplified);
+     if (R_SUCCEEDED(rc) && Application::loadFontFromMemory(FONT_CHINESE_SIMPLIFIED_EXT, font.address, font.size, false))
+diff --git a/library/lib/views/h_scrolling_frame.cpp b/library/lib/views/h_scrolling_frame.cpp
+index da1210f..2013506 100644
+--- a/library/lib/views/h_scrolling_frame.cpp
++++ b/library/lib/views/h_scrolling_frame.cpp
+@@ -157,8 +157,10 @@ void HScrollingFrame::naturalScrollingBehaviour()
+     {
+         // If current focus view is outside scrolling bounds,
+         // change focus to this.
++        // currentFocus may be null when the focused view was destroyed and
++        // nothing got the focus since: recover the same way, by focusing us.
+         View* currentFocus = Application::getCurrentFocus();
+-        if (!currentFocus->getFrame().inscribed(getFrame()))
++        if (!currentFocus || !currentFocus->getFrame().inscribed(getFrame()))
+         {
+             Application::giveFocus(this);
+         }
+@@ -230,11 +232,22 @@ View* HScrollingFrame::findLeftMostFocusableView()
+         if (focusCheckDefaultFocus)
+             focusCheck = focusCheckDefaultFocus;
+ 
+-        while (focusCheck && !focusCheck->getFrame().inscribed(frame))
++        // Box::hitTest may return a plain, non focusable Box: keep walking until
++        // an actually focusable view is found, as this function promises.
++        while (focusCheck && (!focusCheck->isFocusable() || !focusCheck->getFrame().inscribed(frame)))
+         {
+             focusCheck = focusCheck->getParent()->getNextFocus(FocusDirection::RIGHT, focusCheck);
+         }
+ 
++        // getNextFocus can surface Application::getCurrentFocus(), which may live
++        // in another (possibly detached) tree, e.g. right after
++        // AppletFrame::pushContentView: never return a view that is not ours.
++        View* ancestor = focusCheck;
++        while (ancestor && ancestor != this)
++            ancestor = ancestor->getParent();
++        if (!ancestor)
++            return nullptr;
++
+         return focusCheck;
+     }
+ 
+@@ -262,7 +275,14 @@ void HScrollingFrame::naturalScrollingButtonProcessing(FocusDirection focusDirec
+ 
+     setContentOffsetX(newOffset, false);
+     View* current = Application::getCurrentFocus();
+-    View* next    = current->getParent()->getNextFocus(focusDirection, current);
++    // The focused view may be gone (destroyed) or detached from any parent:
++    // recover by taking the focus back instead of dereferencing null.
++    if (!current || !current->hasParent())
++    {
++        Application::giveFocus(this);
++        return;
++    }
++    View* next = current->getParent()->getNextFocus(focusDirection, current);
+     if (next)
+     {
+         if (current != next->getDefaultFocus())
+@@ -280,7 +300,8 @@ void HScrollingFrame::naturalScrollingButtonProcessing(FocusDirection focusDirec
+     if (isBorder && !*repeat)
+     {
+         *repeat = true;
+-        Application::getCurrentFocus()->shakeHighlight(focusDirection);
++        if (Application::getCurrentFocus())
++            Application::getCurrentFocus()->shakeHighlight(focusDirection);
+         Application::getAudioPlayer()->play(SOUND_FOCUS_ERROR);
+     }
+ }
+@@ -335,6 +356,16 @@ float HScrollingFrame::getScrollingAreaWidth()
+     return this->getWidth();
+ }
+ 
++bool HScrollingFrame::getHighlightScissor(Rect* scissor)
++{
++    // Clip descendants' focus highlight on the scrolling axis only (same
++    // bounds as the content scissor in draw()): the cross axis is left
++    // unbounded so the halo padding of cells flush against the top/bottom
++    // edges is not shaved.
++    *scissor = Rect(this->getScrollingAreaLeftBoundary(), -100000.0f, this->getScrollingAreaWidth(), 200000.0f);
++    return true;
++}
++
+ void HScrollingFrame::willAppear(bool resetState)
+ {
+     this->prebakeScrolling();
+@@ -507,7 +538,8 @@ View* HScrollingFrame::getParentNavigationDecision(View* from, View* newFocus, F
+         if (from == contentView)
+         {
+             naturalScrollingCanScroll = true;
+-            if (currentFocus->getFrame().inscribed(this->getFrame()))
++            // currentFocus may be null (focused view destroyed)
++            if (currentFocus && currentFocus->getFrame().inscribed(this->getFrame()))
+                 return currentFocus;
+ 
+             return this;
+@@ -522,7 +554,7 @@ View* HScrollingFrame::getParentNavigationDecision(View* from, View* newFocus, F
+             naturalScrollingCanScroll = true;
+     }
+ 
+-    if (currentFocus->getFrame().inscribed(this->getFrame()))
++    if (currentFocus && currentFocus->getFrame().inscribed(this->getFrame()))
+         return currentFocus;
+ 
+     return this;
+diff --git a/library/lib/views/scrolling_frame.cpp b/library/lib/views/scrolling_frame.cpp
+index 61978bd..d7ee0eb 100644
+--- a/library/lib/views/scrolling_frame.cpp
++++ b/library/lib/views/scrolling_frame.cpp
+@@ -157,8 +157,10 @@ void ScrollingFrame::naturalScrollingBehaviour()
+     {
+         // If current focus view is outside scrolling bounds,
+         // change focus to this.
++        // currentFocus may be null when the focused view was destroyed and
++        // nothing got the focus since: recover the same way, by focusing us.
+         View* currentFocus = Application::getCurrentFocus();
+-        if (!currentFocus->getFrame().inscribed(getFrame()))
++        if (!currentFocus || !currentFocus->getFrame().inscribed(getFrame()))
+         {
+             Application::giveFocus(this);
+         }
+@@ -230,11 +232,22 @@ View* ScrollingFrame::findTopMostFocusableView()
+         if (focusCheckDefaultFocus)
+             focusCheck = focusCheckDefaultFocus;
+ 
+-        while (focusCheck && !focusCheck->getFrame().inscribed(frame))
++        // Box::hitTest may return a plain, non focusable Box: keep walking until
++        // an actually focusable view is found, as this function promises.
++        while (focusCheck && (!focusCheck->isFocusable() || !focusCheck->getFrame().inscribed(frame)))
+         {
+             focusCheck = focusCheck->getParent()->getNextFocus(FocusDirection::DOWN, focusCheck);
+         }
+ 
++        // getNextFocus can surface Application::getCurrentFocus(), which may live
++        // in another (possibly detached) tree, e.g. right after
++        // AppletFrame::pushContentView: never return a view that is not ours.
++        View* ancestor = focusCheck;
++        while (ancestor && ancestor != this)
++            ancestor = ancestor->getParent();
++        if (!ancestor)
++            return nullptr;
++
+         return focusCheck;
+     }
+ 
+@@ -262,7 +275,14 @@ void ScrollingFrame::naturalScrollingButtonProcessing(FocusDirection focusDirect
+ 
+     setContentOffsetY(newOffset, false);
+     View* current = Application::getCurrentFocus();
+-    View* next    = current->getParent()->getNextFocus(focusDirection, current);
++    // The focused view may be gone (destroyed) or detached from any parent:
++    // recover by taking the focus back instead of dereferencing null.
++    if (!current || !current->hasParent())
++    {
++        Application::giveFocus(this);
++        return;
++    }
++    View* next = current->getParent()->getNextFocus(focusDirection, current);
+     if (next)
+     {
+         if (current != next->getDefaultFocus())
+@@ -280,7 +300,8 @@ void ScrollingFrame::naturalScrollingButtonProcessing(FocusDirection focusDirect
+     if (isBorder && !*repeat)
+     {
+         *repeat = true;
+-        Application::getCurrentFocus()->shakeHighlight(focusDirection);
++        if (Application::getCurrentFocus())
++            Application::getCurrentFocus()->shakeHighlight(focusDirection);
+         Application::getAudioPlayer()->play(SOUND_FOCUS_ERROR);
+     }
+ }
+@@ -505,7 +526,8 @@ View* ScrollingFrame::getParentNavigationDecision(View* from, View* newFocus, Fo
+         if (from == contentView)
+         {
+             naturalScrollingCanScroll = true;
+-            if (currentFocus->getFrame().inscribed(this->getFrame()))
++            // currentFocus may be null (focused view destroyed)
++            if (currentFocus && currentFocus->getFrame().inscribed(this->getFrame()))
+                 return currentFocus;
+ 
+             return this;
+@@ -520,7 +542,7 @@ View* ScrollingFrame::getParentNavigationDecision(View* from, View* newFocus, Fo
+             naturalScrollingCanScroll = true;
+     }
+ 
+-    if (currentFocus->getFrame().inscribed(this->getFrame()))
++    if (currentFocus && currentFocus->getFrame().inscribed(this->getFrame()))
+         return currentFocus;
+ 
+     return this;
+@@ -570,6 +592,16 @@ Rect ScrollingFrame::getVisibleFrame()
+     return frame;
+ }
+ 
++bool ScrollingFrame::getHighlightScissor(Rect* scissor)
++{
++    // Clip descendants' focus highlight on the scrolling axis only (same
++    // bounds as the content scissor in draw()): the cross axis is left
++    // unbounded so the halo padding of cells flush against the left/right
++    // edges is not shaved.
++    *scissor = Rect(-100000.0f, this->getScrollingAreaTopBoundary(), 200000.0f, this->getScrollingAreaHeight());
++    return true;
++}
++
+ enum Sound ScrollingFrame::getFocusSound()
+ {
+     if (!contentView->getDefaultFocus())

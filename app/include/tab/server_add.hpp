@@ -1,5 +1,5 @@
 /*
-    Switchlex — connexion à un compte plex.tv (flux PIN) ou à un serveur en direct.
+    pleNx — connexion à un compte plex.tv (flux PIN, unique méthode).
     Spécification : PLEX_MIGRATION.md §2.2-2.3.
 */
 
@@ -16,10 +16,9 @@ public:
     brls::View* getDefaultFocus() override;
 
 private:
-    /// Flux PIN plex.tv (équivalent UX du Quick Connect Jellyfin)
-    bool onLink();
-    /// Saisie manuelle URL + token
-    bool onManual();
+    /// Demande un code à plex.tv et lance l'interrogation périodique
+    void startPin();
+    void pollOnce();
 
     /// Étapes après obtention du token de compte
     void onAccount(const std::string& accountToken);
@@ -34,8 +33,11 @@ private:
     void finish(const std::string& uuid, const std::string& name, const std::string& thumb,
         const std::string& plexTvToken, const plex::ServerResource& server, const std::string& baseUrl);
 
-    BRLS_BIND(brls::DetailCell, btnLink, "plex/link");
-    BRLS_BIND(brls::InputCell, inputUrl, "server/url");
-    BRLS_BIND(brls::InputCell, inputToken, "server/token");
-    BRLS_BIND(brls::DetailCell, btnConnect, "server/connect");
+    BRLS_BIND(brls::Label, labelCode, "plex/label/code");
+    BRLS_BIND(brls::Label, labelStatus, "plex/label/status");
+    BRLS_BIND(brls::Button, btnRetry, "plex/retry");
+
+    brls::RepeatingTimer ticker;
+    brls::Time deadline = 0;
+    plex::PinResult pin;
 };

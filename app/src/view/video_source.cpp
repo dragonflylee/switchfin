@@ -4,11 +4,14 @@
 #include "tab/media_collection.hpp"
 #include "tab/media_series.hpp"
 #include "tab/media_movie.hpp"
+#include "tab/playlist_view.hpp"
+#include "tab/hub_view.hpp"
 #include "utils/misc.hpp"
 #include "view/svg_image.hpp"
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
 #include "view/context_menu.hpp"
+#include "view/auto_tab_frame.hpp"
 
 using namespace brls::literals;  // for _i18n
 
@@ -16,12 +19,24 @@ VideoDataSource::VideoDataSource(const MediaList& r) : list(std::move(r)) {}
 VideoDataSource::VideoDataSource(const MediaList& r, const std::string& parentId)
     : list(std::move(r)), parentId(parentId) {}
 
-size_t VideoDataSource::getItemCount() { return this->list.size(); }
+size_t VideoDataSource::getItemCount() { return this->list.size() + (this->moreKey.empty() ? 0 : 1); }
+
+void VideoDataSource::setMore(const std::string& title, const std::string& key) {
+    this->moreTitle = title;
+    this->moreKey = key;
+}
 
 RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t index) {
+    // carte « + » de fin de rangée → page complète du hub
+    if (!this->moreKey.empty() && index == this->list.size()) return recycler->dequeueReusableCell("More");
+
     VideoCardCell* cell = dynamic_cast<VideoCardCell*>(recycler->dequeueReusableCell("Cell"));
     auto& item = this->list.at(index);
     cell->setId(item.ratingKey);
+    // cellule recyclée : purger l'affiche du média précédent (sinon un item
+    // sans thumb hérite de la texture d'un autre — le placeholder réapparaît)
+    cell->picture->clear();
+
     if (item.type == plex::mediaTypeEpisode) {
         if (item.grandparentTitle.empty()) {
             cell->labelTitle->setVisibility(brls::Visibility::GONE);
@@ -39,10 +54,22 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
         } else if (!item.thumb.empty()) {
             Image::load(cell->picture, item.thumb, 325);
         }
+    } else if (item.type == plex::mediaTypeSeason) {
+        // une saison s'annonce par sa série : titre = série, sous-titre = saison
+        cell->labelTitle->setText(item.parentTitle.empty() ? item.title : item.parentTitle);
+        cell->labelExt->setText(item.parentTitle.empty() ? "" : item.title);
+        Image::load(cell->picture, item.thumb.empty() ? item.parentThumb : item.thumb, 325);
     } else {
         cell->labelTitle->setText(item.title);
 
-        if (item.type == plex::mediaTypeCollection || item.type.empty()) {
+        if (item.type == plex::mediaTypePlaylist && item.leafCount > 0) {
+            // même méta que l'onglet Playlists — et la zone labels garde sa
+            // hauteur standard (55), condition du rendu carré en rangée
+            cell->labelExt->setText(fmt::format("{} {}", item.leafCount,
+                item.leafCount > 1 ? "main/playlist/items"_i18n : "main/playlist/item"_i18n));
+            cell->labelExt->setVisibility(brls::Visibility::VISIBLE);
+        } else if (item.type == plex::mediaTypeCollection || item.type == plex::mediaTypePlaylist ||
+                   item.type.empty()) {
             cell->labelExt->setVisibility(brls::Visibility::GONE);
         } else if (item.type == plex::mediaTypeClip) {
             cell->labelExt->setText(misc::sec2Time(item.duration / 1000));
@@ -50,27 +77,25 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
             cell->labelExt->setText(std::to_string(item.year));
         }
 
-        Image::load(cell->picture, item.thumb, 325);
+        // affiche personnalisée (thumb) prioritaire ; repli des playlists sur
+        // la mosaïque composite générée par le serveur (retour recette UI n°5)
+        if (!item.thumb.empty()) {
+            Image::load(cell->picture, item.thumb, 325);
+        } else if (item.type == plex::mediaTypePlaylist && !item.composite.empty()) {
+            Image::load(cell->picture, item.composite, 325);
+        }
     }
 
     if (item.played()) {
         cell->badgeTopRight->setImageFromSVGRes("icon/ico-checkmark.svg");
         cell->badgeTopRight->setVisibility(brls::Visibility::VISIBLE);
-        cell->labelRating->setVisibility(brls::Visibility::INVISIBLE);
+        cell->rectProgress->getParent()->setVisibility(brls::Visibility::GONE);
     } else if (item.viewOffset > 0 && item.duration > 0) {
         float percent = float(item.viewOffset) / float(item.duration) * 100.f;
-        if (item.type == plex::mediaTypeEpisode || item.type == plex::mediaTypeMovie) {
-            cell->labelRating->setText(
-                fmt::format("{}/{}", misc::sec2Time(item.viewOffset / 1000), misc::sec2Time(item.duration / 1000)));
-        } else {
-            cell->labelRating->setText(fmt::format("{:.2f}%", percent));
-        }
-        cell->labelRating->setVisibility(brls::Visibility::VISIBLE);
         cell->rectProgress->setWidthPercentage(percent);
         cell->rectProgress->getParent()->setVisibility(brls::Visibility::VISIBLE);
         cell->badgeTopRight->setVisibility(brls::Visibility::GONE);
     } else {
-        cell->labelRating->setVisibility(brls::Visibility::INVISIBLE);
         cell->rectProgress->getParent()->setVisibility(brls::Visibility::GONE);
         cell->badgeTopRight->setVisibility(brls::Visibility::GONE);
     }
@@ -78,16 +103,20 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
 }
 
 void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
+    if (!this->moreKey.empty() && index == this->list.size()) {
+        ui::presentDetail(recycler, new HubView(this->moreTitle, this->moreKey));
+        return;
+    }
     auto& item = this->list.at(index);
 
     if (item.type == plex::mediaTypeShow) {
-        recycler->present(new MediaSeries(item));
+        ui::presentDetail(recycler, new MediaSeries(item));
     } else if (item.type == plex::mediaTypeMovie) {
-        recycler->present(new MediaMovie(item));
+        ui::presentDetail(recycler, new MediaMovie(item));
     } else if (item.type == plex::mediaTypeSeason) {
-        recycler->present(new MediaSeries(item));
+        ui::presentDetail(recycler, new MediaSeries(item));
     } else if (item.type == plex::mediaTypeCollection) {
-        recycler->present(new MediaCollection(item.ratingKey, plex::mediaTypeCollection));
+        ui::presentDetail(recycler, new MediaCollection(item.ratingKey, plex::mediaTypeCollection));
     } else if (item.type == plex::mediaTypeClip) {
         PlayerView* view = new PlayerView(item);
         view->setTitie(item.year ? fmt::format("{} ({})", item.title, item.year) : item.title);
@@ -95,6 +124,8 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
         PlayerView* view = new PlayerView(item);
         view->setTitie(fmt::format("S{}E{} - {}", item.parentIndex, item.index, item.title));
         if (!item.grandparentRatingKey.empty()) view->setSeries(item.grandparentRatingKey);
+    } else if (item.type == plex::mediaTypePlaylist) {
+        ui::presentDetail(recycler, new PlaylistView(item));
     } else if (item.type == plex::mediaTypePhoto) {
         // photo : fichier original servi par la Part (PLEX_MIGRATION.md §2.5)
         if (!item.media.empty() && !item.media.front().parts.empty()) {
@@ -110,8 +141,9 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
 }
 
 void VideoDataSource::onContextMenu(brls::Box* recycler, size_t index) {
+    if (index >= this->list.size()) return;  // carte « + » : pas de menu
     auto& item = this->list.at(index);
-    brls::Box* menu = new ContextMenu(item);
+    brls::Box* menu = new ContextMenu(item, recycler);
     brls::Application::pushActivity(new brls::Activity(menu));
 }
 

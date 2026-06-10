@@ -2,10 +2,12 @@
     width="auto"
     height="auto">
 
+    <!-- centered : cf. suggest_show.xml (le natural volait le focus) -->
     <brls:ScrollingFrame
         width="auto"
         height="auto"
-        grow="1.0">
+        grow="1.0"
+        scrollingBehavior="centered">
 
         <brls:Box
             height="auto"

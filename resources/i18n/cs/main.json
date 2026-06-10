@@ -4,7 +4,8 @@
     "genres": "Žánry",
     "suggest": "Návrhy",
     "search": "Vyhledat",
-    "setting": "Nastavení"
+    "setting": "Nastavení",
+    "downloads": "Stahování"
   },
   "home": {
     "resume": "Pokračovat ve sledování",
@@ -49,6 +50,8 @@
     "mark_played": "Označit přehrané",
     "mark_unplayed": "Označit nepřehrané",
     "play": "Přehrát",
+    "replay": "Přehrát znovu",
+    "see_all": "Zobrazit vše",
     "intro": "Přehled/Obsah",
     "people": "Lidé",
     "special": "Bonusový materiál",
@@ -61,7 +64,15 @@
     "random": "Náhodně",
     "played": "Přehrané",
     "unplayed": "Nepřehrané",
-    "collections": "Collections"
+    "collections": "Collections",
+    "season": "season",
+    "seasons": "seasons",
+    "episode": "epizoda",
+    "episodes": "epizody",
+    "seasons_title": "Řady",
+    "go_series": "Přejít na seriál",
+    "go_season": "Přejít na sezónu",
+    "director": "Režie"
   },
   "search": {
     "hint": "Podpora klíčových slov a jejich počátečních písmen",
@@ -75,12 +86,64 @@
       "movie": "Film",
       "series": "Seriál",
       "episode": "Epizoda"
-    }
+    },
+    "no_history": "No recent searches",
+    "no_results": "No results",
+    "placeholder": "Hledat filmy a seriály",
+    "results": "Výsledky",
+    "keyboard": "Klávesnice",
+    "space": "Mezerník",
+    "no_results_sub": "Zkus jiný název, herce nebo žánr.",
+    "no_history_sub": "Tvá nedávná hledání se zobrazí zde."
+  },
+  "person": {
+    "movies": "Filmy",
+    "shows": "Seriály",
+    "as": "Role: {}"
+  },
+  "playlist": {
+    "title": "Playlisty",
+    "item": "položka",
+    "items": "položky"
+  },
+  "watchlist": {
+    "title": "Watchlist",
+    "add": "Přidat do Watchlistu",
+    "remove": "Odebrat z Watchlistu",
+    "added": "Přidáno do Watchlistu",
+    "removed": "Odebráno z Watchlistu",
+    "empty_title": "Váš Watchlist je prázdný",
+    "empty_sub": "Uložené filmy a seriály se zobrazí zde.",
+    "not_in_library": "Tento titul není ve vaší knihovně",
+    "all": "Vše",
+    "availability": "Dostupnost",
+    "on_server": "Na serveru",
+    "not_on_server": "Mimo server"
   },
   "remote": {
-    "local": "místní",
+    "empty_title": "Žádné soubory",
+    "empty_sub": "Procházejte místní úložiště a své servery WebDAV, FTP nebo SFTP.",
+    "local": "Soubory",
     "folder": "složka",
-    "up": "nahoru"
+    "up": "nahoru",
+    "add_server": "Přidat server",
+    "edit_server": "Upravit server",
+    "manage": "Spravovat server",
+    "edit": "Upravit",
+    "delete": "Smazat",
+    "delete_confirm": "Smazat „{}“?",
+    "type": "Typ",
+    "name": "Název",
+    "host": "Hostitel",
+    "port": "Port",
+    "username": "Uživatelské jméno",
+    "password": "Heslo",
+    "path": "Výchozí cesta",
+    "optional": "Volitelné",
+    "save": "Otestovat a uložit",
+    "test_failed": "Připojení selhalo: {}",
+    "retry": "Zkusit znovu?",
+    "required": "Zadej alespoň název a hostitele."
   },
   "setting": {
     "quit_hint": "Chystáte se ukončit aplikaci. Nastavení se projeví po příštím spuštění",
@@ -160,7 +223,7 @@
       "font_q1": "Jak nastavit vlastní písmo nebo ikonu mapy kláves",
       "font_a1": "1. Stáhněte si požadované písmo nebo písmo ikon\n2. Přejmenujte písmo na: font.ttf; Přejmenujte ikony na: icon.ttf\n3. Umístěte soubory písem do adresáře config\n4. Restartujte aplikaci",
       "font_q2": "Často kladené otázky",
-      "font_a2": "1. Switchlex upřednostňuje zobrazení vlastních písem, s vestavěnými fonty jako záložní\n2. \"Nastavení – výukový program\" poskytuje položku nabídky pro rychlé otevření konfiguračního adresáře\n3. V Linuxu používá Switchlex k otevření adresáře xdg-open. Pokud konfigurační adresář nelze správně otevřít, můžete zvážit instalaci tohoto nástroje",
+      "font_a2": "1. pleNx upřednostňuje zobrazení vlastních písem, s vestavěnými fonty jako záložní\n2. \"Nastavení – výukový program\" poskytuje položku nabídky pro rychlé otevření konfiguračního adresáře\n3. V Linuxu používá pleNx k otevření adresáře xdg-open. Pokud konfigurační adresář nelze správně otevřít, můžete zvážit instalaci tohoto nástroje",
       "font_q3": "Titulky se nezobrazily",
       "font_a3": "Vložte libovolný soubor ttf do {}/subfont.ttf"
     },
@@ -195,25 +258,49 @@
     }
   },
   "hints": {
-    "hint1": "Vyberte hru z domovské obrazovky",
-    "hint2": "Podržte klávesu  a kliknutím na  přejděte do nabídky homebrew",
-    "hint3": "V nabídce homebrew vyberte Switchlex",
-    "hint4": "Volitelné: Odeslat Switchlex NSP na domovskou obrazovku",
-    "hint_nsp": "Kliknutím na  odešlete Switchlex NSP na domovskou obrazovku",
-    "hint_confirm": "Pokud odešlete NSP na domovskou obrazovku může to vést k banu\nProsím potvrďte znovu",
-    "hint_right": "Obrázky jsou z internetu a autorská práva patří společnosti Nintendo Co., Ltd"
+    "title": "Launch pleNx as a full application",
+    "text_applet": "pleNx is running in applet mode: the available memory is not sufficient for video playback. Launch it as a full application using one of the options below.",
+    "text_app": "pleNx is running as a full application. Install the HOME menu tile to launch it this way directly.",
+    "install_title": "HOME menu tile (recommended)",
+    "install_text": "Installs the embedded NSP forwarder: the tile launches pleNx as a full application straight from the HOME menu.",
+    "install_button": "Install the tile",
+    "takeover_title": "Alternative: title takeover",
+    "takeover_text": "Hold R while launching any installed game to open the homebrew menu as a full application, then launch pleNx from there.",
+    "prompt": "Install the pleNx tile on the HOME menu?\nThe tile launches the app as a full application (required for video playback).",
+    "hint_confirm": "Pokud odešlete NSP na domovskou obrazovku může to vést k banu\nProsím potvrďte znovu"
   },
   "plex": {
-    "link": "Sign in with plex.tv",
-    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "title": "Sign in to your Plex account",
+    "generating": "Generating code…",
+    "waiting": "Waiting for confirmation…",
+    "connected": "Connected!",
     "expired": "The code expired, please try again",
-    "manual_header": "Manual connection",
-    "token": "Token",
+    "step1": "1. On your phone or computer, open plex.tv/link",
+    "step2": "2. Sign in to your Plex account",
+    "step3": "3. Enter the code shown above",
+    "regenerate": "Generate a new code",
     "choose_server": "Choose a server",
     "choose_profile": "Choose a profile",
     "profile_pin": "Profile PIN",
     "wrong_pin": "Wrong PIN",
     "no_server": "No server found on this account",
+    "connecting": "Připojování k serveru…",
     "unreachable": "Server unreachable"
+  },
+  "download": {
+    "season": "Stáhnout sezónu",
+    "confirm_season": "Stáhnout {} epizod?",
+    "season_queued": "Sezóna přidána ke stažení",
+    "storage": "Úložiště",
+    "storage_free": "{} volných z {}",
+    "section_active": "Probíhá",
+    "section_done": "Staženo",
+    "remove_all": "Odstranit vše",
+    "confirm_remove_all": "Odstranit všechna stažení?",
+    "empty_sub": "Stažené filmy a epizody se zobrazí zde, ke sledování offline."
+  },
+  "empty": {
+    "title": "Nic k zobrazení",
+    "error": "Nelze načíst"
   }
 }

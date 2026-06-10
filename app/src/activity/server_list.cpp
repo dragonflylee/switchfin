@@ -4,6 +4,7 @@
 
 #include "activity/server_list.hpp"
 #include "activity/main_activity.hpp"
+#include "activity/loading_activity.hpp"
 #include "view/recycling_grid.hpp"
 #include "view/auto_tab_frame.hpp"
 #include "tab/server_add.hpp"
@@ -13,6 +14,19 @@
 #include "api/plex/auth.hpp"
 
 using namespace brls::literals;  // for _i18n
+
+/// Élide une URL trop longue par le milieu : « https://90-105-213-…plex.direct:32400 ».
+/// Le DetailCell borealis dessine le détail aligné à droite SANS scissor
+/// (cell_detail.cpp:41-48, label.cpp:492-507) : un texte plus large que sa case
+/// déborde vers la gauche par-dessus le titre. On borne donc la chaîne en amont
+/// pour un rendu déterministe, en préservant la fin (hôte:port) plus parlante.
+static std::string elideMiddle(const std::string& s, size_t budget) {
+    if (s.size() <= budget) return s;
+    size_t keep = budget - 1;  // 1 emplacement pour l'ellipsis « … »
+    size_t head = (keep + 1) / 2;
+    size_t tail = keep - head;
+    return s.substr(0, head) + "…" + s.substr(s.size() - tail);
+}
 
 class ServerCell : public brls::Box {
 public:
@@ -31,7 +45,7 @@ public:
         this->addGestureRecognizer(new brls::TapGestureRecognizer(this));
 
         this->labelName->setText(s.name.empty() ? "-" : s.name);
-        this->labelUrl->setText(s.urls.front());
+        this->labelUrl->setText(elideMiddle(s.urls.front(), 30));
     }
 
     void setActive(bool active) {
@@ -92,6 +106,11 @@ public:
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
         brls::Application::blockInputs();
+        // La sonde des URL ci-dessous peut durer plusieurs secondes (timeout
+        // 2 s PAR URL, en série, cf. plex_auth.cpp:probeConnection ; les
+        // serveurs plex.direct en annoncent 10+) : écran de chargement
+        // plutôt qu'un écran figé (recette n°6).
+        brls::Application::pushActivity(new LoadingActivity(), brls::TransitionAnimation::NONE);
         std::string unreachable = "main/plex/unreachable"_i18n;
 
         brls::async([this, index, unreachable]() {
@@ -142,6 +161,8 @@ public:
                 std::string msg = ex.what();
                 brls::sync([msg]() {
                     brls::Application::unblockInputs();
+                    // retire l'écran de chargement avant d'afficher l'erreur
+                    brls::Application::popActivity(brls::TransitionAnimation::NONE);
                     Dialog::show(msg);
                 });
             }
@@ -161,6 +182,9 @@ ServerList::~ServerList() { brls::Logger::debug("ServerList Activity: delete"); 
 
 void ServerList::onContentAvailable() {
     this->inputUrl->detail->setSingleLine(true);
+    // La case « detail » est plafonnée à 300px (cell_detail.cpp:44) : on l'élargit
+    // pour afficher l'URL élidée (~36 car.) sans re-troncature par le bord droit.
+    this->inputUrl->detail->setMaxWidth(520);
     this->tabFrame->setTabChangedAction([this](size_t index) {
         if (!index) this->willAppear();
     });
@@ -231,7 +255,8 @@ void ServerList::willAppear(bool resetState) {
 }
 
 void ServerList::onServer(const AppServer& s) {
-    this->inputUrl->setDetailText(s.urls.front());
+    this->activeUrl = s.urls.front();
+    this->inputUrl->setDetailText(elideMiddle(this->activeUrl, 36));
     this->inputUrl->registerAction("hints/preset"_i18n, brls::BUTTON_X, [this, s](...) {
         return brls::Application::getImeManager()->openForText(
             [this, s](const std::string& text) {
@@ -239,9 +264,10 @@ void ServerList::onServer(const AppServer& s) {
                 server.id = s.id;
                 server.urls.push_back(text);
                 AppConfig::instance().addServer(server);
-                this->inputUrl->setDetailText(text);
+                this->activeUrl = text;
+                this->inputUrl->setDetailText(elideMiddle(text, 36));
             },
-            "main/setting/url"_i18n, "", 255, this->inputUrl->detail->getFullText());
+            "main/setting/url"_i18n, "", 255, this->activeUrl);
     });
     this->inputUrl->registerClickAction([this, s](...) {
         brls::Dropdown* dropdown = new brls::Dropdown("main/setting/url"_i18n, s.urls, [this, s](int selected) {
@@ -250,7 +276,8 @@ void ServerList::onServer(const AppServer& s) {
             server.id = s.id;
             server.urls.push_back(url);
             AppConfig::instance().addServer(server);
-            this->inputUrl->setDetailText(url);
+            this->activeUrl = url;
+            this->inputUrl->setDetailText(elideMiddle(url, 36));
         });
         brls::Application::pushActivity(new brls::Activity(dropdown));
         return true;
@@ -269,7 +296,7 @@ void ServerList::onUser(const std::string& id) {
     }
 }
 
-std::string ServerList::getUrl() { return this->inputUrl->detail->getFullText(); }
+std::string ServerList::getUrl() { return this->activeUrl; }
 
 void ServerList::setActive(brls::View* active) {
     for (auto item : this->sidebarServers->getChildren()) {

@@ -1,5 +1,5 @@
 /*
-    Switchlex — authentification plex.tv et découverte des serveurs.
+    pleNx — authentification plex.tv et découverte des serveurs.
     Spécification : PLEX_MIGRATION.md §2.2 (flux PIN) et §2.3 (resources + connexions).
 
     Toutes les fonctions sont SYNCHRONES (elles enchaînent des requêtes HTTP) :

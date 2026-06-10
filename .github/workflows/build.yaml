@@ -2,12 +2,7 @@ name: build
 
 on:
   push:
-    tags-ignore:
-    - switch-portlibs
-    - vita-packages
-    - pacbrew
-    - mingw-packages
-    - macos-dylib
+    tags: [ "v*" ]
     paths-ignore:
     - scripts/**
     - debian/*
@@ -44,34 +39,57 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    if: startsWith(github.ref, 'refs/tags/')
+    if: startsWith(github.ref, 'refs/tags/v')
     steps:
+    - uses: actions/checkout@v6
+    - name: Verify tag matches CMakeLists.txt version
+      run: |
+        ver="${GITHUB_REF_NAME#v}"
+        cmake_ver="$(sed -nE 's/^set\(VERSION_(MAJOR|MINOR|ALTER) "([0-9]+)"\)$/\2/p' CMakeLists.txt | paste -sd. -)"
+        if [ "$cmake_ver" != "$ver" ]; then
+          echo "::error::Tag ${GITHUB_REF_NAME} does not match CMakeLists.txt version ${cmake_ver}"
+          exit 1
+        fi
+    - name: Extract Release Notes from CHANGELOG.md
+      run: |
+        awk -v ver="${GITHUB_REF_NAME#v}" '
+          $0 ~ "^## \\[" ver "\\]" { found = 1; next }
+          found && /^## \[/ { exit }
+          found { print }
+        ' CHANGELOG.md > RELEASE_NOTES.md
+        if ! [ -s RELEASE_NOTES.md ]; then
+          echo "::error::No section for ${GITHUB_REF_NAME#v} in CHANGELOG.md (run: git cliff --unreleased --tag ${GITHUB_REF_NAME} --prepend CHANGELOG.md)"
+          exit 1
+        fi
+        printf '\n![download](https://img.shields.io/github/downloads/%s/%s/total?label=Downloads)\n' \
+          "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME" >> RELEASE_NOTES.md
     - name: Download Assets
       uses: actions/download-artifact@v6
+      with:
+        path: assets
     - name: Package Assets
       run: |
-        for p in Switchlex-windows-*; do
-          [[ -d $p ]] && 7z a -mx=9 $p.7z ./$p/* && rm -rf $p
+        cd assets
+        for p in pleNx-windows-*; do
+          [[ -d "$p" ]] && 7z a -mx=9 "$p.7z" ./"$p"/* && rm -rf "$p"
         done
         tree
     - name: Release and Upload Assets
       uses: softprops/action-gh-release@v3
       with:
-        name: Switchlex ${{ github.ref_name }}
+        name: pleNx ${{ github.ref_name }}
         tag_name: ${{ github.ref_name }}
-        generate_release_notes: true
+        body_path: RELEASE_NOTES.md
         draft: true
         files: |
-          Switchlex-windows-*.7z
-          Switchlex-macOS-*/*.dmg
-          Switchlex-NintendoSwitch-deko3d-*/*.nro
-          Switchlex-PS4-*/*.pkg
-          Switchlex-Vita-*/*.vpk
-          Switchlex-Flatpak-*/*.flatpak
-          Switchlex-Archlinux-*/*.pkg.tar.*
-          Switchlex-android-*/*.apk
-        body: |
-          ![download](https://img.shields.io/github/downloads/${{ github.repository }}/${{ github.ref_name }}/total?label=Downloads)
+          assets/pleNx-windows-*.7z
+          assets/pleNx-macOS-*/*.dmg
+          assets/pleNx-NintendoSwitch-deko3d-*/*.nro
+          assets/pleNx-PS4-*/*.pkg
+          assets/pleNx-Vita-*/*.vpk
+          assets/pleNx-Flatpak-*/*.flatpak
+          assets/pleNx-Archlinux-*/*.pkg.tar.*
+          assets/pleNx-android-*/*.apk
 
   build-nx:
     runs-on: ubuntu-latest
@@ -91,6 +109,10 @@ jobs:
     - uses: actions/checkout@v6
       with:
         submodules: recursive
+    - name: Apply borealis patches
+      run: |
+        git config --global --add safe.directory '*'
+        git -C library/borealis apply --verbose ../../scripts/patches/borealis-fixes.patch
     - name: Update deko3d dependencies
       if: ${{ matrix.driver == 'deko3d' }}
       run: |   
@@ -115,17 +137,17 @@ jobs:
           -DUSE_LIBUSBHSFS=ON \
           -DBUILTIN_NSP=${{ github.event.inputs.disable_builtin_nsp && 'OFF' || 'ON' }} \
           -DVERSION_BUILD=${{ github.run_number }}
-        make -C build Switchlex.nro -j$(nproc)
+        make -C build pleNx.nro -j$(nproc)
     - name: Upload nro
       uses: actions/upload-artifact@v6
       with:
-        name: Switchlex-NintendoSwitch${{ matrix.shuffix }}-${{ github.run_number }}
-        path: build/Switchlex.nro
+        name: pleNx-NintendoSwitch${{ matrix.shuffix }}-${{ github.run_number }}
+        path: build/pleNx.nro
     - name: Upload elf
       uses: actions/upload-artifact@v6
       with:
         name: ns-dev-elf-${{ matrix.driver }}-${{ github.run_number }}
-        path: build/Switchlex.elf
+        path: build/pleNx.elf
 
   build-ps4:
     runs-on: ubuntu-latest
@@ -138,6 +160,10 @@ jobs:
     - uses: actions/checkout@v6
       with:
         submodules: recursive
+    - name: Apply borealis patches
+      run: |
+        git config --global --add safe.directory '*'
+        git -C library/borealis apply --verbose ../../scripts/patches/borealis-fixes.patch
     - name: Update dependencies
       run: |
         for pkg in musl-1.5-3 mbedtls-2.28.10-2 sdl2-2.0.18-19 libcurl-7.80.0-5 dav1d-1.5.3-1 ffmpeg-7.1.4-3 libmpv-0.36.0-2; do
@@ -153,13 +179,13 @@ jobs:
     - name: Upload pkg
       uses: actions/upload-artifact@v6
       with:
-        name: Switchlex-PS4-${{ github.run_number }}
+        name: pleNx-PS4-${{ github.run_number }}
         path: build/*.pkg
     - name: Upload oelf
       uses: actions/upload-artifact@v6
       with:
         name: ps4-dev-oelf-${{ github.run_number }}
-        path: build/Switchlex.oelf
+        path: build/pleNx.oelf
 
   build-vita:
     runs-on: ubuntu-latest
@@ -170,6 +196,10 @@ jobs:
     - uses: actions/checkout@v6
       with:
         submodules: recursive
+    - name: Apply borealis patches
+      run: |
+        git config --global --add safe.directory '*'
+        git -C library/borealis apply --verbose ../../scripts/patches/borealis-fixes.patch
     - name: Update dependencies
       env:
         BASE_URL: https://github.com/dragonflylee/switchfin/releases/download/vita-packages
@@ -188,13 +218,13 @@ jobs:
     - name: Upload vpk
       uses: actions/upload-artifact@v6
       with:
-        name: Switchlex-Vita-${{ github.run_number }}
-        path: build/Switchlex.vpk
+        name: pleNx-Vita-${{ github.run_number }}
+        path: build/pleNx.vpk
     - name: Upload velf
       uses: actions/upload-artifact@v6
       with:
         name: psv-dev-velf-${{ github.run_number }}
-        path: build/Switchlex.velf
+        path: build/pleNx.velf
 
   build-flatpak:
     strategy:
@@ -216,6 +246,10 @@ jobs:
     - uses: actions/checkout@v6
       with:
         submodules: recursive
+    - name: Apply borealis patches
+      run: |
+        git config --global --add safe.directory '*'
+        git -C library/borealis apply --verbose ../../scripts/patches/borealis-fixes.patch
     - name: Set workspace permissions
       run: git config --system --add safe.directory $GITHUB_WORKSPACE
     - name: Add OpenGL ES 2.0 build option
@@ -224,7 +258,7 @@ jobs:
     - name: Build flatpak
       uses: flatpak/flatpak-github-actions/flatpak-builder@v6.7
       with:
-        bundle: Switchlex-Linux-${{ matrix.arch }}-${{ matrix.driver }}-${{ github.run_number }}.flatpak
+        bundle: pleNx-Linux-${{ matrix.arch }}-${{ matrix.driver }}-${{ github.run_number }}.flatpak
         manifest-path: scripts/flatpak-manifest.yaml
         cache-key: flatpak-${{ matrix.driver }}-${{ hashFiles('scripts/flatpak-manifest.yaml') }}
         upload-artifact: false
@@ -232,8 +266,8 @@ jobs:
     - name: Upload Assets
       uses: actions/upload-artifact@v6
       with:
-        name: Switchlex-Flatpak-${{ matrix.arch }}-${{ matrix.driver }}-${{ github.run_number }}
-        path: Switchlex-*.flatpak
+        name: pleNx-Flatpak-${{ matrix.arch }}-${{ matrix.driver }}-${{ github.run_number }}
+        path: pleNx-*.flatpak
         if-no-files-found: error
 
   build-deb:
@@ -263,18 +297,22 @@ jobs:
     - uses: actions/checkout@v6
       with:
         submodules: recursive
+    - name: Apply borealis patches
+      run: |
+        git config --global --add safe.directory '*'
+        git -C library/borealis apply --verbose ../../scripts/patches/borealis-fixes.patch
     - name: Build deb
       env:
         DH_QUIET: "1"
       run: |
         git config --system --add safe.directory $GITHUB_WORKSPACE
         dpkg-buildpackage -b -nc
-        mv ../switchlex_*.deb $GITHUB_WORKSPACE
+        mv ../plenx_*.deb $GITHUB_WORKSPACE
     - name: Upload Assets
       uses: actions/upload-artifact@v6
       with:
-        name: Switchlex-${{ matrix.img }}-${{ matrix.tag }}-${{ matrix.arch }}-${{ github.run_number }}
-        path: switchlex_*.deb
+        name: pleNx-${{ matrix.img }}-${{ matrix.tag }}-${{ matrix.arch }}-${{ github.run_number }}
+        path: plenx_*.deb
 
   build-aur:
     runs-on: ubuntu-latest
@@ -283,12 +321,16 @@ jobs:
     - uses: actions/checkout@v6
       with:
         submodules: recursive
+    - name: Apply borealis patches
+      run: |
+        git config --global --add safe.directory '*'
+        git -C library/borealis apply --verbose ../../scripts/patches/borealis-fixes.patch
     - name: Build aur
       run: docker run --rm --tty --network host -v $PWD:/work -e PUID=$(id -u) -w /work/scripts/aur archlinux bash entrypoint.sh
     - name: Upload Assets
       uses: actions/upload-artifact@v6
       with:
-        name: Switchlex-Archlinux-${{ github.run_number }}
+        name: pleNx-Archlinux-${{ github.run_number }}
         path: scripts/aur/*.pkg.tar.*
 
   build-macos:
@@ -305,10 +347,14 @@ jobs:
     - uses: actions/checkout@v6
       with:
         submodules: recursive
+    - name: Apply borealis patches
+      run: |
+        git config --global --add safe.directory '*'
+        git -C library/borealis apply --verbose ../../scripts/patches/borealis-fixes.patch
     - name: Install deps
       run: |
         brew install create-dmg dylibbundler
-        curl -sSL https://github.com/thcolin/switchlex/releases/download/macos-dylib/dylib-ffmpeg8-mpv41-${{ matrix.tag }}.tar.gz | tar zxf - -C ${{ runner.temp }}
+        curl -sSL https://github.com/dragonflylee/switchfin/releases/download/macos-dylib/dylib-ffmpeg8-mpv41-${{ matrix.tag }}.tar.gz | tar zxf - -C ${{ runner.temp }}
     - name: Build App
       env:
         DYLD_LIBRARY_PATH: ${{ runner.temp }}/lib
@@ -324,19 +370,19 @@ jobs:
     - name: Create DMG
       run: |
         mkdir -p dist
-        mv build/Switchlex.app dist/
+        mv build/pleNx.app dist/
         cp README.md dist
-        dist/Switchlex.app/Contents/MacOS/Switchlex -version
+        dist/pleNx.app/Contents/MacOS/pleNx -version
         create-dmg --window-pos 200 120 --window-size 800 400 \
-          --icon-size 100 --icon "Switchlex.app" 200 190 \
-          --icon "README.md" 400 100 --hide-extension "Switchlex.app" \
+          --icon-size 100 --icon "pleNx.app" 200 190 \
+          --icon "README.md" 400 100 --hide-extension "pleNx.app" \
           --app-drop-link 600 185 --volicon ./scripts/macos/dmg.icns \
-          --volname "Switchlex" Switchlex-macOS-${{ matrix.tag }}-${{ github.run_number }}.dmg "dist/"
+          --volname "pleNx" pleNx-macOS-${{ matrix.tag }}-${{ github.run_number }}.dmg "dist/"
     - name: Upload Assets
       uses: actions/upload-artifact@v6
       with:
-        name: Switchlex-macOS-${{ matrix.tag }}-${{ github.run_number }}
-        path: Switchlex-*.dmg
+        name: pleNx-macOS-${{ matrix.tag }}-${{ github.run_number }}
+        path: pleNx-*.dmg
 
   build-mingw:
     if: ${{ inputs.platform == 'mingw64' || github.event_name != 'workflow_dispatch'}}
@@ -366,10 +412,14 @@ jobs:
     - uses: actions/checkout@v6
       with:
         submodules: recursive
+    - name: Apply borealis patches
+      run: |
+        git config --global --add safe.directory '*'
+        git -C library/borealis apply --verbose ../../scripts/patches/borealis-fixes.patch
     - name: Install dependency
       run: |
         for pkg in glfw-3.5.0-1 curl-8.16.0-1 mpv-0.41.0-1 libwebp-1.6.0-1; do
-          curl -sLO https://github.com/thcolin/switchlex/releases/download/mingw-packages/${MINGW_PACKAGE_PREFIX}-${pkg}-any.pkg.tar.zst
+          curl -sLO https://github.com/dragonflylee/switchfin/releases/download/mingw-packages/${MINGW_PACKAGE_PREFIX}-${pkg}-any.pkg.tar.zst
         done
         pacman -U --noconfirm *.pkg.tar.zst
 
@@ -396,15 +446,15 @@ jobs:
           -DUSE_LIBROMFS=ON \
           -DVERSION_BUILD=${{ github.run_number }}
         cmake --build build
-        cv2pdb64 build/Switchlex.exe
+        cv2pdb64 build/pleNx.exe
         cp -a README.md ${MINGW_PREFIX}/bin/libmpv-2.dll build
     - name: Upload Assets
       uses: actions/upload-artifact@v6
       with:
-        name: Switchlex-windows-${{ matrix.arch }}-${{ github.run_number }}
+        name: pleNx-windows-${{ matrix.arch }}-${{ github.run_number }}
         path: |
-          build/Switchlex.exe
-          build/Switchlex.pdb
+          build/pleNx.exe
+          build/pleNx.pdb
           build/libmpv-2.dll
           build/README.md
 
@@ -415,6 +465,10 @@ jobs:
     - uses: actions/checkout@v6
       with:
         submodules: recursive
+    - name: Apply borealis patches
+      run: |
+        git config --global --add safe.directory '*'
+        git -C library/borealis apply --verbose ../../scripts/patches/borealis-fixes.patch
     - uses: nttld/setup-ndk@v1.6.0
       id: setup-ndk
       with:
@@ -450,5 +504,5 @@ jobs:
     - name: Upload dist
       uses: actions/upload-artifact@v6
       with:
-        name: Switchlex-android-${{ github.run_number }}
+        name: pleNx-android-${{ github.run_number }}
         path: app/platform/android/app/build/outputs/apk/release/*.apk

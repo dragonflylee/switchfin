@@ -35,4 +35,8 @@ private:
     void onServer(const AppServer &s);
     void setActive(brls::View *active);
     void getActive();
+
+    /// URL réellement sélectionnée (non élidée) ; le DetailCell n'affiche
+    /// qu'une version tronquée, on garde la vraie pour l'IME et le sélecteur.
+    std::string activeUrl;
 };

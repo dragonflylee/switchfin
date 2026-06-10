@@ -24,6 +24,51 @@
                 axis="column"
                 marginBottom="30px"
                 id="setting/status">
+
+                <!-- bloc profil : avatar rond + nom + serveur actif (pastille
+                     « connecté ») ; masqué avec le reste via hideStatus -->
+                <brls:Box
+                    width="100%"
+                    axis="row"
+                    alignItems="center"
+                    cornerRadius="14"
+                    backgroundColor="@theme/color/surface"
+                    paddingLeft="20"
+                    paddingRight="20"
+                    paddingTop="20"
+                    paddingBottom="20"
+                    marginBottom="20">
+                    <brls:Image
+                        id="setting/profile/avatar"
+                        width="64"
+                        height="64"
+                        cornerRadius="32"
+                        scalingType="fill"
+                        image="@res/img/account.png" />
+                    <brls:Box
+                        axis="column"
+                        marginLeft="18"
+                        justifyContent="center">
+                        <brls:Label
+                            id="setting/profile/name"
+                            fontSize="22" />
+                        <brls:Box
+                            alignItems="center"
+                            marginTop="6">
+                            <brls:Box
+                                width="8"
+                                height="8"
+                                cornerRadius="4"
+                                backgroundColor="#4CAF50" />
+                            <brls:Label
+                                id="setting/profile/server"
+                                marginLeft="8"
+                                fontSize="14"
+                                textColor="@theme/font/grey" />
+                        </brls:Box>
+                    </brls:Box>
+                </brls:Box>
+
                 <brls:DetailCell
                     title="@i18n/main/setting/user"
                     id="setting/user" />

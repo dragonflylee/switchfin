@@ -1,9 +1,4 @@
-//
-// Created by fang on 2022/8/21.
-//
-
 #include "activity/hint_activity.hpp"
-#include "view/gallery_view.hpp"
 
 #ifdef BUILTIN_NSP
 #include <nspmini.hpp>
@@ -11,85 +6,36 @@
 
 using namespace brls::literals;
 
-const std::string galleryItemInstallNSPXML = R"xml(
-    <brls:Box
-        width="100%"
-        height="100%"
-        axis="column"
-        grow="1"
-        wireframe="false"
-        justifyContent="center"
-        alignItems="center">
-
-        <brls:Image
-                maxWidth="90%"
-                maxHeight="80%"
-                image="@res/img/hint_app.png"
-                id="gallery/image"/>
-        <brls:Label
-                focusable="true"
-                positionType="absolute"
-                positionBottom="12%"
-                id="gallery/label"
-                text="@i18n/main/hints/hint_nsp"
-                fontSize="24"/>
-        <brls:Label
-                positionType="absolute"
-                positionBottom="4%"
-                id="gallery/label"
-                text="@i18n/main/hints/hint4"
-                fontSize="24"/>
-    </brls:Box>
-)xml";
-
-class GalleryItemInstallNSP : public GalleryItem {
-public:
-    GalleryItemInstallNSP() {
-        this->inflateFromXMLString(galleryItemInstallNSPXML);
-
-        button->registerClickAction([](...) -> bool {
-            auto dialog = new brls::Dialog("main/hints/hint_confirm"_i18n);
-            dialog->addButton("hints/cancel"_i18n, []() {});
-            dialog->addButton("hints/ok"_i18n, []() {
-#ifdef BUILTIN_NSP
-                brls::Application::blockInputs();
-
-                mini::InstallSD("romfs:/forwarder.nsp");
-                unsigned long long AppTitleID = mini::GetTitleID();
-                appletRequestLaunchApplication(AppTitleID, NULL);
-#endif
-            });
-            dialog->open();
-            return true;
-        });
-
-        button->addGestureRecognizer(new brls::TapGestureRecognizer(button));
-    }
-
-private:
-    BRLS_BIND(brls::Label, button, "gallery/label");
-};
-
-HintActivity::HintActivity() { brls::Logger::debug("HintActivityActivity: create"); }
+HintActivity::HintActivity() { brls::Logger::debug("HintActivity: create"); }
 
 void HintActivity::onContentAvailable() {
-    brls::Logger::debug("HintActivityActivity: onContentAvailable");
+    brls::Logger::debug("HintActivity: onContentAvailable");
+
+    // Le même écran sert dans les deux contextes : au boot applet (mémoire
+    // insuffisante) et depuis les réglages / le premier lancement en mode
+    // application (installation de la tuile HOME). Seul le texte change.
+    if (brls::Application::getPlatform()->isApplicationMode()) {
+        this->labelText->setText("main/hints/text_app"_i18n);
+    }
 
 #ifdef BUILTIN_NSP
-    gallery->setData({
-        {"img/hint_game_1.png", "main/hints/hint1"_i18n},
-        {"img/hint_game_2.png", "main/hints/hint2"_i18n},
-        {"img/hint_hbmenu.png", "main/hints/hint3"_i18n},
+    this->btnInstall->registerClickAction([](...) -> bool {
+        auto dialog = new brls::Dialog("main/hints/hint_confirm"_i18n);
+        dialog->addButton("hints/cancel"_i18n, []() {});
+        dialog->addButton("hints/ok"_i18n, []() {
+            brls::Application::blockInputs();
+            mini::InstallSD("romfs:/forwarder.nsp");
+            unsigned long long AppTitleID = mini::GetTitleID();
+            appletRequestLaunchApplication(AppTitleID, NULL);
+        });
+        dialog->open();
+        return true;
     });
-    gallery->addCustomView(new GalleryItemInstallNSP());
+    this->btnInstall->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnInstall));
 #else
-    gallery->setData({
-        {"img/hint_game_1.png", "main/hints/hint1"_i18n},
-        {"img/hint_game_2.png", "main/hints/hint2"_i18n},
-        {"img/hint_hbmenu.png", "main/hints/hint3"_i18n},
-        {"img/hint_app.png", "main/hints/hint4"_i18n},
-    });
+    // pas de NSP embarqué dans ce build : seule l'option title takeover reste
+    this->boxInstall->setVisibility(brls::Visibility::GONE);
 #endif
 }
 
-HintActivity::~HintActivity() { brls::Logger::debug("HintActivityActivity: delete"); }
+HintActivity::~HintActivity() { brls::Logger::debug("HintActivity: delete"); }

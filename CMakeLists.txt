@@ -51,16 +51,16 @@ message(STATUS "git commit ${GIT_TAG_SHORT} build ${VERSION_BUILD}")
 include(${BOREALIS_LIBRARY}/cmake/toolchain.cmake)
 
 # project info
-project(Switchlex)
+project(pleNx)
 set(VERSION_MAJOR "0")
-set(VERSION_MINOR "9")
+set(VERSION_MINOR "1")
 set(VERSION_ALTER "0")
 set(PROJECT_TITLEID "010ff000ffff1003")
 set(PROJECT_AUTHOR "thcolin")
-set(PACKAGE_NAME "fun.thcolin.switchlex")
-set(VITA_TITLEID "SWITCHLEX")
-set(PSN_TITLE_ID "SLEX00000")
-set(VITA_VERSION "00.90")
+set(PACKAGE_NAME "fun.thcolin.plenx")
+set(VITA_TITLEID "PLENX0000")
+set(PSN_TITLE_ID "PLNX00000")
+set(VITA_VERSION "00.10")
 set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon.jpg)
 set(PROJECT_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/resources)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
@@ -68,7 +68,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 if (CUSTOM_RESOURCES_DIR)
     set(BRLS_RESOURCES_DIR ${CUSTOM_RESOURCES_DIR})
 elseif (CMAKE_INSTALL)
-    set(BRLS_RESOURCES_DIR ${CMAKE_INSTALL_PREFIX}/share/switchlex)
+    set(BRLS_RESOURCES_DIR ${CMAKE_INSTALL_PREFIX}/share/plenx)
 endif ()
 
 # setting src and include
@@ -200,7 +200,9 @@ endif()
 if (BUILTIN_NSP)
     find_library(NSP_LIB NAMES nsp REQUIRED)
     list(APPEND APP_PLATFORM_LIB nsp)
-    list(APPEND APP_PLATFORM_OPTION -DBUILTIN_NSP)
+    # FORWARDER_TITLEID : même source de vérité que le NSP (PROJECT_TITLEID),
+    # utilisé par main.cpp pour détecter la tuile HOME déjà installée (ns).
+    list(APPEND APP_PLATFORM_OPTION -DBUILTIN_NSP -DFORWARDER_TITLEID=0x${PROJECT_TITLEID}ULL)
     add_subdirectory(scripts/forwarder)
 endif ()
 
@@ -254,7 +256,7 @@ if (PLATFORM_DESKTOP)
         set(icon_dirs 32x32 48x48 64x64 128x128 256x256)
         linux_install(
             "${PROJECT_RESOURCES}" "${BRLS_RESOURCES_DIR}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/switchlex.svg"
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/plenx.svg"
             "${CMAKE_CURRENT_SOURCE_DIR}/scripts/icons" "${icon_dirs}"
             "${CMAKE_CURRENT_SOURCE_DIR}/scripts/${PACKAGE_NAME}.appdata.xml"
             "${CMAKE_CURRENT_SOURCE_DIR}/scripts/${PACKAGE_NAME}.desktop"
@@ -304,7 +306,7 @@ elseif (PLATFORM_PS4)
     add_pkg(${PROJECT_NAME}
             ${CMAKE_BINARY_DIR}/ps4
             ${PSN_TITLE_ID}
-            "switchlex"
+            "pleNx"
             ${VITA_VERSION}
             8388608
     )

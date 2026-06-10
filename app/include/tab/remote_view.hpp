@@ -38,9 +38,17 @@ protected:
 
 class UmsView : public RemoteView {
 public:
-    UmsView();
+    /// onAddServer : ouvre le formulaire d'ajout d'un serveur distant
+    /// (bouton de l'état vide) ; nullptr = pas de bouton
+    UmsView(std::function<void()> onAddServer = nullptr);
     ~UmsView() override;
 
+    brls::View* getDefaultFocus() override;
+
 private:
+    /// placeholder maison de l'état vide (icône + textes + bouton ajouter),
+    /// remplace RecyclingGrid::setEmpty qui ne peut pas héberger de bouton
+    brls::Box* emptyBox = nullptr;
+    brls::View* addButton = nullptr;
     Ums::DeviceEvent::Subscription deviceSubscribeID;
 };

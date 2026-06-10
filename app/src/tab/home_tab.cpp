@@ -24,8 +24,9 @@ void HomeTab::doRequest() {
     // sa position en tête, remplie à la réponse (plex_client.dart:1421-1463)
     RecylingVideo* resume = new RecylingVideo();
     resume->setTitle("main/home/resume"_i18n);
-    resume->setFrameHeight(300);
-    resume->setItemWidth(175);
+    resume->setFrameHeight(brls::getStyle()["app/card/poster/row"]);
+    resume->setItemWidth(brls::getStyle()["app/card/poster/width"]);
+    resume->setSidePadding(brls::getStyle()["main/content_padding_sides"]);
     resume->setVisibility(brls::Visibility::GONE);
     this->boxHome->addView(resume);
 
@@ -75,11 +76,27 @@ void HomeTab::doHubs() {
                 // au cas où le serveur les renvoie malgré excludeContinueWatching
                 if (hub.hubIdentifier == "home.continue" || hub.hubIdentifier == "home.ondeck") continue;
 
+                // les hubs playlists mélangent audio/photo/vidéo : seules les
+                // playlists vidéo sont lisibles dans pleNx
+                std::vector<plex::Item> items;
+                items.reserve(hub.items.size());
+                for (auto& item : hub.items) {
+                    if (item.type == plex::mediaTypePlaylist && item.playlistType != "video") continue;
+                    items.push_back(item);
+                }
+                if (items.empty()) continue;
+
                 RecylingVideo* row = new RecylingVideo();
                 row->setTitle(hub.title);
-                row->setFrameHeight(300);
-                row->setItemWidth(175);
-                row->setItems(hub.items);
+                float frameHeight = brls::getStyle()["app/card/poster/row"];
+                row->setFrameHeight(frameHeight);
+                // playlists : pochettes CARRÉES (poster custom ou composite
+                // 1:1) — largeur = hauteur d'image de la rangée (frame - 55
+                // de labels, métriques video_card.xml)
+                bool playlists = !items.empty() && items.front().type == plex::mediaTypePlaylist;
+                row->setItemWidth(playlists ? frameHeight - 55 : brls::getStyle()["app/card/poster/width"]);
+                row->setSidePadding(brls::getStyle()["main/content_padding_sides"]);
+                row->setItems(items);
                 this->boxHome->addView(row);
             }
         },

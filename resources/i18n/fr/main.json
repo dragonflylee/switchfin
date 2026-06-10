@@ -4,7 +4,8 @@
     "genres": "Genres",
     "suggest": "Suggestions",
     "search": "Recherche",
-    "setting": "Paramètres"
+    "setting": "Paramètres",
+    "downloads": "Téléchargements"
   },
   "home": {
     "resume": "Lecture",
@@ -49,6 +50,8 @@
     "mark_played": "Marquer comme lu",
     "mark_unplayed": "Marquer comme non lu",
     "play": "Lire",
+    "replay": "Relancer",
+    "see_all": "Voir tout",
     "intro": "Aperçu",
     "people": "Personnes",
     "special": "Bonus",
@@ -61,7 +64,15 @@
     "random": "Aléatoire",
     "played": "Lu",
     "unplayed": "Non lu",
-    "collections": "Collections"
+    "collections": "Collections",
+    "season": "saison",
+    "seasons": "saisons",
+    "episode": "épisode",
+    "episodes": "épisodes",
+    "seasons_title": "Saisons",
+    "go_series": "Aller à la série",
+    "go_season": "Aller à la saison",
+    "director": "Réalisation"
   },
   "search": {
     "hint": "Prise en charge des mots-clés et des premières lettres des mots-clés",
@@ -75,12 +86,64 @@
       "movie": "Film",
       "series": "Séries",
       "episode": "Épisode"
-    }
+    },
+    "no_history": "Aucune recherche récente",
+    "no_results": "Aucun résultat",
+    "placeholder": "Rechercher films et séries",
+    "results": "Résultats",
+    "keyboard": "Clavier",
+    "space": "Espace",
+    "no_results_sub": "Essaie un autre titre, un acteur ou un genre.",
+    "no_history_sub": "Tes recherches récentes apparaîtront ici."
+  },
+  "person": {
+    "movies": "Films",
+    "shows": "Séries",
+    "as": "Rôle : {}"
+  },
+  "playlist": {
+    "title": "Listes de lecture",
+    "item": "élément",
+    "items": "éléments"
+  },
+  "watchlist": {
+    "title": "Watchlist",
+    "add": "Ajouter à la Watchlist",
+    "remove": "Retirer de la Watchlist",
+    "added": "Ajouté à la Watchlist",
+    "removed": "Retiré de la Watchlist",
+    "empty_title": "Votre Watchlist est vide",
+    "empty_sub": "Les films et séries que vous enregistrez apparaîtront ici.",
+    "not_in_library": "Ce titre n'est pas dans votre bibliothèque",
+    "all": "Tous",
+    "availability": "Disponibilité",
+    "on_server": "Sur le serveur",
+    "not_on_server": "Pas sur le serveur"
   },
   "remote": {
-    "local": "Stockage local",
+    "empty_title": "Aucun fichier",
+    "empty_sub": "Parcours le stockage local et tes serveurs WebDAV, FTP ou SFTP.",
+    "local": "Fichiers",
     "folder": "Dossier",
-    "up": "Dossier parent"
+    "up": "Dossier parent",
+    "add_server": "Ajouter un serveur",
+    "edit_server": "Modifier le serveur",
+    "manage": "Gérer le serveur",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "delete_confirm": "Supprimer « {} » ?",
+    "type": "Type",
+    "name": "Nom",
+    "host": "Hôte",
+    "port": "Port",
+    "username": "Utilisateur",
+    "password": "Mot de passe",
+    "path": "Chemin de départ",
+    "optional": "Facultatif",
+    "save": "Tester et enregistrer",
+    "test_failed": "Connexion impossible : {}",
+    "retry": "Réessayer ?",
+    "required": "Renseigne au moins le nom et l'hôte."
   },
   "setting": {
     "quit_hint": "L'application va bientôt se fermer, les paramètres prendront effet lors du prochain démarrage",
@@ -219,25 +282,33 @@
     }
   },
   "hints": {
-    "hint1": "Veuillez sélectionner n'importe quel jeu sur le bureau et maintenir la touche  enfoncée",
-    "hint2": "Cliquez sur  pour ouvrir, maintenez la touche  enfoncée pendant que l'application est ouverte, jusqu'à ce que vous accédiez au hbmenu.",
-    "hint3": "Sélectionnez Switchlex dans le menu hbmenu",
-    "hint4": "Optionnel : Installez le fichier NSP de Switchlex pour ouvrir directement Switchlex via l'icône du bureau.",
-    "hint_nsp": "Cliquez sur  pour installer l'icône du bureau",
-    "hint_confirm": "L'installation de l'icône du bureau peut entraîner un bannissement de la console. Veuillez confirmer à nouveau",
-    "hint_right": "Les images de la console portable proviennent d'Internet, et les droits d'auteur appartiennent à Nintendo Co., Ltd"
+    "title": "Lancer pleNx en application complète",
+    "text_applet": "pleNx tourne en mode applet : la mémoire disponible ne suffit pas pour la lecture vidéo. Lancez-le en application complète via l'une des options ci-dessous.",
+    "text_app": "pleNx tourne en application complète. Installez la tuile du menu HOME pour le lancer directement ainsi.",
+    "install_title": "Tuile du menu HOME (recommandé)",
+    "install_text": "Installe le forwarder NSP embarqué : la tuile lance pleNx en application complète depuis le menu HOME.",
+    "install_button": "Installer la tuile",
+    "takeover_title": "Alternative : title takeover",
+    "takeover_text": "Maintenez R en lançant n'importe quel jeu installé pour ouvrir le menu homebrew en application complète, puis lancez-y pleNx.",
+    "prompt": "Installer la tuile pleNx sur le menu HOME ?\nLa tuile lance l'application en session complète (indispensable pour la lecture vidéo).",
+    "hint_confirm": "L'installation de l'icône du bureau peut entraîner un bannissement de la console. Veuillez confirmer à nouveau"
   },
   "plex": {
-    "link": "Se connecter avec plex.tv",
-    "link_steps": "1. Sur votre téléphone ou ordinateur, ouvrez https://plex.tv/link\n2. Connectez-vous à votre compte Plex\n3. Saisissez le code ci-dessous :",
+    "title": "Connectez-vous à votre compte Plex",
+    "generating": "Génération du code…",
+    "waiting": "En attente de validation…",
+    "connected": "Connecté !",
     "expired": "Le code a expiré, veuillez réessayer",
-    "manual_header": "Connexion manuelle",
-    "token": "Token",
+    "step1": "1. Sur votre téléphone ou ordinateur, ouvrez plex.tv/link",
+    "step2": "2. Connectez-vous à votre compte Plex",
+    "step3": "3. Saisissez le code affiché ci-dessus",
+    "regenerate": "Générer un nouveau code",
     "choose_server": "Choisir un serveur",
     "choose_profile": "Choisir un profil",
     "profile_pin": "Code PIN du profil",
     "wrong_pin": "Code PIN incorrect",
     "no_server": "Aucun serveur trouvé sur ce compte",
+    "connecting": "Connexion au serveur…",
     "unreachable": "Serveur injoignable"
   },
   "download": {
@@ -251,6 +322,20 @@
     "no_downloads": "Aucun téléchargement",
     "confirm_remove": "Supprimer ce téléchargement ?",
     "play_offline": "Lire hors ligne",
-    "confirm_cancel": "Annuler ce téléchargement ?"
+    "confirm_cancel": "Annuler ce téléchargement ?",
+    "season": "Télécharger la saison",
+    "confirm_season": "Télécharger {} épisodes ?",
+    "season_queued": "Saison ajoutée aux téléchargements",
+    "storage": "Stockage",
+    "storage_free": "{} libres sur {}",
+    "section_active": "En cours",
+    "section_done": "Téléchargés",
+    "remove_all": "Tout supprimer",
+    "confirm_remove_all": "Supprimer tous les téléchargements ?",
+    "empty_sub": "Les films et épisodes téléchargés se retrouvent ici, pour les regarder hors ligne."
+  },
+  "empty": {
+    "title": "Rien à afficher",
+    "error": "Impossible de charger"
   }
 }

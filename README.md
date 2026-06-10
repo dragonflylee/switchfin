@@ -1,61 +1,117 @@
-# Switchlex
+<div align="center">
 
-<img src="scripts/switchlex.svg" alt="icon" height="128" width="128" align="left">
+<img src="logo.png" alt="pleNx" width="320">
 
-Switchlex is a third-party **Plex** client that provides a native user interface to browse and play movies and series, primarily targeting the Nintendo Switch (also builds for Windows/macOS/Linux/PS4/PSVita/Android).
-<br>
+**🎮📺 - A third-party native, controller-first Plex client for Nintendo Switch.**
 
-[![build](https://github.com/thcolin/switchlex/actions/workflows/build.yaml/badge.svg)](https://github.com/thcolin/switchlex/actions/workflows/build.yaml)
-[![download](https://img.shields.io/github/downloads/thcolin/switchlex/total?label=Downloads)](https://github.com/thcolin/switchlex/releases/latest)
-[![nightly](https://img.shields.io/badge/nightly-build-green)](https://nightly.link/thcolin/switchlex/workflows/build.yaml/dev)
+Browse and play your movies and shows from your Plex Media Server, with a fully
+native interface designed for the gamepad. Also (should) runs on Windows,
+macOS, Linux, PS4 and PS Vita.
 
-> Switchlex is a fork of [Switchfin](https://github.com/dragonflylee/switchfin) (a Jellyfin client)
-> migrated to the Plex API. The migration plan and full Jellyfin↔Plex correspondence tables live in
-> [PLEX_MIGRATION.md](PLEX_MIGRATION.md). **The Plex port (phases 0-5) has not yet been validated
-> against a real server.**
+[![build](https://github.com/thcolin/plenx/actions/workflows/build.yaml/badge.svg)](https://github.com/thcolin/plenx/actions/workflows/build.yaml)
+[![download](https://img.shields.io/github/downloads/thcolin/plenx/total?label=downloads)](https://github.com/thcolin/plenx/releases/latest)
+[![nightly](https://img.shields.io/badge/nightly-build-green)](https://nightly.link/thcolin/plenx/workflows/build.yaml/dev)
+[![sponsor](https://img.shields.io/badge/sponsor-%E2%9D%A4-db61a2)](https://github.com/sponsors/thcolin)
 
-**This project is in its early stages so expect bugs.**
+</div>
+
+> [!NOTE]
+> pleNx is a fork of [Switchfin](https://github.com/dragonflylee/switchfin) (Nitendo Switch Jellyfin
+> client) fully migrated to the **Plex API**, with a redesigned interface.
+> It is a third-party project, not affiliated with or endorsed by Plex.
+
+---
+
+## Screenshots
+
+<div align="center">
+
+| Home | Movie | Library |
+|:---:|:---:|:---:|
+| ![Home](images/home.png) | ![Movie detail](images/movie_0.png) | ![Movies library](images/movies.png) |
+| **Season** | **Search** | **Downloads** |
+| ![Season](images/season.png) | ![Search](images/search.png) | ![Downloads](images/downloads.png) |
+
+</div>
 
 ## Features
 
-- Completely native interface
-- Supported media items: movies, series, seasons, episodes
-  - Direct play and transcoding
-- Download for offline playback
-- Remote browser for Webdav/Apache/Nginx/FTP server
-- Based on MPV Player
-  - Container formats: mkv, mov, mp4, avi
-  - Video codecs: H.264, H.265, VP8, VP9, AV1
-  - Audio codecs: Opus, FLAC, MP3, AAC, AC-3, E-AC-3, TrueHD, DTS, DTS-HD
-  - Subtitle codecs: SRT, VTT, SSA/ASS, DVDSUB
-  - Optionally force software decoding when hardware decoding has issues.
-- External drive support using [libusbhsfs](https://github.com/DarkMatterCore/libusbhsfs)
+- **Sign in with Plex** — type a 4-character code on [plex.tv/link](https://plex.tv/link),
+  then pick your server and your Plex Home profile (PIN-protected profiles supported).
+- **Home mirrors your server** — Continue Watching followed by every hub configured on
+  your Plex, in the order your server returns them.
+- **Libraries in the sidebar** — one entry per library, each with Home, Suggestions,
+  Collections and Genres views, and server-side sorting.
+- **Rich detail pages** — full-bleed backdrop with the title logo, cast with full
+  **person pages** (filmography), and related rows pulled from your server.
+- **Season pages** — artwork, episode count and synopsis, with one-tap
+  **full-season download**.
+- **Quick actions on any poster** — press <kbd>X</kbd> (or long-press): go to show,
+  go to season, mark watched, download.
+- **Plex Watchlist** — browse your account watchlist in the sidebar, add or remove
+  any movie or show from its detail page or the quick actions menu.
+- **Playback with MPV** — direct play and universal transcode (HLS), resume, chapters,
+  external and embedded subtitles, audio track selection.
+- **Offline downloads** for playback without a connection (original quality).
+- **Remote file browser** for WebDAV / Apache / Nginx / FTP / SFTP servers.
+- **External drive support on Switch** via [libusbhsfs](https://github.com/DarkMatterCore/libusbhsfs).
+- **Available in 14 languages.**
 
-## Input mapping during playback
+> [!TIP]
+> MPV decodes H.264, H.265, VP8, VP9 and AV1 video; Opus, FLAC, MP3, AAC, AC-3, E-AC-3,
+> TrueHD and DTS audio; and SRT, VTT, SSA/ASS and DVDSUB subtitles.
 
-gamepad | keyboard | describe
----|-------|---------
- A | space | Play/Pause
- B | esc | Stop during
- Y | o | Toggle OSD
- X | f4 | Show Menu
- R/L | [/] | Seek +/-
- \+ | f1 | Show video profile
- R | f2 | Stick Button Toggle Video Quality
- L | f3 | Stick Button Toggle Speed Select
+## Install on Nintendo Switch
 
-## System Requirements
+1. Copy `pleNx.nro` to `sdmc:/switch/` and launch it from the homebrew menu.
+2. On first launch in **applet mode**, pleNx offers to install a HOME menu tile: press
+   the button, confirm, and the app relaunches as a regular title with full memory
+   (required for video playback). Alternatively, hold <kbd>R</kbd> while launching any
+   game (title takeover).
+3. Sign in with your Plex account at [plex.tv/link](https://plex.tv/link) and enjoy.
 
-* Windows 7 or later with DirectX 11.1 support
-* Intel or Apple Silicon Mac models 10.15 or later
-* Linux flatpak x86_64/arm64v8 with OpenGL3 support
+> [!IMPORTANT]
+> Video playback needs full-memory mode. Applet mode is fine for browsing, but install
+> the HOME tile (or use title takeover) before starting a movie.
+
+Desktop builds for Windows, macOS and Linux are attached to every
+[release](https://github.com/thcolin/plenx/releases/latest), with nightly artifacts on
+[nightly.link](https://nightly.link/thcolin/plenx/workflows/build.yaml/dev).
+
+## Controls during playback
+
+| Gamepad | Keyboard | Action |
+|:---:|:---:|---|
+| A | `space` | Play / Pause |
+| B | `esc` | Stop |
+| Y | `o` | Toggle OSD |
+| X | `f4` | Menu |
+| R / L | `]` / `[` | Seek forward / back |
+| + | `f1` | Video profile |
+| R stick | `f2` | Video quality |
+| L stick | `f3` | Playback speed |
+
+## System requirements
+
+- **Nintendo Switch** with Atmosphère CFW (full-memory mode for playback)
+- **Windows** 7 or later with DirectX 11.1 support
+- **macOS** 10.15 or later (Intel or Apple Silicon)
+- **Linux** Flatpak (x86_64 / arm64v8) with OpenGL 3 support
 
 ## FAQ
 
-1. Q: Subtitles didn't display?
-   A: Put any ttf file at `/switch/Switchlex/subfont.ttf`
-2. Q: How to enable external drive on switch?
-   A: Edit config file `config.json`
+**Subtitles don't show up?**
+Drop any TrueType font at `sdmc:/switch/pleNx/subfont.ttf`.
+
+**macOS won't open the app?**
+Clear the quarantine attribute:
+
+```shell
+sudo xattr -rd com.apple.quarantine /Applications/pleNx.app
+```
+
+**How do I enable an external drive on Switch?**
+Set `ums` in `config.json`:
 
 ```json
 {
@@ -65,88 +121,73 @@ gamepad | keyboard | describe
 }
 ```
 
-3. Q: How to play media files on webdav server?
-   A: Edit config file `config.json`
+## Building from source
 
-```json
-{
-  "remotes": [
-    {
-      "name": "local",
-      "url": "file:///switch"
-    },
-    {
-      "name": "xiaoya",
-      "passwd": "guest_Api789",
-      "url": "webdav://192.168.1.5:5678/dav",
-      "user": "guest"
-    },
-    {
-      "name": "rpi",
-      "url": "sftp://pi:raspberry@192.168.1.5/media"
-    },
-    {
-      "name": "rclone",
-      "url": "http://192.168.1.5:8000"
-    }
-  ]
-}
-```
-
-* example for using [rClone](https://rclone.org/downloads/) setup HTTP server
-
-```bash
-rclone serve http --addr :8000 --read-only /media/downloads
-```
-
-4. Q: Can't open app under macOS ?
-   A: Please run this command in your terminal: `sudo xattr -rd com.apple.quarantine /Applications/Switchlex.app`
-
-## Roadmap (Plex migration)
-
-See [PLEX_MIGRATION.md](PLEX_MIGRATION.md) for details.
-
-- [x] Phase 0 — strip Jellyfin-only features (danmaku, admin dashboard, Live TV, music, favorites, remote control), rebrand
-- [x] Phase 1 — Plex API foundation (X-Plex headers, PIN auth, plex.tv resources, models)
-- [x] Phase 2 — server/profile connection UI
-- [x] Phase 3 — browsing (hubs, libraries, detail pages, search)
-- [x] Phase 4 — playback (direct play, universal transcode HLS, timeline/scrobble)
-- [x] Phase 5 — collections, downloads (offline playback), photos
-- [ ] Validation against a real Plex Media Server + Switch (devkitPro) build
-- [ ] Phase 6 — extras (intro markers, BIF trickplay, watchlist, sessions)
-
-## Develop
+pleNx is C++17, built on [borealis](https://github.com/natinusala/borealis) for the UI
+and [mpv](https://github.com/mpv-player/mpv) for playback.
 
 ```shell
-git clone https://github.com/thcolin/switchlex.git --recurse-submodules --shallow-submodules
+git clone https://github.com/thcolin/plenx.git --recurse-submodules --shallow-submodules
 ```
 
-### Building for Switch
+### Nintendo Switch
 
-To build for Switch, a standard development environment must first be set up. In order to do so, [refer to the Getting Started guide](https://devkitpro.org/wiki/Getting_Started).
+All-in-one Docker script (mirrors the CI):
 
-```bash
+```shell
+./scripts/build-switch.sh                  # deko3d driver (recommended)
+DRIVER=opengl ./scripts/build-switch.sh    # OpenGL fallback
+```
+
+Or with a local [devkitPro](https://devkitpro.org/wiki/Getting_Started) toolchain:
+
+```shell
 sudo dkp-pacman -S switch-dev switch-glfw switch-libwebp switch-curl switch-libmpv
 cmake -B build_switch -DPLATFORM_SWITCH=ON
-make -C build_switch Switchlex.nro -j$(nproc)
-# for debug
-nxlink -a <YOUR IP> -p Switchlex/Switchlex.nro -s Switchlex.nro --args -d -v
+make -C build_switch pleNx.nro -j$(nproc)
+
+# debug over the network
+nxlink -a <SWITCH_IP> -p pleNx/pleNx.nro -s pleNx.nro --args -d -v
 ```
 
-### Building for MinGW64
+### Desktop (macOS / Linux)
 
-```bash
+```shell
+cmake -B build_desktop -G Ninja -DPLATFORM_DESKTOP=ON
+cmake --build build_desktop
+```
+
+### Windows (MinGW64)
+
+```shell
 pacman -S ${MINGW_PACKAGE_PREFIX}-cc ${MINGW_PACKAGE_PREFIX}-ninja ${MINGW_PACKAGE_PREFIX}-cmake
 cmake -B build_mingw -G Ninja -DPLATFORM_DESKTOP=ON
 cmake --build build_mingw
 ```
 
-## Thanks to
+> [!TIP]
+> The desktop UI test harness in `scripts/ui-audit/` drives the app with keyboard events
+> and captures window screenshots; replayable scenarios live alongside it. On macOS, grant
+> your terminal Accessibility and Screen Recording permissions first.
 
-- **@dragonflylee for [Switchfin](https://github.com/dragonflylee/switchfin), the Jellyfin client this project is forked from**
-- **@xfangfang for [wiliwili](https://github.com/xfangfang/wiliwili)**
-- @devkitpro and switchbrew for [libnx](https://github.com/switchbrew/libnx)
-- @natinusala and XITRIX for [borealis](https://github.com/natinusala/borealis)
-- @proconsule for [nxmp](https://github.com/proconsule/nxmp)
-- @averne for great work of [FFmpeg](https://github.com/averne/FFmpeg) hwaccel backend
-- @averne deko3d backend of [mpv](https://github.com/averne/mpv)
+Migration notes from Jellyfin to Plex are documented in
+[PLEX_MIGRATION.md](PLEX_MIGRATION.md), and the visual redesign in
+[UI_REDESIGN.md](UI_REDESIGN.md).
+
+## Support
+
+If pleNx is useful to you, consider [sponsoring the project](https://github.com/sponsors/thcolin) —
+it directly funds development time and devices to test on.
+
+## Acknowledgements
+
+pleNx stands on the shoulders of the homebrew and open-source community:
+
+- **[@dragonflylee](https://github.com/dragonflylee)** for [Switchfin](https://github.com/dragonflylee/switchfin), the Jellyfin client pleNx is forked from
+- **[@xfangfang](https://github.com/xfangfang)** for [wiliwili](https://github.com/xfangfang/wiliwili)
+- [@natinusala](https://github.com/natinusala) and XITRIX for [borealis](https://github.com/natinusala/borealis)
+- [@devkitPro](https://github.com/devkitPro) and switchbrew for [libnx](https://github.com/switchbrew/libnx)
+- [@proconsule](https://github.com/proconsule) for [nxmp](https://github.com/proconsule/nxmp)
+- [@averne](https://github.com/averne) for the [FFmpeg](https://github.com/averne/FFmpeg) hwaccel backend and the deko3d backend of mpv
+</content>
+</invoke>

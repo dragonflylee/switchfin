@@ -1,0 +1,13 @@
+# Lecture vidéo + OSD. ATTENTION : lance une vraie lecture (le premier élément
+# de « Continuer à regarder ») et pousse donc un viewOffset (~30 s) au serveur.
+quit
+launch
+key right a
+sleep 6
+shot 15-player
+key a
+shot 16-player-paused-osd
+key a
+key b
+sleep 1.5
+shot 17-home-back

@@ -1,5 +1,7 @@
 #include "view/people_source.hpp"
 #include "view/video_card.hpp"
+#include "view/auto_tab_frame.hpp"
+#include "tab/media_person.hpp"
 #include "utils/image.hpp"
 
 PeopleDataSource::PeopleDataSource(const MediaList& r) : list(std::move(r)) {}
@@ -13,6 +15,8 @@ RecyclingGridItem* PeopleDataSource::cellForRow(RecyclingView* recycler, size_t 
     cell->labelTitle->setText(item.tag);
     cell->labelExt->setText(item.role);
 
+    // cellule recyclée : purger le portrait du précédent occupant
+    cell->picture->clear();
     if (!item.thumb.empty()) {
         // selon l'agent metadata, le thumb d'un Role est une URL absolue
         // (provider.plex.tv) ou un chemin relatif au serveur
@@ -26,9 +30,12 @@ RecyclingGridItem* PeopleDataSource::cellForRow(RecyclingView* recycler, size_t 
 }
 
 void PeopleDataSource::onItemSelected(brls::Box* recycler, size_t index) {
-    // v1 sans fiche personne : pas d'équivalent /library/search par personne
-    // (PLEX_MIGRATION.md §2.5 « à dégrader »)
-    brls::Application::notify(this->list.at(index).tag);
+    auto& role = this->list.at(index);
+    if (role.id.empty()) {
+        brls::Application::notify(role.tag);
+        return;
+    }
+    ui::presentDetail(recycler, new MediaPerson(role));
 }
 
 void PeopleDataSource::clearData() { this->list.clear(); }

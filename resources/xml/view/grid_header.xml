@@ -1,0 +1,17 @@
+<!-- en-tête scrollé d'une grille pleine page (RecyclingGrid::setHeaderView) :
+     titre + ligne méta — partagé par la vue playlist et la page de hub -->
+<brls:Box
+    axis="column"
+    justifyContent="flexStart">
+
+    <brls:Label
+        id="grid/header/title"
+        fontSize="30" />
+
+    <brls:Label
+        id="grid/header/meta"
+        fontSize="15"
+        marginTop="6"
+        textColor="@theme/font/grey" />
+
+</brls:Box>

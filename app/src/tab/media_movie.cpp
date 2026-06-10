@@ -1,12 +1,14 @@
 #include "activity/player_view.hpp"
 #include "tab/media_movie.hpp"
 #include "view/h_recycling.hpp"
+#include "view/icon_button.hpp"
 #include "view/video_card.hpp"
 #include "view/text_box.hpp"
 #include "view/people_source.hpp"
 #include "view/recyling_video.hpp"
 #include "view/mpv_core.hpp"
 #include "api/plex.hpp"
+#include "api/plex/watchlist.hpp"
 #include "utils/misc.hpp"
 #include "utils/dialog.hpp"
 #include "utils/download.hpp"
@@ -19,9 +21,18 @@ MediaMovie::MediaMovie(const plex::Item& item) : itemId(item.ratingKey) {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/movie.xml");
 
-    this->headerTitle->setTitle(item.title);
+    this->labelTitle->setText(item.title);
     Image::load(this->imagePoster, item.thumb, 325);
+    if (brls::Application::getThemeVariant() == brls::ThemeVariant::LIGHT)
+        this->imageFade->setImageFromRes("img/fade-bottom-light.png");
     this->people->registerCell("Cell", MediaCardCell::create);
+    // les boutons et le casting n'ont pas de chevauchement géométrique : la
+    // nav D-pad ne le trouve pas. Route explicite — la rangée matérialise sa
+    // première cellule au besoin (HRecyclerFrame::getDefaultFocus) et le
+    // scroll « centered » suit le focus
+    this->btnPlay->setCustomNavigationRoute(brls::FocusDirection::DOWN, "movie/people");
+    this->btnDownload->setCustomNavigationRoute(brls::FocusDirection::DOWN, "movie/people");
+    this->btnWatchlist->setCustomNavigationRoute(brls::FocusDirection::DOWN, "movie/people");
 
     this->btnPlay->registerClickAction([this, item](...) {
         PlayerView* view = new PlayerView(item, this->viewOffsetMs);
@@ -35,7 +46,10 @@ MediaMovie::MediaMovie(const plex::Item& item) : itemId(item.ratingKey) {
     this->progressSub = dm.getProgressEvent()->subscribe(
         [this](const std::string& id, int64_t downloaded, int64_t total) {
             if (id != this->itemId || total <= 0) return;
-            this->btnDownload->setText(fmt::format("{:.0f} %", downloaded * 100.0 / total));
+            // « Téléchargement… (42%) » — un pourcentage nu ne dit pas ce que
+            // fait le bouton ; la complétion repasse par updateDownloadButton
+            this->btnDownload->setText(fmt::format(
+                "{} ({:.0f}%)", "main/download/downloading"_i18n, downloaded * 100.0 / total));
         });
     this->statusSub = dm.getStatusEvent()->subscribe([this](const std::string& id, DownloadStatus status) {
         if (id == this->itemId) this->updateDownloadButton();
@@ -81,6 +95,57 @@ void MediaMovie::updateDownloadButton() {
     }
 }
 
+void MediaMovie::initWatchlist(const std::string& guid) {
+    this->itemGuid = guid;
+    // ancien agent (guid non plex://…) : titre non adressable sur le provider
+    if (plex::providerRatingKey(guid).empty()) return;
+
+    this->btnWatchlist->registerClickAction([this](...) {
+        this->toggleWatchlist();
+        return true;
+    });
+
+    ASYNC_RETAIN
+    // état : metadata.provider + includeUserState=1 (api/plex/watchlist.hpp) ;
+    // le bouton reste caché tant que l'état n'est pas connu
+    plex::fetchWatchlistState(
+        guid,
+        [ASYNC_TOKEN](bool state) {
+            ASYNC_RELEASE
+            this->watchlisted = state;
+            this->updateWatchlistButton();
+            this->btnWatchlist->setVisibility(brls::Visibility::VISIBLE);
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            brls::Logger::warning("MediaMovie watchlist state: {}", ex);
+        });
+}
+
+void MediaMovie::toggleWatchlist() {
+    bool add = !this->watchlisted;
+    ASYNC_RETAIN
+    // PUT discover.provider/actions/addToWatchlist|removeFromWatchlist
+    plex::setWatchlisted(
+        this->itemGuid, add,
+        [ASYNC_TOKEN, add]() {
+            ASYNC_RELEASE
+            this->watchlisted = add;
+            this->updateWatchlistButton();
+            brls::Application::notify(add ? "main/watchlist/added"_i18n : "main/watchlist/removed"_i18n);
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            brls::Application::notify(ex);
+        });
+}
+
+void MediaMovie::updateWatchlistButton() {
+    // signet plein = déjà dans la Watchlist (convention Plex)
+    this->btnWatchlist->setIcon(
+        this->watchlisted ? "@res/icon/ico-bookmark-fill-light.svg" : "@res/icon/ico-bookmark-light.svg");
+}
+
 void MediaMovie::doRequest() {
     int64_t seconds = MPVCore::instance().playback_time;
     this->viewOffsetMs = seconds * 1000;
@@ -106,18 +171,35 @@ void MediaMovie::doMovie() {
                 return;
             }
             auto& item = r.Items.front();
-            this->headerTitle->setTitle(item.title);
+            this->labelTitle->setText(item.title);
             Image::load(this->imagePoster, item.thumb, 325);
             // bannière : fond (art) + logo détouré centré ; le bloc affiche
-            // chevauche la bannière pour garder les boutons visibles
+            // chevauche la bannière (marges XML) pour garder les boutons
+            // visibles. La bannière reste affichée pendant le chargement
+            // (placeholder sombre) : pas de saut de layout à l'arrivée de
+            // l'image — et le gone→visible déclenchait un bug de premier
+            // rendu (dégradé + image fill).
+            // logo détouré niché dans le bas du fondu de la bannière ; le
+            // titre texte reste TOUJOURS affiché au-dessus des pills
             if (!item.art.empty()) {
                 Image::load(this->imageBackdrop, item.art, 1080, 608);
-                if (!item.clearLogo.empty()) Image::load(this->imageLogo, item.clearLogo, 440, 130);
-                this->bannerBox->setVisibility(brls::Visibility::VISIBLE);
-                this->contentRow->setMarginTop(-70);
-                this->contentInfo->setMarginTop(90);
+                if (!item.clearLogo.empty()) {
+                    Image::load(this->imageLogo, item.clearLogo, 440, 120);
+                }
+            } else {
+                this->bannerBox->setVisibility(brls::Visibility::GONE);
+                this->contentRow->setMarginTop(0);
+                this->contentInfo->setMarginTop(0);
+                this->invalidate();
             }
-            this->labelYear->setText(std::to_string(item.year));
+            if (item.duration > 0) {
+                int min = int(item.duration / 60000);
+                this->labelYear->setText(min >= 60
+                                             ? fmt::format("{}  ·  {} h {:02d}", item.year, min / 60, min % 60)
+                                             : fmt::format("{}  ·  {} min", item.year, min));
+            } else {
+                this->labelYear->setText(std::to_string(item.year));
+            }
             if (item.contentRating.empty()) {
                 this->parentalRating->getParent()->setVisibility(brls::Visibility::GONE);
             } else {
@@ -138,8 +220,13 @@ void MediaMovie::doMovie() {
                 this->labelGenres->setText(fmt::format("{}", fmt::join(item.genres, ", ")));
                 this->labelGenres->setVisibility(brls::Visibility::VISIBLE);
             }
-            if (item.roles.size() > 0) {
-                this->people->setDataSource(new PeopleDataSource(item.roles));
+            // le réalisateur ouvre la rangée, sous-titré « Réalisation »,
+            // cliquable vers sa fiche personne comme les acteurs
+            std::vector<plex::Role> credits = item.directors;
+            for (auto& d : credits) d.role = "main/media/director"_i18n;
+            credits.insert(credits.end(), item.roles.begin(), item.roles.end());
+            if (credits.size() > 0) {
+                this->people->setDataSource(new PeopleDataSource(credits));
             } else {
                 this->people->setVisibility(brls::Visibility::GONE);
             }
@@ -162,6 +249,8 @@ void MediaMovie::doMovie() {
             this->viewOffsetMs = item.viewOffset;
             this->btnPlay->setText(
                 this->viewOffsetMs > 0 ? misc::sec2Time(this->viewOffsetMs / 1000) : "main/media/play"_i18n);
+
+            this->initWatchlist(item.guid);
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
@@ -185,9 +274,15 @@ void MediaMovie::doRelated() {
                 if (hub.items.empty()) continue;
                 RecylingVideo* row = new RecylingVideo();
                 row->setTitle(hub.title);
-                row->setFrameHeight(300);
-                row->setItemWidth(175);
-                row->setItems(hub.items);
+                row->setFrameHeight(brls::getStyle()["app/card/poster/row"]);
+                row->setItemWidth(brls::getStyle()["app/card/poster/width"]);
+                row->setSidePadding(brls::getStyle()["main/content_padding_sides"]);
+                // hub tronqué (more=1) : carte « + » vers la page complète
+                if (hub.more && !hub.key.empty()) {
+                    row->setItems(hub.items, hub.title, hub.key);
+                } else {
+                    row->setItems(hub.items);
+                }
                 this->boxRelated->addView(row);
             }
         },

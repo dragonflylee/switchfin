@@ -4,7 +4,8 @@
     "genres": "Жанры",
     "suggest": "Рекомендации",
     "search": "Поиск",
-    "setting": "Настройки"
+    "setting": "Настройки",
+    "downloads": "Загрузки"
   },
   "home": {
     "resume": "Продолжить просмотр",
@@ -49,6 +50,8 @@
     "mark_played": "Пометить как просмотренное",
     "mark_unplayed": "Пометить как непросмотренное",
     "play": "Воспроизвести",
+    "replay": "Воспроизвести снова",
+    "see_all": "Показать все",
     "intro": "Обзор",
     "people": "Люди",
     "special": "Спецсредства",
@@ -61,7 +64,15 @@
     "random": "Рандом",
     "played": "Просмотрено",
     "unplayed": "Не просмотрено",
-    "collections": "Collections"
+    "collections": "Collections",
+    "season": "season",
+    "seasons": "seasons",
+    "episode": "серия",
+    "episodes": "серии",
+    "seasons_title": "Сезоны",
+    "go_series": "К сериалу",
+    "go_season": "К сезону",
+    "director": "Режиссёр"
   },
   "search": {
     "hint": "Название/первые буквы",
@@ -75,12 +86,64 @@
       "movie": "Фильм",
       "series": "Сериал",
       "episode": "Эпизод"
-    }
+    },
+    "no_history": "No recent searches",
+    "no_results": "No results",
+    "placeholder": "Поиск фильмов и сериалов",
+    "results": "Результаты",
+    "keyboard": "Клавиатура",
+    "space": "Пробел",
+    "no_results_sub": "Попробуйте другое название, актёра или жанр.",
+    "no_history_sub": "Здесь появятся недавние запросы."
+  },
+  "person": {
+    "movies": "Фильмы",
+    "shows": "Сериалы",
+    "as": "Роль: {}"
+  },
+  "playlist": {
+    "title": "Плейлисты",
+    "item": "элемент",
+    "items": "элементы"
+  },
+  "watchlist": {
+    "title": "Список просмотра",
+    "add": "Добавить в список просмотра",
+    "remove": "Убрать из списка просмотра",
+    "added": "Добавлено в список просмотра",
+    "removed": "Убрано из списка просмотра",
+    "empty_title": "Ваш список просмотра пуст",
+    "empty_sub": "Сохранённые фильмы и сериалы появятся здесь.",
+    "not_in_library": "Этого фильма или сериала нет в вашей библиотеке",
+    "all": "Все",
+    "availability": "Доступность",
+    "on_server": "На сервере",
+    "not_on_server": "Не на сервере"
   },
   "remote": {
-    "local": "Локальное хранилище",
+    "empty_title": "Нет файлов",
+    "empty_sub": "Просматривайте локальное хранилище и свои серверы WebDAV, FTP или SFTP.",
+    "local": "Файлы",
     "folder": "Папка",
-    "up": "Назад"
+    "up": "Назад",
+    "add_server": "Добавить сервер",
+    "edit_server": "Изменить сервер",
+    "manage": "Управление сервером",
+    "edit": "Изменить",
+    "delete": "Удалить",
+    "delete_confirm": "Удалить «{}»?",
+    "type": "Тип",
+    "name": "Имя",
+    "host": "Хост",
+    "port": "Порт",
+    "username": "Имя пользователя",
+    "password": "Пароль",
+    "path": "Начальный путь",
+    "optional": "Необязательно",
+    "save": "Проверить и сохранить",
+    "test_failed": "Не удалось подключиться: {}",
+    "retry": "Повторить?",
+    "required": "Укажите хотя бы имя и хост."
   },
   "setting": {
     "quit_hint": "Приложение закроется. Изменения вступят в силу при следующем запуске",
@@ -219,25 +282,49 @@
     }
   },
   "hints": {
-    "hint1": "В главном меню выберите любую игру",
-    "hint2": "Удерживая  запустите игру (  ) чтобы войти в hbmenu",
-    "hint3": "В hbmenu, запустите Switchlex",
-    "hint4": "Опционально: вынесите Switchlex в главное меню",
-    "hint_nsp": "Нажмите , чтобы установить NSP forwarder",
-    "hint_confirm": "Установка NSP forwarder может привести к бану\nПодтверждаете установку?",
-    "hint_right": "Изображения игровой консоли взяты из Интернета, авторские права принадлежат Nintendo Co., Ltd"
+    "title": "Launch pleNx as a full application",
+    "text_applet": "pleNx is running in applet mode: the available memory is not sufficient for video playback. Launch it as a full application using one of the options below.",
+    "text_app": "pleNx is running as a full application. Install the HOME menu tile to launch it this way directly.",
+    "install_title": "HOME menu tile (recommended)",
+    "install_text": "Installs the embedded NSP forwarder: the tile launches pleNx as a full application straight from the HOME menu.",
+    "install_button": "Install the tile",
+    "takeover_title": "Alternative: title takeover",
+    "takeover_text": "Hold R while launching any installed game to open the homebrew menu as a full application, then launch pleNx from there.",
+    "prompt": "Install the pleNx tile on the HOME menu?\nThe tile launches the app as a full application (required for video playback).",
+    "hint_confirm": "Установка NSP forwarder может привести к бану\nПодтверждаете установку?"
   },
   "plex": {
-    "link": "Sign in with plex.tv",
-    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "title": "Sign in to your Plex account",
+    "generating": "Generating code…",
+    "waiting": "Waiting for confirmation…",
+    "connected": "Connected!",
     "expired": "The code expired, please try again",
-    "manual_header": "Manual connection",
-    "token": "Token",
+    "step1": "1. On your phone or computer, open plex.tv/link",
+    "step2": "2. Sign in to your Plex account",
+    "step3": "3. Enter the code shown above",
+    "regenerate": "Generate a new code",
     "choose_server": "Choose a server",
     "choose_profile": "Choose a profile",
     "profile_pin": "Profile PIN",
     "wrong_pin": "Wrong PIN",
     "no_server": "No server found on this account",
+    "connecting": "Подключение к серверу…",
     "unreachable": "Server unreachable"
+  },
+  "download": {
+    "season": "Скачать сезон",
+    "confirm_season": "Скачать {} серий?",
+    "season_queued": "Сезон добавлен в загрузки",
+    "storage": "Хранилище",
+    "storage_free": "Свободно {} из {}",
+    "section_active": "В процессе",
+    "section_done": "Загружено",
+    "remove_all": "Удалить всё",
+    "confirm_remove_all": "Удалить все загрузки?",
+    "empty_sub": "Скачанные фильмы и серии появятся здесь — для просмотра офлайн."
+  },
+  "empty": {
+    "title": "Нечего показать",
+    "error": "Не удалось загрузить"
   }
 }

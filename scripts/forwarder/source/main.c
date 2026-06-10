@@ -4,8 +4,8 @@
 #include <unistd.h>
 
 #define HBMENU_NRO "sdmc:/hbmenu.nro"
-#define DEFAULT_NRO "sdmc:/switch/Switchlex.nro"
-#define APP_STORE_NRO "sdmc:/switch/Switchlex/Switchlex.nro"
+#define DEFAULT_NRO "sdmc:/switch/pleNx.nro"
+#define APP_STORE_NRO "sdmc:/switch/pleNx/pleNx.nro"
 
 const char g_noticeText[] =
     "nx-hbloader " VERSION

@@ -5,54 +5,77 @@
     justifyContent="center">
 
     <brls:Box
-        width="60%"
-        height="auto"
+        width="640"
         axis="column"
-        alignItems="stretch"
-        paddingTop="50px"
-        paddingBottom="50px"
-        paddingLeft="75px"
-        paddingRight="75px">
+        alignItems="center">
 
-        <brls:Header
-            width="auto"
-            height="auto"
-            title="@i18n/main/setting/server/connect_to"
-            marginBottom="0px" />
+        <brls:Image
+            width="84"
+            height="84"
+            cornerRadius="20"
+            marginBottom="16"
+            scalingType="fit"
+            image="@res/icon/icon.png" />
+
+        <brls:Label
+            fontSize="16"
+            marginBottom="30"
+            textColor="@theme/font/grey"
+            text="@i18n/main/plex/title" />
+
         <brls:Box
-            width="100%"
-            height="auto"
             axis="column"
-            marginBottom="30px">
+            alignItems="center"
+            cornerRadius="14"
+            paddingTop="24"
+            paddingBottom="20"
+            paddingLeft="56"
+            paddingRight="56"
+            marginBottom="26"
+            backgroundColor="@theme/color/surface">
 
-            <brls:DetailCell
-                title="@i18n/main/plex/link"
-                id="plex/link" />
+            <brls:Label
+                id="plex/label/code"
+                fontSize="56"
+                marginBottom="10"
+                text="· · · ·" />
 
+            <brls:Label
+                id="plex/label/status"
+                fontSize="15"
+                textColor="@theme/font/grey"
+                text="@i18n/main/plex/generating" />
         </brls:Box>
 
-        <brls:Header
-            width="auto"
-            height="auto"
-            title="@i18n/main/plex/manual_header"
-            marginBottom="0px" />
         <brls:Box
-            width="100%"
-            height="auto"
             axis="column"
-            marginBottom="30px">
+            alignItems="flexStart"
+            marginBottom="26">
 
-            <brls:InputCell
-                id="server/url" />
+            <brls:Label
+                fontSize="15"
+                marginBottom="6"
+                textColor="@theme/font/grey"
+                text="@i18n/main/plex/step1" />
 
-            <brls:InputCell
-                id="server/token" />
+            <brls:Label
+                fontSize="15"
+                marginBottom="6"
+                textColor="@theme/font/grey"
+                text="@i18n/main/plex/step2" />
 
-            <brls:DetailCell
-                title="@i18n/main/setting/server/connect"
-                id="server/connect" />
-
+            <brls:Label
+                fontSize="15"
+                textColor="@theme/font/grey"
+                text="@i18n/main/plex/step3" />
         </brls:Box>
+
+        <brls:Button
+            id="plex/retry"
+            style="bordered"
+            paddingLeft="30"
+            paddingRight="30"
+            text="@i18n/main/plex/regenerate" />
 
     </brls:Box>
 </brls:Box>

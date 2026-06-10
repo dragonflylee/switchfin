@@ -17,7 +17,7 @@ public:
     static void checkUpdate(int delay = 2000, bool showUpToDateDialog = false);
 
     inline static std::shared_ptr<std::atomic_bool> updating = std::make_shared<std::atomic_bool>(true);
-    inline static std::string git_repo = "thcolin/switchlex";
+    inline static std::string git_repo = "thcolin/plenx";
 };
 
 /// Un profil plex.tv (compte ou utilisateur Plex Home).
@@ -109,6 +109,10 @@ public:
         /// pas chez Plex, cf. PLEX_MIGRATION.md §2.5)
         LIBRARY_SORT,
 
+        /// Proposition d'installation de la tuile HOME (forwarder NSP) déjà
+        /// affichée au premier lancement en mode application (Switch).
+        HINT_FORWARDER,
+
         KEY_REFRESH,        // 刷新快捷键
         KEY_LAST,           // 上一个Tab快捷键
         KEY_NEXT,           // 下一个Tab快捷键
@@ -171,12 +175,17 @@ public:
     const std::string& getDeviceId() { return this->device; }
     const std::string& getUserId() const { return this->user_id; }
     const std::string& getUserName() const { return this->user->name; }
+    /// Profil actif (nom, avatar…) — valide après init()/checkLogin().
+    const AppUser& getUser() const { return *this->user; }
     /// Token d'accès au SERVEUR actif (X-Plex-Token des requêtes PMS).
     const std::string& getToken() const { return this->server_token; }
     /// Token plex.tv du profil actif (resources, home users).
     const std::string& getAccountToken() const { return this->user->access_token; }
     const std::string& getUrl() const { return this->server_url; }
     const std::vector<AppRemote>& getRemotes() const { return this->remotes; }
+    void addRemote(const AppRemote& r);
+    void updateRemote(size_t index, const AppRemote& r);
+    void removeRemote(size_t index);
     const std::vector<AppServer>& getServers() const { return this->servers; }
     const std::vector<AppUser> getUsers(const std::string& id) const;
 

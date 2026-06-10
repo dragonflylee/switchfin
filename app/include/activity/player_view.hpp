@@ -1,5 +1,5 @@
 /*
-    Switchlex — lecteur vidéo Plex.
+    pleNx — lecteur vidéo Plex.
     Pipeline : PLEX_MIGRATION.md §2.7 (direct play, transcodeur universel, timeline, scrobble).
 */
 

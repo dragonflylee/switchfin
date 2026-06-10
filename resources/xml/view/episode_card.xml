@@ -1,18 +1,40 @@
 <brls:Box
-    highlightCornerRadius="8"
+    highlightCornerRadius="12"
     padding="5">
 
     <brls:Box
         axis="row"
         width="300"
         alignItems="center">
-        <brls:Box>
+        <!-- même contrat que video_card.xml : BaseCardCell::getDefaultFocus()
+             renvoie ce box pour limiter le halo de focus à la vignette -->
+        <brls:Box
+            id="video/card/pic_box"
+            focusable="true"
+            highlightCornerRadius="12"
+            cornerRadius="8"
+            backgroundColor="@theme/color/grey_1">
+
+            <!-- icône placeholder derrière la vignette (cf. video_card.xml) -->
+            <brls:Box
+                positionType="absolute"
+                positionTop="0"
+                positionLeft="0"
+                width="100%"
+                height="100%"
+                alignItems="center"
+                justifyContent="center">
+                <SVGImage
+                    width="36"
+                    height="36"
+                    svg="@res/icon/ico-media.svg" />
+            </brls:Box>
+
             <brls:Image
                 id="video/card/picture"
-                backgroundColor="@theme/color/grey_1"
                 scalingType="fill"
                 height="180"
-                image="@res/img/video-card-bg.png" />
+                cornerRadius="8" />
 
             <SVGImage
                 id="video/card/badge/top"

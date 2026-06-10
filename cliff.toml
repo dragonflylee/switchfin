@@ -1,0 +1,56 @@
+# git-cliff configuration — https://git-cliff.org/docs/configuration
+#
+# Used to maintain CHANGELOG.md from conventional commits. Typical release flow:
+#   git cliff --unreleased --tag vX.Y.Z --prepend CHANGELOG.md
+# then review/curate the new section, bump versions, commit, and push the tag.
+# The release workflow (.github/workflows/build.yaml, job upload-release)
+# extracts the section matching the tag from CHANGELOG.md as release notes.
+
+[changelog]
+header = """
+# Changelog
+
+All notable changes to pleNx are documented in this file.
+
+"""
+body = """
+{% if version %}\
+## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}\
+## [Unreleased]
+{% endif %}\
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim | upper_first }}
+{% for commit in commits %}
+- {% if commit.scope %}**{{ commit.scope }}:** {% endif %}\
+{% if commit.breaking %}[**breaking**] {% endif %}\
+{{ commit.message | upper_first }}\
+{% endfor %}
+{% endfor %}
+"""
+footer = ""
+trim = true
+
+[git]
+conventional_commits = true
+filter_unconventional = false
+split_commits = false
+commit_parsers = [
+  { message = "^feat", group = "<!-- 0 -->Features" },
+  { message = "^fix", group = "<!-- 1 -->Bug Fixes" },
+  { message = "^perf", group = "<!-- 2 -->Performance" },
+  { message = "^refactor", group = "<!-- 3 -->Refactoring" },
+  { message = "^build", group = "<!-- 4 -->Build" },
+  { message = "^ci", group = "<!-- 5 -->CI" },
+  { message = "^docs", group = "<!-- 6 -->Documentation" },
+  { message = "^style", group = "<!-- 7 -->Styling" },
+  { message = "^test", group = "<!-- 8 -->Testing" },
+  { message = "^chore\\(release\\)", skip = true },
+  { message = "^chore", group = "<!-- 9 -->Miscellaneous" },
+  { message = ".*", group = "<!-- 10 -->Other" },
+]
+filter_commits = false
+tag_pattern = "v[0-9].*"
+topo_order = false
+sort_commits = "oldest"
+protect_breaking_commits = true

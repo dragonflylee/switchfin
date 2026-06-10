@@ -1,5 +1,5 @@
 /*
-    Switchlex — modèles natifs de l'API Plex.
+    pleNx — modèles natifs de l'API Plex.
     Spécification vérifiée : PLEX_MIGRATION.md §2 (extraite de plezy, citations fichier:ligne).
 
     Unités : durées/positions en MILLISECONDES, horodatages en SECONDES epoch,
@@ -29,6 +29,31 @@ const std::string_view tvApiSwitchUser = "{}/home/users/{}/switch?{}";
 // URL à présenter à l'utilisateur (téléphone/navigateur)
 const std::string tvLinkUrl = "https://plex.tv/link";
 
+/// ---- Provider plex.tv (Watchlist du COMPTE) ---------------------------------
+/// La watchlist appartient au compte plex.tv, pas au serveur : ces hôtes se
+/// requêtent avec le token COMPTE (AppConfig::getAccountToken()), jamais le
+/// token serveur. plezy n'implémente pas la watchlist — endpoints de l'API
+/// provider officielle (Plex Web/python-plexapi), TOUS vérifiés en GET réel
+/// le 2026-06-10 sur le compte de l'utilisateur (réponses JSON constatées).
+const std::string discoverApiBase = "https://discover.provider.plex.tv";
+const std::string metadataApiBase = "https://metadata.provider.plex.tv";
+/// Liste paginée (X-Plex-Container-*) ; `sort=watchlistedAt:desc` vérifié
+/// (asc/desc inversent bien l'ordre). Metadata[] : ratingKey PROVIDER,
+/// guid plex://movie|show/…, thumb/art en URLs ABSOLUES (tmdb,
+/// metadata-static.plex.tv — tailles originales, à proxifier).
+const std::string_view apiWatchlistAll = "/library/sections/watchlist/all?{}";
+/// PUT, ratingKey = ratingKey PROVIDER (dernier segment du guid plex://…)
+const std::string_view apiWatchlistAdd = "/actions/addToWatchlist?ratingKey={}";
+const std::string_view apiWatchlistRemove = "/actions/removeFromWatchlist?ratingKey={}";
+/// État watchlist d'un titre : le metadata SERVEUR n'expose aucun champ
+/// (vérifié) ; sur metadata.provider avec includeUserState=1, le champ
+/// `watchlistedAt` (epoch s) est présent ⇔ le titre est dans la watchlist
+/// (vérifié sur un film watchlisté et un film non watchlisté).
+const std::string_view apiProviderMetadata = "/library/metadata/{}?includeUserState=1";
+/// Correspondance provider → serveur : items du serveur portant ce guid
+/// (vérifié : GET /library/all?guid=plex%3A%2F%2Fmovie%2F… → Metadata[1]).
+const std::string_view apiLibraryMatch = "/library/all?{}";
+
 /// ---- Serveur de médias (PMS) ------------------------------------------------
 const std::string_view apiIdentity = "/identity";
 const std::string_view apiSections = "/library/sections";
@@ -42,11 +67,19 @@ const std::string_view apiHubContinue = "/hubs/continueWatching?{}";
 const std::string_view apiHubRelated = "/hubs/metadata/{}/related?{}";
 const std::string_view apiMetadata = "/library/metadata/{}?{}";
 const std::string_view apiChildren = "/library/metadata/{}/children?{}";
+/// filmographie d'une personne (plex_client.dart:2509-2511)
+const std::string_view apiPersonMedia = "/library/people/{}/media?{}";
 const std::string_view apiGrandchildren = "/library/metadata/{}/grandchildren?{}";
+/// tous les épisodes d'une série, toutes saisons confondues (Container<Item>)
+const std::string_view apiAllLeaves = "/library/metadata/{}/allLeaves";
 const std::string_view apiExtras = "/library/metadata/{}/extras";
 const std::string_view apiSearch = "/library/search?{}";
 const std::string_view apiCollections = "/library/sections/{}/collections?{}";
 const std::string_view apiCollectionChildren = "/library/collections/{}/children?{}";
+/// listes de lecture (vérifié serveur 2026-06-10 : Metadata[] type "playlist",
+/// composite/leafCount/duration/smart ; pagination X-Plex-Container-* supportée)
+const std::string_view apiPlaylists = "/playlists?{}";
+const std::string_view apiPlaylistItems = "/playlists/{}/items?{}";
 const std::string_view apiScrobble = "/:/scrobble?key={}&identifier=com.plexapp.plugins.library";
 const std::string_view apiUnscrobble = "/:/unscrobble?key={}&identifier=com.plexapp.plugins.library";
 const std::string_view apiTimeline = "/:/timeline?{}";
@@ -69,6 +102,7 @@ const std::string mediaTypeEpisode = "episode";
 const std::string mediaTypeClip = "clip";
 const std::string mediaTypeCollection = "collection";
 const std::string mediaTypePhoto = "photo";
+const std::string mediaTypePlaylist = "playlist";
 
 /// streamType (plex_constants.dart:7-11)
 const int streamTypeVideo = 1;
@@ -217,6 +251,8 @@ struct Section {
     std::string type;  // movie | show | artist | photo
     std::string title;
     std::string uuid;
+    std::string composite;  // mosaïque d'affiches générée par le serveur
+    std::string art;
     bool hidden = false;
 };
 inline void from_json(const nlohmann::json& j, Section& r) {
@@ -224,6 +260,8 @@ inline void from_json(const nlohmann::json& j, Section& r) {
     r.type = jstr(j, "type");
     r.title = jstr(j, "title");
     r.uuid = jstr(j, "uuid");
+    r.composite = jstr(j, "composite");
+    r.art = jstr(j, "art");
     r.hidden = jbool(j, "hidden");
 }
 
@@ -326,11 +364,18 @@ inline void from_json(const nlohmann::json& j, Marker& r) {
 }
 
 struct Role {
+    std::string id;    // identifiant numérique (fiche personne, filmographie)
     std::string tag;   // nom de la personne
     std::string role;  // personnage
     std::string thumb;
 };
 inline void from_json(const nlohmann::json& j, Role& r) {
+    if (j.contains("id")) {
+        if (j.at("id").is_number())
+            r.id = std::to_string(j.at("id").get<int64_t>());
+        else
+            r.id = jstr(j, "id");
+    }
     r.tag = jstr(j, "tag");
     r.role = jstr(j, "role");
     r.thumb = jstr(j, "thumb");
@@ -353,11 +398,16 @@ struct Item {
     int64_t viewCount = 0;   // > 0 ⇔ vu
     int64_t addedAt = 0;     // epoch s
     int64_t lastViewedAt = 0;
+    int64_t watchlistedAt = 0;  // epoch s — metadata.provider + includeUserState=1 (0 = absent)
     int64_t index = 0;        // n° d'épisode (ou de saison sur une saison)
     int64_t parentIndex = 0;  // n° de saison (sur un épisode)
     int64_t leafCount = 0;    // nb d'épisodes (série/saison)
     int64_t viewedLeafCount = 0;
     int64_t childCount = 0;
+    // playlists (type "playlist" ; GET /playlists?playlistType=video)
+    std::string composite;     // mosaïque 1:1 générée par le serveur
+    bool smart = false;        // playlist intelligente (filtre dynamique)
+    std::string playlistType;  // video | audio | photo — seules les video sont lisibles ici
     std::string contentRating;
     double rating = 0.0;          // note critique 0-10
     double audienceRating = 0.0;  // note public 0-10
@@ -371,6 +421,7 @@ struct Item {
     std::string grandparentArt;
     std::vector<std::string> genres;
     std::vector<Role> roles;
+    std::vector<Role> directors;  // Director : même forme que Role (id/tag/thumb)
     std::vector<Media> media;
     std::vector<Chapter> chapters;
     std::vector<Marker> markers;
@@ -392,11 +443,15 @@ inline void from_json(const nlohmann::json& j, Item& r) {
     r.viewCount = jint(j, "viewCount");
     r.addedAt = jint(j, "addedAt");
     r.lastViewedAt = jint(j, "lastViewedAt");
+    r.watchlistedAt = jint(j, "watchlistedAt");
     r.index = jint(j, "index");
     r.parentIndex = jint(j, "parentIndex");
     r.leafCount = jint(j, "leafCount");
     r.viewedLeafCount = jint(j, "viewedLeafCount");
     r.childCount = jint(j, "childCount");
+    r.composite = jstr(j, "composite");
+    r.smart = jbool(j, "smart");
+    r.playlistType = jstr(j, "playlistType");
     r.contentRating = jstr(j, "contentRating");
     r.rating = jnum(j, "rating");
     r.audienceRating = jnum(j, "audienceRating");
@@ -416,6 +471,7 @@ inline void from_json(const nlohmann::json& j, Item& r) {
         }
     }
     if (j.contains("Role") && j["Role"].is_array()) r.roles = j["Role"].get<std::vector<Role>>();
+    if (j.contains("Director") && j["Director"].is_array()) r.directors = j["Director"].get<std::vector<Role>>();
     if (j.contains("Media") && j["Media"].is_array()) r.media = j["Media"].get<std::vector<Media>>();
     if (j.contains("Chapter") && j["Chapter"].is_array()) r.chapters = j["Chapter"].get<std::vector<Chapter>>();
     if (j.contains("Marker") && j["Marker"].is_array()) r.markers = j["Marker"].get<std::vector<Marker>>();

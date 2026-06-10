@@ -49,11 +49,18 @@
                             focusable="true"
                             text="@i18n/main/setting/server/connect_new" />
 
+                        <!-- centered : en natural (défaut), la flèche HAUT
+                             scrollait/butait dans le cadre au lieu de sortir
+                             vers le bouton « Nouveau serveur » (focus piégé) -->
                         <brls:ScrollingFrame
-                            grow="1">
+                            grow="1"
+                            scrollingBehavior="centered">
                             <brls:Box
                                 axis="column"
                                 id="server/sidebar"
+                                paddingLeft="15"
+                                paddingTop="15"
+                                paddingBottom="15"
                                 paddingRight="20" />
 
                         </brls:ScrollingFrame>

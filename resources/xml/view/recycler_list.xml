@@ -1,16 +1,19 @@
 <brls:Box
     axis="column"
     width="auto"
-    height="auto">
+    height="auto"
+    marginBottom="36">
 
     <brls:Header
         width="auto"
         height="auto"
+        marginBottom="6"
         id="recycler/title" />
 
     <HRecyclerFrame
         width="auto"
         grow="1.0"
-        itemWidth="175"
+        itemWidth="@style/app/card/poster/width"
+        itemSpace="18"
         id="recycler/videos" />
 </brls:Box>

@@ -4,7 +4,8 @@
     "genres": "Thể Loại",
     "suggest": "Đề Xuất",
     "search": "Tìm",
-    "setting": "Cài đặt"
+    "setting": "Cài đặt",
+    "downloads": "Tải xuống"
   },
   "home": {
     "resume": "Tiêp tục xem",
@@ -48,7 +49,17 @@
     "random": "Ngẫu nhiên",
     "played": "Đã phát",
     "unplayed": "Chưa phát",
-    "collections": "Collections"
+    "collections": "Collections",
+    "season": "season",
+    "seasons": "seasons",
+    "episode": "tập",
+    "episodes": "tập",
+    "seasons_title": "Mùa",
+    "go_series": "Đến phim bộ",
+    "go_season": "Đến mùa",
+    "director": "Đạo diễn",
+    "replay": "Phát lại",
+    "see_all": "Xem tất cả"
   },
   "search": {
     "hint": "Từ khóa hỗ trợ và chữ cái đầu của chúng",
@@ -62,12 +73,64 @@
       "movie": "Phim",
       "series": "Phim Bộ",
       "episode": "Tập"
-    }
+    },
+    "no_history": "No recent searches",
+    "no_results": "No results",
+    "placeholder": "Tìm phim và chương trình",
+    "results": "Kết quả",
+    "keyboard": "Bàn phím",
+    "space": "Dấu cách",
+    "no_results_sub": "Thử tên phim, diễn viên hoặc thể loại khác.",
+    "no_history_sub": "Tìm kiếm gần đây sẽ hiển thị ở đây."
+  },
+  "person": {
+    "movies": "Phim",
+    "shows": "Phim bộ",
+    "as": "Vai: {}"
+  },
+  "playlist": {
+    "title": "Danh sách phát",
+    "item": "mục",
+    "items": "mục"
+  },
+  "watchlist": {
+    "title": "Danh sách xem",
+    "add": "Thêm vào Danh sách xem",
+    "remove": "Xóa khỏi Danh sách xem",
+    "added": "Đã thêm vào Danh sách xem",
+    "removed": "Đã xóa khỏi Danh sách xem",
+    "empty_title": "Danh sách xem của bạn đang trống",
+    "empty_sub": "Phim và chương trình bạn lưu sẽ xuất hiện ở đây.",
+    "not_in_library": "Tựa phim này không có trong thư viện của bạn",
+    "all": "Tất cả",
+    "availability": "Tình trạng",
+    "on_server": "Có trên máy chủ",
+    "not_on_server": "Không có trên máy chủ"
   },
   "remote": {
-    "local": "Thiết bị",
+    "empty_title": "Không có tệp",
+    "empty_sub": "Duyệt bộ nhớ cục bộ và các máy chủ WebDAV, FTP hoặc SFTP của bạn.",
+    "local": "Tệp",
     "folder": "Thư mục",
-    "up": "Trờ về"
+    "up": "Trờ về",
+    "add_server": "Thêm máy chủ",
+    "edit_server": "Chỉnh sửa máy chủ",
+    "manage": "Quản lý máy chủ",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa",
+    "delete_confirm": "Xóa “{}”?",
+    "type": "Loại",
+    "name": "Tên",
+    "host": "Máy chủ",
+    "port": "Cổng",
+    "username": "Tên người dùng",
+    "password": "Mật khẩu",
+    "path": "Đường dẫn bắt đầu",
+    "optional": "Tùy chọn",
+    "save": "Kiểm tra và lưu",
+    "test_failed": "Kết nối thất bại: {}",
+    "retry": "Thử lại?",
+    "required": "Nhập ít nhất tên và máy chủ."
   },
   "setting": {
     "quit_hint": "Bạn cần thoát khỏi ứng dụng và mở lại ứng dụng để các cài đặt mới hoạt động",
@@ -148,7 +211,7 @@
       "font_q1": "Cách thiết lập phông chữ tùy chỉnh hoặc biểu tượng bản đồ phím",
       "font_a1": "1. Tải xuống phông chữ hoặc phông chữ biểu tượng mà bạn muốn\n2. Đổi tên phông chữ thành: font.ttf; Đổi tên biểu tượng thành: icon.ttf\n3. Đặt các tệp phông chữ vào thư mục cấu hình\n4. Khởi động lại ứng dụng",
       "font_q2": "Câu hỏi thường gập",
-      "font_a2": "1. Switchlex ưu tiên hiển thị phông chữ tùy chỉnh, với phông chữ tích hợp sẵn làm phương án dự phòng\n2. Mục \"Cài đặt - Hướng dẫn\" cung cấp một mục menu để mở nhanh thư mục cấu hình\n3. Trên Linux, Switchlex sử dụng xdg-open để mở thư mục. Nếu không thể mở đúng thư mục cấu hình, bạn có thể cân nhắc cài đặt công cụ này",
+      "font_a2": "1. pleNx ưu tiên hiển thị phông chữ tùy chỉnh, với phông chữ tích hợp sẵn làm phương án dự phòng\n2. Mục \"Cài đặt - Hướng dẫn\" cung cấp một mục menu để mở nhanh thư mục cấu hình\n3. Trên Linux, pleNx sử dụng xdg-open để mở thư mục. Nếu không thể mở đúng thư mục cấu hình, bạn có thể cân nhắc cài đặt công cụ này",
       "font_q3": "Phụ đề không hiển thị",
       "font_a3": "Đặt font vào {}/subfont.ttf"
     },
@@ -184,25 +247,49 @@
     }
   },
   "hints": {
-    "hint1": "Chọn một game từ màn hình chính",
-    "hint2": "Giữ  và  để vào hbmenu",
-    "hint3": "Trong hbmenu, chọn Switchlex",
-    "hint4": "Tuỳ chọn: Cài đặt Switchlex ra màn hình chính bằng NSP forwarder",
-    "hint_nsp": "Bấm  để cài đặt ra màn hình chính",
-    "hint_confirm": "Cài đặt NSP forwarder có thể bị ban\nVui lòng xác nhận",
-    "hint_right": "Những hình ảnh này được lấy từ Internet, và bản quyền thuộc về Nintendo Co., Ltd."
+    "title": "Launch pleNx as a full application",
+    "text_applet": "pleNx is running in applet mode: the available memory is not sufficient for video playback. Launch it as a full application using one of the options below.",
+    "text_app": "pleNx is running as a full application. Install the HOME menu tile to launch it this way directly.",
+    "install_title": "HOME menu tile (recommended)",
+    "install_text": "Installs the embedded NSP forwarder: the tile launches pleNx as a full application straight from the HOME menu.",
+    "install_button": "Install the tile",
+    "takeover_title": "Alternative: title takeover",
+    "takeover_text": "Hold R while launching any installed game to open the homebrew menu as a full application, then launch pleNx from there.",
+    "prompt": "Install the pleNx tile on the HOME menu?\nThe tile launches the app as a full application (required for video playback).",
+    "hint_confirm": "Cài đặt NSP forwarder có thể bị ban\nVui lòng xác nhận"
   },
   "plex": {
-    "link": "Sign in with plex.tv",
-    "link_steps": "1. On your phone or computer, open https://plex.tv/link\n2. Sign in to your Plex account\n3. Enter the code below:",
+    "title": "Sign in to your Plex account",
+    "generating": "Generating code…",
+    "waiting": "Waiting for confirmation…",
+    "connected": "Connected!",
     "expired": "The code expired, please try again",
-    "manual_header": "Manual connection",
-    "token": "Token",
+    "step1": "1. On your phone or computer, open plex.tv/link",
+    "step2": "2. Sign in to your Plex account",
+    "step3": "3. Enter the code shown above",
+    "regenerate": "Generate a new code",
     "choose_server": "Choose a server",
     "choose_profile": "Choose a profile",
     "profile_pin": "Profile PIN",
     "wrong_pin": "Wrong PIN",
     "no_server": "No server found on this account",
+    "connecting": "Đang kết nối đến máy chủ…",
     "unreachable": "Server unreachable"
+  },
+  "download": {
+    "season": "Tải mùa này",
+    "confirm_season": "Tải {} tập?",
+    "season_queued": "Đã thêm mùa vào danh sách tải",
+    "storage": "Bộ nhớ",
+    "storage_free": "Còn trống {} / {}",
+    "section_active": "Đang tải",
+    "section_done": "Đã tải xuống",
+    "remove_all": "Xóa tất cả",
+    "confirm_remove_all": "Xóa tất cả các mục đã tải?",
+    "empty_sub": "Phim và tập đã tải sẽ xuất hiện ở đây để xem ngoại tuyến."
+  },
+  "empty": {
+    "title": "Không có gì để hiển thị",
+    "error": "Không thể tải"
   }
 }

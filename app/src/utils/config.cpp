@@ -102,6 +102,8 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
 
     {LIBRARY_SORT, {"library_sort"}},
 
+    {HINT_FORWARDER, {"hint_forwarder"}},
+
     {KEY_REFRESH, {"key_refresh"}},
     {KEY_LAST, {"key_last"}},
     {KEY_NEXT, {"key_next"}},
@@ -193,7 +195,54 @@ static std::string generateDeviceId() {
     return misc::randHex(16);
 }
 
+/// Dossier de données par plateforme pour un nom d'application donné.
+/// Factorisé pour que la migration puisse calculer le chemin de l'ancien nom.
+static std::string dataDir(const std::string& name) {
+#if __SWITCH__
+    return fmt::format("sdmc:/switch/{}", name);
+#elif defined(__PS4__)
+    return fmt::format("/data/{}", name);
+#elif defined(__PSV__)
+    return fmt::format("ux0:/data/{}", name);
+#elif _WIN32
+    WCHAR wpath[MAX_PATH];
+    std::vector<char> lpath(MAX_PATH);
+    SHGetSpecialFolderPathW(0, wpath, CSIDL_LOCAL_APPDATA, false);
+    WideCharToMultiByte(CP_UTF8, 0, wpath, std::wcslen(wpath), lpath.data(), lpath.size(), nullptr, nullptr);
+    return fmt::format("{}\\{}", lpath.data(), name);
+#elif defined(ANDROID)
+    return SDL_AndroidGetExternalStoragePath();
+#elif __linux__
+    char* config_home = getenv("XDG_CONFIG_HOME");
+    if (config_home) return fmt::format("{}/{}", config_home, name);
+    return fmt::format("{}/.config/{}", getenv("HOME"), name);
+#elif __APPLE__
+    return fmt::format("{}/Library/Application Support/{}", getenv("HOME"), name);
+#endif
+}
+
+/// Migration silencieuse du dossier de config hérité de l'ancien nom de
+/// l'application (Switchlex → pleNx) : session Plex, réglages et
+/// téléchargements doivent survivre au renommage.
+static void migrateLegacyConfigDir(const std::string& legacy, const std::string& current) {
+    if (legacy == current) return;  // ex. Android : chemin indépendant du nom
+#if !defined(USE_BOOST_FILESYSTEM) || defined(_WIN32)
+    const fs::path from = fs::u8path(legacy), to = fs::u8path(current);
+#else
+    const fs::path from = legacy, to = current;
+#endif
+    try {
+        if (fs::exists(from) && !fs::exists(to)) {
+            fs::rename(from, to);
+            brls::Logger::info("AppConfig: migrated config dir {} -> {}", legacy, current);
+        }
+    } catch (const std::exception& ex) {
+        brls::Logger::warning("AppConfig: config dir migration {} -> {} failed: {}", legacy, current, ex.what());
+    }
+}
+
 bool AppConfig::init() {
+    migrateLegacyConfigDir(dataDir("Switchlex"), this->configDir());
     const std::string path = this->configDir() + "/config.json";
 #if !defined(USE_BOOST_FILESYSTEM) || defined(_WIN32)
     std::ifstream f(fs::u8path(path));
@@ -481,29 +530,7 @@ bool AppConfig::checkLogin() {
     return false;
 }
 
-std::string AppConfig::configDir() {
-#if __SWITCH__
-    return fmt::format("sdmc:/switch/{}", AppVersion::getPackageName());
-#elif defined(__PS4__)
-    return fmt::format("/data/{}", AppVersion::getPackageName());
-#elif defined(__PSV__)
-    return fmt::format("ux0:/data/{}", AppVersion::getPackageName());
-#elif _WIN32
-    WCHAR wpath[MAX_PATH];
-    std::vector<char> lpath(MAX_PATH);
-    SHGetSpecialFolderPathW(0, wpath, CSIDL_LOCAL_APPDATA, false);
-    WideCharToMultiByte(CP_UTF8, 0, wpath, std::wcslen(wpath), lpath.data(), lpath.size(), nullptr, nullptr);
-    return fmt::format("{}\\{}", lpath.data(), AppVersion::getPackageName());
-#elif defined(ANDROID)
-    return SDL_AndroidGetExternalStoragePath();
-#elif __linux__
-    char* config_home = getenv("XDG_CONFIG_HOME");
-    if (config_home) return fmt::format("{}/{}", config_home, AppVersion::getPackageName());
-    return fmt::format("{}/.config/{}", getenv("HOME"), AppVersion::getPackageName());
-#elif __APPLE__
-    return fmt::format("{}/Library/Application Support/{}", getenv("HOME"), AppVersion::getPackageName());
-#endif
-}
+std::string AppConfig::configDir() { return dataDir(AppVersion::getPackageName()); }
 
 std::string AppConfig::ipcSocket() {
 #ifdef _WIN32
@@ -615,6 +642,23 @@ bool AppConfig::removeServer(const std::string& id) {
     return false;
 }
 
+void AppConfig::addRemote(const AppRemote& r) {
+    this->remotes.push_back(r);
+    this->save();
+}
+
+void AppConfig::updateRemote(size_t index, const AppRemote& r) {
+    if (index >= this->remotes.size()) return;
+    this->remotes[index] = r;
+    this->save();
+}
+
+void AppConfig::removeRemote(size_t index) {
+    if (index >= this->remotes.size()) return;
+    this->remotes.erase(this->remotes.begin() + index);
+    this->save();
+}
+
 bool AppConfig::removeUser(const std::string& id) {
     for (auto it = this->users.begin(); it != this->users.end(); ++it) {
         if (it->id == id) {
@@ -656,11 +700,72 @@ void AppConfig::addColor(const brls::ThemeVariant tv, const std::string& name, N
 }
 
 void AppConfig::initThemes() {
-    this->addColor(brls::ThemeVariant::LIGHT, "color/app", nvgRGB(2, 176, 183));
-    this->addColor(brls::ThemeVariant::DARK, "color/app", nvgRGB(51, 186, 227));
+    // Identité « Salle obscure » (UI_REDESIGN.md §3) : chrome sombre neutre,
+    // or Plex #E5A00D en accent unique. Theme::addColor écrase les valeurs
+    // borealis (theme.cpp), aucun patch du submodule nécessaire.
+    auto& dark = brls::Theme::getDarkTheme();
+    dark.addColor("brls/background", nvgRGB(13, 14, 17));
+    dark.addColor("brls/sidebar/background", nvgRGB(16, 18, 22));
+    dark.addColor("brls/highlight/background", nvgRGB(30, 33, 39));
+    dark.addColor("brls/highlight/color1", nvgRGB(229, 160, 13));
+    dark.addColor("brls/highlight/color2", nvgRGB(246, 193, 43));
+    dark.addColor("brls/accent", nvgRGB(229, 160, 13));
+    dark.addColor("brls/sidebar/active_item", nvgRGB(229, 160, 13));
+    dark.addColor("brls/button/primary_enabled_background", nvgRGB(229, 160, 13));
+    dark.addColor("brls/button/primary_enabled_text", nvgRGB(22, 19, 10));
+    dark.addColor("brls/button/highlight_enabled_text", nvgRGB(229, 160, 13));
+    dark.addColor("brls/button/highlight_disabled_text", nvgRGB(229, 160, 13));
+    dark.addColor("brls/list/listItem_value_color", nvgRGB(201, 168, 106));
+    dark.addColor("brls/slider/line_filled", nvgRGB(229, 160, 13));
+    // pulse d'appui : gris clair quasi transparent (recette n°6 — l'orange
+    // évoquait une sélection, pas une pression)
+    dark.addColor("brls/click_pulse", nvgRGBA(255, 255, 255, 24));
+    // les brls:Header dessinent une ligne 1px sous chaque titre de section :
+    // un artefact dans notre design (la typographie suffit)
+    dark.addColor("brls/header/border", nvgRGBA(0, 0, 0, 0));
+    // même à rectangle_width 0, la frange d'antialiasing nanovg du rectangle
+    // décoratif laisse un trait ~1px : la transparence le neutralise
+    dark.addColor("brls/header/rectangle", nvgRGBA(0, 0, 0, 0));
+    // toast pilule (brls::Application::notify) : surface sombre translucide
+    // légèrement au-dessus du fond #0D0E11, texte blanc
+    dark.addColor("brls/notification/background", nvgRGBA(24, 26, 31, 235));
+    dark.addColor("brls/notification/text", nvgRGB(255, 255, 255));
+
+    auto& light = brls::Theme::getLightTheme();
+    light.addColor("brls/highlight/color1", nvgRGB(204, 124, 25));
+    light.addColor("brls/highlight/color2", nvgRGB(229, 160, 13));
+    light.addColor("brls/accent", nvgRGB(204, 124, 25));
+    light.addColor("brls/sidebar/active_item", nvgRGB(204, 124, 25));
+    light.addColor("brls/button/primary_enabled_background", nvgRGB(229, 160, 13));
+    light.addColor("brls/button/primary_enabled_text", nvgRGB(22, 19, 10));
+    light.addColor("brls/list/listItem_value_color", nvgRGB(166, 117, 29));
+    light.addColor("brls/slider/line_filled", nvgRGB(204, 124, 25));
+    light.addColor("brls/click_pulse", nvgRGBA(0, 0, 0, 20));
+    light.addColor("brls/header/border", nvgRGBA(0, 0, 0, 0));
+    light.addColor("brls/header/rectangle", nvgRGBA(0, 0, 0, 0));
+    // toast pilule : pilule sombre conventionnelle, lisible sur fond clair
+    light.addColor("brls/notification/background", nvgRGBA(45, 45, 45, 230));
+    light.addColor("brls/notification/text", nvgRGB(255, 255, 255));
+
+    this->addColor(brls::ThemeVariant::LIGHT, "color/app", nvgRGB(204, 124, 25));
+    this->addColor(brls::ThemeVariant::DARK, "color/app", nvgRGB(229, 160, 13));
+    // voile sombre derrière les éléments posés sur une image (barres, badges)
+    this->addColor(brls::ThemeVariant::LIGHT, "color/scrim", nvgRGBA(0, 0, 0, 160));
+    this->addColor(brls::ThemeVariant::DARK, "color/scrim", nvgRGBA(0, 0, 0, 160));
+    // pills de métadonnées (fiches)
+    this->addColor(brls::ThemeVariant::LIGHT, "color/pill", nvgRGBA(0, 0, 0, 18));
+    this->addColor(brls::ThemeVariant::DARK, "color/pill", nvgRGBA(255, 255, 255, 22));
+    // surfaces posées sur le fond (cartes de contenu, panneau du code PIN…)
+    this->addColor(brls::ThemeVariant::LIGHT, "color/surface", nvgRGB(255, 255, 255));
+    this->addColor(brls::ThemeVariant::DARK, "color/surface", nvgRGB(22, 24, 29));
+    // fondu des bannières vers le fond (transparent → couleur du fond)
+    this->addColor(brls::ThemeVariant::LIGHT, "color/fade_0", nvgRGBA(235, 235, 235, 0));
+    this->addColor(brls::ThemeVariant::LIGHT, "color/fade_1", nvgRGB(235, 235, 235));
+    this->addColor(brls::ThemeVariant::DARK, "color/fade_0", nvgRGBA(13, 14, 17, 0));
+    this->addColor(brls::ThemeVariant::DARK, "color/fade_1", nvgRGB(13, 14, 17));
     // 用于骨架屏背景色
     this->addColor(brls::ThemeVariant::LIGHT, "color/grey_1", nvgRGB(245, 246, 247));
-    this->addColor(brls::ThemeVariant::DARK, "color/grey_1", nvgRGB(51, 52, 53));
+    this->addColor(brls::ThemeVariant::DARK, "color/grey_1", nvgRGB(26, 28, 33));
     this->addColor(brls::ThemeVariant::LIGHT, "color/grey_2", nvgRGB(245, 245, 245));
     this->addColor(brls::ThemeVariant::DARK, "color/grey_2", nvgRGB(51, 53, 55));
     this->addColor(brls::ThemeVariant::LIGHT, "color/grey_3", nvgRGBA(200, 200, 200, 16));
@@ -680,6 +785,13 @@ void AppConfig::initThemes() {
         brls::getStyle().addMetric("app/album/height", 215);
         brls::getStyle().addMetric("app/books/height", 270);
         brls::getStyle().addMetric("app/video/height", 290);
+        // row = width x ratio image (poster 2:3 = 1.5, wide 16:9 = 0.5625)
+        // + 55 de zone labels (marge 10 + titre 25 + sous-titre 20), pour que
+        // l'image fill garde exactement le ratio du média
+        brls::getStyle().addMetric("app/card/poster/width", 150);
+        brls::getStyle().addMetric("app/card/poster/row", 280);
+        brls::getStyle().addMetric("app/card/wide/width", 280);
+        brls::getStyle().addMetric("app/card/wide/row", 213);
         brls::getStyle().addMetric("app/grid/6", 5);
         brls::getStyle().addMetric("app/grid/5", 4);
         brls::getStyle().addMetric("app/grid/4", 3);
@@ -689,38 +801,64 @@ void AppConfig::initThemes() {
         brls::getStyle().addMetric("main/content_padding_sides", 15);
         brls::getStyle().addMetric("main/content_padding_top_bottom", 20);
     } else {
+        // Grilles éclaircies d'une colonne par rapport à Switchfin : affiches
+        // plus grandes, lisibles depuis le canapé (UI_REDESIGN.md §4).
         switch (brls::Application::ORIGINAL_WINDOW_HEIGHT) {
         case 1080:
             brls::getStyle().addMetric("app/album/height", 250);
             brls::getStyle().addMetric("app/books/height", 320);
             brls::getStyle().addMetric("app/video/height", 340);
-            brls::getStyle().addMetric("app/grid/6", 8);
-            brls::getStyle().addMetric("app/grid/5", 7);
-            brls::getStyle().addMetric("app/grid/4", 6);
-            brls::getStyle().addMetric("app/grid/3", 5);
-            brls::getStyle().addMetric("app/grid/2", 4);
-            break;
-        case 900:
-            brls::getStyle().addMetric("app/album/height", 240);
-            brls::getStyle().addMetric("app/books/height", 305);
-            brls::getStyle().addMetric("app/video/height", 325);
+            brls::getStyle().addMetric("app/card/poster/width", 225);
+            brls::getStyle().addMetric("app/card/poster/row", 393);
+            brls::getStyle().addMetric("app/card/wide/width", 410);
+            brls::getStyle().addMetric("app/card/wide/row", 286);
             brls::getStyle().addMetric("app/grid/6", 7);
             brls::getStyle().addMetric("app/grid/5", 6);
             brls::getStyle().addMetric("app/grid/4", 5);
             brls::getStyle().addMetric("app/grid/3", 4);
             brls::getStyle().addMetric("app/grid/2", 3);
             break;
-        default:
-            brls::getStyle().addMetric("app/album/height", 225);
-            brls::getStyle().addMetric("app/books/height", 280);
-            brls::getStyle().addMetric("app/video/height", 300);
+        case 900:
+            brls::getStyle().addMetric("app/album/height", 240);
+            brls::getStyle().addMetric("app/books/height", 305);
+            brls::getStyle().addMetric("app/video/height", 325);
+            brls::getStyle().addMetric("app/card/poster/width", 205);
+            brls::getStyle().addMetric("app/card/poster/row", 363);
+            brls::getStyle().addMetric("app/card/wide/width", 375);
+            brls::getStyle().addMetric("app/card/wide/row", 266);
             brls::getStyle().addMetric("app/grid/6", 6);
             brls::getStyle().addMetric("app/grid/5", 5);
             brls::getStyle().addMetric("app/grid/4", 4);
             brls::getStyle().addMetric("app/grid/3", 3);
             brls::getStyle().addMetric("app/grid/2", 2);
+            break;
+        default:
+            brls::getStyle().addMetric("app/album/height", 225);
+            brls::getStyle().addMetric("app/books/height", 280);
+            brls::getStyle().addMetric("app/video/height", 300);
+            // row = width x ratio image + 55 de labels (cf. bloc PSV)
+            brls::getStyle().addMetric("app/card/poster/width", 185);
+            brls::getStyle().addMetric("app/card/poster/row", 333);
+            brls::getStyle().addMetric("app/card/wide/width", 340);
+            brls::getStyle().addMetric("app/card/wide/row", 246);
+            brls::getStyle().addMetric("app/grid/6", 5);
+            brls::getStyle().addMetric("app/grid/5", 4);
+            brls::getStyle().addMetric("app/grid/4", 4);
+            brls::getStyle().addMetric("app/grid/3", 3);
+            brls::getStyle().addMetric("app/grid/2", 2);
         }
-        brls::getStyle().addMetric("main/content_padding_sides", 25);
+        brls::getStyle().addMetric("main/content_padding_sides", 40);
         brls::getStyle().addMetric("main/content_padding_top_bottom", 30);
     }
+
+    // Refonte UI (UI_REDESIGN.md §3.2-3.3) : titres de section nus et plus
+    // grands (la barre décorative des brls::Header disparaît), halo de focus
+    // arrondi assorti aux cartes.
+    brls::getStyle().addMetric("brls/header/rectangle_width", 0);
+    brls::getStyle().addMetric("brls/header/rectangle_margin", 0);
+    brls::getStyle().addMetric("brls/header/font_size", 24);
+    brls::getStyle().addMetric("brls/highlight/stroke_width", 4);
+    // 14 (et non 10) : le halo s'étend ~5 px au-delà du frame, son arc doit
+    // donc être plus large que le cornerRadius 10 des posters pour l'épouser.
+    brls::getStyle().addMetric("brls/highlight/corner_radius", 14);
 }

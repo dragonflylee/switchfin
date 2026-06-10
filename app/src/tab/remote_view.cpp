@@ -1,6 +1,7 @@
 #include "tab/remote_view.hpp"
 #include "view/recycling_grid.hpp"
 #include "view/svg_image.hpp"
+#include "view/icon_button.hpp"
 #include "view/video_view.hpp"
 #include "view/video_profile.hpp"
 #include "view/mpv_core.hpp"
@@ -289,10 +290,56 @@ private:
     RemoteView::Client client;
 };
 
-UmsView::UmsView() : RemoteView(std::make_shared<remote::Local>()) {
+UmsView::UmsView(std::function<void()> onAddServer) : RemoteView(std::make_shared<remote::Local>()) {
     RecyclingGrid* view = this->newRecycler();
     this->stack.push_back(view);
     this->setContent(view);
+
+    // état vide maison : mêmes métriques que RecyclingGrid::setEmpty
+    // (icône 56, titre 17, sous-titre 14 gris) + bouton « Ajouter un
+    // serveur » sous le placeholder — la grille ne sait pas en héberger
+    this->emptyBox = new brls::Box(brls::Axis::COLUMN);
+    this->emptyBox->setGrow(1.0f);
+    // même retrait que le recycler : barre d'onglets flottante (60)
+    this->emptyBox->setPaddingTop(70);
+    this->emptyBox->setJustifyContent(brls::JustifyContent::CENTER);
+    this->emptyBox->setAlignItems(brls::AlignItems::CENTER);
+    this->emptyBox->setVisibility(brls::Visibility::GONE);
+
+    auto* hintIcon = new SVGImage();
+    hintIcon->setDimensions(56, 56);
+    hintIcon->setImageFromSVGRes("icon/ico-folder.svg");
+    this->emptyBox->addView(hintIcon);
+
+    auto* hintTitle = new brls::Label();
+    hintTitle->setFontSize(17);
+    hintTitle->setMarginTop(12);
+    hintTitle->setHorizontalAlign(brls::HorizontalAlign::CENTER);
+    hintTitle->setText("main/remote/empty_title"_i18n);
+    this->emptyBox->addView(hintTitle);
+
+    auto* hintSub = new brls::Label();
+    hintSub->setFontSize(14);
+    hintSub->setMarginTop(6);
+    hintSub->setTextColor(brls::Application::getTheme().getColor("font/grey"));
+    hintSub->setHorizontalAlign(brls::HorizontalAlign::CENTER);
+    hintSub->setText("main/remote/empty_sub"_i18n);
+    this->emptyBox->addView(hintSub);
+
+    if (onAddServer) {
+        auto* btn = new IconButton();
+        btn->setIcon("icon/ico-plus.svg");
+        btn->setText("main/remote/add_server"_i18n);
+        btn->setButtonStyle("bordered");
+        btn->setMarginTop(24);
+        btn->registerClickAction([onAddServer](...) {
+            onAddServer();
+            return true;
+        });
+        this->addButton = btn;
+        this->emptyBox->addView(btn);
+    }
+    this->addView(this->emptyBox);
 
     auto ev = Ums::instance().getEvent();
     deviceSubscribeID = ev->subscribe([this, view](const Ums::DeviceList& r) {
@@ -305,12 +352,27 @@ UmsView::UmsView() : RemoteView(std::make_shared<remote::Local>()) {
             entry.path = it.mount + "/";
             dirs.push_back(entry);
         }
-        view->setDataSource(new FileDataSource(dirs, this->client));
+        // aucun périphérique/volume monté : état vide explicite plutôt
+        // qu'une grille muette (recette UI, placeholder « Fichiers »)
+        if (dirs.empty()) {
+            view->setVisibility(brls::Visibility::GONE);
+            this->emptyBox->setVisibility(brls::Visibility::VISIBLE);
+        } else {
+            this->emptyBox->setVisibility(brls::Visibility::GONE);
+            view->setVisibility(brls::Visibility::VISIBLE);
+            view->setDataSource(new FileDataSource(dirs, this->client));
+        }
     });
     ev->fire(Ums::instance().getDevice());
 }
 
 UmsView::~UmsView() { Ums::instance().getEvent()->unsubscribe(deviceSubscribeID); }
+
+brls::View* UmsView::getDefaultFocus() {
+    if (this->addButton && this->emptyBox->getVisibility() == brls::Visibility::VISIBLE)
+        return this->addButton->getDefaultFocus();
+    return RemoteView::getDefaultFocus();
+}
 
 RemoteView::RemoteView(Client c) : client(c) { brls::Logger::debug("RemoteView: create"); }
 
@@ -382,6 +444,9 @@ RecyclingGrid* RemoteView::newRecycler() {
     view->spanCount = 1;
     view->estimatedRowHeight = 48;
     view->estimatedRowSpace = 10;
+    // interne au scroll : la liste part sous la barre d'onglets flottante
+    // (60) du tab Téléchargements et défile dessous
+    view->setPaddingTop(70);
     view->setDefaultCellFocus(1);
     view->registerCell("Cell", []() { return new FileCard(); });
     view->registerAction("hints/back"_i18n, brls::BUTTON_B, [this](...) {

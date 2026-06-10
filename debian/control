@@ -1,4 +1,4 @@
-Source: switchlex
+Source: plenx
 Section: video
 Priority: optional
 Maintainer: dragonflylee <dragonflylee@outlook.com>
@@ -9,10 +9,10 @@ Build-Depends: debhelper (>= 10),
                libdbus-1-dev,
                libwebp-dev,
                libmpv-dev
-Vcs-Git: https://github.com/thcolin/switchlex.git
+Vcs-Git: https://github.com/thcolin/plenx.git
 
-Package: switchlex
+Package: plenx
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Architecture: any
 Recommends: va-driver-all
-Description: Third-party native Jellyfin client for Nintendo Switch
+Description: Third-party native Plex client for Nintendo Switch

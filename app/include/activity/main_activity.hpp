@@ -17,6 +17,25 @@
 #pragma once
 
 #include <borealis.hpp>
+#include <view/auto_tab_frame.hpp>
+#include <api/plex/types.hpp>
+
+/// Main sidebar: the static tabs (home, search, downloads, settings) come
+/// from activity/main.xml, plus one tab per Plex library inserted after
+/// the home tab once /library/sections answers. A server/profile switch
+/// recreates the whole MainActivity, so the tabs follow the active server.
+class MainTabFrame : public AutoTabFrame {
+public:
+    /// fetch the server libraries and insert their sidebar tabs
+    void loadLibraries();
+
+    static brls::View* create();
+
+private:
+    void addLibraryTabs(const std::vector<plex::Section>& sections);
+
+    bool librariesLoaded = false;
+};
 
 class MainActivity : public brls::Activity {
 public:
@@ -24,4 +43,9 @@ public:
     CONTENT_FROM_XML_RES("activity/main.xml");
 
     MainActivity();
+
+    void onContentAvailable() override;
+
+private:
+    BRLS_BIND(MainTabFrame, tabFrame, "main/tabFrame");
 };
