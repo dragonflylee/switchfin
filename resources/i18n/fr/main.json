@@ -4,8 +4,8 @@
     "genres": "Genres",
     "suggest": "Suggestions",
     "search": "Recherche",
-    "setting": "Paramètres",
-    "downloads": "Téléchargements"
+    "downloads": "Téléchargements",
+    "setting": "Paramètres"
   },
   "home": {
     "resume": "Lecture",
@@ -19,7 +19,7 @@
     "starring": "Avec {}"
   },
   "about": {
-    "header": "A propos du logiciel",
+    "header": "À propos du logiciel",
     "brief": "Plex permet à plusieurs utilisateurs de se connecter et de diffuser des médias",
     "repo_header": "URL du projet open source"
   },
@@ -37,10 +37,10 @@
     "next": "Suivant",
     "error": "Échec de lecture",
     "episode": "Sélections",
-    "speed_up": "Lecture en vitesse accélérée"
+    "speed_up": "Vitesse actuelle {}"
   },
   "media": {
-    "sort": "Trié",
+    "sort": "Tri",
     "sort_by": "Trier par",
     "filter": "Filtrer",
     "order": "Ordre",
@@ -57,7 +57,7 @@
     "special": "Bonus",
     "similar": "Plus de ce genre",
     "date_add": "Date d'ajout",
-    "date_played": "Date de diffusion",
+    "date_played": "Date de lecture",
     "premiere_date": "Date de sortie",
     "play_count": "Nombre de lectures",
     "rating": "Note",
@@ -145,6 +145,29 @@
     "retry": "Réessayer ?",
     "required": "Renseigne au moins le nom et l'hôte."
   },
+  "download": {
+    "start": "Télécharger",
+    "cancel": "Annuler le téléchargement",
+    "remove": "Supprimer le téléchargement",
+    "downloading": "Téléchargement…",
+    "completed": "Téléchargé",
+    "failed": "Échec du téléchargement",
+    "queued": "En attente",
+    "no_downloads": "Aucun téléchargement",
+    "confirm_remove": "Supprimer ce téléchargement ?",
+    "play_offline": "Lire hors ligne",
+    "confirm_cancel": "Annuler ce téléchargement ?",
+    "season": "Télécharger la saison",
+    "confirm_season": "Télécharger {} épisodes ?",
+    "season_queued": "Saison ajoutée aux téléchargements",
+    "storage": "Stockage",
+    "storage_free": "{} libres sur {}",
+    "section_active": "En cours",
+    "section_done": "Téléchargés",
+    "remove_all": "Tout supprimer",
+    "confirm_remove_all": "Supprimer tous les téléchargements ?",
+    "empty_sub": "Les films et épisodes téléchargés se retrouvent ici, pour les regarder hors ligne."
+  },
   "setting": {
     "quit_hint": "L'application va bientôt se fermer, les paramètres prendront effet lors du prochain démarrage",
     "name": "Nom",
@@ -170,10 +193,10 @@
     "playback": {
       "header": "Paramètres de lecture",
       "bottom_bar": "Afficher la barre de progression en bas",
-      "low_quality": "Décodage en basse qualité (réduit la qualité de l'image pour un moindre consommation d'énergie)",
+      "low_quality": "Décodage en basse qualité (réduit la qualité de l'image pour une moindre consommation d'énergie)",
       "in_memory_cache": "Cache de décodage",
       "subs_fallback": "Chargement automatique des sous-titres",
-      "vo": "sortie vidéo",
+      "vo": "Sortie vidéo",
       "hwdec": "Décodage matériel",
       "force_directplay": "Forcer le décodage côté client",
       "osd_on_toggle": "Afficher l'interface de contrôle lors de la pause",
@@ -243,11 +266,11 @@
       "error_q2": "Le logiciel se ferme de manière aléatoire avec une erreur",
       "error_a2": "1. Utilisez une carte mémoire formatée en FAT32.\n2. Assurez-vous que le système d'exploitation et le firmware sont à jour.\n3. Attendez que les développeurs corrigent le problème.",
       "font_q1": "Comment configurer des polices ou des icônes de touches personnalisées.",
-      "font_a1": "1. Téléchargez le fichier de police ou de police d'icônes que vous souhaitez.\n2. Renommez la police en : \"font.tff\" et l'icône en : \"icone.tff\".\n3. Placez les fichiers renommés dans le répertoire de configuration de l'application.\n4. Redémarrez l'application.",
+      "font_a1": "1. Téléchargez le fichier de police ou de police d'icônes que vous souhaitez.\n2. Renommez la police en : font.ttf et l'icône en : icon.ttf.\n3. Placez les fichiers renommés dans le répertoire de configuration de l'application.\n4. Redémarrez l'application.",
       "font_q2": "Questions fréquentes",
       "font_a2": "1. Le logiciel donne la priorité à l'affichage des polices personnalisées, en utilisant les polices intégrées comme sauvegarde.\n2. \"Paramètres - Tutoriel utilisateur\"  fournit un élément de menu pour ouvrir rapidement le répertoire de configuration.",
       "font_q3": "Les sous-titres ne peuvent être affichés correctement.",
-      "font_a3": "Copiez le fichier de police TTF approprié dans {}/subfront.ttf"
+      "font_a3": "Copiez le fichier de police TTF approprié dans {}/subfont.ttf"
     },
     "others": {
       "header": "Autres",
@@ -293,7 +316,7 @@
     "takeover_title": "Alternative : title takeover",
     "takeover_text": "Maintenez R en lançant n'importe quel jeu installé pour ouvrir le menu homebrew en application complète, puis lancez-y pleNx.",
     "prompt": "Installer la tuile pleNx sur le menu HOME ?\nLa tuile lance l'application en session complète (indispensable pour la lecture vidéo).",
-    "hint_confirm": "L'installation de l'icône du bureau peut entraîner un bannissement de la console. Veuillez confirmer à nouveau"
+    "hint_confirm": "L'installation du forwarder NSP peut entraîner un bannissement de la console. Veuillez confirmer à nouveau"
   },
   "plex": {
     "title": "Connectez-vous à votre compte Plex",
@@ -312,29 +335,6 @@
     "no_server": "Aucun serveur trouvé sur ce compte",
     "connecting": "Connexion au serveur…",
     "unreachable": "Serveur injoignable"
-  },
-  "download": {
-    "start": "Télécharger",
-    "cancel": "Annuler le téléchargement",
-    "remove": "Supprimer le téléchargement",
-    "downloading": "Téléchargement…",
-    "completed": "Téléchargé",
-    "failed": "Échec du téléchargement",
-    "queued": "En attente",
-    "no_downloads": "Aucun téléchargement",
-    "confirm_remove": "Supprimer ce téléchargement ?",
-    "play_offline": "Lire hors ligne",
-    "confirm_cancel": "Annuler ce téléchargement ?",
-    "season": "Télécharger la saison",
-    "confirm_season": "Télécharger {} épisodes ?",
-    "season_queued": "Saison ajoutée aux téléchargements",
-    "storage": "Stockage",
-    "storage_free": "{} libres sur {}",
-    "section_active": "En cours",
-    "section_done": "Téléchargés",
-    "remove_all": "Tout supprimer",
-    "confirm_remove_all": "Supprimer tous les téléchargements ?",
-    "empty_sub": "Les films et épisodes téléchargés se retrouvent ici, pour les regarder hors ligne."
   },
   "empty": {
     "title": "Rien à afficher",

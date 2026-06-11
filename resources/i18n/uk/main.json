@@ -4,8 +4,8 @@
     "genres": "Жанр",
     "suggest": "Пропозиції",
     "search": "Пошук",
-    "setting": "Налаштування",
-    "downloads": "Завантаження"
+    "downloads": "Завантаження",
+    "setting": "Налаштування"
   },
   "home": {
     "resume": "Продовжити перегляд",
@@ -14,7 +14,9 @@
   },
   "recommend": {
     "like": "Тому що вам сподобалось {}",
-    "watched": "Тому що ви дивились {}"
+    "watched": "Тому що ви дивились {}",
+    "directed": "Режисер: {}",
+    "starring": "У ролях: {}"
   },
   "about": {
     "header": "Про",
@@ -26,7 +28,7 @@
     "none": "Нічого",
     "audio": "Аудіо доріжка",
     "common": "Спільне",
-    "speed": "Швидкість вдтворення",
+    "speed": "Швидкість відтворення",
     "quality": "Якість відео",
     "chapter": "Розділ",
     "auto": "Авто",
@@ -42,23 +44,29 @@
     "sort_by": "Сортувати за",
     "filter": "Фільтр",
     "order": "Порядок",
-    "ascending": "Всхідний",
-    "descending": "Спадний",
-    "name": "Ім'я",
+    "ascending": "Зростанням",
+    "descending": "Спаданням",
+    "name": "Назва",
+    "mark_played": "Позначити переглянутим",
+    "mark_unplayed": "Позначити непереглянутим",
     "play": "Відтворити",
     "replay": "Відтворити знову",
     "see_all": "Показати все",
+    "intro": "Заставка",
+    "people": "Актори",
+    "special": "Додаткові матеріали",
+    "similar": "Схоже на це",
     "date_add": "Дата додавання",
     "date_played": "Дата відтворення",
-    "premiere_date": "Дата премє'ри",
+    "premiere_date": "Дата прем'єри",
     "play_count": "Кількість відтворень",
     "rating": "Рейтинг спільноти",
-    "random": "Рандом",
+    "random": "Випадково",
     "played": "Відтворено",
     "unplayed": "Невідтворено",
-    "collections": "Collections",
-    "season": "season",
-    "seasons": "seasons",
+    "collections": "Колекції",
+    "season": "сезон",
+    "seasons": "сезони",
     "episode": "серія",
     "episodes": "серії",
     "seasons_title": "Сезони",
@@ -67,7 +75,7 @@
     "director": "Режисер"
   },
   "search": {
-    "hint": "Ключові слова підтримки та їх початкові літери",
+    "hint": "Підтримує ключові слова та їхні початкові літери",
     "clear": "Очистити",
     "delete": "Видалити",
     "paste": "Вставити",
@@ -79,14 +87,14 @@
       "series": "Серіал",
       "episode": "Епізод"
     },
-    "no_history": "No recent searches",
-    "no_results": "No results",
+    "no_history": "Немає нещодавніх запитів",
+    "no_results": "Немає результатів",
     "placeholder": "Пошук фільмів і серіалів",
     "results": "Результати",
     "keyboard": "Клавіатура",
     "space": "Пробіл",
     "no_results_sub": "Спробуйте іншу назву, актора чи жанр.",
-    "no_history_sub": "Тут з’являться нещодавні запити."
+    "no_history_sub": "Тут з'являться нещодавні запити."
   },
   "person": {
     "movies": "Фільми",
@@ -137,8 +145,31 @@
     "retry": "Повторити?",
     "required": "Вкажіть принаймні назву та хост."
   },
+  "download": {
+    "start": "Завантажити",
+    "cancel": "Скасувати завантаження",
+    "remove": "Видалити завантаження",
+    "downloading": "Завантаження...",
+    "completed": "Завантажено",
+    "failed": "Помилка завантаження",
+    "queued": "У черзі",
+    "no_downloads": "Немає завантажень",
+    "confirm_remove": "Видалити це завантаження?",
+    "play_offline": "Відтворити офлайн",
+    "confirm_cancel": "Скасувати це завантаження?",
+    "season": "Завантажити сезон",
+    "confirm_season": "Завантажити {} серій?",
+    "season_queued": "Сезон додано до завантажень",
+    "storage": "Сховище",
+    "storage_free": "Вільно {} з {}",
+    "section_active": "У процесі",
+    "section_done": "Завантажено",
+    "remove_all": "Видалити все",
+    "confirm_remove_all": "Видалити всі завантаження?",
+    "empty_sub": "Завантажені фільми та серії з'являться тут — для перегляду офлайн."
+  },
   "setting": {
-    "quit_hint": "Ви збираєтеся вийти з програми. Налаштування приміняться після наступного запуску",
+    "quit_hint": "Ви збираєтеся вийти з програми. Налаштування застосуються після наступного запуску",
     "name": "Ім'я",
     "version": "Версія",
     "os": "Операційна система",
@@ -151,34 +182,43 @@
       "detail": "Деталі сервера",
       "connect_new": "Новий сервер",
       "connect_to": "Підключення до сервера Plex",
-      "invalid": "Неправильна адреса сервера!",
+      "invalid": "URL має починатися з http:// або https://",
       "connect": "Підключитися",
       "delete": "Підтвердити видалення?",
       "local": "Локальні сервери",
-      "users": "{} користувачі",
+      "users": "{} користувачів",
       "sigin_to": "Увійдіть до  {}",
       "signin": "Увійти"
     },
     "playback": {
       "header": "Відтворення",
       "bottom_bar": "Показати нижній індикатор прогресу",
-      "low_quality": "Нижча якість декодування (з меньшим використанням процессора)",
+      "low_quality": "Нижча якість декодування (з меншим використанням CPU)",
       "in_memory_cache": "Кеш-пам'ять",
       "subs_fallback": "Автозавантаження субтитрів",
+      "vo": "Відеовивід",
       "hwdec": "Апаратне декодування",
       "force_directplay": "Примусове пряме відтворення",
-      "osd_on_toggle": "Показати екранне меню під час паузи",
-      "touch_gesture": "Сенсорний жест для пошуку кроку",
+      "osd_on_toggle": "Показати OSD під час паузи",
+      "touch_gesture": "Сенсорний жест для кроку перемотування",
       "clip_point": "Показати точку кліпу в розділі",
-      "transcodec": "Транскодек",
+      "transcodec": "Кодек",
       "audio_channels": "Аудіоканали",
       "video_quality": "Якість відео",
       "subsync": "Синхронізація субтитрів"
     },
+    "transcode": {
+      "header": "Транскодування"
+    },
+    "control": {
+      "header": "Керування відтворенням",
+      "tv_osd": "Керування OSD у стилі ТВ"
+    },
     "filter": {
-      "mirror": "Відзеркалити",
-      "hflip": "Відзеркалити горизонтально",
-      "vflip": "Вертикальне перегортання"
+      "mirror": "Перевертання відео",
+      "hflip": "Перевернути горизонтально",
+      "vflip": "Перевернути вертикально",
+      "rotation": "Обертання"
     },
     "aspect": {
       "header": "Співвідношення відео",
@@ -197,14 +237,22 @@
     },
     "network": {
       "header": "Мережа",
-      "threads": "Кількість завантажених зображень",
-      "timeout": "Запит тайм-аут (мс)",
+      "threads": "Кількість потоків завантаження зображень",
+      "timeout": "Час очікування запиту (мс)",
       "proxy": "Налаштування проксі",
       "host": "Хост",
       "port": "Порт"
     },
     "ui": {
-      "vsync": "Вертикальна Синхронізація",
+      "header": "Інтерфейс",
+      "scale": {
+        "header": "Масштаб інтерфейсу (потрібен перезапуск)",
+        "544p": "544p",
+        "720p": "720p",
+        "900p": "900p",
+        "1080p": "1080p"
+      },
+      "vsync": "Вертикальна синхронізація",
       "show_fps": "Показувати FPS"
     },
     "tutorial": {
@@ -229,21 +277,21 @@
       "fullscreen": "Повноекранний режим",
       "always_on_top": "Завжди зверху",
       "single": "Єдиний екземпляр",
-      "overclock": "Розгін процессора",
+      "overclock": "Розгін CPU",
       "debug": "Вигляд налагоджувача",
       "sync": "Зберегти налаштування порядку",
       "theme": {
-        "header": "Тема (Потребує перезапуск)",
+        "header": "Тема (потрібен перезапуск)",
         "1": "Авто",
         "2": "Світла",
         "3": "Темна"
       },
       "language": {
-        "header": "Мова (Потребує перезапуск)",
+        "header": "Мова (потрібен перезапуск)",
         "auto": "Авто"
       },
       "keymap": {
-        "header": "Keymap style",
+        "header": "Стиль розкладки",
         "xbox": "Xbox",
         "ps": "PlayStation",
         "keyboard": "Клавіатура"
@@ -252,51 +300,41 @@
       "logout": "Вихід з поточного облікового запису \n(програма завершить роботу)",
       "up2date": "Встановлена актуальна версія",
       "upgrade": "{} доступно вже зараз! Готові до оновлення?",
-      "updating": "Оновлення в процессі, скасувати зараз?",
+      "updating": "Оновлення в процесі, скасувати зараз?",
+      "downloading": "Завантаження {}… {}%",
+      "updated": "Оновлення встановлено. Програму буде закрито: запустіть її знову, щоб використовувати нову версію",
       "release": "Перевірити оновлення"
     }
   },
   "hints": {
-    "title": "Launch pleNx as a full application",
-    "text_applet": "pleNx is running in applet mode: the available memory is not sufficient for video playback. Launch it as a full application using one of the options below.",
-    "text_app": "pleNx is running as a full application. Install the HOME menu tile to launch it this way directly.",
-    "install_title": "HOME menu tile (recommended)",
-    "install_text": "Installs the embedded NSP forwarder: the tile launches pleNx as a full application straight from the HOME menu.",
-    "install_button": "Install the tile",
-    "takeover_title": "Alternative: title takeover",
-    "takeover_text": "Hold R while launching any installed game to open the homebrew menu as a full application, then launch pleNx from there.",
-    "prompt": "Install the pleNx tile on the HOME menu?\nThe tile launches the app as a full application (required for video playback).",
+    "title": "Запустити pleNx як повноцінний застосунок",
+    "text_applet": "pleNx працює в режимі аплету: доступної пам'яті недостатньо для відтворення відео. Запустіть його як повноцінний застосунок одним зі способів нижче.",
+    "text_app": "pleNx працює як повноцінний застосунок. Установіть плитку в меню HOME, щоб запускати його так одразу.",
+    "install_title": "Плитка в меню HOME (рекомендовано)",
+    "install_text": "Встановлює вбудований форвардер NSP: плитка запускає pleNx як повноцінний застосунок прямо з меню HOME.",
+    "install_button": "Установити плитку",
+    "takeover_title": "Альтернатива: підміна гри",
+    "takeover_text": "Утримуйте R під час запуску будь-якої встановленої гри, щоб відкрити меню homebrew як повноцінний застосунок, а потім запустіть pleNx звідти.",
+    "prompt": "Установити плитку pleNx у меню HOME?\nПлитка запускає застосунок як повноцінний застосунок (потрібно для відтворення відео).",
     "hint_confirm": "Встановлення форвардеру NSP може призвести до бану\nБудь ласка, підтвердіть ще раз"
   },
   "plex": {
-    "title": "Sign in to your Plex account",
-    "generating": "Generating code…",
-    "waiting": "Waiting for confirmation…",
-    "connected": "Connected!",
-    "expired": "The code expired, please try again",
-    "step1": "1. On your phone or computer, open plex.tv/link",
-    "step2": "2. Sign in to your Plex account",
-    "step3": "3. Enter the code shown above",
-    "regenerate": "Generate a new code",
-    "choose_server": "Choose a server",
-    "choose_profile": "Choose a profile",
-    "profile_pin": "Profile PIN",
-    "wrong_pin": "Wrong PIN",
-    "no_server": "No server found on this account",
+    "title": "Увійдіть до свого облікового запису Plex",
+    "generating": "Генерування коду…",
+    "waiting": "Очікування підтвердження…",
+    "connected": "Підключено!",
+    "expired": "Термін дії коду минув, спробуйте ще раз",
+    "step1": "1. На телефоні чи комп'ютері відкрийте plex.tv/link",
+    "step2": "2. Увійдіть до свого облікового запису Plex",
+    "step3": "3. Введіть код, показаний вище",
+    "regenerate": "Згенерувати новий код",
+    "choose_server": "Виберіть сервер",
+    "choose_profile": "Виберіть профіль",
+    "profile_pin": "PIN профілю",
+    "wrong_pin": "Неправильний PIN",
+    "no_server": "На цьому обліковому записі сервери не знайдено",
     "connecting": "Підключення до сервера…",
-    "unreachable": "Server unreachable"
-  },
-  "download": {
-    "season": "Завантажити сезон",
-    "confirm_season": "Завантажити {} серій?",
-    "season_queued": "Сезон додано до завантажень",
-    "storage": "Сховище",
-    "storage_free": "Вільно {} з {}",
-    "section_active": "У процесі",
-    "section_done": "Завантажено",
-    "remove_all": "Видалити все",
-    "confirm_remove_all": "Видалити всі завантаження?",
-    "empty_sub": "Завантажені фільми та серії з’являться тут — для перегляду офлайн."
+    "unreachable": "Сервер недоступний"
   },
   "empty": {
     "title": "Немає що показати",

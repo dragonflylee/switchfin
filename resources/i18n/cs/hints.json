@@ -15,7 +15,7 @@
   "current": "Aktuální",
   "success": "Povedlo se",
   "password": "Zobrazit/Skrýt",
-  "failed": "Nepovedlo se",
+  "retry": "Zkusit znovu",
   "exit_hint": "Chystáte se ukončit aplikaci?",
   "loading": "Načítání",
   "refresh": "Obnovit",

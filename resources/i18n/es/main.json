@@ -4,8 +4,8 @@
     "genres": "Géneros",
     "suggest": "Sugerencias",
     "search": "Buscar",
-    "setting": "Ajustes",
-    "downloads": "Descargas"
+    "downloads": "Descargas",
+    "setting": "Ajustes"
   },
   "home": {
     "resume": "Seguir viendo",
@@ -29,13 +29,13 @@
     "audio": "Pista de audio",
     "common": "General",
     "speed": "Velocidad de reproducción",
-    "quality": "Calidad",
+    "quality": "Calidad de vídeo",
     "chapter": "Capítulos",
     "auto": "Automático",
     "toggle": "Reproducir/Pausa",
     "prev": "Anterior",
     "next": "Siguiente",
-    "error": "Error al iniciar la reproducción",
+    "error": "Error de reproducción",
     "episode": "Episodio",
     "speed_up": "Velocidad actual {}"
   },
@@ -54,19 +54,19 @@
     "see_all": "Ver todo",
     "intro": "Introducción",
     "people": "Reparto y equipo",
-    "special": "Características Especiales",
+    "special": "Contenido especial",
     "similar": "Más como esto",
     "date_add": "Fecha en que se añadió",
     "date_played": "Fecha de reproducción",
-    "premiere_date": "Fecha de lanzamiento",
+    "premiere_date": "Fecha de estreno",
     "play_count": "Número de reproducciones",
-    "rating": "Calificación",
+    "rating": "Valoración de la comunidad",
     "random": "Aleatorio",
     "played": "Reproducido",
     "unplayed": "No reproducido",
-    "collections": "Collections",
-    "season": "season",
-    "seasons": "seasons",
+    "collections": "Colecciones",
+    "season": "temporada",
+    "seasons": "temporadas",
     "episode": "episodio",
     "episodes": "episodios",
     "seasons_title": "Temporadas",
@@ -75,7 +75,7 @@
     "director": "Dirección"
   },
   "search": {
-    "hint": "Admitir palabras clave y sus letras iniciales",
+    "hint": "Admite palabras clave y sus letras iniciales",
     "clear": "Limpiar",
     "delete": "Eliminar",
     "paste": "Pegar",
@@ -87,8 +87,8 @@
       "series": "Series",
       "episode": "Episodio"
     },
-    "no_history": "No recent searches",
-    "no_results": "No results",
+    "no_history": "No hay búsquedas recientes",
+    "no_results": "Sin resultados",
     "placeholder": "Buscar películas y series",
     "results": "Resultados",
     "keyboard": "Teclado",
@@ -145,6 +145,29 @@
     "retry": "¿Reintentar?",
     "required": "Introduce al menos un nombre y un host."
   },
+  "download": {
+    "start": "Descargar",
+    "cancel": "Cancelar descarga",
+    "remove": "Eliminar descarga",
+    "downloading": "Descargando...",
+    "completed": "Descargado",
+    "failed": "Descarga fallida",
+    "queued": "En cola",
+    "no_downloads": "No hay descargas",
+    "confirm_remove": "¿Eliminar esta descarga?",
+    "play_offline": "Reproducir sin conexión",
+    "confirm_cancel": "¿Cancelar esta descarga?",
+    "season": "Descargar temporada",
+    "confirm_season": "¿Descargar {} episodios?",
+    "season_queued": "Temporada añadida a las descargas",
+    "storage": "Almacenamiento",
+    "storage_free": "{} libres de {}",
+    "section_active": "En curso",
+    "section_done": "Descargado",
+    "remove_all": "Eliminar todo",
+    "confirm_remove_all": "¿Eliminar todas las descargas?",
+    "empty_sub": "Las películas y episodios descargados aparecen aquí para verlos sin conexión."
+  },
   "setting": {
     "quit_hint": "Vas a salir de la aplicación. La configuración tendrá efecto tras el próximo arranque",
     "name": "Nombre",
@@ -162,9 +185,9 @@
       "invalid": "La URL debe comenzar con http:// o https://",
       "connect": "Conectar",
       "delete": "¿Confirmar borrado?",
-      "local": "Servidor local",
+      "local": "Servidores locales",
       "users": "{} usuarios",
-      "sigin_to": "Conectar a {}",
+      "sigin_to": "Iniciar sesión en {}",
       "signin": "Iniciar sesión"
     },
     "playback": {
@@ -176,8 +199,8 @@
       "vo": "Salida de vídeo",
       "hwdec": "Decodificación por hardware",
       "force_directplay": "Forzar reproducción directa",
-      "osd_on_toggle": "Mostrar panel OSD al pausar",
-      "touch_gesture": "Gesto táctil para progresión",
+      "osd_on_toggle": "Mostrar OSD al pausar",
+      "touch_gesture": "Gesto táctil para el paso de avance",
       "clip_point": "Mostrar marca de capítulo",
       "transcodec": "Codec",
       "audio_channels": "Canales de audio",
@@ -189,7 +212,7 @@
     },
     "control": {
       "header": "Control de reproducción",
-      "tv_osd": "Estilo de OSD"
+      "tv_osd": "Control de OSD estilo TV"
     },
     "filter": {
       "mirror": "Girar vídeo",
@@ -199,7 +222,7 @@
     },
     "aspect": {
       "header": "Relación de aspecto",
-      "crop": "Rellenar",
+      "crop": "Recortar",
       "stretch": "Estirar",
       "auto": "Automático"
     },
@@ -213,7 +236,7 @@
       "reset": "Restablecer"
     },
     "network": {
-      "header": "Configuración de red",
+      "header": "Red",
       "threads": "Número de hilos para cargar imágenes",
       "timeout": "Tiempo de espera de las peticiones (ms)",
       "proxy": "Proxy",
@@ -234,20 +257,20 @@
     },
     "tutorial": {
       "header": "Tutorial",
-      "open": "Como instalar icono de escritorio",
+      "open": "Cómo instalar el icono de escritorio",
       "error": "Si encuentras un error",
       "hot_key": "Teclas de acceso rápido",
-      "font": "Usar fuente de letra personalizada",
+      "font": "Usar fuente personalizada",
       "error_q1": "Imposible acceder a la red",
-      "error_a1": "1. Asegúrate que atmosphere y el firmware del sistema están actualizados\n2. Confirma que la hora del sistema (incluida la fecha) es correcta\n3. Restaura las opciones de red por defecto, incluyendo IP, DNS, etc",
+      "error_a1": "1. Asegúrate de que atmosphere y el firmware del sistema están actualizados\n2. Confirma que la hora del sistema es correcta\n3. Restaura las opciones de red por defecto, incluyendo IP, DNS, etc\n4. Uso en China",
       "error_q2": "Cierra con error aleatorio",
-      "error_a2": "1. Usa una memoria en formato Fat32\n2. Asegúrate que atmosphere y el firmware del sistema están actualizados\n3. Espera a que los desarrolladores lo reparen",
-      "font_q1": "Establecer fuente de letra o icono",
-      "font_a1": "1. Descarga la fuente o el icono de letra que quieras utilizar\n2. Renombra la fuente a  font.ttf; Renombra el icono a: icon.ttf\n3. Sitúa los archivos de fuentes en el directorio de configuración\n4. Reinicia la aplicación",
+      "error_a2": "1. Usa una memoria en formato Fat32\n2. Asegúrate de que atmosphere y el firmware del sistema están actualizados\n3. Espera a que los desarrolladores lo reparen",
+      "font_q1": "Cómo establecer una fuente o icono de teclas personalizados",
+      "font_a1": "1. Descarga la fuente o el icono que quieras utilizar\n2. Renombra la fuente a: font.ttf; Renombra el icono a: icon.ttf\n3. Sitúa los archivos de fuentes en el directorio de configuración\n4. Reinicia la aplicación",
       "font_q2": "Preguntas frecuentes",
-      "font_a2": "1. pleNx prioriza mostrar las fuentes personalizadas, usando las integradas en caso de fallo.\n2. \"Ajustes - Tutorial\" ofrece un menú para abrir rápidamente el directorio de configuración",
+      "font_a2": "1. pleNx prioriza mostrar las fuentes personalizadas, usando las integradas como alternativa\n2. \"Ajustes - Tutorial\" ofrece un menú para abrir rápidamente el directorio de configuración\n3. En Linux, pleNx usa xdg-open para abrir el directorio. Si el directorio de configuración no se abre correctamente, considera instalar esta herramienta",
       "font_q3": "No se muestran los subtítulos",
-      "font_a3": "Coloca un fichero ttf en {}/subfont.ttf"
+      "font_a3": "Coloca cualquier archivo ttf en {}/subfont.ttf"
     },
     "others": {
       "header": "Miscelánea",
@@ -264,7 +287,7 @@
         "3": "Oscuro"
       },
       "language": {
-        "header": "Idioma (necesita reiniciar)",
+        "header": "Idioma (requiere reinicio)",
         "auto": "Automático"
       },
       "keymap": {
@@ -274,54 +297,44 @@
         "keyboard": "Teclado"
       },
       "config_dir": "Directorio de configuración",
-      "logout": "Desconectar cuenta actual (la aplicación se cerrará)",
+      "logout": "Cerrar sesión de la cuenta actual \n(la aplicación se cerrará)",
       "up2date": "La aplicación está actualizada",
       "upgrade": "¡{} está ahora disponible! ¿Listo para actualizar?",
       "updating": "Actualización en curso, ¿cancelar ahora?",
+      "downloading": "Descargando {}… {}%",
+      "updated": "Actualización instalada. La aplicación se cerrará ahora: vuelve a abrirla para usar la nueva versión",
       "release": "Buscar actualizaciones"
     }
   },
   "hints": {
-    "title": "Launch pleNx as a full application",
-    "text_applet": "pleNx is running in applet mode: the available memory is not sufficient for video playback. Launch it as a full application using one of the options below.",
-    "text_app": "pleNx is running as a full application. Install the HOME menu tile to launch it this way directly.",
-    "install_title": "HOME menu tile (recommended)",
-    "install_text": "Installs the embedded NSP forwarder: the tile launches pleNx as a full application straight from the HOME menu.",
-    "install_button": "Install the tile",
-    "takeover_title": "Alternative: title takeover",
-    "takeover_text": "Hold R while launching any installed game to open the homebrew menu as a full application, then launch pleNx from there.",
-    "prompt": "Install the pleNx tile on the HOME menu?\nThe tile launches the app as a full application (required for video playback).",
+    "title": "Iniciar pleNx como aplicación completa",
+    "text_applet": "pleNx se está ejecutando en modo applet: la memoria disponible no es suficiente para la reproducción de vídeo. Inícialo como aplicación completa usando una de las opciones de abajo.",
+    "text_app": "pleNx se está ejecutando como aplicación completa. Instala el icono del menú HOME para iniciarlo así directamente.",
+    "install_title": "Icono del menú HOME (recomendado)",
+    "install_text": "Instala el NSP forwarder integrado: el icono inicia pleNx como aplicación completa directamente desde el menú HOME.",
+    "install_button": "Instalar el icono",
+    "takeover_title": "Alternativa: apropiación de título",
+    "takeover_text": "Mantén pulsado R al iniciar cualquier juego instalado para abrir el menú homebrew como aplicación completa, y luego inicia pleNx desde ahí.",
+    "prompt": "¿Instalar el icono de pleNx en el menú HOME?\nEl icono inicia la aplicación como aplicación completa (necesario para la reproducción de vídeo).",
     "hint_confirm": "Instalar el NSP forwarder puede resultar en un baneo\nPor favor confirma de nuevo"
   },
   "plex": {
-    "title": "Sign in to your Plex account",
-    "generating": "Generating code…",
-    "waiting": "Waiting for confirmation…",
-    "connected": "Connected!",
-    "expired": "The code expired, please try again",
-    "step1": "1. On your phone or computer, open plex.tv/link",
-    "step2": "2. Sign in to your Plex account",
-    "step3": "3. Enter the code shown above",
-    "regenerate": "Generate a new code",
-    "choose_server": "Choose a server",
-    "choose_profile": "Choose a profile",
-    "profile_pin": "Profile PIN",
-    "wrong_pin": "Wrong PIN",
-    "no_server": "No server found on this account",
+    "title": "Inicia sesión en tu cuenta de Plex",
+    "generating": "Generando código…",
+    "waiting": "Esperando confirmación…",
+    "connected": "¡Conectado!",
+    "expired": "El código ha caducado, inténtalo de nuevo",
+    "step1": "1. En tu teléfono u ordenador, abre plex.tv/link",
+    "step2": "2. Inicia sesión en tu cuenta de Plex",
+    "step3": "3. Introduce el código mostrado arriba",
+    "regenerate": "Generar un nuevo código",
+    "choose_server": "Elige un servidor",
+    "choose_profile": "Elige un perfil",
+    "profile_pin": "PIN del perfil",
+    "wrong_pin": "PIN incorrecto",
+    "no_server": "No se encontró ningún servidor en esta cuenta",
     "connecting": "Conectando al servidor…",
-    "unreachable": "Server unreachable"
-  },
-  "download": {
-    "season": "Descargar temporada",
-    "confirm_season": "¿Descargar {} episodios?",
-    "season_queued": "Temporada añadida a las descargas",
-    "storage": "Almacenamiento",
-    "storage_free": "{} libres de {}",
-    "section_active": "En curso",
-    "section_done": "Descargados",
-    "remove_all": "Eliminar todo",
-    "confirm_remove_all": "¿Eliminar todas las descargas?",
-    "empty_sub": "Las películas y episodios descargados aparecen aquí para verlos sin conexión."
+    "unreachable": "Servidor inaccesible"
   },
   "empty": {
     "title": "Nada que mostrar",

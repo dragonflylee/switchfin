@@ -4,8 +4,8 @@
     "genres": "장르",
     "suggest": "제안",
     "search": "검색",
-    "setting": "설정",
-    "downloads": "다운로드"
+    "downloads": "다운로드",
+    "setting": "설정"
   },
   "home": {
     "resume": "계속 시청하기",
@@ -20,7 +20,7 @@
   },
   "about": {
     "header": "소프트웨어 정보",
-    "brief": "게임패드 조작에 최적화된 크로스 플랫폼 Plex 클라이언트\n일상적인 사용을 위해 설계되었으며, 현재 PC 전 플랫폼과 Nintendo Switch에서 실행 가능합니다.",
+    "brief": "또 하나의 서드파티 Plex 클라이언트",
     "repo_header": "리포지토리"
   },
   "player": {
@@ -28,7 +28,7 @@
     "none": "표시 안 함",
     "audio": "오디오",
     "common": "일반",
-    "speed": "속도",
+    "speed": "재생 속도",
     "quality": "화질",
     "chapter": "챕터",
     "auto": "자동",
@@ -64,9 +64,9 @@
     "random": "무작위",
     "played": "재생됨",
     "unplayed": "재생 안 됨",
-    "collections": "Collections",
-    "season": "season",
-    "seasons": "seasons",
+    "collections": "컬렉션",
+    "season": "시즌",
+    "seasons": "시즌",
     "episode": "에피소드",
     "episodes": "에피소드",
     "seasons_title": "시즌",
@@ -87,8 +87,8 @@
       "series": "시리즈",
       "episode": "에피소드"
     },
-    "no_history": "No recent searches",
-    "no_results": "No results",
+    "no_history": "최근 검색 기록 없음",
+    "no_results": "검색 결과 없음",
     "placeholder": "영화·시리즈 검색",
     "results": "검색 결과",
     "keyboard": "키보드",
@@ -145,6 +145,29 @@
     "retry": "다시 시도할까요?",
     "required": "이름과 호스트를 입력하세요."
   },
+  "download": {
+    "start": "다운로드",
+    "cancel": "다운로드 취소",
+    "remove": "다운로드 삭제",
+    "downloading": "다운로드 중...",
+    "completed": "다운로드 완료",
+    "failed": "다운로드 실패",
+    "queued": "대기 중",
+    "no_downloads": "다운로드 없음",
+    "confirm_remove": "이 다운로드를 삭제할까요?",
+    "play_offline": "오프라인 재생",
+    "confirm_cancel": "이 다운로드를 취소할까요?",
+    "season": "시즌 다운로드",
+    "confirm_season": "에피소드 {}개를 다운로드할까요?",
+    "season_queued": "시즌이 다운로드에 추가되었습니다",
+    "storage": "저장 공간",
+    "storage_free": "{} 사용 가능 / 전체 {}",
+    "section_active": "다운로드 중",
+    "section_done": "다운로드 완료",
+    "remove_all": "모두 삭제",
+    "confirm_remove_all": "모든 다운로드를 삭제하시겠습니까?",
+    "empty_sub": "다운로드한 영화와 에피소드가 여기에 표시되어 오프라인으로 시청할 수 있습니다."
+  },
   "setting": {
     "quit_hint": "앱을 종료합니다. 설정 내용은 다음 실행 시 적용됩니다.",
     "name": "이름",
@@ -159,7 +182,7 @@
       "detail": "서버 상세",
       "connect_new": "새 서버",
       "connect_to": "Plex 서버에 연결",
-      "invalid": "서버 주소가 유효하지 않습니다!",
+      "invalid": "URL은 http:// 또는 https://로 시작해야 합니다",
       "connect": "연결",
       "delete": "삭제하시겠습니까?",
       "local": "로컬 서버",
@@ -170,26 +193,26 @@
     "playback": {
       "header": "재생 설정",
       "bottom_bar": "하단 진행 표시줄 표시",
-      "low_quality": "저화질 디코딩 (화질을 희생하여 전력 소모를 줄입니다)",
-      "in_memory_cache": "디코딩 캐시",
+      "low_quality": "저화질 디코딩 (CPU 사용량 감소)",
+      "in_memory_cache": "메모리 캐시",
       "subs_fallback": "자동으로 자막 불러오기",
       "vo": "비디오 출력",
       "hwdec": "하드웨어 디코딩",
       "force_directplay": "Direct Play 강제",
-      "osd_on_toggle": "일시 정지 시 제어 인터페이스 표시",
-      "touch_gesture": "재생 진행 손가락 제스처 활성화",
-      "clip_point": "챕터 위치 표시",
-      "transcodec": "트랜스코딩 포맷",
+      "osd_on_toggle": "일시 정지 시 OSD 표시",
+      "touch_gesture": "탐색 단계 터치 제스처",
+      "clip_point": "챕터 클립 위치 표시",
+      "transcodec": "코덱",
       "audio_channels": "오디오 채널",
-      "video_quality": "비디오 품질",
+      "video_quality": "화질",
       "subsync": "자막 동기화"
     },
     "transcode": {
-      "header": "트랜스코딩 프로필"
+      "header": "트랜스코딩"
     },
     "control": {
       "header": "재생 제어",
-      "tv_osd": "TV 스타일 플레이어"
+      "tv_osd": "TV 스타일 OSD 제어"
     },
     "filter": {
       "mirror": "화면 반전",
@@ -213,15 +236,15 @@
       "reset": "초기화"
     },
     "network": {
-      "header": "네트워크 설정",
+      "header": "네트워크",
       "threads": "이미지 로딩 스레드 수",
       "timeout": "요청 타임아웃 (ms)",
-      "proxy": "프록시 서버",
-      "host": "주소",
+      "proxy": "프록시 설정",
+      "host": "호스트",
       "port": "포트"
     },
     "ui": {
-      "header": "사용자 인터페이스",
+      "header": "UI",
       "scale": {
         "header": "UI 스케일 (재시작 필요)",
         "544p": "544p",
@@ -234,94 +257,84 @@
     },
     "tutorial": {
       "header": "튜토리얼",
-      "open": "홈 화면에 아이콘 설치",
-      "error": "소프트웨어 내 오류 또는 일부 기능 불가",
+      "open": "홈 화면에 아이콘 설치 방법",
+      "error": "버그가 발생한 경우",
       "hot_key": "단축키",
       "font": "커스텀 글꼴 설정",
       "error_q1": "네트워크에 접근할 수 없음",
-      "error_a1": "1. Atmosphere 및 시스템 펌웨어가 최신 상태인지 확인\n2. 시스템 시간이 올바른지 확인\n3. IP, DNS 등을 포함한 기본 네트워크 설정 복원",
-      "error_q2": "소프트웨어가 임의로 종료됨",
-      "error_a2": "1. Fat32 형식의 메모리 카드 사용\n2. 시스템 펌웨어를 최신 상태로 유지\n3. 개발자들의 수정 기다리기",
-      "font_q1": "커스텀 글꼴 또는 아이콘 설정 방법",
-      "font_a1": "1. 원하는 글꼴 또는 아이콘 파일을 다운로드\n2. 글꼴은 'font.ttf', 아이콘은 'icon.ttf'로 이름 변경\n3. 변경한 파일을 애플리케이션 구성 디렉토리에 배치\n4. 애플리케이션 재시작",
+      "error_a1": "1. atmosphere 및 시스템 펌웨어가 최신 상태인지 확인\n2. 시스템 시간이 올바른지 확인\n3. IP, DNS 등을 포함한 기본 네트워크 설정 복원\n4. 중국에서 사용 중인 경우",
+      "error_q2": "임의의 오류와 함께 종료됨",
+      "error_a2": "1. Fat32 형식의 메모리 카드 사용\n2. atmosphere 및 시스템 펌웨어가 최신 상태인지 확인\n3. 개발자의 수정 기다리기",
+      "font_q1": "커스텀 글꼴 또는 키맵 아이콘 설정 방법",
+      "font_a1": "1. 원하는 글꼴 또는 아이콘 글꼴을 다운로드\n2. 글꼴은 font.ttf, 아이콘은 icon.ttf로 이름 변경\n3. 글꼴 파일을 구성 디렉터리에 배치\n4. 애플리케이션 재시작",
       "font_q2": "자주 묻는 질문",
-      "font_a2": "1. 소프트웨어는 커스텀 글꼴을 우선으로 표시하고, 내장 글꼴을 보조적으로 사용합니다.\n2. '설정 - 튜토리얼'에서 빠르게 구성 디렉토리를 열 수 있는 메뉴 항목을 제공합니다.",
-      "font_q3": "자막이 제대로 표시되지 않음",
-      "font_a3": "적절한 ttf 글꼴 파일을 {}/subfont.ttf로 복사"
+      "font_a2": "1. pleNx는 커스텀 글꼴을 우선으로 표시하고, 내장 글꼴을 보조적으로 사용합니다\n2. \"설정 - 튜토리얼\"에서 구성 디렉터리를 빠르게 열 수 있는 메뉴 항목을 제공합니다\n3. Linux에서 pleNx는 xdg-open으로 디렉터리를 엽니다. 구성 디렉터리가 제대로 열리지 않으면 이 도구를 설치하는 것을 고려하세요",
+      "font_q3": "자막이 표시되지 않음",
+      "font_a3": "임의의 ttf 파일을 {}/subfont.ttf에 배치하세요"
     },
     "others": {
       "header": "기타",
-      "fullscreen": "전체 화면 표시",
+      "fullscreen": "전체 화면",
       "always_on_top": "항상 맨 위에 표시",
       "single": "단일 인스턴스",
       "overclock": "CPU 오버클럭",
       "debug": "디버그 창",
       "sync": "정렬 설정 저장",
       "theme": {
-        "header": "테마 색상 (재시작 필요)",
+        "header": "테마 (재시작 필요)",
         "1": "자동",
-        "2": "라이트 테마",
-        "3": "다크 테마"
+        "2": "라이트",
+        "3": "다크"
       },
       "language": {
         "header": "언어 (재시작 필요)",
         "auto": "자동"
       },
       "keymap": {
-        "header": "키맵 아이콘",
+        "header": "키맵 스타일",
         "xbox": "Xbox",
         "ps": "PlayStation",
         "keyboard": "키보드"
       },
       "config_dir": "구성 디렉터리",
-      "logout": "현재 계정에서 로그아웃 (앱이 종료됩니다)",
+      "logout": "현재 계정에서 로그아웃 \n(앱이 종료됩니다)",
       "up2date": "앱이 최신 버전입니다",
-      "upgrade": "새 버전 {}을(를) 발견했습니다. 업데이트 하시겠습니까?",
-      "updating": "업데이트 진행 중, 업데이트를 취소하시겠습니까?",
+      "upgrade": "새 버전 {}을(를) 사용할 수 있습니다! 업데이트할까요?",
+      "updating": "업데이트 진행 중, 지금 취소할까요?",
+      "downloading": "다운로드 중 {}… {}%",
+      "updated": "업데이트가 설치되었습니다. 앱이 종료됩니다. 새 버전을 사용하려면 다시 실행하세요",
       "release": "업데이트 확인"
     }
   },
   "hints": {
-    "title": "Launch pleNx as a full application",
-    "text_applet": "pleNx is running in applet mode: the available memory is not sufficient for video playback. Launch it as a full application using one of the options below.",
-    "text_app": "pleNx is running as a full application. Install the HOME menu tile to launch it this way directly.",
-    "install_title": "HOME menu tile (recommended)",
-    "install_text": "Installs the embedded NSP forwarder: the tile launches pleNx as a full application straight from the HOME menu.",
-    "install_button": "Install the tile",
-    "takeover_title": "Alternative: title takeover",
-    "takeover_text": "Hold R while launching any installed game to open the homebrew menu as a full application, then launch pleNx from there.",
-    "prompt": "Install the pleNx tile on the HOME menu?\nThe tile launches the app as a full application (required for video playback).",
-    "hint_confirm": "홈 화면 아이콘 설치는 기기가 밴 될 수 있습니다. 다시 확인하세요"
+    "title": "pleNx를 전체 애플리케이션으로 실행",
+    "text_applet": "pleNx가 애플릿 모드로 실행 중입니다: 동영상 재생에 필요한 메모리가 충분하지 않습니다. 아래 옵션 중 하나를 사용하여 전체 애플리케이션으로 실행하세요.",
+    "text_app": "pleNx가 전체 애플리케이션으로 실행 중입니다. HOME 메뉴 타일을 설치하면 바로 이 방식으로 실행할 수 있습니다.",
+    "install_title": "HOME 메뉴 타일 (권장)",
+    "install_text": "내장 NSP 포워더를 설치합니다: 타일이 HOME 메뉴에서 곧바로 pleNx를 전체 애플리케이션으로 실행합니다.",
+    "install_button": "타일 설치",
+    "takeover_title": "대안: 타이틀 탈취",
+    "takeover_text": "설치된 게임을 실행하면서 R을 누른 채로 있으면 홈브루 메뉴가 전체 애플리케이션으로 열립니다. 거기서 pleNx를 실행하세요.",
+    "prompt": "HOME 메뉴에 pleNx 타일을 설치할까요?\n타일은 앱을 전체 애플리케이션으로 실행합니다 (동영상 재생에 필요).",
+    "hint_confirm": "NSP 포워더 설치는 기기가 밴될 수 있습니다\n다시 한 번 확인하세요"
   },
   "plex": {
-    "title": "Sign in to your Plex account",
-    "generating": "Generating code…",
-    "waiting": "Waiting for confirmation…",
-    "connected": "Connected!",
-    "expired": "The code expired, please try again",
-    "step1": "1. On your phone or computer, open plex.tv/link",
-    "step2": "2. Sign in to your Plex account",
-    "step3": "3. Enter the code shown above",
-    "regenerate": "Generate a new code",
-    "choose_server": "Choose a server",
-    "choose_profile": "Choose a profile",
-    "profile_pin": "Profile PIN",
-    "wrong_pin": "Wrong PIN",
-    "no_server": "No server found on this account",
+    "title": "Plex 계정에 로그인",
+    "generating": "코드 생성 중…",
+    "waiting": "확인 대기 중…",
+    "connected": "연결됨!",
+    "expired": "코드가 만료되었습니다. 다시 시도하세요",
+    "step1": "1. 휴대폰이나 컴퓨터에서 plex.tv/link를 엽니다",
+    "step2": "2. Plex 계정에 로그인합니다",
+    "step3": "3. 위에 표시된 코드를 입력합니다",
+    "regenerate": "새 코드 생성",
+    "choose_server": "서버 선택",
+    "choose_profile": "프로필 선택",
+    "profile_pin": "프로필 PIN",
+    "wrong_pin": "잘못된 PIN",
+    "no_server": "이 계정에서 서버를 찾을 수 없습니다",
     "connecting": "서버에 연결하는 중…",
-    "unreachable": "Server unreachable"
-  },
-  "download": {
-    "season": "시즌 다운로드",
-    "confirm_season": "에피소드 {}개를 다운로드할까요?",
-    "season_queued": "시즌이 다운로드에 추가되었습니다",
-    "storage": "저장 공간",
-    "storage_free": "{} 사용 가능 / 전체 {}",
-    "section_active": "다운로드 중",
-    "section_done": "다운로드 완료",
-    "remove_all": "모두 삭제",
-    "confirm_remove_all": "모든 다운로드를 삭제하시겠습니까?",
-    "empty_sub": "다운로드한 영화와 에피소드가 여기에 표시되어 오프라인으로 시청할 수 있습니다."
+    "unreachable": "서버에 연결할 수 없음"
   },
   "empty": {
     "title": "표시할 항목 없음",

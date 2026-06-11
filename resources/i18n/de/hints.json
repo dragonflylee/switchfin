@@ -9,14 +9,15 @@
   "save": "Sichern",
   "submit": "Absenden",
   "option": "Optionen",
-  "input": "Bitte Eingeben...",
-  "preset": "Preset",
-  "default": "Voreinstellung",
-  "current": "Momentanig",
+  "input": "Bitte eingeben...",
+  "preset": "Voreinstellung",
+  "default": "Standard",
+  "current": "Momentan",
   "success": "Erfolg",
-  "failed": "Fehlgeschlagen",
-  "exit_hint": "Die Applikation verlassen?",
+  "password": "Anzeigen/Verbergen",
+  "retry": "Wiederholen",
+  "exit_hint": "Möchtest du die Applikation verlassen?",
   "loading": "Laden",
-  "refresh": "Neu Laden",
-  "quit": "Verlasse die App..."
+  "refresh": "Neu laden",
+  "quit": "App wird beendet..."
 }

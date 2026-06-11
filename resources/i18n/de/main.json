@@ -4,13 +4,13 @@
     "genres": "Genres",
     "suggest": "Vorschläge",
     "search": "Suche",
-    "setting": "Einstellungen",
-    "downloads": "Downloads"
+    "downloads": "Downloads",
+    "setting": "Einstellungen"
   },
   "home": {
     "resume": "Weiterschauen",
     "nextup": "Als Nächstes",
-    "latest": "Neustes Hinzugefügt"
+    "latest": "Kürzlich hinzugefügt"
   },
   "recommend": {
     "like": "Weil du {} magst",
@@ -20,14 +20,14 @@
   },
   "about": {
     "header": "Über",
-    "brief": "Yet another third-party Plex client",
+    "brief": "Noch ein weiterer Drittanbieter-Plex-Client",
     "repo_header": "Repository"
   },
   "player": {
     "subtitle": "Untertitel",
-    "none": "Nichts",
+    "none": "Keine",
     "audio": "Tonspur",
-    "common": "Vereint",
+    "common": "Allgemein",
     "speed": "Abspielgeschwindigkeit",
     "quality": "Videoqualität",
     "chapter": "Kapitel",
@@ -36,23 +36,59 @@
     "prev": "Vorheriges",
     "next": "Nächstes",
     "error": "Wiedergabefehler",
-    "episode": "Episoden",
+    "episode": "Episode",
     "speed_up": "Aktuelle Geschwindigkeit {}"
   },
+  "media": {
+    "sort": "Sortieren",
+    "sort_by": "Sortieren nach",
+    "filter": "Filter",
+    "order": "Reihenfolge",
+    "ascending": "Aufsteigend",
+    "descending": "Absteigend",
+    "name": "Name",
+    "mark_played": "Als gesehen markieren",
+    "mark_unplayed": "Als ungesehen markieren",
+    "play": "Abspielen",
+    "replay": "Erneut abspielen",
+    "see_all": "Alle anzeigen",
+    "intro": "Vorschau",
+    "people": "Mitwirkende",
+    "special": "Bonusmaterial",
+    "similar": "Ähnliche Titel",
+    "date_add": "Hinzugefügt am",
+    "date_played": "Zuletzt abgespielt",
+    "premiere_date": "Erscheinungsdatum",
+    "play_count": "Wiedergaben",
+    "rating": "Community-Bewertung",
+    "random": "Zufällig",
+    "played": "Gesehen",
+    "unplayed": "Ungesehen",
+    "collections": "Sammlungen",
+    "season": "Staffel",
+    "seasons": "Staffeln",
+    "episode": "Episode",
+    "episodes": "Episoden",
+    "seasons_title": "Staffeln",
+    "go_series": "Zur Serie",
+    "go_season": "Zur Staffel",
+    "director": "Regie"
+  },
   "search": {
-    "hint": "Support keywords and their initial letters",
-    "clear": "klären",
-    "delete": "löschen",
-    "paste": "Paste",
-    "history": "Geschichte",
+    "hint": "Unterstützt Stichwörter und ihre Anfangsbuchstaben",
+    "clear": "Leeren",
+    "delete": "Löschen",
+    "paste": "Einfügen",
+    "history": "Verlauf",
     "suggest": "Vorschläge",
+    "clear_history": "Suchverlauf wirklich leeren?",
     "genres": {
-      "movie": "Filme",
+      "movie": "Film",
       "series": "Serie",
-      "episode": "Folgen"
+      "episode": "Episode"
     },
-    "no_history": "No recent searches",
-    "no_results": "No results",
+    "no_history": "Keine letzten Suchen",
+    "no_results": "Keine Ergebnisse",
     "placeholder": "Filme & Serien suchen",
     "results": "Ergebnisse",
     "keyboard": "Tastatur",
@@ -84,138 +120,12 @@
     "on_server": "Auf dem Server",
     "not_on_server": "Nicht auf dem Server"
   },
-  "setting": {
-    "quit_hint": "Diese Applikation wird beended und die Einstellung tritt bei dem nächsten Start in kraft.",
-    "name": "Name",
-    "version": "Version",
-    "os": "Betriebssystem",
-    "url": "URL",
-    "user": "Benutzer",
-    "username": "Benutzername",
-    "password": "Passwort",
-    "server": {
-      "header": "Server",
-      "detail": "Serverdetails",
-      "connect_new": "Neuer Server",
-      "connect_to": "Verbinde neuen Plex-Server",
-      "invalid": "Die URL muss mit http:// oder https:// beginnen",
-      "connect": "Verbinden",
-      "delete": "Bist du sicher, dass du diesen Server löschen willst?",
-      "local": "Locale Server",
-      "users": "{} Benutzer",
-      "sigin_to": "In {} anmelden",
-      "signin": "Anmelden"
-    },
-    "playback": {
-      "header": "Videoplayer",
-      "bottom_bar": "Zeige unteren Fortschrittsbalken",
-      "hwdec": "Hardwaredekodierung",
-      "osd_on_toggle": "Zeige OSD wenn pausiert",
-      "transcodec": "Transcodec",
-      "maxbitrate": "Max Bitrate",
-      "audio_channels": "Audiokanäle"
-    },
-    "network": {
-      "header": "Netzwerk",
-      "threads": "Anzahl an Bildladethreads",
-      "timeout": "Maximale Anfragedauer (ms)"
-    },
-    "tutorial": {
-      "header": "Anleitungen",
-      "open": "Desktop-Icon installieren",
-      "error": "Einen Fehler gefunden",
-      "hot_key": "Hotkey",
-      "font": "Eigene Schriftart verwenden",
-      "error_q1": "Netzwerk nicht erreichbar",
-      "error_a1": "1. Stelle sicher, dass Atmusphere und die Systemfirmware auf dem neusten Stand sind\n2. Bestätige, dass die Systemzeit richtig eingestellt ist\n3. Stelle die ursprünglichen Netzwerkeinstellungen wieder her, mitunter IP, DNS, usw\n4. In China verwenden",
-      "error_q2": "Verlässt mit einer zufälligen Fehlermeldung",
-      "error_a2": "1. Verwende eine Fat32-formatierte Speicherkarte\n2. Stelle sicher, dass Atmusphere und die Systemfirmware auf dem neusten Stand sind\n3. Warte auf Entwickler, die Applikation zu reparieren",
-      "font_q1": "Eigene Schriftart oder Icons setzen",
-      "font_a1": "1. Lade Schriftart oder Icons herunter\n2. Benenne die Schriftart: font.ttf; Benenne die Icons: icon.ttf\n3. Setze die neuen Dateien in den Konfigurationsordner\n4. Starte die Applikation neu",
-      "font_q2": "FAQ",
-      "font_a2": "1. pleNx priorisiert selbst gesetzte Schriftarten, ansonsten verwendet es die selbst eingebauten Schriftarten\n2. In \"Einstellungen - Anleitungen\" befindet sich ein Knopf um den Einstellungsordner zu öffnen\n3. Auf Linux verwendet pleNx xdg-open um diesen Ordner zu öffnen. Falls sich der Ordner sich nicht richtig öffnet, dann anstalliere xdg-open"
-    },
-    "others": {
-      "header": "Diverses",
-      "fullscreen": "Vollbild",
-      "overclock": "CPU-Übertacktung",
-      "theme": {
-        "header": "Aussehen (benötigt Neustart)",
-        "1": "Auto",
-        "2": "Hell",
-        "3": "Dunkel"
-      },
-      "language": {
-        "header": "Sprache (benötigt Neustart)",
-        "auto": "Auto"
-      },
-      "keymap": {
-        "header": "Knopfstil",
-        "xbox": "Xbox",
-        "ps": "PlayStation",
-        "keyboard": "Tastatur"
-      },
-      "up2date": "pleNx ist auf dem neusten Stand",
-      "upgrade": "{} is verfügbar! Jetzt aktualisieren?",
-      "release": "Suche nach Aktualisierungen"
-    }
-  },
-  "hints": {
-    "title": "Launch pleNx as a full application",
-    "text_applet": "pleNx is running in applet mode: the available memory is not sufficient for video playback. Launch it as a full application using one of the options below.",
-    "text_app": "pleNx is running as a full application. Install the HOME menu tile to launch it this way directly.",
-    "install_title": "HOME menu tile (recommended)",
-    "install_text": "Installs the embedded NSP forwarder: the tile launches pleNx as a full application straight from the HOME menu.",
-    "install_button": "Install the tile",
-    "takeover_title": "Alternative: title takeover",
-    "takeover_text": "Hold R while launching any installed game to open the homebrew menu as a full application, then launch pleNx from there.",
-    "prompt": "Install the pleNx tile on the HOME menu?\nThe tile launches the app as a full application (required for video playback).",
-    "hint_confirm": "NSP forwarder zu installieren kann zu einem Ban von Nintendo führen\nBitte erneut bestätigen"
-  },
-  "plex": {
-    "title": "Sign in to your Plex account",
-    "generating": "Generating code…",
-    "waiting": "Waiting for confirmation…",
-    "connected": "Connected!",
-    "expired": "The code expired, please try again",
-    "step1": "1. On your phone or computer, open plex.tv/link",
-    "step2": "2. Sign in to your Plex account",
-    "step3": "3. Enter the code shown above",
-    "regenerate": "Generate a new code",
-    "choose_server": "Choose a server",
-    "choose_profile": "Choose a profile",
-    "profile_pin": "Profile PIN",
-    "wrong_pin": "Wrong PIN",
-    "no_server": "No server found on this account",
-    "connecting": "Verbindung zum Server wird hergestellt…",
-    "unreachable": "Server unreachable"
-  },
-  "media": {
-    "episode": "Episode",
-    "episodes": "Episoden",
-    "seasons_title": "Staffeln",
-    "go_series": "Zur Serie",
-    "go_season": "Zur Staffel",
-    "director": "Regie",
-    "replay": "Erneut abspielen",
-    "see_all": "Alle anzeigen"
-  },
-  "download": {
-    "season": "Staffel herunterladen",
-    "confirm_season": "{} Episoden herunterladen?",
-    "season_queued": "Staffel zu Downloads hinzugefügt",
-    "storage": "Speicher",
-    "storage_free": "{} frei von {}",
-    "section_active": "Aktiv",
-    "section_done": "Heruntergeladen",
-    "remove_all": "Alle entfernen",
-    "confirm_remove_all": "Alle Downloads entfernen?",
-    "empty_sub": "Heruntergeladene Filme und Episoden erscheinen hier, offline abspielbar."
-  },
   "remote": {
     "empty_title": "Keine Dateien",
     "empty_sub": "Durchsuche den lokalen Speicher und deine WebDAV-, FTP- oder SFTP-Server.",
     "local": "Dateien",
+    "folder": "Ordner",
+    "up": "Hoch",
     "add_server": "Server hinzufügen",
     "edit_server": "Server bearbeiten",
     "manage": "Server verwalten",
@@ -234,6 +144,197 @@
     "test_failed": "Verbindung fehlgeschlagen: {}",
     "retry": "Erneut versuchen?",
     "required": "Gib mindestens einen Namen und einen Host an."
+  },
+  "download": {
+    "start": "Herunterladen",
+    "cancel": "Download abbrechen",
+    "remove": "Download entfernen",
+    "downloading": "Wird heruntergeladen...",
+    "completed": "Heruntergeladen",
+    "failed": "Download fehlgeschlagen",
+    "queued": "In Warteschlange",
+    "no_downloads": "Keine Downloads",
+    "confirm_remove": "Diesen Download entfernen?",
+    "play_offline": "Offline abspielen",
+    "confirm_cancel": "Diesen Download abbrechen?",
+    "season": "Staffel herunterladen",
+    "confirm_season": "{} Episoden herunterladen?",
+    "season_queued": "Staffel zu Downloads hinzugefügt",
+    "storage": "Speicher",
+    "storage_free": "{} frei von {}",
+    "section_active": "Aktiv",
+    "section_done": "Heruntergeladen",
+    "remove_all": "Alle entfernen",
+    "confirm_remove_all": "Alle Downloads entfernen?",
+    "empty_sub": "Heruntergeladene Filme und Episoden erscheinen hier, offline abspielbar."
+  },
+  "setting": {
+    "quit_hint": "Du bist dabei, die Applikation zu beenden. Die Einstellungen treten beim nächsten Start in Kraft.",
+    "name": "Name",
+    "version": "Version",
+    "os": "Betriebssystem",
+    "url": "URL",
+    "user": "Benutzer",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "server": {
+      "header": "Server",
+      "detail": "Serverdetails",
+      "connect_new": "Neuer Server",
+      "connect_to": "Mit einem Plex-Server verbinden",
+      "invalid": "Die URL muss mit http:// oder https:// beginnen",
+      "connect": "Verbinden",
+      "delete": "Wirklich löschen?",
+      "local": "Lokale Server",
+      "users": "{} Benutzer",
+      "sigin_to": "In {} anmelden",
+      "signin": "Anmelden"
+    },
+    "playback": {
+      "header": "Wiedergabe",
+      "bottom_bar": "Unteren Fortschrittsbalken anzeigen",
+      "low_quality": "Dekodierung in geringer Qualität (weniger CPU-Last)",
+      "in_memory_cache": "Arbeitsspeicher-Cache",
+      "subs_fallback": "Untertitel automatisch laden",
+      "vo": "Videoausgabe",
+      "hwdec": "Hardwaredekodierung",
+      "force_directplay": "Direct Play erzwingen",
+      "osd_on_toggle": "OSD bei Pause anzeigen",
+      "touch_gesture": "Touch-Geste für Sprungschritt",
+      "clip_point": "Kapitelmarken anzeigen",
+      "transcodec": "Codec",
+      "audio_channels": "Audiokanäle",
+      "video_quality": "Videoqualität",
+      "subsync": "Untertitel-Synchronisierung"
+    },
+    "transcode": {
+      "header": "Transkodierung"
+    },
+    "control": {
+      "header": "Wiedergabesteuerung",
+      "tv_osd": "OSD-Steuerung im TV-Stil"
+    },
+    "filter": {
+      "mirror": "Video spiegeln",
+      "hflip": "Horizontal spiegeln",
+      "vflip": "Vertikal spiegeln",
+      "rotation": "Drehung"
+    },
+    "aspect": {
+      "header": "Seitenverhältnis",
+      "crop": "Zuschneiden",
+      "stretch": "Strecken",
+      "auto": "Auto"
+    },
+    "equalizer": {
+      "header": "Equalizer",
+      "brightness": "Helligkeit",
+      "contrast": "Kontrast",
+      "saturation": "Sättigung",
+      "gamma": "Gamma",
+      "hue": "Farbton",
+      "reset": "Zurücksetzen"
+    },
+    "network": {
+      "header": "Netzwerk",
+      "threads": "Anzahl an Bildladethreads",
+      "timeout": "Maximale Anfragedauer (ms)",
+      "proxy": "Proxy-Einstellung",
+      "host": "Host",
+      "port": "Port"
+    },
+    "ui": {
+      "header": "Oberfläche",
+      "scale": {
+        "header": "UI-Skalierung (Neustart erforderlich)",
+        "544p": "544p",
+        "720p": "720p",
+        "900p": "900p",
+        "1080p": "1080p"
+      },
+      "vsync": "Vertikale Synchronisierung",
+      "show_fps": "FPS anzeigen"
+    },
+    "tutorial": {
+      "header": "Anleitungen",
+      "open": "Desktop-Icon installieren",
+      "error": "Falls du einen Fehler findest",
+      "hot_key": "Tastenkürzel",
+      "font": "Eigene Schriftart festlegen",
+      "error_q1": "Netzwerk nicht erreichbar",
+      "error_a1": "1. Stelle sicher, dass atmosphere und die Systemfirmware auf dem neusten Stand sind\n2. Bestätige, dass die Systemzeit richtig eingestellt ist\n3. Stelle die Standard-Netzwerkeinstellungen wieder her, mitsamt IP, DNS usw.\n4.In China verwenden",
+      "error_q2": "Beendet sich mit zufälligem Fehler",
+      "error_a2": "1. Verwende eine Fat32-formatierte Speicherkarte\n2. Stelle sicher, dass atmosphere und die Systemfirmware auf dem neusten Stand sind\n3. Warte auf eine Behebung durch die Entwickler",
+      "font_q1": "Eigene Schriftart oder Tastensymbole festlegen",
+      "font_a1": "1. Lade die gewünschte Schriftart oder Symbolschrift herunter\n2. Benenne die Schriftart in: font.ttf; benenne die Symbole in: icon.ttf\n3. Lege die Schriftdateien in den Konfigurationsordner\n4. Starte die Applikation neu",
+      "font_q2": "FAQ",
+      "font_a2": "1. pleNx bevorzugt die Anzeige eigener Schriftarten und greift auf die eingebauten Schriftarten zurück\n2. \"Einstellungen - Anleitungen\" enthält einen Menüpunkt, um den Konfigurationsordner schnell zu öffnen\n3. Auf Linux verwendet pleNx xdg-open, um den Ordner zu öffnen. Falls sich der Konfigurationsordner nicht richtig öffnen lässt, kannst du erwägen, dieses Werkzeug zu installieren",
+      "font_q3": "Untertitel werden nicht angezeigt",
+      "font_a3": "Lege eine beliebige ttf-Datei unter {}/subfont.ttf ab"
+    },
+    "others": {
+      "header": "Diverses",
+      "fullscreen": "Vollbild",
+      "always_on_top": "Immer im Vordergrund",
+      "single": "Einzelinstanz",
+      "overclock": "CPU-Übertaktung",
+      "debug": "Debug-Ansicht",
+      "sync": "Reihenfolge der Einstellungen beibehalten",
+      "theme": {
+        "header": "Aussehen (Neustart erforderlich)",
+        "1": "Auto",
+        "2": "Hell",
+        "3": "Dunkel"
+      },
+      "language": {
+        "header": "Sprache (Neustart erforderlich)",
+        "auto": "Auto"
+      },
+      "keymap": {
+        "header": "Knopfstil",
+        "xbox": "Xbox",
+        "ps": "PlayStation",
+        "keyboard": "Tastatur"
+      },
+      "config_dir": "Konfigurationsordner",
+      "logout": "Vom aktuellen Konto abmelden \n(die Applikation wird beendet)",
+      "up2date": "App ist auf dem neusten Stand",
+      "upgrade": "{} ist jetzt verfügbar! Bereit zum Aktualisieren?",
+      "updating": "Aktualisierung läuft, jetzt abbrechen?",
+      "downloading": "Wird heruntergeladen {}… {}%",
+      "updated": "Aktualisierung installiert. Die Applikation wird jetzt geschlossen: starte sie erneut, um die neue Version zu nutzen",
+      "release": "Nach Aktualisierungen suchen"
+    }
+  },
+  "hints": {
+    "title": "pleNx als vollwertige Anwendung starten",
+    "text_applet": "pleNx läuft im Applet-Modus: Der verfügbare Arbeitsspeicher reicht für die Videowiedergabe nicht aus. Starte es über eine der folgenden Optionen als vollwertige Anwendung.",
+    "text_app": "pleNx läuft als vollwertige Anwendung. Installiere die Kachel im HOME-Menü, um es künftig direkt so zu starten.",
+    "install_title": "Kachel im HOME-Menü (empfohlen)",
+    "install_text": "Installiert den eingebetteten NSP-Forwarder: Die Kachel startet pleNx direkt aus dem HOME-Menü als vollwertige Anwendung.",
+    "install_button": "Kachel installieren",
+    "takeover_title": "Alternative: Title-Takeover",
+    "takeover_text": "Halte R gedrückt, während du ein installiertes Spiel startest, um das Homebrew-Menü als vollwertige Anwendung zu öffnen, und starte pleNx von dort.",
+    "prompt": "Die pleNx-Kachel im HOME-Menü installieren?\nDie Kachel startet die App als vollwertige Anwendung (für die Videowiedergabe erforderlich).",
+    "hint_confirm": "Die Installation des NSP-Forwarders kann zu einer Sperre führen\nBitte erneut bestätigen"
+  },
+  "plex": {
+    "title": "Bei deinem Plex-Konto anmelden",
+    "generating": "Code wird generiert…",
+    "waiting": "Warte auf Bestätigung…",
+    "connected": "Verbunden!",
+    "expired": "Der Code ist abgelaufen, bitte versuche es erneut",
+    "step1": "1. Öffne auf deinem Telefon oder Computer plex.tv/link",
+    "step2": "2. Melde dich bei deinem Plex-Konto an",
+    "step3": "3. Gib den oben angezeigten Code ein",
+    "regenerate": "Neuen Code generieren",
+    "choose_server": "Server auswählen",
+    "choose_profile": "Profil auswählen",
+    "profile_pin": "Profil-PIN",
+    "wrong_pin": "Falsche PIN",
+    "no_server": "Kein Server für dieses Konto gefunden",
+    "connecting": "Verbindung zum Server wird hergestellt…",
+    "unreachable": "Server nicht erreichbar"
   },
   "empty": {
     "title": "Nichts anzuzeigen",

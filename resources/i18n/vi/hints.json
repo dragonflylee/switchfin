@@ -1,6 +1,6 @@
 {
   "ok": "OK",
-  "back": "Trờ về",
+  "back": "Trở về",
   "cancel": "Huỷ",
   "exit": "Thoát",
   "on": "Bật",
@@ -15,7 +15,7 @@
   "current": "Hiện tại",
   "success": "Thành công",
   "password": "Hiện/Ẩn",
-  "failed": "Thất bại",
+  "retry": "Thử lại",
   "exit_hint": "Bạn có muốn thoát khỏi chương trình?",
   "loading": "Đang tải",
   "refresh": "Làm mới",
