@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guide — pleNx</title>
+  <meta name="description" content="How to install pleNx on Nintendo Switch and desktop, playback controls, system requirements and FAQ.">
+  <link rel="canonical" href="https://thcolin.github.io/pleNx/guide.html">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Guide — pleNx">
+  <meta property="og:description" content="How to install pleNx on Nintendo Switch and desktop, playback controls, system requirements and FAQ.">
+  <meta property="og:image" content="https://thcolin.github.io/pleNx/assets/img/og.jpg">
+  <meta name="theme-color" content="#14110d">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Hanken+Grotesk:wght@400;700;800&family=Fragment+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script>document.documentElement.classList.add('js')</script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="nav">
+    <a class="nav-brand" href="./">
+      <img src="assets/img/logo-full-white-ghost.png" alt="pleNx — home" width="90" height="31">
+    </a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="./#features">Features</a>
+      <a href="./#screens">Screens</a>
+      <a href="./#install">Install</a>
+      <a href="guide.html" aria-current="page">Guide</a>
+    </nav>
+    <a class="nav-gh" href="https://github.com/thcolin/pleNx" aria-label="pleNx on GitHub">
+      <svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+    </a>
+  </header>
+
+  <main class="guide" id="main">
+    <header class="guide-hero">
+      <p class="guide-kicker reveal">Operation manual</p>
+      <h1 class="reveal" style="--i:1">Guide</h1>
+      <nav class="toc reveal" style="--i:2" aria-label="On this page">
+        <a href="#switch"><span class="toc-num">01</span> Install on Nintendo Switch</a>
+        <a href="#desktop"><span class="toc-num">02</span> Desktop &amp; mobile builds</a>
+        <a href="#controls"><span class="toc-num">03</span> Controls during playback</a>
+        <a href="#requirements"><span class="toc-num">04</span> System requirements</a>
+        <a href="#faq"><span class="toc-num">05</span> FAQ</a>
+      </nav>
+    </header>
+
+    <!-- ============ SWITCH ============ -->
+    <section class="guide-section" id="switch">
+      <div class="sec-head reveal">
+        <span class="sec-num" aria-hidden="true">01</span>
+        <h2>Install on Nintendo Switch</h2>
+      </div>
+      <div class="guide-body reveal">
+        <p>You'll need a console running <a href="https://github.com/Atmosphere-NX/Atmosphere">Atmosphère</a> CFW
+           and the homebrew menu.</p>
+        <ol>
+          <li>Download <a href="https://github.com/thcolin/pleNx/releases/latest/download/pleNx.nro"><code>pleNx.nro</code></a>
+              from the latest release and copy it to <code>sdmc:/switch/</code>.</li>
+          <li>Launch pleNx from the homebrew menu.</li>
+          <li>On first launch in <strong>applet mode</strong>, pleNx offers to install a HOME menu tile:
+              press the button, confirm, and the app relaunches as a regular title with full memory.
+              Alternatively, hold <kbd>R</kbd> while launching any game (title takeover).</li>
+          <li>Sign in with your Plex account: enter the 4-character code shown on screen at
+              <a href="https://plex.tv/link">plex.tv/link</a>, then pick your server and your
+              Plex Home profile.</li>
+        </ol>
+        <aside class="note">
+          <strong>Video playback needs full-memory mode.</strong> Applet mode (launching over the
+          HOME menu) is fine for browsing, but install the HOME tile — or use title takeover —
+          before starting a movie.
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============ DESKTOP ============ -->
+    <section class="guide-section" id="desktop">
+      <div class="sec-head reveal">
+        <span class="sec-num" aria-hidden="true">02</span>
+        <h2>Desktop &amp; mobile builds</h2>
+      </div>
+      <div class="guide-body reveal">
+        <p>Every <a href="https://github.com/thcolin/pleNx/releases/latest">release</a> ships builds for
+           all supported platforms, with fresh nightly artifacts on
+           <a href="https://nightly.link/thcolin/pleNx/workflows/build.yaml/dev">nightly.link</a>.</p>
+        <dl class="platform-list">
+          <div><dt>macOS</dt>
+          <dd>DMG for Intel and Apple Silicon, macOS 10.15+. If Gatekeeper refuses to open the app,
+              clear the quarantine attribute:
+              <pre><code>sudo xattr -rd com.apple.quarantine /Applications/pleNx.app</code></pre></dd></div>
+          <div><dt>Windows</dt>
+          <dd>Portable 7z archives for x64, x86 and ARM64 — Windows 7 or later with DirectX 11.1.</dd></div>
+          <div><dt>Linux</dt>
+          <dd>Flatpak bundles for x86_64 and arm64v8 (OpenGL 3), plus an Arch package.</dd></div>
+          <div><dt>Android</dt>
+          <dd>APKs for arm64-v8a and armeabi-v7a.</dd></div>
+          <div><dt>PS4 &amp; PS Vita</dt>
+          <dd>Homebrew PKG and VPK for jailbroken consoles — experimental.</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- ============ CONTROLS ============ -->
+    <section class="guide-section" id="controls">
+      <div class="sec-head reveal">
+        <span class="sec-num" aria-hidden="true">03</span>
+        <h2>Controls during playback</h2>
+      </div>
+      <div class="guide-body reveal">
+        <table class="controls">
+          <thead>
+            <tr><th scope="col">Gamepad</th><th scope="col">Keyboard</th><th scope="col">Action</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="btn-glyph">A</span></td><td><kbd>space</kbd></td><td>Play / Pause</td></tr>
+            <tr><td><span class="btn-glyph">B</span></td><td><kbd>esc</kbd></td><td>Stop</td></tr>
+            <tr><td><span class="btn-glyph">Y</span></td><td><kbd>o</kbd></td><td>Toggle OSD</td></tr>
+            <tr><td><span class="btn-glyph">X</span></td><td><kbd>f4</kbd></td><td>Menu</td></tr>
+            <tr><td><span class="btn-glyph">R</span> / <span class="btn-glyph">L</span></td><td><kbd>]</kbd> / <kbd>[</kbd></td><td>Seek forward / back</td></tr>
+            <tr><td><span class="btn-glyph">+</span></td><td><kbd>f1</kbd></td><td>Video profile</td></tr>
+            <tr><td><span class="btn-glyph">RS</span></td><td><kbd>f2</kbd></td><td>Video quality</td></tr>
+            <tr><td><span class="btn-glyph">LS</span></td><td><kbd>f3</kbd></td><td>Playback speed</td></tr>
+          </tbody>
+        </table>
+        <p>Anywhere in the app, press <kbd>X</kbd> — or long-press — on a poster to open the
+           quick actions panel: go to show, go to season, mark watched, download, watchlist.</p>
+      </div>
+    </section>
+
+    <!-- ============ REQUIREMENTS ============ -->
+    <section class="guide-section" id="requirements">
+      <div class="sec-head reveal">
+        <span class="sec-num" aria-hidden="true">04</span>
+        <h2>System requirements</h2>
+      </div>
+      <div class="guide-body reveal">
+        <ul>
+          <li><strong>Nintendo Switch</strong> — Atmosphère CFW, full-memory mode for playback</li>
+          <li><strong>Windows</strong> — Windows 7 or later, DirectX 11.1 support</li>
+          <li><strong>macOS</strong> — 10.15 or later, Intel or Apple Silicon</li>
+          <li><strong>Linux</strong> — Flatpak (x86_64 / arm64v8), OpenGL 3 support</li>
+        </ul>
+        <p>MPV decodes H.264, H.265, VP8, VP9 and AV1 video; Opus, FLAC, MP3, AAC, AC-3, E-AC-3,
+           TrueHD and DTS audio; and SRT, VTT, SSA/ASS and DVDSUB subtitles. Anything your
+           hardware can't direct-play, your Plex server transcodes.</p>
+      </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section class="guide-section" id="faq">
+      <div class="sec-head reveal">
+        <span class="sec-num" aria-hidden="true">05</span>
+        <h2>FAQ</h2>
+      </div>
+      <div class="guide-body reveal">
+        <details>
+          <summary>Subtitles don't show up on Switch?</summary>
+          <p>Drop any TrueType font at <code>sdmc:/switch/pleNx/subfont.ttf</code> — it will be
+             used to render text subtitles.</p>
+        </details>
+        <details>
+          <summary>macOS won't open the app?</summary>
+          <p>Gatekeeper quarantines unsigned apps downloaded from the internet. Clear the attribute:</p>
+          <pre><code>sudo xattr -rd com.apple.quarantine /Applications/pleNx.app</code></pre>
+        </details>
+        <details>
+          <summary>How do I enable an external USB drive on Switch?</summary>
+          <p>Set <code>ums</code> in <code>config.json</code> (in <code>sdmc:/switch/pleNx/</code>):</p>
+          <pre><code>{
+  "setting": {
+    "ums": true
+  }
+}</code></pre>
+        </details>
+        <details>
+          <summary>Is pleNx affiliated with Plex?</summary>
+          <p>No. pleNx is an independent, open-source, third-party client — not affiliated with or
+             endorsed by Plex, Inc. It talks to <em>your</em> Plex Media Server with your own account.</p>
+        </details>
+        <details>
+          <summary>Where do I report a bug?</summary>
+          <p>On the <a href="https://github.com/thcolin/pleNx/issues">GitHub issue tracker</a> —
+             describe what you did, what happened, and your console model and Atmosphère version.
+             On desktop, launching the app with <code>-d -o plenx.log</code> writes a debug log
+             you can attach.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <div class="console-bar">
+    <div class="cb-left">
+      <svg viewBox="0 0 28 14" width="26" height="13" aria-hidden="true"><rect x="1" y="1" width="23" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="3.5" y="3.5" width="15" height="7" rx="1.4" fill="currentColor"/><rect x="25.5" y="4.5" width="2.5" height="5" rx="1" fill="currentColor"/></svg>
+      <svg viewBox="0 0 16 12" width="15" height="11" aria-hidden="true"><path d="M8 10.5 1.5 4A9.4 9.4 0 0 1 8 1.5 9.4 9.4 0 0 1 14.5 4Z" fill="currentColor"/></svg>
+      <time id="clock">00:00:00</time>
+    </div>
+    <div class="cb-right">
+      <a class="cb-hint" href="./"><span class="btn-glyph">B</span> Back home</a>
+      <a class="cb-hint" href="https://github.com/thcolin/pleNx/releases/latest"><span class="btn-glyph btn-glyph-a">A</span> Download</a>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="assets/img/logo-full-black-ghost.png" alt="pleNx" width="165" height="57">
+        <p>A native, controller-first Plex client for Nintendo Switch.<br>
+           Free and open source, forked from
+           <a href="https://github.com/dragonflylee/switchfin">Switchfin</a>, built on
+           <a href="https://github.com/natinusala/borealis">borealis</a> and
+           <a href="https://mpv.io">MPV</a>.</p>
+      </div>
+      <nav class="footer-col" aria-label="Project">
+        <h3>Project</h3>
+        <a href="https://github.com/thcolin/pleNx">GitHub</a>
+        <a href="https://github.com/thcolin/pleNx/releases">Releases</a>
+        <a href="https://nightly.link/thcolin/pleNx/workflows/build.yaml/dev">Nightly builds</a>
+        <a href="https://github.com/thcolin/pleNx/issues">Issues</a>
+      </nav>
+      <nav class="footer-col" aria-label="Help">
+        <h3>Help</h3>
+        <a href="guide.html">Guide</a>
+        <a href="#controls">Controls</a>
+        <a href="#faq">FAQ</a>
+        <a href="https://github.com/sponsors/thcolin">Sponsor ♥</a>
+      </nav>
+    </div>
+    <p class="footer-legal">
+      pleNx is a third-party project, not affiliated with or endorsed by Plex, Inc.
+      Nintendo Switch is a trademark of Nintendo. ·
+      <span data-version>v0.1.1</span> · <a href="https://github.com/thcolin/pleNx/blob/dev/CHANGELOG.md">Changelog</a>
+    </p>
+  </footer>
+
+  <script src="assets/js/main.js" defer></script>
+</body>
+</html>

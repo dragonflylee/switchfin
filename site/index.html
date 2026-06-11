@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pleNx — A native Plex client for Nintendo Switch</title>
+  <meta name="description" content="pleNx is a third-party, native, controller-first Plex client for Nintendo Switch. Browse your server, queue your watchlist and play your movies with MPV — also on Windows, macOS, Linux, Android, PS4 and PS Vita.">
+  <link rel="canonical" href="https://thcolin.github.io/pleNx/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="pleNx — A native Plex client for Nintendo Switch">
+  <meta property="og:description" content="Your whole Plex library, controller-first. Free, open source, built on borealis and MPV.">
+  <meta property="og:image" content="https://thcolin.github.io/pleNx/assets/img/og.jpg">
+  <meta property="og:url" content="https://thcolin.github.io/pleNx/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#14110d">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Hanken+Grotesk:wght@400;700;800&family=Fragment+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script>document.documentElement.classList.add('js')</script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="nav">
+    <a class="nav-brand" href="./">
+      <img src="assets/img/logo-full-white-ghost.png" alt="pleNx — home" width="90" height="31">
+    </a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#features">Features</a>
+      <a href="#screens">Screens</a>
+      <a href="#install">Install</a>
+      <a href="guide.html">Guide</a>
+    </nav>
+    <a class="nav-gh" href="https://github.com/thcolin/pleNx" aria-label="pleNx on GitHub">
+      <svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+    </a>
+  </header>
+
+  <main id="main">
+    <!-- ============ HERO ============ -->
+    <section class="hero">
+      <div class="hero-top">
+        <h1 class="reveal">Your <span class="hl">Plex</span> library,<br class="br-d"> in your hands.</h1>
+        <aside class="hero-spec reveal" style="--i:1" aria-label="At a glance">
+          <div class="spec-strong">Third-party Plex client</div>
+          <div><a href="https://github.com/thcolin/pleNx/releases/latest">Ver. <span data-version>v0.1.1</span> — out now</a></div>
+          <div>Free &amp; open source</div>
+          <div class="spec-muted">Not affiliated with Plex, Inc.</div>
+        </aside>
+      </div>
+      <p class="hero-lead reveal" style="--i:2">
+        pleNx is a <strong>native</strong>, controller-first Plex client for
+        <strong>Nintendo&nbsp;Switch</strong> — browse your server, queue your
+        watchlist and play your movies with MPV, anywhere.
+      </p>
+      <div class="hero-cta reveal" style="--i:3">
+        <a class="btn btn-primary" href="https://github.com/thcolin/pleNx/releases/latest">Download for Switch</a>
+        <a class="btn btn-ghost" href="https://github.com/thcolin/pleNx">View on GitHub</a>
+      </div>
+
+      <figure class="hero-figure reveal" style="--i:4">
+        <img src="assets/img/switch-hero.webp" alt="A Nintendo Switch console running pleNx: the home screen shows Continue Watching and recently added rows from a Plex server" width="1800" height="766" fetchpriority="high">
+        <figcaption><span class="fig-tag">Fig. 00</span> Running on Nintendo Switch — home screen, mirroring your server's hubs</figcaption>
+      </figure>
+    </section>
+
+    <!-- ============ SPEC STRIP — game-box back panel ============ -->
+    <ul class="spec-strip" aria-label="Product specifications">
+      <li class="spec-label">Specs</li>
+      <li><span class="spec-k">Format</span> NRO homebrew</li>
+      <li><span class="spec-k">Requires</span> Atmosphère CFW</li>
+      <li><span class="spec-k">Genre</span> Media player</li>
+      <li><span class="spec-k">Languages</span> 14</li>
+      <li><span class="spec-k">Price</span> Free &amp; open source</li>
+    </ul>
+
+    <!-- ============ FEATURES ============ -->
+    <section class="section" id="features">
+      <div class="sec-head reveal">
+        <span class="sec-num" aria-hidden="true">01</span>
+        <h2>Built controller-first</h2>
+        <span class="sec-note" aria-hidden="true">Everything your server does</span>
+      </div>
+      <p class="section-sub reveal">Every feature of your Plex server, redesigned for a gamepad.</p>
+
+      <div class="feature-grid">
+        <article class="feature reveal" style="--i:0">
+          <div class="feature-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>
+            <h3>Sign in with Plex</h3>
+          </div>
+          <p>Type a 4-character code on plex.tv/link, pick your server and your Plex Home
+             profile — PIN-protected profiles included. No passwords on the console.</p>
+        </article>
+
+        <article class="feature reveal" style="--i:1">
+          <div class="feature-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 10h18"/></svg>
+            <h3>Home mirrors your server</h3>
+          </div>
+          <p>Continue Watching first, then every hub configured on your Plex, in the exact order
+             your server returns them. Your setup, your rules.</p>
+        </article>
+
+        <article class="feature reveal" style="--i:2">
+          <div class="feature-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            <h3>Plex Watchlist</h3>
+          </div>
+          <p>Browse your account watchlist in the sidebar, sort and filter it, add or remove any
+             movie or show — posters of items missing from your server are dimmed.</p>
+        </article>
+
+        <article class="feature reveal" style="--i:3">
+          <div class="feature-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            <h3>Offline downloads</h3>
+          </div>
+          <p>Take episodes on the road in original quality. One tap grabs a full season — or a
+             whole show — with a storage gauge for your SD card.</p>
+        </article>
+
+        <article class="feature reveal" style="--i:4">
+          <div class="feature-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            <h3>Playback with MPV</h3>
+          </div>
+          <p>Direct play and universal transcode (HLS), resume, chapters, external and embedded
+             subtitles, audio track selection.</p>
+          <p class="codec-list" aria-label="Supported codecs">H.264 · H.265 · VP9 · AV1 · Opus · FLAC · <span class="nb">AC-3</span> · TrueHD · DTS</p>
+        </article>
+
+        <article class="feature reveal" style="--i:5">
+          <div class="feature-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 10a6 6 0 0 0-11.5-1.7A5 5 0 0 0 7 18h11a4 4 0 0 0 0-8Z"/></svg>
+            <h3>Remote file servers</h3>
+          </div>
+          <p>Add WebDAV, FTP, SFTP and HTTP(S) shares straight from the UI — with a connection
+             test before saving. USB drives work too, via libusbhsfs.</p>
+        </article>
+
+        <article class="feature reveal" style="--i:6">
+          <div class="feature-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><circle cx="12" cy="12" r="9" stroke-dasharray="4 3"/></svg>
+            <h3>Quick actions anywhere</h3>
+          </div>
+          <p>Press <kbd>X</kbd> (or long-press) on any poster: go to show, go to season,
+             mark watched, download, watchlist. No detours through detail pages.</p>
+        </article>
+
+        <article class="feature reveal" style="--i:7">
+          <div class="feature-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3.5 9h17M3.5 15h17M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>
+            <h3>14 languages</h3>
+          </div>
+          <p>Fully translated interface, rich detail pages with cast and person filmographies,
+             season pages, collections, genres illustrated with Kometa artwork.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ SCREENS ============ -->
+    <section class="section section-screens" id="screens">
+      <div class="sec-wrap">
+        <div class="sec-head reveal">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2>See it running</h2>
+          <span class="sec-note" aria-hidden="true">Captured on the desktop build</span>
+        </div>
+        <p class="section-sub reveal">The very same interface ships on every platform.</p>
+      </div>
+
+      <div class="screens-rail" role="region" tabindex="0" aria-label="Screenshot gallery, scroll horizontally">
+        <figure>
+          <button class="shot" data-full="assets/img/shot-home.webp" type="button">
+            <img loading="lazy" src="assets/img/shot-home.webp" alt="Home screen with Continue Watching and recently added rows" width="1280" height="794">
+          </button>
+          <figcaption><span class="fig-tag">Fig. 01</span> Home · your server's hubs</figcaption>
+        </figure>
+        <figure>
+          <button class="shot" data-full="assets/img/shot-movie_0.webp" type="button">
+            <img loading="lazy" src="assets/img/shot-movie_0.webp" alt="Movie detail page with full-bleed backdrop, title logo and action buttons" width="1280" height="794">
+          </button>
+          <figcaption><span class="fig-tag">Fig. 02</span> Movie · full-bleed detail page</figcaption>
+        </figure>
+        <figure>
+          <button class="shot" data-full="assets/img/shot-tvshow_0.webp" type="button">
+            <img loading="lazy" src="assets/img/shot-tvshow_0.webp" alt="TV show detail page with seasons row" width="1280" height="794">
+          </button>
+          <figcaption><span class="fig-tag">Fig. 03</span> Show · seasons &amp; next up</figcaption>
+        </figure>
+        <figure>
+          <button class="shot" data-full="assets/img/shot-season.webp" type="button">
+            <img loading="lazy" src="assets/img/shot-season.webp" alt="Season page with episode list and one-tap full-season download" width="1280" height="794">
+          </button>
+          <figcaption><span class="fig-tag">Fig. 04</span> Season · one-tap download</figcaption>
+        </figure>
+        <figure>
+          <button class="shot" data-full="assets/img/shot-long-press.webp" type="button">
+            <img loading="lazy" src="assets/img/shot-long-press.webp" alt="Quick actions side panel opened on a poster" width="1280" height="794">
+          </button>
+          <figcaption><span class="fig-tag">Fig. 05</span> Quick actions · press X on any poster</figcaption>
+        </figure>
+        <figure>
+          <button class="shot" data-full="assets/img/shot-search.webp" type="button">
+            <img loading="lazy" src="assets/img/shot-search.webp" alt="Search screen with fixed keyboard, history and suggestions" width="1280" height="794">
+          </button>
+          <figcaption><span class="fig-tag">Fig. 06</span> Search · keyboard, history, suggestions</figcaption>
+        </figure>
+        <figure>
+          <button class="shot" data-full="assets/img/shot-downloads.webp" type="button">
+            <img loading="lazy" src="assets/img/shot-downloads.webp" alt="Downloads screen with storage gauge and active transfers" width="1280" height="794">
+          </button>
+          <figcaption><span class="fig-tag">Fig. 07</span> Downloads · offline, original quality</figcaption>
+        </figure>
+        <figure>
+          <button class="shot" data-full="assets/img/shot-movies.webp" type="button">
+            <img loading="lazy" src="assets/img/shot-movies.webp" alt="Movie library grid with server-side sorting" width="1280" height="794">
+          </button>
+          <figcaption><span class="fig-tag">Fig. 08</span> Library · the whole catalog</figcaption>
+        </figure>
+        <figure>
+          <button class="shot" data-full="assets/img/shot-collections.webp" type="button">
+            <img loading="lazy" src="assets/img/shot-collections.webp" alt="Collections grid of a movie library" width="1280" height="794">
+          </button>
+          <figcaption><span class="fig-tag">Fig. 09</span> Collections · libraries, genres, more</figcaption>
+        </figure>
+      </div>
+      <p class="rail-hint" aria-hidden="true">Scroll sideways for more figures →</p>
+    </section>
+
+    <!-- ============ INSTALL ============ -->
+    <section class="section" id="install">
+      <div class="sec-head reveal">
+        <span class="sec-num" aria-hidden="true">03</span>
+        <h2>On your Switch in three moves</h2>
+        <span class="sec-note" aria-hidden="true">Atmosphère CFW required</span>
+      </div>
+      <p class="section-sub reveal">You'll need a console running <a href="https://github.com/Atmosphere-NX/Atmosphere">Atmosphère</a> CFW.</p>
+
+      <ol class="steps" role="list">
+        <li class="step reveal" style="--i:0">
+          <span class="step-num" aria-hidden="true">1</span>
+          <h3>Copy the app</h3>
+          <p>Drop <a href="https://github.com/thcolin/pleNx/releases/latest/download/pleNx.nro"><code>pleNx.nro</code></a> into
+            <code>sdmc:/switch/</code> and launch it from the homebrew menu.</p>
+        </li>
+        <li class="step reveal" style="--i:1">
+          <span class="step-num" aria-hidden="true">2</span>
+          <h3>Install the HOME tile</h3>
+          <p>On first launch, pleNx offers to install a HOME menu tile — press the button and the
+             app relaunches with full memory, required for video playback.</p>
+        </li>
+        <li class="step reveal" style="--i:2">
+          <span class="step-num" aria-hidden="true">3</span>
+          <h3>Sign in &amp; play</h3>
+          <p>Enter the 4-character code at <a href="https://plex.tv/link">plex.tv/link</a>,
+             pick your server, grab the popcorn.</p>
+        </li>
+      </ol>
+
+      <div class="install-cta reveal">
+        <a class="btn btn-primary" href="https://github.com/thcolin/pleNx/releases/latest/download/pleNx.nro">Get pleNx.nro</a>
+        <a class="btn btn-ghost" href="guide.html">Full guide, desktop builds &amp; FAQ</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ CONSOLE BAR + FOOTER ============ -->
+  <div class="console-bar">
+    <div class="cb-left">
+      <svg viewBox="0 0 28 14" width="26" height="13" aria-hidden="true"><rect x="1" y="1" width="23" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="3.5" y="3.5" width="15" height="7" rx="1.4" fill="currentColor"/><rect x="25.5" y="4.5" width="2.5" height="5" rx="1" fill="currentColor"/></svg>
+      <svg viewBox="0 0 16 12" width="15" height="11" aria-hidden="true"><path d="M8 10.5 1.5 4A9.4 9.4 0 0 1 8 1.5 9.4 9.4 0 0 1 14.5 4Z" fill="currentColor"/></svg>
+      <time id="clock">00:00:00</time>
+    </div>
+    <div class="cb-right">
+      <a class="cb-hint" href="#top" id="back-top"><span class="btn-glyph">B</span> Back to top</a>
+      <a class="cb-hint" href="https://github.com/thcolin/pleNx/releases/latest"><span class="btn-glyph btn-glyph-a">A</span> Download</a>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="assets/img/logo-full-black-ghost.png" alt="pleNx" width="165" height="57">
+        <p>A native, controller-first Plex client for Nintendo Switch.<br>
+           Free and open source, forked from
+           <a href="https://github.com/dragonflylee/switchfin">Switchfin</a>, built on
+           <a href="https://github.com/natinusala/borealis">borealis</a> and
+           <a href="https://mpv.io">MPV</a>.</p>
+      </div>
+      <nav class="footer-col" aria-label="Project">
+        <h3>Project</h3>
+        <a href="https://github.com/thcolin/pleNx">GitHub</a>
+        <a href="https://github.com/thcolin/pleNx/releases">Releases</a>
+        <a href="https://nightly.link/thcolin/pleNx/workflows/build.yaml/dev">Nightly builds</a>
+        <a href="https://github.com/thcolin/pleNx/issues">Issues</a>
+      </nav>
+      <nav class="footer-col" aria-label="Help">
+        <h3>Help</h3>
+        <a href="guide.html">Guide</a>
+        <a href="guide.html#controls">Controls</a>
+        <a href="guide.html#faq">FAQ</a>
+        <a href="https://github.com/sponsors/thcolin">Sponsor ♥</a>
+      </nav>
+    </div>
+    <p class="footer-legal">
+      pleNx is a third-party project, not affiliated with or endorsed by Plex, Inc.
+      Nintendo Switch is a trademark of Nintendo. ·
+      <span data-version>v0.1.1</span> · <a href="https://github.com/thcolin/pleNx/blob/dev/CHANGELOG.md">Changelog</a>
+    </p>
+  </footer>
+
+  <dialog class="lightbox" id="lightbox" aria-label="Screenshot">
+    <button class="lightbox-close" type="button" aria-label="Close"><span class="btn-glyph">B</span></button>
+    <img alt="">
+  </dialog>
+
+  <script src="assets/js/main.js" defer></script>
+</body>
+</html>
