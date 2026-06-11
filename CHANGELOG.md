@@ -9,6 +9,21 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [0.1.2] - 2026-06-11
+
+### Fixes
+
+- **Translations completed and corrected across all 13 languages**: every
+  locale (cs, de, es, fr, ja, ko, pt, ru, tr, uk, vi, zh-Hans, zh-Hant) is now
+  at full key parity with the English reference. Filled in missing strings
+  (the in-app updater messages, the offline download block, and large gaps in
+  the German, Ukrainian and Vietnamese settings screens), translated the Plex
+  sign-in and HOME-tile hint screens that had been left in English in several
+  locales, fixed mistranslations and typos, and replaced the stale `failed`
+  hint key with the `retry` action used by the retry dialog. The French
+  "current speed" overlay also regained its `{}` placeholder so the playback
+  speed value is shown again.
+
 ## [0.1.1] - 2026-06-11
 
 ### Features
