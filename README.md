@@ -1,6 +1,9 @@
 <div align="center">
 
-<img src="logo.png" alt="pleNx" width="320">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="logo-full-white-ghost.png">
+  <img src="logo-full-black-ghost.png" alt="pleNx" width="320">
+</picture>
 
 **🎮📺 - A third-party native, controller-first Plex client for Nintendo Switch.**
 

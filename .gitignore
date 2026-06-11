@@ -23,6 +23,3 @@ debian/.debhelper
 plezy/
 .prod.keys.tmp
 
-# logos source de travail (les assets sont générés dans resources/, scripts/, app/platform/)
-/logo*.png
-/logo*.gif
