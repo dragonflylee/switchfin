@@ -278,6 +278,8 @@
       "up2date": "L'application est déjà à jour",
       "upgrade": "Nouvelle version {} trouvée, souhaitez-vous mettre à jour ?",
       "updating": "Mise à jour en cours, souhaitez-vous annuler la mise à jour ?",
+      "downloading": "Téléchargement de {}… {} %",
+      "updated": "Mise à jour installée. L'application va se fermer : relancez-la pour profiter de la nouvelle version",
       "release": "Vérifier les mises à jour"
     }
   },

@@ -17,6 +17,7 @@
 #endif
 #include <algorithm>
 #include <cstdio>
+#include <thread>
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
 #include "utils/thread.hpp"
@@ -126,12 +127,102 @@ bool AppVersion::needUpdate(std::string latestVersion) {
     return std::lexicographical_compare(current, current + 3, latest, latest + 3);
 }
 
+#ifdef __SWITCH__
+/// Télécharge le NRO de la release dans un fichier temporaire du configDir,
+/// vérifie sa taille, puis remplace le NRO en cours d'exécution (chemin réel
+/// fourni par hbloader/le forwarder via argv[0], cf. AppVersion::nro_path).
+/// La progression s'affiche dans un dialogue avec bouton d'annulation.
+static void startUpdate(const std::string& latest_ver, const std::string& url, int64_t size) {
+    AppVersion::updating->store(false);
+
+    brls::Style style = brls::Application::getStyle();
+    auto* label = new brls::Label();
+    label->setFontSize(style["brls/dialog/fontSize"]);
+    label->setHorizontalAlign(brls::HorizontalAlign::CENTER);
+    label->setSingleLine(false);
+    label->setText(brls::getStr("main/setting/others/downloading", latest_ver, 0));
+
+    auto* box = new brls::Box();
+    box->addView(label);
+    box->setAlignItems(brls::AlignItems::CENTER);
+    box->setJustifyContent(brls::JustifyContent::CENTER);
+    box->setPadding(style["brls/dialog/paddingTopBottom"], style["brls/dialog/paddingLeftRight"],
+        style["brls/dialog/paddingTopBottom"], style["brls/dialog/paddingLeftRight"]);
+
+    auto* dialog = new brls::Dialog(box);
+    dialog->setCancelable(false);
+    // le clic ferme le dialogue (cf. Dialog::buttonClick) : `dismissed` évite une
+    // double fermeture et protège `label` (détruit avec le dialogue) des mises à
+    // jour de progression encore en file dans brls::sync
+    auto dismissed = std::make_shared<std::atomic_bool>(false);
+    dialog->addButton("hints/cancel"_i18n, [dismissed]() {
+        dismissed->store(true);
+        AppVersion::updating->store(true);  // true = annuler le transfert, cf. HTTP::easy_progress_cb
+    });
+    dialog->open();
+
+    ThreadPool::instance().submit([latest_ver, url, size, label, dialog, dismissed](HTTP& s) {
+        std::string conf_dir = AppConfig::instance().configDir();
+        std::string pkg_name = AppVersion::getPackageName();
+        std::string path = fmt::format("{}/{}_{}.nro", conf_dir, pkg_name, latest_ver);
+
+        auto finish = [dialog, dismissed](std::function<void()> then) {
+            brls::sync([dialog, dismissed, then]() {
+                if (dismissed->exchange(true))
+                    then();
+                else
+                    dialog->close(then);
+            });
+        };
+
+        auto last = std::make_shared<std::chrono::steady_clock::time_point>();
+        HTTP::Progress::Callback progress = [latest_ver, label, dismissed, last](curl_off_t total, curl_off_t now) {
+            auto tp = std::chrono::steady_clock::now();
+            if (total <= 0 || tp - *last < std::chrono::milliseconds(500)) return;
+            *last = tp;
+            int percent = static_cast<int>(now * 100 / total);
+            brls::sync([label, dismissed, latest_ver, percent]() {
+                if (!dismissed->load())
+                    label->setText(brls::getStr("main/setting/others/downloading", latest_ver, percent));
+            });
+        };
+
+        try {
+            HTTP::download(url, path, HTTP::Timeout{-1}, AppVersion::updating, progress);
+
+            // taille vérifiée AVANT d'écraser le NRO en cours d'exécution
+            auto actual = std::filesystem::file_size(path);
+            if (size > 0 && actual != static_cast<std::uintmax_t>(size))
+                throw std::runtime_error(fmt::format("incomplete download ({}/{} bytes)", actual, size));
+
+            // le romfs est mappé depuis le fichier NRO : démonter avant de le remplacer
+            romfsExit();
+            std::string target = AppVersion::nro_path;
+            if (target.size() < 4 || target.compare(target.size() - 4, 4, ".nro") != 0)
+                target = fmt::format("{}/{}.nro", conf_dir, pkg_name);
+            std::filesystem::remove(target);
+            std::filesystem::rename(path, target);
+            finish([]() { Dialog::quitApp(true, "main/setting/others/updated"_i18n); });
+        } catch (const std::exception& ex) {
+            std::filesystem::remove(path);
+            bool canceled = AppVersion::updating->load();
+            AppVersion::updating->store(true);
+            if (canceled) return;  // annulation utilisateur, pas un échec
+            std::string msg = ex.what();
+            finish([msg]() { Dialog::show(msg); });
+        }
+    });
+}
+#endif
+
 void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
     if (!AppVersion::updating->load()) {
         Dialog::cancelable("main/setting/others/updating"_i18n, [] { AppVersion::updating->store(true); });
         return;
     }
-    ThreadPool::instance().submit([showUpToDateDialog](HTTP& s) {
+    ThreadPool::instance().submit([delay, showUpToDateDialog](HTTP& s) {
+        // au démarrage, laisser la priorité aux requêtes de login
+        if (delay > 0) std::this_thread::sleep_for(std::chrono::milliseconds(delay));
         try {
             std::string url = fmt::format("https://api.github.com/repos/{}/releases/latest", git_repo);
             auto resp = HTTP::get(url, HTTP::Timeout{});
@@ -143,6 +234,37 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
                 return;
             }
 
+#ifdef __SWITCH__
+            // URL et taille du NRO depuis la réponse API plutôt qu'une URL codée
+            // en dur : robuste à un renommage de l'asset, et la taille permet de
+            // valider le téléchargement avant d'écraser l'app
+            std::string asset_url;
+            int64_t asset_size = 0;
+            for (auto& asset : j.at("assets")) {
+                std::string name = asset.at("name").get<std::string>();
+                if (name.size() > 4 && name.compare(name.size() - 4, 4, ".nro") == 0) {
+                    asset_url = asset.at("browser_download_url").get<std::string>();
+                    asset_size = asset.value("size", int64_t(0));
+                    break;
+                }
+            }
+            if (asset_url.empty()) {
+                brls::Logger::error("checkUpdate: no NRO asset in release {}", latest_ver);
+                return;
+            }
+
+            brls::sync([latest_ver, asset_url, asset_size]() {
+                std::string title = brls::getStr("main/setting/others/upgrade", latest_ver);
+                auto dialog = new brls::Dialog(title);
+                dialog->addButton("hints/cancel"_i18n, []() {
+                    auto& conf = AppConfig::instance();
+                    conf.setItem(AppConfig::APP_UPDATE, getVersion());
+                });
+                dialog->addButton("hints/ok"_i18n,
+                    [latest_ver, asset_url, asset_size]() { startUpdate(latest_ver, asset_url, asset_size); });
+                dialog->open();
+            });
+#else
             brls::sync([latest_ver]() {
                 std::string title = brls::getStr("main/setting/others/upgrade", latest_ver);
                 auto dialog = new brls::Dialog(title);
@@ -150,37 +272,11 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
                     auto& conf = AppConfig::instance();
                     conf.setItem(AppConfig::APP_UPDATE, getVersion());
                 });
-#ifdef __SWITCH__
-                dialog->addButton("hints/ok"_i18n, [latest_ver]() {
-                    AppVersion::updating->store(false);
-                    ThreadPool::instance().submit([latest_ver](HTTP& s) {
-                        std::string conf_dir = AppConfig::instance().configDir();
-                        std::string pkg_name = AppVersion::getPackageName();
-                        std::string path = fmt::format("{}/{}_{}.nro", conf_dir, pkg_name, latest_ver);
-                        std::string url = fmt::format(
-                            "https://github.com/{}/releases/download/{}/pleNx.nro", git_repo, latest_ver);
-                        try {
-                            HTTP::download(url, path, HTTP::Timeout{-1}, AppVersion::updating);
-                            romfsExit();
-
-                            std::string target = fmt::format("{}/{}.nro", conf_dir, pkg_name);
-                            std::filesystem::remove(target);
-                            std::filesystem::rename(path, target);
-                            Dialog::quitApp(true);
-                        } catch (const std::exception& ex) {
-                            std::filesystem::remove(path);
-                            AppVersion::updating->store(true);
-                            std::string msg = fmt::format("{}: {}", path, ex.what());
-                            brls::sync([msg]() { Dialog::show(msg); });
-                        }
-                    });
-                });
-#else
                 std::string url = fmt::format("https://github.com/{}/releases/tag/{}", git_repo, latest_ver);
                 dialog->addButton("hints/ok"_i18n, [url] { brls::Application::getPlatform()->openBrowser(url); });
-#endif
                 dialog->open();
             });
+#endif
         } catch (const std::exception& ex) {
             brls::Logger::error("checkUpdate failed: {}", ex.what());
         }

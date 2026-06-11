@@ -18,6 +18,12 @@ public:
 
     inline static std::shared_ptr<std::atomic_bool> updating = std::make_shared<std::atomic_bool>(true);
     inline static std::string git_repo = "thcolin/plenx";
+
+    /// Chemin réel du NRO en cours d'exécution (argv[0] fourni par hbloader ou
+    /// le forwarder), renseigné dans main(). C'est CE fichier que l'auto-update
+    /// doit remplacer : le NRO peut être à `sdmc:/switch/pleNx.nro` (forwarder)
+    /// ou `sdmc:/switch/pleNx/pleNx.nro`. Vide hors Switch ou si indisponible.
+    inline static std::string nro_path;
 };
 
 /// Un profil plex.tv (compte ou utilisateur Plex Home).

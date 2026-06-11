@@ -78,6 +78,9 @@ static void proposeForwarderInstall() {
 #endif
 
 int main(int argc, char* argv[]) {
+#ifdef __SWITCH__
+    if (argc > 0 && argv[0]) AppVersion::nro_path = argv[0];
+#endif
     std::vector<std::string> items;
     for (int i = 1; i < argc; i++) {
         if (std::strcmp(argv[i], "-d") == 0) {
