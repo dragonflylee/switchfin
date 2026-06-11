@@ -9,6 +9,36 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [0.1.3] - 2026-06-11
+
+### Breaking
+
+- **New Switch title ID for the HOME menu tile (`0104201312000000`)**: the
+  previous ID was inherited from Switchfin-era builds, and the HOME menu kept
+  serving its cached "Switchlex" name and icon for that title even after
+  reinstalling and rebooting. A fresh ID starts clean. **Migration**: delete
+  any old tile ("Switchlex" or a previous pleNx) from the HOME menu (tile →
+  <kbd>+</kbd> → Manage Software → Delete), replace `pleNx.nro` on the SD
+  card, then reinstall the tile from the app
+- The forwarder NPDM `program_id` is now generated from the single
+  `PROJECT_TITLEID` source of truth instead of a hardcoded copy that could
+  drift
+
+### Fixes
+
+- **Branding harmonized across every derived asset**: the X mark color order
+  (cyan top, red bottom) now matches the reference logos everywhere — app
+  icons (Switch NACP, macOS icns, Windows ico, Linux hicolor, PS4), the
+  forwarder wordmark, the scalable icon wrapper and the website favicons /
+  social image. The Android launcher icons and the PS4 / PS Vita system
+  images still carried the upstream Jellyfin artwork and now ship pleNx
+  branding (Vita assets kept 8-bit indexed as the firmware requires)
+
+### Website
+
+- The hero opens with the app icon presented as a homebrew-menu tile next to
+  the wordmark, and the floating nav no longer flashes before first paint
+
 ## [0.1.2] - 2026-06-11
 
 ### Fixes
