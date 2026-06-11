@@ -17,6 +17,11 @@ if (NOT HACBREWPACK_EXE)
 endif()
 
 project(forwarder)
+
+# NPDM : le program_id vient de PROJECT_TITLEID (CMakeLists racine), seule
+# source de vérité du title ID — ne pas le coder en dur ici.
+configure_file("${PROJECT_SOURCE_DIR}/config.json.in" "${PROJECT_BINARY_DIR}/config.json" @ONLY)
+
 set(FORWARDER_SRC "${PROJECT_SOURCE_DIR}/source/main.c" "${PROJECT_SOURCE_DIR}/source/trampoline.s")
 add_executable(${PROJECT_NAME} ${FORWARDER_SRC})
 target_link_libraries(${PROJECT_NAME} PRIVATE nx)
@@ -30,7 +35,7 @@ endif ()
 add_custom_target(${PROJECT_NAME}.pfs0 DEPENDS ${PROJECT_NAME}
     COMMAND ${CMAKE_COMMAND} -E make_directory "exefs"
     COMMAND ${NX_ELF2NSO_EXE} "${PROJECT_NAME}.elf" "exefs/main"
-    COMMAND ${NX_NPDMTOOL_EXE} "${PROJECT_SOURCE_DIR}/config.json" "exefs/main.npdm"
+    COMMAND ${NX_NPDMTOOL_EXE} "${PROJECT_BINARY_DIR}/config.json" "exefs/main.npdm"
 )
 
 add_custom_target(${PROJECT_NAME}.nsp DEPENDS ${PROJECT_NAME}.pfs0
