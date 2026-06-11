@@ -9,6 +9,7 @@
 #include "view/media_filter.hpp"
 #include "view/auto_tab_frame.hpp"
 #include "view/h_recycling.hpp"
+#include "view/presenter.hpp"
 #include "tab/suggest_show.hpp"
 #include "tab/suggest_movie.hpp"
 #include "utils/genre_image.hpp"
@@ -18,15 +19,6 @@
 using namespace brls::literals;  // for _i18n
 
 std::map<std::string, std::string> MediaCollection::customPrefs;
-
-/// true when the current focus lives inside `view` — a tab loading in the
-/// background must not steal the focus from the sidebar
-static bool hasFocusWithin(brls::View* view) {
-    for (brls::View* v = brls::Application::getCurrentFocus(); v; v = v->getParent()) {
-        if (v == view) return true;
-    }
-    return false;
-}
 
 class GenresDataSource : public RecyclingGridDataSource {
 public:

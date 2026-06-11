@@ -18,6 +18,10 @@ brls::View* HomeTab::create() { return new HomeTab(); }
 /// watching" then the hubs from /hubs, with their localized titles
 /// (X-Plex-Language) — PLEX_MIGRATION.md §2.5.
 void HomeTab::doRequest() {
+    // clearViews destroys the focused card when refreshing after playback:
+    // remember to give the focus back to the first rebuilt row, otherwise it
+    // falls back to the sidebar and the user loses track of it
+    this->restoreFocus = hasFocusWithin(this);
     this->boxHome->clearViews();
 
     // "Continue watching" row — added right away to guarantee its position
@@ -53,6 +57,7 @@ void HomeTab::doResume(RecylingVideo* row) {
                 } else {
                     row->setItems(hub.items);
                 }
+                this->tryRestoreFocus();
                 return;
             }
             row->setItems({});
@@ -110,6 +115,7 @@ void HomeTab::doHubs() {
                 }
                 this->boxHome->addView(row);
             }
+            this->tryRestoreFocus();
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
@@ -119,6 +125,19 @@ void HomeTab::doHubs() {
             dialog->open();
         },
         plex::apiHubs, query);
+}
+
+void HomeTab::tryRestoreFocus() {
+    if (!this->restoreFocus) return;
+    this->restoreFocus = false;
+    // deferred one frame: the rows added by this callback are not laid out
+    // yet, and giveFocus before the first layout fails silently
+    ASYNC_RETAIN
+    brls::sync([ASYNC_TOKEN]() {
+        ASYNC_RELEASE
+        brls::View* target = this->boxHome->getDefaultFocus();
+        if (target) brls::Application::giveFocus(target);
+    });
 }
 
 void HomeTab::onCreate() {

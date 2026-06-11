@@ -23,6 +23,12 @@ public:
 private:
     void doResume(RecylingVideo* row);
     void doHubs();
+    void tryRestoreFocus();
+
+    // set when a refresh destroys the focused row (e.g. after closing the
+    // player): the first rebuilt row takes the focus back so the user can
+    // see where it landed
+    bool restoreFocus = false;
 
     BRLS_BIND(brls::Box, boxHome, "home/box");
 };
