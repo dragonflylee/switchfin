@@ -137,25 +137,72 @@ kbd {
 .nav-gh { display: flex; padding: 0.2rem; text-decoration: none; }
 .nav-gh:hover { background: var(--amber); }
 
+/* On the homepage the hero owns the branding: the nav stays out of
+   the way until the spec box has scrolled past (JS toggles .nav-shown) */
+.nav-float {
+  position: fixed;
+  left: 0;
+  right: 0;
+  visibility: hidden;
+  transform: translateY(-100%);
+  transition: transform 0.25s ease-out, visibility 0s linear 0.25s;
+}
+.nav-float.nav-shown {
+  visibility: visible;
+  transform: none;
+  transition: transform 0.25s ease-out;
+}
+
 /* ============ Hero ============ */
 .hero {
   max-width: var(--wrap);
   margin: 0 auto;
-  padding: clamp(2.5rem, 7vh, 5rem) var(--gutter) 0;
+  padding: clamp(2.2rem, 5.5vh, 4rem) var(--gutter) 0;
+}
+
+/* Brand row: app icon (a homebrew-menu tile) at left, the wordmark
+   with its dictionary entry centered, the spec box at right */
+.hero-app-icon {
+  width: clamp(92px, 11vw, 124px);
+  height: auto;
+  border-radius: 26%;
+  border: 1.5px solid var(--rule-soft);
+}
+
+.hero-mark {
+  align-self: center;
+  justify-self: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+}
+.hero-mark img {
+  width: clamp(190px, 24vw, 320px);
+  height: auto;
+}
+.hero-mark-say {
+  font-family: var(--font-mono);
+  font-size: clamp(0.7rem, 1.1vw, 0.8rem);
+  letter-spacing: 0.14em;
+  line-height: 1;
+  color: var(--text-soft);
+  white-space: nowrap;
 }
 
 .hero-top {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 2.5rem;
   align-items: start;
+  margin-bottom: clamp(2rem, 4.5vh, 3rem);
 }
 
 .hero h1 {
   font-size: clamp(3rem, 9.5vw, 7.2rem);
+  margin-top: 6rem;
+  text-align: center;
 }
-.br-d { display: none; }
-@media (min-width: 880px) { .br-d { display: inline; } }
 .nb { white-space: nowrap; }
 .hero h1 .hl {
   background: var(--amber);
@@ -164,6 +211,8 @@ kbd {
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
+
+.hero h1 .h1-line { display: block; }
 
 /* Regulatory side label, like the back of a game box */
 .hero-spec {
@@ -192,9 +241,12 @@ kbd {
 
 .hero-lead {
   margin-top: 2rem;
+  margin-right: auto;
+  margin-left: auto;
   max-width: 58ch;
   font-size: clamp(1.02rem, 1.5vw, 1.15rem);
   color: var(--text-soft);
+  text-align: center;
 }
 .hero-lead strong { color: var(--text); }
 
@@ -203,6 +255,7 @@ kbd {
   gap: 0.8rem;
   flex-wrap: wrap;
   margin-top: 1.8rem;
+  justify-content: center;
 }
 
 /* ============ Buttons — flat, hard, print ============ */
@@ -844,6 +897,8 @@ kbd {
   .footer-inner { grid-template-columns: 1fr 1fr; }
   .footer-brand { grid-column: span 2; }
   .hero-top { grid-template-columns: 1fr; }
+  .hero-mark { justify-self: start; align-items: flex-start; }
+  .hero-mark img { width: clamp(190px, 40vw, 280px); }
   .hero-spec { max-width: 280px; }
 }
 
@@ -864,5 +919,5 @@ kbd {
   html { scroll-behavior: auto; }
   .js .reveal { opacity: 1; transform: none; transition: none; }
   .btn, .feature, .nav-links a, .nav-gh, .shot, .toc a, .cb-hint,
-  .guide-body summary { transition: none; }
+  .guide-body summary, .nav-float, .nav-float.nav-shown { transition: none; }
 }

@@ -19,6 +19,18 @@ const observer = new IntersectionObserver(
 );
 document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
 
+// Homepage nav: hidden until the hero spec box has scrolled past the top
+const nav = document.querySelector('.nav');
+const heroSpec = document.querySelector('.hero-spec');
+if (nav && heroSpec) {
+  nav.classList.add('nav-float');
+  const navObserver = new IntersectionObserver(([e]) => {
+    const scrolledPast = !e.isIntersecting && e.boundingClientRect.bottom <= 0;
+    nav.classList.toggle('nav-shown', scrolledPast);
+  });
+  navObserver.observe(heroSpec);
+}
+
 // Live clock in the console bar, like on the real thing
 const clock = document.getElementById('clock');
 if (clock) {

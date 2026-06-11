@@ -5,6 +5,8 @@
   <img src="logo-full-black-ghost.png" alt="pleNx" width="320">
 </picture>
 
+*/plɛn.ɛks/ — Plex × NX*
+
 **🎮📺 - A third-party native, controller-first Plex client for Nintendo Switch.**
 
 Browse and play your movies and shows from your Plex Media Server, with a fully
