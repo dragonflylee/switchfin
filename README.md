@@ -7,7 +7,7 @@
 
 */plɛn.ɛks/ — Plex × NX*
 
-**🎮📺 - A third-party native, controller-first Plex client for Nintendo Switch.**
+**🎮 📺 - A third-party native, controller-first Plex client for Nintendo Switch.**
 
 Browse and play your movies and shows from your Plex Media Server, with a fully
 native interface designed for the gamepad. Also (should) runs on Windows,
