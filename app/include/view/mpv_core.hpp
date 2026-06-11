@@ -244,6 +244,10 @@ private:
     // 当前软件是否在前台的回调
     brls::Event<bool>::Subscription focusSubscription;
 
+    // window/framebuffer size changes (Switch dock/undock): the mpv render
+    // target size is in pixels and must follow Application::windowWidth/Height
+    brls::VoidEvent::Subscription sizeSubscription;
+
     /// Will be called in main thread to get events from mpv core
     void eventMainLoop();
 

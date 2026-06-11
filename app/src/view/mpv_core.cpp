@@ -340,6 +340,14 @@ void MPVCore::init() {
 #endif
     });
 
+    sizeSubscription = brls::Application::getWindowSizeChangedEvent()->subscribe([this]() {
+        // Docking/undocking the Switch swaps the framebuffer between 1280x720
+        // and 1920x1080 while the borealis layout stays in 1280x720 points, so
+        // the rect guard in draw() never fires; refresh mpv_fbo.w/h (pixels)
+        // from the new Application::windowWidth/Height here.
+        setFrameSize(this->rect);
+    });
+
 #if defined(BOREALIS_USE_OPENGL) && !defined(MPV_SW_RENDER)
     // Get default framebuffer
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &default_framebuffer);
@@ -351,6 +359,7 @@ void MPVCore::init() {
 void MPVCore::clean() {
     check_error(mpv_command_string(this->mpv, "quit"));
     brls::Application::getWindowFocusChangedEvent()->unsubscribe(focusSubscription);
+    brls::Application::getWindowSizeChangedEvent()->unsubscribe(sizeSubscription);
 
     brls::Logger::info("trying free mpv context");
     if (this->mpv_context) {
