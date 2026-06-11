@@ -9,6 +9,16 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [0.1.6] - 2026-06-12
+
+### Fixes
+
+- **PS Vita: transparent images no longer render as opaque black blocks.**
+  Every non-WebP image was GPU-compressed to DXT1, a format with no alpha
+  channel, so transparent PNGs (movie clear-logos) exposed the RGB residue
+  hidden under their transparent pixels. Images with real transparency now
+  use DXT5 (8-bit alpha); opaque ones keep the compact DXT1
+
 ## [0.1.5] - 2026-06-11
 
 ### Fixes
