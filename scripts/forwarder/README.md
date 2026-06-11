@@ -10,7 +10,7 @@ Construction manuelle :
 ```shell
 make -C scripts/forwarder pleNx.nacp
 
-hacbrewpack -k prod.keys --titleid 010FF000FFFF1003 --titlename pleNx --noromfs --nologo
+hacbrewpack -k prod.keys --titleid 0104201312000000 --titlename pleNx --noromfs --nologo
 ```
 
 Le keyset : fournir le vôtre via `-DPROJECT_KEYSET=/chemin/prod.keys` (dumpé avec

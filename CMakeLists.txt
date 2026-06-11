@@ -55,7 +55,11 @@ project(pleNx)
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")
 set(VERSION_ALTER "2")
-set(PROJECT_TITLEID "010ff000ffff1003")
+# 0420 1312 : title ID propre à pleNx — l'ancien (hérité de Switchfin) laissait
+# le menu HOME servir le nom/icône "Switchlex" depuis son cache même après
+# réinstallation ; un ID vierge repart de zéro. Unicité vérifiée (web, GitHub,
+# liste GBAtemp des homebrews) le 2026-06-11.
+set(PROJECT_TITLEID "0104201312000000")
 set(PROJECT_AUTHOR "thcolin")
 set(PACKAGE_NAME "fun.thcolin.plenx")
 set(VITA_TITLEID "PLENX0000")
