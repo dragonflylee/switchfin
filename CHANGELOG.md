@@ -9,6 +9,33 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [0.1.1] - 2026-06-11
+
+### Features
+
+- **Working in-app self-update on Nintendo Switch**: when a new release is
+  published, pleNx offers to update itself (checked at startup and from
+  Settings → "Check for updates"), downloads the NRO with a live progress
+  dialog (cancelable), verifies the file size against the GitHub release
+  asset before touching anything, then replaces itself and prompts to
+  relaunch. On the other platforms the dialog opens the release page in the
+  browser.
+
+### Fixes
+
+- The updater inherited from Switchfin always wrote the new NRO to
+  `sdmc:/switch/pleNx/pleNx.nro`, while the HOME tile (forwarder) and most
+  manual installs launch `sdmc:/switch/pleNx.nro`: an update could silently
+  leave the old version running forever. The app now replaces the NRO it was
+  actually launched from (`argv[0]`). ⚠️ As a consequence, updating **from
+  0.1.0** through the in-app dialog may appear to have no effect depending on
+  the NRO location — 0.1.0 users with the NRO at `sdmc:/switch/pleNx.nro`
+  should replace it manually once.
+- The release-asset download URL is no longer hardcoded: URL and expected
+  size are taken from the GitHub API response
+- The startup update check now honors its intended delay instead of racing
+  the plex.tv login requests
+
 ## [0.1.0] - 2026-06-11
 
 First release of **pleNx**, a third-party native [Plex](https://www.plex.tv/)
