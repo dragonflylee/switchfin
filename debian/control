@@ -9,7 +9,7 @@ Build-Depends: debhelper (>= 10),
                libdbus-1-dev,
                libwebp-dev,
                libmpv-dev
-Vcs-Git: https://github.com/thcolin/plenx.git
+Vcs-Git: https://github.com/thcolin/pleNx.git
 
 Package: plenx
 Depends: ${shlibs:Depends}, ${misc:Depends}

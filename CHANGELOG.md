@@ -35,6 +35,13 @@ hand. For the history of the upstream project this fork is based on, see the
   size are taken from the GitHub API response
 - The startup update check now honors its intended delay instead of racing
   the plex.tv login requests
+- All references to the repository now use its new name `thcolin/pleNx`
+  (the updater, the README, the Debian/Flatpak/AUR metadata) — the GitHub
+  redirect from `thcolin/plenx` kept everything working, but the canonical
+  name is safer long-term
+- The Arch package version is now derived from `CMakeLists.txt` instead of
+  being hardcoded in the PKGBUILD (the 0.1.1 package was previously
+  versioned 0.1.0)
 
 ## [0.1.0] - 2026-06-11
 

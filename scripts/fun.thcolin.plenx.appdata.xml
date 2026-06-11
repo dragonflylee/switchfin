@@ -41,12 +41,12 @@
         <release date="2026-06-11" version="0.1.0">
             <description>
                 <p>
-                    Please See Official Changelog at github.com/thcolin/plenx/releases
+                    Please See Official Changelog at github.com/thcolin/pleNx/releases
                 </p>
             </description>
         </release>
     </releases>
-    <url type="homepage">https://github.com/thcolin/plenx</url>
-    <url type="vcs-browser">https://github.com/thcolin/plenx</url>
-    <url type="bugtracker">https://github.com/thcolin/plenx/issues</url>
+    <url type="homepage">https://github.com/thcolin/pleNx</url>
+    <url type="vcs-browser">https://github.com/thcolin/pleNx</url>
+    <url type="bugtracker">https://github.com/thcolin/pleNx/issues</url>
 </component>

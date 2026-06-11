@@ -1,9 +1,11 @@
 pkgname=plenx
-pkgver=0.1.0
+# dérivé de CMakeLists.txt (même sed que la vérification de tag de build.yaml) :
+# makepkg est lancé depuis scripts/aur (cf. entrypoint.sh / job build-aur)
+pkgver=$(sed -nE 's/^set\(VERSION_(MAJOR|MINOR|ALTER) "([0-9]+)"\)$/\2/p' ../../CMakeLists.txt | paste -sd. -)
 pkgrel=1
 pkgdesc='Third-party native Plex client'
 arch=('x86_64' 'aarch64')
-url='https://github.com/thcolin/plenx'
+url='https://github.com/thcolin/pleNx'
 license=('GPL-3.0-or-later')
 depends=('curl' 'dbus' 'gcc-libs' 'glibc' 'hicolor-icon-theme' 'libwebp' 'mpv' 'libxcb' 'tinyxml2' 'libpng' 'fmt')
 makedepends=('cmake' 'git' 'libxi' 'libxinerama' 'ninja' 'python' 'wayland-protocols')

@@ -11,9 +11,9 @@ Browse and play your movies and shows from your Plex Media Server, with a fully
 native interface designed for the gamepad. Also (should) runs on Windows,
 macOS, Linux, PS4 and PS Vita.
 
-[![build](https://github.com/thcolin/plenx/actions/workflows/build.yaml/badge.svg)](https://github.com/thcolin/plenx/actions/workflows/build.yaml)
-[![download](https://img.shields.io/github/downloads/thcolin/plenx/total?label=downloads)](https://github.com/thcolin/plenx/releases/latest)
-[![nightly](https://img.shields.io/badge/nightly-build-green)](https://nightly.link/thcolin/plenx/workflows/build.yaml/dev)
+[![build](https://github.com/thcolin/pleNx/actions/workflows/build.yaml/badge.svg)](https://github.com/thcolin/pleNx/actions/workflows/build.yaml)
+[![download](https://img.shields.io/github/downloads/thcolin/pleNx/total?label=downloads)](https://github.com/thcolin/pleNx/releases/latest)
+[![nightly](https://img.shields.io/badge/nightly-build-green)](https://nightly.link/thcolin/pleNx/workflows/build.yaml/dev)
 [![sponsor](https://img.shields.io/badge/sponsor-%E2%9D%A4-db61a2)](https://github.com/sponsors/thcolin)
 
 </div>
@@ -78,8 +78,8 @@ macOS, Linux, PS4 and PS Vita.
 > the HOME tile (or use title takeover) before starting a movie.
 
 Desktop builds for Windows, macOS and Linux are attached to every
-[release](https://github.com/thcolin/plenx/releases/latest), with nightly artifacts on
-[nightly.link](https://nightly.link/thcolin/plenx/workflows/build.yaml/dev).
+[release](https://github.com/thcolin/pleNx/releases/latest), with nightly artifacts on
+[nightly.link](https://nightly.link/thcolin/pleNx/workflows/build.yaml/dev).
 
 ## Controls during playback
 
@@ -130,7 +130,7 @@ pleNx is C++17, built on [borealis](https://github.com/natinusala/borealis) for 
 and [mpv](https://github.com/mpv-player/mpv) for playback.
 
 ```shell
-git clone https://github.com/thcolin/plenx.git --recurse-submodules --shallow-submodules
+git clone https://github.com/thcolin/pleNx.git --recurse-submodules --shallow-submodules
 ```
 
 ### Nintendo Switch
