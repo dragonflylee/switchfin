@@ -9,6 +9,28 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [0.1.5] - 2026-06-11
+
+### Fixes
+
+- **Controller navigation no longer dies after closing the player.** The
+  post-playback refresh destroyed the very view the focus had just returned
+  to, leaving the app button-deaf (only touch worked — a docked Switch was
+  stuck). The focus now lands back on the first home row, visibly
+- **Docking the Switch mid-playback now switches the video to fullscreen
+  1080p** instead of leaving it small in a corner (inherited upstream
+  regression: the mpv render target never followed the framebuffer swap)
+
+### Player
+
+- Focused controls now show a **translucent orange background** instead of
+  the border halo — far more readable over moving video
+- The close button is a round, properly centered icon
+- **Up/down wake the OSD** and focus the play/pause button
+- **The progress bar is focusable**: left/right seek from it with
+  accelerating steps (TV-style OSD is now the default, still toggleable)
+- Removed the always-on bottom progress bar and its settings
+
 ## [0.1.4] - 2026-06-11
 
 ### Fixes
