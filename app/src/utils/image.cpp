@@ -149,12 +149,29 @@ void Image::doRequest(HTTP& s) {
             imageData = stbi_load_from_memory((unsigned char*)data.c_str(), data.size(), &imageW, &imageH, &n, 4);
         }
 
+        bool hasAlpha = isWebp;
 #ifdef BOREALIS_USE_GXM
         if (imageData) {
+            // DXT1 drops the alpha channel entirely: transparent PNGs (clear
+            // logos...) would expose the RGB garbage hidden under their
+            // alpha-0 areas as opaque blocks. Scan the decoded pixels and
+            // keep DXT5 (8-bit alpha) for images with real transparency.
+            if (!hasAlpha) {
+                size_t bytes = (size_t)imageW * imageH * 4;
+                for (size_t i = 3; i < bytes; i += 4) {
+                    if (imageData[i] != 255) {
+                        hasAlpha = true;
+                        break;
+                    }
+                }
+            }
             size_t size = nearest_po2(imageW) * nearest_po2(imageH);
-            if (!isWebp) size >>= 1;
-            auto* compressed = (uint8_t*)malloc(size);
-            dxt_compress(compressed, imageData, imageW, imageH, isWebp);
+            if (!hasAlpha) size >>= 1;
+            // calloc: the compressor skips blocks outside the image, and the
+            // whole power-of-two buffer is uploaded to GPU memory — padding
+            // must be deterministic zeros, not heap garbage
+            auto* compressed = (uint8_t*)calloc(size, 1);
+            dxt_compress(compressed, imageData, imageW, imageH, hasAlpha);
 #ifdef USE_WEBP
             if (isWebp)
                 WebPFree(imageData);
@@ -168,20 +185,21 @@ void Image::doRequest(HTTP& s) {
         auto imagePtr = this->image;
         auto urlCopy = this->url;
         auto isCancelCopy = this->isCancel;
+#ifdef BOREALIS_USE_GXM
+        int imageFlags = (hasAlpha ? NVG_IMAGE_DXT5 : NVG_IMAGE_DXT1) | NVG_IMAGE_LPDDR;
+#else
+        int imageFlags = 0;
+        (void)hasAlpha;
+#endif
 
         brls::Logger::verbose("request Image {} size {}", urlCopy, data.size());
-        brls::sync([imagePtr, urlCopy, isCancelCopy, imageData, imageW, imageH, isWebp] {
+        brls::sync([imagePtr, urlCopy, isCancelCopy, imageData, imageW, imageH, isWebp, imageFlags] {
             if (!isCancelCopy->load()) {
                 // Load texture
                 int tex = brls::TextureCache::instance().getCache(urlCopy);
                 if (tex == 0 && imageData != nullptr) {
                     NVGcontext* vg = brls::Application::getNVGContext();
-#ifdef BOREALIS_USE_GXM
-                    tex = nvgCreateImageRGBA(
-                        vg, imageW, imageH, (isWebp ? NVG_IMAGE_DXT5 : NVG_IMAGE_DXT1) | NVG_IMAGE_LPDDR, imageData);
-#else
-                    tex = nvgCreateImageRGBA(vg, imageW, imageH, 0, imageData);
-#endif
+                    tex = nvgCreateImageRGBA(vg, imageW, imageH, imageFlags, imageData);
                     brls::TextureCache::instance().addCache(urlCopy, tex);
                 }
                 if (tex > 0) imagePtr->innerSetImage(tex);
