@@ -29,10 +29,40 @@ index 6f92431b..024a5dfe 100644
  
    private:
 diff --git a/library/include/borealis/core/view.hpp b/library/include/borealis/core/view.hpp
-index 227cd789..6f5411ca 100644
+index 227cd789..10f9add7 100644
 --- a/library/include/borealis/core/view.hpp
 +++ b/library/include/borealis/core/view.hpp
-@@ -1263,6 +1263,19 @@ class View
+@@ -245,6 +245,12 @@ class View
+     float highlightPadding      = 0.0f;
+     float highlightCornerRadius = 0.0f;
+ 
++    // Optional per-view override of theme["brls/highlight/background"]; its
++    // alpha is multiplied with the highlight animation alpha, allowing
++    // translucent focus backgrounds (e.g. the player OSD controls).
++    NVGcolor highlightBackgroundColor{};
++    bool hasHighlightBackgroundColor = false;
++
+     Animatable clickAlpha = 0.0f; // animated between 0 and 1
+ 
+     bool highlightShaking = false;
+@@ -930,6 +936,16 @@ class View
+         this->highlightCornerRadius = radius;
+     }
+ 
++    /**
++     * Overrides the theme highlight background color for this view. The
++     * color alpha is preserved (multiplied with the highlight animation).
++     */
++    inline void setHighlightBackgroundColor(NVGcolor color)
++    {
++        this->highlightBackgroundColor    = color;
++        this->hasHighlightBackgroundColor = true;
++    }
++
+     // -----------------------------------------------------------
+ 
+     /**
+@@ -1263,6 +1279,19 @@ class View
        */
      void frameHighlight(FrameContext* ctx);
  
@@ -342,7 +372,7 @@ index aa63fa09..75af9ff2 100644
      { "brls/highlight/background", nvgRGB(31, 34, 39) },
      { "brls/highlight/color1", nvgRGB(25, 138, 198) },
 diff --git a/library/lib/core/view.cpp b/library/lib/core/view.cpp
-index 59ec77bb..f30b0973 100644
+index 59ec77bb..546db73f 100644
 --- a/library/lib/core/view.cpp
 +++ b/library/lib/core/view.cpp
 @@ -307,14 +307,31 @@ void View::drawClickAnimation(NVGcontext* vg, FrameContext* ctx, Rect frame)
@@ -425,7 +455,20 @@ index 59ec77bb..f30b0973 100644
      // Shake animation
      if (this->highlightShaking)
      {
-@@ -1528,11 +1573,12 @@ View::~View()
+@@ -581,8 +626,10 @@ void View::drawHighlight(NVGcontext* vg, Theme theme, float alpha, Style style,
+     if (background)
+     {
+         // Background
+-        NVGcolor highlightBackgroundColor = theme["brls/highlight/background"];
+-        nvgFillColor(vg, RGBAf(highlightBackgroundColor.r, highlightBackgroundColor.g, highlightBackgroundColor.b, this->highlightAlpha));
++        NVGcolor highlightBackgroundColor = this->hasHighlightBackgroundColor
++            ? this->highlightBackgroundColor
++            : theme["brls/highlight/background"];
++        nvgFillColor(vg, RGBAf(highlightBackgroundColor.r, highlightBackgroundColor.g, highlightBackgroundColor.b, highlightBackgroundColor.a * this->highlightAlpha));
+         nvgBeginPath(vg);
+         nvgRoundedRect(vg, x, y, width, height, cornerRadius);
+         nvgFill(vg);
+@@ -1528,11 +1575,12 @@ View::~View()
          }
      }
  
@@ -443,6 +486,17 @@ index 59ec77bb..f30b0973 100644
      for (GestureRecognizer* recognizer : this->gestureRecognizers)
          delete recognizer;
  
+@@ -2300,6 +2348,10 @@ void View::registerCommonAttributes()
+         this->setHighlightCornerRadius(value);
+     });
+ 
++    this->registerColorXMLAttribute("highlightBackgroundColor", [this](NVGcolor value) {
++        this->setHighlightBackgroundColor(value);
++    });
++
+     // Misc
+     this->registerStringXMLAttribute("title", [this](std::string value) {
+         this->getAppletFrameItem()->title = value;
 diff --git a/library/lib/platforms/glfw/glfw_input.cpp b/library/lib/platforms/glfw/glfw_input.cpp
 index 9b31fcfa..a6b8a8a4 100644
 --- a/library/lib/platforms/glfw/glfw_input.cpp

@@ -192,7 +192,6 @@
     },
     "playback": {
       "header": "Oynatma",
-      "bottom_bar": "Oynatma arayüzünde ilerleme çubuğunu göster",
       "low_quality": "Düşük kalite video çözümü (daha az işlemci kullanır)",
       "in_memory_cache": "Bellek içi önbellek",
       "subs_fallback": "Alt yazıları otomatik yükle",

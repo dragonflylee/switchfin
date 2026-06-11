@@ -70,8 +70,6 @@
                     <brls:BooleanCell
                         id="setting/always_on_top" />
                     <brls:BooleanCell
-                        id="setting/player/bottom_bar" />
-                    <brls:BooleanCell
                         id="setting/player/osd_on_toggle" />
                 </brls:Box>
 

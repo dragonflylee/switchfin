@@ -9,7 +9,9 @@
         width="50"
         height="50"
         alignItems="center"
-        hideHighlightBackground="true"
+        hideHighlightBorder="true"
+        highlightBackgroundColor="@theme/color/focus/bg"
+        highlightPadding="2"
         highlightCornerRadius="10"
         backgroundColor="#303030A0"
         focusable="true"
@@ -44,23 +46,24 @@
             hideClickAnimation="true"
             marginLeft="10"
             marginRight="10"
+            marginTop="6"
             alignItems="center"
             justifyContent="center"
-            height="60">
-            <brls:Label
-                id="video/close/label"
-                marginTop="7"
-                marginLeft="1"
-                focusable="true"
-                focusUp="video/close/label"
-                focusRight="video/osd/icon/box"
-                focusDown="video/osd/toggle"
-                focusLeft="video/close/label"
-                horizontalAlign="center"
-                verticalAlign="center"
-                lineHeight="1"
-                fontSize="32"
-                text="" />
+            focusable="true"
+            focusUp="video/close/box"
+            focusRight="video/osd/icon/box"
+            focusDown="video/osd/toggle"
+            focusLeft="video/close/box"
+            hideHighlightBorder="true"
+            highlightBackgroundColor="@theme/color/focus/bg"
+            highlightCornerRadius="24"
+            width="48"
+            height="48">
+            <SVGImage
+                id="video/close/icon"
+                height="26"
+                width="26"
+                svg="@res/icon/ico-close.svg" />
         </brls:Box>
 
         <brls:Label
@@ -90,8 +93,10 @@
                     focusUp="video/osd/backward/icon"
                     focusDown="video/osd/bottom/box"
                     visibility="gone"
-                    hideHighlightBackground="true"
-                    highlightCornerRadius="30"
+                    hideHighlightBorder="true"
+                    highlightBackgroundColor="@theme/color/focus/bg"
+                    highlightPadding="10"
+                    highlightCornerRadius="25"
                     height="30"
                     width="30"
                     svg="@res/icon/ico-backward.svg" />
@@ -110,8 +115,10 @@
                     focusUp="video/osd/forward/icon"
                     focusDown="video/osd/lock/box"
                     visibility="gone"
-                    hideHighlightBackground="true"
-                    highlightCornerRadius="30"
+                    hideHighlightBorder="true"
+                    highlightBackgroundColor="@theme/color/focus/bg"
+                    highlightPadding="10"
+                    highlightCornerRadius="25"
                     height="30"
                     width="30"
                     svg="@res/icon/ico-forward.svg" />
@@ -128,8 +135,10 @@
                     focusable="true"
                     focusUp="video/osd/cast/icon"
                     focusDown="video/osd/lock/box"
-                    hideHighlightBackground="true"
-                    highlightCornerRadius="30"
+                    hideHighlightBorder="true"
+                    highlightBackgroundColor="@theme/color/focus/bg"
+                    highlightPadding="10"
+                    highlightCornerRadius="25"
                     height="30"
                     width="30"
                     svg="@res/icon/ico-cast.svg" />
@@ -148,8 +157,10 @@
                     focusUp="video/osd/setting/icon"
                     focusRight="video/osd/setting/icon"
                     focusDown="video/osd/lock/box"
-                    hideHighlightBackground="true"
-                    highlightCornerRadius="30"
+                    hideHighlightBorder="true"
+                    highlightBackgroundColor="@theme/color/focus/bg"
+                    highlightPadding="10"
+                    highlightCornerRadius="25"
                     height="30"
                     width="30"
                     svg="@res/icon/ico-player-setting.svg" />
@@ -238,11 +249,13 @@
             id="video/osd/toggle"
             wireframe="false"
             focusable="true"
-            focusUp="video/close/label"
+            focusUp="video/close/box"
             focusLeft="video/osd/toggle"
             focusRight="video/osd/volume/icon"
-            hideHighlightBackground="true"
-            highlightCornerRadius="100"
+            hideHighlightBorder="true"
+            highlightBackgroundColor="@theme/color/focus/bg"
+            highlightPadding="8"
+            highlightCornerRadius="38"
             alignItems="center"
             justifyContent="center"
             marginLeft="20"
@@ -309,8 +322,10 @@
                             focusUp="video/osd/lock/box"
                             focusDown="video/osd/volume/icon"
                             id="video/osd/volume/icon"
-                            hideHighlightBackground="true"
-                            highlightCornerRadius="30"
+                            hideHighlightBorder="true"
+                            highlightBackgroundColor="@theme/color/focus/bg"
+                            highlightPadding="10"
+                            highlightCornerRadius="25"
                             wireframe="false"
                             height="30"
                             width="30"
@@ -334,7 +349,9 @@
                             visibility="gone"
                             horizontalAlign="center"
                             text="@i18n/main/player/episode"
-                            hideHighlightBackground="true"
+                            hideHighlightBorder="true"
+                            highlightBackgroundColor="@theme/color/focus/bg"
+                            highlightPadding="6"
                             highlightCornerRadius="8" />
                     </brls:Box>
                     <brls:Box
@@ -353,7 +370,9 @@
                             focusDown="video/quality/label"
                             horizontalAlign="center"
                             text="@i18n/main/player/quality"
-                            hideHighlightBackground="true"
+                            hideHighlightBorder="true"
+                            highlightBackgroundColor="@theme/color/focus/bg"
+                            highlightPadding="6"
                             highlightCornerRadius="8" />
                     </brls:Box>
                     <brls:Box
@@ -373,7 +392,9 @@
                             focusRight="video/speed/label"
                             horizontalAlign="center"
                             text="@i18n/main/player/speed"
-                            hideHighlightBackground="true"
+                            hideHighlightBorder="true"
+                            highlightBackgroundColor="@theme/color/focus/bg"
+                            highlightPadding="6"
                             highlightCornerRadius="8" />
                     </brls:Box>
                 </brls:Box>

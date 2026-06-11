@@ -69,7 +69,6 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {SYNC_SETTING, {"sync_setting"}},
     {OVERCLOCK, {"overclock"}},
     {MPV_VO, {"mpv_vo", {"gpu", "gpu-next", "mediacodec_embed"}}},
-    {PLAYER_BOTTOM_BAR, {"player_bottom_bar"}},
     {PLAYER_LOW_QUALITY, {"player_low_quality"}},
     {PLAYER_SUBS_FALLBACK, {"player_subs_fallback"}},
     {PLAYER_INMEMORY_CACHE,
@@ -337,8 +336,6 @@ bool AppConfig::init() {
     // 初始化是否全屏，必须在创建窗口前设置此值
     VideoContext::FULLSCREEN = this->getItem(FULLSCREEN, false);
 
-    // 初始化是否固定显示底部进度条
-    MPVCore::BOTTOM_BAR = this->getItem(PLAYER_BOTTOM_BAR, true);
     MPVCore::OSD_ON_TOGGLE = this->getItem(OSD_ON_TOGGLE, true);
     MPVCore::TOUCH_GESTURE = this->getItem(TOUCH_GESTURE, true);
     MPVCore::CLIP_POINT = this->getItem(CLIP_POINT, true);
@@ -364,7 +361,9 @@ bool AppConfig::init() {
     MPVCore::VIDEO_SPEED = this->getItem(PLAYER_SPEED, MPVCore::VIDEO_SPEED);
     // 初始化视频比例
     MPVCore::VIDEO_ASPECT = this->getItem(PLAYER_ASPECT, MPVCore::VIDEO_ASPECT);
-    MPVCore::OSD_TV_MODE = this->getItem(PLAYER_TV_MODE, false);
+    // TV-style OSD by default: the progress bar is focusable and left/right
+    // seek from it — the natural behaviour on a controller-driven device
+    MPVCore::OSD_TV_MODE = this->getItem(PLAYER_TV_MODE, true);
 
     ThreadPool::max_thread_num = this->getItem(REQUEST_THREADS, ThreadPool::max_thread_num);
 
@@ -749,6 +748,10 @@ void AppConfig::initThemes() {
 
     this->addColor(brls::ThemeVariant::LIGHT, "color/app", nvgRGB(204, 124, 25));
     this->addColor(brls::ThemeVariant::DARK, "color/app", nvgRGB(229, 160, 13));
+    // translucent focus background for player OSD controls (replaces the
+    // border highlight, hard to read over moving video)
+    this->addColor(brls::ThemeVariant::LIGHT, "color/focus/bg", nvgRGBA(204, 124, 25, 115));
+    this->addColor(brls::ThemeVariant::DARK, "color/focus/bg", nvgRGBA(229, 160, 13, 115));
     // dark scrim behind elements placed over an image (bars, badges)
     this->addColor(brls::ThemeVariant::LIGHT, "color/scrim", nvgRGBA(0, 0, 0, 160));
     this->addColor(brls::ThemeVariant::DARK, "color/scrim", nvgRGBA(0, 0, 0, 160));

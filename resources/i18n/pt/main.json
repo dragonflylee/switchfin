@@ -192,7 +192,6 @@
     },
     "playback": {
       "header": "Reprodução",
-      "bottom_bar": "Mostrar barra de progresso inferior",
       "low_quality": "Descodificação de baixa qualidade (com menos uso do CPU)",
       "in_memory_cache": "Cache em memória",
       "subs_fallback": "Carregar legendas automaticamente",

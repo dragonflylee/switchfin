@@ -192,7 +192,6 @@
     },
     "playback": {
       "header": "Přehrávání",
-      "bottom_bar": "Zobrazit spodní indikátor průběhu",
       "low_quality": "Nízká kvalita dekódování (s menším využitím CPU)",
       "in_memory_cache": "Vyrovnávací paměť v RAM",
       "subs_fallback": "Automaticky načítat titulky",

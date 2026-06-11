@@ -192,7 +192,6 @@
     },
     "playback": {
       "header": "播放設定",
-      "bottom_bar": "顯示底部進度條",
       "low_quality": "低畫質解碼（以降低 CPU 用量為代價）",
       "in_memory_cache": "記憶體快取",
       "subs_fallback": "自動載入字幕",

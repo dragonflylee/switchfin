@@ -192,7 +192,6 @@
     },
     "playback": {
       "header": "Reproducción",
-      "bottom_bar": "Mostrar barra de progreso inferior",
       "low_quality": "Decodificación de baja calidad (menor uso de CPU)",
       "in_memory_cache": "Caché en memoria",
       "subs_fallback": "Cargar subtítulos automáticamente",

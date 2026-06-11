@@ -192,7 +192,6 @@
     },
     "playback": {
       "header": "再生",
-      "bottom_bar": "下部にプログレスバーを表示",
       "low_quality": "低品質デコード (CPU 使用率が低い)",
       "in_memory_cache": "インメモリーキャッシュ",
       "subs_fallback": "字幕の自動読み込み",

@@ -176,8 +176,6 @@
                 <brls:BooleanCell
                     id="setting/player/clip_point" />
                 <brls:BooleanCell
-                    id="setting/ui/bottom_bar" />
-                <brls:BooleanCell
                     id="setting/ui/show_fps" />
                 <SelectorCell
                     id="setting/ui/vsync" />

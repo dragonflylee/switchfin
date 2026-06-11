@@ -30,8 +30,11 @@ VideoProgressSlider::VideoProgressSlider() {
 
     pointer->setDimensions(30, 30);
     pointer->setFocusable(true);
-    pointer->setHighlightCornerRadius(30);
-    pointer->setHideHighlightBackground(true);
+    // translucent orange focus background, consistent with the OSD controls
+    pointer->setHighlightCornerRadius(21);
+    pointer->setHighlightPadding(6);
+    pointer->setHideHighlightBorder(true);
+    pointer->setHighlightBackgroundColor(Application::getTheme().getColor("color/focus/bg"));
     pointer->setHideClickAnimation(true);
     pointer->setAlignItems(brls::AlignItems::CENTER);
     pointer->setJustifyContent(brls::JustifyContent::CENTER);

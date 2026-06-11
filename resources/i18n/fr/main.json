@@ -192,7 +192,6 @@
     },
     "playback": {
       "header": "Paramètres de lecture",
-      "bottom_bar": "Afficher la barre de progression en bas",
       "low_quality": "Décodage en basse qualité (réduit la qualité de l'image pour une moindre consommation d'énergie)",
       "in_memory_cache": "Cache de décodage",
       "subs_fallback": "Chargement automatique des sous-titres",

@@ -84,6 +84,30 @@ VideoView::VideoView() {
         },
         false, true);
 
+    // d-pad on the focused progress bar: left/right seek (same steps as
+    // LB/RB), up/down leave towards the OSD controls
+    this->osdSlider->registerAction(
+        "\uE08F", brls::BUTTON_NAV_LEFT,
+        [this](brls::View* view) -> bool {
+            this->showOSD(true);
+            this->seekingRange -= getSeekRange(this->seekingRange);
+            this->requestSeeking(seekingRange);
+            return true;
+        },
+        true, true);
+    this->osdSlider->registerAction(
+        "\uE08E", brls::BUTTON_NAV_RIGHT,
+        [this](brls::View* view) -> bool {
+            this->showOSD(true);
+            this->seekingRange += getSeekRange(this->seekingRange);
+            this->requestSeeking(seekingRange);
+            return true;
+        },
+        true, true);
+    brls::View* sliderPointer = this->osdSlider->getDefaultFocus();
+    sliderPointer->setCustomNavigationRoute(brls::FocusDirection::UP, "video/osd/lock/box");
+    sliderPointer->setCustomNavigationRoute(brls::FocusDirection::DOWN, "video/osd/volume/icon");
+
     this->registerActions(
         "toggleOSD", brls::BUTTON_Y, KeyBind::getVideoOsd(),
         [this](brls::View* view) -> bool {
@@ -117,6 +141,16 @@ VideoView::VideoView() {
                 this->requestVolume((int)MPVCore::instance().volume + 5, 400);
                 return true;
             }
+            // d-pad with the OSD hidden: wake it and focus the controls
+            if (!this->isOsdShown) {
+                this->showOSD(true);
+                brls::Application::giveFocus(this->btnToggle);
+                return true;
+            }
+            if (!this->isChildFocused()) {
+                brls::Application::giveFocus(this->btnToggle);
+                return true;
+            }
             return false;
         },
         true, true);
@@ -128,6 +162,16 @@ VideoView::VideoView() {
             auto& state = brls::Application::getControllerState();
             if (state.buttons[brls::BUTTON_RT]) {
                 this->requestVolume((int)MPVCore::instance().volume - 5, 400);
+                return true;
+            }
+            // d-pad with the OSD hidden: wake it and focus the controls
+            if (!this->isOsdShown) {
+                this->showOSD(true);
+                brls::Application::giveFocus(this->btnToggle);
+                return true;
+            }
+            if (!this->isChildFocused()) {
+                brls::Application::giveFocus(this->btnToggle);
                 return true;
             }
             return false;
@@ -438,17 +482,6 @@ void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::S
 
     // draw video
     mpv.draw(this->getFrame(), this->getAlpha());
-
-    if (MPVCore::BOTTOM_BAR) {
-        NVGcontext* vg = brls::Application::getNVGContext();
-        bottomBarColor.a = alpha;
-        float progress = mpv.playback_time / mpv.duration;
-        progress = progress > 1.0f ? 1.0f : progress;
-        nvgFillColor(vg, bottomBarColor);
-        nvgBeginPath(vg);
-        nvgRect(vg, x, y + h - 2, w * progress, 2);
-        nvgFill(vg);
-    }
 
     // draw osd
     brls::Time current = brls::getCPUTimeUsec();

@@ -153,8 +153,6 @@ private:
     brls::Rect oldRect = brls::Rect(-1, -1, -1, -1);
     brls::InputManager* input = nullptr;
 
-    NVGcolor bottomBarColor = brls::Application::getTheme().getColor("color/app");
-
     size_t volumeIter = 0;  // 音量UI关闭的延迟函数 handle
     int volumeInit = 0;
     float brightnessInit = 0;

@@ -192,7 +192,6 @@
     },
     "playback": {
       "header": "재생 설정",
-      "bottom_bar": "하단 진행 표시줄 표시",
       "low_quality": "저화질 디코딩 (CPU 사용량 감소)",
       "in_memory_cache": "메모리 캐시",
       "subs_fallback": "자동으로 자막 불러오기",

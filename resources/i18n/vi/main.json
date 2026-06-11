@@ -192,7 +192,6 @@
     },
     "playback": {
       "header": "Phát lại",
-      "bottom_bar": "Hiển thị thanh tiến trình bên dưới",
       "low_quality": "Giải mã chất lượng thấp (sử dụng ít CPU hơn)",
       "in_memory_cache": "Bộ nhớ đệm trong RAM",
       "subs_fallback": "Tự động tải phụ đề",

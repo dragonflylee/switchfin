@@ -192,7 +192,6 @@
     },
     "playback": {
       "header": "播放设置",
-      "bottom_bar": "显示底部进度条",
       "low_quality": "低画质解码（以画质为代价换取更低的功耗）",
       "in_memory_cache": "解码缓存",
       "subs_fallback": "自动加载字幕",

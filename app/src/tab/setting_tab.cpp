@@ -230,11 +230,6 @@ void SettingTab::onCreate() {
             MPVCore::instance().restart();
         });
 
-    btnBottomBar->init("main/setting/playback/bottom_bar"_i18n, MPVCore::BOTTOM_BAR, [&conf](bool value) {
-        MPVCore::BOTTOM_BAR = value;
-        conf.setItem(AppConfig::PLAYER_BOTTOM_BAR, value);
-    });
-
     btnShowFPS->init("main/setting/ui/show_fps"_i18n, brls::Application::getFPSStatus(), [&conf](bool value) {
         brls::Application::setFPSStatus(value);
         conf.setItem(AppConfig::SHOW_FPS, value);

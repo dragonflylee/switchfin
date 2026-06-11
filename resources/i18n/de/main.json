@@ -192,7 +192,6 @@
     },
     "playback": {
       "header": "Wiedergabe",
-      "bottom_bar": "Unteren Fortschrittsbalken anzeigen",
       "low_quality": "Dekodierung in geringer Qualität (weniger CPU-Last)",
       "in_memory_cache": "Arbeitsspeicher-Cache",
       "subs_fallback": "Untertitel automatisch laden",
