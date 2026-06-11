@@ -45,8 +45,14 @@ void HomeTab::doResume(RecylingVideo* row) {
             ASYNC_RELEASE
             for (auto& hub : r.Items) {
                 if (hub.items.empty()) continue;
-                if (!hub.title.empty()) row->setTitle(hub.title);
-                row->setItems(hub.items);
+                std::string title = hub.title.empty() ? "main/home/resume"_i18n : hub.title;
+                row->setTitle(title);
+                // hub tronqué (more=1) : carte « + » vers la page complète
+                if (hub.more && !hub.key.empty()) {
+                    row->setItems(hub.items, title, hub.key);
+                } else {
+                    row->setItems(hub.items);
+                }
                 return;
             }
             row->setItems({});
@@ -96,7 +102,12 @@ void HomeTab::doHubs() {
                 bool playlists = !items.empty() && items.front().type == plex::mediaTypePlaylist;
                 row->setItemWidth(playlists ? frameHeight - 55 : brls::getStyle()["app/card/poster/width"]);
                 row->setSidePadding(brls::getStyle()["main/content_padding_sides"]);
-                row->setItems(items);
+                // hub tronqué (more=1) : carte « + » vers la page complète
+                if (hub.more && !hub.key.empty()) {
+                    row->setItems(items, hub.title, hub.key);
+                } else {
+                    row->setItems(items);
+                }
                 this->boxHome->addView(row);
             }
         },

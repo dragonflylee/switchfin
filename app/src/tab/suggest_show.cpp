@@ -35,7 +35,12 @@ void SuggestShow::doRequest() {
                     row->setItemWidth(brls::getStyle()["app/card/poster/width"]);
                 }
                 row->setSidePadding(brls::getStyle()["main/content_padding_sides"]);
-                row->setItems(hub.items);
+                // hub tronqué (more=1) : carte « + » vers la page complète
+                if (hub.more && !hub.key.empty()) {
+                    row->setItems(hub.items, hub.title, hub.key);
+                } else {
+                    row->setItems(hub.items);
+                }
                 this->box->addView(row);
             }
         },
