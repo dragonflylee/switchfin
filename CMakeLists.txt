@@ -54,7 +54,7 @@ include(${BOREALIS_LIBRARY}/cmake/toolchain.cmake)
 project(pleNx)
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")
-set(VERSION_ALTER "3")
+set(VERSION_ALTER "4")
 # 0420 1312 : title ID propre à pleNx — l'ancien (hérité de Switchfin) laissait
 # le menu HOME servir le nom/icône "Switchlex" depuis son cache même après
 # réinstallation ; un ID vierge repart de zéro. Unicité vérifiée (web, GitHub,
@@ -64,7 +64,7 @@ set(PROJECT_AUTHOR "thcolin")
 set(PACKAGE_NAME "fun.thcolin.plenx")
 set(VITA_TITLEID "PLENX0000")
 set(PSN_TITLE_ID "PLNX00000")
-set(VITA_VERSION "00.13")
+set(VITA_VERSION "00.14")
 set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon.jpg)
 set(PROJECT_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/resources)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")

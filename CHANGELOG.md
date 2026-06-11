@@ -9,6 +9,16 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [0.1.4] - 2026-06-11
+
+### Fixes
+
+- **Every truncated row now ends with a "+" card** opening the full list:
+  the home rows (Continue Watching and all server hubs, e.g. "Recently
+  Added") and the Suggestions tabs of movie and show libraries were missing
+  it — only the related rows of detail pages had one. The card shows
+  whenever the server reports more content than displayed
+
 ## [0.1.3] - 2026-06-11
 
 ### Breaking
