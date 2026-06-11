@@ -138,8 +138,10 @@ kbd {
 .nav-gh:hover { background: var(--amber); }
 
 /* On the homepage the hero owns the branding: the nav stays out of
-   the way until the spec box has scrolled past (JS toggles .nav-shown) */
-.nav-float {
+   the way until the spec box has scrolled past (JS toggles .nav-shown).
+   Scoped to .js — set pre-paint by the inline head script — so the nav
+   is hidden from the very first frame, and stays sticky without JS. */
+.js .nav-float {
   position: fixed;
   left: 0;
   right: 0;
@@ -147,7 +149,7 @@ kbd {
   transform: translateY(-100%);
   transition: transform 0.25s ease-out, visibility 0s linear 0.25s;
 }
-.nav-float.nav-shown {
+.js .nav-float.nav-shown {
   visibility: visible;
   transform: none;
   transition: transform 0.25s ease-out;
@@ -919,5 +921,5 @@ kbd {
   html { scroll-behavior: auto; }
   .js .reveal { opacity: 1; transform: none; transition: none; }
   .btn, .feature, .nav-links a, .nav-gh, .shot, .toc a, .cb-hint,
-  .guide-body summary, .nav-float, .nav-float.nav-shown { transition: none; }
+  .guide-body summary, .js .nav-float, .js .nav-float.nav-shown { transition: none; }
 }

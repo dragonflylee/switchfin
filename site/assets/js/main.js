@@ -23,7 +23,6 @@ document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
 const nav = document.querySelector('.nav');
 const heroSpec = document.querySelector('.hero-spec');
 if (nav && heroSpec) {
-  nav.classList.add('nav-float');
   const navObserver = new IntersectionObserver(([e]) => {
     const scrolledPast = !e.isIntersecting && e.boundingClientRect.bottom <= 0;
     nav.classList.toggle('nav-shown', scrolledPast);
