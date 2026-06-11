@@ -33,7 +33,6 @@ brls::View* HRecyclerFrame::getNextCellFocus(brls::FocusDirection direction, brl
         currentFocusIndex += offset;
     }
 
-    currentFocus = getParentNavigationDecision(this, currentFocus, direction);
     if (!currentFocus && hasParent()) currentFocus = getParent()->getNextFocus(direction, this);
     return currentFocus;
 }
@@ -131,6 +130,7 @@ void HRecyclerFrame::notifyDataChanged() {
     if (this->dataSource) {
         this->contentBox->setWidth(
             (estimatedRowWidth + estimatedRowSpace) * dataSource->getItemCount() + paddingLeft + paddingRight);
+        this->setContentOffsetX(this->getContentOffsetX() + estimatedRowSpace, true);
     }
 }
 
