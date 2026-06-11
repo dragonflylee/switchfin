@@ -1,6 +1,6 @@
 /*
-    pleNx — connexion à un compte plex.tv (flux PIN, unique méthode).
-    Spécification : PLEX_MIGRATION.md §2.2-2.3.
+    pleNx — sign-in to a plex.tv account (PIN flow, only method).
+    Specification: PLEX_MIGRATION.md §2.2-2.3.
 */
 
 #pragma once
@@ -16,11 +16,11 @@ public:
     brls::View* getDefaultFocus() override;
 
 private:
-    /// Demande un code à plex.tv et lance l'interrogation périodique
+    /// Requests a code from plex.tv and starts the periodic polling
     void startPin();
     void pollOnce();
 
-    /// Étapes après obtention du token de compte
+    /// Steps after the account token is obtained
     void onAccount(const std::string& accountToken);
     void onServerPicked(
         const plex::AccountUser& account, const std::string& accountToken, const plex::ServerResource& server);
@@ -29,7 +29,7 @@ private:
     void doSwitch(const plex::HomeUser& home, const std::string& accountToken, const plex::ServerResource& server,
         const std::string& baseUrl, const std::string& pin);
 
-    /// Enregistre serveur + utilisateur actifs et entre dans l'application
+    /// Saves the active server + user and enters the application
     void finish(const std::string& uuid, const std::string& name, const std::string& thumb,
         const std::string& plexTvToken, const plex::ServerResource& server, const std::string& baseUrl);
 

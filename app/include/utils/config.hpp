@@ -19,28 +19,28 @@ public:
     inline static std::shared_ptr<std::atomic_bool> updating = std::make_shared<std::atomic_bool>(true);
     inline static std::string git_repo = "thcolin/pleNx";
 
-    /// Chemin réel du NRO en cours d'exécution (argv[0] fourni par hbloader ou
-    /// le forwarder), renseigné dans main(). C'est CE fichier que l'auto-update
-    /// doit remplacer : le NRO peut être à `sdmc:/switch/pleNx.nro` (forwarder)
-    /// ou `sdmc:/switch/pleNx/pleNx.nro`. Vide hors Switch ou si indisponible.
+    /// Real path of the running NRO (argv[0] provided by hbloader or the
+    /// forwarder), filled in main(). THIS is the file the auto-update must
+    /// replace: the NRO may live at `sdmc:/switch/pleNx.nro` (forwarder)
+    /// or `sdmc:/switch/pleNx/pleNx.nro`. Empty off-Switch or if unavailable.
     inline static std::string nro_path;
 };
 
-/// Un profil plex.tv (compte ou utilisateur Plex Home).
-/// `access_token` est le token plex.tv de CE profil — il sert pour l'API
-/// plex.tv (resources, home users), PAS pour les requêtes au serveur.
+/// A plex.tv profile (account or Plex Home user).
+/// `access_token` is the plex.tv token of THIS profile — it is used for the
+/// plex.tv API (resources, home users), NOT for server requests.
 struct AppUser {
-    std::string id;  // uuid plex.tv
+    std::string id;  // plex.tv uuid
     std::string name;
     std::string access_token;
-    std::string server_id;  // clientIdentifier du dernier serveur utilisé
-    std::string thumb;      // avatar (URL absolue plex.tv)
+    std::string server_id;  // clientIdentifier of the last used server
+    std::string thumb;      // avatar (absolute plex.tv URL)
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(AppUser, id, name, access_token, server_id, thumb);
 
-/// Un Plex Media Server connu. `access_token` est le token d'accès au serveur
-/// obtenu via /api/v2/resources pour l'utilisateur actif (rafraîchi à chaque
-/// connexion/bascule de profil). urls.front() = dernière connexion joignable.
+/// A known Plex Media Server. `access_token` is the server access token
+/// obtained via /api/v2/resources for the active user (refreshed on every
+/// sign-in/profile switch). urls.front() = last reachable connection.
 struct AppServer {
     std::string name;
     std::string id;  // clientIdentifier (machine id)
@@ -110,13 +110,13 @@ public:
         HTTP_PROXY_STATUS,
         HTTP_PROXY,
 
-        /// Tris/filtres de bibliothèque, persistés localement (objet json
-        /// {itemId: "sortBy,sortOrder,filtre"} — /DisplayPreferences n'existe
-        /// pas chez Plex, cf. PLEX_MIGRATION.md §2.5)
+        /// Library sorts/filters, persisted locally (json object
+        /// {itemId: "sortBy,sortOrder,filter"} — /DisplayPreferences does not
+        /// exist in Plex, cf. PLEX_MIGRATION.md §2.5)
         LIBRARY_SORT,
 
-        /// Proposition d'installation de la tuile HOME (forwarder NSP) déjà
-        /// affichée au premier lancement en mode application (Switch).
+        /// HOME tile install prompt (forwarder NSP) already shown at first
+        /// launch in application mode (Switch).
         HINT_FORWARDER,
 
         KEY_REFRESH,        // 刷新快捷键
@@ -181,11 +181,11 @@ public:
     const std::string& getDeviceId() { return this->device; }
     const std::string& getUserId() const { return this->user_id; }
     const std::string& getUserName() const { return this->user->name; }
-    /// Profil actif (nom, avatar…) — valide après init()/checkLogin().
+    /// Active profile (name, avatar...) — valid after init()/checkLogin().
     const AppUser& getUser() const { return *this->user; }
-    /// Token d'accès au SERVEUR actif (X-Plex-Token des requêtes PMS).
+    /// Access token of the active SERVER (X-Plex-Token of PMS requests).
     const std::string& getToken() const { return this->server_token; }
-    /// Token plex.tv du profil actif (resources, home users).
+    /// plex.tv token of the active profile (resources, home users).
     const std::string& getAccountToken() const { return this->user->access_token; }
     const std::string& getUrl() const { return this->server_url; }
     const std::vector<AppRemote>& getRemotes() const { return this->remotes; }

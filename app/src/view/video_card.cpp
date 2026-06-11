@@ -8,9 +8,9 @@ VideoCardCell::VideoCardCell() {
     this->inflateFromXMLRes("xml/view/video_card.xml");
 
     auto actionListener = [this](brls::View*) -> bool {
-        // remonte la hiérarchie jusqu'au recycler (RecyclingGrid vertical ou
-        // HRecyclerFrame des rangées d'accueil) plutôt que de figer la
-        // profondeur (getParent()->getParent()), fragile entre conteneurs
+        // climbs the hierarchy up to the recycler (vertical RecyclingGrid
+        // or the home rows' HRecyclerFrame) rather than freezing the depth
+        // (getParent()->getParent()), fragile across containers
         brls::Box* view = this->getParent();
         RecyclingView* recycler = nullptr;
         while (view && !(recycler = dynamic_cast<RecyclingView*>(view))) view = view->getParent();
@@ -20,9 +20,9 @@ VideoCardCell::VideoCardCell() {
         dataSrc->onContextMenu(view, this->getIndex());
         return true;
     };
-    // hint visible (« X Options ») dans la barre du bas quand la carte est
-    // focusée — l'action était auparavant cachée (hidden=true), introuvable
-    // manette en main sur console
+    // visible hint ("X Options") in the bottom bar when the card is
+    // focused — the action used to be hidden (hidden=true), undiscoverable
+    // gamepad in hand on console
     this->registerAction("hints/option"_i18n, brls::BUTTON_X, actionListener);
     this->registerAction(KeyBind::getSetting(), actionListener);
 }

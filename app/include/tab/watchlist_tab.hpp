@@ -1,17 +1,17 @@
 /*
-    pleNx — onglet sidebar « Watchlist » (compte plex.tv).
-    Grille d'affiches 2:3 des films/séries watchlistés, plus récent en premier.
-    API : GET discover.provider.plex.tv/library/sections/watchlist/all
-    (api/plex/watchlist.hpp — token COMPTE), pagination X-Plex-Container-*.
-    Les items viennent du PROVIDER (peuvent ne pas exister sur le serveur) :
-    le clic fait la correspondance par guid (plex::matchInLibrary) et ouvre la
-    fiche locale si trouvée, sinon notifie « pas en bibliothèque ».
+    pleNx — "Watchlist" sidebar tab (plex.tv account).
+    Grid of 2:3 posters of watchlisted movies/shows, most recent first.
+    API: GET discover.provider.plex.tv/library/sections/watchlist/all
+    (api/plex/watchlist.hpp — ACCOUNT token), X-Plex-Container-* pagination.
+    Items come from the PROVIDER (may not exist on the server): clicking
+    matches by guid (plex::matchInLibrary) and opens the local detail page
+    if found, otherwise notifies "not in library".
 
-    Tri/filtres (action Y, panneau WatchlistFilter — watchlist_tab.cpp) :
-    tri provider (watchlistedAt/titleSort/originallyAvailableAt, asc/desc),
-    filtre Type provider (type=1|2), filtre Disponibilité CLIENT appuyé sur
-    le cache des guid de la bibliothèque (plex::fetchLibraryGuids) — ce même
-    cache sert à griser les affiches absentes du serveur.
+    Sort/filters (Y action, WatchlistFilter panel — watchlist_tab.cpp):
+    provider sort (watchlistedAt/titleSort/originallyAvailableAt, asc/desc),
+    provider Type filter (type=1|2), CLIENT-side Availability filter backed
+    by the library guid cache (plex::fetchLibraryGuids) — the same cache is
+    used to gray out posters absent from the server.
 */
 
 #pragma once
@@ -36,19 +36,19 @@ public:
 private:
     BRLS_BIND(RecyclingGrid, recycler, "watchlist/grid");
 
-    /// Remet la pagination à zéro et recharge la grille ; `reloadGuids`
-    /// rafraîchit aussi le cache des guid de la bibliothèque (chargement
-    /// initial et action « rafraîchir » — pas un simple changement de tri).
+    /// Resets pagination and reloads the grid; `reloadGuids` also
+    /// refreshes the library guid cache (initial load and "refresh"
+    /// action — not a mere sort change).
     void refresh(bool reloadGuids);
     void doRequest();
 
-    /// guid (plex://…) présents sur le serveur actif — nullptr tant que
-    /// fetchLibraryGuids n'a pas répondu (ou a échoué) : présence inconnue,
-    /// pas de grisage ni de filtre Disponibilité effectif.
+    /// guids (plex://...) present on the active server — nullptr until
+    /// fetchLibraryGuids has answered (or failed): unknown presence,
+    /// no graying out and no effective Availability filter.
     std::shared_ptr<std::unordered_set<std::string>> libraryGuids;
 
-    /// un DataSource a été posé pour le chargement en cours (les pages dont
-    /// tous les items sont filtrés côté client n'en posent pas)
+    /// a DataSource has been set for the load in progress (pages whose
+    /// items are all filtered out client-side do not set one)
     bool loaded = false;
 
     size_t startIndex = 0;

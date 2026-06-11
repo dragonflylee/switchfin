@@ -6,9 +6,9 @@
 class RecyclingGrid;
 class SegmentedBar;
 
-/// Onglet Téléchargements (xml/tabs/downloads.xml) : en-tête « Stockage »
-/// (barre disque segmentée + légende) au-dessus d'une liste sectionnée
-/// « En cours » / « Téléchargés » (flow mode, hauteurs par ligne).
+/// Downloads tab (xml/tabs/downloads.xml): "Storage" header (segmented disk
+/// bar + legend) above a sectioned "In progress" / "Downloaded" list
+/// (flow mode, per-row heights).
 class DownloadView : public AttachedView {
 public:
     DownloadView();
@@ -16,14 +16,14 @@ public:
 
     brls::View* getDefaultFocus() override;
     void dismiss(std::function<void(void)> cb = [] {}) override;
-    /// Le tab est mis en cache par AutoSidebarItem : rafraîchit liste et
-    /// stockage à chaque retour (un ajout en file n'émet pas de StatusEvent)
+    /// The tab is cached by AutoSidebarItem: refreshes list and storage on
+    /// every return (queueing an item does not emit a StatusEvent)
     void willAppear(bool resetState = false) override;
 
 private:
     void loadItems();
-    /// Recalcule la barre et les chiffres de l'en-tête : fs::space sur le
-    /// dossier des téléchargements + octets occupés par pleNx
+    /// Recomputes the header bar and figures: fs::space on the downloads
+    /// folder + bytes occupied by pleNx
     void updateStorage();
 
     BRLS_BIND(RecyclingGrid, recycler, "downloads/list");

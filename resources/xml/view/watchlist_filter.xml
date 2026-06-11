@@ -1,5 +1,5 @@
-<!-- pleNx — panneau latéral tri/filtres de la Watchlist (action Y),
-     même structure que media_filter.xml (panneau des bibliothèques) -->
+<!-- pleNx — Watchlist sort/filters side panel (Y action),
+     same structure as media_filter.xml (the libraries' panel) -->
 <brls:Box
     width="auto"
     height="auto"

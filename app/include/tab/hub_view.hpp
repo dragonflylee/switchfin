@@ -1,10 +1,10 @@
 /*
-    pleNx — page complète d'un hub Plex (rangées « related » des fiches :
-    suggestions, collections, « More with… »). Ouverte par la carte « + » en
-    fin de rangée quand le serveur annonce more=1.
-    En-tête scrollé (titre + « N éléments ») et grille dans l'ordre serveur ;
-    pagination X-Plex-Container-* sur la key du hub (qui peut déjà porter des
-    paramètres de requête : /library/sections/2/all?actor=…).
+    pleNx — full page of a Plex hub (the "related" rows of detail pages:
+    suggestions, collections, "More with..."). Opened by the "+" card at the
+    end of a row when the server announces more=1.
+    Scrolled header (title + "N items") and grid in server order;
+    X-Plex-Container-* pagination on the hub key (which may already carry
+    query parameters: /library/sections/2/all?actor=...).
 */
 
 #pragma once
@@ -16,8 +16,8 @@ class RecyclingGrid;
 
 class HubView : public AttachedView {
 public:
-    /// @param title titre du hub (localisé par le serveur)
-    /// @param key   chemin relatif du hub (Hub.key / hubKey)
+    /// @param title hub title (localized by the server)
+    /// @param key   relative hub path (Hub.key / hubKey)
     HubView(const std::string& title, const std::string& key);
 
     brls::View* getDefaultFocus() override;
@@ -25,8 +25,8 @@ public:
 private:
     BRLS_BIND(RecyclingGrid, recycler, "hub/items");
 
-    /// labels de l'en-tête scrollé (xml/view/grid_header.xml, possédé par la
-    /// grille via setHeaderView)
+    /// labels of the scrolled header (xml/view/grid_header.xml, owned by the
+    /// grid via setHeaderView)
     brls::Label* labelTitle = nullptr;
     brls::Label* labelMeta = nullptr;
 

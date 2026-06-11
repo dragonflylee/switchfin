@@ -1,17 +1,15 @@
 /*
-    pleNx — Watchlist du compte plex.tv (discover/metadata.provider.plex.tv).
+    pleNx — plex.tv account watchlist (discover/metadata.provider.plex.tv).
 
-    Fonctionnalité de COMPTE : toutes les requêtes provider utilisent le token
-    plex.tv du profil actif (AppConfig::getAccountToken()), PAS le token
-    serveur. Les items renvoyés par le provider sont des métadonnées
-    « universelles » (ratingKey provider, guid plex://movie|show/…, images en
-    URLs absolues) qui peuvent ne pas exister sur le serveur de l'utilisateur :
-    la correspondance se fait par guid (matchInLibrary).
+    ACCOUNT-level feature: all provider requests use the plex.tv token of the
+    active profile (AppConfig::getAccountToken()), NOT the server token.
+    Items returned by the provider are "universal" metadata (provider
+    ratingKey, guid plex://movie|show/..., images as absolute URLs) that may
+    not exist on the user's server: matching is done by guid (matchInLibrary).
 
-    plezy n'implémente pas la watchlist (seul discover_screen.dart:1017-1018 y
-    fait allusion pour une icône) ; les endpoints sont ceux de l'API provider
-    officielle (Plex Web / python-plexapi), vérifiés en GET réel le 2026-06-10
-    — détail des constats dans api/plex/types.hpp (section Provider plex.tv).
+    Endpoints come from the official provider API (Plex Web / python-plexapi),
+    verified with real GETs on 2026-06-10 — detailed findings in
+    api/plex/types.hpp (plex.tv provider section).
 */
 
 #pragma once
@@ -23,9 +21,9 @@
 
 namespace plex {
 
-/// ratingKey PROVIDER d'un guid Plex : « plex://movie/5d77… » → « 5d77… ».
-/// Chaîne vide si le guid ne vient pas de l'agent Plex (ancien agent TMDB…) :
-/// dans ce cas le titre n'est pas adressable sur le provider.
+/// PROVIDER ratingKey of a Plex guid: "plex://movie/5d77..." -> "5d77...".
+/// Empty string if the guid does not come from the Plex agent (legacy TMDB
+/// agent...): in that case the title is not addressable on the provider.
 inline std::string providerRatingKey(const std::string& guid) {
     if (guid.rfind("plex://", 0) != 0) return "";
     auto pos = guid.rfind('/');
@@ -33,28 +31,28 @@ inline std::string providerRatingKey(const std::string& guid) {
     return guid.substr(pos + 1);
 }
 
-/// La watchlist Plex n'accepte que films et séries (pas d'épisodes/saisons :
-/// les guids plex://episode/… existent mais addToWatchlist les refuse côté
-/// Plex Web également — l'action n'y est proposée que sur movie/show).
+/// The Plex watchlist only accepts movies and shows (no episodes/seasons:
+/// plex://episode/... guids exist but addToWatchlist rejects them on Plex Web
+/// too — the action is only offered on movie/show there).
 inline bool watchlistable(const Item& item) {
     return (item.type == mediaTypeMovie || item.type == mediaTypeShow) && !providerRatingKey(item.guid).empty();
 }
 
-/// Tri par défaut de la watchlist : plus récemment ajouté en premier.
+/// Default watchlist sort: most recently added first.
 const std::string watchlistDefaultSort = "watchlistedAt:desc";
 
-/// Liste paginée de la watchlist. `then` reçoit le Container provider :
-/// Items[].ratingKey est le ratingKey PROVIDER, thumb une URL absolue.
+/// Paginated watchlist. `then` receives the provider Container:
+/// Items[].ratingKey is the PROVIDER ratingKey, thumb an absolute URL.
 ///
-/// Paramètres VÉRIFIÉS en GET réel sur discover.provider (2026-06-10) :
-///  - sort : watchlistedAt, titleSort, originallyAvailableAt (suffixes :asc et
-///    :desc honorés pour les trois). `title` et `year` sont IGNORÉS en
-///    silence (ordre par défaut renvoyé) — ne pas les exposer. `rating:desc`
-///    répond mais l'ordre observé n'est pas exploitable (paquets d'ex æquo).
-///  - type : 1 (films) | 2 (séries) filtre bien (714/167 sur 884 constatés) ;
-///    `libtype=movie|show` (python-plexapi) est IGNORÉ sur cet endpoint.
-///  - X-Plex-Container-Size : plafonné à 100 (400 « Invalid value » au-delà).
-/// `sort` vide → watchlistDefaultSort ; `type` ∉ {typeMovie, typeShow} → tous.
+/// Parameters VERIFIED with real GETs on discover.provider (2026-06-10):
+///  - sort: watchlistedAt, titleSort, originallyAvailableAt (:asc and :desc
+///    suffixes honored for all three). `title` and `year` are silently
+///    IGNORED (default order returned) — do not expose them. `rating:desc`
+///    responds but the observed order is unusable (clusters of ties).
+///  - type: 1 (movies) | 2 (shows) filters correctly (714/167 out of 884
+///    observed); `libtype=movie|show` (python-plexapi) is IGNORED here.
+///  - X-Plex-Container-Size: capped at 100 (400 "Invalid value" beyond).
+/// Empty `sort` -> watchlistDefaultSort; `type` not in {typeMovie, typeShow} -> all.
 inline void fetchWatchlist(size_t start, size_t size, const std::string& sort, int type,
     const std::function<void(Container<Item>)>& then, OnError error) {
     HTTP::Form query = {{"sort", sort.empty() ? watchlistDefaultSort : sort}};
@@ -64,9 +62,9 @@ inline void fetchWatchlist(size_t start, size_t size, const std::string& sort, i
         HTTP::encode_form(query));
 }
 
-/// État « est dans la watchlist » d'un titre identifié par son guid plex://….
-/// Le metadata serveur n'expose rien (vérifié) : on interroge le provider —
-/// `watchlistedAt` présent ⇔ watchlisté. `then(false)` si guid non provider.
+/// "Is watchlisted" state of a title identified by its plex:// guid.
+/// The server metadata exposes nothing (verified): we query the provider —
+/// `watchlistedAt` present iff watchlisted. `then(false)` if non-provider guid.
 inline void fetchWatchlistState(const std::string& guid, const std::function<void(bool)>& then, OnError error) {
     std::string key = providerRatingKey(guid);
     if (key.empty()) {
@@ -81,7 +79,7 @@ inline void fetchWatchlistState(const std::string& guid, const std::function<voi
         error, apiProviderMetadata, key);
 }
 
-/// Ajoute (add=true) ou retire (add=false) un titre de la watchlist du compte.
+/// Adds (add=true) or removes (add=false) a title from the account watchlist.
 /// PUT /actions/addToWatchlist|removeFromWatchlist?ratingKey={provider}.
 inline void setWatchlisted(const std::string& guid, bool add, const std::function<void()>& then, OnError error) {
     std::string key = providerRatingKey(guid);
@@ -93,9 +91,9 @@ inline void setWatchlisted(const std::string& guid, bool add, const std::functio
         add ? apiWatchlistAdd : apiWatchlistRemove, key);
 }
 
-/// Correspondance provider → serveur actif : items de la bibliothèque portant
-/// ce guid (GET /library/all?guid=… vérifié). Container vide = pas en
-/// bibliothèque ; sinon Items[0] est l'item SERVEUR (ratingKey local).
+/// Provider -> active server mapping: library items bearing this guid
+/// (GET /library/all?guid=... verified). Empty Container = not in the
+/// library; otherwise Items[0] is the SERVER item (local ratingKey).
 inline void matchInLibrary(
     const std::string& guid, const std::function<void(Container<Item>)>& then, OnError error) {
     auto& conf = AppConfig::instance();
@@ -103,22 +101,22 @@ inline void matchInLibrary(
         conf.getUrl(), conf.getToken(), then, error, apiLibraryMatch, HTTP::encode_form({{"guid", guid}}));
 }
 
-/// Ensemble des guid de TOUTE la bibliothèque du serveur actif (sections
-/// movie et show) — lookup O(1) « ce titre watchlisté est-il sur le serveur ? ».
+/// Set of guids of the ENTIRE library of the active server (movie and show
+/// sections) — O(1) lookup "is this watchlisted title on the server?".
 ///
-/// Constats serveur (Babylon, 2026-06-10) :
-///  - le champ `guid` (plex://movie|show/…) est présent dans le listing
-///    STANDARD de /library/sections/{id}/all — aucun paramètre requis
-///    (includeGuids ne concerne que les tags Guid[] externes tmdb/imdb) ;
-///  - volumétrie : 6613 films + 232 séries = 6845 guids ; listing brut
-///    ≈ 2,7 Ko/item (~18 Mo au total) → réponse AMINCIE via excludeFields +
-///    excludeElements (~0,5 Ko/item, les éléments Image et UltraBlurColors
-///    ne sont pas excluables) et PAGINÉE par 1000 pour borner chaque parse ;
-///  - mesuré (curl, LAN) : 6845 items / ~3,3 Mo / ~3-5 s en 8 pages de 1000.
+/// Server findings (real server, 2026-06-10):
+///  - the `guid` field (plex://movie|show/...) is present in the STANDARD
+///    listing of /library/sections/{id}/all — no parameter required
+///    (includeGuids only concerns the external Guid[] tags tmdb/imdb);
+///  - volume: 6613 movies + 232 shows = 6845 guids; raw listing
+///    ~2.7 KB/item (~18 MB total) -> response SLIMMED via excludeFields +
+///    excludeElements (~0.5 KB/item, the Image and UltraBlurColors elements
+///    cannot be excluded) and PAGINATED by 1000 to bound each parse;
+///  - measured (curl, LAN): 6845 items / ~3.3 MB / ~3-5 s in 8 pages of 1000.
 ///
-/// Tout est requêté dans UN brls::async (boucles getSync synchrones), puis
-/// `then(set)` est rappelé sur le thread UI. En cas d'échec réseau, `error`
-/// est rappelé et l'appelant doit dégrader (pas de set = présence inconnue).
+/// Everything is fetched inside ONE brls::async (synchronous getSync loops),
+/// then `then(set)` is called back on the UI thread. On network failure,
+/// `error` is called and the caller must degrade (no set = unknown presence).
 inline void fetchLibraryGuids(
     const std::function<void(std::shared_ptr<std::unordered_set<std::string>>)>& then, OnError error) {
     auto& conf = AppConfig::instance();
@@ -134,8 +132,8 @@ inline void fetchLibraryGuids(
                 size_t start = 0;
                 while (true) {
                     HTTP::Form query = {
-                        // réponse minimale : seuls guid/ratingKey/type restent
-                        // (plus Image/UltraBlurColors, non excluables)
+                        // minimal response: only guid/ratingKey/type remain
+                        // (plus Image/UltraBlurColors, which cannot be excluded)
                         {"excludeFields",
                             "summary,tagline,art,thumb,studio,contentRating,originalTitle,audienceRatingImage,"
                             "ratingImage,primaryExtraKey,key,originallyAvailableAt,addedAt,updatedAt,duration,"

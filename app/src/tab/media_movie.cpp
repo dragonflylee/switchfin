@@ -26,10 +26,10 @@ MediaMovie::MediaMovie(const plex::Item& item) : itemId(item.ratingKey) {
     if (brls::Application::getThemeVariant() == brls::ThemeVariant::LIGHT)
         this->imageFade->setImageFromRes("img/fade-bottom-light.png");
     this->people->registerCell("Cell", MediaCardCell::create);
-    // les boutons et le casting n'ont pas de chevauchement géométrique : la
-    // nav D-pad ne le trouve pas. Route explicite — la rangée matérialise sa
-    // première cellule au besoin (HRecyclerFrame::getDefaultFocus) et le
-    // scroll « centered » suit le focus
+    // the buttons and the cast row have no geometric overlap: D-pad nav
+    // cannot find it. Explicit route — the row materializes its first cell
+    // if needed (HRecyclerFrame::getDefaultFocus) and the "centered" scroll
+    // follows the focus
     this->btnPlay->setCustomNavigationRoute(brls::FocusDirection::DOWN, "movie/people");
     this->btnDownload->setCustomNavigationRoute(brls::FocusDirection::DOWN, "movie/people");
     this->btnWatchlist->setCustomNavigationRoute(brls::FocusDirection::DOWN, "movie/people");
@@ -42,12 +42,12 @@ MediaMovie::MediaMovie(const plex::Item& item) : itemId(item.ratingKey) {
 
     auto& dm = DownloadManager::instance();
     this->updateDownloadButton();
-    // progression en direct sur le bouton (événements émis sur le thread UI)
+    // live progress on the button (events emitted on the UI thread)
     this->progressSub = dm.getProgressEvent()->subscribe(
         [this](const std::string& id, int64_t downloaded, int64_t total) {
             if (id != this->itemId || total <= 0) return;
-            // « Téléchargement… (42%) » — un pourcentage nu ne dit pas ce que
-            // fait le bouton ; la complétion repasse par updateDownloadButton
+            // "Downloading... (42%)" — a bare percentage does not say what
+            // the button does; completion goes back through updateDownloadButton
             this->btnDownload->setText(fmt::format(
                 "{} ({:.0f}%)", "main/download/downloading"_i18n, downloaded * 100.0 / total));
         });
@@ -97,7 +97,7 @@ void MediaMovie::updateDownloadButton() {
 
 void MediaMovie::initWatchlist(const std::string& guid) {
     this->itemGuid = guid;
-    // ancien agent (guid non plex://…) : titre non adressable sur le provider
+    // legacy agent (non plex:// guid): title not addressable on the provider
     if (plex::providerRatingKey(guid).empty()) return;
 
     this->btnWatchlist->registerClickAction([this](...) {
@@ -106,8 +106,8 @@ void MediaMovie::initWatchlist(const std::string& guid) {
     });
 
     ASYNC_RETAIN
-    // état : metadata.provider + includeUserState=1 (api/plex/watchlist.hpp) ;
-    // le bouton reste caché tant que l'état n'est pas connu
+    // state: metadata.provider + includeUserState=1 (api/plex/watchlist.hpp);
+    // the button stays hidden until the state is known
     plex::fetchWatchlistState(
         guid,
         [ASYNC_TOKEN](bool state) {
@@ -141,7 +141,7 @@ void MediaMovie::toggleWatchlist() {
 }
 
 void MediaMovie::updateWatchlistButton() {
-    // signet plein = déjà dans la Watchlist (convention Plex)
+    // filled bookmark = already in the Watchlist (Plex convention)
     this->btnWatchlist->setIcon(
         this->watchlisted ? "@res/icon/ico-bookmark-fill-light.svg" : "@res/icon/ico-bookmark-light.svg");
 }
@@ -161,7 +161,7 @@ void MediaMovie::doMovie() {
     });
 
     ASYNC_RETAIN
-    // détail : GET /library/metadata/{ratingKey} (plex_client.dart:1607-1626)
+    // detail: GET /library/metadata/{ratingKey}
     plex::getJSON<plex::Container<plex::Item>>(
         AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
         [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
@@ -173,14 +173,14 @@ void MediaMovie::doMovie() {
             auto& item = r.Items.front();
             this->labelTitle->setText(item.title);
             Image::load(this->imagePoster, item.thumb, 325);
-            // bannière : fond (art) + logo détouré centré ; le bloc affiche
-            // chevauche la bannière (marges XML) pour garder les boutons
-            // visibles. La bannière reste affichée pendant le chargement
-            // (placeholder sombre) : pas de saut de layout à l'arrivée de
-            // l'image — et le gone→visible déclenchait un bug de premier
-            // rendu (dégradé + image fill).
-            // logo détouré niché dans le bas du fondu de la bannière ; le
-            // titre texte reste TOUJOURS affiché au-dessus des pills
+            // banner: backdrop (art) + centered cut-out logo; the poster
+            // block overlaps the banner (XML margins) to keep the buttons
+            // visible. The banner stays shown while loading (dark
+            // placeholder): no layout jump when the image arrives — and
+            // the gone->visible transition triggered a first-render bug
+            // (gradient + image fill).
+            // cut-out logo nested at the bottom of the banner fade; the
+            // text title is ALWAYS shown above the pills
             if (!item.art.empty()) {
                 Image::load(this->imageBackdrop, item.art, 1080, 608);
                 if (!item.clearLogo.empty()) {
@@ -220,8 +220,8 @@ void MediaMovie::doMovie() {
                 this->labelGenres->setText(fmt::format("{}", fmt::join(item.genres, ", ")));
                 this->labelGenres->setVisibility(brls::Visibility::VISIBLE);
             }
-            // le réalisateur ouvre la rangée, sous-titré « Réalisation »,
-            // cliquable vers sa fiche personne comme les acteurs
+            // the director opens the row, subtitled "Director", clickable
+            // to their person page like the actors
             std::vector<plex::Role> credits = item.directors;
             for (auto& d : credits) d.role = "main/media/director"_i18n;
             credits.insert(credits.end(), item.roles.begin(), item.roles.end());
@@ -231,8 +231,8 @@ void MediaMovie::doMovie() {
                 this->people->setVisibility(brls::Visibility::GONE);
             }
 
-            // versions multiples (item.media[]) : le sélecteur mémorise le choix
-            // mais la lecture v1 utilise toujours la première version accessible
+            // multiple versions (item.media[]): the selector remembers the choice
+            // but v1 playback always uses the first accessible version
             if (item.media.size() > 1) {
                 std::vector<std::string> names;
                 for (auto& m : item.media) {
@@ -263,8 +263,7 @@ void MediaMovie::doRelated() {
     std::string query = HTTP::encode_form({{"count", "12"}});
 
     ASYNC_RETAIN
-    // toutes les rangées « related » du serveur, titres localisés
-    // (plex_client.dart:1981-2006)
+    // all the server's "related" rows, localized titles
     plex::getJSON<plex::Container<plex::Hub>>(
         AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
         [ASYNC_TOKEN](const plex::Container<plex::Hub>& r) {
@@ -277,7 +276,7 @@ void MediaMovie::doRelated() {
                 row->setFrameHeight(brls::getStyle()["app/card/poster/row"]);
                 row->setItemWidth(brls::getStyle()["app/card/poster/width"]);
                 row->setSidePadding(brls::getStyle()["main/content_padding_sides"]);
-                // hub tronqué (more=1) : carte « + » vers la page complète
+                // truncated hub (more=1): "+" card to the full page
                 if (hub.more && !hub.key.empty()) {
                     row->setItems(hub.items, hub.title, hub.key);
                 } else {

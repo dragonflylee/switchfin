@@ -30,8 +30,8 @@
  */
 using namespace brls::literals;
 
-/// true si `view` appartient à la chaîne de parents menant à `root`
-/// (les deux pointeurs sont vivants : parcours ascendant sûr)
+/// true if `view` belongs to the parent chain leading to `root`
+/// (both pointers are alive: safe upward walk)
 static bool isDescendantOf(brls::View* view, brls::View* root) {
     for (brls::View* v = view; v; v = v->getParent()) {
         if (v == root) return true;
@@ -39,9 +39,9 @@ static bool isDescendantOf(brls::View* view, brls::View* root) {
     return false;
 }
 
-/// premier brls::ScrollingFrame du sous-arbre (DFS) : la grille/liste dont
-/// la barre d'onglets TOP suit le défilement (RecyclingGrid en hérite).
-/// nullptr si l'onglet ne défile pas → barre fixe à 0.
+/// first brls::ScrollingFrame of the subtree (DFS): the grid/list whose
+/// scrolling the TOP tab bar follows (RecyclingGrid inherits from it).
+/// nullptr if the tab does not scroll -> bar fixed at 0.
 static brls::ScrollingFrame* findScrollingFrame(brls::View* root) {
     if (auto* frame = dynamic_cast<brls::ScrollingFrame*>(root)) return frame;
     if (auto* box = dynamic_cast<brls::Box*>(root)) {
@@ -52,9 +52,9 @@ static brls::ScrollingFrame* findScrollingFrame(brls::View* root) {
     return nullptr;
 }
 
-/// true si `needle` est dans le sous-arbre VIVANT de `root`. `needle` n'est
-/// JAMAIS déréférencé (comparaison d'adresses) : c'est la revalidation d'un
-/// pointeur de focus potentiellement mort avant restauration.
+/// true if `needle` is in the LIVE subtree of `root`. `needle` is NEVER
+/// dereferenced (address comparison): this is the revalidation of a
+/// potentially dead focus pointer before restoration.
 static bool treeContains(brls::View* root, brls::View* needle) {
     if (root == needle) return true;
     auto* box = dynamic_cast<brls::Box*>(root);
@@ -132,9 +132,9 @@ AutoTabFrame::AutoTabFrame() {
     this->registerBoolXMLAttribute("demandMode", [this](bool value) { this->setDemandMode(value); });
 
     this->sidebar->setAxis(brls::Axis::COLUMN);
-    // paddings latéraux 0 : items pleine largeur (le fond de focus couvre
-    // la sidebar de bord à bord) ; l'accent (marginRight 0) affleure le
-    // bord droit — zéro pixel d'espacement
+    // side paddings 0: full-width items (the focus background covers the
+    // sidebar edge to edge); the accent (marginRight 0) is flush with the
+    // right edge — zero pixels of spacing
     this->sidebar->setPadding(32, 0, 47, 0);
 }
 
@@ -149,10 +149,10 @@ void AutoTabFrame::setSideBarPosition(AutoTabBarPosition position) {
         this->setAxis(brls::Axis::COLUMN);
         this->setDirection(brls::Direction::LEFT_TO_RIGHT);
         this->setHorizontalMode(true);
-        // barre FLOTTANTE : sortie du flux (absolute), pleine largeur, fond
-        // transparent (les XML top n'en posent pas) — le contenu occupe tout
-        // le frame et défile dessous (paddingTop interne ~70 côté grilles) ;
-        // dessinée en dernier dans draw() pour rester au-dessus
+        // FLOATING bar: out of the flow (absolute), full width, transparent
+        // background (the top XMLs set none) — the content occupies the
+        // whole frame and scrolls beneath (internal paddingTop ~70 on the
+        // grid side); drawn last in draw() to stay on top
         this->sidebar->setPositionType(brls::PositionType::ABSOLUTE);
         this->sidebar->setPositionTop(0);
         this->sidebar->setPositionLeft(0);
@@ -262,7 +262,7 @@ void AutoTabFrame::focus2NextTab() {
         // not found
         this->focusTab(0);
     } else if (sideBarNum == 1) {
-        // shake highlight (currentFocus peut être nul pendant une destruction)
+        // shake highlight (currentFocus can be null during a destruction)
         brls::View* focus = brls::Application::getCurrentFocus();
         if (focus) focus->shakeHighlight(this->isHorizontal ? brls::FocusDirection::RIGHT : brls::FocusDirection::DOWN);
     } else if (currentIndex + 1 >= (int)sideBarNum) {
@@ -282,7 +282,7 @@ void AutoTabFrame::focus2LastTab() {
         // not found
         this->focusTab(0);
     } else if (sideBarNum == 1) {
-        // shake highlight (currentFocus peut être nul pendant une destruction)
+        // shake highlight (currentFocus can be null during a destruction)
         brls::View* focus = brls::Application::getCurrentFocus();
         if (focus) focus->shakeHighlight(this->isHorizontal ? brls::FocusDirection::LEFT : brls::FocusDirection::UP);
     } else if (currentIndex == 0) {
@@ -373,7 +373,7 @@ void AutoTabFrame::handleXMLElement(tinyxml2::XMLElement* element) {
 
 AutoTabFrame::~AutoTabFrame() {
     brls::Logger::debug("delete AutoTabFrame");
-    // détacher les fiches empilées (libérées via la deletionPool)
+    // detach the stacked detail pages (freed via the deletionPool)
     this->clearDetailViews();
     if (this->activeTab) {
         // 直接移除activeTab，销毁的工作交给其对应的 AutoSidebarItem 来处理
@@ -385,8 +385,8 @@ AutoTabFrame::~AutoTabFrame() {
 }
 
 void AutoTabFrame::setTabAttachedView(brls::View* newContent) {
-    // un changement d'onglet abandonne la pile de fiches : le contenu de
-    // l'onglet redevient la seule vue de la zone de contenu
+    // a tab change abandons the detail stack: the tab content becomes
+    // the only view in the content area again
     this->clearDetailViews();
     // Remove the existing tab if it exists
     if (this->activeTab) {
@@ -410,9 +410,9 @@ void AutoTabFrame::pushDetailView(brls::View* detail) {
     DetailEntry entry;
     entry.view = detail;
     entry.previousFocus = brls::Application::getCurrentFocus();
-    // focus dans un recycler : mémoriser (recycler, index) pour une
-    // restauration par INDEX au pop (les pointeurs de cellules se font
-    // rebinder sur d'autres médias pendant que le contenu est masqué)
+    // focus inside a recycler: remember (recycler, index) for an
+    // INDEX-based restore at pop (cell pointers get rebound to other
+    // media while the content is hidden)
     for (brls::View* v = entry.previousFocus; v && v != this; v = v->getParent()) {
         if (auto* cell = dynamic_cast<RecyclingGridItem*>(v)) {
             entry.previousIndex = cell->getIndex();
@@ -427,33 +427,33 @@ void AutoTabFrame::pushDetailView(brls::View* detail) {
         "hints/back"_i18n, brls::BUTTON_B, [this](brls::View*) { return this->popDetailView(); }, false, false,
         brls::SOUND_BACK);
 
-    this->addView(detail);  // appelle willAppear
-    // masqué SANS être détruit : état (scroll, données, focus interne) intact
+    this->addView(detail);  // calls willAppear
+    // hidden WITHOUT being destroyed: state (scroll, data, inner focus) intact
     if (covered) covered->setVisibility(brls::Visibility::GONE);
     this->detailStack.push_back(entry);
 
-    // le focus peut ne pas se résoudre avant plusieurs frames : un détail
-    // fraîchement poussé n'a parfois RIEN de focusable tant que sa requête
-    // n'a pas répondu (skeletons — ex. « aller à la saison »).
+    // the focus may not resolve for several frames: a freshly pushed
+    // detail sometimes has NOTHING focusable until its request has
+    // answered (skeletons — e.g. "go to season").
     this->retryDetailFocus(detail, 600);
 }
 
-/// Donne le focus au détail au sommet de la pile, en réessayant à chaque
-/// frame tant que rien n'y est focusable (contenu asynchrone). Pendant
-/// l'attente, le focus est posé sur la SIDEBAR : le laisser sur la vue
-/// couverte (GONE) dessinait un halo fantôme à frame dégénérée et faisait
-/// naviguer dans un arbre masqué, jusqu'au segfault sur des cellules
-/// recyclées/détruites (recette n°6).
+/// Gives focus to the detail at the top of the stack, retrying every
+/// frame while nothing in it is focusable (async content). While
+/// waiting, the focus is placed on the SIDEBAR: leaving it on the
+/// covered (GONE) view drew a ghost halo with a degenerate frame and
+/// navigated a hidden tree, up to a segfault on recycled/destroyed
+/// cells.
 void AutoTabFrame::retryDetailFocus(brls::View* detail, int attemptsLeft) {
-    // détail dépilé (B rapide) ou recouvert entre-temps : ne rien voler
+    // detail popped (quick B) or covered in the meantime: steal nothing
     if (this->detailStack.empty() || this->detailStack.back().view != detail) return;
     brls::View* focus = brls::Application::getCurrentFocus();
-    if (focus && isDescendantOf(focus, detail)) return;  // résolu
+    if (focus && isDescendantOf(focus, detail)) return;  // resolved
     brls::Application::giveFocus(detail);
     focus = brls::Application::getCurrentFocus();
-    if (focus && isDescendantOf(focus, detail)) return;  // résolu
+    if (focus && isDescendantOf(focus, detail)) return;  // resolved
     if (!focus || !isDescendantOf(focus, this->sidebar)) brls::Application::giveFocus(this->sidebar);
-    if (attemptsLeft <= 0) return;  // état sain (sidebar), on arrête là
+    if (attemptsLeft <= 0) return;  // healthy state (sidebar), stop here
     ASYNC_RETAIN
     brls::sync([ASYNC_TOKEN, detail, attemptsLeft]() {
         ASYNC_RELEASE
@@ -470,14 +470,14 @@ bool AutoTabFrame::popDetailView() {
     brls::View* uncovered = this->detailStack.empty() ? this->activeTab : this->detailStack.back().view;
     if (uncovered) uncovered->setVisibility(brls::Visibility::VISIBLE);
 
-    // détache la fiche ; freeView (via removeView) diffère la destruction en
-    // fin de frame (deletionPool) — sûr même depuis l'action B de cette fiche
+    // detaches the page; freeView (via removeView) defers destruction to
+    // end of frame (deletionPool) — safe even from this page's own B action
     this->removeView(entry.view, true);
 
-    // focus dans un recycler au moment du push : restauration par INDEX à la
-    // frame suivante (laisse le relayout du contenu démasqué — et son
-    // éventuel reloadData — se faire d'abord), via selectRowAt qui scrolle et
-    // re-matérialise la bonne cellule
+    // focus in a recycler at push time: INDEX-based restore on the next
+    // frame (lets the relayout of the unmasked content — and its possible
+    // reloadData — happen first), via selectRowAt which scrolls and
+    // re-materializes the right cell
     if (uncovered && entry.previousRecycler && treeContains(uncovered, entry.previousRecycler)) {
         brls::View* recycler = entry.previousRecycler;
         size_t index = entry.previousIndex;
@@ -485,8 +485,8 @@ bool AutoTabFrame::popDetailView() {
         ASYNC_RETAIN
         brls::sync([ASYNC_TOKEN, recycler, index]() {
             ASYNC_RELEASE
-            // le recycler vit dans l'onglet/fiche découvert : il ne peut pas
-            // avoir disparu en une frame sans interaction utilisateur
+            // the recycler lives in the uncovered tab/page: it cannot have
+            // disappeared in one frame without user interaction
             auto* source = dynamic_cast<RecyclingView*>(recycler)->getDataSource();
             if (source && index < source->getItemCount()) {
                 if (auto* grid = dynamic_cast<RecyclingGrid*>(recycler))
@@ -499,8 +499,8 @@ bool AutoTabFrame::popDetailView() {
         return true;
     }
 
-    // sinon : restaure le pointeur mémorisé seulement s'il vit toujours dans
-    // le contenu découvert ; sinon le conteneur résout son focus par défaut
+    // otherwise: restores the remembered pointer only if it still lives in
+    // the uncovered content; else the container resolves its default focus
     brls::View* target = nullptr;
     if (uncovered && entry.previousFocus && treeContains(uncovered, entry.previousFocus))
         target = entry.previousFocus;
@@ -518,15 +518,15 @@ brls::View* AutoTabFrame::getTopDetailView() {
 void AutoTabFrame::clearDetailViews() {
     if (this->detailStack.empty()) return;
     for (auto it = this->detailStack.rbegin(); it != this->detailStack.rend(); ++it) {
-        this->removeView(it->view, true);  // destruction différée (deletionPool)
+        this->removeView(it->view, true);  // deferred destruction (deletionPool)
     }
     this->detailStack.clear();
     if (this->activeTab) this->activeTab->setVisibility(brls::Visibility::VISIBLE);
 }
 
 void ui::presentDetail(brls::View* from, brls::View* detail) {
-    // AutoTabFrame le plus externe : ignore les onglets imbriqués (onglets
-    // horizontaux des bibliothèques) pour couvrir toute la zone de contenu
+    // outermost AutoTabFrame: ignores nested tabs (the libraries'
+    // horizontal tabs) to cover the whole content area
     AutoTabFrame* frame = nullptr;
     for (brls::View* v = from; v; v = v->getParent()) {
         if (auto* f = dynamic_cast<AutoTabFrame*>(v)) frame = f;
@@ -534,7 +534,7 @@ void ui::presentDetail(brls::View* from, brls::View* detail) {
     if (frame) {
         frame->pushDetailView(detail);
     } else if (from) {
-        // hors sidebar (recherche présentée, liste de serveurs…)
+        // outside the sidebar (presented search, server list...)
         from->present(detail);
     }
 }
@@ -586,10 +586,10 @@ brls::View* AutoTabFrame::getNextFocus(brls::FocusDirection direction, brls::Vie
     View* currentFocus = nullptr;
 
     while (!currentFocus && currentFocusIndex >= 0 && currentFocusIndex < this->getChildren().size()) {
-        // les vues GONE (contenu d'onglet couvert par une fiche, fiches
-        // enfouies sous la pile) ne doivent jamais recevoir le focus :
-        // isFocusable() ne vérifie que la visibilité de la feuille, pas
-        // celle de ses ancêtres
+        // GONE views (tab content covered by a detail page, pages buried
+        // under the stack) must never receive focus:
+        // isFocusable() only checks the leaf's visibility, not its
+        // ancestors'
         View* child = this->getChildren()[currentFocusIndex];
         if (child->getVisibility() == brls::Visibility::VISIBLE) currentFocus = child->getDefaultFocus();
         currentFocusIndex += offset;
@@ -617,7 +617,7 @@ void AutoTabFrame::setHorizontalMode(bool value) {
     if (value) {
         this->sidebar->setPadding(8, 20, 8, 20);
         this->sidebar->setAxis(brls::Axis::ROW);
-        // pills de 34px centrées dans la barre (tabHeight 60)
+        // 34px pills centered in the bar (tabHeight 60)
         this->sidebar->setAlignItems(brls::AlignItems::CENTER);
     } else {
         this->sidebar->setPadding(32, 0, 47, 0);
@@ -760,19 +760,19 @@ void AutoTabFrame::draw(
     }
 
     if (this->tabBarPosition == AutoTabBarPosition::TOP) {
-        // barre solidaire du défilement (recette UI n°5) : translation de
-        // -offset du premier ScrollingFrame de l'onglet actif — on scrolle,
-        // la barre sort par le haut ; retour à 0, elle revient (même
-        // mécanisme que contentView->setTranslationY(-offset) du
-        // ScrollingFrame lui-même). Résolution à CHAQUE frame, sans cache de
-        // pointeur : les contenus d'onglet se (re)construisent en asynchrone
-        // (données reçues, reloads) et un pointeur retenu pendouillerait ; le
-        // DFS s'arrête à la première grille (1-2 niveaux), coût négligeable.
-        // La translation décale getFrame() de la barre et de ses enfants →
-        // le hitTest ci-dessous suit tout seul : barre sortie de l'écran, les
-        // taps re-atteignent la grille. Les paddingTop 70 internes aux
-        // contenus restent (position de repos sous la barre). Changement
-        // d'onglet : la barre saute à l'offset de la nouvelle grille (accepté).
+        // bar follows the scroll: translation of -offset of the first
+        // ScrollingFrame of the active tab — scroll, and the bar exits
+        // through the top; back to 0, it returns (same mechanism as the
+        // ScrollingFrame's own contentView->setTranslationY(-offset)).
+        // Resolved on EVERY frame, no pointer cache: tab contents get
+        // (re)built asynchronously (data received, reloads) and a retained
+        // pointer would dangle; the DFS stops at the first grid (1-2
+        // levels), negligible cost.
+        // The translation shifts getFrame() of the bar and its children ->
+        // the hitTest below follows for free: bar off-screen, taps reach
+        // the grid again. The paddingTop 70 inside the contents stay
+        // (resting position under the bar). Tab change: the bar jumps to
+        // the new grid's offset (accepted).
         float scrollOffset = 0.0f;
         if (this->activeTab) {
             if (auto* scroller = findScrollingFrame(this->activeTab))
@@ -780,12 +780,12 @@ void AutoTabFrame::draw(
         }
         this->sidebar->setTranslationY(-scrollOffset);
 
-        // barre flottante : le contenu défile DESSOUS la barre, elle doit
-        // donc être peinte en DERNIER — l'ordre des enfants (sidebar en tête,
-        // indispensable aux index de navigation de getNextFocus) donnerait
-        // l'inverse via Box::draw. frame() gère visibilité et alpha ; le test
-        // de culling de Box::draw ne s'applique qu'aux feuilles non-Box,
-        // jamais à ces enfants-là (sidebar et contenus sont des Box)
+        // floating bar: the content scrolls BENEATH the bar, so it must be
+        // painted LAST — the child order (sidebar first, essential to the
+        // navigation indices of getNextFocus) would give the opposite via
+        // Box::draw. frame() handles visibility and alpha; the culling test
+        // of Box::draw only applies to non-Box leaves, never to these
+        // children (sidebar and contents are Boxes)
         for (auto* child : this->getChildren()) {
             if (child != this->sidebar) child->frame(ctx);
         }
@@ -799,10 +799,10 @@ void AutoTabFrame::draw(
 brls::View* AutoTabFrame::hitTest(brls::Point point) {
     if (this->tabBarPosition != AutoTabBarPosition::TOP) return Box::hitTest(point);
 
-    // miroir tactile de l'ordre de dessin flottant : Box::hitTest parcourt
-    // les enfants en ordre INVERSE (le dernier dessiné gagne), or la barre
-    // est l'enfant 0 — le contenu pleine hauteur capterait tous les taps de
-    // la zone de barre. On sonde donc la barre d'abord.
+    // touch mirror of the floating draw order: Box::hitTest walks the
+    // children in REVERSE order (the last drawn wins), but the bar is
+    // child 0 — the full-height content would capture all taps in the
+    // bar area. So probe the bar first.
     if (this->getAlpha() == 0.0f || this->getVisibility() != brls::Visibility::VISIBLE) return nullptr;
     if (!this->getFrame().pointInside(point)) return nullptr;
 
@@ -840,8 +840,8 @@ const std::string autoSidebarItemXML = R"xml(
             marginRight="@style/brls/sidebar/item_accent_margin_sides"
             id="autoSidebar/item_label_box">
 
-            <!-- 28px : centrée dans la sidebar 64 (padding gauche 10 + 8,
-                 icon_box 30 de large) sans clipping ni débord sur l'accent -->
+            <!-- 28px: centered in the 64 sidebar (left padding 10 + 8,
+                 icon_box 30 wide) without clipping or overflow onto the accent -->
             <SVGImage
                 wireframe="false"
                 visibility="gone"
@@ -979,8 +979,8 @@ AutoSidebarItem::AutoSidebarItem() : Box(brls::Axis::ROW) {
     this->registerAction(
         "hints/ok"_i18n, brls::BUTTON_A,
         [this](View* view) {
-            // une fiche est empilée par-dessus cet onglet : A retourne dans
-            // la fiche visible, pas dans le contenu masqué (GONE)
+            // a detail page is stacked on top of this tab: A goes back into
+            // the visible page, not into the hidden (GONE) content
             auto* sidebarBox = this->getParent();
             auto* frame = sidebarBox ? dynamic_cast<AutoTabFrame*>(sidebarBox->getParent()) : nullptr;
             if (this->active && frame && frame->hasDetailView()) {
@@ -1038,7 +1038,7 @@ void AutoSidebarItem::setActive(bool active) {
     if (active) {
         this->activeEvent.fire(this);
         if (this->tabStyle == AutoTabBarStyle::ACCENT) {
-            // en horizontal (pills) l'accent reste GONE : voir applyPillStyle
+            // in horizontal mode (pills) the accent stays GONE: see applyPillStyle
             if (!this->horizontal) this->accent->setVisibility(brls::Visibility::VISIBLE);
         } else if (this->tabStyle == AutoTabBarStyle::PLAIN) {
             this->setBackgroundColor(this->tabItemActiveBackgroundColor);
@@ -1072,8 +1072,8 @@ void AutoSidebarItem::applyPillStyle() {
     if (this->tabStyle != AutoTabBarStyle::ACCENT || !this->horizontal) return;
     auto theme = brls::Application::getTheme();
     if (this->active) {
-        // pill active : fond or plein, texte quasi-noir — même duo que les
-        // boutons primaires or (recette UI n°5 : le blanc se noyait dans l'or)
+        // active pill: solid gold background, near-black text — same duo as
+        // the gold primary buttons (white drowned in the gold)
         this->setBackgroundColor(theme.getColor("color/app"));
         this->label->setTextColor(theme.getColor("brls/button/primary_enabled_text"));
     } else {
@@ -1091,19 +1091,19 @@ void AutoSidebarItem::onFocusGained() {
 
     if (this->group) this->group->setActive(this);
 
-    // sidebar verticale : focus = fond or de marque translucide arrondi
-    // (le halo borealis est masqué, voir setHorizontalMode)
+    // vertical sidebar: focus = rounded translucent brand-gold background
+    // (the borealis halo is hidden, see setHorizontalMode)
     if (!this->horizontal && this->tabStyle == AutoTabBarStyle::ACCENT) {
         NVGcolor c = brls::Application::getTheme().getColor("color/app");
         c.a = 0.22f;
         this->setBackgroundColor(c);
     }
 
-    // barre TOP solidaire du scroll : une pill peut gagner le focus pendant
-    // que la barre est translatée HORS ÉCRAN (contenu scrollé) → focus
-    // invisible, utilisateur perdu (recette console). Ramener le scroll de
-    // l'onglet actif à 0 révèle la barre — remonter aux onglets ramène en
-    // haut, c'est le comportement attendu.
+    // scroll-following TOP bar: a pill can gain focus while the bar is
+    // translated OFF-SCREEN (content scrolled) -> invisible focus, lost
+    // user. Bringing the active tab's scroll back to 0 reveals the bar —
+    // going back up to the tabs scrolls to the top, which is the
+    // expected behavior.
     if (this->horizontal) {
         for (brls::View* v = this->getParent(); v; v = v->getParent()) {
             if (auto* frame = dynamic_cast<AutoTabFrame*>(v)) {
@@ -1189,16 +1189,16 @@ void AutoSidebarItem::setHorizontalMode(bool value) {
     if (value) {
         this->setAxis(brls::Axis::COLUMN);
         if (this->tabStyle == AutoTabBarStyle::ACCENT) {
-            // onglets horizontaux en « pills » : plus de soulignement accent,
-            // l'état actif est porté par un fond or plein (applyPillStyle)
+            // horizontal tabs as "pills": no more accent underline,
+            // the active state is carried by a solid gold background (applyPillStyle)
             this->accent->setVisibility(brls::Visibility::GONE);
             this->icon_box->setMarginRight(0);
             this->icon_box->setMarginBottom(0);
             this->setHeight(34);
             this->setCornerRadius(17);
             this->setHighlightCornerRadius(17);
-            // le fond du highlight borealis recouvrirait le fond or de la
-            // pill active (texte sombre illisible) : on n'en veut pas
+            // the borealis highlight background would cover the active
+            // pill's gold background (unreadable dark text): we don't want it
             this->setHideHighlightBackground(true);
             this->setPadding(0, 16, 0, 16);
             this->setMargins(0, 5, 0, 5);
@@ -1209,10 +1209,11 @@ void AutoSidebarItem::setHorizontalMode(bool value) {
     } else {
         this->setAxis(brls::Axis::ROW);
         if (this->tabStyle == AutoTabBarStyle::ACCENT) {
-            // barre accent à droite de l'item (ordre XML), icône 28px centrée
-            // (padding 8 + padding 10 de la sidebar = 18, icon_box 30 → centre
-            // à 32 = moitié des 64px). Accent (4/0) collé au bord droit : la
-            // sidebar n'a plus de paddingRight, zéro pixel d'espacement
+            // accent bar on the right of the item (XML order), 28px icon
+            // centered (padding 8 + sidebar padding 10 = 18, icon_box 30 ->
+            // center at 32 = half of the 64px). Accent (4/0) flush with the
+            // right edge: the sidebar has no paddingRight anymore, zero
+            // pixels of spacing
             this->accent->setSize(brls::Size(4, View::AUTO));
             this->accent->setMarginTop(9);
             this->accent->setMarginLeft(4);
@@ -1220,13 +1221,13 @@ void AutoSidebarItem::setHorizontalMode(bool value) {
             this->icon_box->setMarginBottom(9);
             this->icon_box->setMarginRight(8);
             this->icon_box->setAlignItems(brls::AlignItems::FLEX_START);
-            // paddingLeft 18 : la sidebar n'a plus de padding latéral (items
-            // pleine largeur), l'icône reste centrée à 18→46 des 64 px
+            // paddingLeft 18: the sidebar has no side padding anymore
+            // (full-width items), the icon stays centered at 18->46 of the 64 px
             this->setPadding(0, 0, 0, 18);
-            // halo borealis supprimé (gros cadre or disgracieux autour de
-            // l'icône) : le focus se signale par un fond or translucide
-            // RECTANGLE pleine largeur (onFocusGained/onFocusLost, recette
-            // n°6 : pas d'arrondi) ; l'item ACTIF garde icône or + accent
+            // borealis halo removed (ugly big gold frame around the icon):
+            // focus is signaled by a full-width translucent gold
+            // RECTANGLE background (onFocusGained/onFocusLost, no
+            // rounding); the ACTIVE item keeps gold icon + accent
             this->setHideHighlight(true);
             this->setCornerRadius(0);
         } else if (this->tabStyle == AutoTabBarStyle::PLAIN) {

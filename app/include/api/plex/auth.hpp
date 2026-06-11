@@ -1,10 +1,10 @@
 /*
-    pleNx — authentification plex.tv et découverte des serveurs.
-    Spécification : PLEX_MIGRATION.md §2.2 (flux PIN) et §2.3 (resources + connexions).
+    pleNx — plex.tv authentication and server discovery.
+    Specification: PLEX_MIGRATION.md §2.2 (PIN flow) and §2.3 (resources + connections).
 
-    Toutes les fonctions sont SYNCHRONES (elles enchaînent des requêtes HTTP) :
-    les appeler depuis brls::async, comme le faisait le flux Quick Connect.
-    Elles lèvent std::runtime_error en cas d'échec réseau/HTTP.
+    All functions are SYNCHRONOUS (they chain HTTP requests): call them from
+    brls::async, like the Quick Connect flow used to.
+    They throw std::runtime_error on network/HTTP failure.
 */
 
 #pragma once
@@ -13,36 +13,36 @@
 
 namespace plex {
 
-/// Crée un PIN d'association à 4 caractères que l'utilisateur saisit sur
+/// Creates a 4-character link PIN that the user enters on
 /// https://plex.tv/link.
 PinResult requestPin();
 
-/// Interroge le PIN : retourne le token de compte dès que l'utilisateur a validé,
-/// chaîne vide tant que ce n'est pas le cas. Lève si le PIN a expiré (404/410).
-/// Cadence recommandée : 1 s → 2 s → 4 s, plafond 5 s, abandon à 2 min (§2.2).
+/// Polls the PIN: returns the account token once the user has validated,
+/// empty string until then. Throws if the PIN has expired (404/410).
+/// Recommended cadence: 1 s -> 2 s -> 4 s, capped at 5 s, give up at 2 min (§2.2).
 std::string pollPin(int64_t pinId);
 
-/// Vérifie un token (GET /api/v2/user). Lève si invalide/révoqué (401/403).
+/// Validates a token (GET /api/v2/user). Throws if invalid/revoked (401/403).
 AccountUser getUser(const std::string& accountToken);
 
-/// Serveurs du compte avec leurs tokens d'accès propres (§2.3).
+/// Servers of the account with their own access tokens (§2.3).
 std::vector<ServerResource> getResources(const std::string& accountToken);
 
-/// Profils Plex Home du compte.
+/// Plex Home profiles of the account.
 std::vector<HomeUser> getHomeUsers(const std::string& accountToken);
 
-/// Bascule vers un profil Home : retourne le token PROPRE à ce profil.
-/// `pin` requis quand HomeUser::isProtected (erreur 1041 = mauvais PIN).
+/// Switches to a Home profile: returns the token SPECIFIC to that profile.
+/// `pin` required when HomeUser::isProtected (error 1041 = wrong PIN).
 std::string switchHomeUser(const std::string& accountToken, const std::string& userUuid, const std::string& pin = "");
 
-/// Teste une URL de base (GET {base}/ avec token) ; retourne true si 200.
+/// Probes a base URL (GET {base}/ with token); returns true on 200.
 bool probeConnection(const std::string& baseUrl, const std::string& accessToken, long timeoutMs = 2000);
 
-/// Choisit la meilleure connexion d'un serveur : essaie `preferredUri` puis les
-/// candidates par priorité https+local → https+remote → https+relay → http…
-/// (plex_auth_service.dart:580-643). Retourne l'URL de base joignable, ou "".
-/// NOTE : probing séquentiel pour l'instant ; la course parallèle de plezy
-/// (endpoint_race.dart) est une optimisation prévue en phase 2.
+/// Picks the best connection for a server: tries `preferredUri` then the
+/// candidates by priority https+local -> https+remote -> https+relay -> http...
+/// Returns the reachable base URL, or "".
+/// NOTE: sequential probing for now; racing all candidates in parallel is a
+/// planned phase 2 optimization.
 std::string findBestConnection(const ServerResource& server, const std::string& preferredUri = "");
 
 }  // namespace plex

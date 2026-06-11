@@ -43,7 +43,7 @@ private:
     void doMovie();
     void doRelated();
     void updateDownloadButton();
-    /// révèle le bouton Watchlist une fois l'état provider connu (guid plex://)
+    /// reveals the Watchlist button once the provider state is known (plex:// guid)
     void initWatchlist(const std::string& guid);
     void toggleWatchlist();
     void updateWatchlistButton();
@@ -55,7 +55,7 @@ private:
     std::string itemId;
     std::string itemGuid;
     bool watchlisted = false;
-    /// version sélectionnée (item.media[]) — sans effet v1 (lecture = première
-    /// version accessible, cf. activity/player_view.cpp)
+    /// selected version (item.media[]) — no effect in v1 (playback = first
+    /// accessible version, cf. activity/player_view.cpp)
     size_t selectedVersion = 0;
 };

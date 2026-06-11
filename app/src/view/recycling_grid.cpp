@@ -48,14 +48,14 @@ void SkeletonCell::draw(
         nvgFill(vg);
     };
 
-    // petites cellules (listes, chips) : un seul bloc
+    // small cells (lists, chips): a single block
     if (height < 120) {
         bar(x, y, width, height, 6);
         return;
     }
 
-    // structure d'une carte média : affiche + barre de titre + sous-titre
-    // (mêmes métriques que video_card.xml : zone labels = 55)
+    // structure of a media card: poster + title bar + subtitle
+    // (same metrics as video_card.xml: label area = 55)
     float labels = 55;
     bar(x, y, width, height - labels, 10);
     float top = y + height - labels + 12;
@@ -149,7 +149,7 @@ void RecyclingView::showSkeleton(unsigned int num) { this->setDataSource(new Dat
 RecyclingGrid::RecyclingGrid() {
     brls::Logger::debug("View RecyclingGrid: create");
 
-    // États vide/erreur : icône + titre + sous-titre explicatif
+    // Empty/error states: icon + title + explanatory subtitle
     this->hintImage = new SVGImage();
     this->hintImage->detach();
     this->hintImage->setDimensions(56, 56);
@@ -246,8 +246,8 @@ void RecyclingGrid::draw(
 
     if (!this->dataSource || this->dataSource->getItemCount() == 0) {
         if (!this->hintImage) return;
-        // bloc icône + titre + sous-titre réellement centré : les labels
-        // détachés n'ont pas de hauteur layoutée, on leur impose une boîte
+        // truly centered icon + title + subtitle block: detached labels
+        // have no laid-out height, we impose a box on them
         float w1 = hintImage->getWidth(), w2 = hintLabel->getWidth(), w3 = hintSub->getWidth();
         float h1 = hintImage->getHeight();
         float gap = 18, h2 = hintLabel->getFontSize() * 1.5f;
@@ -342,13 +342,13 @@ void RecyclingGrid::setDataSource(RecyclingGridDataSource* source) {
 }
 
 void RecyclingGrid::setHeaderView(brls::View* view, float height) {
-    if (this->headerView) return;  // un seul en-tête, posé une fois
+    if (this->headerView) return;  // a single header, set once
     this->headerView = view;
     this->headerHeight = height;
     view->detach();
     view->setHeight(height);
-    // enfant du contentBox SANS userdata d'index : toutes les boucles du
-    // recycler l'ignorent (garde getParentUserData() == nullptr)
+    // child of the contentBox WITHOUT index userdata: every recycler loop
+    // ignores it (the getParentUserData() == nullptr guard)
     this->contentBox->getChildren().push_back(view);
     view->setParent(this->contentBox);
     view->willAppear();
@@ -358,8 +358,8 @@ void RecyclingGrid::setHeaderView(brls::View* view, float height) {
 void RecyclingGrid::reloadData() {
     if (!layouted) return;
 
-    // ratio d'image garanti : la hauteur de ligne suit la largeur de cellule
-    // (reloadData est le passage obligé de tout changement de géométrie)
+    // guaranteed image ratio: the row height follows the cell width
+    // (reloadData is the mandatory path of every geometry change)
     if (this->itemImageRatio > 0) {
         float width = getWidth();
         if (width != width) width = oldWidth;
@@ -372,7 +372,7 @@ void RecyclingGrid::reloadData() {
     // 将所有节点从屏幕上移除放入重复利用的列表中
     auto& children = this->contentBox->getChildren();
     for (auto const& child : children) {
-        if (child == this->headerView) continue;  // l'en-tête n'est pas une cellule
+        if (child == this->headerView) continue;  // the header is not a cell
         queueReusableCell((RecyclingGridItem*)child);
         child->willDisappear(true);
     }
@@ -507,7 +507,7 @@ void RecyclingGrid::itemsRecyclingLoop() {
     while (true) {
         RecyclingGridItem* minCell = nullptr;
         for (auto it : contentBox->getChildren()) {
-            if (!it->getParentUserData()) continue;  // en-tête scrollé : pas une cellule
+            if (!it->getParentUserData()) continue;  // scrolled header: not a cell
             if (*((size_t*)it->getParentUserData()) == visibleMin) minCell = (RecyclingGridItem*)it;
         }
 
@@ -535,7 +535,7 @@ void RecyclingGrid::itemsRecyclingLoop() {
     while (true) {
         RecyclingGridItem* maxCell = nullptr;
         for (auto it : contentBox->getChildren()) {
-            if (!it->getParentUserData()) continue;  // en-tête scrollé : pas une cellule
+            if (!it->getParentUserData()) continue;  // scrolled header: not a cell
             if (*((size_t*)it->getParentUserData()) == visibleMax) maxCell = (RecyclingGridItem*)it;
         }
 
@@ -604,7 +604,7 @@ void RecyclingGrid::selectRowAt(size_t index, bool animated) {
     this->itemsRecyclingLoop();
 
     for (View* view : contentBox->getChildren()) {
-        if (!view->getParentUserData()) continue;  // en-tête scrollé : pas une cellule
+        if (!view->getParentUserData()) continue;  // scrolled header: not a cell
         if (*((size_t*)view->getParentUserData()) == index) {
             contentBox->setLastFocusedView(view);
             break;
@@ -654,7 +654,7 @@ brls::View* RecyclingGrid::getNextCellFocus(brls::FocusDirection direction, brls
         while (!row_currentFocus && row_currentFocusIndex >= 0 &&
                row_currentFocusIndex < this->dataSource->getItemCount()) {
             for (auto it : this->contentBox->getChildren()) {
-                if (!it->getParentUserData()) continue;  // en-tête scrollé : pas une cellule
+                if (!it->getParentUserData()) continue;  // scrolled header: not a cell
                 if (*((size_t*)it->getParentUserData()) == row_currentFocusIndex) {
                     row_currentFocus = it->getDefaultFocus();
                     break;
@@ -703,7 +703,7 @@ brls::View* RecyclingGrid::getNextCellFocus(brls::FocusDirection direction, brls
 
     while (!currentFocus && currentFocusIndex >= 0 && currentFocusIndex < this->dataSource->getItemCount()) {
         for (auto it : this->contentBox->getChildren()) {
-            if (!it->getParentUserData()) continue;  // en-tête scrollé : pas une cellule
+            if (!it->getParentUserData()) continue;  // scrolled header: not a cell
             if (*((size_t*)it->getParentUserData()) == currentFocusIndex) {
                 currentFocus = it->getDefaultFocus();
                 break;
@@ -742,12 +742,12 @@ bool RecyclingGrid::checkWidth() {
     if (oldWidth == -1) {
         oldWidth = width;
     }
-    // hystérésis 1px : les largeurs fractionnaires oscillent à travers les
-    // arrondis yoga (131.5 ↔ 132 constaté) — la comparaison en (int) tronqué
-    // déclenchait alors un reloadData PAR FRAME : grille définitivement vide
-    // (cellules recyclées en boucle), navigation morte, pages spammées.
-    // oldWidth n'est PAS suivi hors reload : une vraie dérive cumulée > 1px
-    // re-déclenche, une oscillation sub-pixel s'amortit.
+    // 1px hysteresis: fractional widths oscillate across yoga roundings
+    // (131.5 <-> 132 observed) — the truncated (int) comparison then
+    // triggered a reloadData PER FRAME: permanently empty grid (cells
+    // recycled in a loop), dead navigation, spammed pages.
+    // oldWidth is NOT tracked outside reload: a real cumulative drift
+    // > 1px re-triggers, a sub-pixel oscillation dampens out.
     if (std::fabs(oldWidth - width) > 1.0f && width != 0) {
         brls::Logger::debug("RecyclingGrid::checkWidth from {} to {}", oldWidth, width);
         oldWidth = width;
@@ -791,10 +791,10 @@ brls::View* RecyclingGrid::getDefaultFocus() {
     if (!this->dataSource || this->dataSource->getItemCount() == 0) return nullptr;
     brls::View* cell = ScrollingFrame::getDefaultFocus();
     if (cell) return cell;
-    // giveFocus via une route de navigation : viser la première cellule déjà
-    // attachée (focusable — les skeletons ne le sont pas). PAS de
-    // matérialisation ici : getDefaultFocus est sondé par les traversées de
-    // navigation, muter le contenu à ce moment-là fait des dégâts.
+    // giveFocus via a navigation route: target the first already attached
+    // cell (focusable — skeletons are not). NO materialization here:
+    // getDefaultFocus is probed by navigation traversals, mutating the
+    // content at that point wreaks havoc.
     for (auto* child : this->contentBox->getChildren()) {
         brls::View* focus = child->getDefaultFocus();
         if (focus) return focus;

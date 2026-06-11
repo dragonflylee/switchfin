@@ -44,7 +44,7 @@ PlayerSetting::PlayerSetting(const plex::Media* src) {
     }
 
     if (src != nullptr && !src->parts.empty()) {
-        // les sélections serveur utilisent l'id de Stream Plex (§2.7)
+        // server selections use the Plex Stream id (§2.7)
         for (auto& s : src->parts.front().streams) {
             if (s.streamType == plex::streamTypeAudio) {
                 audioSource.push_back(s.displayTitle);

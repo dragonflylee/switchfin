@@ -3,9 +3,9 @@
     height="auto"
     axis="column">
 
-    <!-- TOUT défile : l'en-tête (titre + « N éléments · durée ») est une vue
-         scrollée de la grille (setHeaderView) ; retraits internes au scroll,
-         affiches jusqu'aux bords (pattern collection.xml) -->
+    <!-- EVERYTHING scrolls: the header (title + "N items · duration") is a
+         scrolled view of the grid (setHeaderView); insets inside the scroll,
+         posters up to the edges (collection.xml pattern) -->
     <RecyclingGrid
         grow="1"
         wireframe="false"

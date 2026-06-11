@@ -1,7 +1,7 @@
 /*
-    pleNx — page complète d'un hub (voir hub_view.hpp).
-    Réutilise VideoDataSource : films/séries → fiche, épisodes → lecture,
-    menu contextuel X/long-press inclus (video_card.cpp).
+    pleNx — full page of a hub (see hub_view.hpp).
+    Reuses VideoDataSource: movies/shows -> detail page, episodes -> playback,
+    X/long-press context menu included (video_card.cpp).
 */
 
 #include "tab/hub_view.hpp"
@@ -17,8 +17,8 @@ HubView::HubView(const std::string& title, const std::string& key) : hubKey(key)
     brls::Logger::debug("HubView: create {} ({})", title, key);
     this->inflateFromXMLRes("xml/tabs/hub.xml");
 
-    // en-tête scrollé AVEC la grille (titre + méta) : il appartient au
-    // recycler, qui décale toutes ses cellules de la hauteur donnée
+    // header scrolled WITH the grid (title + meta): it belongs to the
+    // recycler, which offsets all its cells by the given height
     brls::View* header = brls::View::createFromXMLResource("view/grid_header.xml");
     this->labelTitle = dynamic_cast<brls::Label*>(header->getView("grid/header/title"));
     this->labelMeta = dynamic_cast<brls::Label*>(header->getView("grid/header/meta"));
@@ -47,9 +47,9 @@ brls::View* HubView::getDefaultFocus() { return this->recycler; }
 
 void HubView::doRequest() {
     HTTP::Form query;
-    // ordre du hub = ordre serveur : AUCUN paramètre de tri
+    // hub order = server order: NO sort parameter
     plex::addPagination(query, this->startIndex, this->pageSize);
-    // la key du hub peut déjà porter des paramètres (…/all?actor=…)
+    // the hub key may already carry parameters (.../all?actor=...)
     std::string sep = this->hubKey.find('?') == std::string::npos ? "?" : "&";
 
     ASYNC_RETAIN

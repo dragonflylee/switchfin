@@ -42,10 +42,10 @@ public:
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         VideoCardCell* cell = dynamic_cast<VideoCardCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
-        // le Directory de genre n'a pas de thumb (vérifié serveur
-        // 2026-06-10) → poster Kometa via le transcodeur photo du serveur
-        // (genre_image.cpp) ; genre inconnu → placeholder posé par
-        // prepareForReuse (aucune requête, le set Kometa est embarqué)
+        // the genre Directory has no thumb (verified on a real server
+        // 2026-06-10) -> Kometa poster via the server's photo transcoder
+        // (genre_image.cpp); unknown genre -> placeholder set by
+        // prepareForReuse (no request, the Kometa set is embedded)
         cell->labelTitle->setText(item.title);
         cell->labelExt->setVisibility(brls::Visibility::GONE);
         std::string poster = GenreImage::posterUrl(item.title);
@@ -72,18 +72,18 @@ public:
         this->setGrow(1.f);
         this->registerCell("Cell", VideoCardCell::create);
         this->spanCount = brls::getStyle().getMetric("app/grid/6");
-        // affiches 2:3 + zone labels, recalculé au layout (recycling_grid.cpp)
+        // 2:3 posters + label area, recomputed at layout (recycling_grid.cpp)
         this->itemImageRatio = 1.5f;
         this->itemExtraHeight = 55;
-        // retraits internes au scroll (collection.xml n'a plus de padding
-        // racine) ; top 70 : la barre d'onglets flottante (60) passe devant
+        // insets inside the scroll (collection.xml no longer has root
+        // padding); top 70: the floating tab bar (60) passes in front
         float side = brls::getStyle()["main/content_padding_sides"];
         this->setPadding(70, side, brls::getStyle()["main/content_padding_top_bottom"], side);
 
         int type = itemType == plex::mediaTypeShow ? plex::typeShow : plex::typeMovie;
 
         ASYNC_RETAIN
-        // GET /library/sections/{key}/genre?type= → Directory key/title
+        // GET /library/sections/{key}/genre?type= -> Directory key/title
         plex::getJSON<plex::Container<plex::Section>>(
             AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
             [ASYNC_TOKEN, itemId, itemType](const plex::Container<plex::Section>& r) {
@@ -106,7 +106,7 @@ public:
         this->spanCount = brls::getStyle().getMetric("app/grid/6");
         this->itemImageRatio = 1.5f;
         this->itemExtraHeight = 55;
-        // top 70 : même contrat que GenresTab (barre flottante au-dessus)
+        // top 70: same contract as GenresTab (floating bar above)
         float side = brls::getStyle()["main/content_padding_sides"];
         this->setPadding(70, side, brls::getStyle()["main/content_padding_top_bottom"], side);
 
@@ -119,7 +119,7 @@ public:
         plex::addPagination(query, this->start, this->pageSize);
 
         ASYNC_RETAIN
-        // GET /library/sections/{key}/collections (plex_client.dart:2444-2462)
+        // GET /library/sections/{key}/collections
         plex::getJSON<plex::Container<plex::Item>>(
             AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
             [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
@@ -167,9 +167,9 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
             this->tabFrame->addTab(item, [this]() { return new SuggestMovie(this->itemId); });
         }
 
-        // Collections : films uniquement — inutile sur les bibliothèques de
-        // séries (retour recette UI n°5 ; vérifié serveur 2026-06-10 :
-        // /library/sections/{show}/collections → size 0)
+        // Collections: movies only — useless on show libraries
+        // (verified on a real server 2026-06-10:
+        // /library/sections/{show}/collections -> size 0)
         if (itemType == plex::mediaTypeMovie) {
             item = new AutoSidebarItem();
             item->setTabStyle(AutoTabBarStyle::ACCENT);
@@ -187,9 +187,9 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
         this->tabFrame->registerTabAction(this);
     } else {
         this->inflateFromXMLRes("xml/tabs/media.xml");
-        // mode collection (grille seule) : en-tête scrollé « titre + N
-        // éléments · durée » comme la vue playlist (retour recette UI n°5) ;
-        // posé AVANT le premier layout (contrat setHeaderView)
+        // collection mode (grid only): scrolled header "title + N items
+        // · duration" like the playlist view;
+        // set BEFORE the first layout (setHeaderView contract)
         if (itemType == plex::mediaTypeCollection) {
             brls::View* header = brls::View::createFromXMLResource("view/grid_header.xml");
             this->labelTitle = dynamic_cast<brls::Label*>(header->getView("grid/header/title"));
@@ -219,8 +219,8 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
     this->recycler->onNextPage([this]() { this->doRequest(); });
 
     if (AppConfig::SYNC) {
-        // préférences de tri persistées LOCALEMENT (item LIBRARY_SORT) :
-        // /DisplayPreferences n'existe pas chez Plex (PLEX_MIGRATION.md §2.5)
+        // sort preferences persisted LOCALLY (LIBRARY_SORT item):
+        // /DisplayPreferences does not exist in Plex (PLEX_MIGRATION.md §2.5)
         if (MediaCollection::customPrefs.empty()) {
             auto saved = AppConfig::instance().getItem(AppConfig::LIBRARY_SORT, nlohmann::json::object());
             for (auto& el : saved.items()) {
@@ -248,22 +248,22 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
 }
 
 brls::View* MediaCollection::getDefaultFocus() {
-    // mode bibliothèque : déléguer au frame d'onglets, qui résout l'onglet
-    // ACTIF et sa mémoire de focus. `recycler` est la grille de l'onglet
-    // Accueil : la rendre directement quand un AUTRE onglet est affiché
-    // donnait le focus à un arbre DÉTACHÉ (cellules invisibles, positions
-    // périmées) — bug « focus perdu au retour de la sidebar » (recette n°6).
-    // Résolution par id : pas de throw en mode collection (XML sans tabFrame).
+    // library mode: delegate to the tab frame, which resolves the ACTIVE
+    // tab and its focus memory. `recycler` is the Home tab's grid:
+    // returning it directly while ANOTHER tab is shown gave focus to a
+    // DETACHED tree (invisible cells, stale positions) — the "focus lost
+    // when coming back from the sidebar" bug.
+    // Resolution by id: no throw in collection mode (XML without tabFrame).
     if (brls::View* frame = this->getView("media/tabFrame")) return frame->getDefaultFocus();
     return this->recycler;
 }
 
 void MediaCollection::doMetadata() {
     ASYNC_RETAIN
-    // titre de l'en-tête : GET /library/metadata/{ratingKey} — le Metadata
-    // d'une collection ne porte NI duration NI leafCount, seulement childCount
-    // (vérifié serveur 2026-06-10 sur /library/metadata/1024133) ; le compte
-    // affiché vient donc du totalSize de la grille (doRequest)
+    // header title: GET /library/metadata/{ratingKey} — a collection's
+    // Metadata carries NEITHER duration NOR leafCount, only childCount
+    // (verified on a real server 2026-06-10 on /library/metadata/1024133);
+    // the displayed count thus comes from the grid's totalSize (doRequest)
     plex::getJSON<plex::Container<plex::Item>>(
         AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
         [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
@@ -278,7 +278,7 @@ void MediaCollection::doMetadata() {
 }
 
 void MediaCollection::updateMeta(int64_t count, int64_t durationMs) {
-    if (!this->labelMeta) return;  // jamais posé hors mode collection
+    if (!this->labelMeta) return;  // never set outside collection mode
     if (count <= 0) {
         this->labelMeta->setVisibility(brls::Visibility::GONE);
         return;
@@ -286,7 +286,7 @@ void MediaCollection::updateMeta(int64_t count, int64_t durationMs) {
     std::string meta =
         fmt::format("{} {}", count, count > 1 ? "main/playlist/items"_i18n : "main/playlist/item"_i18n);
     if (durationMs > 0) {
-        // même convention que la vue playlist (playlist_view.cpp) : h/min
+        // same convention as the playlist view (playlist_view.cpp): h/min
         int min = int(durationMs / 60000);
         meta += min >= 60 ? fmt::format("  ·  {} h {:02d}", min / 60, min % 60) : fmt::format("  ·  {} min", min);
     }
@@ -316,7 +316,7 @@ void MediaCollection::loadFilter() {
     auto it = MediaCollection::customPrefs.find(this->itemId);
     if (it == MediaCollection::customPrefs.end()) return;
 
-    // format "sortBy,sortOrder,filtre" (ex. "addedAt,1,0")
+    // format "sortBy,sortOrder,filter" (e.g. "addedAt,1,0")
     std::stringstream ss(it->second);
     std::string sortBy, sortOrder, unwatched;
     std::getline(ss, sortBy, ',');
@@ -343,7 +343,7 @@ void MediaCollection::saveFilter() {
 
 void MediaCollection::doRequest() {
     HTTP::Form query;
-    // tri Plex : sort=champ[:desc] (library_query_translator.dart:51-105)
+    // Plex sort: sort=field[:desc]
     std::string sort = MediaFilter::sortList[MediaFilter::selectedSort];
     if (MediaFilter::selectedOrder) sort += ":desc";
     query["sort"] = sort;
@@ -359,7 +359,7 @@ void MediaCollection::doRequest() {
     } else if (this->itemType == plex::mediaTypeShow) {
         query["type"] = std::to_string(plex::typeShow);
     }
-    // photo : pas de filtre type=
+    // photo: no type= filter
 
     ASYNC_RETAIN
     plex::getJSON<plex::Container<plex::Item>>(
@@ -371,17 +371,17 @@ void MediaCollection::doRequest() {
                 this->updateMeta(0, 0);
                 this->recycler->setEmpty();
             } else if (r.StartIndex == 0) {
-                // méta de l'en-tête du mode collection : compte fiable
-                // (totalSize) ; durée totale UNIQUEMENT si cette page couvre
-                // toute la collection — le Metadata d'une collection n'a pas
-                // de durée propre (vérifié serveur 2026-06-10) et une somme
-                // partielle serait fausse
+                // collection mode header meta: reliable count (totalSize);
+                // total duration ONLY if this page covers the whole
+                // collection — a collection's Metadata has no duration of
+                // its own (verified on a real server 2026-06-10) and a
+                // partial sum would be wrong
                 if (this->labelMeta) {
                     int64_t total = 0;
                     if (r.TotalRecordCount <= (long)this->pageSize) {
                         for (auto& it : r.Items) {
-                            // seuls movie/episode/clip portent une durée pleine
-                            // (un show n'expose qu'une durée d'épisode)
+                            // only movie/episode/clip carry a full duration
+                            // (a show only exposes an episode duration)
                             bool full = it.type == plex::mediaTypeMovie || it.type == plex::mediaTypeEpisode ||
                                         it.type == plex::mediaTypeClip;
                             if (!full || it.duration <= 0) {

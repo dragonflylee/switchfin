@@ -2,7 +2,7 @@
     width="auto"
     height="auto">
 
-    <!-- centered : le scroll suit le focus D-pad (boutons -> saisons -> rangées) -->
+    <!-- centered: the scroll follows the D-pad focus (buttons -> seasons -> rows) -->
     <brls:ScrollingFrame
         grow="1.0"
         scrollingBehavior="centered">
@@ -11,10 +11,10 @@
             axis="column"
             paddingBottom="@style/main/content_padding_top_bottom">
 
-            <!-- bannière full-bleed : backdrop + fondu vers le fond + logo
-                 niché en bas du fondu (lisible dans l'ombre).
-                 NB : garder un cornerRadius sur les brls:Image en scalingType="fill",
-                 c'est lui qui active le clip du rendu (sinon l'image déborde). -->
+            <!-- full-bleed banner: backdrop + fade towards the background +
+                 logo nested at the bottom of the fade (readable in the shadow).
+                 NB: keep a cornerRadius on brls:Image with scalingType="fill",
+                 it is what enables the render clip (otherwise the image overflows). -->
             <brls:Box
                 id="series/banner"
                 width="100%"
@@ -49,17 +49,17 @@
                 </brls:Box>
             </brls:Box>
 
-            <!-- le poster seul chevauche la bannière ; la colonne d'infos
-                 (titre, pills, genres, boutons, synopsis) commence SOUS la
-                 bannière : plus aucun texte sur le backdrop (recette) -->
+            <!-- only the poster overlaps the banner; the info column
+                 (title, pills, genres, buttons, synopsis) starts BELOW the
+                 banner: no more text over the backdrop -->
             <brls:Box
                 id="series/content/row"
                 marginTop="-150"
                 paddingLeft="@style/main/content_padding_sides"
                 paddingRight="@style/main/content_padding_sides">
 
-                <!-- 64 : le poster ne remonte que de ~86 px dans la bannière
-                     (recette : poster descendu, colonne d'infos inchangée) -->
+                <!-- 64: the poster only rises ~86 px into the banner
+                     (poster lowered, info column unchanged) -->
                 <brls:Box
                     width="220"
                     axis="column"
@@ -74,8 +74,8 @@
                         image="@res/img/video-card-bg.png" />
                 </brls:Box>
 
-                <!-- 184 = 150 de chevauchement bannière + ~34 px d'air entre
-                     le bas de la bannière et le haut du titre -->
+                <!-- 184 = 150 of banner overlap + ~34 px of air between the
+                     bottom of the banner and the top of the title -->
                 <brls:Box
                     id="series/content/info"
                     axis="column"
@@ -147,9 +147,9 @@
                         textColor="@theme/font/grey"
                         marginBottom="16" />
 
-                    <!-- boutons en ligne sous les genres, avant le synopsis :
-                         « Lire » = prochain épisode (OnDeck), « Télécharger »
-                         = série entière (allLeaves) -->
+                    <!-- inline buttons under the genres, before the synopsis:
+                         "Play" = next episode (OnDeck), "Download"
+                         = whole show (allLeaves) -->
                     <brls:Box
                         id="series/buttons"
                         axis="row"
@@ -168,9 +168,9 @@
                             buttonStyle="bordered"
                             marginLeft="12" />
 
-                        <!-- révélé une fois l'état watchlist connu (requête
-                             provider async, media_series.cpp) ; icône pleine
-                             = déjà dans la Watchlist -->
+                        <!-- revealed once the watchlist state is known (async
+                             provider request, media_series.cpp); filled icon
+                             = already in the Watchlist -->
                         <IconButton
                             id="series/watchlist"
                             icon="@res/icon/ico-bookmark-light.svg"
@@ -188,9 +188,9 @@
                 </brls:Box>
             </brls:Box>
 
-            <!-- rangées pleine largeur : retraits internes au scroll
-                 (full-bleed), ~28 entre la fin d'une rangée et le Header
-                 suivant. La rangée « Saisons » remplace les onglets. -->
+            <!-- full-width rows: insets inside the scroll (full-bleed),
+                 ~28 between the end of a row and the next Header.
+                 The "Seasons" row replaces the tabs. -->
             <brls:Header
                 marginTop="28"
                 marginBottom="6"

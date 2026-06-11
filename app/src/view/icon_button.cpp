@@ -20,10 +20,10 @@ const std::string iconButtonXML = R"xml(
             height="18"
             marginRight="10" />
 
-        <!-- singleLine : la bascule GONE→VISIBLE asynchrone du bouton fait
-             passer une mesure à largeur dégénérée, et la branche wrap de
-             labelMeasureFunc coupait « Lire » en « Lir / e » ; en singleLine
-             cette branche est inatteignable (label.cpp:150) -->
+        <!-- singleLine: the button's async GONE->VISIBLE toggle runs a
+             measure at a degenerate width, and the wrap branch of
+             labelMeasureFunc cut "Lire" into "Lir / e"; in singleLine
+             that branch is unreachable (label.cpp:150) -->
         <brls:Label
             id="icon_button/label"
             singleLine="true"
@@ -40,18 +40,18 @@ IconButton::IconButton() {
     this->registerStringXMLAttribute("text", [this](std::string value) { this->setText(value); });
     this->registerStringXMLAttribute("buttonStyle", [this](std::string value) { this->setButtonStyle(value); });
 
-    // clic souris/tactile : rejoue l'action A enregistrée par l'appelant
+    // mouse/touch click: replays the A action registered by the caller
     this->addGestureRecognizer(new brls::TapGestureRecognizer(this));
 
-    // le fond du highlight borealis recouvrirait le fond or du style
-    // primary au focus (texte sombre illisible) : bordure animée seule
+    // the borealis highlight background would cover the primary style's
+    // gold background on focus (unreadable dark text): animated border only
     this->setHideHighlightBackground(true);
 
     this->applyStyle();
 }
 
 void IconButton::setIcon(const std::string& res) {
-    // les attributs XML passent un chemin @res déjà résolu en chemin relatif
+    // XML attributes pass an @res path already resolved to a relative path
     std::string path = res;
     const std::string prefix = "@res/";
     if (path.rfind(prefix, 0) == 0) path = path.substr(prefix.size());

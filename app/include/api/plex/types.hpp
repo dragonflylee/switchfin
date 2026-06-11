@@ -1,9 +1,9 @@
 /*
-    pleNx — modèles natifs de l'API Plex.
-    Spécification vérifiée : PLEX_MIGRATION.md §2 (extraite de plezy, citations fichier:ligne).
+    pleNx — native models for the Plex API.
+    Verified specification: PLEX_MIGRATION.md §2.
 
-    Unités : durées/positions en MILLISECONDES, horodatages en SECONDES epoch,
-    offset de seek du transcodeur en SECONDES entières (cf. §2.6).
+    Units: durations/positions in MILLISECONDS, timestamps in epoch SECONDS,
+    transcoder seek offset in whole SECONDS (cf. §2.6).
 */
 
 #pragma once
@@ -14,47 +14,47 @@
 
 namespace plex {
 
-/// ---- plex.tv (authentification & découverte) -------------------------------
+/// ---- plex.tv (authentication & discovery) ----------------------------------
 const std::string tvApiBase = "https://clients.plex.tv/api/v2";
 const std::string tvApiFallback = "https://plex.tv/api/v2";
-// PIN « faible » (4 caractères) : requis pour la saisie manuelle sur
-// https://plex.tv/link. `?strong=true` (plezy) génère un code long destiné
-// à être passé en paramètre d'URL à app.plex.tv/auth, pas à être tapé.
+// "Weak" PIN (4 characters): required for manual entry on
+// https://plex.tv/link. `?strong=true` generates a long code meant to be
+// passed as a URL parameter to app.plex.tv/auth, not to be typed.
 const std::string_view tvApiPins = "{}/pins";
 const std::string_view tvApiPinPoll = "{}/pins/{}";
 const std::string_view tvApiUser = "{}/user";
 const std::string_view tvApiResources = "{}/resources?includeHttps=1&includeRelay=1&includeIPv6=1";
 const std::string_view tvApiHomeUsers = "{}/home/users";
 const std::string_view tvApiSwitchUser = "{}/home/users/{}/switch?{}";
-// URL à présenter à l'utilisateur (téléphone/navigateur)
+// URL to show to the user (phone/browser)
 const std::string tvLinkUrl = "https://plex.tv/link";
 
-/// ---- Provider plex.tv (Watchlist du COMPTE) ---------------------------------
-/// La watchlist appartient au compte plex.tv, pas au serveur : ces hôtes se
-/// requêtent avec le token COMPTE (AppConfig::getAccountToken()), jamais le
-/// token serveur. plezy n'implémente pas la watchlist — endpoints de l'API
-/// provider officielle (Plex Web/python-plexapi), TOUS vérifiés en GET réel
-/// le 2026-06-10 sur le compte de l'utilisateur (réponses JSON constatées).
+/// ---- plex.tv provider (ACCOUNT watchlist) -----------------------------------
+/// The watchlist belongs to the plex.tv account, not the server: these hosts
+/// must be queried with the ACCOUNT token (AppConfig::getAccountToken()),
+/// never the server token. Endpoints come from the official provider API
+/// (Plex Web/python-plexapi), ALL verified with real GETs on 2026-06-10
+/// against a live account (JSON responses observed).
 const std::string discoverApiBase = "https://discover.provider.plex.tv";
 const std::string metadataApiBase = "https://metadata.provider.plex.tv";
-/// Liste paginée (X-Plex-Container-*) ; `sort=watchlistedAt:desc` vérifié
-/// (asc/desc inversent bien l'ordre). Metadata[] : ratingKey PROVIDER,
-/// guid plex://movie|show/…, thumb/art en URLs ABSOLUES (tmdb,
-/// metadata-static.plex.tv — tailles originales, à proxifier).
+/// Paginated list (X-Plex-Container-*); `sort=watchlistedAt:desc` verified
+/// (asc/desc do invert the order). Metadata[]: PROVIDER ratingKey,
+/// guid plex://movie|show/..., thumb/art as ABSOLUTE URLs (tmdb,
+/// metadata-static.plex.tv — original sizes, must be proxied).
 const std::string_view apiWatchlistAll = "/library/sections/watchlist/all?{}";
-/// PUT, ratingKey = ratingKey PROVIDER (dernier segment du guid plex://…)
+/// PUT, ratingKey = PROVIDER ratingKey (last segment of the plex:// guid)
 const std::string_view apiWatchlistAdd = "/actions/addToWatchlist?ratingKey={}";
 const std::string_view apiWatchlistRemove = "/actions/removeFromWatchlist?ratingKey={}";
-/// État watchlist d'un titre : le metadata SERVEUR n'expose aucun champ
-/// (vérifié) ; sur metadata.provider avec includeUserState=1, le champ
-/// `watchlistedAt` (epoch s) est présent ⇔ le titre est dans la watchlist
-/// (vérifié sur un film watchlisté et un film non watchlisté).
+/// Watchlist state of a title: the SERVER metadata exposes no field
+/// (verified); on metadata.provider with includeUserState=1, the
+/// `watchlistedAt` field (epoch s) is present iff the title is watchlisted
+/// (verified on a watchlisted and a non-watchlisted movie).
 const std::string_view apiProviderMetadata = "/library/metadata/{}?includeUserState=1";
-/// Correspondance provider → serveur : items du serveur portant ce guid
-/// (vérifié : GET /library/all?guid=plex%3A%2F%2Fmovie%2F… → Metadata[1]).
+/// Provider -> server mapping: server items bearing this guid
+/// (verified: GET /library/all?guid=plex%3A%2F%2Fmovie%2F... -> Metadata[1]).
 const std::string_view apiLibraryMatch = "/library/all?{}";
 
-/// ---- Serveur de médias (PMS) ------------------------------------------------
+/// ---- Media server (PMS) -----------------------------------------------------
 const std::string_view apiIdentity = "/identity";
 const std::string_view apiSections = "/library/sections";
 const std::string_view apiSectionAll = "/library/sections/{}/all?{}";
@@ -67,17 +67,17 @@ const std::string_view apiHubContinue = "/hubs/continueWatching?{}";
 const std::string_view apiHubRelated = "/hubs/metadata/{}/related?{}";
 const std::string_view apiMetadata = "/library/metadata/{}?{}";
 const std::string_view apiChildren = "/library/metadata/{}/children?{}";
-/// filmographie d'une personne (plex_client.dart:2509-2511)
+/// filmography of a person
 const std::string_view apiPersonMedia = "/library/people/{}/media?{}";
 const std::string_view apiGrandchildren = "/library/metadata/{}/grandchildren?{}";
-/// tous les épisodes d'une série, toutes saisons confondues (Container<Item>)
+/// all episodes of a show, across all seasons (Container<Item>)
 const std::string_view apiAllLeaves = "/library/metadata/{}/allLeaves";
 const std::string_view apiExtras = "/library/metadata/{}/extras";
 const std::string_view apiSearch = "/library/search?{}";
 const std::string_view apiCollections = "/library/sections/{}/collections?{}";
 const std::string_view apiCollectionChildren = "/library/collections/{}/children?{}";
-/// listes de lecture (vérifié serveur 2026-06-10 : Metadata[] type "playlist",
-/// composite/leafCount/duration/smart ; pagination X-Plex-Container-* supportée)
+/// playlists (verified on a real server 2026-06-10: Metadata[] type "playlist",
+/// composite/leafCount/duration/smart; X-Plex-Container-* pagination supported)
 const std::string_view apiPlaylists = "/playlists?{}";
 const std::string_view apiPlaylistItems = "/playlists/{}/items?{}";
 const std::string_view apiScrobble = "/:/scrobble?key={}&identifier=com.plexapp.plugins.library";
@@ -88,13 +88,13 @@ const std::string_view apiTranscodeDecision = "/video/:/transcode/universal/deci
 const std::string_view apiTranscodeStart = "/video/:/transcode/universal/start?{}";
 const std::string_view apiPartIndexes = "/library/parts/{}/indexes/sd";
 
-/// Types numériques (paramètre `type=` ; plex_constants.dart:19-31)
+/// Numeric types (`type=` parameter)
 const int typeMovie = 1;
 const int typeShow = 2;
 const int typeSeason = 3;
 const int typeEpisode = 4;
 
-/// Types texte (champ `type` des Metadata)
+/// Text types (`type` field of Metadata)
 const std::string mediaTypeMovie = "movie";
 const std::string mediaTypeShow = "show";
 const std::string mediaTypeSeason = "season";
@@ -104,14 +104,14 @@ const std::string mediaTypeCollection = "collection";
 const std::string mediaTypePhoto = "photo";
 const std::string mediaTypePlaylist = "playlist";
 
-/// streamType (plex_constants.dart:7-11)
+/// streamType values
 const int streamTypeVideo = 1;
 const int streamTypeAudio = 2;
 const int streamTypeSubtitle = 3;
 
-/// ---- Helpers JSON tolérants -------------------------------------------------
-/// Plex omet les champs absents et renvoie parfois des nombres sous forme de
-/// chaîne ; ces helpers absorbent les deux cas sans lever d'exception.
+/// ---- Lenient JSON helpers ---------------------------------------------------
+/// Plex omits absent fields and sometimes returns numbers as strings;
+/// these helpers absorb both cases without throwing.
 inline std::string jstr(const nlohmann::json& j, const char* key, const std::string& def = "") {
     auto it = j.find(key);
     if (it == j.end()) return def;
@@ -155,7 +155,7 @@ inline bool jbool(const nlohmann::json& j, const char* key, bool def = false) {
     return def;
 }
 
-/// Tableaux d'objets `[{"tag": "..."}]` (Genre, Director, Writer…)
+/// Arrays of `[{"tag": "..."}]` objects (Genre, Director, Writer...)
 inline std::vector<std::string> jtags(const nlohmann::json& j, const char* key) {
     std::vector<std::string> out;
     auto it = j.find(key);
@@ -164,13 +164,13 @@ inline std::vector<std::string> jtags(const nlohmann::json& j, const char* key) 
     return out;
 }
 
-/// ---- Authentification (plex.tv) ---------------------------------------------
+/// ---- Authentication (plex.tv) -------------------------------------------------
 
-/// POST /api/v2/pins?strong=true (plex_auth_service.dart:129-135)
+/// POST /api/v2/pins
 struct PinResult {
     int64_t id = 0;
     std::string code;
-    std::string authToken;  // rempli quand l'utilisateur a validé sur plex.tv/link
+    std::string authToken;  // filled once the user has validated on plex.tv/link
 };
 inline void from_json(const nlohmann::json& j, PinResult& r) {
     r.id = jint(j, "id");
@@ -178,7 +178,7 @@ inline void from_json(const nlohmann::json& j, PinResult& r) {
     r.authToken = jstr(j, "authToken");
 }
 
-/// GET /api/v2/user (plex_auth_service.dart:224-228)
+/// GET /api/v2/user
 struct AccountUser {
     std::string uuid;
     std::string username;
@@ -197,7 +197,7 @@ struct HomeUser {
     std::string uuid;
     std::string title;
     std::string thumb;
-    bool isProtected = false;  // `protected` : PIN requis pour /switch
+    bool isProtected = false;  // `protected`: PIN required for /switch
     bool admin = false;
 };
 inline void from_json(const nlohmann::json& j, HomeUser& r) {
@@ -208,12 +208,12 @@ inline void from_json(const nlohmann::json& j, HomeUser& r) {
     r.admin = jbool(j, "admin");
 }
 
-/// Une connexion candidate vers un serveur (resources → connections[])
+/// A candidate connection to a server (resources -> connections[])
 struct Connection {
     std::string protocol;  // "http" | "https"
     std::string address;
     int port = 32400;
-    std::string uri;  // ex. https://192-168-1-100.<hash>.plex.direct:32400
+    std::string uri;  // e.g. https://192-168-1-100.<hash>.plex.direct:32400
     bool local = false;
     bool relay = false;
 };
@@ -226,11 +226,11 @@ inline void from_json(const nlohmann::json& j, Connection& r) {
     r.relay = jbool(j, "relay");
 }
 
-/// GET /api/v2/resources, filtré sur provides=server (plex_auth_service.dart:309-360)
+/// GET /api/v2/resources, filtered on provides=server
 struct ServerResource {
     std::string name;
-    std::string clientIdentifier;  // machine id du serveur
-    std::string accessToken;       // token PROPRE à ce serveur (≠ token de compte)
+    std::string clientIdentifier;  // machine id of the server
+    std::string accessToken;       // token SPECIFIC to this server (!= account token)
     bool owned = true;
     std::vector<Connection> connections;
 };
@@ -243,15 +243,15 @@ inline void from_json(const nlohmann::json& j, ServerResource& r) {
         r.connections = j["connections"].get<std::vector<Connection>>();
 }
 
-/// ---- Modèles de médias --------------------------------------------------------
+/// ---- Media models ---------------------------------------------------------------
 
-/// Bibliothèque (Directory de /library/sections)
+/// Library (Directory from /library/sections)
 struct Section {
-    std::string key;   // id numérique de la section (en chaîne)
+    std::string key;   // numeric id of the section (as a string)
     std::string type;  // movie | show | artist | photo
     std::string title;
     std::string uuid;
-    std::string composite;  // mosaïque d'affiches générée par le serveur
+    std::string composite;  // poster mosaic generated by the server
     std::string art;
     bool hidden = false;
 };
@@ -267,7 +267,7 @@ inline void from_json(const nlohmann::json& j, Section& r) {
 
 struct Stream {
     int64_t id = 0;
-    int streamType = 0;  // 1 vidéo, 2 audio, 3 sous-titre
+    int streamType = 0;  // 1 video, 2 audio, 3 subtitle
     int64_t index = -1;
     std::string codec;
     std::string language;
@@ -277,7 +277,7 @@ struct Stream {
     bool isDefault = false;
     bool forced = false;
     int channels = 0;
-    std::string key;  // sous-titre externe : chemin sidecar (/library/streams/{id})
+    std::string key;  // external subtitle: sidecar path (/library/streams/{id})
 };
 inline void from_json(const nlohmann::json& j, Stream& r) {
     r.id = jint(j, "id");
@@ -296,7 +296,7 @@ inline void from_json(const nlohmann::json& j, Stream& r) {
 
 struct Part {
     int64_t id = 0;
-    std::string key;  // chemin de lecture directe : {base}{key}?X-Plex-Token=…
+    std::string key;  // direct play path: {base}{key}?X-Plex-Token=...
     std::string container;
     int64_t size = 0;
     int64_t duration = 0;  // ms
@@ -317,7 +317,7 @@ inline void from_json(const nlohmann::json& j, Part& r) {
 
 struct Media {
     int64_t id = 0;
-    std::string videoResolution;  // "1080", "4k"…
+    std::string videoResolution;  // "1080", "4k"...
     std::string videoCodec;
     std::string audioCodec;
     std::string container;
@@ -341,7 +341,7 @@ inline void from_json(const nlohmann::json& j, Media& r) {
 }
 
 struct Chapter {
-    std::string tag;            // titre du chapitre
+    std::string tag;            // chapter title
     int64_t startTimeOffset = 0;  // ms
     int64_t endTimeOffset = 0;    // ms
 };
@@ -351,7 +351,7 @@ inline void from_json(const nlohmann::json& j, Chapter& r) {
     r.endTimeOffset = jint(j, "endTimeOffset");
 }
 
-/// Marqueur intro/générique (type = "intro" | "credits" ; ms)
+/// Intro/credits marker (type = "intro" | "credits"; ms)
 struct Marker {
     std::string type;
     int64_t startTimeOffset = 0;
@@ -364,9 +364,9 @@ inline void from_json(const nlohmann::json& j, Marker& r) {
 }
 
 struct Role {
-    std::string id;    // identifiant numérique (fiche personne, filmographie)
-    std::string tag;   // nom de la personne
-    std::string role;  // personnage
+    std::string id;    // numeric identifier (person page, filmography)
+    std::string tag;   // person name
+    std::string role;  // character
     std::string thumb;
 };
 inline void from_json(const nlohmann::json& j, Role& r) {
@@ -381,47 +381,47 @@ inline void from_json(const nlohmann::json& j, Role& r) {
     r.thumb = jstr(j, "thumb");
 }
 
-/// Item de médiathèque (objet `Metadata` ; plex_mappers.dart:551-724)
+/// Library item (`Metadata` object)
 struct Item {
-    std::string ratingKey;  // identifiant ⇔ Jellyfin Item.Id
-    std::string key;        // chemin de détail (/library/metadata/{ratingKey})
+    std::string ratingKey;  // identifier, equivalent of Jellyfin Item.Id
+    std::string key;        // detail path (/library/metadata/{ratingKey})
     std::string guid;
     std::string type;  // movie | show | season | episode | clip | collection
     std::string title;
     std::string summary;
     int64_t year = 0;
-    std::string thumb;      // chemin relatif d'affiche
-    std::string art;        // chemin relatif de fond
-    std::string clearLogo;  // logo détouré (tableau Image[], type clearLogo)
+    std::string thumb;      // relative poster path
+    std::string art;        // relative backdrop path
+    std::string clearLogo;  // cut-out logo (Image[] array, type clearLogo)
     int64_t duration = 0;    // ms
-    int64_t viewOffset = 0;  // ms — position de reprise
-    int64_t viewCount = 0;   // > 0 ⇔ vu
+    int64_t viewOffset = 0;  // ms — resume position
+    int64_t viewCount = 0;   // > 0 means watched
     int64_t addedAt = 0;     // epoch s
     int64_t lastViewedAt = 0;
     int64_t watchlistedAt = 0;  // epoch s — metadata.provider + includeUserState=1 (0 = absent)
-    int64_t index = 0;        // n° d'épisode (ou de saison sur une saison)
-    int64_t parentIndex = 0;  // n° de saison (sur un épisode)
-    int64_t leafCount = 0;    // nb d'épisodes (série/saison)
+    int64_t index = 0;        // episode number (or season number on a season)
+    int64_t parentIndex = 0;  // season number (on an episode)
+    int64_t leafCount = 0;    // episode count (show/season)
     int64_t viewedLeafCount = 0;
     int64_t childCount = 0;
-    // playlists (type "playlist" ; GET /playlists?playlistType=video)
-    std::string composite;     // mosaïque 1:1 générée par le serveur
-    bool smart = false;        // playlist intelligente (filtre dynamique)
-    std::string playlistType;  // video | audio | photo — seules les video sont lisibles ici
+    // playlists (type "playlist"; GET /playlists?playlistType=video)
+    std::string composite;     // 1:1 mosaic generated by the server
+    bool smart = false;        // smart playlist (dynamic filter)
+    std::string playlistType;  // video | audio | photo — only video ones are playable here
     std::string contentRating;
-    double rating = 0.0;          // note critique 0-10
-    double audienceRating = 0.0;  // note public 0-10
+    double rating = 0.0;          // critic rating 0-10
+    double audienceRating = 0.0;  // audience rating 0-10
     std::string originallyAvailableAt;  // YYYY-MM-DD
-    std::string parentRatingKey;        // saison (depuis un épisode)
+    std::string parentRatingKey;        // season (from an episode)
     std::string parentTitle;
     std::string parentThumb;
-    std::string grandparentRatingKey;  // série (depuis un épisode)
+    std::string grandparentRatingKey;  // show (from an episode)
     std::string grandparentTitle;
     std::string grandparentThumb;
     std::string grandparentArt;
     std::vector<std::string> genres;
     std::vector<Role> roles;
-    std::vector<Role> directors;  // Director : même forme que Role (id/tag/thumb)
+    std::vector<Role> directors;  // Director: same shape as Role (id/tag/thumb)
     std::vector<Media> media;
     std::vector<Chapter> chapters;
     std::vector<Marker> markers;
@@ -464,7 +464,7 @@ inline void from_json(const nlohmann::json& j, Item& r) {
     r.grandparentThumb = jstr(j, "grandparentThumb");
     r.grandparentArt = jstr(j, "grandparentArt");
     r.genres = jtags(j, "Genre");
-    // logo détouré : Image[{type:"clearLogo"}].url (plex_mappers.dart:742-764)
+    // cut-out logo: Image[{type:"clearLogo"}].url
     if (j.contains("Image") && j["Image"].is_array()) {
         for (auto& e : j["Image"]) {
             if (jstr(e, "type") == "clearLogo") r.clearLogo = jstr(e, "url");
@@ -477,10 +477,10 @@ inline void from_json(const nlohmann::json& j, Item& r) {
     if (j.contains("Marker") && j["Marker"].is_array()) r.markers = j["Marker"].get<std::vector<Marker>>();
 }
 
-/// Rangée de hub (/hubs…)
+/// Hub row (/hubs...)
 struct Hub {
     std::string key;
-    std::string hubIdentifier;  // ex. home.continue, home.ondeck
+    std::string hubIdentifier;  // e.g. home.continue, home.ondeck
     std::string title;
     std::string type;
     bool more = false;
@@ -495,8 +495,8 @@ inline void from_json(const nlohmann::json& j, Hub& r) {
     if (j.contains("Metadata") && j["Metadata"].is_array()) r.items = j["Metadata"].get<std::vector<Item>>();
 }
 
-/// Enveloppe MediaContainer — équivalent du Result<T> Jellyfin pour la
-/// pagination (X-Plex-Container-Start/Size ; total dans `totalSize`/`size`).
+/// MediaContainer envelope — equivalent of the Jellyfin Result<T> for
+/// pagination (X-Plex-Container-Start/Size; total in `totalSize`/`size`).
 template <typename T>
 struct Container {
     std::vector<T> Items;
@@ -511,7 +511,7 @@ inline void from_json(const nlohmann::json& j, Container<T>& r) {
         auto it = mc.find(key);
         if (it == mc.end() || !it->is_array()) continue;
         if (strcmp(key, "SearchResult") == 0) {
-            // /library/search enveloppe chaque résultat : SearchResult[].Metadata
+            // /library/search wraps each result: SearchResult[].Metadata
             for (auto& e : *it)
                 if (e.contains("Metadata")) r.Items.push_back(e.at("Metadata").get<T>());
         } else {

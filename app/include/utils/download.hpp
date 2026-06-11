@@ -17,8 +17,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(DownloadStatus, {
     {DownloadStatus::Failed, "Failed"},
 })
 
-/// Téléchargement en qualité ORIGINALE uniquement (PLEX_MIGRATION.md D2) :
-/// URL = {base}{partKey}?download=1&X-Plex-Token=…
+/// Download in ORIGINAL quality only (PLEX_MIGRATION.md D2):
+/// URL = {base}{partKey}?download=1&X-Plex-Token=...
 struct DownloadItem {
     std::string itemId;  // ratingKey
     std::string name;
@@ -28,8 +28,8 @@ struct DownloadItem {
     int episodeIndex = 0;     // index
     long productionYear = 0;  // year
     int64_t durationMs = 0;   // duration (ms)
-    std::string thumb;        // chemin relatif d'affiche
-    std::string partKey;      // Part.key (fichier original)
+    std::string thumb;        // relative poster path
+    std::string partKey;      // Part.key (original file)
     DownloadStatus status = DownloadStatus::Queued;
     std::string filePath;
     int64_t totalBytes = 0;
@@ -55,8 +55,8 @@ public:
     bool isDownloaded(const std::string& itemId) const;
     bool isDownloading(const std::string& itemId) const;
     std::string getLocalPath(const std::string& itemId) const;
-    /// Racine des téléchargements ({config}/downloads) : vignettes, tailles
-    /// réelles et fs::space de l'en-tête « Stockage » (download_tab.cpp)
+    /// Downloads root ({config}/downloads): thumbnails, real sizes and
+    /// fs::space for the "Storage" header (download_tab.cpp)
     std::string getDownloadDir() const { return this->downloadDir(); }
 
     std::vector<DownloadItem> getItems() const;

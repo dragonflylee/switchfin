@@ -15,11 +15,11 @@ RecyclingGridItem* PeopleDataSource::cellForRow(RecyclingView* recycler, size_t 
     cell->labelTitle->setText(item.tag);
     cell->labelExt->setText(item.role);
 
-    // cellule recyclée : purger le portrait du précédent occupant
+    // recycled cell: purge the previous occupant's portrait
     cell->picture->clear();
     if (!item.thumb.empty()) {
-        // selon l'agent metadata, le thumb d'un Role est une URL absolue
-        // (provider.plex.tv) ou un chemin relatif au serveur
+        // depending on the metadata agent, a Role thumb is an absolute URL
+        // (provider.plex.tv) or a server-relative path
         if (item.thumb.rfind("http", 0) == 0) {
             Image::with(cell->picture, item.thumb);
         } else {

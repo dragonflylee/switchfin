@@ -9,8 +9,8 @@
         hideClickAnimation="true"
         grow="1" />
 
-    <!-- panneau latéral ancré à droite : pleine hauteur, collé au bord
-         (pas une carte flottante — arrondi et marges volontairement nuls) -->
+    <!-- side panel anchored to the right: full height, flush with the edge
+         (not a floating card — rounding and margins deliberately zero) -->
     <brls:Box
         id="video/context/menu"
         width="400"
@@ -50,8 +50,8 @@
             icon="@res/icon/ico-checkmark.svg"
             title="@i18n/main/media/mark_played"
             id="menu/mark/play" />
-        <!-- films/séries au guid plex:// uniquement ; révélé une fois l'état
-             watchlist connu (requête provider async, context_menu.cpp) -->
+        <!-- movies/shows with a plex:// guid only; revealed once the
+             watchlist state is known (async provider request, context_menu.cpp) -->
         <MenuItem
             icon="@res/icon/ico-bookmark.svg"
             title="@i18n/main/watchlist/add"

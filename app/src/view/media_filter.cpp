@@ -36,8 +36,8 @@ MediaFilter::MediaFilter() {
         },
         selectedOrder, [](int selected) { selectedOrder = selected; });
 
-    // Plex ne sait pas filtrer « vus seulement » sur /all → seule l'option
-    // « non vus » (unwatched=1) est conservée (cf. PLEX_MIGRATION.md §2.5)
+    // Plex cannot filter "watched only" on /all -> only the "unwatched"
+    // option (unwatched=1) is kept (cf. PLEX_MIGRATION.md §2.5)
     this->filterUnplayed->init(
         "main/media/unplayed"_i18n, selectedUnplayed, [](bool value) { selectedUnplayed = value; });
 }

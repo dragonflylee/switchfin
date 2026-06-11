@@ -1,6 +1,6 @@
 /*
-    pleNx — implémentation de l'authentification plex.tv.
-    Spécification : PLEX_MIGRATION.md §2.2-2.3 (vérifiée dans plezy, citations en commentaire).
+    pleNx — plex.tv authentication implementation.
+    Specification: PLEX_MIGRATION.md §2.2-2.3.
 */
 
 #include "api/plex/auth.hpp"
@@ -8,8 +8,8 @@
 
 namespace plex {
 
-/// Exécute `fn` sur l'API primaire (clients.plex.tv) puis retente sur
-/// plex.tv en cas d'échec transitoire (plex_auth_service.dart:108-116).
+/// Runs `fn` against the primary API (clients.plex.tv) then retries on
+/// plex.tv in case of transient failure.
 template <typename Fn>
 static auto withFallback(Fn&& fn) {
     try {
@@ -22,15 +22,15 @@ static auto withFallback(Fn&& fn) {
 
 PinResult requestPin() {
     return withFallback([](const std::string& base) {
-        // POST {base}/pins, corps vide — PIN faible à 4 caractères pour
-        // plex.tv/link (cf. commentaire de tvApiPins)
+        // POST {base}/pins, empty body — weak 4-character PIN for
+        // plex.tv/link (cf. tvApiPins comment)
         std::string url = fmt::format(fmt::runtime(tvApiPins), base);
         return postSync(url, "").get<PinResult>();
     });
 }
 
 std::string pollPin(int64_t pinId) {
-    // 404/410 (PIN expiré) remonte en exception « http status 4xx »
+    // 404/410 (expired PIN) surfaces as an "http status 4xx" exception
     return withFallback([pinId](const std::string& base) {
         std::string url = fmt::format(fmt::runtime(tvApiPinPoll), base, pinId);
         return getSync(url, "").get<PinResult>().authToken;
@@ -49,7 +49,7 @@ std::vector<ServerResource> getResources(const std::string& accountToken) {
         std::string url = fmt::format(fmt::runtime(tvApiResources), base);
         nlohmann::json j = getSync(url, accountToken, 10000);
 
-        // La réponse est un tableau de ressources ; ne garder que provides=server
+        // The response is an array of resources; keep only provides=server
         std::vector<ServerResource> servers;
         if (!j.is_array()) return servers;
         for (auto& e : j) {
@@ -66,7 +66,7 @@ std::vector<HomeUser> getHomeUsers(const std::string& accountToken) {
         std::string url = fmt::format(fmt::runtime(tvApiHomeUsers), base);
         nlohmann::json j = getSync(url, accountToken);
         std::vector<HomeUser> users;
-        // La v2 renvoie un objet contenant `users`, certains déploiements un tableau nu
+        // v2 returns an object containing `users`, some deployments a bare array
         const nlohmann::json& arr = j.contains("users") ? j.at("users") : j;
         if (arr.is_array()) users = arr.get<std::vector<HomeUser>>();
         return users;
@@ -74,8 +74,8 @@ std::vector<HomeUser> getHomeUsers(const std::string& accountToken) {
 }
 
 std::string switchHomeUser(const std::string& accountToken, const std::string& userUuid, const std::string& pin) {
-    // POST {base}/home/users/{uuid}/switch — paramètres en query, corps vide
-    // (plex_auth_service.dart:245-268 ; mauvais PIN = 403 avec code 1041)
+    // POST {base}/home/users/{uuid}/switch — parameters in query, empty body
+    // (wrong PIN = 403 with code 1041)
     HTTP::Form form = {
         {"includeSubscriptions", "1"},
         {"includeProviders", "1"},
@@ -96,8 +96,8 @@ std::string switchHomeUser(const std::string& accountToken, const std::string& u
 }
 
 bool probeConnection(const std::string& baseUrl, const std::string& accessToken, long timeoutMs) {
-    // GET {base}/ AVEC token : la racine exige l'authentification, ce qui
-    // détecte immédiatement un token révoqué (plex_client.dart:862-875)
+    // GET {base}/ WITH token: the root requires authentication, which
+    // immediately detects a revoked token
     try {
         HTTP::get(baseUrl + "/", headers(accessToken), HTTP::Timeout{timeoutMs});
         return true;
@@ -108,11 +108,11 @@ bool probeConnection(const std::string& baseUrl, const std::string& accessToken,
 }
 
 std::string findBestConnection(const ServerResource& server, const std::string& preferredUri) {
-    // L'endpoint mémorisé d'abord, avec un délai plus court (phase 1 de la
-    // course de plezy ; endpoint_race.dart)
+    // Remembered endpoint first, with a shorter timeout (first phase of the
+    // connection race)
     if (!preferredUri.empty() && probeConnection(preferredUri, server.accessToken, 1500)) return preferredUri;
 
-    // Priorité : https+local → https+remote → https+relay → http+local → … (§2.3)
+    // Priority: https+local -> https+remote -> https+relay -> http+local -> ... (§2.3)
     auto rank = [](const Connection& c) {
         int r = (c.protocol == "https") ? 0 : 3;
         if (c.relay)
@@ -123,7 +123,7 @@ std::string findBestConnection(const ServerResource& server, const std::string& 
     };
     std::vector<Connection> candidates;
     for (auto& c : server.connections) {
-        // Adresses injoignables : IPv6 nulle ou lien-local (plex_auth_service.dart:_isUnreachableAddress)
+        // Unreachable addresses: null or link-local IPv6
         if (c.address == "::" || c.address.rfind("fe80:", 0) == 0) continue;
         candidates.push_back(c);
     }

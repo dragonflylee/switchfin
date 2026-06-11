@@ -1,8 +1,8 @@
 /*
-    pleNx — lecteur vidéo Plex.
-    Pipeline vérifié : PLEX_MIGRATION.md §2.7 (citations plezy en commentaire).
-    Unités : positions mpv en secondes, API Plex en millisecondes,
-    offset du transcodeur en secondes entières.
+    pleNx — Plex video player.
+    Verified pipeline: PLEX_MIGRATION.md §2.7.
+    Units: mpv positions in seconds, Plex API in milliseconds,
+    transcoder offset in whole seconds.
 */
 
 #include "activity/player_view.hpp"
@@ -16,8 +16,8 @@
 
 using namespace brls::literals;
 
-/// Seuil « vu » : valeur par défaut de la préférence serveur
-/// LibraryVideoPlayedThreshold (plex_client.dart watchedThresholdPercent)
+/// "Watched" threshold: default value of the server preference
+/// LibraryVideoPlayedThreshold
 static const double SCROBBLE_THRESHOLD = 0.90;
 
 PlayerView::PlayerView(const plex::Item& item, const int64_t seekMs) : itemId(item.ratingKey), item(item) {
@@ -32,7 +32,7 @@ PlayerView::PlayerView(const plex::Item& item, const int64_t seekMs) : itemId(it
     this->addView(view);
     view->registerVideoQuality([this](...) { return this->toggleQuality(); });
 
-    // identifiant de session stable (24 caractères ; session_identifier.dart)
+    // stable session identifier (24 characters)
     this->sessionId = misc::randHex(12);
 
     auto& mpv = MPVCore::instance();
@@ -65,8 +65,7 @@ PlayerView::PlayerView(const plex::Item& item, const int64_t seekMs) : itemId(it
         case MpvEventEnum::MPV_LOADED: {
             auto& conf = AppConfig::instance();
             const char* flag = MPVCore::SUBS_FALLBACK ? "select" : "auto";
-            // Sous-titres externes (sidecar) : {base}{Stream.key}?encoding=utf-8
-            // (plex_client.dart:3521-3522)
+            // External (sidecar) subtitles: {base}{Stream.key}?encoding=utf-8
             for (auto& part : this->stream.parts) {
                 for (auto& s : part.streams) {
                     if (s.streamType != plex::streamTypeSubtitle || s.key.empty()) continue;
@@ -78,7 +77,7 @@ PlayerView::PlayerView(const plex::Item& item, const int64_t seekMs) : itemId(it
             break;
         }
         case MpvEventEnum::UPDATE_PROGRESS:
-            // cadence de rapport : toutes les 10 s (playback_progress_tracker.dart)
+            // report cadence: every 10 s
             if (mpv.video_progress % 10 == 0) {
                 this->reportTimeline("playing", int64_t(mpv.video_progress) * 1000);
                 this->maybeScrobble(int64_t(mpv.video_progress) * 1000);
@@ -87,7 +86,6 @@ PlayerView::PlayerView(const plex::Item& item, const int64_t seekMs) : itemId(it
         default:;
         }
     });
-    // 自定义的mpv事件
     customEventSubscribeID = mpv.getCustomEvent()->subscribe([this](const std::string& event, void* data) {
         if (event == QUALITY_CHANGE) {
             this->playMedia(int64_t(MPVCore::instance().playback_time) * 1000);
@@ -128,7 +126,7 @@ void PlayerView::setSeries(const std::string& showRatingKey) {
     auto& conf = AppConfig::instance();
 
     ASYNC_RETAIN
-    // tous les épisodes de la série (plex_client.dart:1497-1508)
+    // all episodes of the show
     plex::getJSON<plex::Container<plex::Item>>(
         conf.getUrl(), conf.getToken(),
         [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
@@ -190,7 +188,7 @@ void PlayerView::playMedia(const int64_t seekMs) {
     });
 
     ASYNC_RETAIN
-    // métadonnées fraîches : Media/Part/Stream + chapitres (plex_client.dart:1607-1626)
+    // fresh metadata: Media/Part/Stream + chapters
     plex::getJSON<plex::Container<plex::Item>>(
         conf.getUrl(), conf.getToken(),
         [ASYNC_TOKEN, seekMs](const plex::Container<plex::Item>& r) {
@@ -201,8 +199,7 @@ void PlayerView::playMedia(const int64_t seekMs) {
             }
             this->item = r.Items.front();
 
-            // première version dont le fichier est accessible
-            // (plex_playback_mapper.dart:59-130)
+            // first version whose file is accessible
             const plex::Media* chosen = nullptr;
             for (auto& m : this->item.media) {
                 for (auto& p : m.parts) {
@@ -242,7 +239,7 @@ void PlayerView::playDirect(const int64_t seekMs) {
     if (seekMs > 0) ssextra << ",start=" << misc::sec2Time(seekMs / 1000);
     if (HTTP::PROXY_STATUS) ssextra << ",http-proxy=\"" << HTTP::PROXY << "\"";
 
-    // lecture directe : {base}{Part.key}?X-Plex-Token=… (plex_playback_mapper.dart:103)
+    // direct play: {base}{Part.key}?X-Plex-Token=...
     const plex::Part& part = this->stream.parts.front();
     std::string url = plex::withToken(conf.getUrl() + part.key, conf.getToken());
     this->playMethod = "directplay";
@@ -251,11 +248,11 @@ void PlayerView::playDirect(const int64_t seekMs) {
 
 void PlayerView::playTranscode(const int64_t seekMs) {
     auto& conf = AppConfig::instance();
-    // session du transcodeur : régénérée à chaque démarrage (seeking.dart)
+    // transcoder session: regenerated on every start
     this->transcodeSession = misc::randHex(12);
 
-    // Paramètres du transcodeur universel (plex_client.dart:3098-3196).
-    // Révision documentée : protocol=hls (PLEX_MIGRATION.md « Révision (phase 4) »)
+    // Universal transcoder parameters.
+    // Documented revision: protocol=hls (PLEX_MIGRATION.md "Révision (phase 4)")
     HTTP::Form form = {
         {"hasMDE", "1"},
         {"path", fmt::format("/library/metadata/{}", this->itemId)},
@@ -275,25 +272,24 @@ void PlayerView::playTranscode(const int64_t seekMs) {
         {"maxVideoBitrate", std::to_string(MPVCore::VIDEO_QUALITY / 1000)},  // kbps
         {"session", this->transcodeSession},
         {"X-Plex-Session-Identifier", this->sessionId},
-        {"X-Plex-Platform", "Generic"},  // obligatoire : autres valeurs → HTTP 400
+        {"X-Plex-Platform", "Generic"},  // mandatory: other values -> HTTP 400
         {"X-Plex-Client-Identifier", conf.getDeviceId()},
         {"X-Plex-Product", AppVersion::getPackageName()},
         {"X-Plex-Version", AppVersion::getVersion()},
         {"X-Plex-Token", conf.getToken()},
     };
-    if (seekMs > 0) form["offset"] = std::to_string(seekMs / 1000);  // secondes entières
+    if (seekMs > 0) form["offset"] = std::to_string(seekMs / 1000);  // whole seconds
 
-    // pistes choisies : IDs de Stream Plex (pas les index mpv)
+    // selected tracks: Plex Stream IDs (not mpv indexes)
     if (PlayerSetting::selectedAudio > 0) form["audioStreamID"] = std::to_string(PlayerSetting::selectedAudio);
     if (PlayerSetting::selectedSubtitle > 0) {
         form["subtitleStreamID"] = std::to_string(PlayerSetting::selectedSubtitle);
-        form["subtitles"] = "burn";  // incrustation (HLS ; cf. révision phase 4)
+        form["subtitles"] = "burn";  // burn-in (HLS; cf. phase 4 revision)
     } else {
         form["subtitles"] = "none";
     }
 
-    // Clauses de profil client, chacune percent-encodée puis jointes par « + »
-    // (plex_client.dart:3125-3143, 3235-3242)
+    // Client profile clauses, each percent-encoded then joined with "+"
     std::vector<std::string> clauses = {
         "add-settings(DirectPlayStreamSelection=true)",
         fmt::format("add-limitation(scope=videoCodec&scopeName=*&type=upperBound&name=video.bitrate&value={}&"
@@ -305,7 +301,7 @@ void PlayerView::playTranscode(const int64_t seekMs) {
     std::string profile;
     for (auto& clause : clauses) {
         HTTP::Form one = {{"p", clause}};
-        std::string encoded = HTTP::encode_form(one).substr(2);  // retire « p= »
+        std::string encoded = HTTP::encode_form(one).substr(2);  // strips "p="
         profile += (profile.empty() ? "" : "+") + encoded;
     }
     std::string query = HTTP::encode_form(form) + "&X-Plex-Client-Profile-Extra=" + profile;
@@ -314,8 +310,7 @@ void PlayerView::playTranscode(const int64_t seekMs) {
     brls::async([ASYNC_TOKEN, query]() {
         auto& conf = AppConfig::instance();
         try {
-            // décision : codes ≥ 2000 = échec, 1000 = direct play seulement
-            // (plex_client.dart:3244-3278)
+            // decision: codes >= 2000 = failure, 1000 = direct play only
             std::string url = conf.getUrl() + fmt::format(fmt::runtime(plex::apiTranscodeDecision), query);
             nlohmann::json decision = plex::getSync(url, "", 10000);
             const nlohmann::json& mc =
@@ -331,7 +326,7 @@ void PlayerView::playTranscode(const int64_t seekMs) {
                     return;
                 }
                 if (transcode == 1000) {
-                    // le serveur refuse de transcoder : lecture directe
+                    // the server refuses to transcode: direct play
                     this->playDirect(0);
                     return;
                 }
@@ -372,7 +367,7 @@ void PlayerView::reportTimeline(const std::string& state, int64_t timeMs) {
     std::string token = conf.getToken();
     brls::async([url, token]() {
         try {
-            // POST, paramètres en query, corps vide (plex_client.dart:1703-1727)
+            // POST, parameters in query, empty body
             plex::postSync(url, token);
         } catch (const std::exception& ex) {
             brls::Logger::warning("plex timeline: {}", ex.what());
@@ -388,8 +383,7 @@ void PlayerView::reportStop() {
 }
 
 void PlayerView::maybeScrobble(int64_t timeMs) {
-    // state=stopped ne suffit PAS à marquer vu : scrobble explicite requis
-    // (plex_client.dart:4061-4065 ; playback_progress_tracker.dart:321-345)
+    // state=stopped is NOT enough to mark as watched: explicit scrobble required
     if (this->scrobbled || this->item.duration <= 0) return;
     if (double(timeMs) / double(this->item.duration) < SCROBBLE_THRESHOLD) return;
     this->scrobbled = true;
@@ -401,7 +395,7 @@ void PlayerView::maybeScrobble(int64_t timeMs) {
 bool PlayerView::toggleQuality() {
     std::vector<std::string> options = {"main/player/auto"_i18n};
     std::vector<int64_t> values = {0};
-    int64_t videoBitRate = this->stream.bitrate * 1000;  // Plex : kbps → bps
+    int64_t videoBitRate = this->stream.bitrate * 1000;  // Plex: kbps -> bps
 
     if (videoBitRate >= 15000000) options.push_back("20 Mbps"), values.push_back(20000000);
     if (videoBitRate >= 10000000) options.push_back("15 Mbps"), values.push_back(15000000);

@@ -1,5 +1,5 @@
 /*
-    pleNx — onglet sidebar « Watchlist » (voir watchlist_tab.hpp).
+    pleNx — "Watchlist" sidebar tab (see watchlist_tab.hpp).
 */
 
 #include "tab/watchlist_tab.hpp"
@@ -15,10 +15,9 @@
 
 using namespace brls::literals;  // for _i18n
 
-/// Affiche provider (URL absolue : tmdb, metadata-static.plex.tv — tailles
-/// ORIGINALES, plusieurs Mo) proxifiée par le transcodeur photo du serveur
-/// pour obtenir une vignette : /photo/:/transcode?url=<absolue>&width&height
-/// (pattern plezy externalImageUrl, plex_client.dart:4043-4055).
+/// Provider poster (absolute URL: tmdb, metadata-static.plex.tv —
+/// ORIGINAL sizes, several MB) proxied through the server's photo
+/// transcoder to get a thumbnail: /photo/:/transcode?url=<absolute>&width&height.
 static void loadProviderImage(brls::Image* view, const std::string& url, int width, int height) {
     if (url.empty()) return;
     auto& conf = AppConfig::instance();
@@ -33,10 +32,10 @@ static void loadProviderImage(brls::Image* view, const std::string& url, int wid
     Image::with(view, conf.getUrl() + "/photo/:/transcode?" + HTTP::encode_form(form));
 }
 
-/// Panneau latéral tri/filtres (action Y) — même pattern que MediaFilter
-/// (media_filter.cpp), mais options propres à la watchlist : seuls les tris
-/// HONORÉS par discover.provider sont exposés (vérifiés en GET réel, voir
-/// plex::fetchWatchlist) et le filtre Disponibilité est purement client.
+/// Sort/filters side panel (Y action) — same pattern as MediaFilter
+/// (media_filter.cpp), but watchlist-specific options: only the sorts
+/// HONORED by discover.provider are exposed (verified with real GETs, see
+/// plex::fetchWatchlist) and the Availability filter is purely client-side.
 class WatchlistFilter : public brls::Box {
 public:
     WatchlistFilter() {
@@ -92,13 +91,13 @@ public:
 
     brls::VoidEvent* getEvent() { return &this->event; }
 
-    /// État (session) partagé avec WatchlistTab::doRequest
-    inline static int selectedSort = 0;   // index dans sortList
-    inline static int selectedOrder = 1;  // 0 croissant, 1 décroissant
-    inline static int selectedType = 0;   // 0 tous, 1 films, 2 séries
-    inline static int selectedAvailability = 0;  // 0 tous, 1 sur le serveur, 2 absents
+    /// (Session) state shared with WatchlistTab::doRequest
+    inline static int selectedSort = 0;   // index into sortList
+    inline static int selectedOrder = 1;  // 0 ascending, 1 descending
+    inline static int selectedType = 0;   // 0 all, 1 movies, 2 shows
+    inline static int selectedAvailability = 0;  // 0 all, 1 on server, 2 absent
 
-    /// Champs de tri provider honorés, alignés sur les libellés du sélecteur
+    /// Honored provider sort fields, aligned with the selector labels
     inline static std::string sortList[] = {
         "watchlistedAt",
         "titleSort",
@@ -115,11 +114,11 @@ private:
     brls::VoidEvent event;
 };
 
-/// Cartes affiches 2:3 : poster provider + titre + année.
-/// Pas un VideoDataSource : le clic principal fait la correspondance
-/// provider→serveur avant d'ouvrir la fiche, et le menu contextuel
-/// X/long-press de VideoCardCell (qui caste vers VideoDataSource) reste
-/// inerte ici — les ratingKey provider n'existent pas sur le serveur.
+/// 2:3 poster cards: provider poster + title + year.
+/// Not a VideoDataSource: the primary click does the provider->server
+/// matching before opening the detail page, and the X/long-press context
+/// menu of VideoCardCell (which casts to VideoDataSource) stays inert
+/// here — provider ratingKeys do not exist on the server.
 class WatchlistDataSource : public RecyclingGridDataSource {
 public:
     using MediaList = std::vector<plex::Item>;
@@ -140,16 +139,16 @@ public:
         } else {
             cell->labelExt->setVisibility(brls::Visibility::GONE);
         }
-        // cellule recyclée : purger l'affiche du média précédent
+        // recycled cell: purge the previous media's poster
         cell->picture->clear();
         loadProviderImage(cell->picture, item.thumb, 325, 488);
-        // ni badge « vu » ni progression : états du serveur, pas du provider
+        // neither "watched" badge nor progress: server states, not provider's
         cell->badgeTopRight->setVisibility(brls::Visibility::GONE);
         cell->rectProgress->getParent()->setVisibility(brls::Visibility::GONE);
-        // titre absent du serveur (cache des guid) : affiche et textes
-        // atténués — alpha TOUJOURS posé (1.0 au rebind d'une cellule
-        // recyclée qui affichait un absent). Pas de set (nullptr) = présence
-        // inconnue : pas de grisage.
+        // title absent from the server (guid cache): poster and texts
+        // dimmed — alpha ALWAYS set (1.0 when rebinding a recycled cell
+        // that showed an absent one). No set (nullptr) = unknown
+        // presence: no dimming.
         bool present = !this->guids || this->guids->count(item.guid) > 0;
         cell->picture->setAlpha(present ? 1.0f : 0.4f);
         cell->labelTitle->setAlpha(present ? 1.0f : 0.5f);
@@ -159,8 +158,8 @@ public:
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
         auto& item = this->list.at(index);
-        // correspondance provider → serveur par guid (plex::matchInLibrary) ;
-        // les fiches MediaMovie/MediaSeries exigent un ratingKey SERVEUR
+        // provider -> server matching by guid (plex::matchInLibrary);
+        // the MediaMovie/MediaSeries pages require a SERVER ratingKey
         plex::matchInLibrary(
             item.guid,
             [recycler, item](const plex::Container<plex::Item>& r) {
@@ -203,9 +202,9 @@ void WatchlistTab::onCreate() {
     this->recycler->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, actionRefresh);
     this->registerAction(KeyBind::getRefresh(), actionRefresh);
 
-    // panneau tri/filtres (même hint Y « Trié » que les bibliothèques) ;
-    // au retour, rechargement UNIQUEMENT si un réglage a changé — le cache
-    // des guid n'est pas concerné par un changement de tri/filtre
+    // sort/filters panel (same Y "Sorted" hint as the libraries);
+    // on return, reload ONLY if a setting changed — the guid cache is not
+    // affected by a sort/filter change
     this->recycler->registerAction("main/media/sort"_i18n, brls::BUTTON_Y, [this](...) {
         auto before = std::make_tuple(WatchlistFilter::selectedSort, WatchlistFilter::selectedOrder,
             WatchlistFilter::selectedType, WatchlistFilter::selectedAvailability);
@@ -230,8 +229,8 @@ void WatchlistTab::refresh(bool reloadGuids) {
     this->startIndex = 0;
     this->loaded = false;
     this->recycler->showSkeleton();
-    // cache des guid à (re)charger : chargement initial/rafraîchissement, ou
-    // filtre Disponibilité actif alors qu'un chargement précédent a échoué
+    // guid cache to (re)load: initial load/refresh, or Availability filter
+    // active while a previous load failed
     if (reloadGuids || (!this->libraryGuids && WatchlistFilter::selectedAvailability != 0)) {
         ASYNC_RETAIN
         plex::fetchLibraryGuids(
@@ -242,8 +241,8 @@ void WatchlistTab::refresh(bool reloadGuids) {
             },
             [ASYNC_TOKEN](const std::string& ex) {
                 ASYNC_RELEASE
-                // dégradation : pas de grisage ni de filtre Disponibilité,
-                // mais la watchlist reste consultable
+                // degradation: no dimming and no Availability filter,
+                // but the watchlist stays browsable
                 brls::Logger::warning("WatchlistTab: fetchLibraryGuids {}", ex);
                 this->libraryGuids = nullptr;
                 this->doRequest();
@@ -254,8 +253,8 @@ void WatchlistTab::refresh(bool reloadGuids) {
 }
 
 void WatchlistTab::doRequest() {
-    // tri provider : champ honoré + suffixe :asc|:desc (vérifiés, voir
-    // plex::fetchWatchlist) ; filtre Type provider via type=1|2
+    // provider sort: honored field + :asc|:desc suffix (verified, see
+    // plex::fetchWatchlist); provider Type filter via type=1|2
     std::string sort = WatchlistFilter::sortList[WatchlistFilter::selectedSort];
     sort += WatchlistFilter::selectedOrder ? ":desc" : ":asc";
     int type = WatchlistFilter::selectedType == 1   ? plex::typeMovie
@@ -263,7 +262,7 @@ void WatchlistTab::doRequest() {
                                                     : 0;
 
     ASYNC_RETAIN
-    // GET discover.provider/library/sections/watchlist/all (token COMPTE)
+    // GET discover.provider/library/sections/watchlist/all (ACCOUNT token)
     plex::fetchWatchlist(
         this->startIndex, this->pageSize, sort, type,
         [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
@@ -271,9 +270,9 @@ void WatchlistTab::doRequest() {
             this->startIndex = r.StartIndex + this->pageSize;
             bool more = !r.Items.empty() && (long)this->startIndex < r.TotalRecordCount;
 
-            // filtre Disponibilité : CLIENT (le provider ignore tout du
-            // serveur), appuyé sur le cache des guid ; sans cache (échec de
-            // chargement), tout passe — présence inconnue
+            // Availability filter: CLIENT-side (the provider knows nothing
+            // about the server), backed by the guid cache; without a cache
+            // (load failure), everything passes — unknown presence
             std::vector<plex::Item> items;
             int avail = WatchlistFilter::selectedAvailability;
             if (avail == 0 || !this->libraryGuids) {
@@ -290,13 +289,13 @@ void WatchlistTab::doRequest() {
                     this->loaded = true;
                     this->recycler->setDataSource(new WatchlistDataSource(items, this->libraryGuids));
                 } else if (more) {
-                    // page entièrement filtrée : enchaîner tant qu'il en reste
+                    // fully filtered page: chain while there are more
                     this->doRequest();
                 } else if (r.TotalRecordCount == 0 && avail == 0 && WatchlistFilter::selectedType == 0) {
                     this->recycler->setEmpty(
                         "main/watchlist/empty_title"_i18n, "main/watchlist/empty_sub"_i18n, "icon/ico-bookmark.svg");
                 } else {
-                    // vide à cause des filtres : état vide générique
+                    // empty because of the filters: generic empty state
                     this->recycler->setEmpty();
                 }
             } else if (!items.empty()) {

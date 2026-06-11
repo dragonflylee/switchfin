@@ -1,16 +1,16 @@
 /*
-    pleNx — formulaire d'ajout/édition d'un serveur de fichiers distant.
+    pleNx — add/edit form for a remote file server.
 
-    Schémas d'URL produits (routage : app/src/client/client.cpp) :
-      webdav://host:port/chemin/   → client Webdav (PROPFIND, basic auth via
-      webdavs://host:port/chemin/    les champs user/passwd du AppRemote)
-      ftp://user:pass@host:port/…  → client AVIO (ffmpeg) : les identifiants
-      sftp://user:pass@host:port/…   DOIVENT être inclus dans l'URL (AVIO
-                                     ignore les champs user/passwd)
-      http(s)://host:port/chemin/  → client Apache (index de répertoire)
+    Produced URL schemes (routing: app/src/client/client.cpp):
+      webdav://host:port/path/      -> Webdav client (PROPFIND, basic auth via
+      webdavs://host:port/path/        the AppRemote user/passwd fields)
+      ftp://user:pass@host:port/... -> AVIO client (ffmpeg): credentials
+      sftp://user:pass@host:port/...   MUST be embedded in the URL (AVIO
+                                       ignores the user/passwd fields)
+      http(s)://host:port/path/     -> Apache client (directory index)
 
-    Pas de sauvegarde sans test de connexion réussi (listing du chemin de
-    départ) ; en cas d'échec : dialogue d'erreur avec « Réessayer ».
+    No save without a successful connection test (listing of the start
+    path); on failure: error dialog with "Retry".
 */
 
 #include "tab/remote_add.hpp"
@@ -26,8 +26,8 @@ struct RemoteScheme {
     const char* label;
 };
 
-/// Types proposés : l'ordre fixe l'index du sélecteur.
-/// HTTP/HTTPS (index Apache) couvrent les configs Switchfin existantes.
+/// Offered types: the order fixes the selector index.
+/// HTTP/HTTPS (Apache index) cover existing Switchfin configs.
 static const std::vector<RemoteScheme> remoteSchemes = {
     {"webdav", 80, "WebDAV"},
     {"webdavs", 443, "WebDAV (HTTPS)"},
@@ -44,7 +44,7 @@ static int typeFromScheme(const std::string& scheme) {
     return 0;
 }
 
-/// Identifiants embarqués dans l'URL (AVIO/ffmpeg) vs champs séparés
+/// Credentials embedded in the URL (AVIO/ffmpeg) vs separate fields
 static bool inlineCredentials(int type) {
     std::string scheme = remoteSchemes[type].scheme;
     return scheme == "ftp" || scheme == "sftp";
@@ -73,8 +73,8 @@ static std::string trim(const std::string& in) {
     return in.substr(a, b - a + 1);
 }
 
-/// Champs du formulaire extraits d'un AppRemote existant (mode édition).
-/// NB : pas de gestion des hôtes IPv6 littéraux ([::1]).
+/// Form fields extracted from an existing AppRemote (edit mode).
+/// NB: no handling of literal IPv6 hosts ([::1]).
 struct ParsedRemote {
     int type = 0;
     std::string name, host, user, passwd, path;
@@ -98,7 +98,7 @@ static ParsedRemote parseRemote(const AppRemote& r) {
     std::string authority = rest.substr(0, slash);
     if (slash != std::string::npos) p.path = rest.substr(slash);
 
-    // identifiants inclus dans l'URL (ftp/sftp) : prioritaires sur les champs
+    // credentials embedded in the URL (ftp/sftp): take priority over the fields
     auto at = authority.rfind('@');
     if (at != std::string::npos) {
         std::string userinfo = authority.substr(0, at);
@@ -114,7 +114,7 @@ static ParsedRemote parseRemote(const AppRemote& r) {
             p.port = std::stol(authority.substr(colon + 1));
             authority = authority.substr(0, colon);
         } catch (const std::exception&) {
-            // pas un port : on garde l'autorité telle quelle
+            // not a port: keep the authority as is
         }
     }
     p.host = authority;
@@ -140,7 +140,7 @@ RemoteAdd::RemoteAdd(std::function<void()> onDone, int editIndex) : onDone(onDon
     for (auto& s : remoteSchemes) labels.push_back(s.label);
     this->cellType->init("main/remote/type"_i18n, labels, p.type, [this](int sel) {
         if (sel < 0 || sel >= (int)remoteSchemes.size()) return;
-        // ne remplace le port que s'il vaut encore le défaut du type précédent
+        // only replace the port if it still holds the previous type's default
         if (this->cellPort->getValue() == remoteSchemes[this->typeIndex].port)
             this->cellPort->setValue(remoteSchemes[sel].port);
         this->typeIndex = sel;
@@ -182,8 +182,8 @@ AppRemote RemoteAdd::build() {
     std::string name = trim(this->cellName->getValue());
     std::string host = trim(this->cellHost->getValue());
 
-    // l'utilisateur a pu coller une URL complète dans « Hôte » :
-    // on en extrait hôte, port et chemin (le type reste celui du sélecteur)
+    // the user may have pasted a full URL in "Host": extract host, port
+    // and path from it (the type stays the selector's)
     auto pos = host.find("://");
     if (pos != std::string::npos) host = host.substr(pos + 3);
     std::string pathFromHost;
@@ -199,7 +199,7 @@ AppRemote RemoteAdd::build() {
             port = std::stol(host.substr(colon + 1));
             host = host.substr(0, colon);
         } catch (const std::exception&) {
-            // pas un port collé dans l'hôte
+            // not a port pasted in the host
         }
     }
     if (port <= 0 || port > 65535) port = remoteSchemes[type].port;
@@ -217,15 +217,15 @@ AppRemote RemoteAdd::build() {
     AppRemote r;
     r.name = name;
     if (this->editIndex >= 0) {
-        // champ sans UI : préservé tel quel en édition
+        // field without UI: preserved as is when editing
         r.user_agent = AppConfig::instance().getRemotes()[this->editIndex].user_agent;
     }
 
     std::string userinfo;
     if (inlineCredentials(type)) {
-        // AVIO (ffmpeg) ne lit pas les champs user/passwd : identifiants
-        // percent-encodés dans l'URL ; avio joint « path + "/" + nom »,
-        // donc pas de slash final
+        // AVIO (ffmpeg) does not read the user/passwd fields: credentials
+        // percent-encoded in the URL; avio joins `path + "/" + name`,
+        // so no trailing slash
         if (!user.empty()) {
             userinfo = urlEscape(user);
             if (!passwd.empty()) userinfo += ":" + urlEscape(passwd);
@@ -233,8 +233,8 @@ AppRemote RemoteAdd::build() {
         }
         if (path.size() > 1 && path.back() == '/') path.pop_back();
     } else {
-        // Webdav/Apache : basic auth via les champs ; le client Apache joint
-        // les liens relatifs au chemin courant → slash final obligatoire
+        // Webdav/Apache: basic auth via the fields; the Apache client joins
+        // relative links to the current path -> trailing slash required
         r.user = user;
         r.passwd = passwd;
         if (path.back() != '/') path += '/';
@@ -261,8 +261,8 @@ void RemoteAdd::submit() {
         bool ok = false;
         std::string error;
         try {
-            // test de connexion : même chemin que la navigation réelle
-            // (remote::create route le schéma, list() liste la racine)
+            // connection test: same code path as the real navigation
+            // (remote::create routes the scheme, list() lists the root)
             auto client = remote::create(r);
             client->list(r.url);
             ok = true;

@@ -10,14 +10,14 @@ MediaPerson::MediaPerson(const plex::Role& role) : personId(role.id) {
     this->inflateFromXMLRes("xml/view/people.xml");
 
     this->labelName->setText(role.tag);
-    // le personnage incarné n'est connu qu'en venant d'une fiche (Role.role)
+    // the played character is only known when coming from a detail page (Role.role)
     if (!role.role.empty()) {
         this->labelRole->setText(fmt::format(fmt::runtime("main/person/as"_i18n), role.role));
         this->labelRole->setVisibility(brls::Visibility::VISIBLE);
     }
     if (!role.thumb.empty()) {
-        // le portrait d'un Role est une URL absolue (provider.plex.tv) ou un
-        // chemin relatif au serveur
+        // a Role portrait is either an absolute URL (provider.plex.tv) or a
+        // server-relative path
         if (role.thumb.rfind("http", 0) == 0) {
             Image::with(this->imagePhoto, role.thumb);
         } else {
@@ -45,8 +45,8 @@ void MediaPerson::doMedia() {
                 if (it.type == plex::mediaTypeMovie) movies.push_back(it);
                 if (it.type == plex::mediaTypeShow) shows.push_back(it);
             }
-            // pills « 12 · Films » : nombre + libellé pluriel, neutre dans
-            // toutes les langues (pas d'accord à gérer)
+            // "12 · Movies" pills: count + plural label, neutral in every
+            // language (no agreement to handle)
             if (!movies.empty()) {
                 this->labelMovies->setText(fmt::format("{} · {}", movies.size(), "main/person/movies"_i18n));
                 this->pillMovies->setVisibility(brls::Visibility::VISIBLE);

@@ -6,8 +6,8 @@
         axis="row"
         width="300"
         alignItems="center">
-        <!-- même contrat que video_card.xml : BaseCardCell::getDefaultFocus()
-             renvoie ce box pour limiter le halo de focus à la vignette -->
+        <!-- same contract as video_card.xml: BaseCardCell::getDefaultFocus()
+             returns this box to limit the focus halo to the thumbnail -->
         <brls:Box
             id="video/card/pic_box"
             focusable="true"
@@ -15,7 +15,7 @@
             cornerRadius="8"
             backgroundColor="@theme/color/grey_1">
 
-            <!-- icône placeholder derrière la vignette (cf. video_card.xml) -->
+            <!-- placeholder icon behind the thumbnail (cf. video_card.xml) -->
             <brls:Box
                 positionType="absolute"
                 positionTop="0"

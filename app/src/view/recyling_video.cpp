@@ -56,7 +56,7 @@ void RecylingVideo::setTitle(const std::string& text) { this->title->setTitle(te
 void RecylingVideo::setSidePadding(float padding) {
     this->title->setMarginLeft(padding);
     this->title->setMarginRight(padding);
-    // padding interne au HRecyclerFrame : les cartes glissent jusqu'aux bords
+    // padding inside the HRecyclerFrame: the cards slide up to the edges
     this->recycler->setPaddingLeft(padding);
     this->recycler->setPaddingRight(padding);
 }
@@ -88,8 +88,8 @@ void RecylingVideo::setItems(
 }
 
 void RecylingVideo::doRequest(bool refresh) {
-    // rangée alimentée par setItems (hubs) : l'attribut XML nextPage peut
-    // déclencher doRequest sans queryCallback
+    // row fed by setItems (hubs): the nextPage XML attribute can trigger
+    // doRequest without a queryCallback
     if (!this->queryCallback) return;
     if (refresh) {
         this->start = 0;
@@ -97,7 +97,7 @@ void RecylingVideo::doRequest(bool refresh) {
     }
     auto& conf = AppConfig::instance();
     ASYNC_RETAIN
-    // le chemin relatif est déjà formaté par queryCallback → fmt "{}"
+    // the relative path is already formatted by queryCallback -> fmt "{}"
     plex::getJSON<plex::Container<plex::Item>>(
         conf.getUrl(), conf.getToken(),
         [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
@@ -131,7 +131,7 @@ void RecylingVideo::doLatest(bool refresh) {
     }
     auto& conf = AppConfig::instance();
     ASYNC_RETAIN
-    // la réponse est aussi un MediaContainer (plus de tableau nu côté Plex)
+    // the response is also a MediaContainer (no more bare array on the Plex side)
     plex::getJSON<plex::Container<plex::Item>>(
         conf.getUrl(), conf.getToken(),
         [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {

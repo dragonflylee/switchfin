@@ -9,8 +9,8 @@ VideoProfile::VideoProfile() {
     this->setPositionType(brls::PositionType::ABSOLUTE);
     this->setPositionTop(25);
     this->setPositionLeft(25);
-    // statistiques de transcodage serveur : non disponibles sans session
-    // d'admin Plex — panneau local mpv uniquement
+    // server transcoding statistics: not available without a Plex admin
+    // session — local mpv panel only
     this->boxTranscode->setVisibility(brls::Visibility::GONE);
 }
 

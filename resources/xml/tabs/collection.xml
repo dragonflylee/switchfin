@@ -13,10 +13,10 @@
 
         <Tab label="@i18n/main/tabs/home"
             fontSize="18">
-            <!-- retraits portés par la grille (padding interne au scroll) :
-                 les affiches glissent jusqu'aux bords de la zone.
-                 paddingTop 70 : la barre d'onglets (60) flotte au-dessus de
-                 la grille, qui défile dessous -->
+            <!-- insets carried by the grid (padding inside the scroll):
+                 the posters slide up to the edges of the area.
+                 paddingTop 70: the tab bar (60) floats above the grid,
+                 which scrolls beneath -->
             <RecyclingGrid
                 grow="1"
                 wireframe="false"

@@ -36,7 +36,7 @@ private:
     void setActive(brls::View *active);
     void getActive();
 
-    /// URL réellement sélectionnée (non élidée) ; le DetailCell n'affiche
-    /// qu'une version tronquée, on garde la vraie pour l'IME et le sélecteur.
+    /// Actually selected URL (not elided); the DetailCell only shows a
+    /// truncated version, we keep the real one for the IME and the selector.
     std::string activeUrl;
 };

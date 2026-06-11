@@ -14,14 +14,14 @@ HomeTab::~HomeTab() { brls::Logger::debug("View HomeTab: delete"); }
 
 brls::View* HomeTab::create() { return new HomeTab(); }
 
-/// L'accueil reflète les rangées configurées côté serveur : « Continuer à
-/// regarder » puis les hubs de /hubs, avec leurs titres localisés
+/// The home screen mirrors the rows configured server-side: "Continue
+/// watching" then the hubs from /hubs, with their localized titles
 /// (X-Plex-Language) — PLEX_MIGRATION.md §2.5.
 void HomeTab::doRequest() {
     this->boxHome->clearViews();
 
-    // Rangée « Continuer à regarder » — ajoutée tout de suite pour garantir
-    // sa position en tête, remplie à la réponse (plex_client.dart:1421-1463)
+    // "Continue watching" row — added right away to guarantee its position
+    // at the top, filled when the response arrives
     RecylingVideo* resume = new RecylingVideo();
     resume->setTitle("main/home/resume"_i18n);
     resume->setFrameHeight(brls::getStyle()["app/card/poster/row"]);
@@ -47,7 +47,7 @@ void HomeTab::doResume(RecylingVideo* row) {
                 if (hub.items.empty()) continue;
                 std::string title = hub.title.empty() ? "main/home/resume"_i18n : hub.title;
                 row->setTitle(title);
-                // hub tronqué (more=1) : carte « + » vers la page complète
+                // truncated hub (more=1): "+" card to the full page
                 if (hub.more && !hub.key.empty()) {
                     row->setItems(hub.items, title, hub.key);
                 } else {
@@ -79,11 +79,11 @@ void HomeTab::doHubs() {
             ASYNC_RELEASE
             for (auto& hub : r.Items) {
                 if (hub.items.empty()) continue;
-                // au cas où le serveur les renvoie malgré excludeContinueWatching
+                // in case the server returns them despite excludeContinueWatching
                 if (hub.hubIdentifier == "home.continue" || hub.hubIdentifier == "home.ondeck") continue;
 
-                // les hubs playlists mélangent audio/photo/vidéo : seules les
-                // playlists vidéo sont lisibles dans pleNx
+                // playlist hubs mix audio/photo/video: only video playlists
+                // are playable in pleNx
                 std::vector<plex::Item> items;
                 items.reserve(hub.items.size());
                 for (auto& item : hub.items) {
@@ -96,13 +96,13 @@ void HomeTab::doHubs() {
                 row->setTitle(hub.title);
                 float frameHeight = brls::getStyle()["app/card/poster/row"];
                 row->setFrameHeight(frameHeight);
-                // playlists : pochettes CARRÉES (poster custom ou composite
-                // 1:1) — largeur = hauteur d'image de la rangée (frame - 55
-                // de labels, métriques video_card.xml)
+                // playlists: SQUARE covers (custom poster or 1:1 composite)
+                // — width = image height of the row (frame - 55 of labels,
+                // video_card.xml metrics)
                 bool playlists = !items.empty() && items.front().type == plex::mediaTypePlaylist;
                 row->setItemWidth(playlists ? frameHeight - 55 : brls::getStyle()["app/card/poster/width"]);
                 row->setSidePadding(brls::getStyle()["main/content_padding_sides"]);
-                // hub tronqué (more=1) : carte « + » vers la page complète
+                // truncated hub (more=1): "+" card to the full page
                 if (hub.more && !hub.key.empty()) {
                     row->setItems(items, hub.title, hub.key);
                 } else {

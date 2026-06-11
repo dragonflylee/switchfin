@@ -13,19 +13,19 @@ public:
 
     virtual ~Image();
 
-    /// Charge une image du serveur Plex depuis un chemin relatif (thumb/art…).
-    /// width/height > 0 → redimensionnement serveur via /photo/:/transcode
-    /// (PLEX_MIGRATION.md §2.5 ; plex_client.dart:4019-4056).
+    /// Loads an image from the Plex server given a relative path (thumb/art...).
+    /// width/height > 0 -> server-side resize via /photo/:/transcode
+    /// (PLEX_MIGRATION.md §2.5).
     static void load(brls::Image* view, const std::string& path, int width = 0, int height = 0) {
         if (path.empty()) return;
-        // les chemins d'agents externes (visages du casting…) sont absolus
+        // external agent paths (cast faces...) are absolute
         if (path.rfind("http", 0) == 0) return with(view, path);
         auto& conf = AppConfig::instance();
         std::string url;
         if (width > 0 || height > 0) {
-            // le transcodeur photo attend TOUJOURS les deux dimensions (plezy
-            // les calcule ensemble, media_image_helper.dart:197) ; boîte carrée
-            // par défaut — minSize=1 préserve le ratio en couvrant la boîte
+            // the photo transcoder ALWAYS expects both dimensions;
+            // square box by default — minSize=1 preserves the ratio by
+            // covering the box
             if (width <= 0) width = height;
             if (height <= 0) height = width;
             HTTP::Form form = {

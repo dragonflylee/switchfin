@@ -8,11 +8,11 @@
 
 namespace {
 
-/// Noms de fichiers (sans .jpg) RÉELLEMENT présents dans
-/// github.com/Kometa-Team/Default-Images/genre (listés via l'API GitHub le
-/// 2026-06-10, 275 fichiers). Embarqué pour ne JAMAIS émettre de requête vers
-/// un poster inexistant : un genre hors de cette liste garde son placeholder.
-/// La casse est celle des fichiers — elle fait foi dans l'URL raw.
+/// File names (without .jpg) ACTUALLY present in
+/// github.com/Kometa-Team/Default-Images/genre (listed via the GitHub API
+/// on 2026-06-10, 275 files). Embedded so we NEVER emit a request to a
+/// nonexistent poster: a genre outside this list keeps its placeholder.
+/// The case is that of the files — it is authoritative in the raw URL.
 const char* const kometaPosters[] = {
     "1001 Movies You Must See Before You Die", "Absurd Comedy", "Absurdism", "Action", "Action & Adventure",
     "Action Comedy", "Adult", "Adult Cartoon", "Adult Cartoons", "Adventure", "Alien", "Alternate History",
@@ -53,11 +53,11 @@ const char* const kometaPosters[] = {
     "Western", "Whodunit", "Witch", "Wizardry & Witchcraft", "World War", "Wuxia", "Zombie", "Zombie Comedy",
     "Zombie Horror", "other"};
 
-/// Libellés non anglais (ou variantes) → nom de fichier Kometa. Clés en
-/// minuscules ASCII, accents UTF-8 conservés tels quels (lowerAscii ne touche
-/// pas aux octets multi-octets). Couvre les genres TMDB/Plex en français vus
-/// sur le serveur de référence (sections 1 et 2, 2026-06-10) + traductions
-/// TMDB standard ; « Dramma » = reliquat italien observé sur le serveur.
+/// Non-English labels (or variants) -> Kometa file name. Keys in ASCII
+/// lowercase, UTF-8 accents kept as-is (lowerAscii does not touch
+/// multi-byte bytes). Covers the French TMDB/Plex genres seen on a real
+/// server (sections 1 and 2, 2026-06-10) + standard TMDB translations;
+/// "Dramma" = Italian leftover observed on the server.
 const std::unordered_map<std::string, const char*> aliases = {
     {"action/aventure", "Action & Adventure"},
     {"actualités", "News"},
@@ -96,8 +96,8 @@ const std::unordered_map<std::string, const char*> aliases = {
     {"téléfilm", "TV Movie"},
 };
 
-/// minuscules ASCII uniquement : les octets ≥ 0x80 (é, è…) sont laissés
-/// intacts — les clés d'alias sont écrites avec la même convention
+/// ASCII lowercase only: bytes >= 0x80 (é, è...) are left intact —
+/// the alias keys are written with the same convention
 std::string lowerAscii(const std::string& s) {
     std::string out(s);
     for (char& c : out) {
@@ -106,11 +106,11 @@ std::string lowerAscii(const std::string& s) {
     return out;
 }
 
-/// %-encode un segment de chemin (espace, &, +, apostrophe… des noms Kometa).
-/// curl_escape (HTTP::encode_form) ré-encodera ensuite ces % en %25 dans le
-/// paramètre url= du transcodeur — le serveur décode une fois et requête
-/// GitHub avec les %20/%26 attendus (chaîne complète vérifiée serveur
-/// 2026-06-10 sur « Sci-Fi & Fantasy », « LGBTQ+ », « Children's Cartoon »).
+/// %-encodes a path segment (space, &, +, apostrophe... of Kometa names).
+/// curl_escape (HTTP::encode_form) will then re-encode these % as %25 in
+/// the transcoder's url= parameter — the server decodes once and requests
+/// GitHub with the expected %20/%26 (full chain verified on a real server
+/// 2026-06-10 with "Sci-Fi & Fantasy", "LGBTQ+", "Children's Cartoon").
 std::string encodeSegment(const std::string& s) {
     static const char hex[] = "0123456789ABCDEF";
     std::string out;
@@ -127,8 +127,8 @@ std::string encodeSegment(const std::string& s) {
     return out;
 }
 
-/// titre (minuscules ASCII) → nom de fichier Kometa, table construite une
-/// fois : les 275 fichiers indexés par leur propre nom, puis les alias
+/// title (ASCII lowercase) -> Kometa file name, table built once:
+/// the 275 files indexed by their own name, then the aliases
 const std::unordered_map<std::string, const char*>& lookupTable() {
     static const std::unordered_map<std::string, const char*> table = [] {
         std::unordered_map<std::string, const char*> t;
@@ -152,10 +152,10 @@ std::string GenreImage::posterUrl(const std::string& title) {
         "https://raw.githubusercontent.com/Kometa-Team/Default-Images/master/genre/{}.jpg",
         encodeSegment(it->second));
 
-    // même contrat que Image::load (utils/image.hpp:31-39) : boîte 325 +
-    // minSize=1/upscale=1 → l'affiche couvre la boîte en gardant son ratio
-    // 2:3 ; SANS token sur l'URL interne (ressource externe, contrairement
-    // aux chemins serveur de Image::load)
+    // same contract as Image::load (utils/image.hpp:31-39): 325 box +
+    // minSize=1/upscale=1 -> the poster covers the box while keeping its
+    // 2:3 ratio; WITHOUT token on the inner URL (external resource, unlike
+    // the server paths of Image::load)
     auto& conf = AppConfig::instance();
     HTTP::Form form = {
         {"minSize", "1"},

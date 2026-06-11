@@ -15,8 +15,7 @@ void SuggestShow::doRequest() {
     std::string query = HTTP::encode_form({{"count", "20"}});
 
     ASYNC_RETAIN
-    // hubs de section : remplace Resume/NextUp/Latest scopés Jellyfin
-    // (plex_client.dart:1918-1951)
+    // section hubs: replaces the Jellyfin-scoped Resume/NextUp/Latest
     plex::getJSON<plex::Container<plex::Hub>>(
         AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
         [ASYNC_TOKEN](const plex::Container<plex::Hub>& r) {
@@ -26,7 +25,7 @@ void SuggestShow::doRequest() {
                 if (hub.items.empty()) continue;
                 RecylingVideo* row = new RecylingVideo();
                 row->setTitle(hub.title);
-                // vignettes paysage pour les épisodes/clips, affiches sinon
+                // landscape thumbnails for episodes/clips, posters otherwise
                 if (hub.type == plex::mediaTypeEpisode || hub.type == plex::mediaTypeClip) {
                     row->setFrameHeight(brls::getStyle()["app/card/wide/row"]);
                     row->setItemWidth(brls::getStyle()["app/card/wide/width"]);
@@ -35,7 +34,7 @@ void SuggestShow::doRequest() {
                     row->setItemWidth(brls::getStyle()["app/card/poster/width"]);
                 }
                 row->setSidePadding(brls::getStyle()["main/content_padding_sides"]);
-                // hub tronqué (more=1) : carte « + » vers la page complète
+                // truncated hub (more=1): "+" card to the full page
                 if (hub.more && !hub.key.empty()) {
                     row->setItems(hub.items, hub.title, hub.key);
                 } else {

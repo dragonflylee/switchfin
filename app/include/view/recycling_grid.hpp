@@ -127,15 +127,15 @@ public:
 
     void clearData();
 
-    /// En-tête NON focusable qui défile avec le contenu (titre de playlist,
-    /// méta…) : enfant détaché du contentBox, posé au-dessus des cellules —
-    /// toutes décalées de `height`. À appeler avant le premier layout ;
-    /// `view` doit être une simple Box (PAS un RecyclingGridItem) non
-    /// focusable, détruite avec la grille.
+    /// NON-focusable header that scrolls with the content (playlist title,
+    /// meta...): child detached from the contentBox, laid above the cells —
+    /// all offset by `height`. Call before the first layout;
+    /// `view` must be a plain Box (NOT a RecyclingGridItem), non-focusable,
+    /// destroyed with the grid.
     void setHeaderView(brls::View* view, float height);
 
-    /// État vide : icône + titre + sous-titre explicatif (centrés).
-    /// Sans titre : libellé générique ; icon = chemin res ("icon/ico-….svg").
+    /// Empty state: icon + title + explanatory subtitle (centered).
+    /// Without title: generic label; icon = res path ("icon/ico-….svg").
     void setEmpty(std::string title = "", std::string subtitle = "", std::string icon = "");
 
     void setError(std::string error = "");
@@ -188,10 +188,10 @@ public:
     /// 瀑布流模式，每一项高度不固定（仅在spanCount为1时可用）
     bool isFlowMode = false;
 
-    /// Hauteur de ligne dérivée de la largeur réelle de cellule au layout :
-    /// itemHeight = largeurCellule x itemImageRatio + itemExtraHeight.
-    /// 0 = désactivé (itemHeight XML fixe). Garantit le ratio des posters
-    /// quelle que soit la largeur du conteneur (UI_REDESIGN.md §3.3).
+    /// Row height derived from the real cell width at layout time:
+    /// itemHeight = cellWidth x itemImageRatio + itemExtraHeight.
+    /// 0 = disabled (fixed XML itemHeight). Guarantees the poster ratio
+    /// whatever the container width (UI_REDESIGN.md §3.3).
     float itemImageRatio = 0;
     float itemExtraHeight = 0;
 
@@ -220,8 +220,8 @@ private:
     brls::Rect renderedFrame;
     std::vector<float> cellHeightCache;
 
-    /// en-tête scrollé (cf. setHeaderView) ; headerHeight s'ajoute à
-    /// paddingTop dans tous les calculs de position via contentTop()
+    /// scrolled header (cf. setHeaderView); headerHeight adds to
+    /// paddingTop in all position computations via contentTop()
     brls::View* headerView = nullptr;
     float headerHeight = 0;
 

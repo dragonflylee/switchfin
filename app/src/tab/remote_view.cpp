@@ -295,12 +295,12 @@ UmsView::UmsView(std::function<void()> onAddServer) : RemoteView(std::make_share
     this->stack.push_back(view);
     this->setContent(view);
 
-    // état vide maison : mêmes métriques que RecyclingGrid::setEmpty
-    // (icône 56, titre 17, sous-titre 14 gris) + bouton « Ajouter un
-    // serveur » sous le placeholder — la grille ne sait pas en héberger
+    // custom empty state: same metrics as RecyclingGrid::setEmpty
+    // (icon 56, title 17, gray subtitle 14) + "Add a server" button
+    // under the placeholder — the grid cannot host one
     this->emptyBox = new brls::Box(brls::Axis::COLUMN);
     this->emptyBox->setGrow(1.0f);
-    // même retrait que le recycler : barre d'onglets flottante (60)
+    // same inset as the recycler: floating tab bar (60)
     this->emptyBox->setPaddingTop(70);
     this->emptyBox->setJustifyContent(brls::JustifyContent::CENTER);
     this->emptyBox->setAlignItems(brls::AlignItems::CENTER);
@@ -352,8 +352,8 @@ UmsView::UmsView(std::function<void()> onAddServer) : RemoteView(std::make_share
             entry.path = it.mount + "/";
             dirs.push_back(entry);
         }
-        // aucun périphérique/volume monté : état vide explicite plutôt
-        // qu'une grille muette (recette UI, placeholder « Fichiers »)
+        // no mounted device/volume: explicit empty state rather than a
+        // mute grid ("Files" placeholder)
         if (dirs.empty()) {
             view->setVisibility(brls::Visibility::GONE);
             this->emptyBox->setVisibility(brls::Visibility::VISIBLE);
@@ -444,8 +444,8 @@ RecyclingGrid* RemoteView::newRecycler() {
     view->spanCount = 1;
     view->estimatedRowHeight = 48;
     view->estimatedRowSpace = 10;
-    // interne au scroll : la liste part sous la barre d'onglets flottante
-    // (60) du tab Téléchargements et défile dessous
+    // inside the scroll: the list starts under the Downloads tab's
+    // floating tab bar (60) and scrolls beneath it
     view->setPaddingTop(70);
     view->setDefaultCellFocus(1);
     view->registerCell("Cell", []() { return new FileCard(); });

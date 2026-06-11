@@ -49,9 +49,9 @@
                             focusable="true"
                             text="@i18n/main/setting/server/connect_new" />
 
-                        <!-- centered : en natural (défaut), la flèche HAUT
-                             scrollait/butait dans le cadre au lieu de sortir
-                             vers le bouton « Nouveau serveur » (focus piégé) -->
+                        <!-- centered: in natural (default), the UP arrow
+                             scrolled/bumped inside the frame instead of
+                             exiting towards the "New server" button (trapped focus) -->
                         <brls:ScrollingFrame
                             grow="1"
                             scrollingBehavior="centered">

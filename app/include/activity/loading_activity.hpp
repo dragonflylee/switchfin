@@ -1,9 +1,9 @@
 /*
-    Écran de chargement plein écran : spinner + « Connexion au serveur… ».
-    Affiché pendant la sonde des URL du serveur (plex::probeConnection,
-    timeout 2 s par URL, en série — les serveurs plex.direct annoncent
-    souvent 10+ connexions dont des IP locales injoignables), au démarrage
-    (AppConfig::checkLogin) comme à la sélection d'un profil (ServerList).
+    Full-screen loading screen: spinner + "Connecting to server...".
+    Shown while probing the server URLs (plex::probeConnection, 2 s timeout
+    per URL, in series — plex.direct servers often advertise 10+ connections
+    including unreachable local IPs), both at startup (AppConfig::checkLogin)
+    and when selecting a profile (ServerList).
 */
 
 #pragma once

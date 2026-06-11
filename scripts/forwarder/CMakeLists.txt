@@ -18,8 +18,8 @@ endif()
 
 project(forwarder)
 
-# NPDM : le program_id vient de PROJECT_TITLEID (CMakeLists racine), seule
-# source de vérité du title ID — ne pas le coder en dur ici.
+# NPDM: the program_id comes from PROJECT_TITLEID (root CMakeLists), the
+# single source of truth for the title ID — do not hardcode it here.
 configure_file("${PROJECT_SOURCE_DIR}/config.json.in" "${PROJECT_BINARY_DIR}/config.json" @ONLY)
 
 set(FORWARDER_SRC "${PROJECT_SOURCE_DIR}/source/main.c" "${PROJECT_SOURCE_DIR}/source/trampoline.s")

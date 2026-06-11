@@ -1,28 +1,28 @@
 #!/usr/bin/env python3
-"""Harnais d'audit UI pleNx (desktop macOS).
+"""pleNx UI audit harness (desktop macOS).
 
-Pilote l'application au clavier (osascript / System Events) et capture la
-fenêtre (screencapture). Le terminal qui l'exécute doit avoir les permissions
-macOS « Accessibilité » et « Enregistrement d'écran ».
+Drives the application with the keyboard (osascript / System Events) and
+captures the window (screencapture). The terminal running it must have the
+macOS "Accessibility" and "Screen Recording" permissions.
 
-Mapping clavier borealis desktop (library/borealis/.../glfw_input.cpp:266) :
-flèches = D-pad, Entrée = A (valider), Échap = B (retour).
+Borealis desktop keyboard mapping (library/borealis/.../glfw_input.cpp:266):
+arrows = D-pad, Enter = A (confirm), Escape = B (back).
 
-Usage :
-  ctl.py launch                # démarre l'app si besoin et la met au premier plan
-  ctl.py key down down a       # envoie des touches : up/down/left/right/a/b
-  ctl.py shot home             # capture la fenêtre -> SHOTS_DIR/home.png
-  ctl.py click 240 320         # clic souris (coordonnées canvas, repère des shots)
-  ctl.py longclick 240 320 800 # clic maintenu N ms (défaut 700) sans bouger
-  ctl.py run scenarios/x.txt   # rejoue un scénario (launch/key/shot/sleep/quit)
-  ctl.py quit                  # ferme l'app
+Usage:
+  ctl.py launch                # starts the app if needed and brings it to front
+  ctl.py key down down a       # sends keys: up/down/left/right/a/b
+  ctl.py shot home             # captures the window -> SHOTS_DIR/home.png
+  ctl.py click 240 320         # mouse click (canvas coordinates, shot frame)
+  ctl.py longclick 240 320 800 # held click for N ms (default 700) without moving
+  ctl.py run scenarios/x.txt   # replays a scenario (launch/key/shot/sleep/quit)
+  ctl.py quit                  # closes the app
 
-Les clics passent par cliclick (brew install cliclick) : coordonnées écran
-absolues = position fenêtre + TITLEBAR + offset canvas. Les coordonnées
-attendues sont en points du canvas (fenêtre 1280x720) ; les captures `shot`
-étant Retina 2x (2560x1440), diviser par 2 les pixels lus sur un shot.
+Clicks go through cliclick (brew install cliclick): absolute screen
+coordinates = window position + TITLEBAR + canvas offset. Expected
+coordinates are in canvas points (1280x720 window); `shot` captures being
+Retina 2x (2560x1440), divide pixels read on a shot by 2.
 
-Scénario : un fichier texte, une commande par ligne (# = commentaire) :
+Scenario: a text file, one command per line (# = comment):
   launch
   key down down right
   sleep 1.5
@@ -40,12 +40,12 @@ APP = "pleNx"
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BINARY = os.path.join(ROOT, "build_desktop", "pleNx.app", "Contents", "MacOS", "pleNx")
 SHOTS_DIR = os.environ.get("SHOTS_DIR", "/tmp/sx-shots")
-TITLEBAR = 32  # points ; fenêtre 1280x752 pour un canvas 1280x720
+TITLEBAR = 32  # points; 1280x752 window for a 1280x720 canvas
 KEY_DELAY = float(os.environ.get("KEY_DELAY", "0.4"))
 
 KEYS = {"up": 126, "down": 125, "left": 123, "right": 124, "a": 36, "b": 53,
-        # raccourcis applicatifs (utils/keybind.cpp, défauts de config.cpp:333+)
-        "f4": 118, "f5": 96}  # f4 = menu contextuel (X), f5 = rafraîchir
+        # application shortcuts (utils/keybind.cpp, defaults in config.cpp:333+)
+        "f4": 118, "f5": 96}  # f4 = context menu (X), f5 = refresh
 
 
 def osa(*lines):
@@ -75,7 +75,7 @@ def window_ready():
 def launch():
     if not running():
         subprocess.Popen([BINARY], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    for _ in range(30):  # fenêtre + premier chargement réseau
+    for _ in range(30):  # window + first network load
         if window_ready():
             break
         time.sleep(1)
@@ -110,9 +110,9 @@ def key(names):
 
 
 def _press(code, hold=0.012):
-    """Appui bref : le patch « sticky keys » de borealis (glfw_input.cpp)
-    garantit qu'une frappe plus courte qu'une frame produit exactement UNE
-    navigation ; un hold sous ~16 ms évite toute répétition."""
+    """Short press: the borealis "sticky keys" patch (glfw_input.cpp)
+    guarantees that a keystroke shorter than a frame produces exactly ONE
+    navigation; a hold under ~16 ms avoids any repeat."""
     try:
         import Quartz
         for pressed in (True, False):
@@ -121,7 +121,7 @@ def _press(code, hold=0.012):
             if pressed:
                 time.sleep(hold)
     except ImportError:
-        # repli : frappe atomique (peut être ratée par le polling)
+        # fallback: atomic keystroke (may be missed by the polling)
         osa(f'tell application "System Events" to key code {code}')
 
 
@@ -135,7 +135,7 @@ def shot(name):
 
 
 def to_screen(cx, cy):
-    """Coordonnées canvas (repère des shots) -> coordonnées écran absolues."""
+    """Canvas coordinates (shot frame) -> absolute screen coordinates."""
     x, y, _w, _h = bounds()
     return x + int(cx), y + TITLEBAR + int(cy)
 
@@ -148,7 +148,7 @@ def click(cx, cy):
 
 
 def longclick(cx, cy, ms=700):
-    """Press maintenu immobile (drag-down, attente, drag-up au même point)."""
+    """Held press without moving (drag-down, wait, drag-up at the same point)."""
     activate()
     sx, sy = to_screen(cx, cy)
     subprocess.run(["cliclick", f"dd:{sx},{sy}", f"w:{int(ms)}", f"du:{sx},{sy}"])

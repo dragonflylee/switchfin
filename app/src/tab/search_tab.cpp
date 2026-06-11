@@ -15,8 +15,8 @@
 
 using namespace brls::literals;  // for _i18n
 
-/// Historique persistant (search.json) : stockage inchangé (tableau JSON,
-/// dédoublonnage, insertion en tête) — seul l'affichage passe en chips.
+/// Persistent history (search.json): unchanged storage (JSON array,
+/// dedupe, insert at head) — only the display moves to chips.
 class SearchHistory {
 public:
     SearchHistory() {
@@ -60,8 +60,8 @@ private:
     std::vector<std::string> list;
 };
 
-/// Supprime le dernier point de code UTF-8 : l'IME peut saisir des
-/// multi-octets, un pop_back nu couperait une séquence en plein milieu.
+/// Removes the last UTF-8 code point: the IME can input multi-byte
+/// characters, a bare pop_back would cut a sequence in the middle.
 static void utf8PopBack(std::string& text) {
     if (text.empty()) return;
     size_t i = text.size() - 1;
@@ -82,7 +82,7 @@ SearchTab::SearchTab() {
         this->searchSVG->setImageFromSVGRes("img/header-search.svg");
     }
 
-    // champ : clic = saisie complète par l'IME système
+    // field: click = full input through the system IME
     this->searchBox->registerClickAction([this](brls::View* view) {
         brls::Application::getImeManager()->openForText(
             [this](const std::string& text) {
@@ -94,7 +94,7 @@ SearchTab::SearchTab() {
     });
     this->searchBox->addGestureRecognizer(new brls::TapGestureRecognizer(this->searchBox));
 
-    // rangée d'actions en icônes : le libellé vit dans le hint bouton A
+    // icon action row: the label lives in the A button hint
     this->actionClear->registerAction(
         "main/search/clear"_i18n, brls::BUTTON_A,
         [this](brls::View* view) {
@@ -136,7 +136,7 @@ SearchTab::SearchTab() {
         false, false, brls::SOUND_CLICK);
     this->actionSearch->addGestureRecognizer(new brls::TapGestureRecognizer(this->actionSearch));
 
-    // raccourci manette : X = retour arrière depuis toute la colonne clavier
+    // gamepad shortcut: X = backspace from the whole keyboard column
     this->leftBox->registerAction(
         "main/search/delete"_i18n, brls::BUTTON_X,
         [this](brls::View* view) {
@@ -149,8 +149,8 @@ SearchTab::SearchTab() {
 
     this->buildKeyboard();
 
-    // B depuis la zone droite : retour au clavier (sinon B remonte à la
-    // sidebar via l'action posée par AutoSidebarItem sur l'onglet)
+    // B from the right area: back to the keyboard (otherwise B climbs to
+    // the sidebar via the action set by AutoSidebarItem on the tab)
     this->rightBox->registerAction(
         "main/search/keyboard"_i18n, brls::BUTTON_B,
         [this](brls::View* view) {
@@ -159,7 +159,7 @@ SearchTab::SearchTab() {
         },
         false, false, brls::SOUND_FOCUS_CHANGE);
 
-    // X sur les chips : vider l'historique (avec confirmation)
+    // X on the chips: clear the history (with confirmation)
     this->historyChips->registerAction("main/search/clear"_i18n, brls::BUTTON_X, [this](brls::View* view) {
         Dialog::cancelable("main/search/clear_history"_i18n, [this]() {
             this->history->clear();
@@ -181,7 +181,7 @@ void SearchTab::onCreate() {
         this->updateInput();
         return true;
     });
-    // + / START : lancer la recherche depuis n'importe où dans l'onglet
+    // + / START: launch the search from anywhere in the tab
     this->registerAction("main/tabs/search"_i18n, brls::BUTTON_START, [this](...) {
         this->launchSearch();
         return true;
@@ -193,9 +193,9 @@ SearchTab::~SearchTab() { brls::Logger::debug("SearchTab: deleted"); }
 
 brls::View* SearchTab::create() { return new SearchTab(); }
 
-/// Clavier statique 6x6 (A-Z puis 1-9 et 0) : des brls::Box focusables dans
-/// des rangées fixes — tout est visible, rien ne défile. Largeur de rangée :
-/// 6x50 + 5x8 = 340 (la largeur de la colonne), hauteur totale 6x46 + 5x8 = 316.
+/// Static 6x6 keyboard (A-Z then 1-9 and 0): focusable brls::Box in fixed
+/// rows — everything is visible, nothing scrolls. Row width:
+/// 6x50 + 5x8 = 340 (the column width), total height 6x46 + 5x8 = 316.
 void SearchTab::buildKeyboard() {
     static const std::string layout = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
     auto theme = brls::Application::getTheme();
@@ -235,9 +235,9 @@ void SearchTab::buildKeyboard() {
         this->keyboardBox->addView(line);
     }
 
-    // navigation verticale colonne par colonne : borealis navigue par ordre
-    // des enfants (pas par géométrie), sans routes BAS retomberait toujours
-    // sur la première touche de la rangée suivante
+    // vertical navigation column by column: borealis navigates by child
+    // order (not by geometry), without routes DOWN would always land on
+    // the first key of the next row
     for (int row = 0; row < 6; row++) {
         for (int col = 0; col < 6; col++) {
             if (row > 0) grid[row][col]->setCustomNavigationRoute(brls::FocusDirection::UP, grid[row - 1][col]);
@@ -245,7 +245,7 @@ void SearchTab::buildKeyboard() {
         }
     }
 
-    // jonction clavier <-> rangée d'actions : bouton le plus proche de la colonne
+    // keyboard <-> action row junction: button closest to the column
     brls::Box* actions[4] = {this->actionClear, this->actionDelete, this->actionSpace, this->actionSearch};
     const int actionForCol[6] = {0, 0, 1, 2, 2, 3};
     const int colForAction[4] = {0, 2, 3, 5};
@@ -255,13 +255,13 @@ void SearchTab::buildKeyboard() {
         actions[btn]->setCustomNavigationRoute(brls::FocusDirection::DOWN, grid[0][colForAction[btn]]);
 }
 
-/// (Re)construit les chips d'historique ; masque toute la section quand il
-/// n'y a rien à montrer (la grille de suggestions occupe alors la zone).
+/// (Re)builds the history chips; hides the whole section when there is
+/// nothing to show (the suggestions grid then occupies the area).
 void SearchTab::buildHistoryChips() {
     auto theme = brls::Application::getTheme();
 
-    // si le focus est dans les chips, le sortir avant de détruire les vues
-    // (sinon halo fantôme sur une vue libérée — cf. pièges borealis)
+    // if the focus is in the chips, move it out before destroying the views
+    // (otherwise ghost halo on a freed view — cf. borealis pitfalls)
     brls::View* focus = brls::Application::getCurrentFocus();
     bool focusInside = false;
     for (brls::View* v = focus; v != nullptr; v = v->getParent()) {
@@ -298,12 +298,12 @@ void SearchTab::buildHistoryChips() {
         label->setFontSize(15);
         chip->addView(label);
 
-        // clic = relance la recherche dans la zone de droite
+        // click = rerun the search in the right area
         chip->registerClickAction([this, term](brls::View* view) {
             this->currentSearch = term;
             this->updateInput();
-            // la section historique vient d'être masquée : sortir le focus
-            // de la chip cachée (le champ reflète la requête relancée)
+            // the history section was just hidden: move the focus out of
+            // the hidden chip (the field reflects the rerun query)
             brls::sync([this]() { brls::Application::giveFocus(this->searchBox); });
             return true;
         });
@@ -313,8 +313,8 @@ void SearchTab::buildHistoryChips() {
     }
 }
 
-/// Validation explicite : mémorise le terme puis ouvre la page de résultats
-/// détaillée (films / séries paginés).
+/// Explicit validation: remembers the term then opens the detailed results
+/// page (paginated movies / shows).
 void SearchTab::launchSearch() {
     if (this->currentSearch.empty()) return;
     this->history->append(this->currentSearch);
@@ -330,7 +330,7 @@ void SearchTab::doSuggest() {
         AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
         [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
             ASYNC_RELEASE
-            // grille d'affiches : les suggestions sont des plex::Item complets
+            // poster grid: the suggestions are complete plex::Item
             this->searchSuggest->setDataSource(new VideoDataSource(r.Items));
         },
         [ASYNC_TOKEN](const std::string& ex) {
@@ -349,8 +349,7 @@ void SearchTab::doSearch(const std::string& searchTerm) {
     });
 
     ASYNC_RETAIN
-    // une seule page : /library/search ne pagine pas de façon fiable
-    // (plex_client.dart:1367-1378)
+    // a single page: /library/search does not paginate reliably
     plex::getJSON<plex::Container<plex::Item>>(
         AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
         [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {

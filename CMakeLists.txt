@@ -55,10 +55,10 @@ project(pleNx)
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")
 set(VERSION_ALTER "4")
-# 0420 1312 : title ID propre à pleNx — l'ancien (hérité de Switchfin) laissait
-# le menu HOME servir le nom/icône "Switchlex" depuis son cache même après
-# réinstallation ; un ID vierge repart de zéro. Unicité vérifiée (web, GitHub,
-# liste GBAtemp des homebrews) le 2026-06-11.
+# 0420 1312: title ID specific to pleNx — the old one (inherited from
+# Switchfin) let the HOME menu serve the "Switchlex" name/icon from its cache
+# even after reinstalling; a fresh ID starts from scratch. Uniqueness verified
+# (web, GitHub, GBAtemp homebrew list) on 2026-06-11.
 set(PROJECT_TITLEID "0104201312000000")
 set(PROJECT_AUTHOR "thcolin")
 set(PACKAGE_NAME "fun.thcolin.plenx")
@@ -99,8 +99,8 @@ if (USE_LIBROMFS)
     set(LIBROMFS_RESOURCE_LOCATION "${PROJECT_RESOURCES}")
 endif ()
 
-# La cible de déploiement doit être connue AVANT add_subdirectory(library) :
-# borealis ne lie CoreWLAN que si CMAKE_OSX_DEPLOYMENT_TARGET >= 10.6
+# The deployment target must be known BEFORE add_subdirectory(library):
+# borealis only links CoreWLAN if CMAKE_OSX_DEPLOYMENT_TARGET >= 10.6
 if (PLATFORM_DESKTOP AND APPLE)
     if (NOT CMAKE_OSX_ARCHITECTURES)
         set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
@@ -204,8 +204,8 @@ endif()
 if (BUILTIN_NSP)
     find_library(NSP_LIB NAMES nsp REQUIRED)
     list(APPEND APP_PLATFORM_LIB nsp)
-    # FORWARDER_TITLEID : même source de vérité que le NSP (PROJECT_TITLEID),
-    # utilisé par main.cpp pour détecter la tuile HOME déjà installée (ns).
+    # FORWARDER_TITLEID: same source of truth as the NSP (PROJECT_TITLEID),
+    # used by main.cpp to detect an already installed HOME tile (ns).
     list(APPEND APP_PLATFORM_OPTION -DBUILTIN_NSP -DFORWARDER_TITLEID=0x${PROJECT_TITLEID}ULL)
     add_subdirectory(scripts/forwarder)
 endif ()

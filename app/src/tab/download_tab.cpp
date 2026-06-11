@@ -12,18 +12,18 @@
 
 using namespace brls::literals;
 
-/// Barre segmentée dessinée en nvg : piste = color/pill (espace libre),
-/// segments cumulés clippés par scissor sur le même rounded-rect (extrémités
-/// arrondies, jonctions nettes). Utilisée par l'en-tête « Stockage »
-/// ([reste du disque | pleNx or | libre]) et par la progression des cartes
-/// (un seul segment or). Aucun relayout yoga par tick : juste un redraw.
+/// Segmented bar drawn in nvg: track = color/pill (free space), cumulative
+/// segments clipped by scissor on the same rounded-rect (rounded ends,
+/// clean junctions). Used by the "Storage" header
+/// ([rest of disk | pleNx gold | free]) and by the card progress
+/// (a single gold segment). No yoga relayout per tick: just a redraw.
 class SegmentedBar : public brls::Rectangle {
 public:
     SegmentedBar() : brls::Rectangle(nvgRGBA(0, 0, 0, 0)) {
         this->track = brls::Application::getTheme().getColor("color/pill");
     }
 
-    /// fractions [0..1] cumulées de gauche à droite, dans l'ordre de dessin
+    /// [0..1] fractions cumulative left to right, in draw order
     void setSegments(std::vector<std::pair<float, NVGcolor>> segs) { this->segments = std::move(segs); }
 
     void draw(NVGcontext* vg, float x, float y, float w, float h, brls::Style style,
@@ -55,8 +55,8 @@ private:
     std::vector<std::pair<float, NVGcolor>> segments;
 };
 
-/// Tête de section (« En cours », « Téléchargés ») : ligne non focusable,
-/// sautée par la navigation (getDefaultFocus → nullptr).
+/// Section header ("In progress", "Downloaded"): non-focusable row,
+/// skipped by navigation (getDefaultFocus -> nullptr).
 class DownloadSectionHeader : public RecyclingGridItem {
 public:
     DownloadSectionHeader() {
@@ -93,8 +93,8 @@ public:
             this->thumb->setImageFromFile(thumbPath);
         }
 
-        // titre = nom de l'épisode ou du film ; sous-titre = « Série · SxEy »
-        // ou année, complété par la durée
+        // title = episode or movie name; subtitle = "Show · SxEy" or year,
+        // completed with the duration
         this->name->setText(item.name);
         std::string detail;
         if (!item.seriesName.empty()) {
@@ -108,7 +108,7 @@ public:
         }
         this->detail->setText(detail);
 
-        // remise à plat des variantes (cellules recyclées)
+        // reset all variants (recycled cells)
         this->badge->setVisibility(brls::Visibility::VISIBLE);
         this->percent->setVisibility(brls::Visibility::GONE);
         this->progressRow->setVisibility(brls::Visibility::GONE);
@@ -139,7 +139,7 @@ public:
         }
     }
 
-    /// Mise à jour en place depuis les ProgressEvent (pas de reload de liste)
+    /// In-place update from ProgressEvent (no list reload)
     void setProgress(int64_t downloaded, int64_t total) {
         if (total > 0) {
             float frac = (float)downloaded / (float)total;
@@ -149,7 +149,7 @@ public:
             this->progressInfo->setText(
                 fmt::format("{} / {}", misc::formatSize(downloaded), misc::formatSize(total)));
         } else {
-            // fichier original sans Content-Length : progression indéterminée
+            // original file without Content-Length: indeterminate progress
             this->progressBar->setSegments({});
             this->percent->setVisibility(brls::Visibility::GONE);
             std::string text = "main/download/downloading"_i18n;
@@ -173,14 +173,14 @@ private:
     SegmentedBar* progressBar = nullptr;
 };
 
-/// Liste sectionnée : « En cours » (Downloading + Queued, ordre de file)
-/// puis « Téléchargés » (Completed + Failed). Hauteurs par ligne via
+/// Sectioned list: "In progress" (Downloading + Queued, queue order)
+/// then "Downloaded" (Completed + Failed). Per-row heights via
 /// heightForRow (flow mode).
 class DownloadDataSource : public RecyclingGridDataSource {
 public:
     static constexpr float HEADER_FIRST_HEIGHT = 42;
-    static constexpr float HEADER_NEXT_HEIGHT = 64;  // +22 d'air entre sections
-    static constexpr float CARD_HEIGHT = 140;        // affiche 114 + padding 2x13
+    static constexpr float HEADER_NEXT_HEIGHT = 64;  // +22 of air between sections
+    static constexpr float CARD_HEIGHT = 140;        // poster 114 + padding 2x13
 
     struct Row {
         enum class Kind { Header, Item };
@@ -195,7 +195,7 @@ public:
         std::vector<DownloadItem> active, done;
         for (auto& it : all) {
             if (it.status == DownloadStatus::Completed && it.totalBytes <= 0 && !it.filePath.empty()) {
-                // index hérité sans Content-Length : taille réelle du fichier
+                // inherited index without Content-Length: real file size
                 try {
                     it.totalBytes = (int64_t)fs::file_size(this->dlDir + "/" + it.itemId + "/" + it.filePath);
                 } catch (const std::exception&) {
@@ -289,14 +289,14 @@ public:
 
     void clearData() override { this->rows.clear(); }
 
-    /// Élément de la ligne (nullptr pour une tête de section)
+    /// Item of the row (nullptr for a section header)
     const DownloadItem* itemAt(size_t index) const {
         if (index >= this->rows.size()) return nullptr;
         auto& row = this->rows.at(index);
         return row.kind == Row::Kind::Item ? &row.item : nullptr;
     }
 
-    /// Tick de progression : met à jour la ligne, renvoie son index
+    /// Progress tick: updates the row, returns its index
     bool updateProgress(const std::string& itemId, int64_t downloaded, int64_t total, size_t& index) {
         for (size_t i = 0; i < this->rows.size(); i++) {
             auto& row = this->rows[i];
@@ -342,8 +342,8 @@ DownloadView::DownloadView() {
 
     this->recycler->registerCell("Cell", []() { return new DownloadCard(); });
     this->recycler->registerCell("Header", []() { return new DownloadSectionHeader(); });
-    // la ligne 0 est toujours une tête de section : offset initial nul, le
-    // focus retombe sur la première carte focusable (Box::getDefaultFocus)
+    // row 0 is always a section header: zero initial offset, the focus
+    // falls back to the first focusable card (Box::getDefaultFocus)
     this->recycler->setDefaultCellFocus(0);
 
     auto deleteAction = [this](brls::View*) {
@@ -386,8 +386,8 @@ DownloadView::DownloadView() {
             this->updateStorage();
         });
 
-    // tick (≤ 2 Hz) : mise à jour EN PLACE de la carte visible — reconstruire
-    // la liste ici remettait le scroll et le focus à zéro à chaque tick
+    // tick (<= 2 Hz): IN-PLACE update of the visible card — rebuilding the
+    // list here reset the scroll and the focus on every tick
     this->progressSubId = DownloadManager::instance().getProgressEvent()->subscribe(
         [this](const std::string& itemId, int64_t downloaded, int64_t total) {
             auto* ds = dynamic_cast<DownloadDataSource*>(this->recycler->getDataSource());
@@ -396,7 +396,7 @@ DownloadView::DownloadView() {
                 auto* cell = dynamic_cast<DownloadCard*>(this->recycler->getGridItemByIndex(index));
                 if (cell) cell->setProgress(downloaded, total);
             } else {
-                // ligne pas encore matérialisée (sécurité) : reconstruction
+                // row not yet materialized (safety): rebuild
                 this->loadItems();
             }
             this->updateStorage();
@@ -435,8 +435,8 @@ void DownloadView::updateStorage() {
     const std::string dir = dm.getDownloadDir();
     auto items = dm.getItems();
 
-    // octets pleNx : terminés = taille connue (ou fichier réel pour un index
-    // hérité), en cours/échoués = octets déjà écrits sur le disque
+    // pleNx bytes: completed = known size (or real file for an inherited
+    // index), in progress/failed = bytes already written to disk
     int64_t appBytes = 0;
     for (auto& it : items) {
         if (it.status == DownloadStatus::Completed) {
@@ -458,8 +458,8 @@ void DownloadView::updateStorage() {
         appBytes > 0 ? misc::formatSize(appBytes) : "0GB", count,
         count == 1 ? "main/playlist/item"_i18n : "main/playlist/items"_i18n));
 
-    // capacity/available : std::filesystem::space et boost::filesystem::space
-    // exposent les mêmes champs (macOS/Linux/Windows/Switch)
+    // capacity/available: std::filesystem::space and boost::filesystem::space
+    // expose the same fields (macOS/Linux/Windows/Switch)
     bool spaceOk = false;
     fs::space_info space{};
     try {
@@ -480,7 +480,7 @@ void DownloadView::updateStorage() {
 
     float appFrac = (float)(appBytes / total);
     float othersFrac = (float)(othersBytes / total);
-    // liseré or toujours discernable dès qu'il y a au moins un téléchargement
+    // gold sliver always discernible as soon as there is at least one download
     if (appBytes > 0 && appFrac < 0.006f) appFrac = 0.006f;
 
     auto theme = brls::Application::getTheme();

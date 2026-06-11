@@ -1,7 +1,7 @@
 /*
-    pleNx — connexion à Plex.
-    Flux PIN (unique méthode) : PLEX_MIGRATION.md §2.2 ;
-    découverte serveurs/profils : §2.3.
+    pleNx — sign-in to Plex.
+    PIN flow (only method): PLEX_MIGRATION.md §2.2;
+    server/profile discovery: §2.3.
 */
 
 #include "tab/server_add.hpp"
@@ -12,7 +12,7 @@
 
 using namespace brls::literals;  // for _i18n
 
-/// « SC4B » → « S C 4 B » : le code respire à grande taille
+/// "SC4B" -> "S C 4 B": the code breathes at large size
 static std::string spaced(const std::string& code) {
     std::string out;
     for (size_t i = 0; i < code.size(); i++) {
@@ -55,7 +55,7 @@ void ServerAdd::startPin() {
                 this->pin = fresh;
                 this->labelCode->setText(spaced(fresh.code));
                 this->labelStatus->setText("main/plex/waiting"_i18n);
-                // expiration du PIN côté plex.tv : ~2 minutes (§2.2)
+                // PIN expiry on plex.tv side: ~2 minutes (§2.2)
                 this->deadline = brls::getCPUTimeUsec() + 120 * 1000000;
                 this->ticker.start(2000);
             });
@@ -88,7 +88,7 @@ void ServerAdd::pollOnce() {
                 this->onAccount(account);
             });
         } catch (const std::exception& ex) {
-            // 404/410 = PIN expiré (plex_auth_service.dart:151-167)
+            // 404/410 = expired PIN
             std::string msg = ex.what();
             brls::sync([ASYNC_TOKEN, msg]() {
                 ASYNC_RELEASE
@@ -196,8 +196,8 @@ void ServerAdd::doSwitch(const plex::HomeUser& home, const std::string& accountT
     brls::async([ASYNC_TOKEN, home, accountToken, server, baseUrl, pin]() {
         try {
             std::string profileToken = plex::switchHomeUser(accountToken, home.uuid, pin);
-            // resources AVEC le token du profil : l'accessToken serveur dépend
-            // du profil actif (PLEX_MIGRATION.md §2.3, trois tokens)
+            // resources WITH the profile token: the server accessToken
+            // depends on the active profile (PLEX_MIGRATION.md §2.3, three tokens)
             plex::ServerResource fresh = server;
             for (auto& r : plex::getResources(profileToken)) {
                 if (r.clientIdentifier == server.clientIdentifier) fresh = r;
@@ -212,7 +212,7 @@ void ServerAdd::doSwitch(const plex::HomeUser& home, const std::string& accountT
             brls::sync([ASYNC_TOKEN, msg]() {
                 ASYNC_RELEASE
                 brls::Application::unblockInputs();
-                // 403 = mauvais PIN (code 1041 ; plex_home_switch.dart:74-81)
+                // 403 = wrong PIN (code 1041)
                 Dialog::show(msg.find("403") != std::string::npos ? "main/plex/wrong_pin"_i18n : msg);
             });
         }

@@ -195,8 +195,8 @@ static std::string generateDeviceId() {
     return misc::randHex(16);
 }
 
-/// Dossier de données par plateforme pour un nom d'application donné.
-/// Factorisé pour que la migration puisse calculer le chemin de l'ancien nom.
+/// Per-platform data folder for a given application name.
+/// Factored out so the migration can compute the old name's path.
 static std::string dataDir(const std::string& name) {
 #if __SWITCH__
     return fmt::format("sdmc:/switch/{}", name);
@@ -221,11 +221,11 @@ static std::string dataDir(const std::string& name) {
 #endif
 }
 
-/// Migration silencieuse du dossier de config hérité de l'ancien nom de
-/// l'application (Switchlex → pleNx) : session Plex, réglages et
-/// téléchargements doivent survivre au renommage.
+/// Silent migration of the config folder inherited from the application's
+/// old name (Switchlex -> pleNx): Plex session, settings and downloads
+/// must survive the rename.
 static void migrateLegacyConfigDir(const std::string& legacy, const std::string& current) {
-    if (legacy == current) return;  // ex. Android : chemin indépendant du nom
+    if (legacy == current) return;  // e.g. Android: path independent of the name
 #if !defined(USE_BOOST_FILESYSTEM) || defined(_WIN32)
     const fs::path from = fs::u8path(legacy), to = fs::u8path(current);
 #else
@@ -513,8 +513,8 @@ bool AppConfig::checkLogin() {
     auto it = std::find_if(this->servers.begin(), this->servers.end(), is_server);
     if (it == this->servers.end() || it->urls.empty()) return false;
 
-    // Sonde les connexions mémorisées (la dernière joignable est en tête).
-    // Pas de dépendance à plex.tv ici : un serveur LAN joignable suffit.
+    // Probes the remembered connections (the last reachable one is first).
+    // No dependency on plex.tv here: a reachable LAN server is enough.
     for (auto& url : it->urls) {
         if (!plex::probeConnection(url, it->access_token)) continue;
         this->server_url = url;
@@ -624,7 +624,7 @@ void AppConfig::addUser(const AppUser& u, const std::string& url) {
     this->server_url = url;
     this->user_id = u.id;
     this->user = it;
-    // garde le token du serveur actif en phase avec l'utilisateur actif
+    // keeps the active server token in sync with the active user
     for (auto& s : this->servers) {
         if (s.id == u.server_id) this->server_token = s.access_token;
     }
@@ -700,9 +700,9 @@ void AppConfig::addColor(const brls::ThemeVariant tv, const std::string& name, N
 }
 
 void AppConfig::initThemes() {
-    // Identité « Salle obscure » (UI_REDESIGN.md §3) : chrome sombre neutre,
-    // or Plex #E5A00D en accent unique. Theme::addColor écrase les valeurs
-    // borealis (theme.cpp), aucun patch du submodule nécessaire.
+    // "Dark theater" identity (UI_REDESIGN.md §3): neutral dark chrome,
+    // Plex gold #E5A00D as the single accent. Theme::addColor overrides the
+    // borealis values (theme.cpp), no submodule patch needed.
     auto& dark = brls::Theme::getDarkTheme();
     dark.addColor("brls/background", nvgRGB(13, 14, 17));
     dark.addColor("brls/sidebar/background", nvgRGB(16, 18, 22));
@@ -717,17 +717,17 @@ void AppConfig::initThemes() {
     dark.addColor("brls/button/highlight_disabled_text", nvgRGB(229, 160, 13));
     dark.addColor("brls/list/listItem_value_color", nvgRGB(201, 168, 106));
     dark.addColor("brls/slider/line_filled", nvgRGB(229, 160, 13));
-    // pulse d'appui : gris clair quasi transparent (recette n°6 — l'orange
-    // évoquait une sélection, pas une pression)
+    // press pulse: near-transparent light gray (orange suggested a
+    // selection, not a press)
     dark.addColor("brls/click_pulse", nvgRGBA(255, 255, 255, 24));
-    // les brls:Header dessinent une ligne 1px sous chaque titre de section :
-    // un artefact dans notre design (la typographie suffit)
+    // brls:Header draws a 1px line under each section title:
+    // an artifact in our design (typography is enough)
     dark.addColor("brls/header/border", nvgRGBA(0, 0, 0, 0));
-    // même à rectangle_width 0, la frange d'antialiasing nanovg du rectangle
-    // décoratif laisse un trait ~1px : la transparence le neutralise
+    // even at rectangle_width 0, the nanovg antialiasing fringe of the
+    // decorative rectangle leaves a ~1px line: transparency neutralizes it
     dark.addColor("brls/header/rectangle", nvgRGBA(0, 0, 0, 0));
-    // toast pilule (brls::Application::notify) : surface sombre translucide
-    // légèrement au-dessus du fond #0D0E11, texte blanc
+    // pill toast (brls::Application::notify): translucent dark surface
+    // slightly above the #0D0E11 background, white text
     dark.addColor("brls/notification/background", nvgRGBA(24, 26, 31, 235));
     dark.addColor("brls/notification/text", nvgRGB(255, 255, 255));
 
@@ -743,22 +743,22 @@ void AppConfig::initThemes() {
     light.addColor("brls/click_pulse", nvgRGBA(0, 0, 0, 20));
     light.addColor("brls/header/border", nvgRGBA(0, 0, 0, 0));
     light.addColor("brls/header/rectangle", nvgRGBA(0, 0, 0, 0));
-    // toast pilule : pilule sombre conventionnelle, lisible sur fond clair
+    // pill toast: conventional dark pill, readable on a light background
     light.addColor("brls/notification/background", nvgRGBA(45, 45, 45, 230));
     light.addColor("brls/notification/text", nvgRGB(255, 255, 255));
 
     this->addColor(brls::ThemeVariant::LIGHT, "color/app", nvgRGB(204, 124, 25));
     this->addColor(brls::ThemeVariant::DARK, "color/app", nvgRGB(229, 160, 13));
-    // voile sombre derrière les éléments posés sur une image (barres, badges)
+    // dark scrim behind elements placed over an image (bars, badges)
     this->addColor(brls::ThemeVariant::LIGHT, "color/scrim", nvgRGBA(0, 0, 0, 160));
     this->addColor(brls::ThemeVariant::DARK, "color/scrim", nvgRGBA(0, 0, 0, 160));
-    // pills de métadonnées (fiches)
+    // metadata pills (detail pages)
     this->addColor(brls::ThemeVariant::LIGHT, "color/pill", nvgRGBA(0, 0, 0, 18));
     this->addColor(brls::ThemeVariant::DARK, "color/pill", nvgRGBA(255, 255, 255, 22));
-    // surfaces posées sur le fond (cartes de contenu, panneau du code PIN…)
+    // surfaces placed over the background (content cards, PIN code panel...)
     this->addColor(brls::ThemeVariant::LIGHT, "color/surface", nvgRGB(255, 255, 255));
     this->addColor(brls::ThemeVariant::DARK, "color/surface", nvgRGB(22, 24, 29));
-    // fondu des bannières vers le fond (transparent → couleur du fond)
+    // banner fade towards the background (transparent -> background color)
     this->addColor(brls::ThemeVariant::LIGHT, "color/fade_0", nvgRGBA(235, 235, 235, 0));
     this->addColor(brls::ThemeVariant::LIGHT, "color/fade_1", nvgRGB(235, 235, 235));
     this->addColor(brls::ThemeVariant::DARK, "color/fade_0", nvgRGBA(13, 14, 17, 0));
@@ -785,9 +785,9 @@ void AppConfig::initThemes() {
         brls::getStyle().addMetric("app/album/height", 215);
         brls::getStyle().addMetric("app/books/height", 270);
         brls::getStyle().addMetric("app/video/height", 290);
-        // row = width x ratio image (poster 2:3 = 1.5, wide 16:9 = 0.5625)
-        // + 55 de zone labels (marge 10 + titre 25 + sous-titre 20), pour que
-        // l'image fill garde exactement le ratio du média
+        // row = width x image ratio (poster 2:3 = 1.5, wide 16:9 = 0.5625)
+        // + 55 of label area (margin 10 + title 25 + subtitle 20), so the
+        // image fill keeps exactly the media's ratio
         brls::getStyle().addMetric("app/card/poster/width", 150);
         brls::getStyle().addMetric("app/card/poster/row", 280);
         brls::getStyle().addMetric("app/card/wide/width", 280);
@@ -801,8 +801,8 @@ void AppConfig::initThemes() {
         brls::getStyle().addMetric("main/content_padding_sides", 15);
         brls::getStyle().addMetric("main/content_padding_top_bottom", 20);
     } else {
-        // Grilles éclaircies d'une colonne par rapport à Switchfin : affiches
-        // plus grandes, lisibles depuis le canapé (UI_REDESIGN.md §4).
+        // Grids lightened by one column compared to Switchfin: bigger
+        // posters, readable from the couch (UI_REDESIGN.md §4).
         switch (brls::Application::ORIGINAL_WINDOW_HEIGHT) {
         case 1080:
             brls::getStyle().addMetric("app/album/height", 250);
@@ -836,7 +836,7 @@ void AppConfig::initThemes() {
             brls::getStyle().addMetric("app/album/height", 225);
             brls::getStyle().addMetric("app/books/height", 280);
             brls::getStyle().addMetric("app/video/height", 300);
-            // row = width x ratio image + 55 de labels (cf. bloc PSV)
+            // row = width x image ratio + 55 of labels (cf. PSV block)
             brls::getStyle().addMetric("app/card/poster/width", 185);
             brls::getStyle().addMetric("app/card/poster/row", 333);
             brls::getStyle().addMetric("app/card/wide/width", 340);
@@ -851,14 +851,14 @@ void AppConfig::initThemes() {
         brls::getStyle().addMetric("main/content_padding_top_bottom", 30);
     }
 
-    // Refonte UI (UI_REDESIGN.md §3.2-3.3) : titres de section nus et plus
-    // grands (la barre décorative des brls::Header disparaît), halo de focus
-    // arrondi assorti aux cartes.
+    // UI redesign (UI_REDESIGN.md §3.2-3.3): bare and larger section titles
+    // (the decorative bar of brls::Header disappears), rounded focus halo
+    // matching the cards.
     brls::getStyle().addMetric("brls/header/rectangle_width", 0);
     brls::getStyle().addMetric("brls/header/rectangle_margin", 0);
     brls::getStyle().addMetric("brls/header/font_size", 24);
     brls::getStyle().addMetric("brls/highlight/stroke_width", 4);
-    // 14 (et non 10) : le halo s'étend ~5 px au-delà du frame, son arc doit
-    // donc être plus large que le cornerRadius 10 des posters pour l'épouser.
+    // 14 (not 10): the halo extends ~5 px beyond the frame, so its arc must
+    // be wider than the posters' cornerRadius 10 to hug it.
     brls::getStyle().addMetric("brls/highlight/corner_radius", 14);
 }

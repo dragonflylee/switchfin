@@ -1,7 +1,7 @@
 /*
-    pleNx — vue d'une liste de lecture (voir playlist_view.hpp).
-    Réutilise VideoDataSource : films → fiche, épisodes → lecture,
-    menu contextuel X/long-press inclus (video_card.cpp).
+    pleNx — view of a playlist (see playlist_view.hpp).
+    Reuses VideoDataSource: movies -> detail page, episodes -> playback,
+    X/long-press context menu included (video_card.cpp).
 */
 
 #include "tab/playlist_view.hpp"
@@ -17,8 +17,8 @@ PlaylistView::PlaylistView(const plex::Item& item) : playlistId(item.ratingKey),
     brls::Logger::debug("PlaylistView: create {} ({})", item.title, item.ratingKey);
     this->inflateFromXMLRes("xml/tabs/playlist.xml");
 
-    // en-tête scrollé AVEC la grille (titre + méta) : il appartient au
-    // recycler, qui décale toutes ses cellules de la hauteur donnée
+    // header scrolled WITH the grid (title + meta): it belongs to the
+    // recycler, which offsets all its cells by the given height
     brls::View* header = brls::View::createFromXMLResource("view/grid_header.xml");
     this->labelTitle = dynamic_cast<brls::Label*>(header->getView("grid/header/title"));
     this->labelMeta = dynamic_cast<brls::Label*>(header->getView("grid/header/meta"));
@@ -53,7 +53,7 @@ void PlaylistView::updateMeta(int64_t count, int64_t durationMs) {
     std::string meta =
         fmt::format("{} {}", count, count > 1 ? "main/playlist/items"_i18n : "main/playlist/item"_i18n);
     if (durationMs > 0) {
-        // même convention que la fiche film (media_movie.cpp) : h/min
+        // same convention as the movie page (media_movie.cpp): h/min
         int min = int(durationMs / 60000);
         meta += min >= 60 ? fmt::format("  ·  {} h {:02d}", min / 60, min % 60) : fmt::format("  ·  {} min", min);
     }
@@ -63,11 +63,11 @@ void PlaylistView::updateMeta(int64_t count, int64_t durationMs) {
 
 void PlaylistView::doRequest() {
     HTTP::Form query;
-    // ordre de la playlist = ordre serveur : AUCUN paramètre de tri
+    // playlist order = server order: NO sort parameter
     plex::addPagination(query, this->startIndex, this->pageSize);
 
     ASYNC_RETAIN
-    // GET /playlists/{ratingKey}/items → Metadata[] (films/épisodes)
+    // GET /playlists/{ratingKey}/items -> Metadata[] (movies/episodes)
     plex::getJSON<plex::Container<plex::Item>>(
         AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
         [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
@@ -76,7 +76,7 @@ void PlaylistView::doRequest() {
             if (r.TotalRecordCount == 0) {
                 this->recycler->setEmpty();
             } else if (r.StartIndex == 0) {
-                // en-tête incomplet (Item sans leafCount) : complété au 1er lot
+                // incomplete header (Item without leafCount): completed on the 1st batch
                 if (this->knownCount <= 0) {
                     this->knownCount = r.TotalRecordCount;
                     this->updateMeta(r.TotalRecordCount, 0);

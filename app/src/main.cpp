@@ -43,10 +43,10 @@ using namespace brls::literals;  // for _i18n
 #if defined(__SWITCH__) && defined(BUILTIN_NSP)
 #include <switch.h>
 
-/// La tuile HOME (forwarder NSP, title id FORWARDER_TITLEID = PROJECT_TITLEID
-/// de CMakeLists.txt) est-elle déjà installée ? Best effort : si le service ns
-/// échoue on répond « non » (la proposition n'est de toute façon affichée
-/// qu'une seule fois, cf. AppConfig::HINT_FORWARDER).
+/// Is the HOME tile (forwarder NSP, title id FORWARDER_TITLEID =
+/// PROJECT_TITLEID from CMakeLists.txt) already installed? Best effort: if
+/// the ns service fails we answer "no" (the prompt is only shown once
+/// anyway, cf. AppConfig::HINT_FORWARDER).
 static bool isForwarderInstalled() {
     if (R_FAILED(nsInitialize())) return false;
     bool found = false;
@@ -62,8 +62,8 @@ static bool isForwarderInstalled() {
     return found;
 }
 
-/// Premier lancement en mode application : propose d'installer la tuile HOME
-/// (lancée depuis la tuile elle-même ou tuile déjà posée → ns la voit → rien).
+/// First launch in application mode: offers to install the HOME tile
+/// (launched from the tile itself or tile already there -> ns sees it -> nothing).
 static void proposeForwarderInstall() {
     auto& conf = AppConfig::instance();
     if (conf.getItem(AppConfig::HINT_FORWARDER, false)) return;
@@ -92,9 +92,9 @@ int main(int argc, char* argv[]) {
         } else if (std::strcmp(argv[i], "-o") == 0) {
             const char* path = (i + 1 < argc) ? argv[++i] : "plenx.log";
             FILE* logFile = std::fopen(path, "w+");
-            // line-buffered : sans ça les derniers ~16 Ko de logs (dont la
-            // ligne qui précède un crash) restent dans le buffer et meurent
-            // avec le process — invivable pour diagnostiquer
+            // line-buffered: without this the last ~16 KB of logs (including
+            // the line preceding a crash) stay in the buffer and die with
+            // the process — unbearable for diagnosing
             if (logFile) std::setvbuf(logFile, nullptr, _IOLBF, 0);
             brls::Logger::setLogOutput(logFile);
         } else if (std::strcmp(argv[i], "-version") == 0) {
@@ -158,11 +158,11 @@ int main(int argc, char* argv[]) {
     } else if (items.size() > 0) {
         RemoteView::play(items.front());
     } else {
-        // checkLogin() sonde en série les URL mémorisées du serveur actif
-        // (timeout 2 s par URL, config.cpp:checkLogin) : appelé ici sur le
-        // thread principal il gelait la toute première frame plusieurs
-        // secondes (réseau changé, serveur éteint…). On affiche l'écran de
-        // chargement et on sonde en arrière-plan (recette n°6).
+        // checkLogin() serially probes the remembered URLs of the active
+        // server (2 s timeout per URL, config.cpp:checkLogin): called here
+        // on the main thread it froze the very first frame for several
+        // seconds (changed network, server off...). Show the loading
+        // screen and probe in the background.
         brls::Application::pushActivity(new LoadingActivity(), brls::TransitionAnimation::NONE);
         brls::Application::blockInputs();
         brls::async([]() {

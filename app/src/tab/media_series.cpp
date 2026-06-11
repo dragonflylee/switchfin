@@ -34,17 +34,17 @@ public:
     BRLS_BIND(brls::Rectangle, rectProgress, "video/card/progress");
 };
 
-/// Cellule d'en-tête de la vue saison (pochette + infos + bouton de
-/// téléchargement) : PREMIÈRE cellule du flow, elle défile avec les
-/// épisodes. Non focusable elle-même : la navigation atteint le bouton via
+/// Season view header cell (cover + info + download button):
+/// FIRST cell of the flow, it scrolls with the episodes.
+/// Not focusable itself: navigation reaches the button via
 /// getDefaultFocus (cf. DownloadSectionHeader).
 class SeasonHeaderCell : public RecyclingGridItem {
 public:
     SeasonHeaderCell() {
         this->inflateFromXMLRes("xml/view/season_header.xml");
         this->setFocusable(false);
-        // le bouton est câblé UNE fois ; cellForRow ne fait que remplacer
-        // onDownload (registerClickAction à chaque bind cumulerait les actions)
+        // the button is wired ONCE; cellForRow only replaces onDownload
+        // (registerClickAction on every bind would accumulate actions)
         this->btnDownload->registerClickAction([this](...) {
             if (this->onDownload) this->onDownload();
             return true;
@@ -79,14 +79,14 @@ private:
     BRLS_BIND(IconButton, btnDownload, "season/download");
 };
 
-/// Source de la vue saison : index 0 = en-tête, 1..N = épisodes. Hauteurs
-/// FIXES via heightForRow — aucune mesure yoga (un TextBox au texte vide
-/// mesurait NaN et dégénérait le layout : bug « Scrubs S1-8 », saisons sans
-/// résumé propre, cf. textBoxMeasureFunc).
+/// Season view source: index 0 = header, 1..N = episodes. FIXED heights
+/// via heightForRow — no yoga measuring (a TextBox with empty text
+/// measured NaN and degenerated the layout: seasons without their own
+/// summary, cf. textBoxMeasureFunc).
 class SeasonEpisodesDataSource : public RecyclingGridDataSource {
 public:
-    static constexpr float HEADER_HEIGHT = 255;  // pochette 225 + air 30
-    static constexpr float CARD_HEIGHT = 190;    // vignette 180 + padding 2x5
+    static constexpr float HEADER_HEIGHT = 255;  // cover 225 + air 30
+    static constexpr float CARD_HEIGHT = 190;    // thumbnail 180 + padding 2x5
 
     using MediaList = std::vector<plex::Item>;
 
@@ -111,7 +111,7 @@ public:
         auto& item = this->list.at(index - 1);
         cell->setId(item.ratingKey);
 
-        // vignette d'épisode, sinon celle de la série (cellule purgée d'abord)
+        // episode thumbnail, otherwise the show's (cell purged first)
         cell->picture->clear();
         if (!item.thumb.empty()) {
             Image::load(cell->picture, item.thumb, 300);
@@ -143,7 +143,7 @@ public:
     }
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
-        if (index == 0) return;  // l'en-tête n'agit que par son bouton
+        if (index == 0) return;  // the header only acts through its button
         auto& item = this->list.at(index - 1);
         PlayerView* view = new PlayerView(item);
         view->setTitie(item.grandparentTitle.empty()
@@ -161,8 +161,8 @@ public:
         brls::Application::pushActivity(new brls::Activity(menu));
     }
 
-    /// résumé série arrivé après coup (chemin « aller à la saison ») :
-    /// utilisé au prochain bind de l'en-tête
+    /// show summary that arrived afterwards ("go to season" path):
+    /// used at the next header bind
     void setFallbackSummary(const std::string& s) { this->fallbackSummary = s; }
 
     const plex::Item& getSeason() const { return this->season; }
@@ -170,7 +170,7 @@ public:
     void clearData() override { this->list.clear(); }
 
 private:
-    /// file le téléchargement de tous les épisodes pas encore récupérés
+    /// queues the download of all episodes not yet fetched
     void downloadRemaining() {
         auto& dm = DownloadManager::instance();
         std::vector<std::string> wanted;
@@ -193,10 +193,10 @@ private:
     MediaList list;
 };
 
-/// Vue de détail d'une saison : TOUT défile — l'en-tête (pochette + infos +
-/// bouton) est la première cellule du RecyclingGrid (flow), suivie des
-/// épisodes. Empilée par-dessus la fiche série via ui::presentDetail — le
-/// rafraîchissement après lecture passe par Presenter (VIDEO_CLOSE →
+/// Season detail view: EVERYTHING scrolls — the header (cover + info +
+/// button) is the first cell of the RecyclingGrid (flow), followed by the
+/// episodes. Stacked on top of the show page via ui::presentDetail — the
+/// refresh after playback goes through Presenter (VIDEO_CLOSE ->
 /// doRequest).
 class MediaSeason : public brls::Box, public Presenter {
 public:
@@ -208,7 +208,7 @@ public:
         this->recycler->registerCell("Cell", []() {
             auto cell = new EpisodeCardCell();
             auto actionListener = [cell](brls::View*) -> bool {
-                // même remontée robuste que VideoCardCell (video_card.cpp)
+                // same robust tree climb as VideoCardCell (video_card.cpp)
                 brls::Box* view = cell->getParent();
                 RecyclingView* recycler = nullptr;
                 while (view && !(recycler = dynamic_cast<RecyclingView*>(view))) view = view->getParent();
@@ -218,26 +218,25 @@ public:
                 dataSrc->onContextMenu(view, cell->getIndex());
                 return true;
             };
-            // hint visible (« X Options »), cf. video_card.cpp
+            // visible hint ("X Options"), cf. video_card.cpp
             cell->registerAction("hints/option"_i18n, brls::BUTTON_X, actionListener);
             cell->registerAction(KeyBind::getSetting(), actionListener);
             return cell;
         });
 
-        // résumé de la saison absent ET résumé série pas encore connu (chemin
-        // « aller à la saison » : doSeries n'a pas répondu) → le récupérer
-        // nous-même, requête légère (metadata sans checkFiles)
+        // season summary missing AND show summary not yet known ("go to
+        // season" path: doSeries has not answered) -> fetch it ourselves,
+        // lightweight request (metadata without checkFiles)
         if (item.summary.empty() && fallbackSummary.empty() && !item.parentRatingKey.empty()) this->doSummary();
 
         this->doRequest();
     }
 
-    /// (re)charge les épisodes — aussi déclenché à la fermeture du player
-    /// pour rafraîchir badges vus / progression (Presenter)
+    /// (re)loads the episodes — also triggered when the player closes
+    /// to refresh watched badges / progress (Presenter)
     void doRequest() override {
         ASYNC_RETAIN
-        // épisodes de la saison : GET /library/metadata/{seasonKey}/children
-        // (plex_client.dart:1485-1493)
+        // season episodes: GET /library/metadata/{seasonKey}/children
         plex::getJSON<plex::Container<plex::Item>>(
             AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
             [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
@@ -253,7 +252,7 @@ public:
     }
 
 private:
-    /// résumé de repli (celui de la série) quand la saison n'en a pas
+    /// fallback summary (the show's) when the season has none
     void doSummary() {
         ASYNC_RETAIN
         plex::getJSON<plex::Container<plex::Item>>(
@@ -262,8 +261,8 @@ private:
                 ASYNC_RELEASE
                 if (r.Items.empty() || r.Items.front().summary.empty()) return;
                 this->fallbackSummary = r.Items.front().summary;
-                // données déjà affichées : mettre à jour la source et
-                // l'en-tête s'il est attaché (sinon le prochain bind suffit)
+                // data already displayed: update the source and the header
+                // if it is attached (otherwise the next bind is enough)
                 auto* src = dynamic_cast<SeasonEpisodesDataSource*>(this->recycler->getDataSource());
                 if (!src) return;
                 src->setFallbackSummary(this->fallbackSummary);
@@ -280,15 +279,15 @@ private:
     std::string fallbackSummary;
 };
 
-/// Rangée « Saisons » de la fiche série : cartes poster (titre de saison
-/// localisé par le serveur + « N épisodes »). Clic → vue saison empilée.
+/// "Seasons" row of the show page: poster cards (season title localized
+/// by the server + "N episodes"). Click -> stacked season view.
 class SeasonDataSource : public RecyclingGridDataSource {
 public:
     using MediaList = std::vector<plex::Item>;
 
-    /// `fallbackSummary` pointe sur MediaSeries::seriesSummary (adresse
-    /// stable, durée de vie commune : la source meurt avec le recycler de la
-    /// fiche) — le résumé n'est connu qu'après doSeries.
+    /// `fallbackSummary` points to MediaSeries::seriesSummary (stable
+    /// address, shared lifetime: the source dies with the page's recycler)
+    /// — the summary is only known after doSeries.
     SeasonDataSource(const MediaList& r, const std::string* fallbackSummary)
         : list(std::move(r)), fallbackSummary(fallbackSummary) {}
 
@@ -308,8 +307,8 @@ public:
             cell->labelExt->setVisibility(brls::Visibility::GONE);
         }
 
-        // affiche de la saison, repli sur celle de la série (cellule purgée :
-        // un item sans affiche garderait celle du précédent occupant)
+        // season poster, fallback to the show's (cell purged: an item
+        // without a poster would keep the previous occupant's)
         cell->picture->clear();
         if (!item.thumb.empty()) {
             Image::load(cell->picture, item.thumb, 325);
@@ -317,7 +316,7 @@ public:
             Image::load(cell->picture, item.parentThumb, 325);
         }
 
-        // saison entièrement vue → pastille ; pas de barre de progression
+        // fully watched season -> badge; no progress bar
         if (item.leafCount > 0 && item.viewedLeafCount >= item.leafCount) {
             cell->badgeTopRight->setImageFromSVGRes("icon/ico-checkmark.svg");
             cell->badgeTopRight->setVisibility(brls::Visibility::VISIBLE);
@@ -351,14 +350,14 @@ MediaSeries::MediaSeries(const plex::Item& item)
     this->labelTitle->setText(item.title);
     if (brls::Application::getThemeVariant() == brls::ThemeVariant::LIGHT)
         this->imageFade->setImageFromRes("img/fade-bottom-light.png");
-    // affiche de la série (ou de la saison sélectionnée)
+    // poster of the show (or the selected season)
     Image::load(this->imagePoster, item.thumb.empty() ? item.parentThumb : item.thumb, 325);
     this->seasons->registerCell("Cell", VideoCardCell::create);
     this->people->registerCell("Cell", MediaCardCell::create);
     this->special->registerCell("Cell", VideoCardCell::create);
 
-    // les boutons et la rangée de saisons n'ont pas de chevauchement
-    // géométrique : route explicite (cf. media_movie.cpp)
+    // the buttons and the seasons row have no geometric overlap:
+    // explicit route (cf. media_movie.cpp)
     this->btnPlay->setCustomNavigationRoute(brls::FocusDirection::DOWN, "series/seasons");
     this->btnDownload->setCustomNavigationRoute(brls::FocusDirection::DOWN, "series/seasons");
     this->btnWatchlist->setCustomNavigationRoute(brls::FocusDirection::DOWN, "series/seasons");
@@ -387,16 +386,16 @@ MediaSeries::~MediaSeries() {
 }
 
 void MediaSeries::doRequest() {
-    // après une lecture : prochain épisode (bouton Lire) + états vus des
-    // cartes saisons ; les épisodes sont rafraîchis par MediaSeason lui-même
+    // after playback: next episode (Play button) + watched states of the
+    // season cards; the episodes are refreshed by MediaSeason itself
     this->doNextup();
     this->doSeason();
 }
 
 void MediaSeries::doPlay() {
     if (this->onDeck.ratingKey.empty()) return;
-    // copie : « Relancer » (série terminée) force le départ à 0 — PlayerView
-    // reprendrait sinon au viewOffset résiduel de l'épisode (player_view.cpp:101)
+    // copy: "Replay" (finished show) forces the start at 0 — PlayerView
+    // would otherwise resume at the episode's residual viewOffset (player_view.cpp:101)
     plex::Item item = this->onDeck;
     if (this->replay) item.viewOffset = 0;
     PlayerView* view = new PlayerView(item);
@@ -410,8 +409,8 @@ void MediaSeries::doPlay() {
 
 void MediaSeries::doDownloadSeries() {
     ASYNC_RETAIN
-    // série entière : GET /library/metadata/{showId}/allLeaves → filtre des
-    // épisodes ni téléchargés ni en cours → confirmation → file d'attente
+    // whole show: GET /library/metadata/{showId}/allLeaves -> filter
+    // episodes neither downloaded nor in progress -> confirmation -> queue
     plex::getJSON<plex::Container<plex::Item>>(
         AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
         [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
@@ -442,7 +441,7 @@ void MediaSeries::doDownloadSeries() {
 
 void MediaSeries::initWatchlist(const std::string& guid) {
     this->seriesGuid = guid;
-    // ancien agent (guid non plex://…) : titre non adressable sur le provider
+    // legacy agent (non plex:// guid): title not addressable on the provider
     if (plex::providerRatingKey(guid).empty()) return;
 
     this->btnWatchlist->registerClickAction([this](...) {
@@ -451,8 +450,8 @@ void MediaSeries::initWatchlist(const std::string& guid) {
     });
 
     ASYNC_RETAIN
-    // état : metadata.provider + includeUserState=1 (api/plex/watchlist.hpp) ;
-    // le bouton reste caché tant que l'état n'est pas connu
+    // state: metadata.provider + includeUserState=1 (api/plex/watchlist.hpp);
+    // the button stays hidden until the state is known
     plex::fetchWatchlistState(
         guid,
         [ASYNC_TOKEN](bool state) {
@@ -486,7 +485,7 @@ void MediaSeries::toggleWatchlist() {
 }
 
 void MediaSeries::updateWatchlistButton() {
-    // signet plein = déjà dans la Watchlist (convention Plex)
+    // filled bookmark = already in the Watchlist (Plex convention)
     this->btnWatchlist->setIcon(
         this->watchlisted ? "@res/icon/ico-bookmark-fill-light.svg" : "@res/icon/ico-bookmark-light.svg");
 }
@@ -511,12 +510,12 @@ void MediaSeries::doSeries() {
             auto& item = r.Items.front();
             this->labelTitle->setText(item.title);
             Image::load(this->imagePoster, item.thumb, 325);
-            // bannière : fond (art) + logo détouré niché dans le bas du
-            // fondu ; le titre texte reste TOUJOURS affiché (sous la
-            // bannière). La bannière reste affichée pendant le chargement
-            // (placeholder sombre) : pas de saut de layout à l'arrivée de
-            // l'image — et le gone→visible déclenchait un bug de premier
-            // rendu (dégradé + image fill).
+            // banner: backdrop (art) + cut-out logo nested at the bottom of
+            // the fade; the text title is ALWAYS shown (below the banner).
+            // The banner stays shown while loading (dark placeholder):
+            // no layout jump when the image arrives — and the
+            // gone->visible transition triggered a first-render bug
+            // (gradient + image fill).
             if (!item.art.empty()) {
                 Image::load(this->imageBackdrop, item.art, 1080, 608);
                 if (!item.clearLogo.empty()) {
@@ -528,7 +527,7 @@ void MediaSeries::doSeries() {
                 this->contentInfo->setMarginTop(0);
                 this->invalidate();
             }
-            // pill « année · N saisons » (childCount = nb de saisons du show)
+            // "year · N seasons" pill (childCount = number of seasons of the show)
             if (item.childCount > 0) {
                 this->labelYear->setText(fmt::format(
                     "{}  ·  {} {}", item.year, item.childCount,
@@ -563,8 +562,8 @@ void MediaSeries::doSeries() {
                 this->people->setVisibility(brls::Visibility::GONE);
             }
 
-            // la watchlist porte sur la SÉRIE : guid du show (seriesId),
-            // valable aussi quand la fiche a été ouverte depuis une saison
+            // the watchlist applies to the SHOW: guid of the show (seriesId),
+            // also valid when the page was opened from a season
             this->initWatchlist(item.guid);
         },
         [ASYNC_TOKEN](const std::string& ex) {
@@ -576,7 +575,7 @@ void MediaSeries::doSeries() {
 
 void MediaSeries::doSeason() {
     ASYNC_RETAIN
-    // saisons : GET /library/metadata/{showKey}/children (plex_client.dart:1470-1480)
+    // seasons: GET /library/metadata/{showKey}/children
     plex::getJSON<plex::Container<plex::Item>>(
         AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
         [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
@@ -588,8 +587,8 @@ void MediaSeries::doSeason() {
             }
             this->seasons->setDataSource(new SeasonDataSource(r.Items, &this->seriesSummary));
 
-            // « aller à la saison » : la saison voulue s'ouvre par-dessus la
-            // fiche série (B revient à la fiche)
+            // "go to season": the wanted season opens on top of the show
+            // page (B goes back to the page)
             if (!this->wantedSeason.empty()) {
                 for (auto& it : r.Items) {
                     if (it.ratingKey != this->wantedSeason) continue;
@@ -609,13 +608,13 @@ void MediaSeries::doSeason() {
 void MediaSeries::doNextup() {
     auto& conf = AppConfig::instance();
     std::string url = conf.getUrl() + fmt::format("/library/metadata/{}?includeOnDeck=1", this->seriesId);
-    // série entièrement vue (pas d'OnDeck) : premier épisode toutes saisons
-    // confondues, via allLeaves paginé 0-1 → bouton « Relancer »
+    // fully watched show (no OnDeck): first episode across all seasons,
+    // via allLeaves paginated 0-1 -> "Replay" button
     HTTP::Form firstQuery;
     plex::addPagination(firstQuery, 0, 1);
     std::string firstUrl = conf.getUrl() + fmt::format(fmt::runtime(plex::apiAllLeaves), this->seriesId) + "?" +
                            HTTP::encode_form(firstQuery);
-    // « token » est réservé par ASYNC_RETAIN (borealis/core/view.hpp:60)
+    // `token` is reserved by ASYNC_RETAIN (borealis/core/view.hpp:60)
     std::string accessToken = conf.getToken();
 
     ASYNC_RETAIN
@@ -623,15 +622,15 @@ void MediaSeries::doNextup() {
         std::vector<plex::Item> items;
         bool fromStart = false;
         try {
-            // prochain épisode : Metadata[0].OnDeck.Metadata est un OBJET,
-            // pas un tableau → extraction manuelle (plex_client.dart:1035-1094)
+            // next episode: Metadata[0].OnDeck.Metadata is an OBJECT,
+            // not an array -> manual extraction
             nlohmann::json j = plex::getSync(url, accessToken);
             auto& meta = j.at("MediaContainer").at("Metadata").at(0);
             if (meta.contains("OnDeck") && meta["OnDeck"].contains("Metadata")) {
                 items.push_back(meta["OnDeck"]["Metadata"].get<plex::Item>());
             } else {
-                // vérifié serveur 2026-06-10 (série 1024863 vue 9/9) :
-                // Metadata[0] = S1E1 avec grandparent*/index/parentIndex
+                // verified on a real server 2026-06-10 (show 1024863 watched 9/9):
+                // Metadata[0] = S1E1 with grandparent*/index/parentIndex
                 auto first = plex::getSync(firstUrl, accessToken).get<plex::Container<plex::Item>>();
                 if (!first.Items.empty()) {
                     items.push_back(first.Items.front());
@@ -643,8 +642,8 @@ void MediaSeries::doNextup() {
         }
         brls::sync([ASYNC_TOKEN, items, fromStart]() {
             ASYNC_RELEASE
-            // alimente le bouton « Lire »/« Relancer » (qui remplace la
-            // rangée « À suivre ») ; série sans épisode ou erreur → masqué
+            // feeds the "Play"/"Replay" button (which replaces the
+            // "Up next" row); show without episodes or error -> hidden
             this->replay = fromStart;
             if (!items.empty()) {
                 this->onDeck = items.front();
@@ -662,8 +661,7 @@ void MediaSeries::doRelated() {
     std::string query = HTTP::encode_form({{"count", "12"}});
 
     ASYNC_RETAIN
-    // toutes les rangées « related » du serveur, titres localisés
-    // (plex_client.dart:1981-2006)
+    // all the server's "related" rows, localized titles
     plex::getJSON<plex::Container<plex::Hub>>(
         AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
         [ASYNC_TOKEN](const plex::Container<plex::Hub>& r) {
@@ -676,7 +674,7 @@ void MediaSeries::doRelated() {
                 row->setFrameHeight(brls::getStyle()["app/card/poster/row"]);
                 row->setItemWidth(brls::getStyle()["app/card/poster/width"]);
                 row->setSidePadding(brls::getStyle()["main/content_padding_sides"]);
-                // hub tronqué (more=1) : carte « + » vers la page complète
+                // truncated hub (more=1): "+" card to the full page
                 if (hub.more && !hub.key.empty()) {
                     row->setItems(hub.items, hub.title, hub.key);
                 } else {
@@ -694,8 +692,8 @@ void MediaSeries::doRelated() {
 
 void MediaSeries::doSpecial() {
     ASYNC_RETAIN
-    // bonus : GET /library/metadata/{key}/extras (plex_client.dart:1512-1522) ;
-    // type "clip" → lecture directe gérée par VideoDataSource
+    // extras: GET /library/metadata/{key}/extras;
+    // type "clip" -> direct playback handled by VideoDataSource
     plex::getJSON<plex::Container<plex::Item>>(
         AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
         [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {

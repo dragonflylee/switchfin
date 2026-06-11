@@ -156,8 +156,8 @@ std::string misc::formatSize(uint64_t s) {
     if (s == 0) return "-";
     if (s < (1 << 20)) return fmt::format("{}KB", s / 1024);
     if (s < (1 << 30)) return fmt::format("{:.2f}MB", (s >> 10) / 1024.0f);
-    // palier TB : les capacités disque (en-tête stockage des téléchargements)
-    // dépassent couramment 1 To — « 1862.65GB » n'est pas lisible
+    // TB tier: disk capacities (downloads storage header) commonly exceed
+    // 1 TB — "1862.65GB" is not readable
     if (s < (1ULL << 40)) return fmt::format("{:.2f}GB", (s >> 20) / 1024.0f);
     return fmt::format("{:.2f}TB", (s >> 30) / 1024.0f);
 }

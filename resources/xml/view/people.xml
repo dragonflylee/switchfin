@@ -2,7 +2,7 @@
     width="auto"
     height="auto">
 
-    <!-- toute la page défile (en-tête compris) : centered, le scroll suit le focus -->
+    <!-- the whole page scrolls (header included): centered, the scroll follows the focus -->
     <brls:ScrollingFrame
         grow="1.0"
         scrollingBehavior="centered">

@@ -2,7 +2,7 @@
     width="auto"
     height="auto">
 
-    <!-- centered : cf. suggest_show.xml (le natural volait le focus) -->
+    <!-- centered: cf. suggest_show.xml (natural stole the focus) -->
     <brls:ScrollingFrame
         width="auto"
         height="auto"

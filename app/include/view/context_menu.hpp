@@ -5,7 +5,7 @@
 
 class SVGImage;
 
-/// Entrée du menu contextuel : icône + libellé + coche d'état (selected).
+/// Context menu entry: icon + label + state check mark (selected).
 class MenuItem : public brls::Box {
 public:
     MenuItem();
@@ -26,9 +26,9 @@ private:
     bool selected = false;
 };
 
-/// Menu d'actions contextuelles d'un média (bouton X / clic long).
-/// `host` est la vue d'origine : les navigations (série, saison) sont
-/// présentées dans son AppletFrame après fermeture du menu.
+/// Contextual actions menu for a media (X button / long press).
+/// `host` is the originating view: navigations (show, season) are
+/// presented in its AppletFrame after the menu closes.
 class ContextMenu : public brls::Box {
 public:
     ContextMenu(const plex::Item& item, brls::Box* host);
@@ -51,7 +51,7 @@ private:
 
     bool doPlayed();
     bool unPlayed();
-    /// révèle l'entrée watchlist une fois l'état provider connu (guid plex://)
+    /// reveals the watchlist entry once the provider state is known (plex:// guid)
     void initWatchlist(const std::string& guid);
     bool toggleWatchlist();
 

@@ -25,8 +25,8 @@
                 marginBottom="30px"
                 id="setting/status">
 
-                <!-- bloc profil : avatar rond + nom + serveur actif (pastille
-                     « connecté ») ; masqué avec le reste via hideStatus -->
+                <!-- profile block: round avatar + name + active server
+                     ("connected" dot); hidden with the rest via hideStatus -->
                 <brls:Box
                     width="100%"
                     axis="row"

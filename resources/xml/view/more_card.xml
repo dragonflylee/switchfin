@@ -3,8 +3,8 @@
     axis="column"
     width="auto"
     height="auto">
-    <!-- même squelette que video_card.xml (zone affiche 2:3 + bloc labels 55)
-         pour s'aligner pixel à pixel avec les pochettes de la rangée -->
+    <!-- same skeleton as video_card.xml (2:3 poster area + 55 label block)
+         to align pixel by pixel with the row's covers -->
     <brls:Box
         id="more/card/box"
         axis="column"

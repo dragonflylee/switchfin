@@ -77,10 +77,10 @@ brls::View* HRecyclerFrame::getDefaultFocus() {
     if (!this->dataSource || this->dataSource->getItemCount() == 0) return nullptr;
     brls::View* cell = HScrollingFrame::getDefaultFocus();
     if (cell) return cell;
-    // giveFocus via une route de navigation : viser la première cellule déjà
-    // attachée (focusable — les skeletons ne le sont pas). PAS de
-    // matérialisation ici : getDefaultFocus est sondé par les traversées de
-    // navigation, muter le contenu à ce moment-là fait des dégâts.
+    // giveFocus via a navigation route: target the first already attached
+    // cell (focusable — skeletons are not). NO materialization here:
+    // getDefaultFocus is probed by navigation traversals, mutating the
+    // content at that point wreaks havoc.
     for (auto* child : this->contentBox->getChildren()) {
         brls::View* focus = child->getDefaultFocus();
         if (focus) return focus;

@@ -19,5 +19,5 @@ public:
 private:
     BRLS_BIND(brls::Box, box, "suggest/box");
 
-    std::string itemId;  // clé de section
+    std::string itemId;  // section key
 };

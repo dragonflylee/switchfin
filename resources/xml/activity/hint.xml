@@ -27,9 +27,9 @@
                 marginBottom="8"
                 text="@i18n/main/hints/title" />
 
-            <!-- ATTENTION : tout attribut XML inconnu de borealis (ex. textAlign)
-                 est un brls::fatal à l'inflation → crash au boot applet. Pour
-                 les Label c'est horizontalAlign (label.cpp:259). -->
+            <!-- WARNING: any XML attribute unknown to borealis (e.g. textAlign)
+                 is a brls::fatal at inflation -> crash at applet boot. For
+                 Labels it is horizontalAlign (label.cpp:259). -->
             <brls:Label
                 id="hint/text"
                 fontSize="16"

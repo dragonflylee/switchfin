@@ -97,8 +97,8 @@ public:
         return s._post(url, s.encode_form(form));
     }
 
-    // Put methods (l'API provider plex.tv utilise PUT pour les actions
-    // watchlist ; les paramètres passent en query string, corps vide)
+    // Put methods (the plex.tv provider API uses PUT for watchlist actions;
+    // parameters go in the query string, empty body)
     template <typename... Ts>
     static std::string put(const std::string& url, const std::string& data, Ts&&... ts) {
         HTTP s;

@@ -11,9 +11,9 @@ HintActivity::HintActivity() { brls::Logger::debug("HintActivity: create"); }
 void HintActivity::onContentAvailable() {
     brls::Logger::debug("HintActivity: onContentAvailable");
 
-    // Le même écran sert dans les deux contextes : au boot applet (mémoire
-    // insuffisante) et depuis les réglages / le premier lancement en mode
-    // application (installation de la tuile HOME). Seul le texte change.
+    // The same screen serves both contexts: at applet boot (insufficient
+    // memory) and from settings / first launch in application mode
+    // (HOME tile installation). Only the text changes.
     if (brls::Application::getPlatform()->isApplicationMode()) {
         this->labelText->setText("main/hints/text_app"_i18n);
     }
@@ -33,7 +33,7 @@ void HintActivity::onContentAvailable() {
     });
     this->btnInstall->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnInstall));
 #else
-    // pas de NSP embarqué dans ce build : seule l'option title takeover reste
+    // no embedded NSP in this build: only the title takeover option remains
     this->boxInstall->setVisibility(brls::Visibility::GONE);
 #endif
 }

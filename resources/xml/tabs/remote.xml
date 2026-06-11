@@ -4,8 +4,8 @@
     paddingLeft="5"
     paddingRight="5">
 
-    <!-- même style que les barres des bibliothèques (collection.xml) :
-         hauteur 60, pills centrées, barre flottante au-dessus du contenu -->
+    <!-- same style as the library bars (collection.xml):
+         height 60, centered pills, floating bar above the content -->
     <AutoTabFrame
         id="remote/tabFrame"
         grow="1"

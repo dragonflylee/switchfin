@@ -1,9 +1,9 @@
 /*
-    pleNx — onglet sidebar « Listes de lecture ».
-    Grille de TOUTES les playlists vidéo du serveur : cartes carrées
-    (composite Plex = mosaïque 1:1) + titre + « N éléments ».
-    API : GET /playlists?playlistType=video (plex::apiPlaylists),
-    pagination X-Plex-Container-* ; clic → PlaylistView.
+    pleNx — "Playlists" sidebar tab.
+    Grid of ALL the server's video playlists: square cards
+    (Plex composite = 1:1 mosaic) + title + "N items".
+    API: GET /playlists?playlistType=video (plex::apiPlaylists),
+    X-Plex-Container-* pagination; click -> PlaylistView.
 */
 
 #pragma once

@@ -12,13 +12,13 @@ class HRecyclerFrame;
 class TextBox;
 class IconButton;
 
-/// Fiche série : une seule vue scrollable (bannière + poster + infos +
-/// boutons Lire/Télécharger + rangée de saisons) — plus d'onglets latéraux.
-/// Pensée pour être empilée via ui::presentDetail (sidebar visible).
+/// Show page: a single scrollable view (banner + poster + info +
+/// Play/Download buttons + seasons row) — no more side tabs.
+/// Designed to be stacked via ui::presentDetail (sidebar visible).
 class MediaSeries : public brls::Box, public Presenter {
 public:
-    /// item de type "show" OU "season" (la série parente est alors résolue,
-    /// et la saison voulue est ouverte par-dessus la fiche une fois listée)
+    /// item of type "show" OR "season" (the parent show is then resolved,
+    /// and the wanted season is opened on top of the page once listed)
     MediaSeries(const plex::Item& item);
     ~MediaSeries() override;
 
@@ -53,27 +53,27 @@ private:
     void doRelated();
     void doNextup();
     void doSpecial();
-    /// lance le prochain épisode non vu (OnDeck) ; série entièrement vue :
-    /// relance le premier épisode depuis le début (« Relancer »)
+    /// plays the next unwatched episode (OnDeck); fully watched show:
+    /// restarts the first episode from the beginning ("Replay")
     void doPlay();
-    /// télécharge la série entière (allLeaves filtré, dialogue de confirmation)
+    /// downloads the whole show (filtered allLeaves, confirmation dialog)
     void doDownloadSeries();
-    /// révèle le bouton Watchlist une fois l'état provider connu (guid plex://)
+    /// reveals the Watchlist button once the provider state is known (plex:// guid)
     void initWatchlist(const std::string& guid);
     void toggleWatchlist();
     void updateWatchlistButton();
 
-    std::string seriesId;  // ratingKey de la série
+    std::string seriesId;  // ratingKey of the show
     std::string seriesGuid;
     bool watchlisted = false;
-    /// ratingKey de la saison à ouvrir par-dessus la fiche une fois les
-    /// saisons listées (item de type "season" ou « aller à la saison »)
+    /// ratingKey of the season to open on top of the page once seasons are
+    /// listed (item of type "season" or "go to season")
     std::string wantedSeason;
-    /// résumé de la série : repli des en-têtes de saison sans résumé propre
+    /// show summary: fallback for season headers without their own summary
     std::string seriesSummary;
-    /// prochain épisode à lire (OnDeck) ; ratingKey vide = pas d'OnDeck
+    /// next episode to play (OnDeck); empty ratingKey = no OnDeck
     plex::Item onDeck;
-    /// série entièrement vue : onDeck = premier épisode (allLeaves) et le
-    /// bouton « Lire » devient « Relancer » (lecture forcée depuis 0)
+    /// fully watched show: onDeck = first episode (allLeaves) and the
+    /// "Play" button becomes "Replay" (forced playback from 0)
     bool replay = false;
 };

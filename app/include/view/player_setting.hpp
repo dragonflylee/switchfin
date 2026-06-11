@@ -18,7 +18,7 @@ public:
 
     View* getDefaultFocus() override { return this->settings->getDefaultFocus(); }
 
-    /// IDs de Stream Plex sélectionnés pour le transcodeur (0 = aucun)
+    /// Plex Stream IDs selected for the transcoder (0 = none)
     inline static int64_t selectedSubtitle = 0;
     inline static int64_t selectedAudio = 0;
 

@@ -3,8 +3,8 @@
     axis="column"
     width="auto"
     height="auto">
-    <!-- fond + icône placeholder DERRIÈRE l'image : visibles tant qu'aucune
-         affiche n'est chargée, recouverts par la texture sinon -->
+    <!-- background + placeholder icon BEHIND the image: visible while no
+         poster is loaded, covered by the texture otherwise -->
     <brls:Box
         id="video/card/pic_box"
         axis="row"

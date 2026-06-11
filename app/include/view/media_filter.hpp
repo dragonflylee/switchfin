@@ -19,8 +19,8 @@ public:
     inline static int selectedOrder = 1;
     inline static bool selectedUnplayed = false;
 
-    /// Champs de tri Plex, alignés sur les libellés du sélecteur
-    /// (plex_client.dart:1816-1914) ; ordre descendant = suffixe ":desc"
+    /// Plex sort fields, aligned with the selector labels;
+    /// descending order = ":desc" suffix
     inline static std::string sortList[] = {
         "titleSort",
         "addedAt",

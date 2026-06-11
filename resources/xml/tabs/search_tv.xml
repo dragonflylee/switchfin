@@ -1,9 +1,9 @@
 <!--
-    Recherche (UI_REDESIGN.md §4.6) : colonne gauche fixe (champ + actions en
-    icônes + clavier statique 6x6 généré dans search_tab.cpp — pas de scroll),
-    zone droite = historique en chips + suggestions/résultats en grille
-    d'affiches. Budget hauteur 720p : 48 + 12 + 44 + 14 + (6x46 + 5x8) = 434
-    pour 617 utiles (720 - footer 73 - paddingTop 30).
+    Search (UI_REDESIGN.md §4.6): fixed left column (field + icon actions
+    + static 6x6 keyboard generated in search_tab.cpp — no scroll),
+    right area = history as chips + suggestions/results as a poster grid.
+    720p height budget: 48 + 12 + 44 + 14 + (6x46 + 5x8) = 434
+    for 617 usable (720 - footer 73 - paddingTop 30).
 -->
 <brls:Box
     width="auto"
@@ -12,14 +12,14 @@
     paddingRight="@style/main/content_padding_sides"
     paddingTop="@style/main/content_padding_top_bottom">
 
-    <!-- Colonne gauche fixe (~370 pt avec la gouttière) -->
+    <!-- Fixed left column (~370 pt with the gutter) -->
     <brls:Box
         id="tv/search/left"
         axis="column"
         width="340"
         marginRight="30">
 
-        <!-- Champ : loupe + texte saisi / placeholder ; clic = IME -->
+        <!-- Field: magnifier + typed text / placeholder; click = IME -->
         <brls:Box
             id="tv/search/box"
             focusable="true"
@@ -42,7 +42,7 @@
                 fontSize="16" />
         </brls:Box>
 
-        <!-- Actions en icônes : tout effacer / retour arrière / espace / rechercher -->
+        <!-- Icon actions: clear all / backspace / space / search -->
         <brls:Box
             id="tv/search/actions"
             height="44"
@@ -108,7 +108,7 @@
             </brls:Box>
         </brls:Box>
 
-        <!-- Clavier statique 6x6 (touches générées en code, pas de RecyclingGrid) -->
+        <!-- Static 6x6 keyboard (keys generated in code, no RecyclingGrid) -->
         <brls:Box
             id="tv/search/keyboard"
             axis="column"
@@ -116,7 +116,7 @@
 
     </brls:Box>
 
-    <!-- Zone droite : historique (chips) puis suggestions / résultats -->
+    <!-- Right area: history (chips) then suggestions / results -->
     <brls:Box
         id="tv/search/right"
         axis="column"

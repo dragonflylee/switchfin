@@ -128,10 +128,10 @@ bool AppVersion::needUpdate(std::string latestVersion) {
 }
 
 #ifdef __SWITCH__
-/// Télécharge le NRO de la release dans un fichier temporaire du configDir,
-/// vérifie sa taille, puis remplace le NRO en cours d'exécution (chemin réel
-/// fourni par hbloader/le forwarder via argv[0], cf. AppVersion::nro_path).
-/// La progression s'affiche dans un dialogue avec bouton d'annulation.
+/// Downloads the release NRO into a temporary file in configDir, verifies
+/// its size, then replaces the running NRO (real path provided by
+/// hbloader/the forwarder via argv[0], cf. AppVersion::nro_path).
+/// Progress is shown in a dialog with a cancel button.
 static void startUpdate(const std::string& latest_ver, const std::string& url, int64_t size) {
     AppVersion::updating->store(false);
 
@@ -151,13 +151,13 @@ static void startUpdate(const std::string& latest_ver, const std::string& url, i
 
     auto* dialog = new brls::Dialog(box);
     dialog->setCancelable(false);
-    // le clic ferme le dialogue (cf. Dialog::buttonClick) : `dismissed` évite une
-    // double fermeture et protège `label` (détruit avec le dialogue) des mises à
-    // jour de progression encore en file dans brls::sync
+    // the click closes the dialog (cf. Dialog::buttonClick): `dismissed`
+    // prevents a double close and protects `label` (destroyed with the
+    // dialog) from progress updates still queued in brls::sync
     auto dismissed = std::make_shared<std::atomic_bool>(false);
     dialog->addButton("hints/cancel"_i18n, [dismissed]() {
         dismissed->store(true);
-        AppVersion::updating->store(true);  // true = annuler le transfert, cf. HTTP::easy_progress_cb
+        AppVersion::updating->store(true);  // true = cancel the transfer, cf. HTTP::easy_progress_cb
     });
     dialog->open();
 
@@ -190,12 +190,12 @@ static void startUpdate(const std::string& latest_ver, const std::string& url, i
         try {
             HTTP::download(url, path, HTTP::Timeout{-1}, AppVersion::updating, progress);
 
-            // taille vérifiée AVANT d'écraser le NRO en cours d'exécution
+            // size verified BEFORE overwriting the running NRO
             auto actual = std::filesystem::file_size(path);
             if (size > 0 && actual != static_cast<std::uintmax_t>(size))
                 throw std::runtime_error(fmt::format("incomplete download ({}/{} bytes)", actual, size));
 
-            // le romfs est mappé depuis le fichier NRO : démonter avant de le remplacer
+            // the romfs is mapped from the NRO file: unmount before replacing it
             romfsExit();
             std::string target = AppVersion::nro_path;
             if (target.size() < 4 || target.compare(target.size() - 4, 4, ".nro") != 0)
@@ -207,7 +207,7 @@ static void startUpdate(const std::string& latest_ver, const std::string& url, i
             std::filesystem::remove(path);
             bool canceled = AppVersion::updating->load();
             AppVersion::updating->store(true);
-            if (canceled) return;  // annulation utilisateur, pas un échec
+            if (canceled) return;  // user cancellation, not a failure
             std::string msg = ex.what();
             finish([msg]() { Dialog::show(msg); });
         }
@@ -221,7 +221,7 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
         return;
     }
     ThreadPool::instance().submit([delay, showUpToDateDialog](HTTP& s) {
-        // au démarrage, laisser la priorité aux requêtes de login
+        // at startup, give priority to login requests
         if (delay > 0) std::this_thread::sleep_for(std::chrono::milliseconds(delay));
         try {
             std::string url = fmt::format("https://api.github.com/repos/{}/releases/latest", git_repo);
@@ -235,9 +235,9 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
             }
 
 #ifdef __SWITCH__
-            // URL et taille du NRO depuis la réponse API plutôt qu'une URL codée
-            // en dur : robuste à un renommage de l'asset, et la taille permet de
-            // valider le téléchargement avant d'écraser l'app
+            // NRO URL and size from the API response rather than a hardcoded
+            // URL: robust to an asset rename, and the size lets us validate
+            // the download before overwriting the app
             std::string asset_url;
             int64_t asset_size = 0;
             for (auto& asset : j.at("assets")) {

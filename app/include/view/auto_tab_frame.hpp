@@ -97,7 +97,7 @@ private:
     NVGcolor tabItemActiveBackgroundColor = nvgRGBA(0, 0, 0, 0);
     NVGcolor tabItemActiveTextColor = brls::Application::getTheme()["brls/text"];
 
-    /// applique les couleurs « pill » (mode horizontal ACCENT) selon l'état actif
+    /// applies the "pill" colors (ACCENT horizontal mode) based on active state
     void applyPillStyle();
 
     bool active = false;
@@ -207,8 +207,8 @@ public:
     void draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style,
         brls::FrameContext* ctx) override;
 
-    /// mode TOP flottant : la barre (enfant 0, peinte en dernier) doit aussi
-    /// gagner le hit-test tactile face au contenu pleine hauteur
+    /// floating TOP mode: the bar (child 0, painted last) must also win the
+    /// touch hit-test against the full-height content
     brls::View* hitTest(brls::Point point) override;
 
     /**
@@ -221,42 +221,42 @@ public:
 
     void setTabChangedAction(const std::function<void(size_t)>& event);
 
-    /// ---- pile de vues de détail (fiches film/série/saison/acteur…) ----
-    /// Empile `detail` dans la zone de contenu : la sidebar reste visible, le
-    /// contenu couvert passe en GONE (jamais détruit), la vue reçoit le focus
-    /// et son action B dépile. Pile multi-niveaux (fiche film → fiche acteur…).
+    /// ---- detail view stack (movie/show/season/actor pages...) ----
+    /// Stacks `detail` in the content area: the sidebar stays visible, the
+    /// covered content goes GONE (never destroyed), the view gets focus
+    /// and its B action pops. Multi-level stack (movie page -> actor page...).
     void pushDetailView(brls::View* detail);
 
-    /// Dépile et détruit la vue du dessus ; restaure la visibilité du contenu
-    /// couvert et le focus mémorisé (revalidé dans l'arbre vivant : jamais de
-    /// focus sur une vue morte). false si la pile est vide.
+    /// Pops and destroys the top view; restores the visibility of the
+    /// covered content and the remembered focus (revalidated in the live
+    /// tree: never focus a dead view). false if the stack is empty.
     bool popDetailView();
 
     bool hasDetailView();
 
     brls::View* getTopDetailView();
 
-    /// vide la pile sans restauration de focus (changement d'onglet,
-    /// destruction) ; le contenu de l'onglet redevient visible
+    /// clears the stack without focus restoration (tab change,
+    /// destruction); the tab content becomes visible again
     void clearDetailViews();
 
 private:
-    /// focus du détail au sommet, retenté chaque frame tant que son contenu
-    /// asynchrone n'a rien de focusable (repli sidebar pendant l'attente —
-    /// cf. implémentation)
+    /// focuses the top detail, retried every frame while its async content
+    /// has nothing focusable (sidebar fallback while waiting —
+    /// cf. implementation)
     void retryDetailFocus(brls::View* detail, int attemptsLeft);
 
     BRLS_BIND(Box, sidebar, "auto_tab_frame/auto_sidebar");
 
     struct DetailEntry {
         View* view = nullptr;
-        /// focus au moment du push — pointeur potentiellement mort au pop,
-        /// jamais déréférencé sans revalidation (comparaison d'adresses)
+        /// focus at push time — pointer potentially dead at pop time,
+        /// never dereferenced without revalidation (address comparison)
         View* previousFocus = nullptr;
-        /// si le focus vivait dans un recycler : (recycler, index de la
-        /// cellule). Les cellules sont recyclées/rebindées pendant que le
-        /// contenu est masqué (reloadData au relayout) — le pointeur de
-        /// cellule resterait « vivant » mais montrerait un autre média.
+        /// if the focus lived in a recycler: (recycler, cell index).
+        /// Cells get recycled/rebound while the content is hidden
+        /// (reloadData on relayout) — the cell pointer would stay
+        /// "alive" but would show a different media.
         View* previousRecycler = nullptr;
         size_t previousIndex = 0;
     };
@@ -269,8 +269,8 @@ private:
     bool isHorizontal = false;
     bool isDemandMode = true;  // load pages on demand
     float itemFontSize = 22;
-    /// sidebar verticale resserrée : icône 28px centrée + accent 4px collé au
-    /// bord droit (recette UI n°5 : 76px restait trop large, accent décollé)
+    /// tightened vertical sidebar: 28px centered icon + 4px accent flush
+    /// against the right edge (76px stayed too wide, accent detached)
     float sidebarWidth = 64;
 
     std::function<void(size_t)> tabChangedAction = nullptr;
@@ -286,19 +286,18 @@ private:
 
 namespace ui {
 
-/// Présente `detail` par-dessus le contenu du tab frame principal : remonte
-/// l'arbre depuis `from` (n'importe quelle vue vivante de l'écran) jusqu'au
-/// AutoTabFrame le plus EXTERNE (le MainTabFrame en pratique — pas les
-/// onglets imbriqués des bibliothèques) et appelle pushDetailView : la
-/// sidebar reste visible et navigable, B dépile. Repli sur l'ancien
-/// View::present (AppletFrame plein écran) quand aucun AutoTabFrame n'est
-/// trouvé (ex. vue présentée hors sidebar : résultats de recherche présentés,
-/// liste de serveurs).
+/// Presents `detail` on top of the main tab frame content: walks the tree
+/// up from `from` (any live view on screen) to the OUTERMOST AutoTabFrame
+/// (the MainTabFrame in practice — not the nested library tabs) and calls
+/// pushDetailView: the sidebar stays visible and navigable, B pops.
+/// Falls back to the old View::present (full-screen AppletFrame) when no
+/// AutoTabFrame is found (e.g. view presented outside the sidebar:
+/// presented search results, server list).
 void presentDetail(brls::View* from, brls::View* detail);
 
-/// Dépile la vue de détail du dessus si `from` vit dedans (croix de
-/// fermeture, équivalent tactile de B). false si `from` n'est pas dans une
-/// vue de détail empilée — l'appelant retombe alors sur View::dismiss().
+/// Pops the top detail view if `from` lives inside it (close cross, touch
+/// equivalent of B). false if `from` is not in a stacked detail view —
+/// the caller then falls back to View::dismiss().
 bool popDetail(brls::View* from);
 
 }  // namespace ui

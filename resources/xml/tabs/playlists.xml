@@ -2,8 +2,8 @@
     width="auto"
     height="auto">
 
-    <!-- retraits internes au scroll : cartes jusqu'aux bords (pattern collection.xml).
-         Cartes carrées : composite Plex = mosaïque 1:1 -->
+    <!-- insets inside the scroll: cards up to the edges (collection.xml pattern).
+         Square cards: Plex composite = 1:1 mosaic -->
     <RecyclingGrid
         grow="1"
         wireframe="false"

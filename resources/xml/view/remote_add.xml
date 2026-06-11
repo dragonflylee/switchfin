@@ -1,6 +1,6 @@
-<!-- panneau latéral d'ajout/édition d'un serveur distant, même patron
-     que player_setting.xml : zone gauche cliquable = annuler, panneau
-     droit = formulaire (titres/valeurs des cellules posés en code) -->
+<!-- add/edit side panel for a remote server, same pattern as
+     player_setting.xml: clickable left area = cancel, right panel
+     = form (cell titles/values set in code) -->
 <brls:Box
     width="auto"
     height="auto"

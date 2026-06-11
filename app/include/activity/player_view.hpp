@@ -1,6 +1,6 @@
 /*
-    pleNx — lecteur vidéo Plex.
-    Pipeline : PLEX_MIGRATION.md §2.7 (direct play, transcodeur universel, timeline, scrobble).
+    pleNx — Plex video player.
+    Pipeline: PLEX_MIGRATION.md §2.7 (direct play, universal transcoder, timeline, scrobble).
 */
 
 #pragma once
@@ -16,7 +16,7 @@ public:
     PlayerView(const plex::Item& item, const int64_t seekMs = 0);
     ~PlayerView();
 
-    /// Charge la liste d'épisodes de la série (navigation précédent/suivant)
+    /// Loads the show's episode list (previous/next navigation)
     void setSeries(const std::string& showRatingKey);
     void setTitie(const std::string& title);
 
@@ -35,28 +35,28 @@ public:
 
 private:
     void setChapters(const std::vector<plex::Chapter>& chaps, int64_t durationMs);
-    /// Récupère les métadonnées fraîches puis choisit direct play ou transcode
+    /// Fetches fresh metadata then picks direct play or transcode
     void playMedia(const int64_t seekMs);
     void playDirect(const int64_t seekMs);
     void playTranscode(const int64_t seekMs);
     bool playIndex(int index);
-    /// Rapport POST /:/timeline (time/duration en ms)
+    /// POST /:/timeline report (time/duration in ms)
     void reportTimeline(const std::string& state, int64_t timeMs);
     void reportStop();
-    /// Marque vu via /:/scrobble au-delà du seuil (90 %)
+    /// Marks as watched via /:/scrobble beyond the threshold (90%)
     void maybeScrobble(int64_t timeMs);
     bool toggleQuality();
 
-    // Lecture
+    // Playback
     std::string itemId;  // ratingKey
-    /// playMethod : "directplay" | "transcode" (affichage VideoProfile)
+    /// playMethod: "directplay" | "transcode" (VideoProfile display)
     std::string playMethod;
-    /// X-Plex-Session-Identifier : stable pour toute la session de lecture
+    /// X-Plex-Session-Identifier: stable for the whole playback session
     std::string sessionId;
-    /// session du transcodeur : régénérée à chaque (re)démarrage
+    /// transcoder session: regenerated on every (re)start
     std::string transcodeSession;
-    plex::Item item;     // métadonnées fraîches (media/chapters/markers)
-    plex::Media stream;  // version sélectionnée
+    plex::Item item;     // fresh metadata (media/chapters/markers)
+    plex::Media stream;  // selected version
     bool scrobbled = false;
     std::vector<plex::Item> episodes;
 

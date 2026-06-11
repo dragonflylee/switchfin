@@ -10,7 +10,7 @@ brls::View* MainTabFrame::create() { return new MainTabFrame(); }
 
 void MainTabFrame::loadLibraries() {
     ASYNC_RETAIN
-    // GET /library/sections → Directory[] (plex_client.dart:901-906)
+    // GET /library/sections -> Directory[]
     plex::getJSON<plex::Container<plex::Section>>(
         AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
         [ASYNC_TOKEN](const plex::Container<plex::Section>& r) {

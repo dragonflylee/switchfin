@@ -1,10 +1,10 @@
 /*
-    pleNx — transport HTTP vers Plex (plex.tv et Plex Media Server).
-    Spécification : PLEX_MIGRATION.md §2.1 (en-têtes X-Plex-*) et §2.4 (MediaContainer).
+    pleNx — HTTP transport to Plex (plex.tv and Plex Media Server).
+    Specification: PLEX_MIGRATION.md §2.1 (X-Plex-* headers) and §2.4 (MediaContainer).
 
-    Même philosophie que l'ancienne couche API Jellyfin : helpers asynchrones qui
-    exécutent la requête dans brls::async puis resynchronisent le résultat
-    parsé sur le thread UI via brls::sync.
+    Same philosophy as the former Jellyfin API layer: async helpers that run
+    the request in brls::async then sync the parsed result back to the UI
+    thread via brls::sync.
 */
 
 #pragma once
@@ -21,16 +21,16 @@ namespace plex {
 
 using OnError = std::function<void(const std::string&)>;
 
-/// Langue à demander au serveur (titres de hubs localisés) : sous-tag
-/// primaire de la locale de l'app (« fr-FR » → « fr »).
+/// Language to request from the server (localized hub titles): primary
+/// subtag of the app locale ("fr-FR" -> "fr").
 inline std::string language() {
     std::string locale = brls::Application::getLocale();
     auto pos = locale.find('-');
     return pos == std::string::npos ? locale : locale.substr(0, pos);
 }
 
-/// En-têtes X-Plex-* communs (plex_config.dart:50-67). `token` vide = requête
-/// anonyme (création de PIN). Le token serveur ou compte est choisi par l'appelant.
+/// Common X-Plex-* headers. Empty `token` = anonymous request (PIN creation).
+/// The caller picks the server or account token.
 inline HTTP::Header headers(const std::string& token = "") {
     HTTP::Header h = {
         "Accept: application/json",
@@ -47,21 +47,21 @@ inline HTTP::Header headers(const std::string& token = "") {
     return h;
 }
 
-/// Ajoute le token en query param — pour les URLs consommées hors client HTTP
-/// (mpv, images, téléchargements) (plex_url_helper.dart:13-21).
+/// Appends the token as a query param — for URLs consumed outside the HTTP
+/// client (mpv, images, downloads).
 inline std::string withToken(const std::string& url, const std::string& token) {
     if (token.empty()) return url;
     return url + (url.find('?') == std::string::npos ? "?" : "&") + "X-Plex-Token=" + token;
 }
 
-/// GET synchrone retournant le JSON parsé. À appeler depuis un contexte async.
+/// Synchronous GET returning the parsed JSON. Call from an async context.
 inline nlohmann::json getSync(const std::string& url, const std::string& token, long timeout = HTTP::TIMEOUT) {
     std::string resp = HTTP::get(url, headers(token), HTTP::Timeout{timeout});
     if (resp.empty()) return nlohmann::json::object();
     return nlohmann::json::parse(resp);
 }
 
-/// POST synchrone (corps vide par défaut — l'API plex.tv utilise les query params).
+/// Synchronous POST (empty body by default — the plex.tv API uses query params).
 inline nlohmann::json postSync(
     const std::string& url, const std::string& token, const std::string& body = "", long timeout = HTTP::TIMEOUT) {
     std::string resp = HTTP::post(url, body, headers(token), HTTP::Timeout{timeout});
@@ -69,8 +69,8 @@ inline nlohmann::json postSync(
     return nlohmann::json::parse(resp);
 }
 
-/// GET asynchrone : parse la réponse vers `Result` (les modèles de
-/// api/plex/types.hpp, dont Container<T>) puis rappelle `then` sur le thread UI.
+/// Async GET: parses the response into `Result` (the models from
+/// api/plex/types.hpp, including Container<T>) then calls `then` on the UI thread.
 template <typename Result, typename... Args>
 inline void getJSON(const std::string& base, const std::string& token, const std::function<void(Result)>& then,
     OnError error, std::string_view path, Args&&... args) {
@@ -85,8 +85,8 @@ inline void getJSON(const std::string& base, const std::string& token, const std
     });
 }
 
-/// GET asynchrone « fire and forget » (scrobble, timeline…) : le succès est
-/// silencieux, l'échec est journalisé ou remonté.
+/// Fire-and-forget async GET (scrobble, timeline...): success is silent,
+/// failure is logged or reported.
 template <typename... Args>
 inline void getAction(
     const std::string& base, const std::string& token, OnError error, std::string_view path, Args&&... args) {
@@ -103,8 +103,8 @@ inline void getAction(
     });
 }
 
-/// PUT asynchrone « fire and forget » (actions watchlist du provider plex.tv :
-/// corps vide, paramètres en query string). Succès rappelé sur le thread UI.
+/// Fire-and-forget async PUT (watchlist actions on the plex.tv provider:
+/// empty body, parameters in the query string). Success is called back on the UI thread.
 template <typename... Args>
 inline void putAction(const std::string& base, const std::string& token, const std::function<void()>& then,
     OnError error, std::string_view path, Args&&... args) {
@@ -122,8 +122,7 @@ inline void putAction(const std::string& base, const std::string& token, const s
     });
 }
 
-/// Paramètres de pagination MediaContainer (query params, malgré le nom X-Plex-*)
-/// (plex_client.dart:928-933).
+/// MediaContainer pagination parameters (query params, despite the X-Plex-* name).
 inline void addPagination(HTTP::Form& form, size_t start, size_t size) {
     form["X-Plex-Container-Start"] = std::to_string(start);
     form["X-Plex-Container-Size"] = std::to_string(size);

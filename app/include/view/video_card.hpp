@@ -9,10 +9,10 @@ class SVGImage;
 class BaseCardCell : public RecyclingGridItem {
 public:
     BaseCardCell() {
-        // appui long (souris/touch) = ouvrir le menu contextuel : rejoue
-        // l'action BUTTON_X de la cellule (la même que F4 / KeyBind Setting),
-        // après avoir focus la cellule. Point unique : couvre home, grilles,
-        // recherche, épisodes de série et fiche personne.
+        // long press (mouse/touch) = open the context menu: replays the
+        // cell's BUTTON_X action (the same as F4 / KeyBind Setting),
+        // after focusing the cell. Single point: covers home, grids,
+        // search, show episodes and person page.
         this->addGestureRecognizer(new LongPressGestureRecognizer(this));
     }
 
@@ -20,16 +20,16 @@ public:
 
     void prepareForReuse() override {
         this->picture->setImageFromRes("img/video-card-bg.png");
-        // cellule recyclée : jamais de ticker hérité d'un bind précédent
+        // recycled cell: never a ticker inherited from a previous bind
         this->setLabelsTicker(false);
     }
 
     void cacheForReuse() override { Image::cancel(this->picture); }
 
-    /// ---- ticker des titres/sous-titres piloté par le focus de la carte ----
-    /// Le focus vit sur pic_box (getDefaultFocus), pas sur la racine de la
-    /// cellule : on écoute donc la remontée onChildFocus* plutôt que
-    /// onFocusGained/Lost. setAnimated(false) restaure l'ellipse (onLayout).
+    /// ---- title/subtitle ticker driven by the card's focus ----
+    /// Focus lives on pic_box (getDefaultFocus), not on the cell root:
+    /// so we listen to the onChildFocus* bubbling rather than
+    /// onFocusGained/Lost. setAnimated(false) restores the ellipsis (onLayout).
     void onChildFocusGained(brls::View* directChild, brls::View* focusedView) override {
         this->setLabelsTicker(true);
         RecyclingGridItem::onChildFocusGained(directChild, focusedView);
@@ -40,20 +40,20 @@ public:
         RecyclingGridItem::onChildFocusLost(directChild, focusedView);
     }
 
-    /// Box::onParentFocus* diffuse l'événement à TOUTE la descendance : un
-    /// ancêtre focusé (onglet, grille) allumait le ticker de toutes les
-    /// cartes via Label::autoAnimate — d'où des labels qui défilaient en
-    /// permanence. Avalé ici : le défilement ne dépend plus que du focus de
-    /// la carte elle-même (hooks onChildFocus* ci-dessus).
+    /// Box::onParentFocus* broadcasts the event to the WHOLE descendance: a
+    /// focused ancestor (tab, grid) lit the ticker of every card via
+    /// Label::autoAnimate — hence labels scrolling permanently.
+    /// Swallowed here: scrolling now only depends on the focus of the
+    /// card itself (onChildFocus* hooks above).
     void onParentFocusGained(brls::View* focusedView) override { (void)focusedView; }
 
     void onParentFocusLost(brls::View* focusedView) override { (void)focusedView; }
 
-    /// le halo de focus n'entoure que l'affiche, pas le bloc de titres.
-    /// Contrat borealis : getDefaultFocus peut renvoyer this/nullptr mais ne
-    /// doit JAMAIS throw — résolution par id (nullptr si absent du layout de
-    /// la sous-classe) au lieu d'un binding BRLS_BIND qui throw
-    /// (ViewNotFoundException → SIGABRT, cf. crashs 084700/090535).
+    /// the focus halo only surrounds the poster, not the title block.
+    /// Borealis contract: getDefaultFocus may return this/nullptr but must
+    /// NEVER throw — resolution by id (nullptr if absent from the
+    /// subclass layout) instead of a BRLS_BIND binding that throws
+    /// (ViewNotFoundException -> SIGABRT).
     brls::View* getDefaultFocus() override {
         brls::View* pic = this->getView("video/card/pic_box");
         if (pic && pic->isFocusable()) return pic;
@@ -65,10 +65,10 @@ public:
     BRLS_BIND(brls::Label, labelExt, "video/card/label/ext");
 
 private:
-    /// (dés)active le défilement des labels singleLine de la carte.
-    /// Résolution par id avec repli silencieux (même contrat anti-throw que
-    /// getDefaultFocus) : les sous-classes n'ont pas toutes les mêmes labels
-    /// (episode_card.xml n'a pas video/card/label/*, et inversement).
+    /// Enables/disables the ticker of the card's singleLine labels.
+    /// Resolution by id with silent fallback (same anti-throw contract as
+    /// getDefaultFocus): subclasses do not all have the same labels
+    /// (episode_card.xml has no video/card/label/*, and vice versa).
     void setLabelsTicker(bool on) {
         static const char* ids[] = {"video/card/label/title", "video/card/label/ext", "episode/card/name"};
         for (auto* id : ids) {

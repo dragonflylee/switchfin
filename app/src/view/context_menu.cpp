@@ -77,7 +77,7 @@ ContextMenu::ContextMenu(const plex::Item& item, brls::Box* host) : itemId(item.
     });
     this->cancel->addGestureRecognizer(new brls::TapGestureRecognizer(this->cancel));
 
-    // en-tête contextuel : on agit sur quoi ?
+    // contextual header: what are we acting on?
     if (item.type == plex::mediaTypeEpisode) {
         this->labelTitle->setText(item.grandparentTitle.empty() ? item.title : item.grandparentTitle);
         this->labelSubtitle->setText(fmt::format("S{}E{} — {}", item.parentIndex, item.index, item.title));
@@ -86,8 +86,8 @@ ContextMenu::ContextMenu(const plex::Item& item, brls::Box* host) : itemId(item.
         this->labelSubtitle->setVisibility(brls::Visibility::GONE);
     }
 
-    // navigation : utile surtout quand le clic principal lance la lecture
-    // (épisodes des rangées « Continuer à regarder ») ou ouvre autre chose
+    // navigation: mostly useful when the primary click starts playback
+    // (episodes of the "Continue watching" rows) or opens something else
     if (!item.grandparentRatingKey.empty()) {
         this->btnGoSeries->setVisibility(brls::Visibility::VISIBLE);
         this->btnGoSeries->registerClickAction([item, host](...) {
@@ -143,15 +143,15 @@ ContextMenu::ContextMenu(const plex::Item& item, brls::Box* host) : itemId(item.
     this->btnMarkPlay->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnMarkPlay));
     this->btnMarkPlay->setSelected(item.played());
 
-    // watchlist plex.tv : films et séries uniquement (l'API provider ne prend
-    // ni épisodes ni saisons) ; l'entrée reste cachée tant que l'état n'est
-    // pas connu (requête provider async — voir initWatchlist)
+    // plex.tv watchlist: movies and shows only (the provider API accepts
+    // neither episodes nor seasons); the entry stays hidden until the
+    // state is known (async provider request — see initWatchlist)
     if (item.type == plex::mediaTypeMovie || item.type == plex::mediaTypeShow) {
         if (!item.guid.empty()) {
             this->initWatchlist(item.guid);
         } else {
-            // guid absent de certaines listes : le récupérer du serveur avant
-            // d'interroger le provider
+            // guid missing from some listings: fetch it from the server
+            // before querying the provider
             ASYNC_RETAIN
             plex::getJSON<plex::Container<plex::Item>>(
                 AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
@@ -198,15 +198,15 @@ ContextMenu::ContextMenu(const plex::Item& item, brls::Box* host) : itemId(item.
 
 void ContextMenu::initWatchlist(const std::string& guid) {
     this->itemGuid = guid;
-    // ancien agent (guid non plex://…) : titre non adressable sur le provider
+    // legacy agent (non plex:// guid): title not addressable on the provider
     if (plex::providerRatingKey(guid).empty()) return;
 
     this->btnWatchlist->registerClickAction([this](brls::View* view) { return this->toggleWatchlist(); });
     this->btnWatchlist->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnWatchlist));
 
     ASYNC_RETAIN
-    // état : GET metadata.provider/library/metadata/{key}?includeUserState=1
-    // (api/plex/watchlist.hpp — champ watchlistedAt présent ⇔ watchlisté)
+    // state: GET metadata.provider/library/metadata/{key}?includeUserState=1
+    // (api/plex/watchlist.hpp — watchlistedAt field present iff watchlisted)
     plex::fetchWatchlistState(
         guid,
         [ASYNC_TOKEN](bool state) {
@@ -217,8 +217,8 @@ void ContextMenu::initWatchlist(const std::string& guid) {
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            // état inconnu : l'entrée reste cachée plutôt que de proposer une
-            // action à contresens
+            // unknown state: the entry stays hidden rather than offering a
+            // backwards action
             brls::Logger::warning("ContextMenu watchlist state: {}", ex);
         });
 }
@@ -245,7 +245,7 @@ bool ContextMenu::toggleWatchlist() {
 bool ContextMenu::doPlayed() {
     auto& conf = AppConfig::instance();
     ASYNC_RETAIN
-    // GET /:/scrobble (plex_client.dart:1681-1688)
+    // GET /:/scrobble
     plex::getAction(
         conf.getUrl(), conf.getToken(),
         [ASYNC_TOKEN](const std::string& ex) {
@@ -260,7 +260,7 @@ bool ContextMenu::doPlayed() {
 bool ContextMenu::unPlayed() {
     auto& conf = AppConfig::instance();
     ASYNC_RETAIN
-    // GET /:/unscrobble (plex_client.dart:1693-1700)
+    // GET /:/unscrobble
     plex::getAction(
         conf.getUrl(), conf.getToken(),
         [ASYNC_TOKEN](const std::string& ex) {

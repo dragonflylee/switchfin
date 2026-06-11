@@ -1,8 +1,8 @@
-<!-- Onglet Téléchargements : en-tête « Stockage » fixe (carte color/surface,
-     barre segmentée disque dessinée en nvg — SegmentedBar, download_tab.cpp)
-     au-dessus de la liste sectionnée « En cours » / « Téléchargés ». -->
-<!-- paddingTop 70 : la barre d'onglets du tab Téléchargements (60) flotte
-     au-dessus ; la carte Stockage (fixe) doit démarrer sous elle -->
+<!-- Downloads tab: fixed "Storage" header (color/surface card,
+     segmented disk bar drawn in nvg — SegmentedBar, download_tab.cpp)
+     above the sectioned "In progress" / "Downloaded" list. -->
+<!-- paddingTop 70: the Downloads tab's tab bar (60) floats above;
+     the (fixed) Storage card must start below it -->
 <brls:Box
     width="auto"
     height="auto"
@@ -26,8 +26,8 @@
             fontSize="20"
             marginBottom="16" />
 
-        <!-- piste 12px remplie par la SegmentedBar (C++) :
-             [reste du disque | pleNx (or) | libre (gris sombre)] -->
+        <!-- 12px track filled by the SegmentedBar (C++):
+             [rest of disk | pleNx (gold) | free (dark gray)] -->
         <brls:Box
             id="downloads/storage/bar"
             height="12"
@@ -59,8 +59,8 @@
         </brls:Box>
     </brls:Box>
 
-    <!-- flowMode : hauteurs par ligne (heightForRow) pour mêler têtes de
-         section (non focusables) et cartes -->
+    <!-- flowMode: per-row heights (heightForRow) to mix section headers
+         (non-focusable) and cards -->
     <RecyclingGrid
         id="downloads/list"
         grow="1.0"

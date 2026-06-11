@@ -3,9 +3,9 @@
     height="auto"
     axis="column">
 
-    <!-- page complète d'un hub (carte « + » des rangées related) : TOUT
-         défile, l'en-tête (titre + « N éléments ») est une vue scrollée de
-         la grille (setHeaderView) ; retraits internes au scroll -->
+    <!-- full page of a hub ("+" card of the related rows): EVERYTHING
+         scrolls, the header (title + "N items") is a scrolled view of
+         the grid (setHeaderView); insets inside the scroll -->
     <RecyclingGrid
         grow="1"
         wireframe="false"

@@ -2,8 +2,8 @@
     width="auto"
     height="auto">
 
-    <!-- retraits internes au scroll : cartes jusqu'aux bords (pattern
-         collection.xml). Cartes affiches 2:3 (itemImageRatio = h/w) -->
+    <!-- insets inside the scroll: cards up to the edges (collection.xml
+         pattern). 2:3 poster cards (itemImageRatio = h/w) -->
     <RecyclingGrid
         grow="1"
         wireframe="false"

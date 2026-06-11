@@ -1,9 +1,9 @@
 /*
-    pleNx — formulaire d'ajout/édition d'un serveur de fichiers distant
-    (WebDAV / FTP / SFTP / index HTTP). Panneau latéral poussé en activité
-    (même patron que PlayerSetting). La sauvegarde est conditionnée à un
-    test de connexion réussi : listing du chemin de départ via le client
-    correspondant (app/src/client/client.cpp route le schéma d'URL).
+    pleNx — add/edit form for a remote file server
+    (WebDAV / FTP / SFTP / HTTP index). Side panel pushed as an activity
+    (same pattern as PlayerSetting). Saving is gated on a successful
+    connection test: listing of the start path through the matching
+    client (app/src/client/client.cpp routes the URL scheme).
 */
 
 #pragma once
@@ -13,12 +13,12 @@
 
 class RemoteAdd : public brls::Box {
 public:
-    /// editIndex < 0 : ajout ; sinon édition de AppConfig::getRemotes()[editIndex]
+    /// editIndex < 0: add; otherwise edits AppConfig::getRemotes()[editIndex]
     RemoteAdd(std::function<void()> onDone, int editIndex = -1);
     ~RemoteAdd() override;
 
-    /// Pousse le formulaire en activité. `onDone` est appelé après une
-    /// sauvegarde réussie (l'appelant rafraîchit sa liste de serveurs).
+    /// Pushes the form as an activity. `onDone` is called after a
+    /// successful save (the caller refreshes its server list).
     static void open(std::function<void()> onDone, int editIndex = -1);
 
 private:
@@ -34,15 +34,15 @@ private:
     BRLS_BIND(brls::ProgressSpinner, spinner, "remote/add/spinner");
     BRLS_BIND(brls::Box, cancel, "remote/add/cancel");
 
-    /// Assemble un AppRemote depuis les champs ; lève std::runtime_error
-    /// (message i18n) si un champ requis manque.
+    /// Builds an AppRemote from the fields; throws std::runtime_error
+    /// (i18n message) if a required field is missing.
     AppRemote build();
-    /// Valide, teste la connexion (async + spinner) puis enregistre.
+    /// Validates, tests the connection (async + spinner) then saves.
     void submit();
 
     std::function<void()> onDone;
     int editIndex;
-    /// index courant du sélecteur de type (pour ne remplacer le port que
-    /// s'il vaut encore le défaut du type précédent)
+    /// current index of the type selector (to only replace the port if it
+    /// still holds the previous type's default)
     int typeIndex = 0;
 };

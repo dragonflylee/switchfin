@@ -1,6 +1,6 @@
-<!-- Carte de téléchargement : affiche 2:3 arrondie, titre + sous-titre,
-     bloc progression (or) pour l'élément en cours, badge d'état + taille à
-     droite. Variantes pilotées par DownloadCard::setItem (download_tab.cpp). -->
+<!-- Download card: rounded 2:3 poster, title + subtitle, progress block
+     (gold) for the in-progress item, state badge + size on the right.
+     Variants driven by DownloadCard::setItem (download_tab.cpp). -->
 <brls:Box
     highlightCornerRadius="14"
     cornerRadius="12"
@@ -11,7 +11,7 @@
     paddingRight="18"
     alignItems="center">
 
-    <!-- cornerRadius obligatoire : c'est lui qui clippe le scalingType="fill" -->
+    <!-- cornerRadius mandatory: it is what clips the scalingType="fill" -->
     <brls:Image
         id="download/thumb"
         width="76"
@@ -45,7 +45,7 @@
             axis="column"
             marginTop="14"
             visibility="gone">
-            <!-- piste 6px remplie par la SegmentedBar (C++) : progression or -->
+            <!-- 6px track filled by the SegmentedBar (C++): gold progress -->
             <brls:Box
                 id="download/progress/track"
                 height="6" />
@@ -57,9 +57,9 @@
         </brls:Box>
     </brls:Box>
 
-    <!-- borealis n'accepte que le camelCase (flexEnd) : "flex-end" est un
-         FATAL à l'inflate — et ce XML ne s'inflate qu'à la PREMIÈRE cellule,
-         donc uniquement quand la liste de téléchargements n'est pas vide -->
+    <!-- borealis only accepts camelCase (flexEnd): "flex-end" is a
+         FATAL at inflate — and this XML only inflates at the FIRST cell,
+         so only when the download list is not empty -->
     <brls:Box
         axis="column"
         alignItems="flexEnd"

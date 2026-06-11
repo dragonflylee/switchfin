@@ -2,15 +2,15 @@
     width="auto"
     height="auto">
 
-    <!-- centered : cf. suggest_show.xml (le natural volait le focus) -->
+    <!-- centered: cf. suggest_show.xml (natural stole the focus) -->
     <brls:ScrollingFrame
         width="auto"
         height="auto"
         grow="1.0"
         scrollingBehavior="centered">
 
-        <!-- pas de padding latéral ici : chaque rangée porte le sien
-             (sidePadding) pour que les cartes défilent jusqu'aux bords -->
+        <!-- no side padding here: each row carries its own (sidePadding)
+             so the cards scroll up to the edges -->
         <brls:Box
             axis="column"
             id="home/box"

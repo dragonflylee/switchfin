@@ -61,7 +61,7 @@ void DownloadManager::addDownload(const std::string& itemId) {
     }
 
     auto& conf = AppConfig::instance();
-    // métadonnées : GET /library/metadata/{ratingKey} (plex_client.dart:1607-1626)
+    // metadata: GET /library/metadata/{ratingKey}
     plex::getJSON<plex::Container<plex::Item>>(
         conf.getUrl(), conf.getToken(),
         [this](const plex::Container<plex::Item>& r) {
@@ -82,11 +82,11 @@ void DownloadManager::addDownload(const std::string& itemId) {
             dl.episodeIndex = (int)item.index;
             dl.productionYear = (long)item.year;
             dl.durationMs = item.duration;
-            // affiche (poster) : pour un épisode, celle de la saison/série
+            // poster: for an episode, the season's/show's
             dl.thumb = item.type == plex::mediaTypeEpisode
                            ? (!item.parentThumb.empty() ? item.parentThumb : item.grandparentThumb)
                            : item.thumb;
-            // première Part accessible : qualité originale (PLEX_MIGRATION.md D2)
+            // first accessible Part: original quality (PLEX_MIGRATION.md D2)
             for (auto& media : item.media) {
                 for (auto& part : media.parts) {
                     if (!part.key.empty()) {
@@ -224,8 +224,8 @@ std::vector<DownloadItem> DownloadManager::getItems() const {
 
 std::string DownloadManager::buildDownloadUrl(const DownloadItem& item) const {
     auto& conf = AppConfig::instance();
-    // fichier original : {base}{Part.key}?download=1&X-Plex-Token=…
-    // (PLEX_MIGRATION.md D2 — pas de téléchargement transcodé en v1)
+    // original file: {base}{Part.key}?download=1&X-Plex-Token=...
+    // (PLEX_MIGRATION.md D2 — no transcoded download in v1)
     return plex::withToken(conf.getUrl() + item.partKey + "?download=1", conf.getToken());
 }
 
@@ -298,8 +298,8 @@ void DownloadManager::doDownload(DownloadItem& item) {
             resetQueue("Cancelled");
             return;
         }
-        // extension du fichier original, lue depuis Part.key
-        // (ex. /library/parts/{id}/{ts}/file.mkv)
+        // extension of the original file, read from Part.key
+        // (e.g. /library/parts/{id}/{ts}/file.mkv)
         std::string ext = "mp4";
         auto dot = partKey.find_last_of('.');
         if (dot != std::string::npos && dot > partKey.find_last_of('/')) {

@@ -17,12 +17,12 @@ public:
 
     void onCreate() override;
 
-    /// Reconstruit les pills (serveurs distants + Téléchargements + Fichiers)
-    /// après ajout/édition/suppression d'un serveur.
+    /// Rebuilds the pills (remote servers + Downloads + Files)
+    /// after a server is added/edited/deleted.
     void refresh();
 
 private:
-    /// Menu « Gérer le serveur » (modifier / supprimer) d'un serveur distant
+    /// "Manage server" menu (edit / delete) for a remote server
     void manageRemote(size_t index, const AppRemote& r);
 
     BRLS_BIND(AutoTabFrame, tabFrame, "remote/tabFrame");

@@ -12,8 +12,8 @@ RemoteTab::RemoteTab() {
     brls::Logger::debug("RemoteTab: create");
     this->tabFrame->registerTabAction(this);
 
-    // ajout d'un serveur WebDAV/FTP/SFTP : accessible depuis toutes les pills
-    // (enregistré ici et non dans onCreate : refresh() rejoue onCreate)
+    // adding a WebDAV/FTP/SFTP server: reachable from every pill
+    // (registered here and not in onCreate: refresh() replays onCreate)
     this->registerAction("main/remote/add_server"_i18n, brls::BUTTON_X, [this](...) {
         RemoteAdd::open([this]() { this->refresh(); });
         return true;
@@ -32,11 +32,11 @@ void RemoteTab::onCreate() {
         const AppRemote r = remotes[i];
         item = new AutoSidebarItem();
         item->setTabStyle(AutoTabBarStyle::ACCENT);
-        // 18 : même corps que les onglets des bibliothèques (collection)
+        // 18: same size as the library tabs (collection)
         item->setFontSize(18);
         item->setLabel(r.name);
 
-        // gérer (modifier/supprimer) depuis la pill comme depuis le contenu
+        // manage (edit/delete) from the pill as well as from the content
         auto manage = [this, i, r](brls::View*) {
             this->manageRemote(i, r);
             return true;
@@ -52,8 +52,8 @@ void RemoteTab::onCreate() {
                 return view;
             });
         } catch (const std::exception& ex) {
-            // schéma invalide ou non supporté : la pill reste affichée pour
-            // pouvoir éditer/supprimer le serveur, le contenu montre l'erreur
+            // invalid or unsupported scheme: the pill stays shown so the
+            // server can be edited/deleted, the content shows the error
             brls::Logger::warning("remote {} create {}", r.name, ex.what());
             std::string error = ex.what();
             this->tabFrame->addTab(item, [error]() {
@@ -81,14 +81,14 @@ void RemoteTab::onCreate() {
     item->setFontSize(18);
     item->setLabel("main/remote/local"_i18n);
     this->tabFrame->addTab(item, [this]() {
-        // état vide : bouton « Ajouter un serveur » sous le placeholder
+        // empty state: "Add a server" button under the placeholder
         return new UmsView([this]() { RemoteAdd::open([this]() { this->refresh(); }); });
     });
 }
 
 void RemoteTab::refresh() {
-    // le focus peut être dans une vue sur le point d'être détruite :
-    // on le replace d'abord sur la sidebar du frame parent (qui survit)
+    // the focus may be in a view about to be destroyed: first put it
+    // back on the parent frame's sidebar (which survives)
     AutoTabFrame::focus2Sidebar(this);
     this->tabFrame->clearTabs();
     this->onCreate();

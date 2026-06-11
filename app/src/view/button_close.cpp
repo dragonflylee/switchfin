@@ -12,8 +12,8 @@ ButtonClose::ButtonClose() {
     this->registerColorXMLAttribute("textColor", [this](NVGcolor value) { this->setTextColor(value); });
 
     this->registerClickAction([this](...) {
-        // fiche empilée dans le tab frame : la croix dépile la fiche au lieu
-        // de dépiler l'AppletFrame (qui afficherait « Quitter ? »)
+        // detail page stacked in the tab frame: the cross pops the page
+        // instead of popping the AppletFrame (which would show "Quit?")
         if (!ui::popDetail(this)) this->dismiss();
         return true;
     });

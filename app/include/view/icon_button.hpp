@@ -1,7 +1,7 @@
 /*
-    pleNx — bouton avec icône + libellé (brls::Button ne supporte pas d'icône).
-    Styles : "primary" (fond or, texte sombre) et "bordered" (contour).
-    Attributs XML : icon (@res/...), text (@i18n/...), buttonStyle.
+    pleNx — button with icon + label (brls::Button does not support an icon).
+    Styles: "primary" (gold background, dark text) and "bordered" (outline).
+    XML attributes: icon (@res/...), text (@i18n/...), buttonStyle.
 */
 
 #pragma once

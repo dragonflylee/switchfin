@@ -1,5 +1,5 @@
-<!-- en-tête scrollé d'une grille pleine page (RecyclingGrid::setHeaderView) :
-     titre + ligne méta — partagé par la vue playlist et la page de hub -->
+<!-- scrolled header of a full-page grid (RecyclingGrid::setHeaderView):
+     title + meta line — shared by the playlist view and the hub page -->
 <brls:Box
     axis="column"
     justifyContent="flexStart">

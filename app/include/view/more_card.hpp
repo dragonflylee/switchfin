@@ -1,8 +1,8 @@
 /*
-    pleNx — carte « + » de fin de rangée (hubs avec more=1) : ouvre la page
-    complète du hub (HubView). Squelette aligné sur video_card.xml ; PAS un
-    BaseCardCell (pas d'affiche ni de menu contextuel — et BaseCardCell
-    résout "video/card/picture", absent ici).
+    pleNx — end-of-row "+" card (hubs with more=1): opens the full hub page
+    (HubView). Skeleton aligned with video_card.xml; NOT a BaseCardCell
+    (no poster nor context menu — and BaseCardCell resolves
+    "video/card/picture", absent here).
 */
 
 #pragma once
@@ -15,7 +15,7 @@ public:
 
     static RecyclingGridItem* create() { return new MoreCardCell(); }
 
-    /// halo de focus sur la vignette seulement (contrat des cartes médias)
+    /// focus halo on the thumbnail only (media cards contract)
     brls::View* getDefaultFocus() override {
         brls::View* box = this->getView("more/card/box");
         if (box && box->isFocusable()) return box;

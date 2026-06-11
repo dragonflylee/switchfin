@@ -1,6 +1,6 @@
 /*
-    pleNx — fiche personne : portrait + filmographie (films / séries).
-    Données : GET /library/people/{id}/media (plex_client.dart:2509-2511).
+    pleNx — person page: portrait + filmography (movies / shows).
+    Data: GET /library/people/{id}/media.
 */
 
 #pragma once

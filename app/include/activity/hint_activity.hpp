@@ -1,9 +1,9 @@
 /*
-    Écran « lancement en application complète » : poussé au boot en mode
-    applet (mémoire insuffisante pour la lecture vidéo) et accessible en
-    mode application via Réglages → « How to install desktop icon » ou la
-    proposition du premier lancement (main.cpp). Guide vers la tuile NSP
-    intégrée (BUILTIN_NSP) ou le title takeover.
+    "Launch as full application" screen: pushed at boot in applet mode
+    (insufficient memory for video playback) and reachable in application
+    mode via Settings -> "How to install desktop icon" or the first-launch
+    prompt (main.cpp). Guides towards the embedded NSP tile (BUILTIN_NSP)
+    or title takeover.
 */
 
 #pragma once

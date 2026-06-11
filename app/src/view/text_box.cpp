@@ -9,9 +9,9 @@ static YGSize textBoxMeasureFunc(
 
     YGSize size = {.width = width, .height = height};
     if (heightMode == YGMeasureMode::YGMeasureModeExactly) return size;
-    // jamais de NaN en sortie de mesure : en mesure libre yoga passe
-    // height=NaN, et la renvoyer telle quelle dégénère tout le layout parent
-    // (bug « Scrubs S1-8 » : overview vide → en-tête de saison plein écran)
+    // never output NaN from a measure: in free measure yoga passes
+    // height=NaN, and returning it as-is degenerates the whole parent
+    // layout (empty overview -> full-screen season header)
     if (fullText.empty()) {
         size.height = 0;
         return size;

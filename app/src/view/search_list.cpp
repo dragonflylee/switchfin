@@ -21,8 +21,8 @@ SearchList::SearchList() {
 SearchList::~SearchList() { brls::Logger::debug("View SearchList: delete"); }
 
 void SearchList::doRequest(const std::string& searchTerm) {
-    // attribut XML itemType "Movie"/"Series" → searchTypes Plex ; la colonne
-    // « Episode » n'a pas d'équivalent /library/search (retirée du XML)
+    // itemType XML attribute "Movie"/"Series" -> Plex searchTypes; the
+    // "Episode" column has no /library/search equivalent (removed from the XML)
     bool series = this->itemType == "Series";
     std::string query = HTTP::encode_form({
         {"query", searchTerm},
@@ -37,7 +37,7 @@ void SearchList::doRequest(const std::string& searchTerm) {
         AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
         [ASYNC_TOKEN, wanted](const plex::Container<plex::Item>& r) {
             ASYNC_RELEASE
-            // /library/search renvoie des types mêlés → filtre côté client
+            // /library/search returns mixed types -> client-side filter
             std::vector<plex::Item> items;
             for (auto& it : r.Items) {
                 if (it.type == wanted) items.push_back(it);

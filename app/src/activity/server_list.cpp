@@ -15,14 +15,14 @@
 
 using namespace brls::literals;  // for _i18n
 
-/// Élide une URL trop longue par le milieu : « https://90-105-213-…plex.direct:32400 ».
-/// Le DetailCell borealis dessine le détail aligné à droite SANS scissor
-/// (cell_detail.cpp:41-48, label.cpp:492-507) : un texte plus large que sa case
-/// déborde vers la gauche par-dessus le titre. On borne donc la chaîne en amont
-/// pour un rendu déterministe, en préservant la fin (hôte:port) plus parlante.
+/// Middle-elides an overly long URL: "https://90-105-213-…plex.direct:32400".
+/// The borealis DetailCell draws the detail right-aligned WITHOUT scissor
+/// (cell_detail.cpp:41-48, label.cpp:492-507): text wider than its cell
+/// overflows leftward over the title. So we bound the string upfront for a
+/// deterministic render, preserving the more meaningful tail (host:port).
 static std::string elideMiddle(const std::string& s, size_t budget) {
     if (s.size() <= budget) return s;
-    size_t keep = budget - 1;  // 1 emplacement pour l'ellipsis « … »
+    size_t keep = budget - 1;  // 1 slot for the "…" ellipsis
     size_t head = (keep + 1) / 2;
     size_t tail = keep - head;
     return s.substr(0, head) + "…" + s.substr(s.size() - tail);
@@ -99,17 +99,17 @@ public:
             return true;
         });
 
-        // avatar plex.tv (URL absolue)
+        // plex.tv avatar (absolute URL)
         if (!u.thumb.empty()) Image::with(cell->picture, u.thumb);
         return cell;
     }
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
         brls::Application::blockInputs();
-        // La sonde des URL ci-dessous peut durer plusieurs secondes (timeout
-        // 2 s PAR URL, en série, cf. plex_auth.cpp:probeConnection ; les
-        // serveurs plex.direct en annoncent 10+) : écran de chargement
-        // plutôt qu'un écran figé (recette n°6).
+        // The URL probing below can take several seconds (2 s timeout PER
+        // URL, in series, cf. plex_auth.cpp:probeConnection; plex.direct
+        // servers advertise 10+ of them): show a loading screen rather
+        // than a frozen one.
         brls::Application::pushActivity(new LoadingActivity(), brls::TransitionAnimation::NONE);
         std::string unreachable = "main/plex/unreachable"_i18n;
 
@@ -127,8 +127,8 @@ public:
                 }
                 if (!found) throw std::runtime_error(unreachable);
 
-                // Rafraîchit le token serveur de ce profil quand plex.tv répond ;
-                // hors-ligne on garde le token mémorisé (LAN direct).
+                // Refreshes this profile's server token when plex.tv responds;
+                // offline we keep the remembered token (direct LAN).
                 try {
                     for (auto& r : plex::getResources(u.access_token)) {
                         if (r.clientIdentifier == target.id && !r.accessToken.empty())
@@ -161,7 +161,7 @@ public:
                 std::string msg = ex.what();
                 brls::sync([msg]() {
                     brls::Application::unblockInputs();
-                    // retire l'écran de chargement avant d'afficher l'erreur
+                    // removes the loading screen before showing the error
                     brls::Application::popActivity(brls::TransitionAnimation::NONE);
                     Dialog::show(msg);
                 });
@@ -182,8 +182,8 @@ ServerList::~ServerList() { brls::Logger::debug("ServerList Activity: delete"); 
 
 void ServerList::onContentAvailable() {
     this->inputUrl->detail->setSingleLine(true);
-    // La case « detail » est plafonnée à 300px (cell_detail.cpp:44) : on l'élargit
-    // pour afficher l'URL élidée (~36 car.) sans re-troncature par le bord droit.
+    // The "detail" cell is capped at 300px (cell_detail.cpp:44): widen it so
+    // the elided URL (~36 chars) shows without re-truncation at the right edge.
     this->inputUrl->detail->setMaxWidth(520);
     this->tabFrame->setTabChangedAction([this](size_t index) {
         if (!index) this->willAppear();

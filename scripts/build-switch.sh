@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Construit pleNx.nro pour Nintendo Switch via Docker (image devkitPro),
-# en répliquant le job `build-nx` de .github/workflows/build.yaml.
+# Builds pleNx.nro for Nintendo Switch via Docker (devkitPro image),
+# replicating the `build-nx` job of .github/workflows/build.yaml.
 #
-# Usage :
-#   ./scripts/build-switch.sh             # pilote deko3d (recommandé)
+# Usage:
+#   ./scripts/build-switch.sh             # deko3d driver (recommended)
 #   DRIVER=opengl ./scripts/build-switch.sh
 #
-# prod.keys : si ~/.switch/prod.keys existe, il est utilisé pour le forwarder
-# NSP ; sinon le CMake du forwarder en télécharge un public (comme la CI).
+# prod.keys: if ~/.switch/prod.keys exists, it is used for the forwarder
+# NSP; otherwise the forwarder's CMake downloads a public one (like the CI).
 
 set -euo pipefail
 
@@ -26,8 +26,8 @@ else
     LIBMPV_PKG="switch-libmpv-0.36.0-5-any.pkg.tar.zst"
 fi
 
-# Docker Desktop ne partage pas ~/.switch : copie temporaire des clés dans
-# l'arbre du projet (gitignorée, supprimée en sortie de script)
+# Docker Desktop does not share ~/.switch: temporary copy of the keys into
+# the project tree (gitignored, removed when the script exits)
 KEYSET_ARG=""
 if [ -f "$HOME/.switch/prod.keys" ]; then
     echo ">> prod.keys local détecté (~/.switch/prod.keys)"
