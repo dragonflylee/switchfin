@@ -80,7 +80,10 @@ jobs:
         name: pleNx ${{ github.ref_name }}
         tag_name: ${{ github.ref_name }}
         body_path: RELEASE_NOTES.md
-        draft: true
+        # publication directe : le job ne tourne qu'après le succès de TOUS les
+        # builds, et le tag/changelog sont validés en amont — dès que la release
+        # existe, l'updater in-app la voit (releases/latest ignore les drafts)
+        draft: false
         files: |
           assets/pleNx-windows-*.7z
           assets/pleNx-macOS-*/*.dmg
