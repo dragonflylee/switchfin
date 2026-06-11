@@ -1,5 +1,5 @@
 diff --git a/library/include/borealis/core/application.hpp b/library/include/borealis/core/application.hpp
-index 3171304..d8223c0 100644
+index 31713045..d8223c0c 100644
 --- a/library/include/borealis/core/application.hpp
 +++ b/library/include/borealis/core/application.hpp
 @@ -355,6 +355,12 @@ class Application
@@ -16,7 +16,7 @@ index 3171304..d8223c0 100644
  
      static void removeWatchedKeys(const BrlsKeyCombination key);
 diff --git a/library/include/borealis/core/notification_manager.hpp b/library/include/borealis/core/notification_manager.hpp
-index 6f92431..024a5df 100644
+index 6f92431b..024a5dfe 100644
 --- a/library/include/borealis/core/notification_manager.hpp
 +++ b/library/include/borealis/core/notification_manager.hpp
 @@ -33,6 +33,8 @@ class Notification : public Box
@@ -29,7 +29,7 @@ index 6f92431..024a5df 100644
  
    private:
 diff --git a/library/include/borealis/core/view.hpp b/library/include/borealis/core/view.hpp
-index 227cd78..6f5411c 100644
+index 227cd789..6f5411ca 100644
 --- a/library/include/borealis/core/view.hpp
 +++ b/library/include/borealis/core/view.hpp
 @@ -1263,6 +1263,19 @@ class View
@@ -53,7 +53,7 @@ index 227cd78..6f5411c 100644
        * Called by frame() to draw the view onscreen.
        * Views should not draw outside of their bounds (they
 diff --git a/library/include/borealis/views/h_scrolling_frame.hpp b/library/include/borealis/views/h_scrolling_frame.hpp
-index c83c51a..4bd52ba 100644
+index c83c51ad..4bd52ba0 100644
 --- a/library/include/borealis/views/h_scrolling_frame.hpp
 +++ b/library/include/borealis/views/h_scrolling_frame.hpp
 @@ -49,6 +49,7 @@ class HScrollingFrame : public Box
@@ -65,7 +65,7 @@ index c83c51a..4bd52ba 100644
  
      /**
 diff --git a/library/include/borealis/views/scrolling_frame.hpp b/library/include/borealis/views/scrolling_frame.hpp
-index bb6275a..5045411 100644
+index bb6275a2..50454118 100644
 --- a/library/include/borealis/views/scrolling_frame.hpp
 +++ b/library/include/borealis/views/scrolling_frame.hpp
 @@ -61,6 +61,7 @@ class ScrollingFrame : public Box
@@ -77,7 +77,7 @@ index bb6275a..5045411 100644
  
      /**
 diff --git a/library/lib/core/application.cpp b/library/lib/core/application.cpp
-index c7d67dc..b66a0da 100644
+index c7d67dcb..cdba6443 100644
 --- a/library/lib/core/application.cpp
 +++ b/library/lib/core/application.cpp
 @@ -523,9 +523,10 @@ void Application::navigate(FocusDirection direction, bool repeating)
@@ -106,7 +106,7 @@ index c7d67dc..b66a0da 100644
      }
  
      return true;
-@@ -1065,6 +1069,29 @@ void Application::addToFreeQueue(View* view)
+@@ -1065,6 +1069,41 @@ void Application::addToFreeQueue(View* view)
      Application::deletionPool.push_back(view);
  }
  
@@ -119,7 +119,19 @@ index c7d67dc..b66a0da 100644
 +    // Application::currentFocus dangling and crash on the next giveFocus
 +    // (oldFocus->onFocusLost() on freed memory).
 +    if (Application::currentFocus == view)
++    {
 +        Application::currentFocus = nullptr;
++
++        // With a null focus, button navigation is permanently dead
++        // (navigate() no-ops) while touch keeps working — on a docked Switch
++        // (no touchscreen) the app is stuck. Schedule a fallback refocus on
++        // the next iteration, once whatever destroyed this view (typically a
++        // content refresh) is done, and only if the focus is still orphaned.
++        sync([]() {
++            if (!Application::currentFocus && !Application::activitiesStack.empty())
++                Application::giveFocus(Application::activitiesStack[Application::activitiesStack.size() - 1]->getDefaultFocus());
++        });
++    }
 +
 +    if (Application::repetitionOldFocus == view)
 +        Application::repetitionOldFocus = nullptr;
@@ -137,7 +149,7 @@ index c7d67dc..b66a0da 100644
  {
      if (!view)
 diff --git a/library/lib/core/box.cpp b/library/lib/core/box.cpp
-index 732b3f8..ec5b57a 100644
+index 732b3f82..ec5b57af 100644
 --- a/library/lib/core/box.cpp
 +++ b/library/lib/core/box.cpp
 @@ -21,6 +21,7 @@
@@ -195,7 +207,7 @@ index 732b3f8..ec5b57a 100644
  
      // Then try default focus
 diff --git a/library/lib/core/notification_manager.cpp b/library/lib/core/notification_manager.cpp
-index 52aefff..af5bcf5 100644
+index 52aefffa..af5bcf54 100644
 --- a/library/lib/core/notification_manager.cpp
 +++ b/library/lib/core/notification_manager.cpp
 @@ -26,10 +26,18 @@ namespace brls
@@ -282,7 +294,7 @@ index 52aefff..af5bcf5 100644
  
  }; // namespace brls
 diff --git a/library/lib/core/style.cpp b/library/lib/core/style.cpp
-index acc310a..bc29454 100644
+index acc310a4..bc294545 100644
 --- a/library/lib/core/style.cpp
 +++ b/library/lib/core/style.cpp
 @@ -36,10 +36,13 @@ static StyleValues styleValues = {
@@ -304,7 +316,7 @@ index acc310a..bc29454 100644
      // Highlight
      { "brls/highlight/stroke_width", 5.0f },
 diff --git a/library/lib/core/theme.cpp b/library/lib/core/theme.cpp
-index aa63fa0..75af9ff 100644
+index aa63fa09..75af9ff2 100644
 --- a/library/lib/core/theme.cpp
 +++ b/library/lib/core/theme.cpp
 @@ -32,6 +32,10 @@ static ThemeValues lightThemeValues = {
@@ -330,7 +342,7 @@ index aa63fa0..75af9ff 100644
      { "brls/highlight/background", nvgRGB(31, 34, 39) },
      { "brls/highlight/color1", nvgRGB(25, 138, 198) },
 diff --git a/library/lib/core/view.cpp b/library/lib/core/view.cpp
-index 59ec77b..f30b097 100644
+index 59ec77bb..f30b0973 100644
 --- a/library/lib/core/view.cpp
 +++ b/library/lib/core/view.cpp
 @@ -307,14 +307,31 @@ void View::drawClickAnimation(NVGcontext* vg, FrameContext* ctx, Rect frame)
@@ -432,7 +444,7 @@ index 59ec77b..f30b097 100644
          delete recognizer;
  
 diff --git a/library/lib/platforms/glfw/glfw_input.cpp b/library/lib/platforms/glfw/glfw_input.cpp
-index 9b31fcf..a6b8a8a 100644
+index 9b31fcfa..a6b8a8a4 100644
 --- a/library/lib/platforms/glfw/glfw_input.cpp
 +++ b/library/lib/platforms/glfw/glfw_input.cpp
 @@ -121,9 +121,28 @@ static void glfwTouchCallback(GLFWwindow* window, int touch, int action, double
@@ -498,7 +510,7 @@ index 9b31fcf..a6b8a8a 100644
      state->buttons[BUTTON_NAV_UP] |= state->buttons[BUTTON_UP];
      state->buttons[BUTTON_NAV_RIGHT] |= state->buttons[BUTTON_RIGHT];
 diff --git a/library/lib/platforms/switch/switch_font.cpp b/library/lib/platforms/switch/switch_font.cpp
-index 3bba889..b2c03d6 100644
+index 3bba8891..b2c03d66 100644
 --- a/library/lib/platforms/switch/switch_font.cpp
 +++ b/library/lib/platforms/switch/switch_font.cpp
 @@ -32,30 +32,43 @@ void SwitchFontLoader::loadFonts()
@@ -554,7 +566,7 @@ index 3bba889..b2c03d6 100644
      rc = plGetSharedFontByType(&font, PlSharedFontType_ExtChineseSimplified);
      if (R_SUCCEEDED(rc) && Application::loadFontFromMemory(FONT_CHINESE_SIMPLIFIED_EXT, font.address, font.size, false))
 diff --git a/library/lib/views/h_scrolling_frame.cpp b/library/lib/views/h_scrolling_frame.cpp
-index da1210f..2013506 100644
+index da1210f4..20135066 100644
 --- a/library/lib/views/h_scrolling_frame.cpp
 +++ b/library/lib/views/h_scrolling_frame.cpp
 @@ -157,8 +157,10 @@ void HScrollingFrame::naturalScrollingBehaviour()
@@ -656,7 +668,7 @@ index da1210f..2013506 100644
  
      return this;
 diff --git a/library/lib/views/scrolling_frame.cpp b/library/lib/views/scrolling_frame.cpp
-index 61978bd..d7ee0eb 100644
+index 61978bd5..d7ee0eb8 100644
 --- a/library/lib/views/scrolling_frame.cpp
 +++ b/library/lib/views/scrolling_frame.cpp
 @@ -157,8 +157,10 @@ void ScrollingFrame::naturalScrollingBehaviour()
