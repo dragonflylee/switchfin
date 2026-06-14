@@ -11,8 +11,8 @@
         justifyContent="center">
 
         <brls:Image
-            width="180"
-            height="180"
+            width="194"
+            height="194"
             marginBottom="40"
             scalingType="fit"
             image="@res/icon/logo-ghost.png" />
