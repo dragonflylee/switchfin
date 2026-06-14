@@ -88,12 +88,23 @@ void ServerAdd::pollOnce() {
                 this->onAccount(account);
             });
         } catch (const std::exception& ex) {
-            // 404/410 = expired PIN
             std::string msg = ex.what();
             brls::sync([ASYNC_TOKEN, msg]() {
                 ASYNC_RELEASE
-                this->ticker.stop();
-                this->labelStatus->setText(msg);
+                // 404/410: the PIN was consumed or expired server-side — that
+                // is terminal, stop and let the user request a fresh code.
+                // Anything else (timeout, 5xx, a TLS/network hiccup — frequent
+                // on Vita) is transient: keep polling. The 2-minute deadline
+                // above stays the real give-up, so a single blip no longer
+                // aborts the whole account link ("took a couple tries ...
+                // error'd out").
+                if (msg.find("404") != std::string::npos || msg.find("410") != std::string::npos) {
+                    this->ticker.stop();
+                    this->labelStatus->setText("main/plex/expired"_i18n);
+                } else {
+                    brls::Logger::warning("pollPin transient error: {}", msg);
+                    this->labelStatus->setText("main/plex/waiting"_i18n);
+                }
             });
         }
     });
