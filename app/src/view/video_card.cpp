@@ -1,8 +1,20 @@
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
+#include "view/svg_image.hpp"
 #include "utils/keybind.hpp"
 
 using namespace brls::literals;
+
+void VideoCardCell::setWatched(bool played) {
+    if (played) {
+        this->badgeTopRight->setImageFromSVGRes("icon/ico-checkmark.svg");
+        this->badgeTopRight->setVisibility(brls::Visibility::VISIBLE);
+    } else {
+        this->badgeTopRight->setVisibility(brls::Visibility::GONE);
+    }
+    // watched clears any resume bar; un-watched also hides it (offset reset)
+    this->rectProgress->getParent()->setVisibility(brls::Visibility::GONE);
+}
 
 VideoCardCell::VideoCardCell() {
     this->inflateFromXMLRes("xml/view/video_card.xml");

@@ -1,6 +1,9 @@
 #include "view/context_menu.hpp"
 #include "view/svg_image.hpp"
 #include "view/auto_tab_frame.hpp"
+#include "view/recycling_grid.hpp"
+#include "view/video_card.hpp"
+#include "view/mpv_core.hpp"
 #include "tab/media_series.hpp"
 #include "api/plex.hpp"
 #include "api/plex/watchlist.hpp"
@@ -63,7 +66,7 @@ void MenuItem::setSelected(bool selected) {
 
 brls::View* MenuItem::create() { return new MenuItem(); }
 
-ContextMenu::ContextMenu(const plex::Item& item, brls::Box* host) : itemId(item.ratingKey) {
+ContextMenu::ContextMenu(const plex::Item& item, brls::Box* host) : host(host), itemId(item.ratingKey) {
     this->inflateFromXMLRes("xml/view/context_menu.xml");
     brls::Logger::debug("ContextMenu: create");
 
@@ -244,30 +247,43 @@ bool ContextMenu::toggleWatchlist() {
 
 bool ContextMenu::doPlayed() {
     auto& conf = AppConfig::instance();
-    ASYNC_RETAIN
-    // GET /:/scrobble
+    // GET /:/scrobble — fire-and-forget; reflect it optimistically (like the
+    // button state) and refresh only this card, then close
     plex::getAction(
-        conf.getUrl(), conf.getToken(),
-        [ASYNC_TOKEN](const std::string& ex) {
-            ASYNC_RELEASE
-            brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
-        },
+        conf.getUrl(), conf.getToken(), [](const std::string& ex) { brls::Application::notify(ex); },
         plex::apiScrobble, this->itemId);
     this->btnMarkPlay->setSelected(true);
+    this->refreshCard(true);
+    brls::Application::popActivity(brls::TransitionAnimation::NONE);
     return true;
 }
 
 bool ContextMenu::unPlayed() {
     auto& conf = AppConfig::instance();
-    ASYNC_RETAIN
-    // GET /:/unscrobble
+    // GET /:/unscrobble — same optimistic refresh as doPlayed
     plex::getAction(
-        conf.getUrl(), conf.getToken(),
-        [ASYNC_TOKEN](const std::string& ex) {
-            ASYNC_RELEASE
-            brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
-        },
+        conf.getUrl(), conf.getToken(), [](const std::string& ex) { brls::Application::notify(ex); },
         plex::apiUnscrobble, this->itemId);
     this->btnMarkPlay->setSelected(false);
+    this->refreshCard(false);
+    brls::Application::popActivity(brls::TransitionAnimation::NONE);
     return true;
+}
+
+void ContextMenu::refreshCard(bool played) {
+    // the menu sits above the originating view; the recycler is still alive
+    auto* recycler = dynamic_cast<RecyclingView*>(this->host);
+    int index = (recycler && recycler->getDataSource())
+                    ? recycler->getDataSource()->setPlayed(this->itemId, played)
+                    : -1;
+    if (index >= 0) {
+        // targeted: refresh only the visible cell (nullptr if scrolled off —
+        // the cached item is already updated, so it binds correctly next time)
+        if (auto* cell = dynamic_cast<VideoCardCell*>(recycler->getGridItemByIndex(index)))
+            cell->setWatched(played);
+        return;
+    }
+    // data source without targeted support (e.g. season episodes): fall back
+    // to the global "watched/progress changed" signal (Presenter -> doRequest)
+    MPVCore::instance().getCustomEvent()->fire(VIDEO_CLOSE, nullptr);
 }

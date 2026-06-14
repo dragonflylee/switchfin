@@ -68,6 +68,11 @@ public:
      */
     virtual void onItemSelected(brls::Box* recycler, size_t index) {}
 
+    /// Targeted "watched" toggle: update the cached item's played state in
+    /// place and return its row index (-1 if not found / unsupported). Lets a
+    /// single card refresh without re-fetching the whole view.
+    virtual int setPlayed(const std::string& itemId, bool played) { return -1; }
+
     virtual void clearData() = 0;
 };
 
@@ -86,6 +91,11 @@ public:
     RecyclingGridItem* dequeueReusableCell(std::string identifier);
 
     RecyclingGridDataSource* getDataSource() const;
+
+    /// Cell currently bound to `index`, or nullptr if it is off-screen / not
+    /// materialized. Generic over the vertical grid and the horizontal rows
+    /// (both keep their cells in `contentBox`).
+    RecyclingGridItem* getGridItemByIndex(size_t index);
 
     void showSkeleton(unsigned int num = 12);
 protected:
@@ -118,10 +128,6 @@ public:
     void reloadData();
 
     void notifyDataChanged();
-
-    /// 获取当前指定索引数据所在的item指针
-    /// 注意，因为是循环使用列表项的，所以此指针只能在获取时刻在主线程内使用
-    RecyclingGridItem* getGridItemByIndex(size_t index);
 
     std::vector<RecyclingGridItem*>& getGridItems();
 

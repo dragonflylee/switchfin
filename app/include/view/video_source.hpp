@@ -18,6 +18,8 @@ public:
 
     void onContextMenu(brls::Box* recycler, size_t index);
 
+    int setPlayed(const std::string& itemId, bool played) override;
+
     void clearData() override;
 
     void appendData(const MediaList& data);

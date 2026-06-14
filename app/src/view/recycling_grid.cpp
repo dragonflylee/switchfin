@@ -395,6 +395,11 @@ void RecyclingGrid::reloadData() {
     if (dataSource == nullptr) return;
     if (dataSource->getItemCount() <= 0) {
         contentBox->setHeight(contentTop() + paddingBottom);
+        // the grid just emptied: every cell was queued for reuse (detached
+        // from the tree). Forget any remembered cell focus so a later
+        // getDefaultFocus() can't hand back a now-recycled cell (stale frame
+        // -> ghost highlight halo). The owner redirects the live focus.
+        contentBox->setLastFocusedView(nullptr);
         return;
     }
     size_t cellFocusIndex = this->defaultCellFocus;
@@ -453,7 +458,7 @@ void RecyclingGrid::notifyDataChanged() {
     requestNextPage = false;
 }
 
-RecyclingGridItem* RecyclingGrid::getGridItemByIndex(size_t index) {
+RecyclingGridItem* RecyclingView::getGridItemByIndex(size_t index) {
     for (brls::View* i : contentBox->getChildren()) {
         RecyclingGridItem* v = dynamic_cast<RecyclingGridItem*>(i);
         if (!v) continue;

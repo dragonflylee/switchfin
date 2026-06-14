@@ -51,10 +51,15 @@ private:
 
     bool doPlayed();
     bool unPlayed();
+    /// targeted card refresh after a scrobble: updates the originating
+    /// recycler's cached item + its visible cell, instead of re-fetching the
+    /// whole view
+    void refreshCard(bool played);
     /// reveals the watchlist entry once the provider state is known (plex:// guid)
     void initWatchlist(const std::string& guid);
     bool toggleWatchlist();
 
+    brls::Box* host = nullptr;
     std::string itemId;
     std::string itemGuid;
     bool watchlisted = false;

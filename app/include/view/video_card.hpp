@@ -90,6 +90,10 @@ public:
 
     static VideoCardCell* create() { return new VideoCardCell(); }
 
+    /// In-place "watched" badge refresh — targeted update from a context-menu
+    /// scrobble, without reloading the list.
+    void setWatched(bool played);
+
     BRLS_BIND(SVGImage, badgeTopRight, "video/card/badge/top");
     BRLS_BIND(brls::Rectangle, rectProgress, "video/card/progress");
 };

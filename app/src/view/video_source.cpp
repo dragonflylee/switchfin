@@ -147,6 +147,18 @@ void VideoDataSource::onContextMenu(brls::Box* recycler, size_t index) {
     brls::Application::pushActivity(new brls::Activity(menu));
 }
 
+int VideoDataSource::setPlayed(const std::string& itemId, bool played) {
+    for (size_t i = 0; i < this->list.size(); i++) {
+        if (this->list[i].ratingKey != itemId) continue;
+        // played() reads viewCount; clear the resume offset when watched so
+        // the progress bar gives way to the check mark
+        this->list[i].viewCount = played ? 1 : 0;
+        if (played) this->list[i].viewOffset = 0;
+        return (int)i;
+    }
+    return -1;
+}
+
 void VideoDataSource::clearData() { this->list.clear(); }
 
 void VideoDataSource::appendData(const MediaList& data) {
