@@ -350,9 +350,8 @@ VideoView::VideoView() {
     this->btnCast->registerClickAction([this](...) { return this->toggleProfile(); });
     this->btnCast->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnCast));
 
-    /// 倍速按钮
-    this->btnVideoSpeed->registerClickAction([this](...) { return this->toggleSpeed(); });
-    this->btnVideoSpeed->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoSpeed));
+    /// speed: LSB shortcut + touch long-press only (no longer on the OSD,
+    /// not relevant there per user feedback)
     this->registerActions(
         "main/player/speed"_i18n, brls::BUTTON_LSB, KeyBind::getVideoSpeed(),
         [this](...) { return this->toggleSpeed(); }, true);
@@ -638,13 +637,6 @@ void VideoView::registerMpvEvent() {
                 this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
             }
             break;
-        case MpvEventEnum::VIDEO_SPEED_CHANGE:
-            if (std::fabs(mpv.video_speed - 1) < 1e-5) {
-                this->videoSpeedLabel->setText("main/player/speed"_i18n);
-            } else {
-                this->videoSpeedLabel->setText(fmt::format("{}x", mpv.video_speed));
-            }
-            break;
         case MpvEventEnum::END_OF_FILE:
             // 播放结束
             disableDimming(false);
@@ -738,8 +730,9 @@ void VideoView::showHint(const std::string& value) {
 void VideoView::setTvMode(bool state) {
     btnToggle->setCustomNavigationRoute(brls::FocusDirection::RIGHT, state ? osdSlider : iconBox);
     volumeIcon->setCustomNavigationRoute(brls::FocusDirection::UP, state ? osdSlider : osdLockBox);
-    iconVideoQuality->setCustomNavigationRoute(brls::FocusDirection::UP, state ? osdSlider : osdLockBox);
-    iconVideoSpeed->setCustomNavigationRoute(brls::FocusDirection::UP, state ? osdSlider : osdLockBox);
+    audioIcon->setCustomNavigationRoute(brls::FocusDirection::UP, state ? osdSlider : osdLockBox);
+    subtitleIcon->setCustomNavigationRoute(brls::FocusDirection::UP, state ? osdSlider : osdLockBox);
+    qualityIcon->setCustomNavigationRoute(brls::FocusDirection::UP, state ? osdSlider : osdLockBox);
     osdLockBox->setCustomNavigationRoute(brls::FocusDirection::DOWN, state ? osdSlider : iconBox);
     osdSlider->setFocusable(state);
 }
@@ -757,7 +750,7 @@ bool VideoView::toggleOSDLock() {
         this->osdLockIcon->setImageFromSVGRes("icon/player-unlock.svg");
         // 手动设置上下按键的导航路线
         osdLockBox->setCustomNavigationRoute(brls::FocusDirection::UP, "video/osd/setting");
-        osdLockBox->setCustomNavigationRoute(brls::FocusDirection::DOWN, "video/speed/box");
+        osdLockBox->setCustomNavigationRoute(brls::FocusDirection::DOWN, "video/audio/box");
     }
     return true;
 }
@@ -866,6 +859,16 @@ void VideoView::registerVideoQuality(brls::ActionListener action) {
     this->btnVideoQuality->registerClickAction(action);
     this->btnVideoQuality->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoQuality));
     this->registerActions("main/player/quality"_i18n, brls::BUTTON_RSB, KeyBind::getVideoQuality(), action, true);
+}
+
+void VideoView::registerVideoSubtitle(brls::ActionListener action) {
+    this->btnVideoSubtitle->registerClickAction(action);
+    this->btnVideoSubtitle->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoSubtitle));
+}
+
+void VideoView::registerVideoAudio(brls::ActionListener action) {
+    this->btnVideoAudio->registerClickAction(action);
+    this->btnVideoAudio->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoAudio));
 }
 
 void VideoView::registerActions(const std::string& hintText, const brls::ControllerButton button,

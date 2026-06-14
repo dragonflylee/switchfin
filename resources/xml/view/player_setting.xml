@@ -41,18 +41,15 @@
                     height="auto"
                     axis="column"
                     marginBottom="30px">
-                    <brls:SelectorCell
-                        id="setting/track/audio" />
-                    <brls:SelectorCell
-                        id="setting/track/subtitle" />
+                    <!-- audio / subtitle / subtitle-sync now live on the OSD
+                         (direct-access icons), removed from here to avoid
+                         duplication -->
                     <brls:SelectorCell
                         id="setting/video/mirror" />
                     <brls:SelectorCell
                         id="setting/video/rotation" />
                     <brls:SelectorCell
                         id="setting/video/aspect" />
-                    <brls:SliderCell
-                        id="setting/video/subsync" />
                 </brls:Box>
 
                 <brls:Header

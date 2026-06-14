@@ -11,7 +11,7 @@ class ButtonClose;
 
 class PlayerSetting : public brls::Box {
 public:
-    PlayerSetting(const plex::Media* src = nullptr);
+    PlayerSetting();
     ~PlayerSetting() override;
 
     bool isTranslucent() override { return true; }
@@ -21,6 +21,13 @@ public:
     /// Plex Stream IDs selected for the transcoder (0 = none)
     inline static int64_t selectedSubtitle = 0;
     inline static int64_t selectedAudio = 0;
+
+    /// Direct-access OSD pickers (subtitle/audio buttons). `src` carries the
+    /// Plex Media for transcode-side stream selection; nullptr (local
+    /// downloads) falls back to the embedded mpv tracks only. The subtitle
+    /// picker also exposes a sync (sub-delay) offset.
+    static void showSubtitleMenu(const plex::Media* src);
+    static void showAudioMenu(const plex::Media* src);
 
     enum class Equalizer {
         BRIGHTNESS,
@@ -34,15 +41,12 @@ private:
     BRLS_BIND(brls::ScrollingFrame, settings, "player/settings");
     BRLS_BIND(brls::Box, cancel, "player/cancel");
 
-    BRLS_BIND(brls::SelectorCell, subtitleTrack, "setting/track/subtitle");
-    BRLS_BIND(brls::SelectorCell, audioTrack, "setting/track/audio");
     BRLS_BIND(brls::BooleanCell, btnOSDOnToggle, "setting/player/osd_on_toggle");
     BRLS_BIND(brls::BooleanCell, btnFullscreen, "setting/fullscreen");
     BRLS_BIND(brls::BooleanCell, btnAlwaysOnTop, "setting/always_on_top");
     BRLS_BIND(brls::SelectorCell, btnVideoMirror, "setting/video/mirror");
     BRLS_BIND(brls::SelectorCell, btnVideoRotation, "setting/video/rotation");
     BRLS_BIND(brls::SelectorCell, btnVideoAspect, "setting/video/aspect");
-    BRLS_BIND(brls::SliderCell, btnSubsync, "setting/video/subsync");
     // equalizer setting
     BRLS_BIND(brls::RadioCell, btnEqualizerReset, "setting/equalizer/reset");
     BRLS_BIND(brls::SliderCell, btnEqualizerBrightness, "setting/equalizer/brightness");

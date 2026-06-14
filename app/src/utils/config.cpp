@@ -62,6 +62,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {WINDOW_STATE, {"window_state"}},
     {TRANSCODEC, {"transcodec", {"h264", "hevc", "av1"}}},
     {FORCE_DIRECTPLAY, {"force_directplay"}},
+    {PLAYER_VIDEO_QUALITY, {"player_video_quality"}},
     {FULLSCREEN, {"fullscreen"}},
     {OSD_ON_TOGGLE, {"osd_on_toggle"}},
     {TOUCH_GESTURE, {"touch_gesture"}},
@@ -353,6 +354,17 @@ bool AppConfig::init() {
     MPVCore::VO = this->getItem(MPV_VO, MPVCore::VO);
     MPVCore::HARDWARE_DEC = this->getItem(PLAYER_HWDEC, true);
     MPVCore::FORCE_DIRECTPLAY = this->getItem(FORCE_DIRECTPLAY, false);
+    // default transcode bitrate cap. The Vita decoder chokes on heavy direct
+    // play (high-bitrate / unsupported codecs -> slideshow), so default to a
+    // smooth 4 Mbps H.264 transcode; "Auto" (0 = direct play) stays selectable
+    // in the player quality menu. Other platforms default to direct play.
+    // Persisted now (it was reset every launch, so the user's lowered choice
+    // never survived a restart).
+#if defined(__PSV__)
+    MPVCore::VIDEO_QUALITY = this->getItem(PLAYER_VIDEO_QUALITY, (int64_t)4000000);
+#else
+    MPVCore::VIDEO_QUALITY = this->getItem(PLAYER_VIDEO_QUALITY, (int64_t)0);
+#endif
     MPVCore::VIDEO_CODEC = this->getItem(TRANSCODEC, MPVCore::VIDEO_CODEC);
     MPVCore::AUDIO_CHANNELS = this->getItem(AUDIO_CHANNELS, MPVCore::AUDIO_CHANNELS);
     // 初始化自定义的硬件加速方案

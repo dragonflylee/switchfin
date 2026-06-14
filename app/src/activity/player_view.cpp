@@ -31,6 +31,16 @@ PlayerView::PlayerView(const plex::Item& item, const int64_t seekMs) : itemId(it
     this->setDimensions(width, height);
     this->addView(view);
     view->registerVideoQuality([this](...) { return this->toggleQuality(); });
+    // direct-access OSD pickers; &stream lets them switch transcode-side
+    // tracks (the Vita default) as well as embedded ones
+    view->registerVideoSubtitle([this](...) {
+        PlayerSetting::showSubtitleMenu(&this->stream);
+        return true;
+    });
+    view->registerVideoAudio([this](...) {
+        PlayerSetting::showAudioMenu(&this->stream);
+        return true;
+    });
 
     // stable session identifier (24 characters)
     this->sessionId = misc::randHex(12);
@@ -42,7 +52,7 @@ PlayerView::PlayerView(const plex::Item& item, const int64_t seekMs) : itemId(it
     playSubscribeID = view->getPlayEvent()->subscribe([this](int index) { this->playIndex(index); });
 
     settingSubscribeID = view->getSettingEvent()->subscribe([this]() {
-        brls::View* setting = new PlayerSetting(&this->stream);
+        brls::View* setting = new PlayerSetting();
         brls::Application::pushActivity(new brls::Activity(setting));
     });
 
@@ -415,6 +425,9 @@ bool PlayerView::toggleQuality() {
         "main/player/quality"_i18n, options,
         [values](int selected) {
             MPVCore::VIDEO_QUALITY = values[selected];
+            // remember the choice across launches (Vita users had to re-lower
+            // it every session otherwise — see config.cpp default)
+            AppConfig::instance().setItem(AppConfig::PLAYER_VIDEO_QUALITY, MPVCore::VIDEO_QUALITY);
             MPVCore::instance().getCustomEvent()->fire(QUALITY_CHANGE, nullptr);
             return true;
         },

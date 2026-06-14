@@ -58,6 +58,8 @@ public:
     void hideVideoProgressSlider();
     void hideVideoQuality();
     void registerVideoQuality(brls::ActionListener action);
+    void registerVideoSubtitle(brls::ActionListener action);
+    void registerVideoAudio(brls::ActionListener action);
     void registerActions(const std::string& hintText, const brls::ControllerButton button,
         const brls::BrlsKeyCombination key, const brls::ActionListener& actionListener, bool hidden = false,
         bool allowRepeating = false);
@@ -75,14 +77,16 @@ private:
     BRLS_BIND(brls::Box, btnCast, "video/osd/cast");
     BRLS_BIND(brls::Box, btnToggle, "video/osd/toggle");
     BRLS_BIND(brls::Box, btnVideoQuality, "video/quality/box");
-    BRLS_BIND(brls::Box, btnVideoSpeed, "video/speed/box");
+    BRLS_BIND(brls::Box, btnVideoSubtitle, "video/subtitle/box");
+    BRLS_BIND(brls::Box, btnVideoAudio, "video/audio/box");
     BRLS_BIND(brls::Box, btnEpisode, "show/episode/box");
     BRLS_BIND(brls::Box, btnVolume, "video/osd/volume");
     BRLS_BIND(brls::Box, btnClose, "video/close/box");
     BRLS_BIND(brls::Box, osdLockBox, "video/osd/lock/box");
     BRLS_BIND(brls::Box, iconBox, "video/osd/icon/box");
-    BRLS_BIND(brls::Label, iconVideoQuality, "video/quality/label");
-    BRLS_BIND(brls::Label, iconVideoSpeed, "video/speed/label");
+    BRLS_BIND(SVGImage, qualityIcon, "video/quality/icon");
+    BRLS_BIND(SVGImage, subtitleIcon, "video/subtitle/icon");
+    BRLS_BIND(SVGImage, audioIcon, "video/audio/icon");
     BRLS_BIND(SVGImage, osdLockIcon, "video/osd/lock/icon");
     BRLS_BIND(SVGImage, toggleIcon, "video/osd/toggle/icon");
     BRLS_BIND(SVGImage, volumeIcon, "video/osd/volume/icon");
@@ -101,7 +105,6 @@ private:
     BRLS_BIND(VideoProgressSlider, osdSlider, "video/osd/bottom/progress");
     BRLS_BIND(brls::Label, leftStatusLabel, "video/left/status");
     BRLS_BIND(brls::Label, rightStatusLabel, "video/right/status");
-    BRLS_BIND(brls::Label, videoSpeedLabel, "video/speed/label");
     BRLS_BIND(brls::Label, showEpisodeLabel, "show/episode/label");
     BRLS_BIND(brls::Label, speedHintLabel, "video/speed/hint/label");
     BRLS_BIND(brls::Box, speedHintBox, "video/speed/hint/box");

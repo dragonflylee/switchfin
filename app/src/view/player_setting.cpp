@@ -1,3 +1,4 @@
+#include <borealis/views/hint.hpp>
 #include "utils/config.hpp"
 #include "utils/event.hpp"
 #include "view/button_close.hpp"
@@ -6,11 +7,119 @@
 
 using namespace brls::literals;
 
-PlayerSetting::PlayerSetting(const plex::Media* src) {
+/// Live subtitle-sync overlay. Translucent so the video AND its subtitles
+/// stay visible underneath: the user nudges the delay with LEFT/RIGHT and
+/// immediately sees whether it lines up (no more adjusting blind). Centered
+/// so it never sits on top of the subtitles it is meant to align.
+class SubsyncOverlay : public brls::Box {
+public:
+    SubsyncOverlay() {
+        auto theme = brls::Application::getTheme();
+        this->setAxis(brls::Axis::COLUMN);
+        this->setJustifyContent(brls::JustifyContent::CENTER);
+        this->setAlignItems(brls::AlignItems::CENTER);
+        this->setGrow(1.0f);
+        this->setFocusable(true);
+        this->setHideHighlightBackground(true);
+        this->setHideHighlightBorder(true);
+
+        auto* panel = new brls::Box(brls::Axis::COLUMN);
+        panel->setAlignItems(brls::AlignItems::CENTER);
+        panel->setCornerRadius(12);
+        panel->setBackgroundColor(nvgRGBA(0x1C, 0x1C, 0x1C, 0xF0));
+        panel->setPadding(26, 52, 26, 52);
+
+        auto* heading = new brls::Label();
+        heading->setText("main/setting/playback/subsync"_i18n);
+        heading->setFontSize(18);
+        heading->setTextColor(theme.getColor("font/grey"));
+        heading->setMarginBottom(20);
+        panel->addView(heading);
+
+        // row: ◀  (value)  ▶  — chevrons cue LEFT/RIGHT, muted vs the value
+        auto* row = new brls::Box(brls::Axis::ROW);
+        row->setAlignItems(brls::AlignItems::CENTER);
+
+        auto* left = new brls::Label();
+        left->setText("◀");
+        left->setFontSize(22);
+        left->setTextColor(theme.getColor("font/grey"));
+        left->setMarginRight(34);
+        row->addView(left);
+
+        this->value = new brls::Label();
+        this->value->setFontSize(26);
+        this->value->setWidth(120);
+        this->value->setHorizontalAlign(brls::HorizontalAlign::CENTER);
+        this->value->setTextColor(theme.getColor("color/white"));
+        row->addView(this->value);
+
+        auto* right = new brls::Label();
+        right->setText("▶");
+        right->setFontSize(22);
+        right->setTextColor(theme.getColor("font/grey"));
+        right->setMarginLeft(34);
+        row->addView(right);
+
+        panel->addView(row);
+
+        // back hint inside the card, native key glyph like the rest of the app
+        auto* hint = new brls::Label();
+        hint->setText(brls::Hint::getKeyIcon(brls::BUTTON_B) + "  " + "hints/back"_i18n);
+        hint->setFontSize(16);
+        hint->setTextColor(theme.getColor("font/grey"));
+        hint->setMarginTop(22);
+        panel->addView(hint);
+
+        this->addView(panel);
+
+        // local source of truth for the display: mpv set/get is async, so
+        // re-reading right after setDouble returns the OLD value (the first
+        // nudge then never showed, and the closed value didn't match what
+        // re-opened). Seed from mpv once, then track locally.
+        this->delay = MPVCore::instance().getDouble("sub-delay");
+        this->refresh();
+
+        this->registerAction(
+            "main/setting/playback/subsync"_i18n, brls::BUTTON_NAV_LEFT,
+            [this](brls::View*) {
+                this->nudge(-0.1);
+                return true;
+            },
+            true, true);
+        this->registerAction(
+            "", brls::BUTTON_NAV_RIGHT,
+            [this](brls::View*) {
+                this->nudge(0.1);
+                return true;
+            },
+            true, true);
+        this->registerAction("hints/back"_i18n, brls::BUTTON_B, [](brls::View*) {
+            brls::Application::popActivity();
+            return true;
+        });
+    }
+
+    bool isTranslucent() override { return true; }
+    brls::View* getDefaultFocus() override { return this; }
+
+private:
+    brls::Label* value = nullptr;
+    double delay = 0;
+
+    void nudge(double d) {
+        this->delay += d;
+        MPVCore::instance().setDouble("sub-delay", this->delay);
+        this->refresh();
+    }
+    void refresh() {
+        this->value->setText(fmt::format("{:+.1f} s", this->delay));
+    }
+};
+
+PlayerSetting::PlayerSetting() {
     this->inflateFromXMLRes("xml/view/player_setting.xml");
     brls::Logger::debug("PlayerSetting: create");
-    this->audioTrack->detail->setVisibility(brls::Visibility::GONE);
-    this->subtitleTrack->detail->setVisibility(brls::Visibility::GONE);
 
     this->registerAction("hints/cancel"_i18n, brls::BUTTON_B, [](brls::View* view) {
         brls::Application::popActivity();
@@ -24,75 +133,6 @@ PlayerSetting::PlayerSetting(const plex::Media* src) {
     this->cancel->addGestureRecognizer(new brls::TapGestureRecognizer(this->cancel));
 
     auto& mpv = MPVCore::instance();
-
-    std::vector<std::string> audioTrack, audioSource;
-    std::vector<int64_t> audioStream;
-    std::vector<std::string> subTrack = {"main/player/none"_i18n};
-    std::vector<std::string> subSource = {"main/player/none"_i18n};
-    std::vector<int64_t> subStream = {0};
-
-    int64_t count = mpv.getInt("track-list/count");
-    for (int64_t n = 0; n < count; n++) {
-        std::string type = mpv.getString(fmt::format("track-list/{}/type", n));
-        std::string title = mpv.getString(fmt::format("track-list/{}/title", n));
-        if (title.empty()) title = mpv.getString(fmt::format("track-list/{}/lang", n));
-        if (title.empty()) title = fmt::format("{} track {}", type, n);
-        if (type == "sub")
-            subTrack.push_back(title);
-        else if (type == "audio")
-            audioTrack.push_back(title);
-    }
-
-    if (src != nullptr && !src->parts.empty()) {
-        // server selections use the Plex Stream id (§2.7)
-        for (auto& s : src->parts.front().streams) {
-            if (s.streamType == plex::streamTypeAudio) {
-                audioSource.push_back(s.displayTitle);
-                audioStream.push_back(s.id);
-            } else if (s.streamType == plex::streamTypeSubtitle) {
-                subSource.push_back(s.displayTitle);
-                subStream.push_back(s.id);
-            }
-        }
-    }
-    // 字幕选择
-    if (subTrack.size() > 1) {
-        int64_t value = mpv.getInt("sid");
-        this->subtitleTrack->init("main/player/subtitle"_i18n, subTrack, value, [&mpv](int selected) {
-            selectedSubtitle = selected;
-            mpv.setInt("sid", selected);
-        });
-    } else if (subSource.size() > 1) {
-        int value = 0;
-        for (size_t i = 0; i < subStream.size(); i++)
-            if (subStream[i] == selectedSubtitle) value = i;
-        this->subtitleTrack->init("main/player/subtitle"_i18n, subSource, value, [subStream](int selected) {
-            selectedSubtitle = subStream[selected];
-            MPVCore::instance().getCustomEvent()->fire(QUALITY_CHANGE, nullptr);
-        });
-    } else {
-        this->subtitleTrack->setVisibility(brls::Visibility::GONE);
-    }
-    // 音轨选择
-    if (audioTrack.size() > 1) {
-        int64_t value = mpv.getInt("aid", 1) - 1;
-        this->audioTrack->init("main/player/audio"_i18n, audioTrack, value, [&mpv](int selected) {
-            selectedAudio = selected + 1;
-            mpv.setInt("aid", selectedAudio);
-        });
-        this->audioTrack->detail->setVisibility(brls::Visibility::GONE);
-    } else if (audioSource.size() > 1) {
-        int value = 0;
-        for (size_t i = 0; i < audioStream.size(); i++)
-            if (audioStream[i] == selectedAudio) value = i;
-        this->audioTrack->init("main/player/audio"_i18n, audioSource, value, [audioStream](int selected) {
-            selectedAudio = audioStream[selected];
-            MPVCore::instance().getCustomEvent()->fire(QUALITY_CHANGE, nullptr);
-        });
-    } else {
-        this->audioTrack->setVisibility(brls::Visibility::GONE);
-    }
-
     auto& conf = AppConfig::instance();
 
 /// Fullscreen
@@ -187,18 +227,6 @@ PlayerSetting::PlayerSetting(const plex::Media* src) {
             conf.setItem(AppConfig::PLAYER_ASPECT, MPVCore::VIDEO_ASPECT);
         });
 
-    /// Subsync
-    double subDelay = mpv.getDouble("sub-delay");
-    btnSubsync->title->setMarginRight(0);
-    btnSubsync->slider->setMarginRight(0);
-    btnSubsync->slider->setPointerSize(20);
-    btnSubsync->setDetailText(fmt::format("{:.1f}", subDelay));
-    btnSubsync->init("main/setting/playback/subsync"_i18n, (subDelay + 10) * 0.05f, [this](float value) {
-        float data = value * 20 - 10.f;
-        MPVCore::instance().setDouble("sub-delay", data);
-        btnSubsync->setDetailText(fmt::format("{:.1f}", data));
-    });
-
     btnEqualizerReset->registerClickAction([this](View* view) {
         btnEqualizerBrightness->slider->setProgress(0.5f);
         btnEqualizerContrast->slider->setProgress(0.5f);
@@ -219,6 +247,125 @@ PlayerSetting::PlayerSetting(const plex::Media* src) {
 }
 
 PlayerSetting::~PlayerSetting() { brls::Logger::debug("PlayerSetting: delete"); }
+
+void PlayerSetting::showAudioMenu(const plex::Media* src) {
+    auto& mpv = MPVCore::instance();
+
+    // embedded tracks (direct play, or the single track of a transcode)
+    std::vector<std::string> embedded;
+    int64_t count = mpv.getInt("track-list/count");
+    for (int64_t n = 0; n < count; n++) {
+        if (mpv.getString(fmt::format("track-list/{}/type", n)) != "audio") continue;
+        std::string title = mpv.getString(fmt::format("track-list/{}/title", n));
+        if (title.empty()) title = mpv.getString(fmt::format("track-list/{}/lang", n));
+        if (title.empty()) title = fmt::format("{} {}", "main/player/audio"_i18n, embedded.size() + 1);
+        embedded.push_back(title);
+    }
+    if (embedded.size() > 1) {
+        int current = (int)(mpv.getInt("aid", 1) - 1);
+        auto* dropdown = new brls::Dropdown(
+            "main/player/audio"_i18n, embedded,
+            [](int selected) {
+                selectedAudio = selected + 1;
+                MPVCore::instance().setInt("aid", selectedAudio);
+            },
+            current < 0 ? 0 : current);
+        brls::Application::pushActivity(new brls::Activity(dropdown));
+        return;
+    }
+
+    // transcode: tracks come from the Plex Media (re-transcode on change)
+    std::vector<std::string> names;
+    std::vector<int64_t> ids;
+    if (src != nullptr && !src->parts.empty()) {
+        for (auto& s : src->parts.front().streams) {
+            if (s.streamType != plex::streamTypeAudio) continue;
+            names.push_back(s.displayTitle);
+            ids.push_back(s.id);
+        }
+    }
+    if (names.size() > 1) {
+        int current = 0;
+        for (size_t i = 0; i < ids.size(); i++)
+            if (ids[i] == selectedAudio) current = (int)i;
+        auto* dropdown = new brls::Dropdown(
+            "main/player/audio"_i18n, names,
+            [ids](int selected) {
+                selectedAudio = ids[selected];
+                MPVCore::instance().getCustomEvent()->fire(QUALITY_CHANGE, nullptr);
+            },
+            current);
+        brls::Application::pushActivity(new brls::Activity(dropdown));
+        return;
+    }
+
+    brls::Application::notify("main/player/audio"_i18n);
+}
+
+void PlayerSetting::showSubtitleMenu(const plex::Media* src) {
+    auto& mpv = MPVCore::instance();
+
+    std::vector<std::string> names = {"main/player/none"_i18n};
+    // each entry's selection action; index aligned with `names`
+    std::vector<std::function<void()>> actions = {[]() {
+        selectedSubtitle = 0;
+        MPVCore::instance().setInt("sid", 0);
+    }};
+    int current = 0;
+
+    // embedded subtitle tracks (sid). Sidecar Plex subs are sub-add'ed into
+    // mpv on direct play, so they show up here too.
+    int64_t count = mpv.getInt("track-list/count");
+    int64_t sidActive = mpv.getInt("sid");
+    for (int64_t n = 0; n < count; n++) {
+        if (mpv.getString(fmt::format("track-list/{}/type", n)) != "sub") continue;
+        std::string title = mpv.getString(fmt::format("track-list/{}/title", n));
+        if (title.empty()) title = mpv.getString(fmt::format("track-list/{}/lang", n));
+        int64_t id = mpv.getInt(fmt::format("track-list/{}/id", n));
+        if (title.empty()) title = fmt::format("{} {}", "main/player/subtitle"_i18n, id);
+        if (id == sidActive) current = (int)names.size();
+        names.push_back(title);
+        actions.push_back([id]() {
+            selectedSubtitle = id;
+            MPVCore::instance().setInt("sid", id);
+        });
+    }
+
+    // transcode: no embedded subs in the HLS stream -> Plex stream ids
+    // (burned in, re-transcode on change)
+    if (names.size() == 1 && src != nullptr && !src->parts.empty()) {
+        for (auto& s : src->parts.front().streams) {
+            if (s.streamType != plex::streamTypeSubtitle) continue;
+            int64_t id = s.id;
+            if (id == selectedSubtitle) current = (int)names.size();
+            names.push_back(s.displayTitle);
+            actions.push_back([id]() {
+                selectedSubtitle = id;
+                MPVCore::instance().getCustomEvent()->fire(QUALITY_CHANGE, nullptr);
+            });
+        }
+    }
+
+    // trailing entry: subtitle sync (sub-delay) — opens a presets picker
+    size_t syncIndex = names.size();
+    double subDelay = mpv.getDouble("sub-delay");
+    names.push_back(fmt::format("{} ({:+.1f} s)", "main/setting/playback/subsync"_i18n, subDelay));
+
+    auto* dropdown = new brls::Dropdown(
+        "main/player/subtitle"_i18n, names,
+        [actions, syncIndex](int selected) {
+            if ((size_t)selected != syncIndex) {
+                if (selected >= 0 && (size_t)selected < actions.size()) actions[selected]();
+                return;
+            }
+            // open the live sync overlay, deferred so this dropdown finishes
+            // closing first (otherwise its pop would immediately eat the
+            // overlay we just pushed — "nothing happens")
+            brls::sync([]() { brls::Application::pushActivity(new brls::Activity(new SubsyncOverlay())); });
+        },
+        current);
+    brls::Application::pushActivity(new brls::Activity(dropdown));
+}
 
 void PlayerSetting::setupEqualizer(brls::SliderCell* cell, const std::string& title, Equalizer item, double initValue) {
     if (initValue < -100)

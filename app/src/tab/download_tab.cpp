@@ -4,6 +4,8 @@
 #include "view/mpv_core.hpp"
 #include "view/video_profile.hpp"
 #include "view/player_setting.hpp"
+#include "view/presenter.hpp"
+#include "view/auto_tab_frame.hpp"
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
 #include "utils/misc.hpp"
@@ -241,6 +243,15 @@ public:
                 view->setHeightPercentage(100);
                 view->setTitie(item.name);
                 view->hideVideoQuality();
+                // local playback: embedded tracks only (no Plex Media)
+                view->registerVideoSubtitle([](...) {
+                    PlayerSetting::showSubtitleMenu(nullptr);
+                    return true;
+                });
+                view->registerVideoAudio([](...) {
+                    PlayerSetting::showAudioMenu(nullptr);
+                    return true;
+                });
 
                 auto* profile = view->getProfile();
                 auto& mpv = MPVCore::instance();
@@ -425,6 +436,16 @@ void DownloadView::loadItems() {
     if (items.empty()) {
         this->recycler->setEmpty(
             "main/download/no_downloads"_i18n, "main/download/empty_sub"_i18n, "icon/ico-download.svg");
+        // the grid just emptied (e.g. removing the last card): the focus was
+        // on a now-recycled card -> ghost highlight halo in the empty area.
+        // Deferred so a confirm dialog has finished closing/restoring focus;
+        // if the focus is still inside this (now unfocusable) tab, hand it
+        // back to the sidebar.
+        ASYNC_RETAIN
+        brls::sync([ASYNC_TOKEN]() {
+            ASYNC_RELEASE
+            if (hasFocusWithin(this)) AutoTabFrame::focus2Sidebar(this);
+        });
     } else {
         this->recycler->setDataSource(new DownloadDataSource(std::move(items)));
     }

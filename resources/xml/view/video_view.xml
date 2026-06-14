@@ -16,7 +16,7 @@
         backgroundColor="#303030A0"
         focusable="true"
         focusUp="video/osd/setting/icon"
-        focusDown="video/speed/box"
+        focusDown="video/audio/box"
         focusRight="video/osd/lock/box"
         focusLeft="video/osd/lock/box"
         cornerRadius="8"
@@ -354,48 +354,74 @@
                             highlightPadding="6"
                             highlightCornerRadius="8" />
                     </brls:Box>
+                    <!-- direct-access pickers as icons (audio / subtitles /
+                         quality). Speed lives on LSB + long-press, not the OSD. -->
+                    <brls:Box
+                        id="video/audio/box"
+                        hideClickAnimation="true"
+                        marginLeft="6"
+                        marginRight="6"
+                        alignItems="center"
+                        justifyContent="center"
+                        height="60"
+                        width="50">
+                        <SVGImage
+                            id="video/audio/icon"
+                            focusable="true"
+                            focusUp="video/osd/lock/box"
+                            focusDown="video/audio/icon"
+                            hideHighlightBorder="true"
+                            highlightBackgroundColor="@theme/color/focus/bg"
+                            highlightPadding="10"
+                            highlightCornerRadius="25"
+                            height="28"
+                            width="28"
+                            svg="@res/icon/ico-audio.svg" />
+                    </brls:Box>
+                    <brls:Box
+                        id="video/subtitle/box"
+                        hideClickAnimation="true"
+                        marginLeft="6"
+                        marginRight="6"
+                        alignItems="center"
+                        justifyContent="center"
+                        height="60"
+                        width="50">
+                        <SVGImage
+                            id="video/subtitle/icon"
+                            focusable="true"
+                            focusUp="video/osd/lock/box"
+                            focusDown="video/subtitle/icon"
+                            hideHighlightBorder="true"
+                            highlightBackgroundColor="@theme/color/focus/bg"
+                            highlightPadding="10"
+                            highlightCornerRadius="25"
+                            height="28"
+                            width="28"
+                            svg="@res/icon/ico-subtitle.svg" />
+                    </brls:Box>
                     <brls:Box
                         id="video/quality/box"
                         hideClickAnimation="true"
-                        marginLeft="10"
-                        marginRight="10"
+                        marginLeft="6"
+                        marginRight="6"
                         alignItems="center"
                         justifyContent="center"
-                        height="60">
-                        <brls:Label
-                            id="video/quality/label"
-                            textColor="@theme/color/white"
+                        height="60"
+                        width="50">
+                        <SVGImage
+                            id="video/quality/icon"
                             focusable="true"
                             focusUp="video/osd/lock/box"
-                            focusDown="video/quality/label"
-                            horizontalAlign="center"
-                            text="@i18n/main/player/quality"
+                            focusDown="video/quality/icon"
+                            focusRight="video/quality/icon"
                             hideHighlightBorder="true"
                             highlightBackgroundColor="@theme/color/focus/bg"
-                            highlightPadding="6"
-                            highlightCornerRadius="8" />
-                    </brls:Box>
-                    <brls:Box
-                        id="video/speed/box"
-                        hideClickAnimation="true"
-                        marginLeft="10"
-                        marginRight="10"
-                        alignItems="center"
-                        justifyContent="center"
-                        height="60">
-                        <brls:Label
-                            id="video/speed/label"
-                            textColor="@theme/color/white"
-                            focusable="true"
-                            focusUp="video/osd/lock/box"
-                            focusDown="video/speed/label"
-                            focusRight="video/speed/label"
-                            horizontalAlign="center"
-                            text="@i18n/main/player/speed"
-                            hideHighlightBorder="true"
-                            highlightBackgroundColor="@theme/color/focus/bg"
-                            highlightPadding="6"
-                            highlightCornerRadius="8" />
+                            highlightPadding="10"
+                            highlightCornerRadius="25"
+                            height="28"
+                            width="28"
+                            svg="@res/icon/ico-quality.svg" />
                     </brls:Box>
                 </brls:Box>
             </brls:Box>

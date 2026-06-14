@@ -85,6 +85,7 @@ public:
         WINDOW_STATE,
         TRANSCODEC,
         FORCE_DIRECTPLAY,
+        PLAYER_VIDEO_QUALITY,  // transcode bitrate cap (bps); 0 = auto/direct play
         OSD_ON_TOGGLE,
         TOUCH_GESTURE,
         CLIP_POINT,
