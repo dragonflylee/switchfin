@@ -6,6 +6,7 @@
 
 #include "tab/server_add.hpp"
 #include "activity/main_activity.hpp"
+#include "activity/loading_overlay.hpp"
 #include "api/plex.hpp"
 #include "api/plex/auth.hpp"
 #include "utils/dialog.hpp"
@@ -111,7 +112,10 @@ void ServerAdd::pollOnce() {
 }
 
 void ServerAdd::onAccount(const std::string& accountToken) {
+    // getResources hits plex.tv with a 10 s timeout: show a loading screen
+    // rather than a frozen one while we wait (cf. ServerList::onItemSelected).
     brls::Application::blockInputs();
+    brls::Application::pushActivity(new LoadingOverlay(), brls::TransitionAnimation::NONE);
     ASYNC_RETAIN
     brls::async([ASYNC_TOKEN, accountToken]() {
         try {
@@ -120,24 +124,43 @@ void ServerAdd::onAccount(const std::string& accountToken) {
             brls::sync([ASYNC_TOKEN, account, accountToken, servers]() {
                 ASYNC_RELEASE
                 brls::Application::unblockInputs();
+                brls::Application::popActivity(brls::TransitionAnimation::NONE);
                 if (servers.empty()) {
                     Dialog::show("main/plex/no_server"_i18n);
                     return;
                 }
                 std::vector<std::string> names;
                 for (auto& s : servers) names.push_back(s.owned ? s.name : fmt::format("{} 🔗", s.name));
-                auto* dropdown = new brls::Dropdown("main/plex/choose_server"_i18n, names,
+                // The server pick must run AFTER the dropdown has popped itself:
+                // brls::Dropdown fires cb() while still on top of the stack, then
+                // pops (dropdown.cpp:147-152). If onServerPicked pushed its loading
+                // screen from cb(), that pop would tear the loading screen back
+                // down. dismissCb runs in the pop completion, so the stack is clean.
+                auto* dropdown = new brls::Dropdown(
+                    "main/plex/choose_server"_i18n, names, [](int) {}, 0,
                     [this, account, accountToken, servers](int selected) {
                         if (selected < 0) return;
                         this->onServerPicked(account, accountToken, servers.at(selected));
                     });
                 brls::Application::pushActivity(new brls::Activity(dropdown));
+                // The dropdown's recycler builds its rows (and marks the
+                // selected one) only on its first layout, which runs AFTER this
+                // push. At push time getDefaultFocus() finds no cell, so focus
+                // stays stranded on the (now hidden) screen underneath and A
+                // does nothing. Re-give focus a tick later, once it has laid
+                // out — target the top of the stack (not a captured pointer, so
+                // a same-frame dismiss can't leave us with a dangling dropdown).
+                brls::sync([]() {
+                    auto stack = brls::Application::getActivitiesStack();
+                    if (!stack.empty()) brls::Application::giveFocus(stack.back()->getDefaultFocus());
+                });
             });
         } catch (const std::exception& ex) {
             std::string msg = ex.what();
             brls::sync([ASYNC_TOKEN, msg]() {
                 ASYNC_RELEASE
                 brls::Application::unblockInputs();
+                brls::Application::popActivity(brls::TransitionAnimation::NONE);
                 Dialog::show(msg);
             });
         }
@@ -146,7 +169,12 @@ void ServerAdd::onAccount(const std::string& accountToken) {
 
 void ServerAdd::onServerPicked(
     const plex::AccountUser& account, const std::string& accountToken, const plex::ServerResource& server) {
+    // findBestConnection probes each candidate URL in series (2 s timeout each;
+    // plex.direct servers advertise 10+), so this can take many seconds. Without
+    // a loading screen the dropdown just vanishes and the app looks frozen — the
+    // exact symptom reported in thcolin/pleNx#1 on Vita.
     brls::Application::blockInputs();
+    brls::Application::pushActivity(new LoadingOverlay(), brls::TransitionAnimation::NONE);
     ASYNC_RETAIN
     brls::async([ASYNC_TOKEN, account, accountToken, server]() {
         try {
@@ -163,15 +191,25 @@ void ServerAdd::onServerPicked(
             brls::sync([ASYNC_TOKEN, account, accountToken, server, base, homes]() {
                 ASYNC_RELEASE
                 brls::Application::unblockInputs();
+                brls::Application::popActivity(brls::TransitionAnimation::NONE);
                 if (homes.size() > 1) {
                     std::vector<std::string> names;
                     for (auto& h : homes) names.push_back(h.isProtected ? fmt::format("{} 🔒", h.title) : h.title);
-                    auto* dropdown = new brls::Dropdown("main/plex/choose_profile"_i18n, names,
+                    // dismissCb (not cb) so the profile pick fires after the
+                    // dropdown pops — same stack ordering as the server dropdown.
+                    auto* dropdown = new brls::Dropdown(
+                        "main/plex/choose_profile"_i18n, names, [](int) {}, 0,
                         [this, homes, accountToken, server, base](int selected) {
                             if (selected < 0) return;
                             this->onProfilePicked(homes.at(selected), accountToken, server, base);
                         });
                     brls::Application::pushActivity(new brls::Activity(dropdown));
+                    // See onAccount: focus the freshly-pushed dropdown once its
+                    // recycler has laid out, otherwise pressing A does nothing.
+                    brls::sync([]() {
+                        auto stack = brls::Application::getActivitiesStack();
+                        if (!stack.empty()) brls::Application::giveFocus(stack.back()->getDefaultFocus());
+                    });
                 } else {
                     this->finish(account.uuid, account.username, account.thumb, accountToken, server, base);
                 }
@@ -181,6 +219,7 @@ void ServerAdd::onServerPicked(
             brls::sync([ASYNC_TOKEN, msg]() {
                 ASYNC_RELEASE
                 brls::Application::unblockInputs();
+                brls::Application::popActivity(brls::TransitionAnimation::NONE);
                 Dialog::show(msg);
             });
         }
@@ -202,7 +241,10 @@ void ServerAdd::onProfilePicked(const plex::HomeUser& home, const std::string& a
 
 void ServerAdd::doSwitch(const plex::HomeUser& home, const std::string& accountToken,
     const plex::ServerResource& server, const std::string& baseUrl, const std::string& pin) {
+    // switchHomeUser + a fresh getResources round-trip: keep the loading screen
+    // up so the profile switch never reads as a freeze either.
     brls::Application::blockInputs();
+    brls::Application::pushActivity(new LoadingOverlay(), brls::TransitionAnimation::NONE);
     ASYNC_RETAIN
     brls::async([ASYNC_TOKEN, home, accountToken, server, baseUrl, pin]() {
         try {
@@ -216,6 +258,7 @@ void ServerAdd::doSwitch(const plex::HomeUser& home, const std::string& accountT
             brls::sync([ASYNC_TOKEN, home, profileToken, fresh, baseUrl]() {
                 ASYNC_RELEASE
                 brls::Application::unblockInputs();
+                brls::Application::popActivity(brls::TransitionAnimation::NONE);
                 this->finish(home.uuid, home.title, home.thumb, profileToken, fresh, baseUrl);
             });
         } catch (const std::exception& ex) {
@@ -223,6 +266,7 @@ void ServerAdd::doSwitch(const plex::HomeUser& home, const std::string& accountT
             brls::sync([ASYNC_TOKEN, msg]() {
                 ASYNC_RELEASE
                 brls::Application::unblockInputs();
+                brls::Application::popActivity(brls::TransitionAnimation::NONE);
                 // 403 = wrong PIN (code 1041)
                 Dialog::show(msg.find("403") != std::string::npos ? "main/plex/wrong_pin"_i18n : msg);
             });

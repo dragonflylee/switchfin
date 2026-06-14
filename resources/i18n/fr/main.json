@@ -333,6 +333,7 @@
     "wrong_pin": "Code PIN incorrect",
     "no_server": "Aucun serveur trouvé sur ce compte",
     "connecting": "Connexion au serveur…",
+    "connecting_slow": "Cela prend plus de temps que d'habitude — on essaie toujours de joindre votre serveur. Encore un instant…",
     "unreachable": "Serveur injoignable"
   },
   "empty": {

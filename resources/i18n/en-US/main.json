@@ -333,6 +333,7 @@
     "wrong_pin": "Wrong PIN",
     "no_server": "No server found on this account",
     "connecting": "Connecting to the server…",
+    "connecting_slow": "This is taking longer than usual — still trying to reach your server. Hang tight…",
     "unreachable": "Server unreachable"
   },
   "empty": {
