@@ -9,6 +9,42 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [0.1.7] - 2026-06-15
+
+### Sign-in
+
+- **Selecting a server no longer looks frozen.** Picking a server (or profile)
+  during Plex sign-in blocked all input while probing the server's connections
+  — several seconds, with nothing on screen — so the dialog just vanished and
+  the app seemed dead. A loading overlay now sits over the pairing screen for
+  the whole wait, with a reassurance line that fades in if it runs long
+- **Account linking survives a transient network hiccup.** A single timeout or
+  TLS blip (common on Vita) no longer aborts the whole PIN flow; only an
+  expired/consumed code is terminal, and the 2-minute deadline stays the real
+  give-up
+
+### Player
+
+- **Direct-access OSD.** The speed control is replaced by icon buttons for
+  audio track, subtitle track and quality. Subtitles get a live, translucent
+  sub-delay overlay (LEFT/RIGHT) on top of the video; audio, subtitle and
+  sub-sync leave the settings panel. Video quality is now remembered and
+  defaults to a 4 Mbps transcode on Vita (its decoder chokes on heavy direct
+  play), staying Auto everywhere else
+- **Marking watched is now a targeted card refresh** instead of reloading the
+  whole view (heavy on the home screen): the single card updates optimistically
+
+### Fixes
+
+- **The synopsis no longer collapses to a single line** when returning from a
+  person page — a relayout had cut the text at an intermediate width. The
+  action row also gains a little breathing room below the title/meta block
+- **The splash logo no longer shows a flat colored band along its edges** — an
+  edge-clamp artifact from letterboxing the non-square asset, fixed by
+  re-exporting it square with a transparent margin
+- **Deleting the last card in a grid no longer leaves a ghost highlight**, and
+  emptying the downloads list hands focus back to the sidebar
+
 ## [0.1.6] - 2026-06-12
 
 ### Fixes
