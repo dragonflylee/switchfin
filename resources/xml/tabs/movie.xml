@@ -154,10 +154,13 @@
                         marginBottom="16" />
 
                     <!-- inline buttons under the genres, before the synopsis;
-                         dark icons on the gold primary -->
+                         dark icons on the gold primary. marginTop sets the
+                         action row apart from the title/meta block above
+                         (genres only carry a 16 bottom margin) -->
                     <brls:Box
                         id="movie/buttons"
                         axis="row"
+                        marginTop="16"
                         marginBottom="18">
 
                         <IconButton

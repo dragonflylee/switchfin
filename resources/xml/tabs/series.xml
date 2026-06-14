@@ -149,10 +149,12 @@
 
                     <!-- inline buttons under the genres, before the synopsis:
                          "Play" = next episode (OnDeck), "Download"
-                         = whole show (allLeaves) -->
+                         = whole show (allLeaves). marginTop sets the action
+                         row apart from the title/meta block above. -->
                     <brls:Box
                         id="series/buttons"
                         axis="row"
+                        marginTop="16"
                         marginBottom="18">
 
                         <IconButton
