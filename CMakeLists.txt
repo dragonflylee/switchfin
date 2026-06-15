@@ -54,7 +54,7 @@ include(${BOREALIS_LIBRARY}/cmake/toolchain.cmake)
 project(pleNx)
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")
-set(VERSION_ALTER "7")
+set(VERSION_ALTER "8")
 # 0420 1312: title ID specific to pleNx — the old one (inherited from
 # Switchfin) let the HOME menu serve the "Switchlex" name/icon from its cache
 # even after reinstalling; a fresh ID starts from scratch. Uniqueness verified

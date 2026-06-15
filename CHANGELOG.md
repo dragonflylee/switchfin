@@ -9,6 +9,30 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [0.1.8] - 2026-06-15
+
+### Downloads
+
+- **The download card now shows transfer speed and ETA.** While a download is
+  running, the progress line reads `123 MB / 456 MB · 5.2 MB/s · 12:30 left`;
+  the rate is a smoothed average (EMA) so the estimate stays steady instead of
+  jumping on every tick
+
+### Library
+
+- **Movie and show pages show critic and audience ratings with their official
+  icons.** Plex's rating sources are mapped to the Rotten Tomatoes tomato
+  (fresh/rotten), the audience popcorn (upright/spilled), and the IMDb and TMDb
+  marks, each sized to its own aspect; a plain star is kept as a fallback when
+  the source is unknown
+
+### Changelog
+
+- **The changelog is now readable in the app**, from Settings ▸ Changelog — the
+  full history, scrollable
+- **The update prompt shows the new version's release notes** instead of just
+  its number, so you can see what changed before updating
+
 ## [0.1.7] - 2026-06-15
 
 ### Sign-in
