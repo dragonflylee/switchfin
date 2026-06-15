@@ -9,6 +9,20 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [0.1.9] - 2026-06-15
+
+### Fixes
+
+- **Self-hosted servers on your LAN are reachable again when `plex.direct` DNS
+  is blocked.** Server discovery only probed the `plex.direct` hostname, whose
+  public DNS record points at a private IP — which routers and resolvers with
+  DNS-rebinding protection (Fritz!Box, Pi-hole, AdGuard…) refuse to resolve. A
+  server sitting on the same network then reported "unreachable" even though it
+  answered directly, while the official clients connected fine. pleNx now also
+  probes the raw IP address for private, CGNAT and VPN endpoints, bypassing
+  `plex.direct` entirely — and re-discovers a working address on reconnect when
+  the server changes IP (e.g. a new DHCP lease)
+
 ## [0.1.8] - 2026-06-15
 
 ### Downloads
