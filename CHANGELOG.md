@@ -9,6 +9,17 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [0.1.10] - 2026-06-15
+
+### Fixes
+
+- **PS Vita: movie logos no longer render sheared or with a torn vertical
+  strip.** GPU texture compression always extracted a full 4×4 pixel block, so
+  for images whose width or height isn't a multiple of 4 the edge blocks pulled
+  in the next row's pixels (the visible vertical corruption) or read past the
+  decoded image. Edge blocks are now clamped to the valid pixels, with the
+  border replicated into the padding for a clean edge
+
 ## [0.1.9] - 2026-06-15
 
 ### Fixes
