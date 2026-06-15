@@ -14,6 +14,8 @@ native interface designed for the gamepad. Also (should) runs on Windows,
 macOS, Linux, PS4 and PS Vita.
 
 [![build](https://github.com/thcolin/pleNx/actions/workflows/build.yaml/badge.svg)](https://github.com/thcolin/pleNx/actions/workflows/build.yaml)
+[![NS](https://img.shields.io/badge/-Nintendo%20Switch-e4000f?style=flat&logo=Nintendo%20Switch)](https://hb-app.store/switch/pleNx)
+[![PSVita](https://img.shields.io/badge/-PSVita-003791?style=flat&logo=PlayStation)](https://www.rinnegatamante.eu/vitadb/#/info/1411)
 [![download](https://img.shields.io/github/downloads/thcolin/pleNx/total?label=downloads)](https://github.com/thcolin/pleNx/releases/latest)
 [![nightly](https://img.shields.io/badge/nightly-build-green)](https://nightly.link/thcolin/pleNx/workflows/build.yaml/dev)
 [![sponsor](https://img.shields.io/badge/sponsor-%E2%9D%A4-db61a2)](https://github.com/sponsors/thcolin)
