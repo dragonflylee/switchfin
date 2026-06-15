@@ -12,6 +12,7 @@
 #include "utils/image.hpp"
 #include "utils/dialog.hpp"
 #include "api/plex/auth.hpp"
+#include <optional>
 
 using namespace brls::literals;  // for _i18n
 
@@ -129,10 +130,12 @@ public:
 
                 // Refreshes this profile's server token when plex.tv responds;
                 // offline we keep the remembered token (direct LAN).
+                std::optional<plex::ServerResource> fresh;
                 try {
                     for (auto& r : plex::getResources(u.access_token)) {
-                        if (r.clientIdentifier == target.id && !r.accessToken.empty())
-                            target.access_token = r.accessToken;
+                        if (r.clientIdentifier != target.id) continue;
+                        if (!r.accessToken.empty()) target.access_token = r.accessToken;
+                        fresh = r;
                     }
                 } catch (const std::exception& ex) {
                     brls::Logger::warning("refresh resources: {}", ex.what());
@@ -145,6 +148,10 @@ public:
                         break;
                     }
                 }
+                // Stored URLs all stale (e.g. the server picked up a new LAN IP):
+                // rediscover from the freshly fetched resource, which now yields
+                // raw-IP fallbacks too (cf. findBestConnection, GH #3).
+                if (base.empty() && fresh) base = plex::findBestConnection(*fresh);
                 if (base.empty()) throw std::runtime_error(unreachable);
 
                 brls::sync([u, target, base]() {
