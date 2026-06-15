@@ -1,0 +1,36 @@
+<!-- Update popup content: title + the new version's release notes (GitHub
+     release body, light-markdown cleaned). Scrolls when the notes overflow;
+     the scroll row is hidden when there are no notes. -->
+<brls:Box
+    axis="column"
+    alignItems="stretch"
+    width="720"
+    height="auto"
+    paddingTop="26"
+    paddingBottom="10"
+    paddingLeft="30"
+    paddingRight="30">
+
+    <brls:Label
+        id="update/title"
+        fontSize="22"
+        marginBottom="16" />
+
+    <brls:ScrollingFrame
+        id="update/scroll"
+        width="auto"
+        height="240"
+        scrollingBehavior="natural">
+        <brls:Box
+            width="auto"
+            height="auto"
+            axis="column"
+            alignItems="stretch">
+            <brls:Label
+                id="update/body"
+                fontSize="16"
+                textColor="@theme/font/grey"
+                lineHeight="1.35" />
+        </brls:Box>
+    </brls:ScrollingFrame>
+</brls:Box>

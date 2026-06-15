@@ -69,5 +69,6 @@ private:
     BRLS_BIND(SelectorCell, selectorTheme, "setting/ui/theme");
     BRLS_BIND(brls::RadioCell, btnOpenConfig, "tools/config_dir");
     BRLS_BIND(brls::RadioCell, btnReleaseChecker, "setting/release_checker");
+    BRLS_BIND(brls::RadioCell, btnChangelog, "setting/changelog");
     BRLS_BIND(brls::DetailCell, btnAbout, "setting/about");
 };

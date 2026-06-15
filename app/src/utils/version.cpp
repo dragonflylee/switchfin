@@ -21,6 +21,7 @@
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
 #include "utils/thread.hpp"
+#include "utils/misc.hpp"
 #include "api/http.hpp"
 
 using namespace brls::literals;
@@ -215,6 +216,26 @@ static void startUpdate(const std::string& latest_ver, const std::string& url, i
 }
 #endif
 
+// Update popup content: the version prompt + the new release's notes (GitHub
+// `body`, light-markdown cleaned, scrollable). The notes row is hidden when
+// the release carries none. The full history lives in Settings ▸ Changelog.
+static brls::Dialog* makeUpdateDialog(const std::string& title, const std::string& body) {
+    auto* box = dynamic_cast<brls::Box*>(brls::View::createFromXMLResource("view/update_dialog.xml"));
+    if (auto* t = dynamic_cast<brls::Label*>(box->getView("update/title"))) t->setText(title);
+
+    std::string notes = misc::markdownToText(body);
+    size_t a = notes.find_first_not_of("\n\r \t");
+    size_t z = notes.find_last_not_of("\n\r \t");
+    notes = a == std::string::npos ? "" : notes.substr(a, z - a + 1);
+
+    if (notes.empty())
+        box->getView("update/scroll")->setVisibility(brls::Visibility::GONE);
+    else if (auto* b = dynamic_cast<brls::Label*>(box->getView("update/body")))
+        b->setText(notes);
+
+    return new brls::Dialog(box);
+}
+
 void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
     if (!AppVersion::updating->load()) {
         Dialog::cancelable("main/setting/others/updating"_i18n, [] { AppVersion::updating->store(true); });
@@ -233,6 +254,9 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
                 if (showUpToDateDialog) brls::sync([]() { Dialog::show("main/setting/others/up2date"_i18n); });
                 return;
             }
+
+            // release notes shown in the popup (only this version's changelog)
+            std::string release_body = j.value("body", std::string());
 
 #ifdef __SWITCH__
             // NRO URL and size from the API response rather than a hardcoded
@@ -253,9 +277,9 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
                 return;
             }
 
-            brls::sync([latest_ver, asset_url, asset_size]() {
+            brls::sync([latest_ver, asset_url, asset_size, release_body]() {
                 std::string title = brls::getStr("main/setting/others/upgrade", latest_ver);
-                auto dialog = new brls::Dialog(title);
+                auto dialog = makeUpdateDialog(title, release_body);
                 dialog->addButton("hints/cancel"_i18n, []() {
                     auto& conf = AppConfig::instance();
                     conf.setItem(AppConfig::APP_UPDATE, getVersion());
@@ -265,9 +289,9 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
                 dialog->open();
             });
 #else
-            brls::sync([latest_ver]() {
+            brls::sync([latest_ver, release_body]() {
                 std::string title = brls::getStr("main/setting/others/upgrade", latest_ver);
-                auto dialog = new brls::Dialog(title);
+                auto dialog = makeUpdateDialog(title, release_body);
                 dialog->addButton("hints/cancel"_i18n, []() {
                     auto& conf = AppConfig::instance();
                     conf.setItem(AppConfig::APP_UPDATE, getVersion());

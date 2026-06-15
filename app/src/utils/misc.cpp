@@ -5,6 +5,7 @@
 #include <random>
 #include <sstream>
 #include <iomanip>
+#include <regex>
 
 using namespace brls::literals;  // for _i18n
 
@@ -160,6 +161,33 @@ std::string misc::formatSize(uint64_t s) {
     // 1 TB — "1862.65GB" is not readable
     if (s < (1ULL << 40)) return fmt::format("{:.2f}GB", (s >> 20) / 1024.0f);
     return fmt::format("{:.2f}TB", (s >> 30) / 1024.0f);
+}
+
+std::string misc::markdownToText(const std::string& md) {
+    std::string out;
+    std::istringstream stream(md);
+    std::string line;
+    while (std::getline(stream, line)) {
+        if (!line.empty() && line.back() == '\r') line.pop_back();  // CRLF
+
+        // ATX heading: drop the leading #'s, keep the text
+        size_t h = line.find_first_not_of('#');
+        if (h > 0 && h <= 6 && h < line.size() && line[h] == ' ') line = line.substr(h + 1);
+
+        // list item: normalize "-"/"*"/"+" markers to a bullet
+        size_t i = line.find_first_not_of(' ');
+        if (i != std::string::npos && (line[i] == '-' || line[i] == '*' || line[i] == '+') &&
+            i + 1 < line.size() && line[i + 1] == ' ') {
+            line = line.substr(0, i) + "•" + line.substr(i + 1);
+        }
+
+        out += line;
+        out += '\n';
+    }
+    // inline: [text](url) -> text, then strip ** __ ` marks
+    out = std::regex_replace(out, std::regex(R"(\[([^\]]+)\]\([^)]*\))"), "$1");
+    out = std::regex_replace(out, std::regex(R"(\*\*|__|`)"), "");
+    return out;
 }
 
 std::string misc::randHex(const int len) {

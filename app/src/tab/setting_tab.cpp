@@ -17,6 +17,7 @@
 #include "tab/setting_tab.hpp"
 #include "activity/server_list.hpp"
 #include "activity/hint_activity.hpp"
+#include "activity/changelog_activity.hpp"
 #include "utils/config.hpp"
 #include "utils/image.hpp"
 #include "utils/thread.hpp"
@@ -444,6 +445,11 @@ void SettingTab::onCreate() {
         fmt::format("{} ({}: {})", "main/setting/others/release"_i18n, "hints/current"_i18n, AppVersion::getVersion()));
     btnReleaseChecker->registerClickAction([](...) -> bool {
         AppVersion::checkUpdate(0, true);
+        return true;
+    });
+
+    btnChangelog->registerClickAction([](...) -> bool {
+        brls::Application::pushActivity(new Changelog());
         return true;
     });
 

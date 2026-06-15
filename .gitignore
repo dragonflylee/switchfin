@@ -9,6 +9,7 @@ build*/
 *.dmp
 /resources/forwarder.nsp
 /resources/shaders/*.dksh
+/resources/CHANGELOG.md
 /scripts/*/*/*.tar.*
 /scripts/aur/*.tar.*
 /scripts/*/*/src

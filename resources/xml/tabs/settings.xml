@@ -241,6 +241,9 @@
                     id="setting/debug" />
                 <brls:RadioCell
                     id="setting/release_checker" />
+                <brls:RadioCell
+                    id="setting/changelog"
+                    title="@i18n/main/setting/others/changelog" />
                 <brls:DetailCell
                     title="@i18n/main/about/header"
                     id="setting/about" />

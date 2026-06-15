@@ -69,6 +69,13 @@ set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon.jpg)
 set(PROJECT_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/resources)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
+# Embed the changelog (single source of truth at the repo root) into the
+# resources so the in-app Changelog screen can read it via romfs /
+# BRLS_RESOURCES on every platform. Configure-time copy: picked up by
+# libromfs and the resource copy steps; editing CHANGELOG.md re-triggers
+# CMake configure. The copy under resources/ is gitignored.
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CHANGELOG.md ${PROJECT_RESOURCES}/CHANGELOG.md COPYONLY)
+
 if (CUSTOM_RESOURCES_DIR)
     set(BRLS_RESOURCES_DIR ${CUSTOM_RESOURCES_DIR})
 elseif (CMAKE_INSTALL)

@@ -1,0 +1,33 @@
+<brls:AppletFrame iconInterpolation="linear">
+    <!-- title on the content view feeds the AppletFrame header -->
+    <brls:Box
+        title="@i18n/main/changelog/header"
+        axis="column"
+        width="100%"
+        height="100%">
+
+        <!-- text-only ScrollingFrame: it is focusable and, with no focusable
+             child, takes focus itself and scrolls on UP/DOWN (gamepad) and
+             the wheel/trackpad (desktop) -->
+        <brls:ScrollingFrame
+            width="auto"
+            height="auto"
+            grow="1.0"
+            scrollingBehavior="natural">
+            <brls:Box
+                width="auto"
+                height="auto"
+                axis="column"
+                alignItems="stretch"
+                paddingLeft="@style/main/content_padding_sides"
+                paddingRight="@style/main/content_padding_sides"
+                paddingTop="@style/main/content_padding_top_bottom"
+                paddingBottom="@style/main/content_padding_top_bottom">
+                <brls:Label
+                    id="changelog/text"
+                    fontSize="18"
+                    lineHeight="1.35" />
+            </brls:Box>
+        </brls:ScrollingFrame>
+    </brls:Box>
+</brls:AppletFrame>
