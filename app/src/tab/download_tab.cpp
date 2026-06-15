@@ -185,8 +185,7 @@ public:
         DownloadItem item;
     };
 
-    explicit DownloadDataSource(std::vector<DownloadItem> all)
-        : dlDir(AppConfig::instance().configDir() + "/downloads") {
+    explicit DownloadDataSource(std::vector<DownloadItem> all) : dlDir(DownloadManager::instance().downloadDir()) {
         std::vector<DownloadItem> active, done;
         for (auto& it : all) {
             if (it.status == DownloadStatus::Completed && it.totalBytes <= 0 && !it.filePath.empty()) {
@@ -421,7 +420,7 @@ void DownloadView::loadItems() {
 
 void DownloadView::updateStorage() {
     auto& dm = DownloadManager::instance();
-    const std::string dir = AppConfig::instance().configDir() + "/downloads";
+    const std::string dir = dm.downloadDir();
     auto items = dm.getItems();
 
     // pleNx bytes: completed = known size (or real file for an inherited

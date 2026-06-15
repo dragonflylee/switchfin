@@ -1,5 +1,6 @@
 #include "utils/download.hpp"
 #include "utils/config.hpp"
+#include "utils/thread.hpp"
 #include "utils/misc.hpp"
 #include "api/jellyfin.hpp"
 #include "view/mpv_core.hpp"
@@ -275,7 +276,7 @@ void DownloadManager::doDownload(DownloadItem& item) {
 
     brls::sync([this, itemId]() { this->statusEvent.fire(itemId, DownloadStatus::Downloading); });
 
-    brls::async([this, itemId, imagePrimaryTag, quality, url, itemDir, cancel]() {
+    ThreadPool::instance().submit([this, itemId, imagePrimaryTag, quality, url, itemDir, cancel](HTTP& s) {
         auto resetQueue = [this, itemId](const std::string& error) {
             brls::sync([this, itemId, error]() {
                 {

@@ -63,6 +63,7 @@ public:
     std::string getLocalPath(const std::string& itemId) const;
 
     std::vector<DownloadItem> getItems() const;
+    std::string downloadDir() const;
 
     ProgressEvent* getProgressEvent() { return &progressEvent; }
     StatusEvent* getStatusEvent() { return &statusEvent; }
@@ -72,7 +73,6 @@ private:
     void loadIndex();
     void processQueue();
     void doDownload(DownloadItem& item);
-    std::string downloadDir() const;
     std::string buildDownloadUrl(const DownloadItem& item) const;
 
     mutable std::mutex mutex;
