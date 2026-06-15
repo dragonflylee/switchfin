@@ -45,10 +45,31 @@ static inline __attribute__((always_inline)) void d2xy_morton(uint64_t d, uint64
     *y = morton_1(d >> 1);
 }
 
-static inline __attribute__((always_inline)) void extract_block(const uint8_t* src, uint32_t width, uint8_t* block) {
-    for (int j = 0; j < 4; j++) {
-        memcpy(&block[j * 4 * 4], src, 16);
-        src += width * 4;
+static inline __attribute__((always_inline)) void extract_block(
+    const uint8_t* src, uint32_t stride, uint32_t remaining_w, uint32_t remaining_h, uint8_t* block) {
+    // Fast path: a fully in-bounds 4x4 block, copy four contiguous rows.
+    if (remaining_w >= 4 && remaining_h >= 4) {
+        for (int j = 0; j < 4; j++) {
+            memcpy(&block[j * 4 * 4], src, 16);
+            src += stride * 4;
+        }
+        return;
+    }
+    // Edge block: the image width/height is not a multiple of 4, so this
+    // block only partially overlaps the image. Copying a full 4x4 here would
+    // read the next row's pixels (right edge) or run past the decoded buffer
+    // (bottom edge) — that overread is what shears/corrupts logos with awkward
+    // dimensions. Clamp to the valid pixels and replicate the last in-bounds
+    // row/column into the padding so the block stays a single colour region
+    // (clean edge under bilinear CLAMP sampling, fewer colours for DXT).
+    uint32_t copy_w = MIN(remaining_w, 4u);
+    uint32_t copy_h = MIN(remaining_h, 4u);
+    for (uint32_t y = 0; y < 4; y++) {
+        const uint8_t* row = src + (y < copy_h ? y : copy_h - 1) * stride * 4;
+        uint8_t* drow = &block[y * 16];
+        for (uint32_t x = 0; x < 4; x++) {
+            memcpy(&drow[x * 4], row + (x < copy_w ? x : copy_w - 1) * 4, 4);
+        }
     }
 }
 
@@ -65,7 +86,10 @@ static void dxt_compress_ext(
     for (d = 0; d < num_blocks; d++, dst += block_size) {
         d2xy_morton(d, &offs_x, &offs_y);
         if (offs_x * 4 >= h || offs_y * 4 >= w) continue;
-        extract_block(src + offs_y * 16 + offs_x * stride * 16, stride, block);
+        // offs_x indexes rows (height), offs_y indexes columns (width); both
+        // remaining counts are > 0 thanks to the bounds check above.
+        extract_block(
+            src + offs_y * 16 + offs_x * stride * 16, stride, w - offs_y * 4, h - offs_x * 4, block);
         stb_compress_dxt_block(dst, block, isdxt5, STB_DXT_NORMAL);
     }
     if (align_w > align_h) return dxt_compress_ext(dst, src + s * 4, w - s, h, stride, s, isdxt5);
