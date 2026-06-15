@@ -411,6 +411,8 @@ struct Item {
     std::string contentRating;
     double rating = 0.0;          // critic rating 0-10
     double audienceRating = 0.0;  // audience rating 0-10
+    std::string ratingImage;          // critic source: imdb://…, rottentomatoes://image.rating.ripe|rotten, themoviedb://…
+    std::string audienceRatingImage;  // audience source: rottentomatoes://image.rating.upright|spilled
     std::string originallyAvailableAt;  // YYYY-MM-DD
     std::string parentRatingKey;        // season (from an episode)
     std::string parentTitle;
@@ -455,6 +457,8 @@ inline void from_json(const nlohmann::json& j, Item& r) {
     r.contentRating = jstr(j, "contentRating");
     r.rating = jnum(j, "rating");
     r.audienceRating = jnum(j, "audienceRating");
+    r.ratingImage = jstr(j, "ratingImage");
+    r.audienceRatingImage = jstr(j, "audienceRatingImage");
     r.originallyAvailableAt = jstr(j, "originallyAvailableAt");
     r.parentRatingKey = jstr(j, "parentRatingKey");
     r.parentTitle = jstr(j, "parentTitle");

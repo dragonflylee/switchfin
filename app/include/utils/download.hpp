@@ -42,7 +42,8 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(DownloadItem, itemId, name, type
 
 class DownloadManager : public brls::Singleton<DownloadManager> {
 public:
-    using ProgressEvent = brls::Event<std::string, int64_t, int64_t>;
+    // itemId, downloaded bytes, total bytes (0 = unknown), smoothed speed B/s (0 = n/a)
+    using ProgressEvent = brls::Event<std::string, int64_t, int64_t, double>;
     using StatusEvent = brls::Event<std::string, DownloadStatus>;
 
     void init();

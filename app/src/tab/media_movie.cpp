@@ -12,6 +12,7 @@
 #include "utils/misc.hpp"
 #include "utils/dialog.hpp"
 #include "utils/download.hpp"
+#include "utils/rating.hpp"
 #include <fmt/ranges.h>
 
 using namespace brls::literals;  // for _i18n
@@ -44,7 +45,7 @@ MediaMovie::MediaMovie(const plex::Item& item) : itemId(item.ratingKey) {
     this->updateDownloadButton();
     // live progress on the button (events emitted on the UI thread)
     this->progressSub = dm.getProgressEvent()->subscribe(
-        [this](const std::string& id, int64_t downloaded, int64_t total) {
+        [this](const std::string& id, int64_t downloaded, int64_t total, double) {
             if (id != this->itemId || total <= 0) return;
             // "Downloading... (42%)" — a bare percentage does not say what
             // the button does; completion goes back through updateDownloadButton
@@ -206,12 +207,11 @@ void MediaMovie::doMovie() {
                 this->parentalRating->setText(item.contentRating);
                 this->parentalRating->getParent()->setVisibility(brls::Visibility::VISIBLE);
             }
-            if (item.rating == 0.0) {
-                this->labelRating->getParent()->setVisibility(brls::Visibility::GONE);
-            } else {
-                this->labelRating->setText(fmt::format("{:.1f}", item.rating));
-                this->labelRating->getParent()->setVisibility(brls::Visibility::VISIBLE);
-            }
+            // critic (ratingImage: RT tomato / IMDb / TMDb) + audience
+            // (audienceRatingImage: RT popcorn), official icons with a
+            // generic-star fallback; each pill hides itself when absent
+            rating::applyPill(this->iconRating, this->labelRating, item.ratingImage, item.rating);
+            rating::applyPill(this->iconAudience, this->labelAudience, item.audienceRatingImage, item.audienceRating);
             this->labelOverview->setText(item.summary);
 
             if (item.genres.empty()) {

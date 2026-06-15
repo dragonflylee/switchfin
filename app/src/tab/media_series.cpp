@@ -18,6 +18,7 @@
 #include "view/presenter.hpp"
 #include "view/context_menu.hpp"
 #include "utils/keybind.hpp"
+#include "utils/rating.hpp"
 #include "utils/download.hpp"
 #include "utils/dialog.hpp"
 #include <fmt/ranges.h>
@@ -541,12 +542,10 @@ void MediaSeries::doSeries() {
                 this->parentalRating->setText(item.contentRating);
                 this->parentalRating->getParent()->setVisibility(brls::Visibility::VISIBLE);
             }
-            if (item.rating == 0.0) {
-                this->labelRating->getParent()->setVisibility(brls::Visibility::GONE);
-            } else {
-                this->labelRating->setText(fmt::format("{:.1f}", item.rating));
-                this->labelRating->getParent()->setVisibility(brls::Visibility::VISIBLE);
-            }
+            // critic (ratingImage) + audience (audienceRatingImage) with the
+            // official Plex icons; generic-star fallback, hidden when absent
+            rating::applyPill(this->iconRating, this->labelRating, item.ratingImage, item.rating);
+            rating::applyPill(this->iconAudience, this->labelAudience, item.audienceRatingImage, item.audienceRating);
             this->labelOverview->setText(item.summary);
             this->seriesSummary = item.summary;
 

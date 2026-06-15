@@ -141,21 +141,29 @@ public:
         }
     }
 
-    /// In-place update from ProgressEvent (no list reload)
-    void setProgress(int64_t downloaded, int64_t total) {
+    /// In-place update from ProgressEvent (no list reload). speed (B/s,
+    /// 0 = n/a) appends "· x/s · mm:ss left"; it is absent on a plain
+    /// reload (setItem), where only the stored byte counts are known.
+    void setProgress(int64_t downloaded, int64_t total, double speed = 0.0) {
         if (total > 0) {
             float frac = (float)downloaded / (float)total;
             this->progressBar->setSegments({{frac, brls::Application::getTheme().getColor("color/app")}});
             this->percent->setText(fmt::format("{}%", (int)(frac * 100)));
             this->percent->setVisibility(brls::Visibility::VISIBLE);
-            this->progressInfo->setText(
-                fmt::format("{} / {}", misc::formatSize(downloaded), misc::formatSize(total)));
+            std::string info = fmt::format("{} / {}", misc::formatSize(downloaded), misc::formatSize(total));
+            if (speed > 0) {
+                info += fmt::format(" · {}/s", misc::formatSize((uint64_t)speed));
+                int64_t eta = (int64_t)((total - downloaded) / speed);
+                if (eta > 0) info += " · " + brls::getStr("main/download/eta", misc::sec2Time(eta));
+            }
+            this->progressInfo->setText(info);
         } else {
             // original file without Content-Length: indeterminate progress
             this->progressBar->setSegments({});
             this->percent->setVisibility(brls::Visibility::GONE);
             std::string text = "main/download/downloading"_i18n;
             if (downloaded > 0) text += fmt::format(" · {}", misc::formatSize(downloaded));
+            if (speed > 0) text += fmt::format(" · {}/s", misc::formatSize((uint64_t)speed));
             this->progressInfo->setText(text);
         }
     }
@@ -400,12 +408,12 @@ DownloadView::DownloadView() {
     // tick (<= 2 Hz): IN-PLACE update of the visible card — rebuilding the
     // list here reset the scroll and the focus on every tick
     this->progressSubId = DownloadManager::instance().getProgressEvent()->subscribe(
-        [this](const std::string& itemId, int64_t downloaded, int64_t total) {
+        [this](const std::string& itemId, int64_t downloaded, int64_t total, double speed) {
             auto* ds = dynamic_cast<DownloadDataSource*>(this->recycler->getDataSource());
             size_t index = 0;
             if (ds && ds->updateProgress(itemId, downloaded, total, index)) {
                 auto* cell = dynamic_cast<DownloadCard*>(this->recycler->getGridItemByIndex(index));
-                if (cell) cell->setProgress(downloaded, total);
+                if (cell) cell->setProgress(downloaded, total, speed);
             } else {
                 // row not yet materialized (safety): rebuild
                 this->loadItems();

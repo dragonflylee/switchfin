@@ -331,26 +331,46 @@ void DownloadManager::doDownload(DownloadItem& item) {
             }
         }
 
+        // throttled to <= 2 Hz; the speed is an EMA over the 500 ms ticks
+        // (a raw delta is too jittery to drive a readable ETA) and stays
+        // local to the transfer — never written to index.json
         auto lastProgress = std::make_shared<std::chrono::steady_clock::time_point>();
-        HTTP::Progress::Callback progressCb = [this, itemId, lastProgress](curl_off_t total, curl_off_t now) {
-            auto tp = std::chrono::steady_clock::now();
-            if (tp - *lastProgress < std::chrono::milliseconds(500)) return;
-            *lastProgress = tp;
+        auto lastBytes = std::make_shared<curl_off_t>(0);
+        auto started = std::make_shared<bool>(false);
+        auto speedEma = std::make_shared<double>(0.0);
+        HTTP::Progress::Callback progressCb =
+            [this, itemId, lastProgress, lastBytes, started, speedEma](curl_off_t total, curl_off_t now) {
+                auto tp = std::chrono::steady_clock::now();
+                if (tp - *lastProgress < std::chrono::milliseconds(500)) return;
 
-            brls::sync([this, itemId, total, now]() {
-                {
-                    std::lock_guard<std::mutex> lock(this->mutex);
-                    for (auto& item : this->items) {
-                        if (item.itemId == itemId) {
-                            item.totalBytes = total;
-                            item.downloadedBytes = now;
-                            break;
-                        }
+                double speed = 0.0;
+                if (*started) {
+                    double dt = std::chrono::duration<double>(tp - *lastProgress).count();
+                    if (dt > 0) {
+                        double inst = double(now - *lastBytes) / dt;
+                        if (inst < 0) inst = 0;  // never surface a negative rate
+                        *speedEma = *speedEma <= 0.0 ? inst : 0.4 * inst + 0.6 * *speedEma;
+                        speed = *speedEma;
                     }
                 }
-                this->progressEvent.fire(itemId, now, total);
-            });
-        };
+                *started = true;
+                *lastProgress = tp;
+                *lastBytes = now;
+
+                brls::sync([this, itemId, total, now, speed]() {
+                    {
+                        std::lock_guard<std::mutex> lock(this->mutex);
+                        for (auto& item : this->items) {
+                            if (item.itemId == itemId) {
+                                item.totalBytes = total;
+                                item.downloadedBytes = now;
+                                break;
+                            }
+                        }
+                    }
+                    this->progressEvent.fire(itemId, now, total, speed);
+                });
+            };
 
         bool cancelled = false;
         bool success = false;

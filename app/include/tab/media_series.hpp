@@ -7,6 +7,7 @@
 #include <borealis.hpp>
 #include <api/plex/types.hpp>
 #include <view/presenter.hpp>
+#include <view/svg_image.hpp>
 
 class HRecyclerFrame;
 class TextBox;
@@ -36,6 +37,9 @@ private:
     BRLS_BIND(brls::Label, labelYear, "series/label/year");
     BRLS_BIND(brls::Label, parentalRating, "series/parental/rating");
     BRLS_BIND(brls::Label, labelRating, "series/label/rating");
+    BRLS_BIND(SVGImage, iconRating, "series/rating/icon");
+    BRLS_BIND(SVGImage, iconAudience, "series/audience/icon");
+    BRLS_BIND(brls::Label, labelAudience, "series/label/audience");
     BRLS_BIND(TextBox, labelOverview, "series/label/overview");
     BRLS_BIND(brls::Label, labelGenres, "series/label/genres");
     BRLS_BIND(IconButton, btnPlay, "series/play");

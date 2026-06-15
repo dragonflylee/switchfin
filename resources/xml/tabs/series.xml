@@ -120,6 +120,31 @@
                                 fontSize="14" />
                         </brls:Box>
 
+                        <!-- critic rating: official source icon (RT tomato /
+                             IMDb / TMDb) set at runtime, generic star fallback.
+                             Icon width is sized to the glyph aspect in C++. -->
+                        <brls:Box
+                            cornerRadius="14"
+                            height="28"
+                            alignItems="center"
+                            paddingLeft="12"
+                            paddingRight="12"
+                            marginRight="8"
+                            visibility="gone"
+                            backgroundColor="@theme/color/pill">
+                            <SVGImage
+                                id="series/rating/icon"
+                                width="15"
+                                height="15"
+                                marginRight="5"
+                                svg="@res/icon/ico-star.svg" />
+                            <brls:Label
+                                id="series/label/rating"
+                                singleLine="true"
+                                fontSize="14" />
+                        </brls:Box>
+
+                        <!-- audience rating: RT popcorn (upright/spilled) -->
                         <brls:Box
                             cornerRadius="14"
                             height="28"
@@ -129,12 +154,13 @@
                             visibility="gone"
                             backgroundColor="@theme/color/pill">
                             <SVGImage
-                                width="14"
-                                height="14"
+                                id="series/audience/icon"
+                                width="15"
+                                height="15"
                                 marginRight="5"
-                                svg="@res/icon/ico-star.svg" />
+                                svg="@res/icon/rating/rt_upright.svg" />
                             <brls:Label
-                                id="series/label/rating"
+                                id="series/label/audience"
                                 singleLine="true"
                                 fontSize="14" />
                         </brls:Box>

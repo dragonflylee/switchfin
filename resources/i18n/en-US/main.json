@@ -23,6 +23,10 @@
     "brief": "Yet another third-party Plex client",
     "repo_header": "Repository"
   },
+  "changelog": {
+    "header": "Changelog",
+    "empty": "Changelog unavailable"
+  },
   "player": {
     "subtitle": "Subtitle",
     "none": "None",
@@ -150,6 +154,7 @@
     "cancel": "Cancel Download",
     "remove": "Remove Download",
     "downloading": "Downloading...",
+    "eta": "{} left",
     "completed": "Downloaded",
     "failed": "Download Failed",
     "queued": "Queued",
@@ -302,7 +307,8 @@
       "updating": "Updating in progress, cancel now?",
       "downloading": "Downloading {}… {}%",
       "updated": "Update installed. The application will now close: launch it again to use the new version",
-      "release": "Check for updates"
+      "release": "Check for updates",
+      "changelog": "Changelog"
     }
   },
   "hints": {

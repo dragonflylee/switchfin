@@ -23,6 +23,10 @@
     "brief": "Plex permet à plusieurs utilisateurs de se connecter et de diffuser des médias",
     "repo_header": "URL du projet open source"
   },
+  "changelog": {
+    "header": "Changelog",
+    "empty": "Changelog indisponible"
+  },
   "player": {
     "subtitle": "Sous-titres",
     "none": "Ne pas afficher",
@@ -150,6 +154,7 @@
     "cancel": "Annuler le téléchargement",
     "remove": "Supprimer le téléchargement",
     "downloading": "Téléchargement…",
+    "eta": "{} restant",
     "completed": "Téléchargé",
     "failed": "Échec du téléchargement",
     "queued": "En attente",
@@ -302,7 +307,8 @@
       "updating": "Mise à jour en cours, souhaitez-vous annuler la mise à jour ?",
       "downloading": "Téléchargement de {}… {} %",
       "updated": "Mise à jour installée. L'application va se fermer : relancez-la pour profiter de la nouvelle version",
-      "release": "Vérifier les mises à jour"
+      "release": "Vérifier les mises à jour",
+      "changelog": "Changelog"
     }
   },
   "hints": {
