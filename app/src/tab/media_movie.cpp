@@ -6,9 +6,10 @@
 #include "view/people_source.hpp"
 #include "view/video_source.hpp"
 #include "view/mpv_core.hpp"
+#include "view/icon_button.hpp"
 #include "api/jellyfin.hpp"
 #include "utils/misc.hpp"
-#include "utils/download.hpp"
+#include "utils/dialog.hpp"
 #include <fmt/ranges.h>
 
 using namespace brls::literals;  // for _i18n
@@ -18,9 +19,19 @@ MediaMovie::MediaMovie(const jellyfin::Item& item) : itemId(item.Id) {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/movie.xml");
 
-    this->headerTitle->setTitle(item.Name);
+    this->labelTitle->setText(item.Name);
     this->people->registerCell("Cell", MediaCardCell::create);
     this->similar->registerCell("Cell", VideoCardCell::create);
+
+    if (brls::Application::getThemeVariant() == brls::ThemeVariant::LIGHT) {
+        this->imageFade->setImageFromRes("img/fade-bottom-light.png");
+    }
+    // the buttons and the cast row have no geometric overlap: D-pad nav
+    // cannot find it. Explicit route — the row materializes its first cell
+    // if needed (HRecyclerFrame::getDefaultFocus) and the "centered" scroll
+    // follows the focus
+    this->btnPlay->setCustomNavigationRoute(brls::FocusDirection::DOWN, "movie/people");
+    this->btnDownload->setCustomNavigationRoute(brls::FocusDirection::DOWN, "movie/people");
 
     this->btnPlay->registerClickAction([this, item](...) {
         PlayerView* view = new PlayerView(item, this->playTicks, this->sourceId);
@@ -29,43 +40,59 @@ MediaMovie::MediaMovie(const jellyfin::Item& item) : itemId(item.Id) {
     });
 
     auto& dm = DownloadManager::instance();
-    if (dm.isDownloaded(item.Id)) {
-        this->btnDownload->setText("main/download/completed"_i18n);
-    } else if (dm.isDownloading(item.Id)) {
-        this->btnDownload->setText("main/download/downloading"_i18n);
-    }
+    this->updateDownloadButton();
+    // live progress on the button (events emitted on the UI thread)
+    this->progressSub =
+        dm.getProgressEvent()->subscribe([this](const std::string& id, int64_t downloaded, int64_t total) {
+            if (id != this->itemId || total <= 0) return;
+            // "Downloading... (42%)" — a bare percentage does not say what
+            // the button does; completion goes back through updateDownloadButton
+            this->btnDownload->setText(
+                fmt::format("{} ({:.0f}%)", "main/download/downloading"_i18n, downloaded * 100.0 / total));
+        });
+    this->statusSub = dm.getStatusEvent()->subscribe([this](const std::string& id, DownloadStatus status) {
+        if (id == this->itemId) this->updateDownloadButton();
+    });
     this->btnDownload->registerClickAction([this, item](...) {
         auto& dm = DownloadManager::instance();
-        if (dm.isDownloaded(item.Id)) {
+        if (dm.isDownloading(this->itemId)) {
+            Dialog::cancelable("main/download/confirm_cancel"_i18n, [this]() {
+                DownloadManager::instance().cancelDownload(this->itemId);
+                this->updateDownloadButton();
+            });
+        } else if (dm.isDownloaded(this->itemId)) {
             brls::Application::notify("main/download/completed"_i18n);
-        } else if (dm.isDownloading(item.Id)) {
-            brls::Application::notify("main/download/downloading"_i18n);
         } else {
             int qi = AppConfig::instance().getValueIndex(AppConfig::DOWNLOAD_QUALITY);
-            dm.addDownload(item.Id, static_cast<DownloadQuality>(qi));
-            this->btnDownload->setText("main/download/queued"_i18n);
-            brls::Application::notify("main/download/queued"_i18n);
+            dm.addDownload(this->itemId, static_cast<DownloadQuality>(qi));
+            this->updateDownloadButton();
         }
         return true;
     });
 
     this->doMovie();
     this->doSimilar();
-
-    auto logo = item.ImageTags.find(jellyfin::imageTypePrimary);
-    if (logo != item.ImageTags.end()) {
-        Image::load(this->imageLogo, jellyfin::apiPrimaryImage, item.Id,
-            HTTP::encode_form({
-                {"tag", logo->second},
-                {"maxWidth", "240"},
-            }));
-        this->imageLogo->setVisibility(brls::Visibility::VISIBLE);
-    }
 }
 
 MediaMovie::~MediaMovie() {
     brls::Logger::debug("Tab MediaMovie: delete");
+    auto& dm = DownloadManager::instance();
+    dm.getProgressEvent()->unsubscribe(this->progressSub);
+    dm.getStatusEvent()->unsubscribe(this->statusSub);
     Image::cancel(this->imageLogo);
+    Image::cancel(this->imagePoster);
+    Image::cancel(this->imageBackdrop);
+}
+
+void MediaMovie::updateDownloadButton() {
+    auto& dm = DownloadManager::instance();
+    if (dm.isDownloaded(this->itemId)) {
+        this->btnDownload->setText("main/download/completed"_i18n);
+    } else if (dm.isDownloading(this->itemId)) {
+        this->btnDownload->setText("main/download/downloading"_i18n);
+    } else {
+        this->btnDownload->setText("main/download/start"_i18n);
+    }
 }
 
 void MediaMovie::doRequest() {
@@ -79,7 +106,7 @@ void MediaMovie::doMovie() {
     jellyfin::getJSON<jellyfin::Detail>(
         [ASYNC_TOKEN](const jellyfin::Detail& r) {
             ASYNC_RELEASE
-            this->headerTitle->setTitle(r.Name);
+            this->labelTitle->setText(r.Name);
             this->labelYear->setText(std::to_string(r.ProductionYear));
             if (r.OfficialRating.empty()) {
                 this->parentalRating->getParent()->setVisibility(brls::Visibility::GONE);
@@ -107,13 +134,31 @@ void MediaMovie::doMovie() {
                 this->people->setVisibility(brls::Visibility::GONE);
             }
 
-            auto logo = r.ImageTags.find(jellyfin::imageTypePrimary);
+            auto poster = r.ImageTags.find(jellyfin::imageTypePrimary);
+            if (poster != r.ImageTags.end()) {
+                Image::load(this->imagePoster, jellyfin::apiPrimaryImage, r.Id,
+                    HTTP::encode_form({
+                        {"tag", poster->second},
+                        {"maxWidth", "325"},
+                    }));
+            }
+
+            auto logo = r.ImageTags.find(jellyfin::imageTypeLogo);
             if (logo != r.ImageTags.end()) {
-                Image::load(this->imageLogo, jellyfin::apiPrimaryImage, r.Id,
+                Image::load(this->imageLogo, jellyfin::apiLogoImage, r.Id,
                     HTTP::encode_form({
                         {"tag", logo->second},
-                        {"maxWidth", "240"},
+                        {"maxWidth", "440"},
                     }));
+            }
+
+            if (r.BackdropImageTags.size() > 0) {
+                Image::load(this->imageBackdrop, jellyfin::apiBackdropImage, r.Id, 0,
+                    HTTP::encode_form({{"tag", r.BackdropImageTags.at(0)}}));
+            } else {
+                this->bannerBox->setVisibility(brls::Visibility::GONE);
+                this->contentRow->setMarginTop(0);
+                this->contentInfo->setMarginTop(0);
             }
 
             if (r.MediaSources.size() > 1) {

@@ -27,5 +27,9 @@ private:
     size_t maxRows = 20;
 
     bool parsedDone = false;
+    // width for which `cuttedText` was last computed: the drawn text is a
+    // side effect of cutText(), which yoga calls with intermediate widths
+    // during measure passes; draw() recuts when the real render width differs
+    float cuttedWidth = -1;
     std::string cuttedText;
 };

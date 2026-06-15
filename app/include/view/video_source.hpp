@@ -3,6 +3,8 @@
 #include <view/recycling_grid.hpp>
 #include <api/jellyfin/media.hpp>
 
+class VideoCardCell;
+
 class VideoDataSource : public RecyclingGridDataSource {
 public:
     using MediaList = std::vector<jellyfin::Episode>;
@@ -16,7 +18,7 @@ public:
 
     void onItemSelected(brls::Box* recycler, size_t index) override;
 
-    void onContextMenu(brls::Box* recycler, size_t index);
+    void onContextMenu(VideoCardCell* cell, size_t index);
 
     void clearData() override;
 

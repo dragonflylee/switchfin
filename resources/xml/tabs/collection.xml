@@ -10,6 +10,7 @@
         grow="1"
         defaultTab="0"
         tabHeight="60"
+        tabJustifyContent="center"
         tabItemActiveTextColor="@theme/color/app"
         sidebarPosition="top">
 

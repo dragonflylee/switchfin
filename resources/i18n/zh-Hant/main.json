@@ -121,6 +121,8 @@
     "history": "歷史記錄",
     "suggest": "猜你想搜",
     "clear_history": "確認清空搜尋記錄？",
+    "no_history": "沒有最近的搜尋",
+    "no_results": "沒有結果",
     "genres": {
       "movie": "電影",
       "music": "音樂",
@@ -143,9 +145,17 @@
     "completed": "已完成",
     "failed": "下載失败",
     "queued": "下載任務提交成功",
+    "items": "項",
     "no_downloads": "下載記錄為空",
     "confirm_remove": "是否移除下載文件?",
-    "play_offline": "離線播放"
+     "confirm_cancel": "是否取消此下載？",
+    "play_offline": "離線播放",
+    "storage": "儲存空間",
+    "storage_free": "可用 {} / 共 {}",
+    "section_active": "下載中",
+    "section_done": "已下載",
+    "remove_all": "全部移除",
+    "confirm_remove_all": "移除全部下載項目？"
   },
   "setting": {
     "quit_hint": "即將退出本程式, 變更的設定將在下次啟動時生效",

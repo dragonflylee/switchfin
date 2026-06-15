@@ -92,6 +92,7 @@
     "ascending": "升序",
     "descending": "降序",
     "name": "名称",
+    "seasons": "季",
     "add_favorite": "加入收藏",
     "mark_played": "标为已播放",
     "mark_unplayed": "标为未播放",
@@ -117,6 +118,8 @@
     "history": "历史记录",
     "suggest": "猜你想搜",
     "clear_history": "确认清空搜索记录？",
+    "no_history": "暂无最近搜索",
+    "no_results": "无结果",
     "genres": {
       "movie": "电影",
       "music": "音乐",
@@ -139,9 +142,17 @@
     "completed": "已完成",
     "failed": "下载失败",
     "queued": "下载任务提交成功",
+    "items": "项",
     "no_downloads": "下载记录为空",
     "confirm_remove": "是否移除下载文件?",
-    "play_offline": "离线播放"
+    "confirm_cancel": "取消此下载任务？",
+    "play_offline": "离线播放",
+    "storage": "存储空间",
+    "storage_free": "可用 {} / 共 {}",
+    "section_active": "下载中",
+    "section_done": "已下载",
+    "remove_all": "全部删除",
+    "confirm_remove_all": "删除全部下载内容？"
   },
   "setting": {
     "quit_hint": "即将退出应用, 设置内容将在下次启动后生效",

@@ -211,7 +211,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/dragonflylee/glfw.git
-        commit: db08cc163dacbabfb37fb62d70ab7f62865008c6
+        commit: 444785324f6896da0acbef85614ecf5999831f2e
 
   - name: switchfin
     buildsystem: cmake-ninja

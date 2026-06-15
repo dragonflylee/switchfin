@@ -64,6 +64,17 @@ AutoTabFrame::AutoTabFrame() {
 
     this->registerFloatXMLAttribute("tabHeight", [this](float value) { this->sidebar->setHeight(value); });
 
+    // alignment of the items along the tab bar (e.g. centered top tabs)
+    BRLS_REGISTER_ENUM_XML_ATTRIBUTE("tabJustifyContent", brls::JustifyContent, this->sidebar->setJustifyContent,
+        {
+            {"flexStart", brls::JustifyContent::FLEX_START},
+            {"center", brls::JustifyContent::CENTER},
+            {"flexEnd", brls::JustifyContent::FLEX_END},
+            {"spaceBetween", brls::JustifyContent::SPACE_BETWEEN},
+            {"spaceAround", brls::JustifyContent::SPACE_AROUND},
+            {"spaceEvenly", brls::JustifyContent::SPACE_EVENLY},
+        });
+
     this->registerColorXMLAttribute(
         "tabBackgroundColor", [this](NVGcolor value) { this->sidebar->setBackgroundColor(value); });
 

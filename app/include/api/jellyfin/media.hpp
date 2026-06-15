@@ -27,13 +27,13 @@ const std::string_view apiUserImage = "/Users/{}/Images/Primary?format=Webp&{}";
 const std::string_view apiPrimaryImage = "/Items/{}/Images/Primary?format=Webp&{}";
 const std::string_view apiThumbImage = "/Items/{}/Images/Thumb?format=Webp&{}";
 const std::string_view apiLogoImage = "/Items/{}/Images/Logo?format=Webp&{}";
-const std::string_view apiBackdropImage = "/Items/{}/Images/Backdrop?format=Webp&{}";
+const std::string_view apiBackdropImage = "/Items/{}/Images/Backdrop/{}?format=Webp&{}";
 #else
 const std::string_view apiUserImage = "/Users/{}/Images/Primary?format=Png&{}";
 const std::string_view apiPrimaryImage = "/Items/{}/Images/Primary?format=Png&{}";
 const std::string_view apiThumbImage = "/Items/{}/Images/Thumb?format=Png&{}";
 const std::string_view apiLogoImage = "/Items/{}/Images/Logo?format=Png&{}";
-const std::string_view apiBackdropImage = "/Items/{}/Images/Backdrop?format=Png&{}";
+const std::string_view apiBackdropImage = "/Items/{}/Images/Backdrop/{}?format=Png&{}";
 #endif
 
 // danmu plugin
@@ -132,7 +132,6 @@ struct MediaPeople {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaPeople, Id, Name, PrimaryImageTag, Role);
 
-
 struct Attachment {
     std::string Codec;
     std::string Name;
@@ -179,12 +178,13 @@ struct Detail : public Item {
     std::string Overview;
     std::string OfficialRating;
     float CommunityRating = 0.0f;
+    std::vector<std::string> BackdropImageTags;
     std::vector<std::string> Genres;
     std::vector<MediaPeople> People;
     std::vector<Source> MediaSources;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Detail, Id, Name, Type, ImageTags, ProductionYear, OriginalTitle,
-    Overview, OfficialRating, CommunityRating, Genres, People, MediaSources, UserData);
+    Overview, OfficialRating, CommunityRating, BackdropImageTags, Genres, People, MediaSources, UserData);
 
 struct Season : public Item {
     long IndexNumber = 0;

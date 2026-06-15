@@ -178,7 +178,7 @@ SearchTab::SearchTab() {
     this->searchHistory->setDataSource(history);
     this->searchHistory->registerAction("main/search/clear"_i18n, brls::BUTTON_X, [this](brls::View* view) {
         Dialog::cancelable("main/search/clear_history"_i18n, [this]() {
-            this->searchHistory->setEmpty();
+            this->searchHistory->setEmpty("main/search/no_history"_i18n, "icon/ico-search.svg");
             brls::sync([this]() { brls::Application::giveFocus(this->searchBox); });
         });
         return true;
@@ -266,7 +266,7 @@ void SearchTab::doSearch(const std::string& searchTerm) {
             ASYNC_RELEASE
             this->searchIndex = r.StartIndex + this->pageSize;
             if (r.TotalRecordCount == 0) {
-                this->searchSuggest->setEmpty();
+                this->searchSuggest->setEmpty( "main/search/no_results"_i18n, "icon/ico-search.svg");
             } else if (r.StartIndex == 0) {
                 this->searchSuggest->setDataSource(new VideoDataSource(r.Items));
             } else if (r.Items.size() > 0) {

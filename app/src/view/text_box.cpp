@@ -9,7 +9,17 @@ static YGSize textBoxMeasureFunc(
 
     YGSize size = {.width = width, .height = height};
     if (heightMode == YGMeasureMode::YGMeasureModeExactly) return size;
-    if (fullText.empty() || std::isnan(width)) return size;
+    // never output NaN from a measure: in free measure yoga passes
+    // height=NaN, and returning it as-is degenerates the whole parent
+    // layout (empty overview -> full-screen season header)
+    if (fullText.empty()) {
+        size.height = 0;
+        return size;
+    }
+    if (std::isnan(width)) {
+        size.height = textBox->getFontSize();
+        return size;
+    }
 
     size.height = textBox->cutText(width);
     textBox->setParsedDone(true);
@@ -39,6 +49,15 @@ void TextBox::draw(
     NVGcontext* vg, float x, float y, float width, float height, brls::Style style, brls::FrameContext* ctx) {
     if (width == 0) return;
 
+    // `cuttedText` is produced by cutText() as a side effect of the yoga
+    // measure passes, which run with intermediate widths; after a
+    // GONE->VISIBLE relayout (e.g. returning from a person page to the movie
+    // details) the last measure could leave it cut for the wrong width — the
+    // synopsis then collapsed to a single truncated line. Recut for the
+    // ACTUAL render width so the drawn text always matches the laid-out box
+    // (memoized: only re-breaks when the width changes).
+    if (width != this->cuttedWidth) this->cutText(width);
+
     enum NVGalign horizAlign = this->getNVGHorizontalAlign();
     enum NVGalign vertAlign = this->getNVGVerticalAlign();
 
@@ -56,6 +75,7 @@ void TextBox::draw(
 void TextBox::setText(const std::string& text) {
     this->fullText = text;
     this->setParsedDone(false);
+    this->cuttedWidth = -1;  // force a recut even if the width is unchanged
     this->invalidate();
 }
 
@@ -78,5 +98,6 @@ float TextBox::cutText(float width) {
         this->cuttedText = this->fullText.substr(0, rows[nrows - 1].end - rows[0].start);
         requiredHeight += nrows * this->lineHeight * lineh;
     }
+    this->cuttedWidth = width;  // memoize: draw() recuts only when width changes
     return requiredHeight;
 }

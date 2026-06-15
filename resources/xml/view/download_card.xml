@@ -1,38 +1,91 @@
 <brls:Box
-    highlightCornerRadius="8"
-    paddingLeft="20"
-    paddingRight="20"
-    paddingTop="5"
-    paddingBottom="5"
+    highlightCornerRadius="14"
+    cornerRadius="12"
+    backgroundColor="@theme/color/surface"
+    paddingTop="13"
+    paddingBottom="13"
+    paddingLeft="14"
+    paddingRight="18"
     alignItems="center">
 
+    <!-- cornerRadius mandatory: it is what clips the scalingType="fill" -->
     <brls:Image
         id="download/thumb"
-        width="200"
-        height="120"
-        marginRight="15"
+        width="76"
+        height="114"
+        marginRight="18"
         scalingType="fill"
-        cornerRadius="4"
+        cornerRadius="6"
         backgroundColor="@theme/color/grey_1"
         image="@res/img/video-card-bg.png" />
 
     <brls:Box
         axis="column"
-        grow="1">
+        justifyContent="center"
+        grow="1.0"
+        shrink="1.0">
+
         <brls:Label
             id="download/name"
-            fontSize="18" />
+            fontSize="17"
+            singleLine="true" />
+
         <brls:Label
             id="download/detail"
             fontSize="14"
+            marginTop="4"
+            singleLine="true"
             textColor="@theme/font/grey" />
+
+        <brls:Box
+            id="download/progress/row"
+            axis="column"
+            marginTop="14"
+            visibility="gone">
+            <!-- 6px track filled by the SegmentedBar (C++): gold progress -->
+            <brls:Box
+                id="download/progress/track"
+                height="6" />
+            <brls:Label
+                id="download/progress/info"
+                fontSize="13"
+                marginTop="8"
+                textColor="@theme/font/grey" />
+        </brls:Box>
     </brls:Box>
 
-    <brls:Label
-        id="download/status"
-        width="120"
-        fontSize="15"
-        textColor="@theme/font/grey"
-        horizontalAlign="right" />
+    <!-- borealis only accepts camelCase (flexEnd): "flex-end" is a
+         FATAL at inflate — and this XML only inflates at the FIRST cell,
+         so only when the download list is not empty -->
+    <brls:Box
+        axis="column"
+        alignItems="flexEnd"
+        justifyContent="center"
+        marginLeft="18">
 
+        <brls:Box
+            id="download/badge"
+            cornerRadius="12"
+            height="24"
+            alignItems="center"
+            paddingLeft="10"
+            paddingRight="10"
+            backgroundColor="@theme/color/pill">
+            <brls:Label
+                id="download/status"
+                fontSize="13" />
+        </brls:Box>
+
+        <brls:Label
+            id="download/percent"
+            fontSize="22"
+            visibility="gone"
+            textColor="@theme/color/app" />
+
+        <brls:Label
+            id="download/size"
+            fontSize="13"
+            marginTop="6"
+            textColor="@theme/font/grey" />
+    </brls:Box>
 </brls:Box>

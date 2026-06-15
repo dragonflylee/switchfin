@@ -117,6 +117,8 @@
     "history": "History",
     "suggest": "Suggest",
     "clear_history": "Confirm to clear search histroy?",
+    "no_history": "No recent searches",
+    "no_results": "No results",
     "genres": {
       "movie": "Movie",
       "music": "Music",
@@ -139,9 +141,17 @@
     "completed": "Downloaded",
     "failed": "Download Failed",
     "queued": "Queued",
+    "items": "items",
     "no_downloads": "No Downloads",
     "confirm_remove": "Remove this download?",
-    "play_offline": "Play Offline"
+    "confirm_cancel": "Cancel this download?",
+    "play_offline": "Play Offline",
+    "storage": "Storage",
+    "storage_free": "{} free of {}",
+    "section_active": "In Progress",
+    "section_done": "Downloaded",
+    "remove_all": "Remove All",
+    "confirm_remove_all": "Remove all downloads?"
   },
   "setting": {
     "quit_hint": "You are about to exit the application. The settings will take effect after the next startup",

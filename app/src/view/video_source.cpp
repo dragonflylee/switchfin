@@ -7,12 +7,149 @@
 #include "tab/song_list.hpp"
 #include "tab/playlist.hpp"
 #include "utils/misc.hpp"
+#include "utils/keybind.hpp"
 #include "view/svg_image.hpp"
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
 #include "view/context_menu.hpp"
+#include "api/jellyfin.hpp"
 
 using namespace brls::literals;  // for _i18n
+
+class EpisodeCardCell : public BaseCardCell {
+public:
+    EpisodeCardCell() { this->inflateFromXMLRes("xml/view/episode_card.xml"); }
+
+    BRLS_BIND(brls::Label, labelName, "episode/card/name");
+    BRLS_BIND(brls::Label, labelOverview, "episode/card/overview");
+    BRLS_BIND(SVGImage, badgeFavorite, "video/card/badge/favorite");
+};
+
+class EpisodeDataSource : public RecyclingGridDataSource {
+public:
+    using MediaList = std::vector<jellyfin::Episode>;
+
+    explicit EpisodeDataSource(const MediaList& r) : list(std::move(r)) {
+        brls::Logger::debug("EpisodeDataSource: create {}", r.size());
+    }
+
+    size_t getItemCount() override { return this->list.size(); }
+
+    RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
+        EpisodeCardCell* cell = dynamic_cast<EpisodeCardCell*>(recycler->dequeueReusableCell("Cell"));
+        auto& item = this->list.at(index);
+        cell->setId(item.Id);
+
+        auto epimage = item.ImageTags.find(jellyfin::imageTypePrimary);
+        if (epimage != item.ImageTags.end()) {
+            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
+                HTTP::encode_form({{"tag", epimage->second}, {"fillWidth", "300"}}));
+        } else if (item.SeriesId.is_string()) {
+            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId.get<std::string>(),
+                HTTP::encode_form({{"tag", item.SeriesPrimaryImageTag}, {"fillWidth", "300"}}));
+        }
+
+        if (item.IndexNumber > 0) {
+            cell->labelName->setText(fmt::format("{}. {}", item.IndexNumber, item.Name));
+        } else {
+            cell->labelName->setText(item.Name);
+        }
+        cell->labelOverview->setText(item.Overview);
+
+        if (item.UserData.IsFavorite) {
+            cell->badgeFavorite->setVisibility(brls::Visibility::VISIBLE);
+        } else {
+            cell->badgeFavorite->setVisibility(brls::Visibility::INVISIBLE);
+        }
+
+        if (item.UserData.Played) {
+            cell->badgeTopRight->setImageFromSVGRes("icon/ico-checkmark.svg");
+            cell->badgeTopRight->setVisibility(brls::Visibility::VISIBLE);
+        } else if (item.UserData.PlaybackPositionTicks) {
+            cell->rectProgress->setWidthPercentage(item.UserData.PlayedPercentage);
+            cell->rectProgress->getParent()->setVisibility(brls::Visibility::VISIBLE);
+            cell->badgeTopRight->setVisibility(brls::Visibility::GONE);
+        } else {
+            cell->badgeTopRight->setVisibility(brls::Visibility::GONE);
+            cell->rectProgress->getParent()->setVisibility(brls::Visibility::GONE);
+        }
+
+        return cell;
+    }
+
+    void onItemSelected(brls::Box* recycler, size_t index) override {
+        auto& item = this->list.at(index);
+        PlayerView* view = new PlayerView(item);
+        view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
+        if (item.SeriesId.is_string()) view->setSeries(item.SeriesId.get<std::string>());
+        brls::sync([view]() { brls::Application::giveFocus(view); });
+    }
+
+    void onContextMenu(EpisodeCardCell* cell, size_t index) {
+        auto& item = this->list.at(index);
+        brls::Box* menu = new ContextMenu(item, cell);
+        brls::Application::pushActivity(new brls::Activity(menu));
+    }
+
+    void clearData() override { this->list.clear(); }
+
+    void appendData(const MediaList& data) { this->list.insert(this->list.end(), data.begin(), data.end()); }
+
+private:
+    MediaList list;
+};
+
+class MediaSeason : public brls::Box {
+public:
+    MediaSeason(const jellyfin::Season& item) : seriesId(item.SeriesId), seasonId(item.Id) {
+        this->inflateFromXMLRes("xml/tabs/seasons.xml");
+
+        this->recycler->registerCell("Cell", []() {
+            auto cell = new EpisodeCardCell();
+            auto actionListener = [cell](brls::View*) -> bool {
+                brls::Box* view = cell->getParent()->getParent();
+                RecyclingView* recycler = dynamic_cast<RecyclingView*>(view);
+                if (!recycler) return false;
+                EpisodeDataSource* dataSrc = dynamic_cast<EpisodeDataSource*>(recycler->getDataSource());
+                if (!dataSrc) return false;
+                dataSrc->onContextMenu(cell, cell->getIndex());
+                return true;
+            };
+            cell->registerAction("hints/submit"_i18n, brls::BUTTON_X, actionListener, true);
+            cell->registerAction(KeyBind::getSetting(), actionListener);
+            return cell;
+        });
+
+        this->doRequest();
+    }
+
+    void doRequest() {
+        std::string query = HTTP::encode_form({
+            {"userId", AppConfig::instance().getUserId()},
+            {"seasonId", this->seasonId},
+            {"fields", "ItemCounts,PrimaryImageAspectRatio,Chapters,Overview"},
+        });
+
+        ASYNC_RETAIN
+        jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
+            [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
+                ASYNC_RELEASE
+                this->recycler->setDataSource(new EpisodeDataSource(r.Items));
+                brls::sync([this] { brls::Application::giveFocus(this->recycler); });
+            },
+            [ASYNC_TOKEN](const std::string& ex) {
+                ASYNC_RELEASE
+                this->recycler->setError(ex);
+            },
+            jellyfin::apiShowEpisodes, this->seriesId, query);
+    }
+
+private:
+    BRLS_BIND(RecyclingGrid, recycler, "media/episodes");
+
+    std::string seriesId;
+    std::string seasonId;
+};
 
 VideoDataSource::VideoDataSource(const MediaList& r) : list(std::move(r)) {}
 VideoDataSource::VideoDataSource(const MediaList& r, const std::string& parentId)
@@ -40,7 +177,7 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
             Image::load(cell->picture, jellyfin::apiThumbImage, item.ParentThumbItemId,
                 HTTP::encode_form({{"tag", item.ParentThumbImageTag}, {"maxWidth", "325"}}));
         } else if (item.ParentBackdropImageTags.size() > 0) {
-            Image::load(cell->picture, jellyfin::apiBackdropImage, item.ParentBackdropItemId,
+            Image::load(cell->picture, jellyfin::apiBackdropImage, item.ParentBackdropItemId, 0,
                 HTTP::encode_form({{"tag", item.ParentBackdropImageTags.at(0)}, {"maxWidth", "325"}}));
         } else if (item.SeriesId.is_string()) {
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId.get<std::string>(),
@@ -99,6 +236,8 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
 
     if (item.Type == jellyfin::mediaTypeSeries) {
         recycler->present(new MediaSeries(item));
+    } else if (item.Type == jellyfin::mediaTypeSeason) {
+        recycler->present(new MediaSeason(item));
     } else if (item.Type == jellyfin::mediaTypeMovie) {
         recycler->present(new MediaMovie(item));
     } else if (item.Type == jellyfin::mediaTypeFolder || item.Type == jellyfin::mediaTypeBoxSet ||
@@ -129,9 +268,9 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
     }
 }
 
-void VideoDataSource::onContextMenu(brls::Box* recycler, size_t index) {
+void VideoDataSource::onContextMenu(VideoCardCell* cell, size_t index) {
     auto& item = this->list.at(index);
-    brls::Box* menu = new ContextMenu(item);
+    brls::Box* menu = new ContextMenu(item, cell);
     brls::Application::pushActivity(new brls::Activity(menu));
 }
 

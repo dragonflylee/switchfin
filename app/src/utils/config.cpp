@@ -755,6 +755,12 @@ void AppConfig::addColor(const brls::ThemeVariant tv, const std::string& name, N
 void AppConfig::initThemes() {
     this->addColor(brls::ThemeVariant::LIGHT, "color/app", nvgRGB(2, 176, 183));
     this->addColor(brls::ThemeVariant::DARK, "color/app", nvgRGB(51, 186, 227));
+    // metadata pills (detail pages)
+    this->addColor(brls::ThemeVariant::LIGHT, "color/pill", nvgRGBA(0, 0, 0, 18));
+    this->addColor(brls::ThemeVariant::DARK, "color/pill", nvgRGBA(255, 255, 255, 22));
+    // surfaces placed over the background (content cards, PIN code panel...)
+    this->addColor(brls::ThemeVariant::LIGHT, "color/surface", nvgRGB(255, 255, 255));
+    this->addColor(brls::ThemeVariant::DARK, "color/surface", nvgRGB(22, 24, 29));
     // 用于骨架屏背景色
     this->addColor(brls::ThemeVariant::LIGHT, "color/grey_1", nvgRGB(245, 246, 247));
     this->addColor(brls::ThemeVariant::DARK, "color/grey_1", nvgRGB(51, 52, 53));
@@ -777,6 +783,13 @@ void AppConfig::initThemes() {
         brls::getStyle().addMetric("app/album/height", 215);
         brls::getStyle().addMetric("app/books/height", 270);
         brls::getStyle().addMetric("app/video/height", 290);
+        // row = width x image ratio (poster 2:3 = 1.5, wide 16:9 = 0.5625)
+        // + 55 of label area (margin 10 + title 25 + subtitle 20), so the
+        // image fill keeps exactly the media's ratio
+        brls::getStyle().addMetric("app/card/poster/width", 150);
+        brls::getStyle().addMetric("app/card/poster/row", 280);
+        brls::getStyle().addMetric("app/card/wide/width", 280);
+        brls::getStyle().addMetric("app/card/wide/row", 213);
         brls::getStyle().addMetric("app/grid/6", 5);
         brls::getStyle().addMetric("app/grid/5", 4);
         brls::getStyle().addMetric("app/grid/4", 3);
@@ -791,6 +804,10 @@ void AppConfig::initThemes() {
             brls::getStyle().addMetric("app/album/height", 250);
             brls::getStyle().addMetric("app/books/height", 320);
             brls::getStyle().addMetric("app/video/height", 340);
+            brls::getStyle().addMetric("app/card/poster/width", 225);
+            brls::getStyle().addMetric("app/card/poster/row", 393);
+            brls::getStyle().addMetric("app/card/wide/width", 410);
+            brls::getStyle().addMetric("app/card/wide/row", 286);
             brls::getStyle().addMetric("app/grid/6", 8);
             brls::getStyle().addMetric("app/grid/5", 7);
             brls::getStyle().addMetric("app/grid/4", 6);
@@ -801,6 +818,10 @@ void AppConfig::initThemes() {
             brls::getStyle().addMetric("app/album/height", 240);
             brls::getStyle().addMetric("app/books/height", 305);
             brls::getStyle().addMetric("app/video/height", 325);
+            brls::getStyle().addMetric("app/card/poster/width", 205);
+            brls::getStyle().addMetric("app/card/poster/row", 363);
+            brls::getStyle().addMetric("app/card/wide/width", 375);
+            brls::getStyle().addMetric("app/card/wide/row", 266);
             brls::getStyle().addMetric("app/grid/6", 7);
             brls::getStyle().addMetric("app/grid/5", 6);
             brls::getStyle().addMetric("app/grid/4", 5);
@@ -811,6 +832,11 @@ void AppConfig::initThemes() {
             brls::getStyle().addMetric("app/album/height", 225);
             brls::getStyle().addMetric("app/books/height", 280);
             brls::getStyle().addMetric("app/video/height", 300);
+            // row = width x image ratio + 55 of labels (cf. PSV block)
+            brls::getStyle().addMetric("app/card/poster/width", 185);
+            brls::getStyle().addMetric("app/card/poster/row", 333);
+            brls::getStyle().addMetric("app/card/wide/width", 340);
+            brls::getStyle().addMetric("app/card/wide/row", 246);
             brls::getStyle().addMetric("app/grid/6", 6);
             brls::getStyle().addMetric("app/grid/5", 5);
             brls::getStyle().addMetric("app/grid/4", 4);

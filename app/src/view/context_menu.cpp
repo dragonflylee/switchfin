@@ -1,10 +1,68 @@
 #include "view/context_menu.hpp"
+#include "view/svg_image.hpp"
+#include "view/mpv_core.hpp"
+#include "view/video_card.hpp"
 #include "api/jellyfin.hpp"
 #include "utils/download.hpp"
 
 using namespace brls::literals;
 
-ContextMenu::ContextMenu(const jellyfin::Item& item) : itemId(item.Id) {
+const std::string menuItemXML = R"xml(
+    <brls:Box
+        height="50"
+        axis="row"
+        focusable="true"
+        cornerRadius="10"
+        highlightCornerRadius="10"
+        alignItems="center"
+        paddingLeft="14"
+        paddingRight="14">
+
+        <SVGImage
+            id="menu_item/icon"
+            width="20"
+            height="20"
+            marginRight="14" />
+
+        <brls:Label
+            id="menu_item/title"
+            fontSize="16"
+            grow="1.0" />
+
+        <SVGImage
+            id="menu_item/check"
+            width="18"
+            height="18"
+            visibility="invisible"
+            svg="@res/icon/ico-checkmark.svg" />
+
+    </brls:Box>
+)xml";
+
+MenuItem::MenuItem() {
+    this->inflateFromXMLString(menuItemXML);
+
+    this->registerStringXMLAttribute("icon", [this](std::string value) { this->setIcon(value); });
+    this->registerStringXMLAttribute("title", [this](std::string value) { this->setTitle(value); });
+}
+
+void MenuItem::setIcon(const std::string& res) {
+    std::string path = res;
+    const std::string prefix = "@res/";
+    if (path.rfind(prefix, 0) == 0) path = path.substr(prefix.size());
+    this->icon->setImageFromSVGRes(path);
+}
+
+void MenuItem::setTitle(const std::string& text) { this->title->setText(text); }
+
+void MenuItem::setSelected(bool selected) {
+    this->selected = selected;
+    this->check->setVisibility(selected ? brls::Visibility::VISIBLE : brls::Visibility::INVISIBLE);
+}
+
+brls::View* MenuItem::create() { return new MenuItem(); }
+
+ContextMenu::ContextMenu(const jellyfin::Item& item, BaseCardCell* view) : itemId(item.Id), cell(view) {
     this->inflateFromXMLRes("xml/view/context_menu.xml");
     brls::Logger::debug("ContextMenu: create");
 
@@ -17,6 +75,8 @@ ContextMenu::ContextMenu(const jellyfin::Item& item) : itemId(item.Id) {
         return true;
     });
     this->cancel->addGestureRecognizer(new brls::TapGestureRecognizer(this->cancel));
+
+    this->labelTitle->setText(item.Name);
 
     this->btnFavorite->registerClickAction([this](brls::View* view) {
         if (this->btnFavorite->getSelected())
@@ -83,6 +143,7 @@ bool ContextMenu::doPlayed() {
         },
         jellyfin::apiPlayedItems, AppConfig::instance().getUserId(), this->itemId);
 
+    this->cell->setWatched(true);
     return true;
 }
 
@@ -119,6 +180,7 @@ bool ContextMenu::unPlayed() {
         },
         jellyfin::apiPlayedItems, AppConfig::instance().getUserId(), this->itemId);
 
+    this->cell->setWatched(false);
     return true;
 }
 

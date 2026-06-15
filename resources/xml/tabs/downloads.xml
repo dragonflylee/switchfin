@@ -1,0 +1,65 @@
+<brls:Box
+    width="auto"
+    height="auto"
+    axis="column"
+    paddingLeft="@style/main/content_padding_sides"
+    paddingRight="@style/main/content_padding_sides">
+
+    <brls:Box
+        id="downloads/storage/card"
+        axis="column"
+        cornerRadius="12"
+        backgroundColor="@theme/color/surface"
+        paddingTop="20"
+        paddingBottom="20"
+        paddingLeft="20"
+        paddingRight="20">
+
+        <brls:Label
+            text="@i18n/main/download/storage"
+            fontSize="20"
+            marginBottom="16" />
+
+        <!-- 12px track filled by the SegmentedBar (C++):
+             [rest of disk | pleNx (gold) | free (dark gray)] -->
+        <brls:Box
+            id="downloads/storage/bar"
+            height="12"
+            marginBottom="14" />
+
+        <brls:Box alignItems="center">
+            <brls:Rectangle
+                width="10"
+                height="10"
+                cornerRadius="5"
+                color="@theme/color/app"
+                marginRight="8" />
+            <brls:Label
+                id="downloads/storage/app"
+                fontSize="14" />
+
+            <brls:Box grow="1.0" />
+
+            <brls:Rectangle
+                width="10"
+                height="10"
+                cornerRadius="5"
+                color="@theme/color/pill"
+                marginRight="8" />
+            <brls:Label
+                id="downloads/storage/free"
+                fontSize="14"
+                textColor="@theme/font/grey" />
+        </brls:Box>
+    </brls:Box>
+
+    <!-- flowMode: per-row heights (heightForRow) to mix section headers
+         (non-focusable) and cards -->
+    <RecyclingGrid
+        id="downloads/list"
+        grow="1.0"
+        flowMode="true"
+        itemHeight="160"
+        itemSpace="12"
+        paddingBottom="20" />
+</brls:Box>

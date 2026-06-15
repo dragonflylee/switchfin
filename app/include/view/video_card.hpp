@@ -14,6 +14,10 @@ public:
 
     void cacheForReuse() override { Image::cancel(this->picture); }
 
+    void setWatched(bool played);
+
+    BRLS_BIND(SVGImage, badgeTopRight, "video/card/badge/top");
+    BRLS_BIND(brls::Rectangle, rectProgress, "video/card/progress");
     BRLS_BIND(brls::Image, picture, "video/card/picture");
     BRLS_BIND(brls::Label, labelTitle, "video/card/label/title");
     BRLS_BIND(brls::Label, labelExt, "video/card/label/ext");
@@ -32,8 +36,6 @@ public:
 
     static VideoCardCell* create() { return new VideoCardCell(); }
 
-    BRLS_BIND(SVGImage, badgeTopRight, "video/card/badge/top");
     BRLS_BIND(SVGImage, badgeFavorite, "video/card/badge/favorite");
     BRLS_BIND(brls::Label, labelRating, "video/card/label/rating");
-    BRLS_BIND(brls::Rectangle, rectProgress, "video/card/progress");
 };
