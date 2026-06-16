@@ -146,6 +146,7 @@
     "no_downloads": "下载记录为空",
     "confirm_remove": "是否移除下载文件?",
     "confirm_cancel": "取消此下载任务？",
+    "confirm_season": "下载 {} 集？",
     "play_offline": "离线播放",
     "storage": "存储空间",
     "storage_free": "可用 {} / 共 {}",

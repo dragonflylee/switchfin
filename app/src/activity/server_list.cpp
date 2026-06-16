@@ -11,6 +11,7 @@
 #include "tab/media_collection.hpp"
 #include "utils/image.hpp"
 #include "utils/dialog.hpp"
+#include "utils/keybind.hpp"
 #include "api/jellyfin.hpp"
 
 using namespace brls::literals;  // for _i18n
@@ -76,15 +77,17 @@ public:
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         UserCell* cell = dynamic_cast<UserCell*>(recycler->dequeueReusableCell("Cell"));
         auto& u = this->list.at(index);
-        cell->labelName->setText(u.name);
-
-        cell->registerAction("hints/delete"_i18n, brls::BUTTON_X, [this, u](brls::View* view) {
+        auto deleteAction = [this, u](brls::View* view) {
             Dialog::cancelable("main/setting/server/delete"_i18n, [this, u]() {
                 AppConfig::instance().removeUser(u.id);
                 this->parent->onUser(u.server_id);
             });
             return true;
-        });
+        };
+
+        cell->labelName->setText(u.name);
+        cell->registerAction("hints/delete"_i18n, brls::BUTTON_X, deleteAction);
+        cell->registerAction(brls::BRLS_KBD_KEY_DELETE, deleteAction);
 
         std::string url = fmt::format(fmt::runtime(jellyfin::apiUserImage), u.id, "");
         Image::with(cell->picture, this->parent->getUrl() + url);
@@ -174,7 +177,7 @@ void ServerList::willAppear(bool resetState) {
             this->onServer(s);
         });
 
-        item->registerAction("hints/delete"_i18n, brls::BUTTON_X, [this, s](brls::View* item) {
+        auto deleteAction = [this, s](brls::View* item) {
             Dialog::cancelable("main/setting/server/delete"_i18n, [this, item, s]() {
                 if (AppConfig::instance().removeServer(s.id)) {
                     brls::View* view = new ServerAdd();
@@ -185,7 +188,9 @@ void ServerList::willAppear(bool resetState) {
                 }
             });
             return true;
-        });
+        };
+        item->registerAction("hints/delete"_i18n, brls::BUTTON_X, deleteAction);
+        item->registerAction(brls::BRLS_KBD_KEY_DELETE, deleteAction);
 
         if (s.urls.size() > 0) {
             if (url.empty()) {

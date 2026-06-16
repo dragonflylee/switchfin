@@ -11,7 +11,7 @@
     <!-- cornerRadius mandatory: it is what clips the scalingType="fill" -->
     <brls:Image
         id="download/thumb"
-        width="76"
+        width="200"
         height="114"
         marginRight="18"
         scalingType="fill"

@@ -53,16 +53,20 @@ MediaMovie::MediaMovie(const jellyfin::Item& item) : itemId(item.Id) {
     this->statusSub = dm.getStatusEvent()->subscribe([this](const std::string& id, DownloadStatus status) {
         if (id == this->itemId) this->updateDownloadButton();
     });
-    this->btnDownload->registerClickAction([this, item](...) {
+    this->btnDownload->registerClickAction([this](...) {
         auto& dm = DownloadManager::instance();
-        if (dm.isDownloading(this->itemId)) {
+        switch (dm.findItem(this->itemId)) {
+        case DownloadStatus::Queued:
+        case DownloadStatus::Downloading:
             Dialog::cancelable("main/download/confirm_cancel"_i18n, [this]() {
                 DownloadManager::instance().cancelDownload(this->itemId);
                 this->updateDownloadButton();
             });
-        } else if (dm.isDownloaded(this->itemId)) {
+            break;
+        case DownloadStatus::Completed:
             brls::Application::notify("main/download/completed"_i18n);
-        } else {
+            break;
+        default:
             int qi = AppConfig::instance().getValueIndex(AppConfig::DOWNLOAD_QUALITY);
             dm.addDownload(this->itemId, static_cast<DownloadQuality>(qi));
             this->updateDownloadButton();
@@ -86,11 +90,15 @@ MediaMovie::~MediaMovie() {
 
 void MediaMovie::updateDownloadButton() {
     auto& dm = DownloadManager::instance();
-    if (dm.isDownloaded(this->itemId)) {
+    switch (dm.findItem(this->itemId)) {
+    case DownloadStatus::Completed:
         this->btnDownload->setText("main/download/completed"_i18n);
-    } else if (dm.isDownloading(this->itemId)) {
+        break;
+    case DownloadStatus::Queued:
+    case DownloadStatus::Downloading:
         this->btnDownload->setText("main/download/downloading"_i18n);
-    } else {
+        break;
+    default:
         this->btnDownload->setText("main/download/start"_i18n);
     }
 }

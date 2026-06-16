@@ -28,6 +28,8 @@ public:
 
         if (item.type == remote::EntryType::PLAYLIST) {
             view->hideVideoProgressSlider();
+        } else if (item.name.size() > 0) {
+            titles.push_back(item.name);
         }
 
         auto& mpv = MPVCore::instance();
@@ -36,7 +38,7 @@ public:
             switch (event) {
             case MpvEventEnum::MPV_LOADED: {
                 if (titles.empty()) this->loadList();
-                view->getProfile()->init();
+                view->getProfile()->init("Local");
                 const char* flag = MPVCore::SUBS_FALLBACK ? "select" : "auto";
                 for (auto& it : this->subtitles) {
                     mpv.command("sub-add", it.second.c_str(), flag, it.first.c_str());
@@ -199,7 +201,8 @@ private:
     BRLS_BIND(brls::Label, size, "file/misc");
 };
 
-static std::set<std::string> videoExt = {".mp4", ".mkv", ".avi", ".flv", ".mov", ".wmv", ".webm", ".rm", ".rmvb", ".mpg"};
+static std::set<std::string> videoExt = {
+    ".mp4", ".mkv", ".avi", ".flv", ".mov", ".wmv", ".webm", ".rm", ".rmvb", ".mpg"};
 static std::set<std::string> audioExt = {".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma", ".ape"};
 static std::set<std::string> imageExt = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"};
 static std::set<std::string> playlistExt = {".m3u", ".m3u8"};
@@ -391,8 +394,8 @@ RecyclingGrid* RemoteView::newRecycler() {
     return view;
 }
 
-void RemoteView::play(const std::string& path) {
-    RemotePlayer* view = new RemotePlayer({remote::EntryType::VIDEO, path});
+void RemoteView::play(const std::string& path, const std::string& name) {
+    RemotePlayer* view = new RemotePlayer({remote::EntryType::VIDEO, name, path});
     brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
     view->setUrl(path);
 }

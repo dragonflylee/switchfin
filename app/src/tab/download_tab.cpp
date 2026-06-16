@@ -1,11 +1,11 @@
 #include "tab/download_tab.hpp"
+#include "tab/remote_view.hpp"
 #include "view/recycling_grid.hpp"
 #include "view/video_view.hpp"
 #include "view/mpv_core.hpp"
 #include "view/video_profile.hpp"
 #include "view/player_setting.hpp"
 #include "view/presenter.hpp"
-#include "view/auto_tab_frame.hpp"
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
 #include "utils/misc.hpp"
@@ -132,6 +132,7 @@ public:
             this->status->setText("main/download/failed"_i18n);
             this->status->setTextColor(theme.getColor("color/danger"));
             break;
+        default:;
         }
     }
 
@@ -226,43 +227,7 @@ public:
 
         if (item.status == DownloadStatus::Completed) {
             std::string path = dm.getLocalPath(item.itemId);
-            if (!path.empty()) {
-                VideoView* view = new VideoView();
-                float width = brls::Application::contentWidth;
-                float height = brls::Application::contentHeight;
-                view->setDimensions(width, height);
-                view->setWidthPercentage(100);
-                view->setHeightPercentage(100);
-                view->setTitie(item.name);
-                view->hideVideoQuality();
-
-                auto* profile = view->getProfile();
-                auto& mpv = MPVCore::instance();
-                auto subId = std::make_shared<MPVEvent::Subscription>();
-                auto unsub = std::make_shared<std::atomic_bool>(false);
-                *subId = mpv.getEvent()->subscribe([profile, subId, unsub](MpvEventEnum event) {
-                    if (unsub->load()) return;
-                    if (event == MpvEventEnum::MPV_RESUME) {
-                        profile->init("Local");
-                    } else if (event == MpvEventEnum::MPV_STOP || event == MpvEventEnum::END_OF_FILE ||
-                               event == MpvEventEnum::MPV_FILE_ERROR) {
-                        unsub->store(true);
-                        auto id = *subId;
-                        brls::sync([id]() { MPVCore::instance().getEvent()->unsubscribe(id); });
-                    }
-                });
-
-                view->getPlayEvent()->subscribe([](int) { return VideoView::close(true); });
-                view->getSettingEvent()->subscribe(
-                    []() { brls::Application::pushActivity(new brls::Activity(new PlayerSetting())); });
-
-                brls::Box* container = new brls::Box();
-                container->setDimensions(width, height);
-                container->addView(view);
-                brls::Application::pushActivity(new brls::Activity(container), brls::TransitionAnimation::NONE);
-
-                MPVCore::instance().setUrl(path);
-            }
+            if (!path.empty()) RemoteView::play(path, item.name);
         } else if (item.status == DownloadStatus::Downloading) {
             std::string id = item.itemId;
             Dialog::cancelable(
@@ -351,7 +316,7 @@ DownloadView::DownloadView() {
         return true;
     };
     this->recycler->registerAction("main/download/remove"_i18n, brls::BUTTON_X, deleteAction);
-    this->recycler->registerAction(brls::BRLS_KBD_KEY_BACKSPACE, deleteAction);
+    this->recycler->registerAction(brls::BRLS_KBD_KEY_DELETE, deleteAction);
 
     this->recycler->registerAction("main/download/remove_all"_i18n, brls::BUTTON_Y, [this](brls::View*) {
         auto items = DownloadManager::instance().getItems();

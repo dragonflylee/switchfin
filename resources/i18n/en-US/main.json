@@ -145,6 +145,7 @@
     "no_downloads": "No Downloads",
     "confirm_remove": "Remove this download?",
     "confirm_cancel": "Cancel this download?",
+    "confirm_season": "Download {} episodes?",
     "play_offline": "Play Offline",
     "storage": "Storage",
     "storage_free": "{} free of {}",

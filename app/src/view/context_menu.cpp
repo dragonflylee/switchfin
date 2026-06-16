@@ -96,23 +96,32 @@ ContextMenu::ContextMenu(const jellyfin::Item& item, BaseCardCell* view) : itemI
     this->btnMarkPlay->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnMarkPlay));
     this->btnMarkPlay->setSelected(item.UserData.Played);
 
-    auto& dm = DownloadManager::instance();
     if (item.Type == jellyfin::mediaTypeMovie || item.Type == jellyfin::mediaTypeEpisode ||
         item.Type == jellyfin::mediaTypeVideo) {
-        if (dm.isDownloaded(item.Id)) {
+        auto& dm = DownloadManager::instance();
+        switch (dm.findItem(this->itemId)) {
+        case DownloadStatus::Completed:
             this->btnDownload->title->setText("main/download/completed"_i18n);
             this->btnDownload->setSelected(true);
-        } else if (dm.isDownloading(item.Id)) {
+            break;
+        case DownloadStatus::Queued:
+        case DownloadStatus::Downloading:
             this->btnDownload->title->setText("main/download/downloading"_i18n);
             this->btnDownload->setSelected(true);
+            break;
+        default:;
         }
         this->btnDownload->registerClickAction([this](brls::View* view) {
             auto& dm = DownloadManager::instance();
-            if (dm.isDownloaded(this->itemId)) {
+            switch (dm.findItem(this->itemId)) {
+            case DownloadStatus::Completed:
                 brls::Application::notify("main/download/completed"_i18n);
-            } else if (dm.isDownloading(this->itemId)) {
+                break;
+            case DownloadStatus::Queued:
+            case DownloadStatus::Downloading:
                 brls::Application::notify("main/download/downloading"_i18n);
-            } else {
+                break;
+            default:
                 int qi = AppConfig::instance().getValueIndex(AppConfig::DOWNLOAD_QUALITY);
                 dm.addDownload(this->itemId, static_cast<DownloadQuality>(qi));
                 brls::Application::notify("main/download/queued"_i18n);

@@ -72,9 +72,8 @@ void DownloadManager::addDownload(const std::string& itemId, DownloadQuality qua
             dl.runTimeTicks = item.RunTimeTicks;
             dl.quality = quality;
             dl.status = DownloadStatus::Queued;
-            for (auto& src : item.MediaSources) {
-                dl.filePath = src.Name;
-            }
+            if (item.SeriesId.is_string()) dl.seriesId = item.SeriesId.get<std::string>();
+            for (auto& src : item.MediaSources) dl.filePath = src.Name;
 
             auto primaryTag = item.ImageTags.find(jellyfin::imageTypePrimary);
             if (primaryTag != item.ImageTags.end()) dl.imagePrimaryTag = primaryTag->second;
@@ -167,22 +166,24 @@ void DownloadManager::removeDownload(const std::string& itemId) {
     }
 }
 
-bool DownloadManager::isDownloaded(const std::string& itemId) const {
+DownloadStatus DownloadManager::findItem(const std::string& itemId) const {
     std::lock_guard<std::mutex> lock(this->mutex);
     for (auto& item : this->items) {
-        if (item.itemId == itemId && item.status == DownloadStatus::Completed) return true;
+        if (item.itemId == itemId) return item.status;
     }
-    return false;
+    return DownloadStatus::NotFound;
 }
 
-bool DownloadManager::isDownloading(const std::string& itemId) const {
+std::pair<size_t, size_t> DownloadManager::findSeries(const std::string& seriesId) const {
     std::lock_guard<std::mutex> lock(this->mutex);
+    size_t count = 0, done = 0;
     for (auto& item : this->items) {
-        if (item.itemId == itemId &&
-            (item.status == DownloadStatus::Downloading || item.status == DownloadStatus::Queued))
-            return true;
+        if (item.seriesId == seriesId) {
+            if (item.status == DownloadStatus::Completed) done++;
+            ++count;
+        }
     }
-    return false;
+    return std::make_pair(count, done);
 }
 
 std::string DownloadManager::getLocalPath(const std::string& itemId) const {
