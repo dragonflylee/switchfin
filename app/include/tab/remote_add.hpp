@@ -31,6 +31,7 @@ private:
     BRLS_BIND(brls::InputCell, cellPasswd, "remote/add/passwd");
     BRLS_BIND(brls::InputCell, cellPath, "remote/add/path");
     BRLS_BIND(brls::Button, btnSave, "remote/add/save");
+    BRLS_BIND(brls::Button, btnDelete, "remote/delete");
     BRLS_BIND(brls::ProgressSpinner, spinner, "remote/add/spinner");
     BRLS_BIND(brls::Box, cancel, "remote/add/cancel");
 

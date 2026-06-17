@@ -161,6 +161,18 @@ RemoteAdd::RemoteAdd(std::function<void()> onDone, int editIndex) : onDone(onDon
         return true;
     });
 
+    this->btnDelete->setVisibility(editIndex >= 0 ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
+    this->btnDelete->registerClickAction([this](...) {
+        Dialog::cancelable("main/setting/server/delete"_i18n, [this]() {
+            auto& conf = AppConfig::instance();
+            conf.removeRemote((size_t)this->editIndex);
+            auto cb = this->onDone;
+            brls::Application::popActivity();
+            if (cb) cb();
+        });
+        return true;
+    });
+
     this->registerAction("hints/cancel"_i18n, brls::BUTTON_B, [](brls::View*) {
         brls::Application::popActivity();
         return true;

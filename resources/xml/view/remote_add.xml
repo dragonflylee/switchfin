@@ -73,6 +73,14 @@
                         paddingRight="30"
                         text="@i18n/hints/save" />
 
+                    <brls:Button
+                        id="remote/delete"
+                        marginLeft="30"
+                        paddingLeft="30"
+                        paddingRight="30"
+                        visibility="gone"
+                        text="@i18n/hints/delete" />
+
                     <brls:ProgressSpinner
                         id="remote/add/spinner"
                         width="44"
