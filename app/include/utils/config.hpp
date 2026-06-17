@@ -179,6 +179,9 @@ public:
     const std::string& getUrl() const { return this->server_url; }
     bool isAdmin() const { return this->user->is_admin; }
     const jellyfin::UserConfig& userConfig() const { return this->user->config; }
+    void addRemote(const AppRemote& r);
+    void updateRemote(size_t index, const AppRemote& r);
+    void removeRemote(size_t index);
     const std::vector<AppRemote>& getRemotes() const { return this->remotes; }
     const std::vector<AppServer>& getServers() const { return this->servers; }
     const std::vector<AppUser> getUsers(const std::string& id) const;

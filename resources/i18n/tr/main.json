@@ -92,6 +92,7 @@
     "ascending": "Artan",
     "descending": "Azalan",
     "name": "Ad",
+    "seasons": "sezon",
     "add_favorite": "Favorilere ekle",
     "mark_played": "Oynatıldı olarak işaretle",
     "mark_unplayed": "Oynatılmadı olarak işaretle",
@@ -117,6 +118,8 @@
     "history": "Geçmiş",
     "suggest": "Öneriler",
     "clear_history": "Arama geçmişinin silinmesini onaylıyor musunuz?",
+    "no_history": "Son arama yok",
+    "no_results": "Sonuç yok",
     "genres": {
       "movie": "Filmler",
       "music": "Müzik",
@@ -127,7 +130,18 @@
   "remote": {
     "local": "Yerel Depolama",
     "folder": "Klasör",
-    "up": "Üst Dizin"
+    "up": "Üst Dizin",
+    "add": "Sunucu ekle",
+    "type": "Tür",
+    "name": "Ad",
+    "host": "Ana makine",
+    "port": "Bağlantı noktası",
+    "username": "Kullanıcı adı",
+    "password": "Parola",
+    "path": "Başlangıç yolu",
+    "optional": "İsteğe bağlı",
+    "test_failed": "Bağlantı başarısız: {}",
+    "required": "En azından bir ad ve ana makine girin."
   },
   "download": {
     "quality": "İndirme Kalitesi",
@@ -141,7 +155,15 @@
     "queued": "Kuyruğa Eklendi",
     "no_downloads": "İndirme Yok",
     "confirm_remove": "İndirilen dosya kaldırılsın mı?",
-    "play_offline": "Çevrim Dışı Oynat"
+    "confirm_cancel": "Bu indirme iptal edilsin mi?",
+    "confirm_season": "{} bölüm indirilsin mi?",
+    "play_offline": "Çevrim Dışı Oynat",
+    "storage": "Depolama",
+    "storage_free": "{} boş / toplam {}",
+    "section_active": "Devam ediyor",
+    "section_done": "İndirildi",
+    "remove_all": "Tümünü kaldır",
+    "confirm_remove_all": "Tüm indirmeler kaldırılsın mı?"
   },
   "setting": {
     "quit_hint": "Uygulamadan çıkış yapmak üzeresiniz. Değiştirilen ayarlar bir sonraki başlangıçtan sonra uygulanacak",

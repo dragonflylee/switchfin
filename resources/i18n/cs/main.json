@@ -7,6 +7,7 @@
     "artists": "Umělci",
     "songs": "Skladby",
     "search": "Vyhledat",
+    "downloads": "Stahování",
     "dashboard": "Nástěnka",
     "setting": "Nastavení"
   },
@@ -62,6 +63,7 @@
     "ascending": "Vzestupně",
     "descending": "Sestupně",
     "name": "Jména",
+    "seasons": "řady",
     "add_favorite": "Přidat do oblíbených",
     "mark_played": "Označit přehrané",
     "mark_unplayed": "Označit nepřehrané",
@@ -87,6 +89,8 @@
     "history": "Historie",
     "suggest": "Návrh",
     "clear_history": "Potvrzením vymazat historii vyhledávání?",
+    "no_history": "Žádná nedávná hledání",
+    "no_results": "Žádné výsledky",
     "genres": {
       "movie": "Film",
       "music": "Hudba",
@@ -97,7 +101,38 @@
   "remote": {
     "local": "místní",
     "folder": "složka",
-    "up": "nahoru"
+    "up": "nahoru",
+    "add": "Přidat server",
+    "type": "Typ",
+    "name": "Název",
+    "host": "Hostitel",
+    "port": "Port",
+    "username": "Uživatelské jméno",
+    "password": "Heslo",
+    "path": "Výchozí cesta",
+    "optional": "Volitelné",
+    "test_failed": "Připojení selhalo: {}",
+    "required": "Zadejte alespoň název a hostitele."
+  },
+  "download": {
+    "start": "Stáhnout",
+    "cancel": "Zrušit stahování",
+    "remove": "Odstranit stažené",
+    "downloading": "Stahování…",
+    "completed": "Staženo",
+    "failed": "Stahování selhalo",
+    "queued": "Ve frontě",
+    "no_downloads": "Žádná stahování",
+    "confirm_remove": "Odstranit toto stažení?",
+    "confirm_cancel": "Zrušit toto stahování?",
+    "confirm_season": "Stáhnout {} epizod?",
+    "play_offline": "Přehrát offline",
+    "storage": "Úložiště",
+    "storage_free": "{} volných z {}",
+    "section_active": "Probíhá",
+    "section_done": "Staženo",
+    "remove_all": "Odstranit vše",
+    "confirm_remove_all": "Odstranit všechna stažení?"
   },
   "setting": {
     "quit_hint": "Chystáte se ukončit aplikaci. Nastavení se projeví po příštím spuštění",
@@ -132,9 +167,16 @@
       "touch_gesture": "Dotykové gesto pro hledání kroku",
       "clip_point": "Zobrazit bod klipu kapitoly",
       "transcodec": "Transcodec",
+      "audio_channels": "Zvukové kanály",
       "video_quality": "Kvalita videa",
-      "subsync": "Synchronizace titulků",
-      "audio_channels": "Zvukové kanály"
+      "subsync": "Synchronizace titulků"
+    },
+    "transcode": {
+      "header": "Překódování"
+    },
+    "control": {
+      "header": "Ovládání přehrávání",
+      "tv_osd": "Ovládání OSD ve stylu TV"
     },
     "filter": {
       "mirror": "Překlopení videa",
@@ -163,6 +205,18 @@
       "proxy": "Nastavení proxy",
       "host": "Hostitel",
       "port": "Port"
+    },
+    "ui": {
+      "header": "Rozhraní",
+      "scale": {
+        "header": "Měřítko rozhraní (vyžaduje restart)",
+        "544p": "544p",
+        "720p": "720p",
+        "900p": "900p",
+        "1080p": "1080p"
+      },
+      "vsync": "Vertikální synchronizace",
+      "show_fps": "Zobrazit FPS"
     },
     "tutorial": {
       "header": "Výukový program",
@@ -212,6 +266,7 @@
         "ps": "PlayStation",
         "keyboard": "Klávesnice"
       },
+      "config_dir": "Konfigurační adresář",
       "logout": "Odhlásit z aktuálního účtu \n(aplikace se ukončí)",
       "up2date": "Aplikace je aktuální",
       "upgrade": "{} je nyní k dispozici! Jste připraveni aktualizovat?",

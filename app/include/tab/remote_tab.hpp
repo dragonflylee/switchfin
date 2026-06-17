@@ -17,4 +17,6 @@ public:
 
 private:
     BRLS_BIND(AutoTabFrame, tabFrame, "remote/tabFrame");
+
+    void refresh();
 };

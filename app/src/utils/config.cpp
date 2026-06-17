@@ -710,6 +710,23 @@ bool AppConfig::removeUser(const std::string& id) {
     return false;
 }
 
+void AppConfig::addRemote(const AppRemote& r) {
+    this->remotes.push_back(r);
+    this->save();
+}
+
+void AppConfig::updateRemote(size_t index, const AppRemote& r) {
+    if (index >= this->remotes.size()) return;
+    this->remotes[index] = r;
+    this->save();
+}
+
+void AppConfig::removeRemote(size_t index) {
+    if (index >= this->remotes.size()) return;
+    this->remotes.erase(this->remotes.begin() + index);
+    this->save();
+}
+
 std::string AppConfig::getAuth(const std::string& token) {
     if (this->device_name.empty()) this->device_name = AppVersion::getDeviceName();
 

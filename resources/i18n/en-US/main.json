@@ -92,6 +92,7 @@
     "ascending": "Ascending",
     "descending": "Descending",
     "name": "Name",
+    "seasons": "Seasons",
     "add_favorite": "Add to favorites",
     "mark_played": "Mark played",
     "mark_unplayed": "Mark unplayed",
@@ -129,7 +130,18 @@
   "remote": {
     "local": "Local Storage",
     "folder": "Folder",
-    "up": "Up"
+    "up": "Up",
+    "add": "New server",
+    "type": "Type",
+    "name": "Name",
+    "host": "Host",
+    "port": "Port",
+    "username": "Username",
+    "password": "Password",
+    "path": "Start path",
+    "optional": "Optional",
+    "test_failed": "Connection failed: {}",
+    "required": "Enter at least a name and a host."
   },
   "download": {
     "quality": "Download Quality",

@@ -7,6 +7,7 @@
     "artists": "Ca Sĩ",
     "songs": "Bài Hát",
     "search": "Tìm",
+    "downloads": "Tải xuống",
     "dashboard": "Trang tổng quan",
     "setting": "Cài đặt"
   },
@@ -14,6 +15,12 @@
     "resume": "Tiêp tục xem",
     "nextup": "Kế tiếp",
     "latest": "Vừa thêm"
+  },
+  "recommend": {
+    "like": "Vì bạn thích {}",
+    "watched": "Vì bạn đã xem {}",
+    "directed": "Đạo diễn bởi {}",
+    "starring": "Với sự tham gia của {}"
   },
   "about": {
     "header": "Về chúng tôi",
@@ -73,6 +80,14 @@
     "ascending": "Tăng dần",
     "descending": "Giảm dần",
     "name": "Tên",
+    "seasons": "mùa",
+    "mark_played": "Đánh dấu đã xem",
+    "mark_unplayed": "Đánh dấu chưa xem",
+    "play": "Phát",
+    "intro": "Giới thiệu",
+    "people": "Diễn viên",
+    "special": "Nội dung đặc biệt",
+    "similar": "Phim tương tự",
     "date_add": "Ngày thêm",
     "date_played": "Ngày phát",
     "premiere_date": "Ngày công chiếu",
@@ -90,6 +105,8 @@
     "history": "Lịch sử",
     "suggest": "Gợi ý",
     "clear_history": "Bạn có muốn xoá lịch sử?",
+    "no_history": "Không có tìm kiếm gần đây",
+    "no_results": "Không có kết quả",
     "genres": {
       "movie": "Phim",
       "series": "Phim Bộ",
@@ -99,7 +116,38 @@
   "remote": {
     "local": "Thiết bị",
     "folder": "Thư mục",
-    "up": "Trờ về"
+    "up": "Trờ về",
+    "add": "Thêm máy chủ",
+    "type": "Loại",
+    "name": "Tên",
+    "host": "Máy chủ",
+    "port": "Cổng",
+    "username": "Tên người dùng",
+    "password": "Mật khẩu",
+    "path": "Đường dẫn bắt đầu",
+    "optional": "Tùy chọn",
+    "test_failed": "Kết nối thất bại: {}",
+    "required": "Nhập ít nhất tên và máy chủ."
+  },
+  "download": {
+    "start": "Tải xuống",
+    "cancel": "Hủy tải xuống",
+    "remove": "Xóa bản tải",
+    "downloading": "Đang tải xuống...",
+    "completed": "Đã tải xuống",
+    "failed": "Tải xuống thất bại",
+    "queued": "Trong hàng đợi",
+    "no_downloads": "Không có bản tải",
+    "confirm_remove": "Xóa bản tải này?",
+    "confirm_cancel": "Hủy tải xuống này?",
+    "confirm_season": "Tải {} tập?",
+    "play_offline": "Phát ngoại tuyến",
+    "storage": "Bộ nhớ",
+    "storage_free": "Còn trống {} / {}",
+    "section_active": "Đang tải",
+    "section_done": "Đã tải xuống",
+    "remove_all": "Xóa tất cả",
+    "confirm_remove_all": "Xóa tất cả các mục đã tải?"
   },
   "setting": {
     "quit_hint": "Bạn cần thoát khỏi ứng dụng và mở lại ứng dụng để các cài đặt mới hoạt động",
@@ -139,10 +187,18 @@
       "video_quality": "Chất lượng video",
       "subsync": "Đồng bộ phụ đề"
     },
+    "transcode": {
+      "header": "Chuyển mã"
+    },
+    "control": {
+      "header": "Điều khiển phát lại",
+      "tv_osd": "Điều khiển OSD kiểu TV"
+    },
     "filter": {
       "mirror": "Lật video",
       "hflip": "Lật ngang",
-      "vflip": "Lật dọc"
+      "vflip": "Lật dọc",
+      "rotation": "Xoay"
     },
     "aspect": {
       "header": "Kích thước video",
@@ -166,6 +222,18 @@
       "proxy": "Cài đặt Proxy",
       "host": "Host",
       "port": "Port"
+    },
+    "ui": {
+      "header": "Giao diện",
+      "scale": {
+        "header": "Tỉ lệ giao diện (yêu cầu khởi động lại)",
+        "544p": "544p",
+        "720p": "720p",
+        "900p": "900p",
+        "1080p": "1080p"
+      },
+      "vsync": "Đồng bộ dọc",
+      "show_fps": "Hiển thị FPS"
     },
     "tutorial": {
       "header": "Hướng dẫn",
@@ -216,6 +284,7 @@
         "ps": "PlayStation",
         "keyboard": "Keyboard"
       },
+      "config_dir": "Thư mục cấu hình",
       "logout": "Đăng xuất khỏi tài khoản hiện tại \n (ứng dụng sẽ thoát)",
       "up2date": "Bạn đang sử dụng phiên bản mới nhất",
       "upgrade": "{} hiện có sẵn! Bạn đã sẵn sàng để cập nhật chưa",

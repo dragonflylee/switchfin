@@ -7,6 +7,7 @@
     "artists": "Interpreten",
     "songs": "Lieder",
     "search": "Suche",
+    "downloads": "Downloads",
     "dashboard": "Übersicht",
     "setting": "Einstellungen"
   },
@@ -54,6 +55,32 @@
     "episode": "Episoden",
     "speed_up": "Aktuelle Geschwindigkeit {}"
   },
+  "media": {
+    "sort": "Sortieren",
+    "sort_by": "Sortieren nach",
+    "filter": "Filter",
+    "order": "Reihenfolge",
+    "ascending": "Aufsteigend",
+    "descending": "Absteigend",
+    "name": "Name",
+    "seasons": "Staffeln",
+    "add_favorite": "Zu Favoriten hinzufügen",
+    "mark_played": "Als gesehen markieren",
+    "mark_unplayed": "Als ungesehen markieren",
+    "play": "Abspielen",
+    "intro": "Vorschau",
+    "people": "Mitwirkende",
+    "special": "Bonusmaterial",
+    "similar": "Ähnliche Titel",
+    "date_add": "Hinzugefügt am",
+    "date_played": "Zuletzt abgespielt",
+    "premiere_date": "Erscheinungsdatum",
+    "play_count": "Wiedergaben",
+    "rating": "Community-Bewertung",
+    "random": "Zufällig",
+    "played": "Gesehen",
+    "unplayed": "Ungesehen"
+  },
   "search": {
     "hint": "Support keywords and their initial letters",
     "clear": "klären",
@@ -61,11 +88,52 @@
     "paste": "Paste",
     "history": "Geschichte",
     "suggest": "Vorschläge",
+    "clear_history": "Suchverlauf wirklich leeren?",
+    "no_history": "Keine letzten Suchen",
+    "no_results": "Keine Ergebnisse",
     "genres": {
       "movie": "Filme",
+      "music": "Musik",
       "series": "Serie",
       "episode": "Folgen"
     }
+  },
+  "remote": {
+    "local": "Dateien",
+    "folder": "Ordner",
+    "up": "Hoch",
+    "add": "Server hinzufügen",
+    "type": "Typ",
+    "name": "Name",
+    "host": "Host",
+    "port": "Port",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "path": "Startpfad",
+    "optional": "Optional",
+    "test_failed": "Verbindung fehlgeschlagen: {}",
+    "required": "Gib mindestens einen Namen und einen Host an."
+  },
+  "download": {
+    "start": "Herunterladen",
+    "cancel": "Download abbrechen",
+    "remove": "Download entfernen",
+    "downloading": "Wird heruntergeladen...",
+    "completed": "Heruntergeladen",
+    "failed": "Download fehlgeschlagen",
+    "queued": "In Warteschlange",
+    "items": "items",
+    "no_downloads": "Keine Downloads",
+    "confirm_remove": "Diesen Download entfernen?", 
+    "confirm_cancel": "Diesen Download abbrechen?",
+    "confirm_season": "{} Episoden herunterladen?",
+    "play_offline": "Offline abspielen",
+    "storage": "Speicher",
+    "storage_free": "{} frei von {}",
+    "section_active": "Aktiv",
+    "section_done": "Heruntergeladen",
+    "remove_all": "Alle entfernen",
+    "confirm_remove_all": "Alle Downloads entfernen?"
   },
   "setting": {
     "quit_hint": "Diese Applikation wird beended und die Einstellung tritt bei dem nächsten Start in kraft.",
@@ -90,33 +158,86 @@
       "signin": "Anmelden"
     },
     "playback": {
-      "header": "Videoplayer",
+      "header": "Wiedergabe",
       "bottom_bar": "Zeige unteren Fortschrittsbalken",
+      "low_quality": "Dekodierung in geringer Qualität (weniger CPU-Last)",
+      "in_memory_cache": "Arbeitsspeicher-Cache",
+      "subs_fallback": "Untertitel automatisch laden",
+      "vo": "Videoausgabe",
       "hwdec": "Hardwaredekodierung",
-      "osd_on_toggle": "Zeige OSD wenn pausiert",
-      "transcodec": "Transcodec",
-      "maxbitrate": "Max Bitrate",
-      "audio_channels": "Audiokanäle"
+      "force_directplay": "Direct Play erzwingen",
+      "osd_on_toggle": "OSD bei Pause anzeigen",
+      "touch_gesture": "Touch-Geste für Sprungschritt",
+      "clip_point": "Kapitelmarken anzeigen",
+      "transcodec": "Codec",
+      "audio_channels": "Audiokanäle",
+      "video_quality": "Videoqualität",
+      "subsync": "Untertitel-Synchronisierung"
+    },
+    "transcode": {
+      "header": "Transkodierung"
+    },
+    "control": {
+      "header": "Wiedergabesteuerung",
+      "tv_osd": "OSD-Steuerung im TV-Stil"
+    },
+    "filter": {
+      "mirror": "Video spiegeln",
+      "hflip": "Horizontal spiegeln",
+      "vflip": "Vertikal spiegeln",
+      "rotation": "Drehung"
+    },
+    "aspect": {
+      "header": "Seitenverhältnis",
+      "crop": "Zuschneiden",
+      "stretch": "Strecken",
+      "auto": "Auto"
+    },
+    "equalizer": {
+      "header": "Equalizer",
+      "brightness": "Helligkeit",
+      "contrast": "Kontrast",
+      "saturation": "Sättigung",
+      "gamma": "Gamma",
+      "hue": "Farbton",
+      "reset": "Zurücksetzen"
     },
     "network": {
       "header": "Netzwerk",
       "threads": "Anzahl an Bildladethreads",
-      "timeout": "Maximale Anfragedauer (ms)"
+      "timeout": "Maximale Anfragedauer (ms)",
+      "proxy": "Proxy-Einstellung",
+      "host": "Host",
+      "port": "Port"
+    },
+    "ui": {
+      "header": "Oberfläche",
+      "scale": {
+        "header": "UI-Skalierung (Neustart erforderlich)",
+        "544p": "544p",
+        "720p": "720p",
+        "900p": "900p",
+        "1080p": "1080p"
+      },
+      "vsync": "Vertikale Synchronisierung",
+      "show_fps": "FPS anzeigen"
     },
     "tutorial": {
       "header": "Anleitungen",
       "open": "Desktop-Icon installieren",
-      "error": "Einen Fehler gefunden",
-      "hot_key": "Hotkey",
-      "font": "Eigene Schriftart verwenden",
+      "error": "Falls du einen Fehler findest",
+      "hot_key": "Tastenkürzel",
+      "font": "Eigene Schriftart festlegen",
       "error_q1": "Netzwerk nicht erreichbar",
-      "error_a1": "1. Stelle sicher, dass Atmusphere und die Systemfirmware auf dem neusten Stand sind\n2. Bestätige, dass die Systemzeit richtig eingestellt ist\n3. Stelle die ursprünglichen Netzwerkeinstellungen wieder her, mitunter IP, DNS, usw\n4. In China verwenden",
-      "error_q2": "Verlässt mit einer zufälligen Fehlermeldung",
-      "error_a2": "1. Verwende eine Fat32-formatierte Speicherkarte\n2. Stelle sicher, dass Atmusphere und die Systemfirmware auf dem neusten Stand sind\n3. Warte auf Entwickler, die Applikation zu reparieren",
-      "font_q1": "Eigene Schriftart oder Icons setzen",
-      "font_a1": "1. Lade Schriftart oder Icons herunter\n2. Benenne die Schriftart: font.ttf; Benenne die Icons: icon.ttf\n3. Setze die neuen Dateien in den Konfigurationsordner\n4. Starte die Applikation neu",
+      "error_a1": "1. Stelle sicher, dass atmosphere und die Systemfirmware auf dem neusten Stand sind\n2. Bestätige, dass die Systemzeit richtig eingestellt ist\n3. Stelle die Standard-Netzwerkeinstellungen wieder her, mitsamt IP, DNS usw.\n4.In China verwenden",
+      "error_q2": "Beendet sich mit zufälligem Fehler",
+      "error_a2": "1. Verwende eine Fat32-formatierte Speicherkarte\n2. Stelle sicher, dass atmosphere und die Systemfirmware auf dem neusten Stand sind\n3. Warte auf eine Behebung durch die Entwickler",
+      "font_q1": "Eigene Schriftart oder Tastensymbole festlegen",
+      "font_a1": "1. Lade die gewünschte Schriftart oder Symbolschrift herunter\n2. Benenne die Schriftart in: font.ttf; benenne die Symbole in: icon.ttf\n3. Lege die Schriftdateien in den Konfigurationsordner\n4. Starte die Applikation neu",
       "font_q2": "FAQ",
-      "font_a2": "1. Switchfin priorisiert selbst gesetzte Schriftarten, ansonsten verwendet es die selbst eingebauten Schriftarten\n2. In \"Einstellungen - Anleitungen\" befindet sich ein Knopf um den Einstellungsordner zu öffnen\n3. Auf Linux verwendet Switchfin xdg-open um diesen Ordner zu öffnen. Falls sich der Ordner sich nicht richtig öffnet, dann anstalliere xdg-open"
+      "font_a2": "1. pleNx bevorzugt die Anzeige eigener Schriftarten und greift auf die eingebauten Schriftarten zurück\n2. \"Einstellungen - Anleitungen\" enthält einen Menüpunkt, um den Konfigurationsordner schnell zu öffnen\n3. Auf Linux verwendet pleNx xdg-open, um den Ordner zu öffnen. Falls sich der Konfigurationsordner nicht richtig öffnen lässt, kannst du erwägen, dieses Werkzeug zu installieren",
+      "font_q3": "Untertitel werden nicht angezeigt",
+      "font_a3": "Lege eine beliebige ttf-Datei unter {}/subfont.ttf ab"
     },
     "quick_connect": {
       "header": "Schnellverbindung",
@@ -129,7 +250,11 @@
     "others": {
       "header": "Diverses",
       "fullscreen": "Vollbild",
+      "always_on_top": "Immer im Vordergrund",
+      "single": "Einzelinstanz",
       "overclock": "CPU-Übertacktung",
+      "debug": "Debug-Ansicht",
+      "sync": "Reihenfolge der Einstellungen beibehalten",
       "theme": {
         "header": "Aussehen (benötigt Neustart)",
         "1": "Auto",
@@ -146,8 +271,11 @@
         "ps": "PlayStation",
         "keyboard": "Tastatur"
       },
+      "config_dir": "Konfigurationsordner",
+      "logout": "Vom aktuellen Konto abmelden \n(die Applikation wird beendet)",
       "up2date": "Switchfin ist auf dem neusten Stand",
       "upgrade": "{} is verfügbar! Jetzt aktualisieren?",
+      "updating": "Aktualisierung läuft, jetzt abbrechen?",
       "release": "Suche nach Aktualisierungen"
     }
   },

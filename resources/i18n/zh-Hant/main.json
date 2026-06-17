@@ -57,10 +57,6 @@
   },
   "danmaku": {
     "header": "彈幕設定",
-    "send": {
-      "action": "發送",
-      "hint": "發一條友善的彈幕"
-    },
     "performance": {
       "header": "彈幕效能",
       "render": "渲染尺寸"
@@ -95,10 +91,11 @@
     "order": "順序",
     "ascending": "升序",
     "descending": "降序",
+    "name": "名稱",
+    "seasons": "季",
     "add_favorite": "添加到收藏",
     "mark_played": "標記為已播放",
     "mark_unplayed": "標記為未播放",
-    "name": "名稱",
     "play": "播放",
     "intro": "簡介",
     "people": "演員與工作人員",
@@ -133,7 +130,18 @@
   "remote": {
     "local": "本地",
     "folder": "資料夾",
-    "up": "上一級"
+    "up": "上一級",
+    "add": "新增伺服器",
+     "type": "類型",
+    "name": "名稱",
+    "host": "主機",
+    "port": "連接埠",
+    "username": "使用者名稱",
+    "password": "密碼",
+    "path": "起始路徑",
+    "optional": "可選",
+    "test_failed": "連線失敗：{}",
+    "required": "請至少填寫名稱與主機。"
   },
   "download": {
     "quality": "畫質",
