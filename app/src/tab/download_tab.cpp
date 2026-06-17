@@ -8,6 +8,7 @@
 #include "view/presenter.hpp"
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
+#include "utils/image.hpp"
 #include "utils/misc.hpp"
 
 #include <algorithm>
@@ -80,13 +81,19 @@ public:
         this->progressTrack->addView(this->progressBar);
     }
 
+    void prepareForReuse() override { this->thumb->setImageFromRes("img/video-card-bg.png"); }
+
+    void cacheForReuse() override { Image::cancel(this->thumb); }
+
     void setItem(const DownloadItem& item, const std::string& downloadDir) {
         auto theme = brls::Application::getTheme();
 
-        this->thumb->setImageFromRes("img/video-card-bg.png");
         std::string thumbPath = downloadDir + "/" + item.itemId + "/thumb.png";
         if (fs::exists(thumbPath)) {
             this->thumb->setImageFromFile(thumbPath);
+        } else {
+            Image::load(this->thumb, jellyfin::apiPrimaryImage, item.itemId,
+                HTTP::encode_form({{"tag", item.imagePrimaryTag}, {"maxWidth", "300"}}));
         }
 
         // title = episode or movie name; subtitle = "Show · SxEy" or year,
@@ -227,7 +234,17 @@ public:
 
         if (item.status == DownloadStatus::Completed) {
             std::string path = dm.getLocalPath(item.itemId);
-            if (!path.empty()) RemoteView::play(path, item.name);
+            if (path.empty()) return;
+
+            std::string detail;
+            if (!item.seriesName.empty()) {
+                detail = fmt::format("{} - S{}E{}", item.seriesName, item.seasonIndex, item.episodeIndex);
+            } else if (item.productionYear > 0) {
+                detail = fmt::format("{} ({})", item.name, item.productionYear);
+            } else {
+                detail = item.name;
+            }
+            RemoteView::play(path, detail);
         } else if (item.status == DownloadStatus::Downloading) {
             std::string id = item.itemId;
             Dialog::cancelable(
@@ -353,7 +370,6 @@ DownloadView::DownloadView() {
                 // row not yet materialized (safety): rebuild
                 this->loadItems();
             }
-            this->updateStorage();
         });
 
     this->loadItems();

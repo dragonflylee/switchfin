@@ -358,6 +358,7 @@ void DownloadManager::doDownload(DownloadItem& item) {
                     HTTP::encode_form({{"tag", imagePrimaryTag}, {"maxWidth", "300"}}));
                 HTTP::download(thumbUrl, itemDir + "/thumb.png", HTTP::Timeout{});
             } catch (const std::exception& e) {
+                fs::remove(itemDir + "/thumb.png");
                 brls::Logger::warning("Failed to download thumbnail: {}", e.what());
             }
         }
@@ -365,7 +366,7 @@ void DownloadManager::doDownload(DownloadItem& item) {
         auto lastProgress = std::make_shared<std::chrono::steady_clock::time_point>();
         HTTP::Progress::Callback progressCb = [this, itemId, lastProgress](curl_off_t total, curl_off_t now) {
             auto tp = std::chrono::steady_clock::now();
-            if (tp - *lastProgress < std::chrono::milliseconds(500)) return;
+            if (tp - *lastProgress < std::chrono::seconds(1)) return;
             *lastProgress = tp;
 
             brls::sync([this, itemId, total, now]() {
