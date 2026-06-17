@@ -1,5 +1,18 @@
 # Changelog
 
+## [next]
+
+### Fixed
+
+* follow framebuffer size changes when docking mid-playback
+* improvements media tab layout with new UI elements
+
+### Add
+
+* add Turkish localization @lexicalnerd
+* add series download support
+* support remote server manage with add/edit form
+
 ## [0.9.0]
 
 ### Fixed

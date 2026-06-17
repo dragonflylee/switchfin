@@ -82,20 +82,8 @@ gamepad | keyboard | describe
 
 1. Q: Subtitles didn't display?
    A: Put any ttf file at `/switch/Switchfin/subfont.ttf`
-2. Q: How to enable external drive on switch?
-   A: Edit config file `config.json`
 
-```json
-{
-  "setting": {
-    "ums": true
-  }
-}
-```
-
-<img src="images/ums.jpg" alt="ums" height="360" width="640">
-
-3. Q: How to play media files on webdav server?
+2. Q: How to play media files on webdav server?
    A: Edit config file `config.json`
 
 ```json
@@ -129,7 +117,7 @@ gamepad | keyboard | describe
 rclone serve http --addr :8000 --read-only /media/downloads
 ```
 
-4. Q: Can't open app under macOS ?
+3. Q: Can't open app under macOS ?
    A: Please run this command in your terminal: `sudo xattr -rd com.apple.quarantine /Applications/Switchfin.app`
 
 ## TODO list
