@@ -36,6 +36,7 @@ jobs:
           lzip
           unzip
           make
+          git
           diffutils
           mingw-w64-${{ matrix.env }}-nasm
           mingw-w64-${{ matrix.env }}-meson

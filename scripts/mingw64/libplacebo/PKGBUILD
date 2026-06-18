@@ -17,14 +17,15 @@ makedepends=(
   "${MINGW_PACKAGE_PREFIX}-cc"
   "${MINGW_PACKAGE_PREFIX}-meson"
   "${MINGW_PACKAGE_PREFIX}-pkgconf"
-  "${MINGW_PACKAGE_PREFIX}-python-glad"
-  "${MINGW_PACKAGE_PREFIX}-python-jinja"
-  "${MINGW_PACKAGE_PREFIX}-fast_float"
-  "${MINGW_PACKAGE_PREFIX}-vulkan-headers"
 )
 license=('LGPL2.1')
-source=("${_realname}-v${pkgver}.tar.gz::https://github.com/haasn/libplacebo/archive/v${pkgver}.tar.gz")
-sha256sums=('d05fdf90bea2f629eaa2d115e909fd356388ac639e54f77b87a018a6d76224bd')
+source=("git+https://github.com/haasn/libplacebo.git#tag=v${pkgver}")
+sha256sums=('SKIP')
+
+prepare() {
+  cd "${srcdir}/${_realname}"
+  git submodule update --init --depth 1
+}
 
 build() {
   MSYS2_ARG_CONV_EXCL="--prefix=" \
@@ -40,7 +41,7 @@ build() {
       -Dshaderc=enabled \
       -Dvulkan=disabled \
       "build-${MSYSTEM}" \
-      "${srcdir}/${_realname}-${pkgver}"
+      "${srcdir}/${_realname}"
 
   meson compile -C "build-${MSYSTEM}"
 }
