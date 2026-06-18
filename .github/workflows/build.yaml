@@ -46,12 +46,28 @@ jobs:
       contents: write
     if: startsWith(github.ref, 'refs/tags/')
     steps:
+    - uses: actions/checkout@v6
+      with:
+        sparse-checkout: CHANGELOG.md
+    - name: Extract Release Notes from CHANGELOG.md
+      run: |
+        awk -v ver="${GITHUB_REF_NAME#v}" '
+          $0 ~ "^## \\[" ver "\\]" { found = 1; next }
+          found && /^## \[/ { exit }
+          found { print }
+        ' CHANGELOG.md > RELEASE_NOTES.md
+        if ! [ -s RELEASE_NOTES.md ]; then
+          echo "::error::No section for ${GITHUB_REF_NAME#v} in CHANGELOG.md (run: git cliff --unreleased --tag ${GITHUB_REF_NAME} --prepend CHANGELOG.md)"
+          exit 1
+        fi
+        printf '\n![download](https://img.shields.io/github/downloads/%s/%s/total?label=Downloads)\n' \
+          "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME" >> RELEASE_NOTES.md
     - name: Download Assets
       uses: actions/download-artifact@v6
     - name: Package Assets
       run: |
         for p in Switchfin-windows-*; do
-          [[ -d $p ]] && 7z a -mx=9 $p.7z ./$p/* && rm -rf $p
+          [[ -d $p ]] && 7z a -tzip -mx9 $p.zip ./$p/* && rm -rf $p
         done
         tree
     - name: Release and Upload Assets
@@ -59,10 +75,10 @@ jobs:
       with:
         name: Switchfin ${{ github.ref_name }}
         tag_name: ${{ github.ref_name }}
-        generate_release_notes: true
+        body_path: RELEASE_NOTES.md
         draft: true
         files: |
-          Switchfin-windows-*.7z
+          Switchfin-windows-*.zip
           Switchfin-macOS-*/*.dmg
           Switchfin-NintendoSwitch-deko3d-*/*.nro
           Switchfin-PS4-*/*.pkg
@@ -70,8 +86,6 @@ jobs:
           Switchfin-Flatpak-*/*.flatpak
           Switchfin-Archlinux-*/*.pkg.tar.*
           Switchfin-android-*/*.apk
-        body: |
-          ![download](https://img.shields.io/github/downloads/${{ github.repository }}/${{ github.ref_name }}/total?label=Downloads)
 
   build-nx:
     runs-on: ubuntu-latest
@@ -426,7 +440,7 @@ jobs:
         sudo apt-get install -y ninja-build pkg-config meson nasm
     - name: Cache depends
       id: cache-deps
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: jniLibs
         key: jniLibs-${{ hashFiles('scripts/android/Makefile') }}
@@ -438,15 +452,10 @@ jobs:
           ANDROID_NDK=${{ steps.setup-ndk.outputs.ndk-path }} build
         make -C scripts/android TMPDIR=${{ runner.temp }} ABI=arm64-v8a \
           ANDROID_NDK=${{ steps.setup-ndk.outputs.ndk-path }} build
-    - name: Bump version
-      uses: chkfung/android-version-actions@v1.2.2
-      with:
-        gradlePath: app/platform/android/app/build.gradle
-        versionCode: ${{ github.run_number }}
     - name: Build APK
       run: |
         ${{ github.workspace }}/library/borealis/build_libromfs_generator.sh
-        cd app/platform/android && ./gradlew assembleRelease
+        cd app/platform/android && ./gradlew assembleRelease -PversionCode=${{ github.run_number }}
     - name: Upload dist
       uses: actions/upload-artifact@v6
       with:

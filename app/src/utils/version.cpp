@@ -146,7 +146,7 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
                         std::string pkg_name = AppVersion::getPackageName();
                         std::string path = fmt::format("{}/{}_{}.nro", conf_dir, pkg_name, latest_ver);
                         std::string url = fmt::format(
-                            "https://github.com/{}/releases/download/{}/Switchfin.nro", git_repo, latest_ver);
+                            "https://github.com/{}/releases/download/{}/{}.nro", git_repo, latest_ver, pkg_name);
                         try {
                             HTTP::download(url, path, HTTP::Timeout{-1}, AppVersion::updating);
                             romfsExit();

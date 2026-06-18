@@ -2,7 +2,7 @@ name: switchfin
 summary: switchfin
 description: |
   third-party PC player for Jellyfin
-version: "0.9.0"
+version: "0.9.1"
 grade: stable
 icon: ../resources/icon/icon.png
 base: core20
