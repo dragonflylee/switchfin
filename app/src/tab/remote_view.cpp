@@ -40,6 +40,8 @@ public:
 
         if (item.type == remote::EntryType::PLAYLIST) {
             view->hideVideoProgressSlider();
+        } else if (item.name.size() > 0) {
+            titles.push_back(item.name);
         }
 
         auto& mpv = MPVCore::instance();
@@ -467,8 +469,8 @@ RecyclingGrid* RemoteView::newRecycler() {
     return view;
 }
 
-void RemoteView::play(const std::string& path) {
-    RemotePlayer* view = new RemotePlayer({remote::EntryType::VIDEO, path});
+void RemoteView::play(const std::string& path, const std::string& name) {
+    RemotePlayer* view = new RemotePlayer({remote::EntryType::VIDEO, name, path});
     brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
     view->setUrl(path);
 }
