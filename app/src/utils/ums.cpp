@@ -56,7 +56,7 @@ bool Ums::unmount(const Device &dev) {
 #if defined(__PSV__)
 
 int Ums::init() {
-    this->devices.push_back(Device{.id = -1, .name = "Memory Stock", .mount = "ux0:"});
+    this->devices.push_back(Device{.id = -1, .name = "Memory Stock", .mount = "ux0:/data"});
     return 0;
 }
 
