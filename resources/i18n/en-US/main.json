@@ -5,7 +5,8 @@
     "suggest": "Suggestions",
     "search": "Search",
     "downloads": "Downloads",
-    "setting": "Setting"
+    "setting": "Settings",
+    "remote": "Remote"
   },
   "home": {
     "resume": "Continue Watching",
@@ -20,7 +21,7 @@
   },
   "about": {
     "header": "About",
-    "brief": "Yet another third-party Plex client",
+    "brief": "Yet another third-party media client",
     "repo_header": "Repository"
   },
   "changelog": {
@@ -54,6 +55,7 @@
     "mark_played": "Mark played",
     "mark_unplayed": "Mark unplayed",
     "play": "Play",
+    "open": "Open",
     "replay": "Play again",
     "see_all": "See all",
     "intro": "Intro",
@@ -85,7 +87,7 @@
     "paste": "Paste",
     "history": "History",
     "suggest": "Suggest",
-    "clear_history": "Confirm to clear search histroy?",
+    "clear_history": "Confirm to clear search history?",
     "genres": {
       "movie": "Movie",
       "series": "Series",
@@ -109,6 +111,15 @@
     "title": "Playlists",
     "item": "item",
     "items": "items"
+  },
+  "favorites": {
+    "title": "Favorites",
+    "add": "Add to Favorites",
+    "remove": "Remove from Favorites",
+    "added": "Added to Favorites",
+    "removed": "Removed from Favorites",
+    "empty_title": "No favorites yet",
+    "empty_sub": "Mark movies and shows as favorite to find them here."
   },
   "watchlist": {
     "title": "Watchlist",
@@ -186,7 +197,7 @@
       "header": "Server",
       "detail": "Server Details",
       "connect_new": "New Server",
-      "connect_to": "Connect to a Plex server",
+      "connect_to": "Connect to a media server",
       "invalid": "URL must start with http:// or https://",
       "connect": "Connect",
       "delete": "Confirm to delete?",
@@ -342,8 +353,70 @@
     "connecting_slow": "This is taking longer than usual — still trying to reach your server. Hang tight…",
     "unreachable": "Server unreachable"
   },
+  "server": {
+    "choose_type": "Choose your connection type",
+    "switch_title": "Connections",
+    "add": "Add",
+    "jellyfin": {
+      "title_jellyfin": "Sign in to Jellyfin",
+      "title_emby": "Sign in to Emby",
+      "url": "Server address",
+      "username": "Username",
+      "password": "Password",
+      "connect": "Connect"
+    },
+    "stremio": {
+      "title": "Sign in to Stremio",
+      "email": "Email",
+      "password": "Password",
+      "connect": "Connect",
+      "invalid": "Enter your email and password"
+    }
+  },
   "empty": {
     "title": "Nothing to show",
     "error": "Unable to load"
+  },
+  "stremio": {
+    "movies": "Movies",
+    "series": "Series",
+    "popular": "Popular",
+    "new": "New",
+    "featured": "Featured",
+    "genre": {
+      "action": "Action",
+      "adventure": "Adventure",
+      "animation": "Animation",
+      "biography": "Biography",
+      "comedy": "Comedy",
+      "crime": "Crime",
+      "documentary": "Documentary",
+      "drama": "Drama",
+      "family": "Family",
+      "fantasy": "Fantasy",
+      "history": "History",
+      "horror": "Horror",
+      "mystery": "Mystery",
+      "romance": "Romance",
+      "scifi": "Sci-Fi",
+      "sport": "Sport",
+      "thriller": "Thriller",
+      "war": "War",
+      "western": "Western"
+    },
+    "source": {
+      "unavailable": "No playable source",
+      "none": "No stream for this title. Install a stream addon (with a debrid service) in your Stremio account to play it here.",
+      "cached": "Cached",
+      "uncached": "Download",
+      "direct": "Direct",
+      "torrent_badge": "Torrent",
+      "link_badge": "Link",
+      "torrents": "{} torrent source(s) — debrid required",
+      "links": "{} external link(s) — not playable here",
+      "more": "+{} more playable source(s)",
+      "torrents_help": "These sources are raw torrents. This platform has no torrent client: install a debrid-enabled addon (Torrentio + Real-Debrid, Comet, MediaFusion…) in your Stremio account to get playable links.",
+      "links_help": "These sources are external links (browser or third-party service) that cannot be played directly in the app on this platform."
+    }
   }
 }

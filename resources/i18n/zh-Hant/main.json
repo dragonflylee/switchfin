@@ -5,7 +5,8 @@
     "suggest": "建議",
     "search": "搜尋",
     "downloads": "下載",
-    "setting": "設定"
+    "setting": "設定",
+    "remote": "伺服器"
   },
   "home": {
     "resume": "繼續觀賞",
@@ -20,7 +21,7 @@
   },
   "about": {
     "header": "關於軟體",
-    "brief": "又一款第三方 Plex 客戶端",
+    "brief": "又一款第三方媒體客戶端",
     "repo_header": "原始碼連結"
   },
   "player": {
@@ -72,7 +73,8 @@
     "seasons_title": "季",
     "go_series": "前往節目",
     "go_season": "前往季",
-    "director": "導演"
+    "director": "導演",
+    "open": "開啟"
   },
   "search": {
     "hint": "支持關鍵字及關鍵字首字母",
@@ -166,7 +168,8 @@
     "section_done": "已下載",
     "remove_all": "全部移除",
     "confirm_remove_all": "移除全部下載項目？",
-    "empty_sub": "下載的電影和劇集會顯示在這裡，可離線觀看。"
+    "empty_sub": "下載的電影和劇集會顯示在這裡，可離線觀看。",
+    "eta": "剩餘 {}"
   },
   "setting": {
     "quit_hint": "即將退出本程式，變更的設定將在下次啟動時生效",
@@ -181,7 +184,7 @@
       "header": "伺服器",
       "detail": "伺服器詳細資料",
       "connect_new": "新伺服器",
-      "connect_to": "連線到 Plex 伺服器",
+      "connect_to": "連線到媒體伺服器",
       "invalid": "URL 必須以 http:// 或 https:// 開頭",
       "connect": "連線",
       "delete": "是否刪除？",
@@ -302,7 +305,8 @@
       "updating": "更新進行中，是否取消更新？",
       "downloading": "下載中 {}… {}%",
       "updated": "更新已安裝。本程式將立即關閉：請重新啟動以使用新版本",
-      "release": "檢查更新"
+      "release": "檢查更新",
+      "changelog": "更新日誌"
     }
   },
   "hints": {
@@ -333,10 +337,86 @@
     "wrong_pin": "PIN 錯誤",
     "no_server": "此帳號找不到伺服器",
     "connecting": "正在連線伺服器…",
-    "unreachable": "無法連線伺服器"
+    "unreachable": "無法連線伺服器",
+    "connecting_slow": "連線耗時較長 — 仍在嘗試連接伺服器。請稍候…"
   },
   "empty": {
     "title": "暫無內容",
     "error": "無法載入"
+  },
+  "changelog": {
+    "header": "更新日誌",
+    "empty": "更新日誌無法取得"
+  },
+  "favorites": {
+    "title": "收藏",
+    "add": "加入收藏",
+    "remove": "從收藏中移除",
+    "added": "已加入收藏",
+    "removed": "已從收藏中移除",
+    "empty_title": "還沒有收藏",
+    "empty_sub": "將電影和影集標記為收藏，即可在此找到。"
+  },
+  "server": {
+    "choose_type": "選擇連線類型",
+    "switch_title": "連線",
+    "add": "新增",
+    "jellyfin": {
+      "title_jellyfin": "登入 Jellyfin",
+      "title_emby": "登入 Emby",
+      "url": "伺服器位址",
+      "username": "使用者名稱",
+      "password": "密碼",
+      "connect": "連線"
+    },
+    "stremio": {
+      "title": "登入 Stremio",
+      "email": "電子郵件",
+      "password": "密碼",
+      "connect": "連線",
+      "invalid": "請輸入電子郵件和密碼"
+    }
+  },
+  "stremio": {
+    "movies": "電影",
+    "series": "影集",
+    "popular": "熱門",
+    "new": "新上架",
+    "featured": "精選",
+    "genre": {
+      "action": "動作",
+      "adventure": "冒險",
+      "animation": "動畫",
+      "biography": "傳記",
+      "comedy": "喜劇",
+      "crime": "犯罪",
+      "documentary": "紀錄片",
+      "drama": "劇情",
+      "family": "家庭",
+      "fantasy": "奇幻",
+      "history": "歷史",
+      "horror": "恐怖",
+      "mystery": "懸疑",
+      "romance": "愛情",
+      "scifi": "科幻",
+      "sport": "運動",
+      "thriller": "驚悚",
+      "war": "戰爭",
+      "western": "西部"
+    },
+    "source": {
+      "unavailable": "無可播放來源",
+      "none": "此標題無可用串流。請在你的 Stremio 帳號安裝串流附加元件（搭配解除限制服務），即可在此播放。",
+      "cached": "快取",
+      "uncached": "下載",
+      "direct": "直連",
+      "torrent_badge": "種子",
+      "link_badge": "連結",
+      "torrents": "{} 個種子來源 — 需要解除限制服務",
+      "links": "{} 個外部連結 — 此處無法播放",
+      "more": "+{} 個可播放來源",
+      "torrents_help": "這些來源為原始種子檔案。此平台沒有種子用戶端：請在你的 Stremio 帳號安裝支援解除限制服務的附加元件（Torrentio + Real-Debrid、Comet、MediaFusion…），以獲得可播放的連結。",
+      "links_help": "這些來源是外部連結（瀏覽器或第三方服務），在此平台的應用程式中無法直接播放。"
+    }
   }
 }

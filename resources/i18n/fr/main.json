@@ -5,7 +5,8 @@
     "suggest": "Suggestions",
     "search": "Recherche",
     "downloads": "Téléchargements",
-    "setting": "Paramètres"
+    "setting": "Paramètres",
+    "remote": "Serveurs"
   },
   "home": {
     "resume": "Lecture",
@@ -20,7 +21,7 @@
   },
   "about": {
     "header": "À propos du logiciel",
-    "brief": "Plex permet à plusieurs utilisateurs de se connecter et de diffuser des médias",
+    "brief": "Encore un autre client média tiers",
     "repo_header": "URL du projet open source"
   },
   "changelog": {
@@ -40,7 +41,7 @@
     "prev": "Précédent",
     "next": "Suivant",
     "error": "Échec de lecture",
-    "episode": "Sélections",
+    "episode": "Épisode",
     "speed_up": "Vitesse actuelle {}"
   },
   "media": {
@@ -54,9 +55,10 @@
     "mark_played": "Marquer comme lu",
     "mark_unplayed": "Marquer comme non lu",
     "play": "Lire",
+    "open": "Afficher",
     "replay": "Relancer",
     "see_all": "Voir tout",
-    "intro": "Aperçu",
+    "intro": "Intro",
     "people": "Personnes",
     "special": "Bonus",
     "similar": "Plus de ce genre",
@@ -109,6 +111,15 @@
     "title": "Listes de lecture",
     "item": "élément",
     "items": "éléments"
+  },
+  "favorites": {
+    "title": "Favoris",
+    "add": "Ajouter aux favoris",
+    "remove": "Retirer des favoris",
+    "added": "Ajouté aux favoris",
+    "removed": "Retiré des favoris",
+    "empty_title": "Aucun favori",
+    "empty_sub": "Marquez des films et séries comme favoris pour les retrouver ici."
   },
   "watchlist": {
     "title": "Watchlist",
@@ -186,11 +197,11 @@
       "header": "Serveur",
       "detail": "Détails du serveur",
       "connect_new": "Nouveau serveur",
-      "connect_to": "Se connecter au serveur Plex",
+      "connect_to": "Se connecter à un serveur média",
       "invalid": "L'URL doit commencer par http:// ou https://",
       "connect": "Connexion",
       "delete": "Voulez-vous supprimer ?",
-      "local": "Serveur local",
+      "local": "Serveurs locaux",
       "users": "{} utilisateurs",
       "sigin_to": "Se connecter à {}",
       "signin": "Se connecter"
@@ -198,11 +209,11 @@
     "playback": {
       "header": "Paramètres de lecture",
       "low_quality": "Décodage en basse qualité (réduit la qualité de l'image pour une moindre consommation d'énergie)",
-      "in_memory_cache": "Cache de décodage",
+      "in_memory_cache": "Cache en mémoire",
       "subs_fallback": "Chargement automatique des sous-titres",
       "vo": "Sortie vidéo",
       "hwdec": "Décodage matériel",
-      "force_directplay": "Forcer le décodage côté client",
+      "force_directplay": "Forcer la lecture directe",
       "osd_on_toggle": "Afficher l'interface de contrôle lors de la pause",
       "touch_gesture": "Activer les gestes de progression de lecture",
       "clip_point": "Afficher la position des chapitres sur la barre de progression",
@@ -342,8 +353,70 @@
     "connecting_slow": "Cela prend plus de temps que d'habitude — on essaie toujours de joindre votre serveur. Encore un instant…",
     "unreachable": "Serveur injoignable"
   },
+  "server": {
+    "choose_type": "Choisissez le type de connexion",
+    "switch_title": "Connexions",
+    "add": "Ajouter",
+    "jellyfin": {
+      "title_jellyfin": "Connexion à Jellyfin",
+      "title_emby": "Connexion à Emby",
+      "url": "Adresse du serveur",
+      "username": "Nom d'utilisateur",
+      "password": "Mot de passe",
+      "connect": "Se connecter"
+    },
+    "stremio": {
+      "title": "Connexion à Stremio",
+      "email": "Adresse e-mail",
+      "password": "Mot de passe",
+      "connect": "Se connecter",
+      "invalid": "Saisissez votre adresse e-mail et votre mot de passe"
+    }
+  },
   "empty": {
     "title": "Rien à afficher",
     "error": "Impossible de charger"
+  },
+  "stremio": {
+    "movies": "Films",
+    "series": "Séries",
+    "popular": "Populaires",
+    "new": "Nouveautés",
+    "featured": "À la une",
+    "genre": {
+      "action": "Action",
+      "adventure": "Aventure",
+      "animation": "Animation",
+      "biography": "Biographie",
+      "comedy": "Comédie",
+      "crime": "Crime",
+      "documentary": "Documentaire",
+      "drama": "Drame",
+      "family": "Famille",
+      "fantasy": "Fantastique",
+      "history": "Histoire",
+      "horror": "Horreur",
+      "mystery": "Mystère",
+      "romance": "Romance",
+      "scifi": "Science-fiction",
+      "sport": "Sport",
+      "thriller": "Thriller",
+      "war": "Guerre",
+      "western": "Western"
+    },
+    "source": {
+      "unavailable": "Aucune source lisible",
+      "none": "Aucun flux pour ce contenu. Installez un addon de flux (avec un débrideur) dans votre compte Stremio pour le lire ici.",
+      "cached": "Cache",
+      "uncached": "À télécharger",
+      "direct": "Direct",
+      "torrent_badge": "Torrent",
+      "link_badge": "Lien",
+      "torrents": "{} source(s) torrent — débrideur requis",
+      "links": "{} lien(s) externe(s) — non lisibles ici",
+      "more": "+{} autre(s) source(s) lisible(s)",
+      "torrents_help": "Ces sources sont des torrents bruts. Sur cette plateforme il n'y a pas de client torrent : installez un addon avec débrideur (Torrentio + Real-Debrid, Comet, MediaFusion…) dans votre compte Stremio pour obtenir des liens lisibles.",
+      "links_help": "Ces sources sont des liens externes (navigateur ou service tiers) qui ne peuvent pas être lus directement dans l'application sur cette plateforme."
+    }
   }
 }

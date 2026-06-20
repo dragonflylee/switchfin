@@ -5,7 +5,8 @@
     "suggest": "Vorschläge",
     "search": "Suche",
     "downloads": "Downloads",
-    "setting": "Einstellungen"
+    "setting": "Einstellungen",
+    "remote": "Server"
   },
   "home": {
     "resume": "Weiterschauen",
@@ -20,7 +21,7 @@
   },
   "about": {
     "header": "Über",
-    "brief": "Noch ein weiterer Drittanbieter-Plex-Client",
+    "brief": "Noch ein weiterer Drittanbieter-Medienclient",
     "repo_header": "Repository"
   },
   "player": {
@@ -52,7 +53,7 @@
     "play": "Abspielen",
     "replay": "Erneut abspielen",
     "see_all": "Alle anzeigen",
-    "intro": "Vorschau",
+    "intro": "Intro",
     "people": "Mitwirkende",
     "special": "Bonusmaterial",
     "similar": "Ähnliche Titel",
@@ -72,7 +73,8 @@
     "seasons_title": "Staffeln",
     "go_series": "Zur Serie",
     "go_season": "Zur Staffel",
-    "director": "Regie"
+    "director": "Regie",
+    "open": "Öffnen"
   },
   "search": {
     "hint": "Unterstützt Stichwörter und ihre Anfangsbuchstaben",
@@ -166,7 +168,8 @@
     "section_done": "Heruntergeladen",
     "remove_all": "Alle entfernen",
     "confirm_remove_all": "Alle Downloads entfernen?",
-    "empty_sub": "Heruntergeladene Filme und Episoden erscheinen hier, offline abspielbar."
+    "empty_sub": "Heruntergeladene Filme und Episoden erscheinen hier, offline abspielbar.",
+    "eta": "{} verbleibend"
   },
   "setting": {
     "quit_hint": "Du bist dabei, die Applikation zu beenden. Die Einstellungen treten beim nächsten Start in Kraft.",
@@ -181,7 +184,7 @@
       "header": "Server",
       "detail": "Serverdetails",
       "connect_new": "Neuer Server",
-      "connect_to": "Mit einem Plex-Server verbinden",
+      "connect_to": "Mit einem Medienserver verbinden",
       "invalid": "Die URL muss mit http:// oder https:// beginnen",
       "connect": "Verbinden",
       "delete": "Wirklich löschen?",
@@ -302,7 +305,8 @@
       "updating": "Aktualisierung läuft, jetzt abbrechen?",
       "downloading": "Wird heruntergeladen {}… {}%",
       "updated": "Aktualisierung installiert. Die Applikation wird jetzt geschlossen: starte sie erneut, um die neue Version zu nutzen",
-      "release": "Nach Aktualisierungen suchen"
+      "release": "Nach Aktualisierungen suchen",
+      "changelog": "Changelog"
     }
   },
   "hints": {
@@ -333,10 +337,86 @@
     "wrong_pin": "Falsche PIN",
     "no_server": "Kein Server für dieses Konto gefunden",
     "connecting": "Verbindung zum Server wird hergestellt…",
-    "unreachable": "Server nicht erreichbar"
+    "unreachable": "Server nicht erreichbar",
+    "connecting_slow": "Das dauert länger als gewöhnlich – wir versuchen weiterhin, deinen Server zu erreichen. Noch einen Moment…"
   },
   "empty": {
     "title": "Nichts anzuzeigen",
     "error": "Laden fehlgeschlagen"
+  },
+  "changelog": {
+    "header": "Changelog",
+    "empty": "Changelog nicht verfügbar"
+  },
+  "favorites": {
+    "title": "Favoriten",
+    "add": "Zu Favoriten hinzufügen",
+    "remove": "Aus Favoriten entfernen",
+    "added": "Zu Favoriten hinzugefügt",
+    "removed": "Aus Favoriten entfernt",
+    "empty_title": "Keine Favoriten",
+    "empty_sub": "Markiere Filme und Serien als Favoriten, um sie hier zu finden."
+  },
+  "server": {
+    "choose_type": "Wähle deinen Verbindungstyp",
+    "switch_title": "Verbindungen",
+    "add": "Hinzufügen",
+    "jellyfin": {
+      "title_jellyfin": "In Jellyfin anmelden",
+      "title_emby": "In Emby anmelden",
+      "url": "Serveradresse",
+      "username": "Benutzername",
+      "password": "Passwort",
+      "connect": "Verbinden"
+    },
+    "stremio": {
+      "title": "In Stremio anmelden",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "connect": "Verbinden",
+      "invalid": "Gib deine E-Mail-Adresse und dein Passwort ein"
+    }
+  },
+  "stremio": {
+    "movies": "Filme",
+    "series": "Serien",
+    "popular": "Beliebt",
+    "new": "Neu",
+    "featured": "Empfohlen",
+    "genre": {
+      "action": "Action",
+      "adventure": "Abenteuer",
+      "animation": "Animation",
+      "biography": "Biografie",
+      "comedy": "Komödie",
+      "crime": "Krimi",
+      "documentary": "Dokumentation",
+      "drama": "Drama",
+      "family": "Familie",
+      "fantasy": "Fantasy",
+      "history": "Historienfilm",
+      "horror": "Horror",
+      "mystery": "Mystery",
+      "romance": "Liebesfilm",
+      "scifi": "Science-Fiction",
+      "sport": "Sport",
+      "thriller": "Thriller",
+      "war": "Kriegsfilm",
+      "western": "Western"
+    },
+    "source": {
+      "unavailable": "Keine abspielbare Quelle",
+      "none": "Kein Stream für diesen Titel. Installiere ein Stream-Add-on (mit einem Debrid-Dienst) in deinem Stremio-Konto, um ihn hier abzuspielen.",
+      "cached": "Cache",
+      "uncached": "Download",
+      "direct": "Direkt",
+      "torrent_badge": "Torrent",
+      "link_badge": "Link",
+      "torrents": "{} Torrent-Quelle(n) – Debrid erforderlich",
+      "links": "{} externe(r) Link(s) – hier nicht abspielbar",
+      "more": "+{} weitere abspielbare Quelle(n)",
+      "torrents_help": "Diese Quellen sind reine Torrents. Diese Plattform hat keinen Torrent-Client: Installiere ein Add-on mit Debrid-Dienst (Torrentio + Real-Debrid, Comet, MediaFusion…) in deinem Stremio-Konto, um abspielbare Links zu erhalten.",
+      "links_help": "Diese Quellen sind externe Links (Browser oder Drittanbieterdienst), die in der App auf dieser Plattform nicht direkt abgespielt werden können."
+    }
   }
 }

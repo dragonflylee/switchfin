@@ -5,7 +5,8 @@
     "suggest": "Öneriler",
     "search": "Arama",
     "downloads": "İndirilenler",
-    "setting": "Ayarlar"
+    "setting": "Ayarlar",
+    "remote": "Sunucular"
   },
   "home": {
     "resume": "İzlemeye Devam Et",
@@ -20,7 +21,7 @@
   },
   "about": {
     "header": "Hakkında",
-    "brief": "Başka bir üçüncü taraf Plex yazılımı daha",
+    "brief": "Başka bir üçüncü taraf medya istemcisi daha",
     "repo_header": "Kaynak kodu"
   },
   "player": {
@@ -72,7 +73,8 @@
     "seasons_title": "Sezonlar",
     "go_series": "Diziye git",
     "go_season": "Sezona git",
-    "director": "Yönetmen"
+    "director": "Yönetmen",
+    "open": "Aç"
   },
   "search": {
     "hint": "Anahtar kelimeleri ve baş harflerini destekler",
@@ -166,7 +168,8 @@
     "section_done": "İndirildi",
     "remove_all": "Tümünü kaldır",
     "confirm_remove_all": "Tüm indirmeler kaldırılsın mı?",
-    "empty_sub": "İndirilen filmler ve bölümler çevrimdışı izlemek için burada görünür."
+    "empty_sub": "İndirilen filmler ve bölümler çevrimdışı izlemek için burada görünür.",
+    "eta": "{} kaldı"
   },
   "setting": {
     "quit_hint": "Uygulamadan çıkış yapmak üzeresiniz. Değiştirilen ayarlar bir sonraki başlangıçtan sonra uygulanacak",
@@ -181,7 +184,7 @@
       "header": "Sunucu",
       "detail": "Sunucu Ayrıntıları",
       "connect_new": "Yeni Sunucu",
-      "connect_to": "Bir Plex sunucusuna bağlan",
+      "connect_to": "Bir medya sunucusuna bağlan",
       "invalid": "Bağlantı http:// veya https:// ile başlamalıdır",
       "connect": "Bağlan",
       "delete": "Silmeyi onaylıyor musunuz?",
@@ -302,7 +305,8 @@
       "updating": "Güncelleniyor, iptal edilsin mi?",
       "downloading": "İndiriliyor {}… %{}",
       "updated": "Güncelleme yüklendi. Uygulama şimdi kapanacak: yeni sürümü kullanmak için yeniden başlatın",
-      "release": "Güncellemeleri denetle"
+      "release": "Güncellemeleri denetle",
+      "changelog": "Changelog"
     }
   },
   "hints": {
@@ -333,10 +337,86 @@
     "wrong_pin": "Yanlış PIN",
     "no_server": "Bu hesapta sunucu bulunamadı",
     "connecting": "Sunucuya bağlanılıyor…",
-    "unreachable": "Sunucuya ulaşılamıyor"
+    "unreachable": "Sunucuya ulaşılamıyor",
+    "connecting_slow": "Bu alışılmadık kadar uzun sürüyor — sunucunuza ulaşmaya çalışıyoruz. Biraz daha bekleyin…"
   },
   "empty": {
     "title": "Gösterilecek bir şey yok",
     "error": "Yüklenemedi"
+  },
+  "changelog": {
+    "header": "Changelog",
+    "empty": "Changelog kullanılamıyor"
+  },
+  "favorites": {
+    "title": "Favoriler",
+    "add": "Favorilere Ekle",
+    "remove": "Favorilerden Kaldır",
+    "added": "Favorilere Eklendi",
+    "removed": "Favorilerden Kaldırıldı",
+    "empty_title": "Henüz favori yok",
+    "empty_sub": "Film ve dizileri favori olarak işaretleyin, burada bulun."
+  },
+  "server": {
+    "choose_type": "Bağlantı türünü seçin",
+    "switch_title": "Bağlantılar",
+    "add": "Ekle",
+    "jellyfin": {
+      "title_jellyfin": "Jellyfin'e Giriş Yap",
+      "title_emby": "Emby'ye Giriş Yap",
+      "url": "Sunucu adresi",
+      "username": "Kullanıcı adı",
+      "password": "Şifre",
+      "connect": "Bağlan"
+    },
+    "stremio": {
+      "title": "Stremio'ya Giriş Yap",
+      "email": "E-posta",
+      "password": "Şifre",
+      "connect": "Bağlan",
+      "invalid": "E-postanızı ve şifrenizi girin"
+    }
+  },
+  "stremio": {
+    "movies": "Filmler",
+    "series": "Diziler",
+    "popular": "Popüler",
+    "new": "Yeni",
+    "featured": "Öne Çıkanlar",
+    "genre": {
+      "action": "Aksiyon",
+      "adventure": "Macera",
+      "animation": "Animasyon",
+      "biography": "Biyografi",
+      "comedy": "Komedi",
+      "crime": "Suç",
+      "documentary": "Belgesel",
+      "drama": "Dram",
+      "family": "Aile",
+      "fantasy": "Fantastik",
+      "history": "Tarih",
+      "horror": "Korku",
+      "mystery": "Gizem",
+      "romance": "Romantik",
+      "scifi": "Bilim Kurgu",
+      "sport": "Spor",
+      "thriller": "Gerilim",
+      "war": "Savaş",
+      "western": "Western"
+    },
+    "source": {
+      "unavailable": "Oynatılabilir kaynak yok",
+      "none": "Bu başlık için yayın yok. Burada oynatmak için Stremio hesabınıza bir yayın eklentisi (debrid servisiyle) yükleyin.",
+      "cached": "Önbellek",
+      "uncached": "İndir",
+      "direct": "Doğrudan",
+      "torrent_badge": "Torrent",
+      "link_badge": "Bağlantı",
+      "torrents": "{} torrent kaynağı — debrid gerekli",
+      "links": "{} harici bağlantı — burada oynatılamıyor",
+      "more": "+{} oynatılabilir kaynak daha",
+      "torrents_help": "Bu kaynaklar ham torrentlerdir. Bu platformda torrent istemcisi yok: oynatılabilir bağlantılar elde etmek için Stremio hesabınıza debrid destekli bir eklenti (Torrentio + Real-Debrid, Comet, MediaFusion…) yükleyin.",
+      "links_help": "Bu kaynaklar, bu platformda uygulama içinde doğrudan oynatılamayan harici bağlantılardır (tarayıcı veya üçüncü taraf hizmeti)."
+    }
   }
 }

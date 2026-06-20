@@ -5,7 +5,8 @@
     "suggest": "Sugerencias",
     "search": "Buscar",
     "downloads": "Descargas",
-    "setting": "Ajustes"
+    "setting": "Ajustes",
+    "remote": "Servidores"
   },
   "home": {
     "resume": "Seguir viendo",
@@ -20,7 +21,7 @@
   },
   "about": {
     "header": "Acerca de",
-    "brief": "Otro cliente de Plex de terceros",
+    "brief": "Otro cliente multimedia de terceros",
     "repo_header": "Repositorio"
   },
   "player": {
@@ -72,7 +73,8 @@
     "seasons_title": "Temporadas",
     "go_series": "Ir a la serie",
     "go_season": "Ir a la temporada",
-    "director": "Dirección"
+    "director": "Dirección",
+    "open": "Abrir"
   },
   "search": {
     "hint": "Admite palabras clave y sus letras iniciales",
@@ -166,7 +168,8 @@
     "section_done": "Descargado",
     "remove_all": "Eliminar todo",
     "confirm_remove_all": "¿Eliminar todas las descargas?",
-    "empty_sub": "Las películas y episodios descargados aparecen aquí para verlos sin conexión."
+    "empty_sub": "Las películas y episodios descargados aparecen aquí para verlos sin conexión.",
+    "eta": "{} restante"
   },
   "setting": {
     "quit_hint": "Vas a salir de la aplicación. La configuración tendrá efecto tras el próximo arranque",
@@ -181,7 +184,7 @@
       "header": "Servidor",
       "detail": "Detalles del servidor",
       "connect_new": "Nuevo servidor",
-      "connect_to": "Conectar a un servidor Plex",
+      "connect_to": "Conectar a un servidor multimedia",
       "invalid": "La URL debe comenzar con http:// o https://",
       "connect": "Conectar",
       "delete": "¿Confirmar borrado?",
@@ -302,7 +305,8 @@
       "updating": "Actualización en curso, ¿cancelar ahora?",
       "downloading": "Descargando {}… {}%",
       "updated": "Actualización instalada. La aplicación se cerrará ahora: vuelve a abrirla para usar la nueva versión",
-      "release": "Buscar actualizaciones"
+      "release": "Buscar actualizaciones",
+      "changelog": "Changelog"
     }
   },
   "hints": {
@@ -333,10 +337,86 @@
     "wrong_pin": "PIN incorrecto",
     "no_server": "No se encontró ningún servidor en esta cuenta",
     "connecting": "Conectando al servidor…",
-    "unreachable": "Servidor inaccesible"
+    "unreachable": "Servidor inaccesible",
+    "connecting_slow": "Esto está tardando más de lo habitual — seguimos intentando conectar con tu servidor. Un momento…"
   },
   "empty": {
     "title": "Nada que mostrar",
     "error": "No se pudo cargar"
+  },
+  "changelog": {
+    "header": "Changelog",
+    "empty": "Changelog no disponible"
+  },
+  "favorites": {
+    "title": "Favoritos",
+    "add": "Añadir a Favoritos",
+    "remove": "Quitar de Favoritos",
+    "added": "Añadido a Favoritos",
+    "removed": "Quitado de Favoritos",
+    "empty_title": "Aún no hay favoritos",
+    "empty_sub": "Marca películas y series como favoritos para encontrarlas aquí."
+  },
+  "server": {
+    "choose_type": "Elige el tipo de conexión",
+    "switch_title": "Conexiones",
+    "add": "Añadir",
+    "jellyfin": {
+      "title_jellyfin": "Inicia sesión en Jellyfin",
+      "title_emby": "Inicia sesión en Emby",
+      "url": "Dirección del servidor",
+      "username": "Usuario",
+      "password": "Contraseña",
+      "connect": "Conectar"
+    },
+    "stremio": {
+      "title": "Inicia sesión en Stremio",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "connect": "Conectar",
+      "invalid": "Introduce tu correo electrónico y contraseña"
+    }
+  },
+  "stremio": {
+    "movies": "Películas",
+    "series": "Series",
+    "popular": "Populares",
+    "new": "Novedades",
+    "featured": "Destacados",
+    "genre": {
+      "action": "Acción",
+      "adventure": "Aventura",
+      "animation": "Animación",
+      "biography": "Biografía",
+      "comedy": "Comedia",
+      "crime": "Crimen",
+      "documentary": "Documental",
+      "drama": "Drama",
+      "family": "Familia",
+      "fantasy": "Fantasía",
+      "history": "Historia",
+      "horror": "Terror",
+      "mystery": "Misterio",
+      "romance": "Romance",
+      "scifi": "Ciencia ficción",
+      "sport": "Deporte",
+      "thriller": "Suspense",
+      "war": "Bélico",
+      "western": "Western"
+    },
+    "source": {
+      "unavailable": "Sin fuente reproducible",
+      "none": "No hay flujo para este contenido. Instala un addon de flujo (con un servicio debrid) en tu cuenta de Stremio para reproducirlo aquí.",
+      "cached": "En caché",
+      "uncached": "Descargar",
+      "direct": "Directo",
+      "torrent_badge": "Torrent",
+      "link_badge": "Enlace",
+      "torrents": "{} fuente(s) torrent — se requiere debrid",
+      "links": "{} enlace(s) externo(s) — no reproducible(s) aquí",
+      "more": "+{} fuente(s) reproducible(s) más",
+      "torrents_help": "Estas fuentes son torrents sin procesar. Esta plataforma no tiene cliente torrent: instala un addon con debrid (Torrentio + Real-Debrid, Comet, MediaFusion…) en tu cuenta de Stremio para obtener enlaces reproducibles.",
+      "links_help": "Estas fuentes son enlaces externos (navegador o servicio de terceros) que no se pueden reproducir directamente en la aplicación en esta plataforma."
+    }
   }
 }

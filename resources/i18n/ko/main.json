@@ -5,7 +5,8 @@
     "suggest": "제안",
     "search": "검색",
     "downloads": "다운로드",
-    "setting": "설정"
+    "setting": "설정",
+    "remote": "서버"
   },
   "home": {
     "resume": "계속 시청하기",
@@ -20,7 +21,7 @@
   },
   "about": {
     "header": "소프트웨어 정보",
-    "brief": "또 하나의 서드파티 Plex 클라이언트",
+    "brief": "또 하나의 서드파티 미디어 클라이언트",
     "repo_header": "리포지토리"
   },
   "player": {
@@ -72,7 +73,8 @@
     "seasons_title": "시즌",
     "go_series": "시리즈로 이동",
     "go_season": "시즌으로 이동",
-    "director": "감독"
+    "director": "감독",
+    "open": "열기"
   },
   "search": {
     "hint": "키워드와 키워드의 첫 글자를 지원합니다.",
@@ -166,7 +168,8 @@
     "section_done": "다운로드 완료",
     "remove_all": "모두 삭제",
     "confirm_remove_all": "모든 다운로드를 삭제하시겠습니까?",
-    "empty_sub": "다운로드한 영화와 에피소드가 여기에 표시되어 오프라인으로 시청할 수 있습니다."
+    "empty_sub": "다운로드한 영화와 에피소드가 여기에 표시되어 오프라인으로 시청할 수 있습니다.",
+    "eta": "{} 남음"
   },
   "setting": {
     "quit_hint": "앱을 종료합니다. 설정 내용은 다음 실행 시 적용됩니다.",
@@ -181,7 +184,7 @@
       "header": "서버",
       "detail": "서버 상세",
       "connect_new": "새 서버",
-      "connect_to": "Plex 서버에 연결",
+      "connect_to": "미디어 서버에 연결",
       "invalid": "URL은 http:// 또는 https://로 시작해야 합니다",
       "connect": "연결",
       "delete": "삭제하시겠습니까?",
@@ -302,7 +305,8 @@
       "updating": "업데이트 진행 중, 지금 취소할까요?",
       "downloading": "다운로드 중 {}… {}%",
       "updated": "업데이트가 설치되었습니다. 앱이 종료됩니다. 새 버전을 사용하려면 다시 실행하세요",
-      "release": "업데이트 확인"
+      "release": "업데이트 확인",
+      "changelog": "변경 사항"
     }
   },
   "hints": {
@@ -333,10 +337,86 @@
     "wrong_pin": "잘못된 PIN",
     "no_server": "이 계정에서 서버를 찾을 수 없습니다",
     "connecting": "서버에 연결하는 중…",
-    "unreachable": "서버에 연결할 수 없음"
+    "unreachable": "서버에 연결할 수 없음",
+    "connecting_slow": "평소보다 시간이 오래 걸리고 있습니다 — 계속 서버에 연결을 시도 중입니다. 잠시 기다려 주세요…"
   },
   "empty": {
     "title": "표시할 항목 없음",
     "error": "불러올 수 없음"
+  },
+  "changelog": {
+    "header": "변경 사항",
+    "empty": "변경 사항을 불러올 수 없음"
+  },
+  "favorites": {
+    "title": "즐겨찾기",
+    "add": "즐겨찾기에 추가",
+    "remove": "즐겨찾기에서 제거",
+    "added": "즐겨찾기에 추가됨",
+    "removed": "즐겨찾기에서 제거됨",
+    "empty_title": "즐겨찾기 없음",
+    "empty_sub": "영화와 시리즈를 즐겨찾기로 표시하면 여기에서 찾을 수 있습니다."
+  },
+  "server": {
+    "choose_type": "연결 유형을 선택하세요",
+    "switch_title": "연결 목록",
+    "add": "추가",
+    "jellyfin": {
+      "title_jellyfin": "Jellyfin에 로그인",
+      "title_emby": "Emby에 로그인",
+      "url": "서버 주소",
+      "username": "사용자 이름",
+      "password": "비밀번호",
+      "connect": "연결"
+    },
+    "stremio": {
+      "title": "Stremio에 로그인",
+      "email": "이메일",
+      "password": "비밀번호",
+      "connect": "연결",
+      "invalid": "이메일과 비밀번호를 입력하세요"
+    }
+  },
+  "stremio": {
+    "movies": "영화",
+    "series": "시리즈",
+    "popular": "인기",
+    "new": "신작",
+    "featured": "추천",
+    "genre": {
+      "action": "액션",
+      "adventure": "모험",
+      "animation": "애니메이션",
+      "biography": "전기",
+      "comedy": "코미디",
+      "crime": "범죄",
+      "documentary": "다큐멘터리",
+      "drama": "드라마",
+      "family": "가족",
+      "fantasy": "판타지",
+      "history": "역사",
+      "horror": "공포",
+      "mystery": "미스터리",
+      "romance": "로맨스",
+      "scifi": "SF",
+      "sport": "스포츠",
+      "thriller": "스릴러",
+      "war": "전쟁",
+      "western": "서부극"
+    },
+    "source": {
+      "unavailable": "재생 가능한 소스 없음",
+      "none": "이 콘텐츠의 스트림이 없습니다. Stremio 계정에 스트림 애드온(디브리드 서비스 포함)을 설치하여 여기에서 재생하세요.",
+      "cached": "캐시됨",
+      "uncached": "다운로드",
+      "direct": "직접",
+      "torrent_badge": "토렌트",
+      "link_badge": "링크",
+      "torrents": "토렌트 소스 {}개 — 디브리드 필요",
+      "links": "외부 링크 {}개 — 재생할 수 없음",
+      "more": "재생 가능한 소스 +{}개",
+      "torrents_help": "이 소스는 원본 토렌트입니다. 이 플랫폼에는 토렌트 클라이언트가 없으므로 Stremio 계정에 디브리드 기능이 있는 애드온(Torrentio + Real-Debrid, Comet, MediaFusion…)을 설치하여 재생 가능한 링크를 확보하세요.",
+      "links_help": "이 소스는 외부 링크(브라우저 또는 제3자 서비스)이므로 이 플랫폼의 앱에서 직접 재생할 수 없습니다."
+    }
   }
 }

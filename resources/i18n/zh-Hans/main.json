@@ -5,7 +5,8 @@
     "suggest": "建议",
     "search": "搜索",
     "downloads": "下载",
-    "setting": "设置"
+    "setting": "设置",
+    "remote": "服务器"
   },
   "home": {
     "resume": "继续观看",
@@ -20,7 +21,7 @@
   },
   "about": {
     "header": "关于软件",
-    "brief": "又一款第三方 Plex 客户端",
+    "brief": "又一款第三方媒体客户端",
     "repo_header": "开源地址"
   },
   "player": {
@@ -72,7 +73,8 @@
     "seasons_title": "季",
     "go_series": "前往节目",
     "go_season": "前往季",
-    "director": "导演"
+    "director": "导演",
+    "open": "打开"
   },
   "search": {
     "hint": "支持关键字及关键字首字母",
@@ -166,7 +168,8 @@
     "section_done": "已下载",
     "remove_all": "全部删除",
     "confirm_remove_all": "删除全部下载内容？",
-    "empty_sub": "下载的电影和剧集会显示在这里，可离线观看。"
+    "empty_sub": "下载的电影和剧集会显示在这里，可离线观看。",
+    "eta": "还剩 {}"
   },
   "setting": {
     "quit_hint": "即将退出应用, 设置内容将在下次启动后生效",
@@ -181,7 +184,7 @@
       "header": "服务器",
       "detail": "服务器详情",
       "connect_new": "新服务器",
-      "connect_to": "连接至Plex服务器",
+      "connect_to": "连接至媒体服务器",
       "invalid": "URL 必须以 http:// 或 https:// 开头",
       "connect": "连接",
       "delete": "是否删除？",
@@ -193,11 +196,11 @@
     "playback": {
       "header": "播放设置",
       "low_quality": "低画质解码（以画质为代价换取更低的功耗）",
-      "in_memory_cache": "解码缓存",
+      "in_memory_cache": "内存缓存",
       "subs_fallback": "自动加载字幕",
       "vo": "视频输出",
       "hwdec": "硬件解码",
-      "force_directplay": "强制客户端解码",
+      "force_directplay": "强制直接播放",
       "osd_on_toggle": "暂停时显示控制界面",
       "touch_gesture": "启用播放进度手势",
       "clip_point": "进度条显示章节位置",
@@ -302,7 +305,8 @@
       "updating": "更新进行中，是否取消更新？",
       "downloading": "正在下载 {}… {}%",
       "updated": "更新已安装。应用现在将关闭：请重新启动以使用新版本",
-      "release": "检查更新"
+      "release": "检查更新",
+      "changelog": "更新日志"
     }
   },
   "hints": {
@@ -333,10 +337,86 @@
     "wrong_pin": "PIN 错误",
     "no_server": "该账户下未找到服务器",
     "connecting": "正在连接服务器…",
-    "unreachable": "无法连接服务器"
+    "unreachable": "无法连接服务器",
+    "connecting_slow": "连接耗时比平时更长 — 仍在尝试连接服务器，请稍候…"
   },
   "empty": {
     "title": "暂无内容",
     "error": "无法加载"
+  },
+  "changelog": {
+    "header": "更新日志",
+    "empty": "更新日志不可用"
+  },
+  "favorites": {
+    "title": "收藏",
+    "add": "添加到收藏",
+    "remove": "从收藏中移除",
+    "added": "已添加到收藏",
+    "removed": "已从收藏中移除",
+    "empty_title": "暂无收藏",
+    "empty_sub": "将电影和剧集标记为收藏，即可在此查看。"
+  },
+  "server": {
+    "choose_type": "选择连接类型",
+    "switch_title": "连接",
+    "add": "添加",
+    "jellyfin": {
+      "title_jellyfin": "登录 Jellyfin",
+      "title_emby": "登录 Emby",
+      "url": "服务器地址",
+      "username": "用户名",
+      "password": "密码",
+      "connect": "连接"
+    },
+    "stremio": {
+      "title": "登录 Stremio",
+      "email": "邮箱",
+      "password": "密码",
+      "connect": "连接",
+      "invalid": "请输入邮箱和密码"
+    }
+  },
+  "stremio": {
+    "movies": "电影",
+    "series": "剧集",
+    "popular": "热门",
+    "new": "新作",
+    "featured": "精选",
+    "genre": {
+      "action": "动作",
+      "adventure": "冒险",
+      "animation": "动画",
+      "biography": "传记",
+      "comedy": "喜剧",
+      "crime": "犯罪",
+      "documentary": "纪录片",
+      "drama": "剧情",
+      "family": "家庭",
+      "fantasy": "奇幻",
+      "history": "历史",
+      "horror": "恐怖",
+      "mystery": "悬疑",
+      "romance": "爱情",
+      "scifi": "科幻",
+      "sport": "体育",
+      "thriller": "惊悚",
+      "war": "战争",
+      "western": "西部"
+    },
+    "source": {
+      "unavailable": "无可用源",
+      "none": "该内容暂无可播放流。请在 Stremio 账户中安装流媒体插件（配合 debrid 服务）以在此播放。",
+      "cached": "缓存",
+      "uncached": "下载",
+      "direct": "直链",
+      "torrent_badge": "Torrent",
+      "link_badge": "链接",
+      "torrents": "{} 个 Torrent 源 — 需要 debrid 服务",
+      "links": "{} 个外部链接 — 无法在此播放",
+      "more": "+{} 个可播放源",
+      "torrents_help": "这些是原始 Torrent 源。此平台没有 Torrent 客户端：请在 Stremio 账户中安装带 debrid 的插件（Torrentio + Real-Debrid、Comet、MediaFusion 等）以获得可播放的链接。",
+      "links_help": "这些是外部链接（浏览器或第三方服务），在此平台的应用中无法直接播放。"
+    }
   }
 }

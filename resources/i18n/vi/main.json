@@ -5,7 +5,8 @@
     "suggest": "Đề Xuất",
     "search": "Tìm",
     "downloads": "Tải xuống",
-    "setting": "Cài đặt"
+    "setting": "Cài đặt",
+    "remote": "Máy chủ"
   },
   "home": {
     "resume": "Tiếp tục xem",
@@ -20,7 +21,7 @@
   },
   "about": {
     "header": "Về chúng tôi",
-    "brief": "Một ứng dụng Plex dành cho bên thứ ba",
+    "brief": "Một ứng dụng đa phương tiện dành cho bên thứ ba",
     "repo_header": "Kho lưu trữ"
   },
   "player": {
@@ -72,7 +73,8 @@
     "seasons_title": "Mùa",
     "go_series": "Đến phim bộ",
     "go_season": "Đến mùa",
-    "director": "Đạo diễn"
+    "director": "Đạo diễn",
+    "open": "Mở"
   },
   "search": {
     "hint": "Hỗ trợ từ khóa và chữ cái đầu của chúng",
@@ -166,7 +168,8 @@
     "section_done": "Đã tải xuống",
     "remove_all": "Xóa tất cả",
     "confirm_remove_all": "Xóa tất cả các mục đã tải?",
-    "empty_sub": "Phim và tập đã tải sẽ xuất hiện ở đây để xem ngoại tuyến."
+    "empty_sub": "Phim và tập đã tải sẽ xuất hiện ở đây để xem ngoại tuyến.",
+    "eta": "Còn {}"
   },
   "setting": {
     "quit_hint": "Bạn cần thoát khỏi ứng dụng và mở lại ứng dụng để các cài đặt mới hoạt động",
@@ -181,7 +184,7 @@
       "header": "Máy chủ",
       "detail": "Chi tiết máy chủ",
       "connect_new": "Máy chủ mới",
-      "connect_to": "Kết nối với máy chủ Plex",
+      "connect_to": "Kết nối với máy chủ phương tiện",
       "invalid": "URL phải bắt đầu bằng http:// hoặc https://",
       "connect": "Kết nối",
       "delete": "Xác nhận xoá?",
@@ -302,7 +305,8 @@
       "updating": "Đang cập nhật, hủy bỏ ngay bây giờ?",
       "downloading": "Đang tải xuống {}… {}%",
       "updated": "Đã cài đặt bản cập nhật. Ứng dụng sẽ đóng ngay bây giờ: hãy mở lại để sử dụng phiên bản mới",
-      "release": "Kiểm tra cập nhật"
+      "release": "Kiểm tra cập nhật",
+      "changelog": "Changelog"
     }
   },
   "hints": {
@@ -333,10 +337,86 @@
     "wrong_pin": "PIN không đúng",
     "no_server": "Không tìm thấy máy chủ nào trên tài khoản này",
     "connecting": "Đang kết nối đến máy chủ…",
-    "unreachable": "Không thể kết nối đến máy chủ"
+    "unreachable": "Không thể kết nối đến máy chủ",
+    "connecting_slow": "Việc này mất nhiều thời gian hơn bình thường — vẫn đang cố kết nối tới máy chủ của bạn. Đợi thêm một chút nhé…"
   },
   "empty": {
     "title": "Không có gì để hiển thị",
     "error": "Không thể tải"
+  },
+  "changelog": {
+    "header": "Changelog",
+    "empty": "Changelog không khả dụng"
+  },
+  "favorites": {
+    "title": "Yêu thích",
+    "add": "Thêm vào Yêu thích",
+    "remove": "Xóa khỏi Yêu thích",
+    "added": "Đã thêm vào Yêu thích",
+    "removed": "Đã xóa khỏi Yêu thích",
+    "empty_title": "Chưa có mục yêu thích",
+    "empty_sub": "Đánh dấu phim và chương trình là yêu thích để tìm lại chúng ở đây."
+  },
+  "server": {
+    "choose_type": "Chọn loại kết nối",
+    "switch_title": "Kết nối",
+    "add": "Thêm",
+    "jellyfin": {
+      "title_jellyfin": "Đăng nhập vào Jellyfin",
+      "title_emby": "Đăng nhập vào Emby",
+      "url": "Địa chỉ máy chủ",
+      "username": "Tên người dùng",
+      "password": "Mật khẩu",
+      "connect": "Kết nối"
+    },
+    "stremio": {
+      "title": "Đăng nhập vào Stremio",
+      "email": "Email",
+      "password": "Mật khẩu",
+      "connect": "Kết nối",
+      "invalid": "Nhập email và mật khẩu của bạn"
+    }
+  },
+  "stremio": {
+    "movies": "Phim",
+    "series": "Phim bộ",
+    "popular": "Phổ biến",
+    "new": "Mới",
+    "featured": "Nổi bật",
+    "genre": {
+      "action": "Hành động",
+      "adventure": "Phiêu lưu",
+      "animation": "Hoạt hình",
+      "biography": "Tiểu sử",
+      "comedy": "Hài kịch",
+      "crime": "Tội phạm",
+      "documentary": "Phim tài liệu",
+      "drama": "Chính kịch",
+      "family": "Gia đình",
+      "fantasy": "Giả tưởng",
+      "history": "Lịch sử",
+      "horror": "Kinh dị",
+      "mystery": "Bí ẩn",
+      "romance": "Lãng mạn",
+      "scifi": "Khoa học viễn tưởng",
+      "sport": "Thể thao",
+      "thriller": "Giật gân",
+      "war": "Chiến tranh",
+      "western": "Viễn Tây"
+    },
+    "source": {
+      "unavailable": "Không có nguồn phát được",
+      "none": "Không có luồng cho nội dung này. Hãy cài một addon luồng (kèm dịch vụ debrid) trong tài khoản Stremio của bạn để phát ở đây.",
+      "cached": "Có sẵn",
+      "uncached": "Tải xuống",
+      "direct": "Trực tiếp",
+      "torrent_badge": "Torrent",
+      "link_badge": "Liên kết",
+      "torrents": "{} nguồn torrent — cần dịch vụ debrid",
+      "links": "{} liên kết bên ngoài — không phát được ở đây",
+      "more": "+{} nguồn khác phát được",
+      "torrents_help": "Những nguồn này là torrent thô. Nền tảng này không có ứng dụng torrent: hãy cài một addon hỗ trợ debrid (Torrentio + Real-Debrid, Comet, MediaFusion…) trong tài khoản Stremio của bạn để có các liên kết phát được.",
+      "links_help": "Những nguồn này là liên kết bên ngoài (trình duyệt hoặc dịch vụ của bên thứ ba) không thể phát trực tiếp trong ứng dụng trên nền tảng này."
+    }
   }
 }

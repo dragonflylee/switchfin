@@ -5,7 +5,8 @@
     "suggest": "おすすめ",
     "search": "検索",
     "downloads": "ダウンロード",
-    "setting": "設定"
+    "setting": "設定",
+    "remote": "サーバー"
   },
   "home": {
     "resume": "視聴を続ける",
@@ -20,7 +21,7 @@
   },
   "about": {
     "header": "詳細",
-    "brief": "もう一つのサードパーティー製 Plex クライアント",
+    "brief": "もう一つのサードパーティー製メディアクライアント",
     "repo_header": "リポジトリ"
   },
   "player": {
@@ -72,7 +73,8 @@
     "seasons_title": "シーズン",
     "go_series": "番組へ移動",
     "go_season": "シーズンへ移動",
-    "director": "監督"
+    "director": "監督",
+    "open": "表示"
   },
   "search": {
     "hint": "キーワードと頭文字に対応",
@@ -166,7 +168,8 @@
     "section_done": "ダウンロード済み",
     "remove_all": "すべて削除",
     "confirm_remove_all": "すべてのダウンロードを削除しますか？",
-    "empty_sub": "ダウンロードした映画やエピソードはここに表示され、オフラインで視聴できます。"
+    "empty_sub": "ダウンロードした映画やエピソードはここに表示され、オフラインで視聴できます。",
+    "eta": "残り {}"
   },
   "setting": {
     "quit_hint": "アプリケーションを終了しようとしています。設定は次回起動時から有効になります。",
@@ -181,7 +184,7 @@
       "header": "サーバー",
       "detail": "サーバー詳細",
       "connect_new": "新規サーバー",
-      "connect_to": "Plex サーバーに接続",
+      "connect_to": "メディアサーバーに接続",
       "invalid": "URL は http:// または https:// で始まる必要があります",
       "connect": "接続",
       "delete": "削除しますか？",
@@ -302,7 +305,8 @@
       "updating": "更新中です。今すぐキャンセルしますか？",
       "downloading": "{} をダウンロード中… {}%",
       "updated": "アップデートをインストールしました。アプリケーションを終了します: 新しいバージョンを使うには再度起動してください",
-      "release": "アップデートを確認"
+      "release": "アップデートを確認",
+      "changelog": "更新情報"
     }
   },
   "hints": {
@@ -333,10 +337,86 @@
     "wrong_pin": "PIN が違います",
     "no_server": "このアカウントにサーバーが見つかりません",
     "connecting": "サーバーに接続しています…",
-    "unreachable": "サーバーに接続できません"
+    "unreachable": "サーバーに接続できません",
+    "connecting_slow": "いつもより時間がかかっています — サーバーへの接続を試みています。お待ちください…"
   },
   "empty": {
     "title": "表示する項目がありません",
     "error": "読み込みできません"
+  },
+  "changelog": {
+    "header": "更新情報",
+    "empty": "更新情報は利用できません"
+  },
+  "favorites": {
+    "title": "お気に入り",
+    "add": "お気に入りに追加",
+    "remove": "お気に入りから削除",
+    "added": "お気に入りに追加しました",
+    "removed": "お気に入りから削除しました",
+    "empty_title": "お気に入りはありません",
+    "empty_sub": "映画や番組をお気に入りにすると、ここに表示されます。"
+  },
+  "server": {
+    "choose_type": "接続の種類を選択",
+    "switch_title": "接続先",
+    "add": "追加",
+    "jellyfin": {
+      "title_jellyfin": "Jellyfin にサインイン",
+      "title_emby": "Emby にサインイン",
+      "url": "サーバーアドレス",
+      "username": "ユーザー名",
+      "password": "パスワード",
+      "connect": "接続"
+    },
+    "stremio": {
+      "title": "Stremio にサインイン",
+      "email": "メールアドレス",
+      "password": "パスワード",
+      "connect": "接続",
+      "invalid": "メールアドレスとパスワードを入力してください"
+    }
+  },
+  "stremio": {
+    "movies": "映画",
+    "series": "シリーズ",
+    "popular": "人気",
+    "new": "新着",
+    "featured": "注目",
+    "genre": {
+      "action": "アクション",
+      "adventure": "アドベンチャー",
+      "animation": "アニメ",
+      "biography": "伝記",
+      "comedy": "コメディー",
+      "crime": "犯罪",
+      "documentary": "ドキュメンタリー",
+      "drama": "ドラマ",
+      "family": "ファミリー",
+      "fantasy": "ファンタジー",
+      "history": "歴史",
+      "horror": "ホラー",
+      "mystery": "ミステリー",
+      "romance": "ロマンス",
+      "scifi": "SF",
+      "sport": "スポーツ",
+      "thriller": "スリラー",
+      "war": "戦争",
+      "western": "ウエスタン"
+    },
+    "source": {
+      "unavailable": "再生可能なソースがありません",
+      "none": "このタイトルのストリームがありません。ここで再生するには、Stremio アカウントにストリームアドオン (デブリッドサービス付き) をインストールしてください。",
+      "cached": "キャッシュ済み",
+      "uncached": "ダウンロード",
+      "direct": "ダイレクト",
+      "torrent_badge": "Torrent",
+      "link_badge": "リンク",
+      "torrents": "{} 件の Torrent ソース — デブリッドが必要",
+      "links": "{} 件の外部リンク — ここでは再生できません",
+      "more": "+{} 件の再生可能なソース",
+      "torrents_help": "これらのソースは生の Torrent です。このプラットフォームには Torrent クライアントがありません。再生可能なリンクを取得するには、Stremio アカウントにデブリッド対応アドオン (Torrentio + Real-Debrid、Comet、MediaFusion…) をインストールしてください。",
+      "links_help": "これらのソースは外部リンク (ブラウザーまたはサードパーティサービス) であり、このプラットフォームのアプリで直接再生することはできません。"
+    }
   }
 }

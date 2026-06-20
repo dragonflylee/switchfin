@@ -5,7 +5,8 @@
     "suggest": "Návrhy",
     "search": "Vyhledat",
     "downloads": "Stahování",
-    "setting": "Nastavení"
+    "setting": "Nastavení",
+    "remote": "Servery"
   },
   "home": {
     "resume": "Pokračovat ve sledování",
@@ -20,7 +21,7 @@
   },
   "about": {
     "header": "O aplikaci",
-    "brief": "Jen další Plex klient třetí strany",
+    "brief": "Jen další mediální klient třetí strany",
     "repo_header": "Repozitář"
   },
   "player": {
@@ -72,7 +73,8 @@
     "seasons_title": "Řady",
     "go_series": "Přejít na seriál",
     "go_season": "Přejít na řadu",
-    "director": "Režie"
+    "director": "Režie",
+    "open": "Otevřít"
   },
   "search": {
     "hint": "Podporuje klíčová slova i jejich počáteční písmena",
@@ -166,7 +168,8 @@
     "section_done": "Staženo",
     "remove_all": "Odstranit vše",
     "confirm_remove_all": "Odstranit všechna stažení?",
-    "empty_sub": "Stažené filmy a epizody se zobrazí zde, připravené ke sledování offline."
+    "empty_sub": "Stažené filmy a epizody se zobrazí zde, připravené ke sledování offline.",
+    "eta": "Zbývá {}"
   },
   "setting": {
     "quit_hint": "Chystáte se ukončit aplikaci. Nastavení se projeví po příštím spuštění",
@@ -181,7 +184,7 @@
       "header": "Server",
       "detail": "Detaily serveru",
       "connect_new": "Nový server",
-      "connect_to": "Připojit se k Plex serveru",
+      "connect_to": "Připojit se k mediálnímu serveru",
       "invalid": "URL musí začínat na http:// nebo https://",
       "connect": "Připojit",
       "delete": "Potvrdit smazání?",
@@ -302,7 +305,8 @@
       "updating": "Probíhá aktualizace, zrušit nyní?",
       "downloading": "Stahování {}… {}%",
       "updated": "Aktualizace nainstalována. Aplikace se nyní zavře: spusťte ji znovu pro použití nové verze",
-      "release": "Zkontrolovat aktualizace"
+      "release": "Zkontrolovat aktualizace",
+      "changelog": "Changelog"
     }
   },
   "hints": {
@@ -333,10 +337,86 @@
     "wrong_pin": "Nesprávný PIN",
     "no_server": "Na tomto účtu nebyl nalezen žádný server",
     "connecting": "Připojování k serveru…",
-    "unreachable": "Server je nedostupný"
+    "unreachable": "Server je nedostupný",
+    "connecting_slow": "Trvá to déle než obvykle — stále se snažíme připojit k vašemu serveru. Ještě chvilku…"
   },
   "empty": {
     "title": "Nic k zobrazení",
     "error": "Nelze načíst"
+  },
+  "changelog": {
+    "header": "Changelog",
+    "empty": "Changelog není dostupný"
+  },
+  "favorites": {
+    "title": "Oblíbené",
+    "add": "Přidat do oblíbených",
+    "remove": "Odebrat z oblíbených",
+    "added": "Přidáno do oblíbených",
+    "removed": "Odebráno z oblíbených",
+    "empty_title": "Zatím žádné oblíbené",
+    "empty_sub": "Označte filmy a seriály jako oblíbené, abyste je zde našli."
+  },
+  "server": {
+    "choose_type": "Zvolte typ připojení",
+    "switch_title": "Připojení",
+    "add": "Přidat",
+    "jellyfin": {
+      "title_jellyfin": "Přihlásit se do Jellyfin",
+      "title_emby": "Přihlásit se do Emby",
+      "url": "Adresa serveru",
+      "username": "Uživatelské jméno",
+      "password": "Heslo",
+      "connect": "Připojit"
+    },
+    "stremio": {
+      "title": "Přihlásit se do Stremio",
+      "email": "E-mail",
+      "password": "Heslo",
+      "connect": "Připojit",
+      "invalid": "Zadejte svůj e-mail a heslo"
+    }
+  },
+  "stremio": {
+    "movies": "Filmy",
+    "series": "Seriály",
+    "popular": "Populární",
+    "new": "Novinky",
+    "featured": "Vybrané",
+    "genre": {
+      "action": "Akční",
+      "adventure": "Dobrodružný",
+      "animation": "Animovaný",
+      "biography": "Životopisný",
+      "comedy": "Komedie",
+      "crime": "Krimi",
+      "documentary": "Dokumentární",
+      "drama": "Drama",
+      "family": "Rodinný",
+      "fantasy": "Fantasy",
+      "history": "Historický",
+      "horror": "Horor",
+      "mystery": "Mysteriózní",
+      "romance": "Romantický",
+      "scifi": "Sci-Fi",
+      "sport": "Sportovní",
+      "thriller": "Thriller",
+      "war": "Válečný",
+      "western": "Western"
+    },
+    "source": {
+      "unavailable": "Žádný přehratelný zdroj",
+      "none": "Žádný stream pro tento titul. Nainstalujte si addon pro streamování (s debrid službou) do svého účtu Stremio, abyste jej zde mohli přehrávat.",
+      "cached": "Uloženo",
+      "uncached": "Stáhnout",
+      "direct": "Přímé",
+      "torrent_badge": "Torrent",
+      "link_badge": "Odkaz",
+      "torrents": "{} torrentových zdrojů — vyžaduje debrid",
+      "links": "{} externí odkaz(y) — zde nelze přehrát",
+      "more": "+{} dalších přehratelných zdrojů",
+      "torrents_help": "Tyto zdroje jsou čisté torrenty. Na této platformě není k dispozici žádný torrentový klient: nainstalujte si addon s podporou debrid služby (Torrentio + Real-Debrid, Comet, MediaFusion…) do svého účtu Stremio, abyste získali přehratelné odkazy.",
+      "links_help": "Tyto zdroje jsou externí odkazy (prohlížeč nebo služba třetí strany), které nelze přehrát přímo v aplikaci na této platformě."
+    }
   }
 }
