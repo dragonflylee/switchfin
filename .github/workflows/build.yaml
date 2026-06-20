@@ -70,14 +70,14 @@ jobs:
     - name: Package Assets
       run: |
         cd assets
-        for p in pleNx-windows-*; do
+        for p in GMCA-windows-*; do
           [[ -d "$p" ]] && 7z a -mx=9 "$p.7z" ./"$p"/* && rm -rf "$p"
         done
         tree
     - name: Release and Upload Assets
       uses: softprops/action-gh-release@v3
       with:
-        name: pleNx ${{ github.ref_name }}
+        name: GMCA ${{ github.ref_name }}
         tag_name: ${{ github.ref_name }}
         body_path: RELEASE_NOTES.md
         # direct publication: the job only runs after ALL builds succeed,
@@ -85,14 +85,14 @@ jobs:
         # release exists, the in-app updater sees it (releases/latest ignores drafts)
         draft: false
         files: |
-          assets/pleNx-windows-*.7z
-          assets/pleNx-macOS-*/*.dmg
-          assets/pleNx-NintendoSwitch-deko3d-*/*.nro
-          assets/pleNx-PS4-*/*.pkg
-          assets/pleNx-Vita-*/*.vpk
-          assets/pleNx-Flatpak-*/*.flatpak
-          assets/pleNx-Archlinux-*/*.pkg.tar.*
-          assets/pleNx-android-*/*.apk
+          assets/GMCA-windows-*.7z
+          assets/GMCA-macOS-*/*.dmg
+          assets/GMCA-NintendoSwitch-deko3d-*/*.nro
+          assets/GMCA-PS4-*/*.pkg
+          assets/GMCA-Vita-*/*.vpk
+          assets/GMCA-Flatpak-*/*.flatpak
+          assets/GMCA-Archlinux-*/*.pkg.tar.*
+          assets/GMCA-android-*/*.apk
 
   build-nx:
     runs-on: ubuntu-latest
@@ -140,17 +140,17 @@ jobs:
           -DUSE_LIBUSBHSFS=ON \
           -DBUILTIN_NSP=${{ github.event.inputs.disable_builtin_nsp && 'OFF' || 'ON' }} \
           -DVERSION_BUILD=${{ github.run_number }}
-        make -C build pleNx.nro -j$(nproc)
+        make -C build GMCA.nro -j$(nproc)
     - name: Upload nro
       uses: actions/upload-artifact@v6
       with:
-        name: pleNx-NintendoSwitch${{ matrix.shuffix }}-${{ github.run_number }}
-        path: build/pleNx.nro
+        name: GMCA-NintendoSwitch${{ matrix.shuffix }}-${{ github.run_number }}
+        path: build/GMCA.nro
     - name: Upload elf
       uses: actions/upload-artifact@v6
       with:
         name: ns-dev-elf-${{ matrix.driver }}-${{ github.run_number }}
-        path: build/pleNx.elf
+        path: build/GMCA.elf
 
   build-ps4:
     runs-on: ubuntu-latest
@@ -182,13 +182,13 @@ jobs:
     - name: Upload pkg
       uses: actions/upload-artifact@v6
       with:
-        name: pleNx-PS4-${{ github.run_number }}
+        name: GMCA-PS4-${{ github.run_number }}
         path: build/*.pkg
     - name: Upload oelf
       uses: actions/upload-artifact@v6
       with:
         name: ps4-dev-oelf-${{ github.run_number }}
-        path: build/pleNx.oelf
+        path: build/GMCA.oelf
 
   build-vita:
     runs-on: ubuntu-latest
@@ -221,13 +221,13 @@ jobs:
     - name: Upload vpk
       uses: actions/upload-artifact@v6
       with:
-        name: pleNx-Vita-${{ github.run_number }}
-        path: build/pleNx.vpk
+        name: GMCA-Vita-${{ github.run_number }}
+        path: build/GMCA.vpk
     - name: Upload velf
       uses: actions/upload-artifact@v6
       with:
         name: psv-dev-velf-${{ github.run_number }}
-        path: build/pleNx.velf
+        path: build/GMCA.velf
 
   build-flatpak:
     strategy:
@@ -261,7 +261,7 @@ jobs:
     - name: Build flatpak
       uses: flatpak/flatpak-github-actions/flatpak-builder@v6.7
       with:
-        bundle: pleNx-Linux-${{ matrix.arch }}-${{ matrix.driver }}-${{ github.run_number }}.flatpak
+        bundle: GMCA-Linux-${{ matrix.arch }}-${{ matrix.driver }}-${{ github.run_number }}.flatpak
         manifest-path: scripts/flatpak-manifest.yaml
         cache-key: flatpak-${{ matrix.driver }}-${{ hashFiles('scripts/flatpak-manifest.yaml') }}
         upload-artifact: false
@@ -269,8 +269,8 @@ jobs:
     - name: Upload Assets
       uses: actions/upload-artifact@v6
       with:
-        name: pleNx-Flatpak-${{ matrix.arch }}-${{ matrix.driver }}-${{ github.run_number }}
-        path: pleNx-*.flatpak
+        name: GMCA-Flatpak-${{ matrix.arch }}-${{ matrix.driver }}-${{ github.run_number }}
+        path: GMCA-*.flatpak
         if-no-files-found: error
 
   build-deb:
@@ -310,12 +310,12 @@ jobs:
       run: |
         git config --system --add safe.directory $GITHUB_WORKSPACE
         dpkg-buildpackage -b -nc
-        mv ../plenx_*.deb $GITHUB_WORKSPACE
+        mv ../gmca_*.deb $GITHUB_WORKSPACE
     - name: Upload Assets
       uses: actions/upload-artifact@v6
       with:
-        name: pleNx-${{ matrix.img }}-${{ matrix.tag }}-${{ matrix.arch }}-${{ github.run_number }}
-        path: plenx_*.deb
+        name: GMCA-${{ matrix.img }}-${{ matrix.tag }}-${{ matrix.arch }}-${{ github.run_number }}
+        path: gmca_*.deb
 
   build-aur:
     runs-on: ubuntu-latest
@@ -333,7 +333,7 @@ jobs:
     - name: Upload Assets
       uses: actions/upload-artifact@v6
       with:
-        name: pleNx-Archlinux-${{ github.run_number }}
+        name: GMCA-Archlinux-${{ github.run_number }}
         path: scripts/aur/*.pkg.tar.*
 
   build-macos:
@@ -373,19 +373,19 @@ jobs:
     - name: Create DMG
       run: |
         mkdir -p dist
-        mv build/pleNx.app dist/
+        mv build/GMCA.app dist/
         cp README.md dist
-        dist/pleNx.app/Contents/MacOS/pleNx -version
+        dist/GMCA.app/Contents/MacOS/GMCA -version
         create-dmg --window-pos 200 120 --window-size 800 400 \
-          --icon-size 100 --icon "pleNx.app" 200 190 \
-          --icon "README.md" 400 100 --hide-extension "pleNx.app" \
+          --icon-size 100 --icon "GMCA.app" 200 190 \
+          --icon "README.md" 400 100 --hide-extension "GMCA.app" \
           --app-drop-link 600 185 --volicon ./scripts/macos/dmg.icns \
-          --volname "pleNx" pleNx-macOS-${{ matrix.tag }}-${{ github.run_number }}.dmg "dist/"
+          --volname "GMCA" GMCA-macOS-${{ matrix.tag }}-${{ github.run_number }}.dmg "dist/"
     - name: Upload Assets
       uses: actions/upload-artifact@v6
       with:
-        name: pleNx-macOS-${{ matrix.tag }}-${{ github.run_number }}
-        path: pleNx-*.dmg
+        name: GMCA-macOS-${{ matrix.tag }}-${{ github.run_number }}
+        path: GMCA-*.dmg
 
   build-mingw:
     if: ${{ inputs.platform == 'mingw64' || github.event_name != 'workflow_dispatch'}}
@@ -449,15 +449,15 @@ jobs:
           -DUSE_LIBROMFS=ON \
           -DVERSION_BUILD=${{ github.run_number }}
         cmake --build build
-        cv2pdb64 build/pleNx.exe
+        cv2pdb64 build/GMCA.exe
         cp -a README.md ${MINGW_PREFIX}/bin/libmpv-2.dll build
     - name: Upload Assets
       uses: actions/upload-artifact@v6
       with:
-        name: pleNx-windows-${{ matrix.arch }}-${{ github.run_number }}
+        name: GMCA-windows-${{ matrix.arch }}-${{ github.run_number }}
         path: |
-          build/pleNx.exe
-          build/pleNx.pdb
+          build/GMCA.exe
+          build/GMCA.pdb
           build/libmpv-2.dll
           build/README.md
 
@@ -507,5 +507,5 @@ jobs:
     - name: Upload dist
       uses: actions/upload-artifact@v6
       with:
-        name: pleNx-android-${{ github.run_number }}
+        name: GMCA-android-${{ github.run_number }}
         path: app/platform/android/app/build/outputs/apk/release/*.apk

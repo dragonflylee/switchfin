@@ -1,4 +1,4 @@
-package fun.thcolin.plenx;
+package fun.thcolin.gmca;
 
 import android.database.ContentObserver;
 import android.graphics.PixelFormat;
@@ -12,7 +12,7 @@ import org.libsdl.app.BorealisHandler;
 import org.libsdl.app.PlatformUtils;
 import org.libsdl.app.SDLActivity;
 
-public class PleNxActivity extends SDLActivity
+public class GMCAActivity extends SDLActivity
 {
     protected static SurfaceView mpvSurface;
 
@@ -76,7 +76,7 @@ public class PleNxActivity extends SDLActivity
         return new String[] {
                 "curl",
                 "SDL2",
-                "pleNx"
+                "GMCA"
         };
     }
 

@@ -30,12 +30,12 @@ public:
     static void checkUpdate(int delay = 2000, bool showUpToDateDialog = false);
 
     inline static std::shared_ptr<std::atomic_bool> updating = std::make_shared<std::atomic_bool>(true);
-    inline static std::string git_repo = "thcolin/pleNx";
+    inline static std::string git_repo = "thcolin/gamepad-media-center-aggregator";
 
     /// Real path of the running NRO (argv[0] provided by hbloader or the
     /// forwarder), filled in main(). THIS is the file the auto-update must
-    /// replace: the NRO may live at `sdmc:/switch/pleNx.nro` (forwarder)
-    /// or `sdmc:/switch/pleNx/pleNx.nro`. Empty off-Switch or if unavailable.
+    /// replace: the NRO may live at `sdmc:/switch/GMCA.nro` (forwarder)
+    /// or `sdmc:/switch/GMCA/GMCA.nro`. Empty off-Switch or if unavailable.
     inline static std::string nro_path;
 };
 
