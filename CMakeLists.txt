@@ -51,19 +51,20 @@ message(STATUS "git commit ${GIT_TAG_SHORT} build ${VERSION_BUILD}")
 include(${BOREALIS_LIBRARY}/cmake/toolchain.cmake)
 
 # project info
-project(pleNx)
-set(VERSION_MAJOR "0")
-set(VERSION_MINOR "1")
-set(VERSION_ALTER "10")
-# 0420 1312: title ID specific to pleNx — the old one (inherited from
-# Switchfin) let the HOME menu serve the "Switchlex" name/icon from its cache
-# even after reinstalling; a fresh ID starts from scratch. Uniqueness verified
-# (web, GitHub, GBAtemp homebrew list) on 2026-06-11.
-set(PROJECT_TITLEID "0104201312000000")
+project(GMCA)  # short token for files/binaries/IDs; display name = "Gamepad Media Center Aggregator"
+set(VERSION_MAJOR "1")
+set(VERSION_MINOR "0")
+set(VERSION_ALTER "0")
+# Fresh title ID for GMCA: a NEW id is required so the Switch HOME menu does not
+# serve the cached "pleNx" name/icon for the old id, and because GMCA is a
+# distinct app (parallel install alongside pleNx during the transition).
+# TODO(release): verify uniqueness (web, GitHub, GBAtemp homebrew list) before
+# the first Switch release, exactly as was done for pleNx.
+set(PROJECT_TITLEID "0104474D43410000")
 set(PROJECT_AUTHOR "thcolin")
-set(PACKAGE_NAME "fun.thcolin.plenx")
-set(VITA_TITLEID "PLENX0000")
-set(PSN_TITLE_ID "PLNX00000")
+set(PACKAGE_NAME "fun.thcolin.gmca")
+set(VITA_TITLEID "GMCA00001")
+set(PSN_TITLE_ID "GMCA00000")
 set(VITA_VERSION "00.18")
 set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon.jpg)
 set(PROJECT_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/resources)
@@ -233,12 +234,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     APP_VERSION=${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}
     APP_BUILD=${VERSION_BUILD}
     BUILD_TAG_SHORT=${GIT_TAG_SHORT}
-    # GMCA rebrand: the per-user data folder and the server-facing client
-    # label use the short "GMCA" token, decoupled from the still-"pleNx"
-    # display name (PROJECT_NAME). pleNx 0.2.0 thus pre-migrates user data
-    # into the folder the renamed app (Gamepad Media Center Aggregator) will
-    # read, so the rebrand itself needs no further data migration.
-    BUILD_PACKAGE_NAME=GMCA
+    BUILD_PACKAGE_NAME=${PROJECT_NAME}
 )
 
 # building release file
@@ -272,7 +268,7 @@ if (PLATFORM_DESKTOP)
         set(icon_dirs 32x32 48x48 64x64 128x128 256x256)
         linux_install(
             "${PROJECT_RESOURCES}" "${BRLS_RESOURCES_DIR}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/plenx.svg"
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/gmca.svg"
             "${CMAKE_CURRENT_SOURCE_DIR}/scripts/icons" "${icon_dirs}"
             "${CMAKE_CURRENT_SOURCE_DIR}/scripts/${PACKAGE_NAME}.appdata.xml"
             "${CMAKE_CURRENT_SOURCE_DIR}/scripts/${PACKAGE_NAME}.desktop"
@@ -322,7 +318,7 @@ elseif (PLATFORM_PS4)
     add_pkg(${PROJECT_NAME}
             ${CMAKE_BINARY_DIR}/ps4
             ${PSN_TITLE_ID}
-            "pleNx"
+            ${PROJECT_NAME}
             ${VITA_VERSION}
             8388608
     )

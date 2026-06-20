@@ -1,6 +1,6 @@
 [Desktop Entry]
-Name=pleNx
-Comment=A third-party native Plex client
+Name=Gamepad Media Center Aggregator
+Comment=Controller-first media client for Plex, Jellyfin, Emby and Stremio
 Exec=${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}
 Icon=${PACKAGE_NAME}
 Terminal=false
