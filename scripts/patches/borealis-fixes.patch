@@ -29,7 +29,7 @@ index 6f92431b..024a5dfe 100644
  
    private:
 diff --git a/library/include/borealis/core/view.hpp b/library/include/borealis/core/view.hpp
-index 227cd789..10f9add7 100644
+index 227cd789..a651c841 100644
 --- a/library/include/borealis/core/view.hpp
 +++ b/library/include/borealis/core/view.hpp
 @@ -245,6 +245,12 @@ class View
@@ -45,7 +45,22 @@ index 227cd789..10f9add7 100644
      Animatable clickAlpha = 0.0f; // animated between 0 and 1
  
      bool highlightShaking = false;
-@@ -930,6 +936,16 @@ class View
+@@ -313,9 +319,13 @@ class View
+ 
+     NVGcolor backgroundColor = TRANSPARENT;
+ 
+-    // Background gradient colors for vertical linear style
++  protected:
++    // Background gradient colors for the vertical linear style — set directly by
++    // subclasses that draw a vertical fade (e.g. BottomBar).
+     NVGcolor backgroundStartColor = TRANSPARENT;
+     NVGcolor backgroundEndColor = nvgRGBA(0, 0, 0, 200);
++
++  private:
+     // Background corner radii for vertical linear style: top-left, top-right, bottom-right, bottom-left
+     std::vector<float> backgroundRadius{0.0f, 0.0f, 0.0f, 0.0f};
+ 
+@@ -930,6 +940,16 @@ class View
          this->highlightCornerRadius = radius;
      }
  
@@ -62,7 +77,7 @@ index 227cd789..10f9add7 100644
      // -----------------------------------------------------------
  
      /**
-@@ -1263,6 +1279,19 @@ class View
+@@ -1263,6 +1283,19 @@ class View
        */
      void frameHighlight(FrameContext* ctx);
  
@@ -82,6 +97,56 @@ index 227cd789..10f9add7 100644
      /**
        * Called by frame() to draw the view onscreen.
        * Views should not draw outside of their bounds (they
+diff --git a/library/include/borealis/views/bottom_bar.hpp b/library/include/borealis/views/bottom_bar.hpp
+index 17a93796..28828e4b 100644
+--- a/library/include/borealis/views/bottom_bar.hpp
++++ b/library/include/borealis/views/bottom_bar.hpp
+@@ -19,26 +19,36 @@
+ #include <borealis/core/application.hpp>
+ #include <borealis/core/bind.hpp>
+ #include <borealis/core/box.hpp>
+-#include <borealis/views/image.hpp>
+-#include <borealis/views/label.hpp>
+ 
+ namespace brls
+ {
+ 
++// The bottom bar is no longer a full-width band: it only carries the controller
++// button hints (A / B / + / -…), floating at the bottom-right over the content
++// on a soft vertical fade (transparent -> background) so they stay legible over
++// whatever scrolls underneath, with no hard band or separator line. Battery /
++// wireless / clock were dropped (the app surfaces battery+wifi in its sidebar).
+ class BottomBar : public Box
+ {
+   public:
+     BottomBar();
+-    void draw(NVGcontext* vg, float x, float y, float width, float height, Style style, FrameContext* ctx) override;
+     static View* create();
+ 
++    // The bar floats over the content, so its empty area must stay click/touch
++    // transparent — otherwise the bottom strip of content would be unclickable.
++    // Only the hints themselves (children) may grab touch (allowAButtonTouch).
++    View* hitTest(Point point) override;
++
++    // Keeps the gradient scrim off a left sidebar: px from the window left edge
++    // where the footer starts. Screens with a left sidebar pass its width.
++    void setContentInsetLeft(float inset);
++
+   private:
+-    void updateText();
+-    std::string bottomText;
+-    BRLS_BIND(Box, hints, "brls/hints");
+-    BRLS_BIND(Label, time, "brls/hints/time");
+-    BRLS_BIND(View, battery, "brls/battery");
+-    BRLS_BIND(View, wireless, "brls/wireless");
++    // (Re)applies the floating gradient layout from the current theme + inset.
++    void configureFooter();
++
++    BRLS_BIND(Box, hintWrap, "brls/bottombar/hint_wrap");
++    float leftInset = 0.f;
+ };
+ 
+ } // namespace brls
 diff --git a/library/include/borealis/views/h_scrolling_frame.hpp b/library/include/borealis/views/h_scrolling_frame.hpp
 index c83c51ad..4bd52ba0 100644
 --- a/library/include/borealis/views/h_scrolling_frame.hpp
@@ -95,7 +160,7 @@ index c83c51ad..4bd52ba0 100644
  
      /**
 diff --git a/library/include/borealis/views/scrolling_frame.hpp b/library/include/borealis/views/scrolling_frame.hpp
-index bb6275a2..50454118 100644
+index bb6275a2..e74b55a2 100644
 --- a/library/include/borealis/views/scrolling_frame.hpp
 +++ b/library/include/borealis/views/scrolling_frame.hpp
 @@ -61,6 +61,7 @@ class ScrollingFrame : public Box
@@ -106,6 +171,86 @@ index bb6275a2..50454118 100644
      Rect getVisibleFrame();
  
      /**
+@@ -93,6 +94,17 @@ class ScrollingFrame : public Box
+         showScrollingIndicator = visible;
+     }
+ 
++    /**
++     * Marks a view as the "top anchor" (CENTERED behavior only): when that view
++     * gains focus, the frame scrolls to the TOP (offset 0) instead of centering
++     * it — so the content above it (e.g. a hero/poster on a detail page) stays
++     * on screen. Pass nullptr to clear.
++     */
++    void setScrollTopAnchor(View* view)
++    {
++        this->scrollTopAnchor = view;
++    }
++
+     static View* create();
+ 
+   protected:
+@@ -117,9 +129,19 @@ class ScrollingFrame : public Box
+     float getScrollingAreaTopBoundary();
+     float getScrollingAreaHeight();
+ 
++    // Height usable for focus/scroll math: the scrolling area minus a floating
++    // footer overlay (auto-detected from an ancestor AppletFrame). The visual
++    // scissor keeps using the full area, so content still draws under the
++    // footer's gradient — only the resting scroll position avoids the overlay,
++    // so a focused item is never parked hidden under the floating footer.
++    float effectiveScrollHeight();
++    void refreshBottomSafeInset();
++    float bottomSafeInset = 0.0f;
++
+     float getContentHeight();
+ 
+     ScrollingBehavior behavior = ScrollingBehavior::NATURAL;
++    View* scrollTopAnchor = nullptr;  // CENTERED: focusing this scrolls to the top
+     bool naturalScrollingCanScroll = false;
+     void naturalScrollingBehaviour();
+     void naturalScrollingButtonProcessing(FocusDirection focusDirection, bool* repeat);
+diff --git a/library/include/borealis/views/widgets/battery.hpp b/library/include/borealis/views/widgets/battery.hpp
+index 87ea464f..c54c05c8 100644
+--- a/library/include/borealis/views/widgets/battery.hpp
++++ b/library/include/borealis/views/widgets/battery.hpp
+@@ -27,12 +27,15 @@ namespace brls
+ class BatteryWidget : public Box
+ {
+   public:
+-    BatteryWidget();
++    // scale shrinks the whole widget uniformly (1.0 = the 44px status-bar size);
++    // the app uses a smaller one to tuck battery/wifi into its sidebar.
++    explicit BatteryWidget(float scale = 1.0f);
+ 
+     void draw(NVGcontext* vg, float x, float y, float width, float height, Style style, FrameContext* ctx) override;
+     static View* create();
+ 
+   private:
++    float scale = 1.0f;
+     Image* back;
+     Rectangle* level;
+     Platform* platform;
+diff --git a/library/include/borealis/views/widgets/wireless.hpp b/library/include/borealis/views/widgets/wireless.hpp
+index fcfd6497..28c65037 100644
+--- a/library/include/borealis/views/widgets/wireless.hpp
++++ b/library/include/borealis/views/widgets/wireless.hpp
+@@ -27,12 +27,15 @@ namespace brls
+ class WirelessWidget : public Box
+ {
+   public:
+-    WirelessWidget();
++    // scale shrinks the whole widget uniformly (1.0 = the 44px status-bar size);
++    // the app uses a smaller one to tuck battery/wifi into its sidebar.
++    explicit WirelessWidget(float scale = 1.0f);
+ 
+     void draw(NVGcontext* vg, float x, float y, float width, float height, Style style, FrameContext* ctx) override;
+     static View* create();
+ 
+   private:
++    float scale = 1.0f;
+     Image* _0;
+     Image* _1;
+     Image* _2;
 diff --git a/library/lib/core/application.cpp b/library/lib/core/application.cpp
 index c7d67dcb..cdba6443 100644
 --- a/library/lib/core/application.cpp
@@ -619,6 +764,199 @@ index 3bba8891..b2c03d66 100644
      // Simplified Chinese ext
      rc = plGetSharedFontByType(&font, PlSharedFontType_ExtChineseSimplified);
      if (R_SUCCEEDED(rc) && Application::loadFontFromMemory(FONT_CHINESE_SIMPLIFIED_EXT, font.address, font.size, false))
+diff --git a/library/lib/views/bottom_bar.cpp b/library/lib/views/bottom_bar.cpp
+index ba4d0048..f1ec7d26 100644
+--- a/library/lib/views/bottom_bar.cpp
++++ b/library/lib/views/bottom_bar.cpp
+@@ -14,77 +14,37 @@
+     limitations under the License.
+ */
+ 
++#include <borealis/core/theme.hpp>
+ #include <borealis/views/bottom_bar.hpp>
+-#include <chrono>
+-#include <ctime>
+-#include <iomanip>
+-#include <sstream>
+-
+-#ifdef PS4
+-#include <borealis/platforms/ps4/ps4_sysmodule.hpp>
+-#endif
+ 
+ namespace brls
+ {
+ 
++// Only the hints remain. The outer box floats over the content (positioned in
++// the constructor); the inner wrapper holds the hints flush bottom-right.
++// configureFooter() drives the gradient size/background from the theme.
+ const std::string bottomBarXML = R"xml(
+ 
+ <brls:Box
+     width="auto"
+-    height="@style/brls/applet_frame/footer_height"
+-    axis="column">
++    height="auto"
++    axis="row"
++    justifyContent="flexEnd"
++    alignItems="flexEnd">
++
+     <brls:Box
++        id="brls/bottombar/hint_wrap"
+         width="auto"
+-        height="@style/brls/applet_frame/footer_height"
+-        marginLeft="@style/brls/hints/footer_margin_sides"
+-        marginRight="@style/brls/hints/footer_margin_sides"
+-        paddingLeft="@style/brls/hints/footer_padding_sides"
+-        paddingRight="@style/brls/hints/footer_padding_sides"
+-        lineColor="@theme/brls/applet_frame/separator"
+-        lineTop="1px"
+-        alignItems="stretch">
+-        <brls:Box
++        height="auto"
++        axis="row"
++        alignItems="center">
++
++        <brls:Hints
+             width="auto"
+-            height="@style/brls/applet_frame/footer_height"
+-            axis="row"
+-            grow="1"
+-            direction="rightToLeft"
+-            justifyContent="spaceBetween"
+-            paddingTop="@style/brls/hints/footer_padding_top_bottom"
+-            paddingBottom="@style/brls/hints/footer_padding_top_bottom" >
+-
+-            <brls:Hints
+-                width="auto"
+-                height="auto"/>
+-
+-            <brls:Box
+-                width="auto"
+-                height="auto"
+-                axis="row"
+-                alignItems="center"
+-                direction="leftToRight" >
+-
+-                <brls:Battery
+-                    id="brls/battery"
+-                    marginRight="21"
+-                    marginBottom="5"/>
+-
+-                <brls:Wireless
+-                    id="brls/wireless"
+-                    marginRight="21"
+-                    marginBottom="5"/>
+-
+-                <brls:Label
+-                    id="brls/hints/time"
+-                    width="auto"
+-                    height="auto"
+-                    verticalAlign="center"
+-                    fontSize="21.5" />
+-
+-            </brls:Box>
+-
+-        </brls:Box>
++            height="auto"/>
++
+     </brls:Box>
++
+ </brls:Box>
+ )xml";
+ 
+@@ -92,46 +52,60 @@ BottomBar::BottomBar()
+ {
+     this->inflateFromXMLString(bottomBarXML);
+ 
+-    Platform* platform = Application::getPlatform();
+-    battery->setVisibility(platform->canShowBatteryLevel() ? Visibility::VISIBLE : Visibility::GONE);
+-    wireless->setVisibility(platform->canShowWirelessLevel() ? Visibility::VISIBLE : Visibility::GONE);
++    // Float over the content, pinned to the bottom edge: the content (and any
++    // sidebar) then extends all the way down — no reserved band, no separator
++    // line, no seam against the sidebar.
++    this->setPositionType(PositionType::ABSOLUTE);
++    this->setPositionBottom(0);
++    this->setPositionRight(0);
++    this->setPositionLeft(0);
++
++    this->configureFooter();
+ }
+ 
+-void BottomBar::draw(NVGcontext* vg, float x, float y, float width, float height, Style style, FrameContext* ctx)
++void BottomBar::setContentInsetLeft(float inset)
+ {
+-    this->updateText();
+-    Box::draw(vg, x, y, width, height, style, ctx);
++    this->leftInset = inset;
++    this->configureFooter();
+ }
+ 
+-void BottomBar::updateText()
++void BottomBar::configureFooter()
+ {
+-#ifdef PS4
+-    OrbisDateTime lt{};
+-    if (sceRtcGetCurrentClockLocalTime)
+-        sceRtcGetCurrentClockLocalTime(&lt);
+-    tm tm{};
+-    tm.tm_hour = lt.hour;
+-    tm.tm_min = lt.minute;
+-    tm.tm_sec = lt.second;
+-#else
+-    auto timeNow   = std::chrono::system_clock::now();
+-    auto in_time_t = std::chrono::system_clock::to_time_t(timeNow);
+-    auto tm = *std::localtime(&in_time_t);
+-#endif
+-    std::stringstream ss;
+-    ss << std::put_time(&tm, "%H:%M:%S");
+-    if (ss.str() != bottomText)
++    Theme theme   = Application::getTheme();
++    NVGcolor bg   = theme["brls/background"];
++    NVGcolor fade = bg;
++    fade.a        = 0.0f;
++
++    // start the bar after a left sidebar so the scrim never tints it
++    this->setPositionLeft(this->leftInset);
++
++    // soft vertical fade (transparent -> background): hints stay legible over
++    // scrolling content, invisible when nothing is behind them
++    this->setHeight(108.0f);
++    this->setBackground(ViewBackground::VERTICAL_LINEAR);
++    this->backgroundStartColor = fade;
++    this->backgroundEndColor   = bg;
++    this->setBackgroundCornerRadii(0, 0, 0, 0);
++
++    // hints flush against the bottom-right corner, no badge chrome
++    hintWrap->setPadding(0, 32.0f, 22.0f, 0);
++}
++
++View* BottomBar::hitTest(Point point)
++{
++    if (this->alpha == 0.0f || this->getVisibility() != Visibility::VISIBLE)
++        return nullptr;
++
++    // Never claim empty space (unlike Box::hitTest, which returns `this`): probe
++    // the hints only, so taps over the gradient fall through to the content.
++    const auto& kids = this->getChildren();
++    for (auto child = kids.rbegin(); child != kids.rend(); child++)
+     {
+-        bottomText = ss.str();
+-        if (Application::getFPSStatus())
+-        {
+-            time->setText(bottomText + " | FPS:" + std::to_string(Application::getFPS()));
+-        }
+-        else
+-        {
+-            time->setText(bottomText);
+-        }
++        if (View* result = (*child)->hitTest(point))
++            return result;
+     }
++
++    return nullptr;
+ }
+ 
+ View* BottomBar::create()
 diff --git a/library/lib/views/h_scrolling_frame.cpp b/library/lib/views/h_scrolling_frame.cpp
 index da1210f4..20135066 100644
 --- a/library/lib/views/h_scrolling_frame.cpp
@@ -722,10 +1060,26 @@ index da1210f4..20135066 100644
  
      return this;
 diff --git a/library/lib/views/scrolling_frame.cpp b/library/lib/views/scrolling_frame.cpp
-index 61978bd5..d7ee0eb8 100644
+index 61978bd5..6be25091 100644
 --- a/library/lib/views/scrolling_frame.cpp
 +++ b/library/lib/views/scrolling_frame.cpp
-@@ -157,8 +157,10 @@ void ScrollingFrame::naturalScrollingBehaviour()
+@@ -18,6 +18,7 @@
+ #include <borealis/core/application.hpp>
+ #include <borealis/core/touch/scroll_gesture.hpp>
+ #include <borealis/core/touch/tap_gesture.hpp>
++#include <borealis/views/applet_frame.hpp>
+ #include <borealis/views/scrolling_frame.hpp>
+ 
+ namespace brls
+@@ -128,6 +129,7 @@ void ScrollingFrame::updateScrollingIndicatior()
+ 
+ void ScrollingFrame::draw(NVGcontext* vg, float x, float y, float width, float height, Style style, FrameContext* ctx)
+ {
++    this->refreshBottomSafeInset();
+     updateScrollingIndicatior();
+     naturalScrollingBehaviour();
+ 
+@@ -157,8 +159,10 @@ void ScrollingFrame::naturalScrollingBehaviour()
      {
          // If current focus view is outside scrolling bounds,
          // change focus to this.
@@ -737,7 +1091,16 @@ index 61978bd5..d7ee0eb8 100644
          {
              Application::giveFocus(this);
          }
-@@ -230,11 +232,22 @@ View* ScrollingFrame::findTopMostFocusableView()
+@@ -183,7 +187,7 @@ void ScrollingFrame::naturalScrollingBehaviour()
+     if (focused || childFocused)
+     {
+         auto& state       = Application::getControllerState();
+-        float bottomLimit = this->getContentHeight() - this->getScrollingAreaHeight();
++        float bottomLimit = this->getContentHeight() - this->effectiveScrollHeight();
+ 
+         // Sets true on border hit to play sound only once
+         static bool repeat = false;
+@@ -230,11 +234,22 @@ View* ScrollingFrame::findTopMostFocusableView()
          if (focusCheckDefaultFocus)
              focusCheck = focusCheckDefaultFocus;
  
@@ -761,7 +1124,16 @@ index 61978bd5..d7ee0eb8 100644
          return focusCheck;
      }
  
-@@ -262,7 +275,14 @@ void ScrollingFrame::naturalScrollingButtonProcessing(FocusDirection focusDirect
+@@ -243,7 +258,7 @@ View* ScrollingFrame::findTopMostFocusableView()
+ 
+ void ScrollingFrame::naturalScrollingButtonProcessing(FocusDirection focusDirection, bool* repeat)
+ {
+-    float bottomLimit = this->getContentHeight() - this->getScrollingAreaHeight();
++    float bottomLimit = this->getContentHeight() - this->effectiveScrollHeight();
+     float newOffset   = getContentOffsetY();
+     bool isBorder     = false;
+     switch (focusDirection)
+@@ -262,7 +277,14 @@ void ScrollingFrame::naturalScrollingButtonProcessing(FocusDirection focusDirect
  
      setContentOffsetY(newOffset, false);
      View* current = Application::getCurrentFocus();
@@ -777,7 +1149,7 @@ index 61978bd5..d7ee0eb8 100644
      if (next)
      {
          if (current != next->getDefaultFocus())
-@@ -280,7 +300,8 @@ void ScrollingFrame::naturalScrollingButtonProcessing(FocusDirection focusDirect
+@@ -280,7 +302,8 @@ void ScrollingFrame::naturalScrollingButtonProcessing(FocusDirection focusDirect
      if (isBorder && !*repeat)
      {
          *repeat = true;
@@ -787,7 +1159,73 @@ index 61978bd5..d7ee0eb8 100644
          Application::getAudioPlayer()->play(SOUND_FOCUS_ERROR);
      }
  }
-@@ -505,7 +526,8 @@ View* ScrollingFrame::getParentNavigationDecision(View* from, View* newFocus, Fo
+@@ -335,6 +358,47 @@ float ScrollingFrame::getScrollingAreaHeight()
+     return this->getHeight();
+ }
+ 
++float ScrollingFrame::effectiveScrollHeight()
++{
++    float h = this->getScrollingAreaHeight() - this->bottomSafeInset;
++    // Guard against a tiny frame fully covered by the inset.
++    return h > 0.0f ? h : this->getScrollingAreaHeight();
++}
++
++void ScrollingFrame::refreshBottomSafeInset()
++{
++    // Auto-detect a floating footer overlay: find an ancestor AppletFrame and,
++    // if its footer is visible and overlaps our bottom edge, reserve that much
++    // height in the SCROLL MATH (not the visual scissor) so a focused/last item
++    // never rests hidden under the footer. No overlap (dialogs, popups, short
++    // frames whose bottom is above the footer) -> inset stays 0.
++    float inset       = 0.0f;
++    bool foundFrame   = false;
++    bool footerVis    = false;
++    float footerY     = -1.0f;
++    for (Box* p = this->getParent(); p != nullptr; p = p->getParent())
++    {
++        if (AppletFrame* af = dynamic_cast<AppletFrame*>(p))
++        {
++            foundFrame  = true;
++            Box* footer = af->getFooter();
++            if (footer && footer->getVisibility() == Visibility::VISIBLE)
++            {
++                footerVis     = true;
++                footerY       = footer->getY();
++                float overlap = (this->getY() + this->getScrollingAreaHeight()) - footerY;
++                if (overlap > 0.0f)
++                    inset = overlap;
++            }
++            break;
++        }
++    }
++    if (inset != this->bottomSafeInset)
++        Logger::error("[INSET] {} -> {} (frame={} footerVis={} thisY={} saH={} footerY={})",
++            this->bottomSafeInset, inset, foundFrame, footerVis, this->getY(), this->getScrollingAreaHeight(), footerY);
++    this->bottomSafeInset = inset;
++}
++
+ void ScrollingFrame::willAppear(bool resetState)
+ {
+     this->prebakeScrolling();
+@@ -419,7 +483,7 @@ void ScrollingFrame::scrollAnimationTick()
+     if (this->contentView)
+     {
+         float contentHeight = this->getContentHeight();
+-        float bottomLimit   = contentHeight - this->getScrollingAreaHeight();
++        float bottomLimit   = contentHeight - this->effectiveScrollHeight();
+ 
+         if (this->contentOffsetY < 0)
+             this->contentOffsetY = 0;
+@@ -437,7 +501,7 @@ void ScrollingFrame::scrollAnimationTick()
+ View* ScrollingFrame::getNextFocus(FocusDirection direction, View* currentView)
+ {
+     // To prevent sound click on empty scroll view
+-    float bottomLimit    = this->getContentHeight() - this->getScrollingAreaHeight();
++    float bottomLimit    = this->getContentHeight() - this->effectiveScrollHeight();
+     float contentOffsetY = this->getContentOffsetY();
+     if (direction == FocusDirection::DOWN && contentOffsetY < (bottomLimit - 0.01f))
+         return this;
+@@ -505,7 +569,8 @@ View* ScrollingFrame::getParentNavigationDecision(View* from, View* newFocus, Fo
          if (from == contentView)
          {
              naturalScrollingCanScroll = true;
@@ -797,7 +1235,7 @@ index 61978bd5..d7ee0eb8 100644
                  return currentFocus;
  
              return this;
-@@ -520,7 +542,7 @@ View* ScrollingFrame::getParentNavigationDecision(View* from, View* newFocus, Fo
+@@ -520,7 +585,7 @@ View* ScrollingFrame::getParentNavigationDecision(View* from, View* newFocus, Fo
              naturalScrollingCanScroll = true;
      }
  
@@ -806,7 +1244,35 @@ index 61978bd5..d7ee0eb8 100644
          return currentFocus;
  
      return this;
-@@ -570,6 +592,16 @@ Rect ScrollingFrame::getVisibleFrame()
+@@ -542,11 +607,24 @@ bool ScrollingFrame::updateScrolling(bool animated)
+         parent = parent->getParent();
+     }
+ 
+-    int currentSelectionMiddleOnScreen = localY + itemHeight / 2;
+-    float newScroll                    = currentSelectionMiddleOnScreen - this->getHeight() / 2;
++    float viewportHeight = this->effectiveScrollHeight();
++    float newScroll;
++    if (focusedView && focusedView == this->scrollTopAnchor)
++    {
++        // Top anchor (e.g. the first source row of a detail page, just below the
++        // hero): scroll to the TOP when it gains focus so the poster/title above
++        // it stay on screen — both on open and when navigating back up to it —
++        // instead of centering it. Everything else centers as usual.
++        newScroll = 0;
++    }
++    else
++    {
++        int currentSelectionMiddleOnScreen = localY + itemHeight / 2;
++        newScroll                          = currentSelectionMiddleOnScreen - viewportHeight / 2;
++    }
+ 
+     float contentHeight = this->getContentHeight();
+-    float bottomLimit   = contentHeight - this->getScrollingAreaHeight();
++    float bottomLimit   = contentHeight - this->effectiveScrollHeight();
+ 
+     if (newScroll < 0)
+         newScroll = 0;
+@@ -570,6 +648,16 @@ Rect ScrollingFrame::getVisibleFrame()
      return frame;
  }
  
@@ -823,3 +1289,94 @@ index 61978bd5..d7ee0eb8 100644
  enum Sound ScrollingFrame::getFocusSound()
  {
      if (!contentView->getDefaultFocus())
+diff --git a/library/lib/views/widgets/battery.cpp b/library/lib/views/widgets/battery.cpp
+index 93981577..471bf205 100644
+--- a/library/lib/views/widgets/battery.cpp
++++ b/library/lib/views/widgets/battery.cpp
+@@ -23,22 +23,23 @@
+ namespace brls
+ {
+ 
+-BatteryWidget::BatteryWidget()
++BatteryWidget::BatteryWidget(float scale)
++    : scale(scale)
+ {
+     platform = Application::getPlatform();
+     if (!platform->canShowBatteryLevel())
+         return;
+ 
+-    setSize(Size(44, 44));
++    setSize(Size(44 * scale, 44 * scale));
+ 
+     back = new Image();
+-    back->setSize(Size(44, 44));
++    back->setSize(Size(44 * scale, 44 * scale));
+     back->setScalingType(ImageScalingType::FIT);
+     back->detach();
+ 
+     level = new Rectangle();
+-    level->setDetachedPosition(11, 18);
+-    level->setSize(Size(BATTERY_MAX_WIDTH, 10));
++    level->setDetachedPosition(11 * scale, 18 * scale);
++    level->setSize(Size(BATTERY_MAX_WIDTH * scale, 10 * scale));
+     level->detach();
+ 
+     applyBackTheme(platform->getThemeVariant());
+@@ -104,7 +105,7 @@ void BatteryWidget::draw(NVGcontext* vg, float x, float y, float width, float he
+     else
+         applyLevelTheme(platform->getThemeVariant());
+ 
+-    level->setWidth(BATTERY_MAX_WIDTH * batteryLevel);
++    level->setWidth(BATTERY_MAX_WIDTH * scale * batteryLevel);
+     Box::draw(vg, x, y, width, height, style, ctx);
+ }
+ 
+diff --git a/library/lib/views/widgets/wireless.cpp b/library/lib/views/widgets/wireless.cpp
+index 8e0fb6db..3a954c18 100644
+--- a/library/lib/views/widgets/wireless.cpp
++++ b/library/lib/views/widgets/wireless.cpp
+@@ -28,36 +28,37 @@ extern "C"
+ namespace brls
+ {
+ 
+-WirelessWidget::WirelessWidget()
++WirelessWidget::WirelessWidget(float scale)
++    : scale(scale)
+ {
+     platform = Application::getPlatform();
+     if (!platform->canShowWirelessLevel())
+         return;
+ 
+-    setSize(Size(44, 44));
++    setSize(Size(44 * scale, 44 * scale));
+ 
+     _0 = new Image();
+-    _0->setSize(Size(44, 44));
++    _0->setSize(Size(44 * scale, 44 * scale));
+     _0->setScalingType(ImageScalingType::FIT);
+     _0->detach();
+ 
+     _1 = new Image();
+-    _1->setSize(Size(44, 44));
++    _1->setSize(Size(44 * scale, 44 * scale));
+     _1->setScalingType(ImageScalingType::FIT);
+     _1->detach();
+ 
+     _2 = new Image();
+-    _2->setSize(Size(44, 44));
++    _2->setSize(Size(44 * scale, 44 * scale));
+     _2->setScalingType(ImageScalingType::FIT);
+     _2->detach();
+ 
+     _3 = new Image();
+-    _3->setSize(Size(44, 44));
++    _3->setSize(Size(44 * scale, 44 * scale));
+     _3->setScalingType(ImageScalingType::FIT);
+     _3->detach();
+ 
+     ethernet = new Image();
+-    ethernet->setSize(Size(44, 44));
++    ethernet->setSize(Size(44 * scale, 44 * scale));
+     ethernet->setScalingType(ImageScalingType::FIT);
+     ethernet->detach();
+ 
