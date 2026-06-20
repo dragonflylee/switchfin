@@ -283,7 +283,7 @@
       "font_q1": "How to set custom font or keymap icon",
       "font_a1": "1. Download the font or icon font you want\n2. Rename font to: font.ttf; Rename icon to: icon.ttf\n3. Place font files in the config directory\n4. Restart the application",
       "font_q2": "FAQ",
-      "font_a2": "1. pleNx prioritizes the display of custom fonts, with built-in fonts as a fallback\n2. \"Settings - Tutorial\" provides a menu item to quickly open the config directory\n3. On Linux, pleNx uses xdg-open to open the directory. If the configuration directory cannot be opened correctly, you can consider installing this tool",
+      "font_a2": "1. GMCA prioritizes the display of custom fonts, with built-in fonts as a fallback\n2. \"Settings - Tutorial\" provides a menu item to quickly open the config directory\n3. On Linux, GMCA uses xdg-open to open the directory. If the configuration directory cannot be opened correctly, you can consider installing this tool",
       "font_q3": "Subtitles didn't display",
       "font_a3": "Put any ttf file at {}/subfont.ttf"
     },
@@ -323,15 +323,15 @@
     }
   },
   "hints": {
-    "title": "Launch pleNx as a full application",
-    "text_applet": "pleNx is running in applet mode: the available memory is not sufficient for video playback. Launch it as a full application using one of the options below.",
-    "text_app": "pleNx is running as a full application. Install the HOME menu tile to launch it this way directly.",
+    "title": "Launch GMCA as a full application",
+    "text_applet": "GMCA is running in applet mode: the available memory is not sufficient for video playback. Launch it as a full application using one of the options below.",
+    "text_app": "GMCA is running as a full application. Install the HOME menu tile to launch it this way directly.",
     "install_title": "HOME menu tile (recommended)",
-    "install_text": "Installs the embedded NSP forwarder: the tile launches pleNx as a full application straight from the HOME menu.",
+    "install_text": "Installs the embedded NSP forwarder: the tile launches GMCA as a full application straight from the HOME menu.",
     "install_button": "Install the tile",
     "takeover_title": "Alternative: title takeover",
-    "takeover_text": "Hold R while launching any installed game to open the homebrew menu as a full application, then launch pleNx from there.",
-    "prompt": "Install the pleNx tile on the HOME menu?\nThe tile launches the app as a full application (required for video playback).",
+    "takeover_text": "Hold R while launching any installed game to open the homebrew menu as a full application, then launch GMCA from there.",
+    "prompt": "Install the GMCA tile on the HOME menu?\nThe tile launches the app as a full application (required for video playback).",
     "hint_confirm": "Installing NSP forwarder may result in a ban\nPlease confirm again"
   },
   "plex": {

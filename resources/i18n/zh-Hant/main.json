@@ -270,7 +270,7 @@
       "font_q1": "如何設定自訂字型或按鍵圖示",
       "font_a1": "1. 下載你想要的字型或圖示字型\n2. 字型重新命名為：font.ttf；圖示重新命名為：icon.ttf\n3. 將字型檔案放在設定檔目錄\n4. 重新啟動本程式",
       "font_q2": "常見問題",
-      "font_a2": "1. pleNx 優先顯示自訂字型，以內建字型作為後備\n2. 「設定 - 使用教學」提供快速打開設定目錄的選單\n3. 在 Linux 上，pleNx 使用 xdg-open 來打開目錄，如果無法正常開啟設定檔目錄，可以考慮安裝此工具",
+      "font_a2": "1. GMCA 優先顯示自訂字型，以內建字型作為後備\n2. 「設定 - 使用教學」提供快速打開設定目錄的選單\n3. 在 Linux 上，GMCA 使用 xdg-open 來打開目錄，如果無法正常開啟設定檔目錄，可以考慮安裝此工具",
       "font_q3": "字幕無法顯示",
       "font_a3": "將任意 ttf 檔案放到 {}/subfont.ttf"
     },
@@ -310,15 +310,15 @@
     }
   },
   "hints": {
-    "title": "以完整應用程式啟動 pleNx",
-    "text_applet": "pleNx 正以 applet 模式執行：可用記憶體不足以播放影片。請使用下列其中一種方式以完整應用程式啟動。",
-    "text_app": "pleNx 正以完整應用程式執行。安裝 HOME 選單圖示即可直接以此方式啟動。",
+    "title": "以完整應用程式啟動 GMCA",
+    "text_applet": "GMCA 正以 applet 模式執行：可用記憶體不足以播放影片。請使用下列其中一種方式以完整應用程式啟動。",
+    "text_app": "GMCA 正以完整應用程式執行。安裝 HOME 選單圖示即可直接以此方式啟動。",
     "install_title": "HOME 選單圖示（建議）",
-    "install_text": "安裝內建的 NSP forwarder：此圖示可直接從 HOME 選單以完整應用程式啟動 pleNx。",
+    "install_text": "安裝內建的 NSP forwarder：此圖示可直接從 HOME 選單以完整應用程式啟動 GMCA。",
     "install_button": "安裝圖示",
     "takeover_title": "替代方案：標題接管",
-    "takeover_text": "啟動任一已安裝的遊戲時按住 R，即可以完整應用程式開啟自製軟體選單，再從中啟動 pleNx。",
-    "prompt": "是否在 HOME 選單安裝 pleNx 圖示？\n此圖示會以完整應用程式啟動本程式（播放影片所需）。",
+    "takeover_text": "啟動任一已安裝的遊戲時按住 R，即可以完整應用程式開啟自製軟體選單，再從中啟動 GMCA。",
+    "prompt": "是否在 HOME 選單安裝 GMCA 圖示？\n此圖示會以完整應用程式啟動本程式（播放影片所需）。",
     "hint_confirm": "安裝 NSP forwarder 可能導致主機被 ban\n請再次確認"
   },
   "plex": {

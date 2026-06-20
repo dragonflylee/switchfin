@@ -270,7 +270,7 @@
       "font_q1": "Nasıl özel bir yazı tipi veya tuş ataması simgesi kullanılır",
       "font_a1": "1. İstediğiniz yazı tipini veya simge yazı tipini indirin\n2. Yazı tipinin 'font.ttf', simge tipini de 'icon.ttf' olarak adlandırın\n3. Yazı tipi dosyalarını yapılandırma klasörüne yerleştirin\n4. Uygulamayı yeniden başlatın",
       "font_q2": "Sıkça Sorulan Sorular",
-      "font_a2": "1. pleNx, özel yazı tiplerinin görüntülenmesine öncelik verir; yerleşik yazı tipleri ise yedek olarak kullanılır.\n2. 'Ayarlar - Kılavuz' bölümünde, yapılandırma dizinini hızlıca açmak için bir menü öğesi bulunur.\n3. Linux’ta pleNx, dizini açmak için xdg-open kullanır. Yapılandırma dizini düzgün şekilde açılamıyorsa bu aracı yüklemeyi düşünebilirsiniz.",
+      "font_a2": "1. GMCA, özel yazı tiplerinin görüntülenmesine öncelik verir; yerleşik yazı tipleri ise yedek olarak kullanılır.\n2. 'Ayarlar - Kılavuz' bölümünde, yapılandırma dizinini hızlıca açmak için bir menü öğesi bulunur.\n3. Linux’ta GMCA, dizini açmak için xdg-open kullanır. Yapılandırma dizini düzgün şekilde açılamıyorsa bu aracı yüklemeyi düşünebilirsiniz.",
       "font_q3": "Alt yazılar görünmüyor",
       "font_a3": "Herhangi bir TTF dosyasını {}/subfont.ttf konumuna yerleştirin."
     },
@@ -310,15 +310,15 @@
     }
   },
   "hints": {
-    "title": "pleNx'i tam uygulama olarak başlat",
-    "text_applet": "pleNx uygulama modunda çalışıyor: mevcut bellek video oynatma için yeterli değil. Aşağıdaki seçeneklerden birini kullanarak tam uygulama olarak başlatın.",
-    "text_app": "pleNx tam uygulama olarak çalışıyor. Doğrudan bu şekilde başlatmak için HOME menüsü kutucuğunu yükleyin.",
+    "title": "GMCA'i tam uygulama olarak başlat",
+    "text_applet": "GMCA uygulama modunda çalışıyor: mevcut bellek video oynatma için yeterli değil. Aşağıdaki seçeneklerden birini kullanarak tam uygulama olarak başlatın.",
+    "text_app": "GMCA tam uygulama olarak çalışıyor. Doğrudan bu şekilde başlatmak için HOME menüsü kutucuğunu yükleyin.",
     "install_title": "HOME menüsü kutucuğu (önerilir)",
-    "install_text": "Yerleşik NSP yönlendiricisini yükler: kutucuk, pleNx'i doğrudan HOME menüsünden tam uygulama olarak başlatır.",
+    "install_text": "Yerleşik NSP yönlendiricisini yükler: kutucuk, GMCA'i doğrudan HOME menüsünden tam uygulama olarak başlatır.",
     "install_button": "Kutucuğu yükle",
     "takeover_title": "Alternatif: oyun üzerinden başlatma",
-    "takeover_text": "Yüklü herhangi bir oyunu başlatırken R tuşunu basılı tutarak homebrew menüsünü tam uygulama olarak açın, ardından pleNx'i oradan başlatın.",
-    "prompt": "pleNx kutucuğu HOME menüsüne yüklensin mi?\nKutucuk, uygulamayı tam uygulama olarak başlatır (video oynatma için gereklidir).",
+    "takeover_text": "Yüklü herhangi bir oyunu başlatırken R tuşunu basılı tutarak homebrew menüsünü tam uygulama olarak açın, ardından GMCA'i oradan başlatın.",
+    "prompt": "GMCA kutucuğu HOME menüsüne yüklensin mi?\nKutucuk, uygulamayı tam uygulama olarak başlatır (video oynatma için gereklidir).",
     "hint_confirm": "NSP yönlendiricisini kurmak konsolunuzun çevrim içi özelliklerden yasaklanmasına neden olabilir\n\nLütfen tekrar onaylayın"
   },
   "plex": {

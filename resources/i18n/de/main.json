@@ -270,7 +270,7 @@
       "font_q1": "Eigene Schriftart oder Tastensymbole festlegen",
       "font_a1": "1. Lade die gewünschte Schriftart oder Symbolschrift herunter\n2. Benenne die Schriftart in: font.ttf; benenne die Symbole in: icon.ttf\n3. Lege die Schriftdateien in den Konfigurationsordner\n4. Starte die Applikation neu",
       "font_q2": "FAQ",
-      "font_a2": "1. pleNx bevorzugt die Anzeige eigener Schriftarten und greift auf die eingebauten Schriftarten zurück\n2. \"Einstellungen - Anleitungen\" enthält einen Menüpunkt, um den Konfigurationsordner schnell zu öffnen\n3. Auf Linux verwendet pleNx xdg-open, um den Ordner zu öffnen. Falls sich der Konfigurationsordner nicht richtig öffnen lässt, kannst du erwägen, dieses Werkzeug zu installieren",
+      "font_a2": "1. GMCA bevorzugt die Anzeige eigener Schriftarten und greift auf die eingebauten Schriftarten zurück\n2. \"Einstellungen - Anleitungen\" enthält einen Menüpunkt, um den Konfigurationsordner schnell zu öffnen\n3. Auf Linux verwendet GMCA xdg-open, um den Ordner zu öffnen. Falls sich der Konfigurationsordner nicht richtig öffnen lässt, kannst du erwägen, dieses Werkzeug zu installieren",
       "font_q3": "Untertitel werden nicht angezeigt",
       "font_a3": "Lege eine beliebige ttf-Datei unter {}/subfont.ttf ab"
     },
@@ -310,15 +310,15 @@
     }
   },
   "hints": {
-    "title": "pleNx als vollwertige Anwendung starten",
-    "text_applet": "pleNx läuft im Applet-Modus: Der verfügbare Arbeitsspeicher reicht für die Videowiedergabe nicht aus. Starte es über eine der folgenden Optionen als vollwertige Anwendung.",
-    "text_app": "pleNx läuft als vollwertige Anwendung. Installiere die Kachel im HOME-Menü, um es künftig direkt so zu starten.",
+    "title": "GMCA als vollwertige Anwendung starten",
+    "text_applet": "GMCA läuft im Applet-Modus: Der verfügbare Arbeitsspeicher reicht für die Videowiedergabe nicht aus. Starte es über eine der folgenden Optionen als vollwertige Anwendung.",
+    "text_app": "GMCA läuft als vollwertige Anwendung. Installiere die Kachel im HOME-Menü, um es künftig direkt so zu starten.",
     "install_title": "Kachel im HOME-Menü (empfohlen)",
-    "install_text": "Installiert den eingebetteten NSP-Forwarder: Die Kachel startet pleNx direkt aus dem HOME-Menü als vollwertige Anwendung.",
+    "install_text": "Installiert den eingebetteten NSP-Forwarder: Die Kachel startet GMCA direkt aus dem HOME-Menü als vollwertige Anwendung.",
     "install_button": "Kachel installieren",
     "takeover_title": "Alternative: Title-Takeover",
-    "takeover_text": "Halte R gedrückt, während du ein installiertes Spiel startest, um das Homebrew-Menü als vollwertige Anwendung zu öffnen, und starte pleNx von dort.",
-    "prompt": "Die pleNx-Kachel im HOME-Menü installieren?\nDie Kachel startet die App als vollwertige Anwendung (für die Videowiedergabe erforderlich).",
+    "takeover_text": "Halte R gedrückt, während du ein installiertes Spiel startest, um das Homebrew-Menü als vollwertige Anwendung zu öffnen, und starte GMCA von dort.",
+    "prompt": "Die GMCA-Kachel im HOME-Menü installieren?\nDie Kachel startet die App als vollwertige Anwendung (für die Videowiedergabe erforderlich).",
     "hint_confirm": "Die Installation des NSP-Forwarders kann zu einer Sperre führen\nBitte erneut bestätigen"
   },
   "plex": {
