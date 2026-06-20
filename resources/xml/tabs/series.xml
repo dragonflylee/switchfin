@@ -4,6 +4,7 @@
 
     <!-- centered: the scroll follows the D-pad focus (buttons -> seasons -> rows) -->
     <brls:ScrollingFrame
+        id="series/scroll"
         grow="1.0"
         scrollingBehavior="centered">
 

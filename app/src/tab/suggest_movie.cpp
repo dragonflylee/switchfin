@@ -1,25 +1,27 @@
 #include "tab/suggest_movie.hpp"
 #include "view/recyling_video.hpp"
+#include "view/loading_spinner.hpp"
 #include "api/plex.hpp"
+#include "api/backend.hpp"
 
 SuggestMovie::SuggestMovie(const std::string id) : itemId(id) {
     // same layout as the show suggestions: hub rows
     this->inflateFromXMLRes("xml/tabs/suggest_show.xml");
+    this->spinner = new LoadingSpinner();
+    this->addView(this->spinner);
     brls::Logger::debug("Tab SuggestMovie: create");
 }
 
 void SuggestMovie::onCreate() { this->doHubs(); }
 
 void SuggestMovie::doHubs() {
-    std::string query = HTTP::encode_form({{"count", "20"}});
-
+    this->spinner->setSpinning(true);
     ASYNC_RETAIN
-    // section hubs: replaces /Movies/Recommendations, which has no Plex
-    // equivalent (PLEX_MIGRATION.md §2.5)
-    plex::getJSON<plex::Container<plex::Hub>>(
-        AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-        [ASYNC_TOKEN](const plex::Container<plex::Hub>& r) {
+    // section hubs: replaces /Movies/Recommendations (no Plex equivalent)
+    AppConfig::instance().backend().getSectionHubs(this->itemId, 20,
+        [ASYNC_TOKEN](const media::Container<media::Hub>& r) {
             ASYNC_RELEASE
+            this->spinner->setSpinning(false);
             this->box->clearViews();
             for (auto& hub : r.Items) {
                 if (hub.items.empty()) continue;
@@ -45,7 +47,7 @@ void SuggestMovie::doHubs() {
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
+            this->spinner->setSpinning(false);
             brls::Application::notify(ex);
-        },
-        plex::apiHubsSection, this->itemId, query);
+        });
 }

@@ -5,6 +5,7 @@
 #include "activity/player_view.hpp"
 #include "api/plex.hpp"
 #include "api/plex/watchlist.hpp"
+#include "api/backend.hpp"
 #include "tab/media_series.hpp"
 #include "view/h_recycling.hpp"
 #include "view/auto_tab_frame.hpp"
@@ -68,7 +69,20 @@ public:
         this->labelMeta->setText(meta);
         this->labelMeta->setVisibility(meta.empty() ? brls::Visibility::GONE : brls::Visibility::VISIBLE);
         this->labelOverview->setText(item.summary.empty() ? fallbackSummary : item.summary);
+        // No original-quality download (Stremio): hide the per-season download
+        // button too — otherwise it bypasses the capability gate that already
+        // hides the movie/series buttons and just spams "download failed".
+        this->btnDownload->setVisibility(AppConfig::instance().backend().caps().downloadOriginal
+                                             ? brls::Visibility::VISIBLE
+                                             : brls::Visibility::GONE);
     }
+
+    // Recycle like every other card (BaseCardCell contract): release the poster
+    // texture when this header scrolls off, reset to the dark placeholder on
+    // reuse, and reload in setItem. Without these the header was the only cell
+    // that never cancelled its texture, leaving a stale poster on recycle.
+    void prepareForReuse() override { this->picture->setImageFromRes("img/video-card-bg.png"); }
+    void cacheForReuse() override { Image::cancel(this->picture); }
 
     std::function<void()> onDownload = nullptr;
 
@@ -237,10 +251,10 @@ public:
     /// to refresh watched badges / progress (Presenter)
     void doRequest() override {
         ASYNC_RETAIN
-        // season episodes: GET /library/metadata/{seasonKey}/children
-        plex::getJSON<plex::Container<plex::Item>>(
-            AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-            [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
+        // season episodes
+        AppConfig::instance().backend().getChildren(
+            this->season.ratingKey,
+            [ASYNC_TOKEN](const media::Container<media::Item>& r) {
                 ASYNC_RELEASE
                 this->recycler->setDataSource(
                     new SeasonEpisodesDataSource(this->season, this->fallbackSummary, r.Items));
@@ -248,20 +262,19 @@ public:
             [ASYNC_TOKEN](const std::string& ex) {
                 ASYNC_RELEASE
                 this->recycler->setError(ex);
-            },
-            plex::apiChildren, this->season.ratingKey, "");
+            });
     }
 
 private:
     /// fallback summary (the show's) when the season has none
     void doSummary() {
         ASYNC_RETAIN
-        plex::getJSON<plex::Container<plex::Item>>(
-            AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-            [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
+        AppConfig::instance().backend().getItemDetail(
+            this->season.parentRatingKey, false,
+            [ASYNC_TOKEN](const media::Item& item) {
                 ASYNC_RELEASE
-                if (r.Items.empty() || r.Items.front().summary.empty()) return;
-                this->fallbackSummary = r.Items.front().summary;
+                if (item.summary.empty()) return;
+                this->fallbackSummary = item.summary;
                 // data already displayed: update the source and the header
                 // if it is attached (otherwise the next bind is enough)
                 auto* src = dynamic_cast<SeasonEpisodesDataSource*>(this->recycler->getDataSource());
@@ -270,8 +283,7 @@ private:
                 auto* header = dynamic_cast<SeasonHeaderCell*>(this->recycler->getGridItemByIndex(0));
                 if (header) header->setItem(src->getSeason(), this->fallbackSummary);
             },
-            [ASYNC_TOKEN](const std::string& ex) { ASYNC_RELEASE },
-            plex::apiMetadata, this->season.parentRatingKey, "");
+            [ASYNC_TOKEN](const std::string& ex) { ASYNC_RELEASE });
     }
 
     BRLS_BIND(RecyclingGrid, recycler, "media/episodes");
@@ -363,6 +375,12 @@ MediaSeries::MediaSeries(const plex::Item& item)
     this->btnDownload->setCustomNavigationRoute(brls::FocusDirection::DOWN, "series/seasons");
     this->btnWatchlist->setCustomNavigationRoute(brls::FocusDirection::DOWN, "series/seasons");
 
+    // Play is the page's first focusable (top of the info column): make it the
+    // scroll's "top anchor" so focusing it scrolls to the top (poster/title stay
+    // visible) instead of centering — on open and when navigating back up — same
+    // behavior as the movie detail's first source row.
+    this->scroll->setScrollTopAnchor(this->btnPlay);
+
     this->btnPlay->registerClickAction([this](...) {
         this->doPlay();
         return true;
@@ -371,6 +389,11 @@ MediaSeries::MediaSeries(const plex::Item& item)
         this->doDownloadSeries();
         return true;
     });
+    // No original-quality download (Stremio: debrid links are ephemeral, and a
+    // whole-show download is meaningless) — hide it like MediaMovie does, rather
+    // than offering a button next to an unplayable show.
+    if (!AppConfig::instance().backend().caps().downloadOriginal)
+        this->btnDownload->setVisibility(brls::Visibility::GONE);
 
     this->doSeason();
     this->doSeries();
@@ -395,6 +418,12 @@ void MediaSeries::doRequest() {
 
 void MediaSeries::doPlay() {
     if (this->onDeck.ratingKey.empty()) return;
+    // Muted Play (Stremio, no playable source for the next episode): explain
+    // rather than launch a player that would just fail.
+    if (!this->nextPlayable) {
+        Dialog::show("main/stremio/source/none"_i18n);
+        return;
+    }
     // copy: "Replay" (finished show) forces the start at 0 — PlayerView
     // would otherwise resume at the episode's residual viewOffset (player_view.cpp:101)
     plex::Item item = this->onDeck;
@@ -410,11 +439,9 @@ void MediaSeries::doPlay() {
 
 void MediaSeries::doDownloadSeries() {
     ASYNC_RETAIN
-    // whole show: GET /library/metadata/{showId}/allLeaves -> filter
-    // episodes neither downloaded nor in progress -> confirmation -> queue
-    plex::getJSON<plex::Container<plex::Item>>(
-        AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-        [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
+    // whole show: all episodes -> filter not-downloaded -> confirm -> queue
+    AppConfig::instance().backend().getAllEpisodes(this->seriesId, false,
+        [ASYNC_TOKEN](const media::Container<media::Item>& r) {
             ASYNC_RELEASE
             auto& dm = DownloadManager::instance();
             std::vector<std::string> wanted;
@@ -436,14 +463,17 @@ void MediaSeries::doDownloadSeries() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Application::notify(ex);
-        },
-        plex::apiAllLeaves, this->seriesId);
+        });
 }
 
-void MediaSeries::initWatchlist(const std::string& guid) {
-    this->seriesGuid = guid;
-    // legacy agent (non plex:// guid): title not addressable on the provider
-    if (plex::providerRatingKey(guid).empty()) return;
+void MediaSeries::initWatchlist(const media::Item& item) {
+    auto& be = AppConfig::instance().backend();
+    if (be.caps().listKind == media::ListKind::None || !be.canList(item)) return;
+    this->listItem = item;
+    // label matches the backend's personal list: Plex → Watchlist, Jellyfin/Emby → Favoris
+    this->btnWatchlist->setText(be.caps().listKind == media::ListKind::Favorites
+                                    ? "main/favorites/title"_i18n
+                                    : "main/watchlist/title"_i18n);
 
     this->btnWatchlist->registerClickAction([this](...) {
         this->toggleWatchlist();
@@ -451,10 +481,9 @@ void MediaSeries::initWatchlist(const std::string& guid) {
     });
 
     ASYNC_RETAIN
-    // state: metadata.provider + includeUserState=1 (api/plex/watchlist.hpp);
-    // the button stays hidden until the state is known
-    plex::fetchWatchlistState(
-        guid,
+    // the button stays hidden until the state (watchlisted / favorite) is known
+    be.getWatchlistState(
+        item,
         [ASYNC_TOKEN](bool state) {
             ASYNC_RELEASE
             this->watchlisted = state;
@@ -463,21 +492,23 @@ void MediaSeries::initWatchlist(const std::string& guid) {
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            brls::Logger::warning("MediaSeries watchlist state: {}", ex);
+            brls::Logger::warning("MediaSeries list state: {}", ex);
         });
 }
 
 void MediaSeries::toggleWatchlist() {
     bool add = !this->watchlisted;
+    auto& be = AppConfig::instance().backend();
+    bool fav = be.caps().listKind == media::ListKind::Favorites;
     ASYNC_RETAIN
-    // PUT discover.provider/actions/addToWatchlist|removeFromWatchlist
-    plex::setWatchlisted(
-        this->seriesGuid, add,
-        [ASYNC_TOKEN, add]() {
+    be.setWatchlisted(
+        this->listItem, add,
+        [ASYNC_TOKEN, add, fav]() {
             ASYNC_RELEASE
             this->watchlisted = add;
             this->updateWatchlistButton();
-            brls::Application::notify(add ? "main/watchlist/added"_i18n : "main/watchlist/removed"_i18n);
+            brls::Application::notify(add ? (fav ? "main/favorites/added"_i18n : "main/watchlist/added"_i18n)
+                                          : (fav ? "main/favorites/removed"_i18n : "main/watchlist/removed"_i18n));
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
@@ -492,23 +523,11 @@ void MediaSeries::updateWatchlistButton() {
 }
 
 void MediaSeries::doSeries() {
-    std::string query = HTTP::encode_form({
-        {"includeChapters", "1"},
-        {"includeMarkers", "1"},
-        {"includeStreams", "1"},
-        {"checkFiles", "1"},
-    });
-
     ASYNC_RETAIN
-    plex::getJSON<plex::Container<plex::Item>>(
-        AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-        [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
+    AppConfig::instance().backend().getItemDetail(
+        this->seriesId, true,
+        [ASYNC_TOKEN](const media::Item& item) {
             ASYNC_RELEASE
-            if (r.Items.empty()) {
-                this->people->setVisibility(brls::Visibility::GONE);
-                return;
-            }
-            auto& item = r.Items.front();
             this->labelTitle->setText(item.title);
             Image::load(this->imagePoster, item.thumb, 325);
             // banner: backdrop (art) + cut-out logo nested at the bottom of
@@ -523,9 +542,16 @@ void MediaSeries::doSeries() {
                     Image::load(this->imageLogo, item.clearLogo, 440, 120);
                 }
             } else {
+                // no backdrop (un-scanned item): drop the banner AND the
+                // overlap margins that assumed it (poster rises into it, info
+                // column clears it) so the title doesn't jam against the top.
                 this->bannerBox->setVisibility(brls::Visibility::GONE);
-                this->contentRow->setMarginTop(0);
+                float topPad = brls::getStyle()["main/content_padding_top_bottom"];
+                this->contentRow->setMarginTop(topPad);
                 this->contentInfo->setMarginTop(0);
+                this->imagePoster->getParent()->setMarginTop(0);
+                // no banner: vertically center the info column against the poster
+                this->contentRow->setAlignItems(brls::AlignItems::CENTER);
                 this->invalidate();
             }
             // "year · N seasons" pill (childCount = number of seasons of the show)
@@ -558,26 +584,35 @@ void MediaSeries::doSeries() {
             if (item.roles.size() > 0) {
                 this->people->setDataSource(new PeopleDataSource(item.roles));
             } else {
+                // no cast/crew: hide the section header too, not just the row
+                this->labelPeople->setVisibility(brls::Visibility::GONE);
                 this->people->setVisibility(brls::Visibility::GONE);
             }
 
-            // the watchlist applies to the SHOW: guid of the show (seriesId),
-            // also valid when the page was opened from a season
-            this->initWatchlist(item.guid);
+            // the personal list applies to the SHOW item
+            this->initWatchlist(item);
+            // see MediaMovie::doMovie: open the detail at the TOP instead of
+            // letting "centered" auto-center the focused Play button on first
+            // appear (an unnecessary scroll-down). Centered follow-focus still
+            // applies once the user navigates down (buttons → seasons → rows).
+            ASYNC_RETAIN
+            brls::sync([ASYNC_TOKEN]() {
+                ASYNC_RELEASE
+                this->scroll->setContentOffsetY(0, false);
+            });
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
+            this->labelPeople->setVisibility(brls::Visibility::GONE);
             this->people->setVisibility(brls::Visibility::GONE);
-        },
-        plex::apiMetadata, this->seriesId, query);
+        });
 }
 
 void MediaSeries::doSeason() {
     ASYNC_RETAIN
-    // seasons: GET /library/metadata/{showKey}/children
-    plex::getJSON<plex::Container<plex::Item>>(
-        AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-        [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
+    // seasons
+    AppConfig::instance().backend().getChildren(this->seriesId,
+        [ASYNC_TOKEN](const media::Container<media::Item>& r) {
             ASYNC_RELEASE
             if (r.Items.empty()) {
                 this->labelSeasons->setVisibility(brls::Visibility::GONE);
@@ -600,70 +635,69 @@ void MediaSeries::doSeason() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("doSeason {}", ex);
-        },
-        plex::apiChildren, this->seriesId, "");
+        });
 }
 
 void MediaSeries::doNextup() {
-    auto& conf = AppConfig::instance();
-    std::string url = conf.getUrl() + fmt::format("/library/metadata/{}?includeOnDeck=1", this->seriesId);
-    // fully watched show (no OnDeck): first episode across all seasons,
-    // via allLeaves paginated 0-1 -> "Replay" button
-    HTTP::Form firstQuery;
-    plex::addPagination(firstQuery, 0, 1);
-    std::string firstUrl = conf.getUrl() + fmt::format(fmt::runtime(plex::apiAllLeaves), this->seriesId) + "?" +
-                           HTTP::encode_form(firstQuery);
-    // `token` is reserved by ASYNC_RETAIN (borealis/core/view.hpp:60)
-    std::string accessToken = conf.getToken();
-
     ASYNC_RETAIN
-    brls::async([ASYNC_TOKEN, url, firstUrl, accessToken]() {
-        std::vector<plex::Item> items;
-        bool fromStart = false;
-        try {
-            // next episode: Metadata[0].OnDeck.Metadata is an OBJECT,
-            // not an array -> manual extraction
-            nlohmann::json j = plex::getSync(url, accessToken);
-            auto& meta = j.at("MediaContainer").at("Metadata").at(0);
-            if (meta.contains("OnDeck") && meta["OnDeck"].contains("Metadata")) {
-                items.push_back(meta["OnDeck"]["Metadata"].get<plex::Item>());
-            } else {
-                // verified on a real server 2026-06-10 (show 1024863 watched 9/9):
-                // Metadata[0] = S1E1 with grandparent*/index/parentIndex
-                auto first = plex::getSync(firstUrl, accessToken).get<plex::Container<plex::Item>>();
-                if (!first.Items.empty()) {
-                    items.push_back(first.Items.front());
-                    fromStart = true;
-                }
-            }
-        } catch (const std::exception& ex) {
-            brls::Logger::warning("doNextup {}", ex.what());
-        }
-        brls::sync([ASYNC_TOKEN, items, fromStart]() {
+    AppConfig::instance().backend().getNextUp(
+        this->seriesId,
+        [ASYNC_TOKEN](media::Item item, bool fromStart) {
             ASYNC_RELEASE
-            // feeds the "Play"/"Replay" button (which replaces the
-            // "Up next" row); show without episodes or error -> hidden
+            // feeds the "Play"/"Replay" button (replaces the "Up next" row);
+            // empty item -> hidden
             this->replay = fromStart;
-            if (!items.empty()) {
-                this->onDeck = items.front();
-                this->btnPlay->setText(fromStart ? "main/media/replay"_i18n : "main/media/play"_i18n);
-                this->btnPlay->setVisibility(brls::Visibility::VISIBLE);
-            } else {
-                this->onDeck = plex::Item();
+            if (item.ratingKey.empty()) {
+                this->onDeck = media::Item();
                 this->btnPlay->setVisibility(brls::Visibility::GONE);
+                return;
             }
-        });
-    });
+            this->onDeck = item;
+            this->btnPlay->setText(fromStart ? "main/media/replay"_i18n : "main/media/play"_i18n);
+            this->btnPlay->setVisibility(brls::Visibility::VISIBLE);
+
+            auto& be = AppConfig::instance().backend();
+            if (be.type() == media::BackendType::Stremio) {
+                // Honest Play: resolve the next episode's sources, then enable
+                // (playable) or mute + relabel (no playable source). Never hide
+                // it — hiding a focused button strands the focus highlight.
+                bool fs = fromStart;
+                this->nextPlayable = false;
+                this->btnPlay->setMuted(true);
+                this->btnPlay->setText("main/stremio/source/unavailable"_i18n);
+                std::string epId = item.ratingKey;
+                ASYNC_RETAIN
+                be.getItemDetail(
+                    epId, true,
+                    [ASYNC_TOKEN, fs](const media::Item& full) {
+                        ASYNC_RELEASE
+                        bool playable = false;
+                        for (auto& m : full.media)
+                            if (m.playable()) {
+                                playable = true;
+                                break;
+                            }
+                        this->onDeck = full;  // resolved (carries sources)
+                        this->nextPlayable = playable;
+                        this->btnPlay->setMuted(!playable);
+                        this->btnPlay->setText(playable
+                                ? (fs ? "main/media/replay"_i18n : "main/media/play"_i18n)
+                                : "main/stremio/source/unavailable"_i18n);
+                    },
+                    nullptr);
+            } else {
+                this->nextPlayable = true;
+                this->btnPlay->setMuted(false);
+            }
+        },
+        nullptr);
 }
 
 void MediaSeries::doRelated() {
-    std::string query = HTTP::encode_form({{"count", "12"}});
-
     ASYNC_RETAIN
     // all the server's "related" rows, localized titles
-    plex::getJSON<plex::Container<plex::Hub>>(
-        AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-        [ASYNC_TOKEN](const plex::Container<plex::Hub>& r) {
+    AppConfig::instance().backend().getRelated(this->seriesId, 12,
+        [ASYNC_TOKEN](const media::Container<media::Hub>& r) {
             ASYNC_RELEASE
             this->boxRelated->clearViews();
             for (auto& hub : r.Items) {
@@ -685,17 +719,14 @@ void MediaSeries::doRelated() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Application::notify(ex);
-        },
-        plex::apiHubRelated, this->seriesId, query);
+        });
 }
 
 void MediaSeries::doSpecial() {
     ASYNC_RETAIN
-    // extras: GET /library/metadata/{key}/extras;
-    // type "clip" -> direct playback handled by VideoDataSource
-    plex::getJSON<plex::Container<plex::Item>>(
-        AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-        [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
+    // extras: type "clip" -> direct playback handled by VideoDataSource
+    AppConfig::instance().backend().getExtras(this->seriesId,
+        [ASYNC_TOKEN](const media::Container<media::Item>& r) {
             ASYNC_RELEASE
             if (r.Items.size() > 0) {
                 this->special->setDataSource(new VideoDataSource(r.Items));
@@ -712,6 +743,5 @@ void MediaSeries::doSpecial() {
             this->special->setVisibility(brls::Visibility::GONE);
             this->labelSpecial->setSubtitle(ex);
             brls::Application::notify(ex);
-        },
-        plex::apiExtras, this->seriesId);
+        });
 }

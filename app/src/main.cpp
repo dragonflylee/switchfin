@@ -25,7 +25,6 @@
 #include "activity/server_list.hpp"
 #include "activity/hint_activity.hpp"
 #include "activity/loading_activity.hpp"
-#include "tab/server_add.hpp"
 #include "tab/home_tab.hpp"
 #include "tab/search_tab.hpp"
 #include "tab/remote_tab.hpp"

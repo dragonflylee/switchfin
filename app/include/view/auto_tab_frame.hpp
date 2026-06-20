@@ -150,6 +150,9 @@ public:
     void focusTab(int position);
     void clearTabs();
     void clearTab(const std::string& name, bool onlyFirst = true);
+    /// Remove the tab whose sidebar item carries this XML id (icon-only tabs
+    /// have empty labels, so clearTab cannot target them). No-op if absent.
+    void removeTabById(const std::string& id);
     bool isHaveTab(const std::string& name);
     AutoSidebarItem* getTab(const std::string& name);
     AutoSidebarItem* getTab(size_t index);
@@ -191,6 +194,10 @@ public:
     void clearItems();
 
     Box* getSidebar();
+
+    /// Fixed width of the vertical sidebar (px). The footer uses it to inset its
+    /// gradient scrim so it never tints the sidebar.
+    float getSidebarWidth() const { return sidebarWidth; }
 
     View* getActiveTab();
 

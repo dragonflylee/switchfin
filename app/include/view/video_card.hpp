@@ -22,6 +22,21 @@ public:
         this->picture->setImageFromRes("img/video-card-bg.png");
         // recycled cell: never a ticker inherited from a previous bind
         this->setLabelsTicker(false);
+        // nor a stale "play on select" overlay
+        this->playOverlay = false;
+        if (auto* ov = this->getView("video/card/play_overlay")) ov->setVisibility(brls::Visibility::GONE);
+    }
+
+    /// Enables the focus "play" overlay — only for cards that START playback on
+    /// select (continue-watching, episodes, clips). Opening a detail page does
+    /// not get it. The orange wash colour is applied here (theme accent, low
+    /// alpha); the white disc + orange glyph live in video_card.xml.
+    void setPlayOverlay(bool on) {
+        this->playOverlay = on;
+        if (auto* ov = this->getView("video/card/play_overlay")) {
+            ov->setBackgroundColor(nvgRGBA(229, 160, 13, 64));
+            if (!on) ov->setVisibility(brls::Visibility::GONE);
+        }
     }
 
     void cacheForReuse() override { Image::cancel(this->picture); }
@@ -32,11 +47,14 @@ public:
     /// onFocusGained/Lost. setAnimated(false) restores the ellipsis (onLayout).
     void onChildFocusGained(brls::View* directChild, brls::View* focusedView) override {
         this->setLabelsTicker(true);
+        if (this->playOverlay)
+            if (auto* ov = this->getView("video/card/play_overlay")) ov->setVisibility(brls::Visibility::VISIBLE);
         RecyclingGridItem::onChildFocusGained(directChild, focusedView);
     }
 
     void onChildFocusLost(brls::View* directChild, brls::View* focusedView) override {
         this->setLabelsTicker(false);
+        if (auto* ov = this->getView("video/card/play_overlay")) ov->setVisibility(brls::Visibility::GONE);
         RecyclingGridItem::onChildFocusLost(directChild, focusedView);
     }
 
@@ -75,6 +93,8 @@ private:
             if (auto* label = dynamic_cast<brls::Label*>(this->getView(id))) label->setAnimated(on);
         }
     }
+
+    bool playOverlay = false;  // show the focus "play" overlay (set per item type)
 };
 
 class MediaCardCell : public BaseCardCell {

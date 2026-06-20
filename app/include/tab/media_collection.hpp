@@ -52,3 +52,19 @@ private:
 
     static std::map<std::string, std::string> customPrefs;
 };
+
+/// Stremio library section (Films / Séries): the type's catalogs become the
+/// sub-tabs (Populaires / Nouveautés / À la une / Public Domain…), plus a Genres
+/// tab. Used instead of MediaCollection when the backend exposes sectionTabs().
+/// Kept separate so the Plex/Jellyfin MediaCollection path is untouched.
+class StremioCatalogs : public AttachedView {
+public:
+    StremioCatalogs(const std::string& sectionKey, const std::string& sectionType);
+
+    brls::View* getDefaultFocus() override;
+
+private:
+    BRLS_BIND(AutoTabFrame, tabFrame, "stremio/tabFrame");
+    std::string sectionKey;
+    std::string sectionType;
+};

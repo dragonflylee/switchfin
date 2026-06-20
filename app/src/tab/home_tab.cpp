@@ -1,6 +1,8 @@
 #include "tab/home_tab.hpp"
 #include "view/recyling_video.hpp"
+#include "view/loading_spinner.hpp"
 #include "api/plex.hpp"
+#include "api/backend.hpp"
 #include "utils/keybind.hpp"
 
 using namespace brls::literals;  // for _i18n
@@ -8,6 +10,10 @@ using namespace brls::literals;  // for _i18n
 HomeTab::HomeTab() {
     brls::Logger::debug("Tab HomeTab: create");
     this->inflateFromXMLRes("xml/tabs/home.xml");
+    // centered spinner overlay shown while the home hubs load (the rows are
+    // built into boxHome only once the response arrives).
+    this->spinner = new LoadingSpinner();
+    this->addView(this->spinner);
 }
 
 HomeTab::~HomeTab() { brls::Logger::debug("View HomeTab: delete"); }
@@ -22,6 +28,7 @@ void HomeTab::doRequest() {
     // remember to give the focus back to the first rebuilt row, otherwise it
     // falls back to the sidebar and the user loses track of it
     this->restoreFocus = hasFocusWithin(this);
+    this->spinner->setSpinning(true);
     this->boxHome->clearViews();
 
     // "Continue watching" row — added right away to guarantee its position
@@ -39,13 +46,9 @@ void HomeTab::doRequest() {
 }
 
 void HomeTab::doResume(RecylingVideo* row) {
-    auto& conf = AppConfig::instance();
-    std::string query = HTTP::encode_form({{"count", "20"}});
-
     ASYNC_RETAIN
-    plex::getJSON<plex::Container<plex::Hub>>(
-        conf.getUrl(), conf.getToken(),
-        [ASYNC_TOKEN, row](const plex::Container<plex::Hub>& r) {
+    AppConfig::instance().backend().getContinueWatching(20,
+        [ASYNC_TOKEN, row](const media::Container<media::Hub>& r) {
             ASYNC_RELEASE
             for (auto& hub : r.Items) {
                 if (hub.items.empty()) continue;
@@ -66,21 +69,13 @@ void HomeTab::doResume(RecylingVideo* row) {
             ASYNC_RELEASE
             row->setItems({});
             brls::Logger::warning("home continueWatching: {}", ex);
-        },
-        plex::apiHubContinue, query);
+        });
 }
 
 void HomeTab::doHubs() {
-    auto& conf = AppConfig::instance();
-    std::string query = HTTP::encode_form({
-        {"count", "20"},
-        {"excludeContinueWatching", "1"},
-    });
-
     ASYNC_RETAIN
-    plex::getJSON<plex::Container<plex::Hub>>(
-        conf.getUrl(), conf.getToken(),
-        [ASYNC_TOKEN](const plex::Container<plex::Hub>& r) {
+    AppConfig::instance().backend().getHomeHubs(20, true,
+        [ASYNC_TOKEN](const media::Container<media::Hub>& r) {
             ASYNC_RELEASE
             for (auto& hub : r.Items) {
                 if (hub.items.empty()) continue;
@@ -115,16 +110,17 @@ void HomeTab::doHubs() {
                 }
                 this->boxHome->addView(row);
             }
+            this->spinner->setSpinning(false);
             this->tryRestoreFocus();
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
+            this->spinner->setSpinning(false);
             auto dialog = new brls::Dialog(ex);
             dialog->addButton("hints/retry"_i18n, [this]() { brls::sync([this]() { this->doRequest(); }); });
             dialog->addButton("hints/cancel"_i18n, []() {});
             dialog->open();
-        },
-        plex::apiHubs, query);
+        });
 }
 
 void HomeTab::tryRestoreFocus() {

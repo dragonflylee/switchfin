@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+namespace media { struct Item; }
+
 enum class DownloadStatus { Queued, Downloading, Completed, Failed };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(DownloadStatus, {
@@ -49,6 +51,10 @@ public:
     void init();
 
     void addDownload(const std::string& itemId);
+    /// Download a SPECIFIC pre-resolved source (Stremio release picker): no
+    /// getItemDetail round-trip, downloads exactly `partKey`. Keyed by
+    /// item.ratingKey like the rest — one download per item at a time.
+    void addDownload(const media::Item& item, const std::string& partKey);
     void cancelDownload(const std::string& itemId);
     void removeDownload(const std::string& itemId);
     void resumeQueue();

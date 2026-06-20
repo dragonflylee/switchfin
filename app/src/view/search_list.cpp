@@ -3,6 +3,7 @@
 #include "view/video_source.hpp"
 #include "view/video_card.hpp"
 #include "api/plex.hpp"
+#include "api/backend.hpp"
 
 SearchList::SearchList() {
     brls::Logger::debug("View SearchList: create");
@@ -24,18 +25,12 @@ void SearchList::doRequest(const std::string& searchTerm) {
     // itemType XML attribute "Movie"/"Series" -> Plex searchTypes; the
     // "Episode" column has no /library/search equivalent (removed from the XML)
     bool series = this->itemType == "Series";
-    std::string query = HTTP::encode_form({
-        {"query", searchTerm},
-        {"searchTypes", series ? "tv" : "movies"},
-        {"includeCollections", "1"},
-        {"limit", std::to_string(this->pageSize)},
-    });
-    std::string wanted = series ? plex::mediaTypeShow : plex::mediaTypeMovie;
+    std::string wanted = series ? media::mediaTypeShow : media::mediaTypeMovie;
 
     ASYNC_RETAIN
-    plex::getJSON<plex::Container<plex::Item>>(
-        AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-        [ASYNC_TOKEN, wanted](const plex::Container<plex::Item>& r) {
+    AppConfig::instance().backend().search(
+        searchTerm, series ? media::MediaKind::Show : media::MediaKind::Movie, (int)this->pageSize,
+        [ASYNC_TOKEN, wanted](const media::Container<media::Item>& r) {
             ASYNC_RELEASE
             // /library/search returns mixed types -> client-side filter
             std::vector<plex::Item> items;
@@ -53,8 +48,7 @@ void SearchList::doRequest(const std::string& searchTerm) {
             ASYNC_RELEASE
             this->title->setSubtitle(ex);
             brls::Application::notify(ex);
-        },
-        plex::apiSearch, query);
+        });
 }
 
 brls::View* SearchList::create() { return new SearchList(); }

@@ -134,8 +134,9 @@ AutoTabFrame::AutoTabFrame() {
     this->sidebar->setAxis(brls::Axis::COLUMN);
     // side paddings 0: full-width items (the focus background covers the
     // sidebar edge to edge); the accent (marginRight 0) is flush with the
-    // right edge — zero pixels of spacing
-    this->sidebar->setPadding(32, 0, 47, 0);
+    // right edge — zero pixels of spacing. Tight top/bottom (14): Home sits
+    // high, the avatar + settings sit low, against the sidebar's vertical edges.
+    this->sidebar->setPadding(14, 0, 14, 0);
 }
 
 void AutoTabFrame::setTabChangedAction(const std::function<void(size_t)>& event) { this->tabChangedAction = event; }
@@ -310,6 +311,17 @@ void AutoTabFrame::clearTab(const std::string& name, bool onlyFirst) {
             if (onlyFirst) break;
         }
     }
+}
+
+void AutoTabFrame::removeTabById(const std::string& id) {
+    AutoSidebarItem* item = dynamic_cast<AutoSidebarItem*>(this->sidebar->getView(id));
+    if (!item) return;
+    if (item->isFocused()) {
+        this->setLastFocusedView(nullptr);
+        brls::Application::giveFocus(this);
+    }
+    this->sidebar->removeView(item, true);
+    this->group.removeView(item);
 }
 
 bool AutoTabFrame::isHaveTab(const std::string& name) {
@@ -620,7 +632,7 @@ void AutoTabFrame::setHorizontalMode(bool value) {
         // 34px pills centered in the bar (tabHeight 60)
         this->sidebar->setAlignItems(brls::AlignItems::CENTER);
     } else {
-        this->sidebar->setPadding(32, 0, 47, 0);
+        this->sidebar->setPadding(14, 0, 14, 0);
         this->sidebar->setAxis(brls::Axis::COLUMN);
         this->sidebar->setAlignItems(brls::AlignItems::STRETCH);
     }

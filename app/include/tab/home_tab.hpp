@@ -8,6 +8,7 @@
 #include <view/presenter.hpp>
 
 class RecylingVideo;
+class LoadingSpinner;
 
 class HomeTab : public AttachedView, public Presenter {
 public:
@@ -29,6 +30,8 @@ private:
     // player): the first rebuilt row takes the focus back so the user can
     // see where it landed
     bool restoreFocus = false;
+
+    LoadingSpinner* spinner = nullptr;  // centered overlay while hubs load
 
     BRLS_BIND(brls::Box, boxHome, "home/box");
 };

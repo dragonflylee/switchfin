@@ -1,3 +1,5 @@
+<!-- Logged-out root: hosts the ConnectionSwitcher grid (added in C++). When
+     connected, the switcher is shown as a detail over the app instead. -->
 <brls:AppletFrame
     id="server/frame"
     iconInterpolation="linear"
@@ -5,130 +7,9 @@
     footerHidden="false">
 
     <brls:Box
-        axis="column"
+        id="switcher/content"
         width="100%"
-        height="100%">
+        height="100%"
+        axis="column" />
 
-        <AutoTabFrame
-            id="server/tabFrame"
-            grow="1"
-            tabBackgroundColor="@theme/color/grey_1"
-            tabItemActiveTextColor="@theme/color/app"
-            defaultTab="0"
-            sidebarPosition="left">
-
-            <Tab label=""
-                fontSize="18"
-                icon="@res/icon/ico-home.svg"
-                iconActivate="@res/icon/ico-home-activate.svg">
-
-                <brls:Box
-                    axis="row"
-                    paddingLeft="@style/main/content_padding_sides"
-                    paddingRight="@style/main/content_padding_sides"
-                    paddingTop="@style/main/content_padding_top_bottom"
-                    paddingBottom="@style/main/content_padding_top_bottom">
-
-                    <brls:Box
-                        wireframe="false"
-                        width="400"
-                        axis="column"
-                        lineColor="@theme/color/line"
-                        lineRight="1">
-
-                        <brls:Header
-                            width="auto"
-                            height="auto"
-                            title="@i18n/main/setting/server/header"
-                            marginBottom="0px" />
-
-                        <brls:Button
-                            id="btn/server/add"
-                            style="primary"
-                            margin="15"
-                            focusable="true"
-                            text="@i18n/main/setting/server/connect_new" />
-
-                        <!-- centered: in natural (default), the UP arrow
-                             scrolled/bumped inside the frame instead of
-                             exiting towards the "New server" button (trapped focus) -->
-                        <brls:ScrollingFrame
-                            grow="1"
-                            scrollingBehavior="centered">
-                            <brls:Box
-                                axis="column"
-                                id="server/sidebar"
-                                paddingLeft="15"
-                                paddingTop="15"
-                                paddingBottom="15"
-                                paddingRight="20" />
-
-                        </brls:ScrollingFrame>
-                    </brls:Box>
-
-                    <brls:Box
-                        wireframe="false"
-                        paddingLeft="@style/main/content_padding_sides"
-                        axis="column"
-                        id="server/detail"
-                        grow="1">
-
-                        <brls:Header
-                            height="40"
-                            title="@i18n/main/setting/server/detail" />
-
-                        <brls:Box
-                            width="100%"
-                            axis="column">
-
-                            <brls:DetailCell
-                                title="@i18n/main/setting/url"
-                                id="selector/server/urls" />
-
-                        </brls:Box>
-
-                        <brls:Box
-                            width="100%"
-                            height="auto"
-                            marginTop="20px"
-                            marginBottom="20px">
-
-                            <brls:Button
-                                id="btn/server/signin"
-                                style="primary"
-                                grow="1.0"
-                                text="@i18n/main/setting/server/signin" />
-                        </brls:Box>
-
-                        <RecyclingGrid
-                            paddingRight="20"
-                            grow="1"
-                            spanCount="@style/app/grid/3"
-                            itemHeight="@style/app/album/height"
-                            wireframe="false"
-                            id="user/recycler" />
-
-                    </brls:Box>
-
-                </brls:Box>
-            </Tab>
-
-            <Tab label=""
-                fontSize="18"
-                id="tab/remote"
-                icon="@res/icon/ico-cloud.svg"
-                iconActivate="@res/icon/ico-cloud-activate.svg">
-                <RemoteTab />
-            </Tab>
-
-            <Tab label=""
-                fontSize="18"
-                icon="@res/icon/ico-setting.svg"
-                iconActivate="@res/icon/ico-setting-activate.svg">
-                <SettingTab
-                    hideStatus="true" />
-            </Tab>
-
-        </AutoTabFrame>
-    </brls:Box>
 </brls:AppletFrame>

@@ -2,8 +2,12 @@
     width="auto"
     height="auto">
 
-    <!-- centered: the scroll follows the D-pad focus (buttons -> cast -> rows) -->
+    <!-- centered: the scroll follows the D-pad focus (sources -> cast -> rows).
+         The first source row is set as the scroll's "top anchor" in C++
+         (media_movie.cpp) so focusing it scrolls to the top (poster/title stay
+         visible) instead of centering it. -->
     <brls:ScrollingFrame
+        id="movie/scroll"
         grow="1.0"
         scrollingBehavior="centered">
 
@@ -214,10 +218,30 @@
                             marginLeft="12" />
                     </brls:Box>
 
+                    <!-- Stremio "no stream" info notice (ABOVE the synopsis):
+                         built in C++ (media_movie.cpp::buildSources) only when a
+                         Stremio item has zero sources. GONE otherwise. -->
+                    <brls:Box
+                        id="movie/notice"
+                        axis="column"
+                        visibility="gone"
+                        marginBottom="16" />
+
                     <TextBox
                         id="movie/label/overview"
                         fontSize="15"
                         textColor="@theme/font/grey" />
+
+                    <!-- Stremio sources (BELOW the synopsis): one focusable row
+                         per playable release (A = play, X = download) + one
+                         summary row per non-playable group (torrents/links).
+                         Stays GONE for backends that play a single resolved file
+                         (Plex/Jellyfin). Built in C++ (media_movie.cpp::buildSources). -->
+                    <brls:Box
+                        id="movie/sources"
+                        axis="column"
+                        visibility="gone"
+                        marginTop="16" />
 
                 </brls:Box>
             </brls:Box>

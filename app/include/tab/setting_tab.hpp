@@ -29,15 +29,9 @@ public:
     static brls::View* create();
 
 private:
-    BRLS_BIND(brls::Box, boxStatus, "setting/status");
-    BRLS_BIND(brls::Image, profileAvatar, "setting/profile/avatar");
-    BRLS_BIND(brls::Label, profileName, "setting/profile/name");
-    BRLS_BIND(brls::Label, profileServer, "setting/profile/server");
     BRLS_BIND(brls::RadioCell, btnTutorialOpenApp, "tools/tutorial_open");
     BRLS_BIND(brls::RadioCell, btnTutorialError, "tools/tutorial_error");
     BRLS_BIND(brls::RadioCell, btnTutorialFont, "tools/tutorial_font");
-    BRLS_BIND(brls::DetailCell, btnUser, "setting/user");
-    BRLS_BIND(brls::DetailCell, btnServer, "setting/server");
     BRLS_BIND(brls::BooleanCell, btnHWDEC, "setting/video/hwdec");
     BRLS_BIND(brls::BooleanCell, btnQuality, "setting/video/low_quality");
     BRLS_BIND(brls::BooleanCell, btnSubFallback, "setting/video/subs_fallback");

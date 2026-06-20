@@ -1,6 +1,9 @@
 /*
-    pleNx — sign-in to a plex.tv account (PIN flow, only method).
-    Specification: PLEX_MIGRATION.md §2.2-2.3.
+    pleNx — sign in to a Plex server.
+    plex.tv PIN flow then server/profile discovery (PLEX_MIGRATION.md §2.2-2.3).
+    Reached from ServerTypeChoose once the user picks Plex; it is a content view
+    of the ServerList AppletFrame (pushed via View::present), so it inherits the
+    footer and B (Back) returns to the type chooser.
 */
 
 #pragma once
@@ -8,10 +11,10 @@
 #include <borealis.hpp>
 #include <api/plex/types.hpp>
 
-class ServerAdd : public brls::Box {
+class PlexAdd : public brls::Box {
 public:
-    ServerAdd();
-    ~ServerAdd() override;
+    PlexAdd();
+    ~PlexAdd() override;
 
     brls::View* getDefaultFocus() override;
 

@@ -3,6 +3,9 @@
 #include "utils/config.hpp"
 #include "utils/misc.hpp"
 #include "api/plex.hpp"
+#include "api/backend.hpp"
+#include <algorithm>
+#include <cctype>
 
 using namespace brls::literals;  // for _i18n
 
@@ -60,16 +63,10 @@ void DownloadManager::addDownload(const std::string& itemId) {
         }
     }
 
-    auto& conf = AppConfig::instance();
-    // metadata: GET /library/metadata/{ratingKey}
-    plex::getJSON<plex::Container<plex::Item>>(
-        conf.getUrl(), conf.getToken(),
-        [this](const plex::Container<plex::Item>& r) {
-            if (r.Items.empty()) {
-                brls::Application::notify("main/download/failed"_i18n);
-                return;
-            }
-            auto& item = r.Items.front();
+    // metadata for the download
+    AppConfig::instance().backend().getItemDetail(
+        itemId, false,
+        [this](const media::Item& item) {
 
             std::lock_guard<std::mutex> lock(this->mutex);
 
@@ -107,7 +104,43 @@ void DownloadManager::addDownload(const std::string& itemId) {
             brls::Logger::info("Download queued: {}", item.title);
             this->processQueue();
         },
-        [](const std::string& ex) { brls::Application::notify(ex); }, plex::apiMetadata, itemId, "");
+        [](const std::string& ex) { brls::Application::notify(ex); });
+}
+
+void DownloadManager::addDownload(const media::Item& item, const std::string& partKey) {
+    // Explicit-source variant (Stremio release picker): the caller already
+    // resolved which source to fetch, so we skip the getItemDetail round-trip
+    // (Stremio only resolves sources with full=true anyway) and download exactly
+    // `partKey`. Keyed by ratingKey like addDownload(itemId): one per item.
+    if (partKey.empty()) {
+        brls::Application::notify("main/download/failed"_i18n);
+        return;
+    }
+    std::lock_guard<std::mutex> lock(this->mutex);
+    for (auto& existing : this->items) {
+        if (existing.itemId == item.ratingKey) {
+            brls::Logger::info("Already exists: {}", item.ratingKey);
+            return;
+        }
+    }
+    DownloadItem dl;
+    dl.itemId = item.ratingKey;
+    dl.name = item.title;
+    dl.type = item.type;
+    dl.seriesName = item.grandparentTitle;
+    dl.seasonIndex = (int)item.parentIndex;
+    dl.episodeIndex = (int)item.index;
+    dl.productionYear = (long)item.year;
+    dl.durationMs = item.duration;
+    dl.thumb = item.type == plex::mediaTypeEpisode
+                   ? (!item.parentThumb.empty() ? item.parentThumb : item.grandparentThumb)
+                   : item.thumb;
+    dl.partKey = partKey;
+    dl.status = DownloadStatus::Queued;
+    this->items.push_back(dl);
+    this->saveIndex();
+    brls::Logger::info("Download queued (explicit source): {}", item.title);
+    this->processQueue();
 }
 
 void DownloadManager::resumeQueue() {
@@ -223,10 +256,8 @@ std::vector<DownloadItem> DownloadManager::getItems() const {
 }
 
 std::string DownloadManager::buildDownloadUrl(const DownloadItem& item) const {
-    auto& conf = AppConfig::instance();
-    // original file: {base}{Part.key}?download=1&X-Plex-Token=...
-    // (PLEX_MIGRATION.md D2 — no transcoded download in v1)
-    return plex::withToken(conf.getUrl() + item.partKey + "?download=1", conf.getToken());
+    // original-quality file (PLEX_MIGRATION.md D2 — no transcoded download in v1)
+    return AppConfig::instance().backend().downloadUrl(item.partKey);
 }
 
 // Must be called with mutex held
@@ -291,20 +322,28 @@ void DownloadManager::doDownload(DownloadItem& item) {
             return;
         }
 
-        auto& conf = AppConfig::instance();
-        HTTP::Header header = plex::headers(conf.getToken());
+        HTTP::Header header = AppConfig::instance().backend().authHeaders();
 
         if (cancel->load()) {
             resetQueue("Cancelled");
             return;
         }
-        // extension of the original file, read from Part.key
-        // (e.g. /library/parts/{id}/{ts}/file.mkv)
+        // Extension of the original file, read from Part.key (Plex:
+        // /library/parts/{id}/{ts}/file.mkv). For Stremio the partKey is a full
+        // stream URL, so strip any query/fragment first — otherwise ext becomes
+        // "mkv?token=…" and the filename is rejected by FAT/exFAT (Switch/Vita).
+        // Keep only a sane short alphanumeric extension, else fall back to mp4.
         std::string ext = "mp4";
-        auto dot = partKey.find_last_of('.');
-        if (dot != std::string::npos && dot > partKey.find_last_of('/')) {
-            ext = partKey.substr(dot + 1);
-            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+        std::string keyPath = partKey;
+        auto qf = keyPath.find_first_of("?#");
+        if (qf != std::string::npos) keyPath = keyPath.substr(0, qf);
+        auto dot = keyPath.find_last_of('.');
+        if (dot != std::string::npos && dot > keyPath.find_last_of('/')) {
+            std::string cand = keyPath.substr(dot + 1);
+            std::transform(cand.begin(), cand.end(), cand.begin(), ::tolower);
+            if (!cand.empty() && cand.size() <= 5 &&
+                std::all_of(cand.begin(), cand.end(), [](unsigned char c) { return std::isalnum(c) != 0; }))
+                ext = cand;
         }
 
         std::string fileName = "video." + ext;
@@ -323,8 +362,8 @@ void DownloadManager::doDownload(DownloadItem& item) {
 
         if (!thumb.empty() && !cancel->load()) {
             try {
-                // vignette : {base}{thumb}?X-Plex-Token=… (PLEX_MIGRATION.md §2.5)
-                std::string thumbUrl = plex::withToken(conf.getUrl() + thumb, conf.getToken());
+                // thumbnail
+                std::string thumbUrl = AppConfig::instance().backend().imageUrl(thumb);
                 HTTP::download(thumbUrl, itemDir + "/thumb.png", HTTP::Timeout{});
             } catch (const std::exception& e) {
                 brls::Logger::warning("Failed to download thumbnail: {}", e.what());

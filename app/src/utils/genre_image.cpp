@@ -1,5 +1,6 @@
 #include "utils/genre_image.hpp"
 #include "utils/config.hpp"
+#include "api/backend.hpp"
 #include "api/http.hpp"
 
 #include <fmt/format.h>
@@ -152,18 +153,6 @@ std::string GenreImage::posterUrl(const std::string& title) {
         "https://raw.githubusercontent.com/Kometa-Team/Default-Images/master/genre/{}.jpg",
         encodeSegment(it->second));
 
-    // same contract as Image::load (utils/image.hpp:31-39): 325 box +
-    // minSize=1/upscale=1 -> the poster covers the box while keeping its
-    // 2:3 ratio; WITHOUT token on the inner URL (external resource, unlike
-    // the server paths of Image::load)
-    auto& conf = AppConfig::instance();
-    HTTP::Form form = {
-        {"minSize", "1"},
-        {"upscale", "1"},
-        {"width", "325"},
-        {"height", "325"},
-        {"url", raw},
-        {"X-Plex-Token", conf.getToken()},
-    };
-    return conf.getUrl() + "/photo/:/transcode?" + HTTP::encode_form(form);
+    // external resource proxied/resized by the backend (325 box, ratio preserved)
+    return AppConfig::instance().backend().imageUrlExternal(raw, 325, 325);
 }

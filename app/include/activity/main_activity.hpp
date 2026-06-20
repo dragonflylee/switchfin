@@ -29,6 +29,10 @@ public:
     /// fetch the server libraries and insert their sidebar tabs
     void loadLibraries();
 
+    /// remove the static tabs the active backend does not support
+    /// (personal-list tab if ListKind::None, Playlists tab if !caps.playlists)
+    void applyCapabilities();
+
     static brls::View* create();
 
 private:
@@ -47,5 +51,14 @@ public:
     void onContentAvailable() override;
 
 private:
+    /// Adds the focusable avatar button pinned at the bottom of the sidebar; it
+    /// opens the connection switcher. The ring takes the active backend accent.
+    void addSidebarAvatar();
+
+    /// Tucks small, dimmed battery + wifi indicators at the very bottom of the
+    /// sidebar (under the gear) — moved here out of the footer.
+    void addSidebarStatus();
+
     BRLS_BIND(MainTabFrame, tabFrame, "main/tabFrame");
+    BRLS_BIND(brls::AppletFrame, frame, "main/frame");
 };

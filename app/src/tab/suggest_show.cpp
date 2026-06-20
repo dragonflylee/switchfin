@@ -1,9 +1,13 @@
 #include "tab/suggest_show.hpp"
 #include "view/recyling_video.hpp"
+#include "view/loading_spinner.hpp"
 #include "api/plex.hpp"
+#include "api/backend.hpp"
 
 SuggestShow::SuggestShow(const std::string& id) : itemId(id) {
     this->inflateFromXMLRes("xml/tabs/suggest_show.xml");
+    this->spinner = new LoadingSpinner();
+    this->addView(this->spinner);
     brls::Logger::debug("Tab SuggestShow: create");
 }
 
@@ -12,14 +16,12 @@ SuggestShow::~SuggestShow() { brls::Logger::debug("Tab SuggestShow: delete"); }
 void SuggestShow::onCreate() { this->doRequest(); }
 
 void SuggestShow::doRequest() {
-    std::string query = HTTP::encode_form({{"count", "20"}});
-
+    this->spinner->setSpinning(true);
     ASYNC_RETAIN
-    // section hubs: replaces the Jellyfin-scoped Resume/NextUp/Latest
-    plex::getJSON<plex::Container<plex::Hub>>(
-        AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-        [ASYNC_TOKEN](const plex::Container<plex::Hub>& r) {
+    AppConfig::instance().backend().getSectionHubs(this->itemId, 20,
+        [ASYNC_TOKEN](const media::Container<media::Hub>& r) {
             ASYNC_RELEASE
+            this->spinner->setSpinning(false);
             this->box->clearViews();
             for (auto& hub : r.Items) {
                 if (hub.items.empty()) continue;
@@ -45,7 +47,7 @@ void SuggestShow::doRequest() {
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
+            this->spinner->setSpinning(false);
             brls::Application::notify(ex);
-        },
-        plex::apiHubsSection, this->itemId, query);
+        });
 }

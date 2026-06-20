@@ -2,9 +2,12 @@
     pleNx — sign-in to Plex.
     PIN flow (only method): PLEX_MIGRATION.md §2.2;
     server/profile discovery: §2.3.
+    Entered from ServerTypeChoose (the Plex cell present()s this view), so it is
+    a content view of the ServerList AppletFrame: it keeps the footer and B
+    returns to the type chooser via the frame's hints/back action.
 */
 
-#include "tab/server_add.hpp"
+#include "tab/plex_add.hpp"
 #include "activity/main_activity.hpp"
 #include "activity/loading_overlay.hpp"
 #include "api/plex.hpp"
@@ -23,9 +26,9 @@ static std::string spaced(const std::string& code) {
     return out;
 }
 
-ServerAdd::ServerAdd() {
+PlexAdd::PlexAdd() {
     this->inflateFromXMLRes("xml/tabs/server_add.xml");
-    brls::Logger::debug("ServerAdd: create");
+    brls::Logger::debug("PlexAdd: create");
 
     this->btnRetry->registerClickAction([this](...) {
         this->startPin();
@@ -35,14 +38,14 @@ ServerAdd::ServerAdd() {
     this->startPin();
 }
 
-ServerAdd::~ServerAdd() {
-    brls::Logger::debug("ServerAdd: delete");
+PlexAdd::~PlexAdd() {
+    brls::Logger::debug("PlexAdd: delete");
     this->ticker.stop();
 }
 
-brls::View* ServerAdd::getDefaultFocus() { return this->btnRetry; }
+brls::View* PlexAdd::getDefaultFocus() { return this->btnRetry; }
 
-void ServerAdd::startPin() {
+void PlexAdd::startPin() {
     this->ticker.stop();
     this->labelCode->setText("· · · ·");
     this->labelStatus->setText("main/plex/generating"_i18n);
@@ -71,7 +74,7 @@ void ServerAdd::startPin() {
     });
 }
 
-void ServerAdd::pollOnce() {
+void PlexAdd::pollOnce() {
     if (brls::getCPUTimeUsec() > this->deadline) {
         this->ticker.stop();
         this->labelStatus->setText("main/plex/expired"_i18n);
@@ -111,7 +114,7 @@ void ServerAdd::pollOnce() {
     });
 }
 
-void ServerAdd::onAccount(const std::string& accountToken) {
+void PlexAdd::onAccount(const std::string& accountToken) {
     // getResources hits plex.tv with a 10 s timeout: show a loading screen
     // rather than a frozen one while we wait (cf. ServerList::onItemSelected).
     brls::Application::blockInputs();
@@ -167,7 +170,7 @@ void ServerAdd::onAccount(const std::string& accountToken) {
     });
 }
 
-void ServerAdd::onServerPicked(
+void PlexAdd::onServerPicked(
     const plex::AccountUser& account, const std::string& accountToken, const plex::ServerResource& server) {
     // findBestConnection probes each candidate URL in series (2 s timeout each;
     // plex.direct servers advertise 10+), so this can take many seconds. Without
@@ -226,7 +229,7 @@ void ServerAdd::onServerPicked(
     });
 }
 
-void ServerAdd::onProfilePicked(const plex::HomeUser& home, const std::string& accountToken,
+void PlexAdd::onProfilePicked(const plex::HomeUser& home, const std::string& accountToken,
     const plex::ServerResource& server, const std::string& baseUrl) {
     if (home.isProtected) {
         brls::Application::getImeManager()->openForText(
@@ -239,7 +242,7 @@ void ServerAdd::onProfilePicked(const plex::HomeUser& home, const std::string& a
     }
 }
 
-void ServerAdd::doSwitch(const plex::HomeUser& home, const std::string& accountToken,
+void PlexAdd::doSwitch(const plex::HomeUser& home, const std::string& accountToken,
     const plex::ServerResource& server, const std::string& baseUrl, const std::string& pin) {
     // switchHomeUser + a fresh getResources round-trip: keep the loading screen
     // up so the profile switch never reads as a freeze either.
@@ -274,7 +277,7 @@ void ServerAdd::doSwitch(const plex::HomeUser& home, const std::string& accountT
     });
 }
 
-void ServerAdd::finish(const std::string& uuid, const std::string& name, const std::string& thumb,
+void PlexAdd::finish(const std::string& uuid, const std::string& name, const std::string& thumb,
     const std::string& plexTvToken, const plex::ServerResource& server, const std::string& baseUrl) {
     AppServer s;
     s.name = server.name;

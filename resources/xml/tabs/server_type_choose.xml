@@ -1,0 +1,63 @@
+<!-- Server type chooser: the FIRST screen of the add-server flow. Same visual
+     language as the Plex PIN / Jellyfin sign-in pages (icon + grey title), then
+     a full-width list of the available backends. Each cell present()s its
+     dedicated sign-in screen onto the ServerList AppletFrame content stack, so
+     every step keeps the footer and B navigates back here. -->
+<brls:Box
+    width="auto"
+    height="auto"
+    alignItems="center"
+    justifyContent="center">
+
+    <brls:Box
+        width="640"
+        axis="column"
+        alignItems="stretch">
+
+        <brls:Box
+            width="100%"
+            height="auto"
+            axis="column"
+            alignItems="center"
+            marginBottom="30">
+
+            <brls:Image
+                width="84"
+                height="84"
+                cornerRadius="20"
+                marginBottom="16"
+                scalingType="fit"
+                image="@res/icon/icon.png" />
+
+            <brls:Label
+                fontSize="16"
+                textColor="@theme/font/grey"
+                text="@i18n/main/server/choose_type" />
+        </brls:Box>
+
+        <brls:Box
+            width="100%"
+            height="auto"
+            axis="column"
+            cornerRadius="8"
+            backgroundColor="@theme/color/surface">
+
+            <brls:DetailCell
+                id="type/plex"
+                title="Plex" />
+
+            <brls:DetailCell
+                id="type/jellyfin"
+                title="Jellyfin" />
+
+            <brls:DetailCell
+                id="type/emby"
+                title="Emby" />
+
+            <brls:DetailCell
+                id="type/stremio"
+                title="Stremio" />
+        </brls:Box>
+
+    </brls:Box>
+</brls:Box>

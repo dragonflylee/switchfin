@@ -13,7 +13,10 @@ class VideoView;
 
 class PlayerView : public brls::Box {
 public:
-    PlayerView(const plex::Item& item, const int64_t seekMs = 0);
+    /// versionIndex selects which item.media[] source to play (default -1 = the
+    /// first accessible version, i.e. unchanged Plex/Jellyfin behavior). The
+    /// Stremio source picker passes an explicit index to honor the user's choice.
+    PlayerView(const plex::Item& item, const int64_t seekMs = 0, int versionIndex = -1);
     ~PlayerView();
 
     /// Loads the show's episode list (previous/next navigation)
@@ -35,10 +38,10 @@ public:
 
 private:
     void setChapters(const std::vector<plex::Chapter>& chaps, int64_t durationMs);
-    /// Fetches fresh metadata then picks direct play or transcode
+    /// Fetches fresh metadata then resolves the playback URL via the backend
     void playMedia(const int64_t seekMs);
-    void playDirect(const int64_t seekMs);
-    void playTranscode(const int64_t seekMs);
+    /// Resolves the playback URL (direct/transcode) through the active backend
+    void startPlayback(const int64_t seekMs);
     bool playIndex(int index);
     /// POST /:/timeline report (time/duration in ms)
     void reportTimeline(const std::string& state, int64_t timeMs);
@@ -51,12 +54,13 @@ private:
     std::string itemId;  // ratingKey
     /// playMethod: "directplay" | "transcode" (VideoProfile display)
     std::string playMethod;
-    /// X-Plex-Session-Identifier: stable for the whole playback session
+    /// stable play-session id for the whole playback session
     std::string sessionId;
-    /// transcoder session: regenerated on every (re)start
-    std::string transcodeSession;
     plex::Item item;     // fresh metadata (media/chapters/markers)
     plex::Media stream;  // selected version
+    /// caller-chosen source index (Stremio picker); -1 = first accessible.
+    /// Reset to -1 on episode switch so binge auto-picks the best source.
+    int preferredVersion = -1;
     bool scrobbled = false;
     std::vector<plex::Item> episodes;
 

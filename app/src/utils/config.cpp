@@ -41,8 +41,13 @@ constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
 #include <borealis/core/cache_helper.hpp>
 #include <borealis/views/edit_text_dialog.hpp>
 #include "api/plex/auth.hpp"
+#include "api/backend.hpp"
+#include "api/plex/backend.hpp"
+#include "api/jellyfin/backend.hpp"
+#include "api/stremio/backend.hpp"
 #include "api/http.hpp"
 #include "utils/config.hpp"
+#include "utils/theme_palette.hpp"
 #include "utils/keybind.hpp"
 #include "utils/misc.hpp"
 #include "utils/ums.hpp"
@@ -515,6 +520,56 @@ void AppConfig::save() {
     }
 }
 
+AppConfig::~AppConfig() { delete this->activeBackend; }
+
+void AppConfig::resetBackend() {
+    delete this->activeBackend;
+    this->activeBackend = nullptr;
+}
+
+media::Backend& AppConfig::backend() {
+    if (!this->activeBackend) {
+        // active server type = the one whose front URL is the active server_url
+        std::string type = "plex";
+        for (auto& s : this->servers) {
+            if (!this->server_url.empty() && !s.urls.empty() && s.urls.front() == this->server_url) {
+                type = s.type;
+                break;
+            }
+        }
+        switch (backendTypeFromString(type)) {
+            case media::BackendType::Jellyfin:
+                this->activeBackend = new jellyfin::JellyfinBackend(media::BackendType::Jellyfin);
+                break;
+            case media::BackendType::Emby:
+                this->activeBackend = new jellyfin::JellyfinBackend(media::BackendType::Emby);
+                break;
+            case media::BackendType::Stremio:
+                this->activeBackend = new stremio::StremioBackend();
+                break;
+            case media::BackendType::Plex:
+                this->activeBackend = new plex::PlexBackend();
+                break;
+        }
+    }
+    return *this->activeBackend;
+}
+
+media::BackendType AppConfig::backendTypeFromString(const std::string& type) {
+    if (type == "jellyfin") return media::BackendType::Jellyfin;
+    if (type == "emby") return media::BackendType::Emby;
+    if (type == "stremio") return media::BackendType::Stremio;
+    return media::BackendType::Plex;
+}
+
+const std::vector<std::string>& AppConfig::getStremioAddons() const {
+    static const std::vector<std::string> empty;
+    if (this->user == this->users.end()) return empty;
+    for (auto& s : this->servers)
+        if (s.id == this->user->server_id) return s.addons;
+    return empty;
+}
+
 bool AppConfig::checkLogin() {
     auto is_user = [this](const AppUser& u) { return u.id == this->user_id; };
     this->user = std::find_if(this->users.begin(), this->users.end(), is_user);
@@ -526,10 +581,14 @@ bool AppConfig::checkLogin() {
 
     // Probes the remembered connections (the last reachable one is first).
     // No dependency on plex.tv here: a reachable LAN server is enough.
+    // Stremio has no single reachable "server" (it is an aggregate of remote
+    // addons + an optional account); skip the probe and accept the stored entry.
     for (auto& url : it->urls) {
-        if (!plex::probeConnection(url, it->access_token)) continue;
+        if (it->type != "stremio" && !plex::probeConnection(url, it->access_token)) continue;
         this->server_url = url;
         this->server_token = it->access_token;
+        this->resetBackend();
+        this->applyTheme(backendTypeFromString(it->type));
         if (url != it->urls.front()) {
             AppServer front = *it;
             front.urls = {url};
@@ -636,9 +695,15 @@ void AppConfig::addUser(const AppUser& u, const std::string& url) {
     this->user_id = u.id;
     this->user = it;
     // keeps the active server token in sync with the active user
+    std::string activeType = "plex";
     for (auto& s : this->servers) {
-        if (s.id == u.server_id) this->server_token = s.access_token;
+        if (s.id == u.server_id) {
+            this->server_token = s.access_token;
+            activeType = s.type;
+        }
     }
+    this->resetBackend();
+    this->applyTheme(backendTypeFromString(activeType));
     this->save();
 }
 
@@ -710,24 +775,49 @@ void AppConfig::addColor(const brls::ThemeVariant tv, const std::string& name, N
     }
 }
 
+void AppConfig::applyTheme(std::optional<media::BackendType> type) {
+    const plenx::ThemeColors& tc = type ? plenx::backendPalette(*type) : plenx::defaultPalette();
+    this->applyThemeVariant(brls::ThemeVariant::DARK, tc.dark);
+    this->applyThemeVariant(brls::ThemeVariant::LIGHT, tc.light);
+}
+
+void AppConfig::applyThemeVariant(brls::ThemeVariant tv, const plenx::ThemePalette& p) {
+    auto& theme = (tv == brls::ThemeVariant::LIGHT) ? brls::Theme::getLightTheme() : brls::Theme::getDarkTheme();
+    const NVGcolor accent = nvgRGB(p.accent.r, p.accent.g, p.accent.b);
+    const NVGcolor glow = nvgRGB(p.accentGlowTop.r, p.accentGlowTop.g, p.accentGlowTop.b);
+    const NVGcolor onAccent = nvgRGB(p.onAccentText.r, p.onAccentText.g, p.onAccentText.b);
+    const NVGcolor listValue = nvgRGB(p.listValue.r, p.listValue.g, p.listValue.b);
+
+    // VARIANT tokens (the per-backend accent surface).
+    theme.addColor("brls/accent", accent);
+    theme.addColor("brls/highlight/color1", accent);
+    theme.addColor("brls/highlight/color2", glow);
+    theme.addColor("brls/sidebar/active_item", accent);
+    theme.addColor("brls/button/primary_enabled_background", accent);
+    theme.addColor("brls/button/primary_enabled_text", onAccent);
+    theme.addColor("brls/button/highlight_enabled_text", accent);
+    theme.addColor("brls/button/highlight_disabled_text", accent);
+    theme.addColor("brls/list/listItem_value_color", listValue);
+    theme.addColor("brls/slider/line_filled", accent);
+
+    // app tokens routed through AppConfig::addColor() so a user color override in
+    // the settings JSON still wins (addColor reads `setting` before this default).
+    this->addColor(tv, "color/app", accent);
+    this->addColor(tv, "color/focus/bg", nvgRGBA(p.accent.r, p.accent.g, p.accent.b, 115));
+}
+
 void AppConfig::initThemes() {
-    // "Dark theater" identity (UI_REDESIGN.md §3): neutral dark chrome,
-    // Plex gold #E5A00D as the single accent. Theme::addColor overrides the
-    // borealis values (theme.cpp), no submodule patch needed.
+    // "Dark theater" identity (UI_REDESIGN.md §3): neutral dark chrome. Only the
+    // STRUCTURAL tokens are set here (constant across themes). The accent surface
+    // (accent, highlight, sidebar active, primary button, slider, color/app...)
+    // is VARIANT: set by applyTheme() per connected backend — see the
+    // applyTheme(std::nullopt) call at the end of this function and the hooks in
+    // checkLogin()/addUser()/ServerList. Theme::addColor overrides the borealis
+    // values (theme.cpp), no submodule patch needed.
     auto& dark = brls::Theme::getDarkTheme();
     dark.addColor("brls/background", nvgRGB(13, 14, 17));
     dark.addColor("brls/sidebar/background", nvgRGB(16, 18, 22));
     dark.addColor("brls/highlight/background", nvgRGB(30, 33, 39));
-    dark.addColor("brls/highlight/color1", nvgRGB(229, 160, 13));
-    dark.addColor("brls/highlight/color2", nvgRGB(246, 193, 43));
-    dark.addColor("brls/accent", nvgRGB(229, 160, 13));
-    dark.addColor("brls/sidebar/active_item", nvgRGB(229, 160, 13));
-    dark.addColor("brls/button/primary_enabled_background", nvgRGB(229, 160, 13));
-    dark.addColor("brls/button/primary_enabled_text", nvgRGB(22, 19, 10));
-    dark.addColor("brls/button/highlight_enabled_text", nvgRGB(229, 160, 13));
-    dark.addColor("brls/button/highlight_disabled_text", nvgRGB(229, 160, 13));
-    dark.addColor("brls/list/listItem_value_color", nvgRGB(201, 168, 106));
-    dark.addColor("brls/slider/line_filled", nvgRGB(229, 160, 13));
     // press pulse: near-transparent light gray (orange suggested a
     // selection, not a press)
     dark.addColor("brls/click_pulse", nvgRGBA(255, 255, 255, 24));
@@ -743,14 +833,6 @@ void AppConfig::initThemes() {
     dark.addColor("brls/notification/text", nvgRGB(255, 255, 255));
 
     auto& light = brls::Theme::getLightTheme();
-    light.addColor("brls/highlight/color1", nvgRGB(204, 124, 25));
-    light.addColor("brls/highlight/color2", nvgRGB(229, 160, 13));
-    light.addColor("brls/accent", nvgRGB(204, 124, 25));
-    light.addColor("brls/sidebar/active_item", nvgRGB(204, 124, 25));
-    light.addColor("brls/button/primary_enabled_background", nvgRGB(229, 160, 13));
-    light.addColor("brls/button/primary_enabled_text", nvgRGB(22, 19, 10));
-    light.addColor("brls/list/listItem_value_color", nvgRGB(166, 117, 29));
-    light.addColor("brls/slider/line_filled", nvgRGB(204, 124, 25));
     light.addColor("brls/click_pulse", nvgRGBA(0, 0, 0, 20));
     light.addColor("brls/header/border", nvgRGBA(0, 0, 0, 0));
     light.addColor("brls/header/rectangle", nvgRGBA(0, 0, 0, 0));
@@ -758,12 +840,8 @@ void AppConfig::initThemes() {
     light.addColor("brls/notification/background", nvgRGBA(45, 45, 45, 230));
     light.addColor("brls/notification/text", nvgRGB(255, 255, 255));
 
-    this->addColor(brls::ThemeVariant::LIGHT, "color/app", nvgRGB(204, 124, 25));
-    this->addColor(brls::ThemeVariant::DARK, "color/app", nvgRGB(229, 160, 13));
-    // translucent focus background for player OSD controls (replaces the
-    // border highlight, hard to read over moving video)
-    this->addColor(brls::ThemeVariant::LIGHT, "color/focus/bg", nvgRGBA(204, 124, 25, 115));
-    this->addColor(brls::ThemeVariant::DARK, "color/focus/bg", nvgRGBA(229, 160, 13, 115));
+    // color/app (the app accent token) and color/focus/bg (translucent focus
+    // background for player OSD controls) are VARIANT: set by applyThemeVariant().
     // dark scrim behind elements placed over an image (bars, badges)
     this->addColor(brls::ThemeVariant::LIGHT, "color/scrim", nvgRGBA(0, 0, 0, 160));
     this->addColor(brls::ThemeVariant::DARK, "color/scrim", nvgRGBA(0, 0, 0, 160));
@@ -795,6 +873,10 @@ void AppConfig::initThemes() {
     // 深浅配色通用的灰色字体颜色
     this->addColor(brls::ThemeVariant::LIGHT, "font/grey", nvgRGB(148, 153, 160));
     this->addColor(brls::ThemeVariant::DARK, "font/grey", nvgRGB(148, 153, 160));
+
+    // establish the neutral pleNx DEFAULT accent for all pre-connection screens;
+    // checkLogin()/addUser() re-apply the connected backend's palette afterwards.
+    this->applyTheme(std::nullopt);
 
     if (brls::Application::ORIGINAL_WINDOW_HEIGHT == 544) {
         brls::getStyle().addMetric("app/album/height", 215);

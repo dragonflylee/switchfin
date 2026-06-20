@@ -1,6 +1,7 @@
 #include "activity/player_view.hpp"
 #include "activity/gallery_activity.hpp"
 #include "api/plex.hpp"
+#include "api/backend.hpp"
 #include "tab/media_collection.hpp"
 #include "tab/media_series.hpp"
 #include "tab/media_movie.hpp"
@@ -99,6 +100,13 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
         cell->rectProgress->getParent()->setVisibility(brls::Visibility::GONE);
         cell->badgeTopRight->setVisibility(brls::Visibility::GONE);
     }
+
+    // A-button hint + focus overlay reflect what selecting the card DOES: it
+    // PLAYS for items that start playback on select (episode/clip — incl. the
+    // continue-watching row), and OPENS a detail page otherwise.
+    bool plays = (item.type == plex::mediaTypeEpisode || item.type == plex::mediaTypeClip);
+    cell->setPlayOverlay(plays);
+    cell->updateActionHint(brls::BUTTON_A, plays ? "main/media/play"_i18n : "main/media/open"_i18n);
     return cell;
 }
 
@@ -129,8 +137,7 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
     } else if (item.type == plex::mediaTypePhoto) {
         // photo: original file served by the Part (PLEX_MIGRATION.md §2.5)
         if (!item.media.empty() && !item.media.front().parts.empty()) {
-            auto& conf = AppConfig::instance();
-            std::string url = plex::withToken(conf.getUrl() + item.media.front().parts.front().key, conf.getToken());
+            std::string url = AppConfig::instance().backend().imageUrl(item.media.front().parts.front().key);
             brls::Application::pushActivity(new GalleryActivity(url));
         }
     } else {

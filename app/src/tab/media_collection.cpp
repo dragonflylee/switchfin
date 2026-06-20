@@ -4,6 +4,7 @@
 
 #include "tab/media_collection.hpp"
 #include "api/plex.hpp"
+#include "api/backend.hpp"
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
 #include "view/media_filter.hpp"
@@ -40,7 +41,10 @@ public:
         // prepareForReuse (no request, the Kometa set is embedded)
         cell->labelTitle->setText(item.title);
         cell->labelExt->setVisibility(brls::Visibility::GONE);
+        // Kometa posters are keyed by the English genre name; the displayed
+        // title may be localized (Stremio), so fall back to the key (raw value).
         std::string poster = GenreImage::posterUrl(item.title);
+        if (poster.empty()) poster = GenreImage::posterUrl(item.key);
         if (!poster.empty()) Image::with(cell->picture, poster);
         return cell;
     }
@@ -72,21 +76,18 @@ public:
         float side = brls::getStyle()["main/content_padding_sides"];
         this->setPadding(70, side, brls::getStyle()["main/content_padding_top_bottom"], side);
 
-        int type = itemType == plex::mediaTypeShow ? plex::typeShow : plex::typeMovie;
-
         ASYNC_RETAIN
-        // GET /library/sections/{key}/genre?type= -> Directory key/title
-        plex::getJSON<plex::Container<plex::Section>>(
-            AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-            [ASYNC_TOKEN, itemId, itemType](const plex::Container<plex::Section>& r) {
+        // genres -> Directory key/title
+        AppConfig::instance().backend().getGenres(
+            itemId, itemType == media::mediaTypeShow ? media::MediaKind::Show : media::MediaKind::Movie,
+            [ASYNC_TOKEN, itemId, itemType](const media::Container<media::Section>& r) {
                 ASYNC_RELEASE
                 this->setDataSource(new GenresDataSource(r.Items, itemId, itemType));
             },
             [ASYNC_TOKEN](const std::string& ex) {
                 ASYNC_RELEASE
                 this->setError(ex);
-            },
-            plex::apiSectionGenres, itemId, type);
+            });
     }
 };
 
@@ -107,19 +108,18 @@ public:
     }
 
     void doRequest() {
-        HTTP::Form query;
-        plex::addPagination(query, this->start, this->pageSize);
-
         ASYNC_RETAIN
-        // GET /library/sections/{key}/collections
-        plex::getJSON<plex::Container<plex::Item>>(
-            AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-            [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
+        // requested offset, not r.StartIndex: see MediaCollection::doRequest —
+        // Jellyfin/Emby omit StartIndex on an empty past-the-end page, so it
+        // parses to 0 and would wipe a filled grid
+        size_t reqStart = this->start;
+        AppConfig::instance().backend().getCollections(this->sectionId, this->start, this->pageSize,
+            [ASYNC_TOKEN, reqStart](const media::Container<media::Item>& r) {
                 ASYNC_RELEASE
-                this->start = r.StartIndex + this->pageSize;
-                if (r.TotalRecordCount == 0) {
+                this->start = reqStart + this->pageSize;
+                if (r.TotalRecordCount == 0 && reqStart == 0) {
                     this->setEmpty();
-                } else if (r.StartIndex == 0) {
+                } else if (reqStart == 0) {
                     this->setDataSource(new VideoDataSource(r.Items));
                 } else if (r.Items.size() > 0) {
                     auto dataSrc = dynamic_cast<VideoDataSource*>(this->getDataSource());
@@ -130,8 +130,7 @@ public:
             [ASYNC_TOKEN](const std::string& ex) {
                 ASYNC_RELEASE
                 this->setError(ex);
-            },
-            plex::apiCollections, this->sectionId, HTTP::encode_form(query));
+            });
     }
 
 private:
@@ -162,7 +161,8 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
         // Collections: movies only — useless on show libraries
         // (verified on a real server 2026-06-10:
         // /library/sections/{show}/collections -> size 0)
-        if (itemType == plex::mediaTypeMovie) {
+        // and only when the backend actually has collections (Stremio has none).
+        if (itemType == plex::mediaTypeMovie && AppConfig::instance().backend().caps().collections) {
             item = new AutoSidebarItem();
             item->setTabStyle(AutoTabBarStyle::ACCENT);
             item->setFontSize(18);
@@ -256,17 +256,16 @@ void MediaCollection::doMetadata() {
     // Metadata carries NEITHER duration NOR leafCount, only childCount
     // (verified on a real server 2026-06-10 on /library/metadata/1024133);
     // the displayed count thus comes from the grid's totalSize (doRequest)
-    plex::getJSON<plex::Container<plex::Item>>(
-        AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-        [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
+    AppConfig::instance().backend().getItemDetail(
+        this->itemId, false,
+        [ASYNC_TOKEN](const media::Item& item) {
             ASYNC_RELEASE
-            if (this->labelTitle && !r.Items.empty()) this->labelTitle->setText(r.Items.front().title);
+            if (this->labelTitle) this->labelTitle->setText(item.title);
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("MediaCollection: metadata {}", ex);
-        },
-        plex::apiMetadata, this->itemId, "");
+        });
 }
 
 void MediaCollection::updateMeta(int64_t count, int64_t durationMs) {
@@ -334,35 +333,33 @@ void MediaCollection::saveFilter() {
 }
 
 void MediaCollection::doRequest() {
-    HTTP::Form query;
-    // Plex sort: sort=field[:desc]
-    std::string sort = MediaFilter::sortList[MediaFilter::selectedSort];
-    if (MediaFilter::selectedOrder) sort += ":desc";
-    query["sort"] = sort;
-    if (MediaFilter::selectedUnplayed) query["unwatched"] = "1";
-    if (this->genresId.size() > 0) query["genre"] = this->genresId;
-    plex::addPagination(query, this->startIndex, this->pageSize);
-
-    std::string_view path = plex::apiSectionAll;
-    if (this->itemType == plex::mediaTypeCollection) {
-        path = plex::apiCollectionChildren;
-    } else if (this->itemType == plex::mediaTypeMovie) {
-        query["type"] = std::to_string(plex::typeMovie);
-    } else if (this->itemType == plex::mediaTypeShow) {
-        query["type"] = std::to_string(plex::typeShow);
-    }
-    // photo: no type= filter
+    media::GridQuery q;
+    q.sortField = MediaFilter::sortList[MediaFilter::selectedSort];
+    q.descending = MediaFilter::selectedOrder != 0;
+    q.unwatchedOnly = MediaFilter::selectedUnplayed;
+    q.genreId = this->genresId;
+    if (this->itemType == media::mediaTypeMovie)
+        q.kind = media::MediaKind::Movie;
+    else if (this->itemType == media::mediaTypeShow)
+        q.kind = media::MediaKind::Show;
+    // photo / collection: no type= filter
 
     ASYNC_RETAIN
-    plex::getJSON<plex::Container<plex::Item>>(
-        AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-        [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
+    // the offset we asked for: the response's StartIndex is unreliable on
+    // Jellyfin/Emby — it is omitted from an empty past-the-end page (33-byte
+    // body) and parses back to 0, which would otherwise mark a filled grid as
+    // "empty". Plex echoes the real totalSize, so this was latent there.
+    size_t reqStart = this->startIndex;
+    auto onItems = [ASYNC_TOKEN, reqStart](const media::Container<media::Item>& r) {
             ASYNC_RELEASE
-            this->startIndex = r.StartIndex + this->pageSize;
-            if (r.TotalRecordCount == 0) {
+            this->startIndex = reqStart + this->pageSize;
+            // Only the FIRST page being empty means the library is empty. The
+            // recycler pre-fetches the next page; that past-the-end page returns
+            // TotalRecordCount=0 and must not wipe a grid filled by page 0.
+            if (r.TotalRecordCount == 0 && reqStart == 0) {
                 this->updateMeta(0, 0);
                 this->recycler->setEmpty();
-            } else if (r.StartIndex == 0) {
+            } else if (reqStart == 0) {
                 // collection mode header meta: reliable count (totalSize);
                 // total duration ONLY if this page covers the whole
                 // collection — a collection's Metadata has no duration of
@@ -392,14 +389,104 @@ void MediaCollection::doRequest() {
                 dataSrc->appendData(r.Items);
                 this->recycler->notifyDataChanged();
             }
-        },
-        [ASYNC_TOKEN](const std::string& ex) {
-            ASYNC_RELEASE
-            if (this->startIndex > 0) {
-                brls::Application::notify(ex);
-            } else {
-                this->recycler->setError(ex);
-            }
-        },
-        path, this->itemId, HTTP::encode_form(query));
+    };
+    auto onError = [ASYNC_TOKEN, reqStart](const std::string& ex) {
+        ASYNC_RELEASE
+        if (reqStart > 0) {
+            brls::Application::notify(ex);
+        } else {
+            this->recycler->setError(ex);
+        }
+    };
+    if (this->itemType == media::mediaTypeCollection)
+        AppConfig::instance().backend().getCollectionChildren(
+            this->itemId, this->startIndex, this->pageSize, onItems, onError);
+    else
+        AppConfig::instance().backend().getLibraryGrid(
+            this->itemId, q, this->startIndex, this->pageSize, onItems, onError);
+}
+
+// ---- Stremio: catalogs-as-subtabs section view ---------------------------------
+
+/// Paginated grid of ONE catalog (getLibraryGrid on a routed catalog key).
+/// Mirror of CollectionsTab but backed by the library grid endpoint.
+class CatalogGrid : public RecyclingGrid {
+public:
+    CatalogGrid(const std::string& catalogKey, const std::string& itemType)
+        : catalogKey(catalogKey), itemType(itemType) {
+        this->setGrow(1.f);
+        this->registerCell("Cell", VideoCardCell::create);
+        this->spanCount = brls::getStyle().getMetric("app/grid/6");
+        this->itemImageRatio = 1.5f;
+        this->itemExtraHeight = 55;
+        float side = brls::getStyle()["main/content_padding_sides"];
+        this->setPadding(70, side, brls::getStyle()["main/content_padding_top_bottom"], side);
+        this->onNextPage([this] { this->doRequest(); });
+        this->doRequest();
+    }
+
+    void doRequest() {
+        ASYNC_RETAIN
+        size_t reqStart = this->start;
+        media::GridQuery q;
+        if (this->itemType == media::mediaTypeMovie)
+            q.kind = media::MediaKind::Movie;
+        else if (this->itemType == media::mediaTypeShow)
+            q.kind = media::MediaKind::Show;
+        AppConfig::instance().backend().getLibraryGrid(this->catalogKey, q, this->start, this->pageSize,
+            [ASYNC_TOKEN, reqStart](const media::Container<media::Item>& r) {
+                ASYNC_RELEASE
+                this->start = reqStart + this->pageSize;
+                if (r.TotalRecordCount == 0 && reqStart == 0) {
+                    this->setEmpty();
+                } else if (reqStart == 0) {
+                    this->setDataSource(new VideoDataSource(r.Items));
+                } else if (r.Items.size() > 0) {
+                    auto dataSrc = dynamic_cast<VideoDataSource*>(this->getDataSource());
+                    dataSrc->appendData(r.Items);
+                    this->notifyDataChanged();
+                }
+            },
+            [ASYNC_TOKEN, reqStart](const std::string& ex) {
+                ASYNC_RELEASE
+                if (reqStart == 0) this->setError(ex);
+            });
+    }
+
+private:
+    std::string catalogKey;
+    std::string itemType;
+    size_t start = 0;
+    size_t pageSize = 60;
+};
+
+StremioCatalogs::StremioCatalogs(const std::string& sectionKey, const std::string& sectionType)
+    : sectionKey(sectionKey), sectionType(sectionType) {
+    brls::Logger::debug("StremioCatalogs: create {} type {}", sectionKey, sectionType);
+    this->inflateFromXMLRes("xml/tabs/stremio_catalogs.xml");
+
+    // one tab per catalog of this type (Populaires / Nouveautés / À la une / …)
+    for (auto& t : AppConfig::instance().backend().sectionTabs(sectionKey)) {
+        std::string catKey = t.first, type = sectionType;
+        auto* item = new AutoSidebarItem();
+        item->setTabStyle(AutoTabBarStyle::ACCENT);
+        item->setFontSize(18);
+        item->setLabel(t.second);
+        this->tabFrame->addTab(item, [catKey, type]() { return new CatalogGrid(catKey, type); });
+    }
+    // a Genres tab when the backend exposes genre directories
+    if (AppConfig::instance().backend().caps().genres) {
+        std::string key = sectionKey, type = sectionType;
+        auto* item = new AutoSidebarItem();
+        item->setTabStyle(AutoTabBarStyle::ACCENT);
+        item->setFontSize(18);
+        item->setLabel("main/tabs/genres"_i18n);
+        this->tabFrame->addTab(item, [key, type]() { return new GenresTab(key, type); });
+    }
+    this->tabFrame->registerTabAction(this);
+}
+
+brls::View* StremioCatalogs::getDefaultFocus() {
+    if (brls::View* frame = this->getView("stremio/tabFrame")) return frame->getDefaultFocus();
+    return AttachedView::getDefaultFocus();
 }

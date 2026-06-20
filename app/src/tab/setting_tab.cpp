@@ -93,54 +93,12 @@ private:
 SettingTab::SettingTab() {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/settings.xml");
-
-    this->registerBoolXMLAttribute("hideStatus", [this](bool value) {
-        auto visibility = value ? brls::Visibility::GONE : brls::Visibility::VISIBLE;
-        this->boxStatus->setVisibility(visibility);
-        this->btnServer->setVisibility(visibility);
-        this->btnUser->setVisibility(visibility);
-    });
+    // The connection/profile lives in the sidebar avatar + connection switcher
+    // now, not here — Settings is purely app configuration.
 }
 
 void SettingTab::onCreate() {
     auto& conf = AppConfig::instance();
-
-    if (boxStatus->getVisibility() == brls::Visibility::VISIBLE) {
-        // profile block: avatar + name + active server name
-        const AppUser& user = conf.getUser();
-        this->profileName->setText(user.name);
-        if (!user.thumb.empty()) Image::load(this->profileAvatar, user.thumb, 64, 64);
-
-        std::string serverName;
-        for (auto& s : conf.getServers()) {
-            if (s.id == user.server_id) {
-                serverName = s.name;
-                break;
-            }
-        }
-        if (serverName.empty()) serverName = conf.getUrl();
-        this->profileServer->setText(serverName);
-
-        // the server NAME rather than the endless plex.direct URL;
-        // the full URL stays visible in the servers sub-screen
-        btnServer->setDetailText(serverName);
-        btnServer->registerClickAction([](...) {
-            brls::Application::pushActivity(new ServerList(), brls::TransitionAnimation::NONE);
-            return true;
-        });
-
-        btnUser->setDetailText(conf.getUserName());
-        btnUser->registerClickAction([](...) {
-            Dialog::cancelable("main/setting/others/logout"_i18n, []() {
-                // Local sign-out: Plex has no server-side signout call in
-                // this flow (PLEX_MIGRATION.md §2.2)
-                auto& c = AppConfig::instance();
-                c.removeUser(c.getUserId());
-                brls::Application::quit();
-            });
-            return true;
-        });
-    }
 
 /// Hardware decode
 #ifdef __SWITCH__
