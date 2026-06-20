@@ -233,7 +233,12 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     APP_VERSION=${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}
     APP_BUILD=${VERSION_BUILD}
     BUILD_TAG_SHORT=${GIT_TAG_SHORT}
-    BUILD_PACKAGE_NAME=${PROJECT_NAME}
+    # GMCA rebrand: the per-user data folder and the server-facing client
+    # label use the short "GMCA" token, decoupled from the still-"pleNx"
+    # display name (PROJECT_NAME). pleNx 0.2.0 thus pre-migrates user data
+    # into the folder the renamed app (Gamepad Media Center Aggregator) will
+    # read, so the rebrand itself needs no further data migration.
+    BUILD_PACKAGE_NAME=GMCA
 )
 
 # building release file

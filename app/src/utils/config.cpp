@@ -226,9 +226,9 @@ static std::string dataDir(const std::string& name) {
 #endif
 }
 
-/// Silent migration of the config folder inherited from the application's
-/// old name (Switchlex -> pleNx): Plex session, settings and downloads
-/// must survive the rename.
+/// Silent migration of the config folder inherited from a previous name
+/// (Switchlex -> pleNx -> GMCA): Plex/Jellyfin session, settings and
+/// downloads must survive each rename.
 static void migrateLegacyConfigDir(const std::string& legacy, const std::string& current) {
     if (legacy == current) return;  // e.g. Android: path independent of the name
 #if !defined(USE_BOOST_FILESYSTEM) || defined(_WIN32)
@@ -247,6 +247,11 @@ static void migrateLegacyConfigDir(const std::string& legacy, const std::string&
 }
 
 bool AppConfig::init() {
+    // Chained most-recent-first; the !exists(to) guard means only the first
+    // applicable source migrates. pleNx 0.2.0 already targets the GMCA folder
+    // (BUILD_PACKAGE_NAME), so existing pleNx data is relocated here, and the
+    // renamed GMCA build then reads it in place.
+    migrateLegacyConfigDir(dataDir("pleNx"), this->configDir());
     migrateLegacyConfigDir(dataDir("Switchlex"), this->configDir());
     const std::string path = this->configDir() + "/config.json";
 #if !defined(USE_BOOST_FILESYSTEM) || defined(_WIN32)
