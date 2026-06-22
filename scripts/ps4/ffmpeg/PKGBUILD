@@ -1,7 +1,7 @@
 # Maintainer: cpasjuste <cpasjuste@gmail.com>
 
 pkgname=ps4-openorbis-ffmpeg
-pkgver=7.1.4
+pkgver=7.1.5
 pkgrel=3
 pkgdesc='ffmpeg port'
 arch=('any')
@@ -11,7 +11,7 @@ options=(!strip !debug staticlibs)
 makedepends=('ps4-openorbis-pkg-config' 'ps4-openorbis-vars' 'ps4-openorbis-mbedtls')
 depends=('ps4-openorbis-zlib' 'ps4-openorbis-bzip2' 'ps4-openorbis-libass' 'ps4-openorbis-libfribidi' 'ps4-openorbis-freetype')
 source=("https://ffmpeg.org/releases/ffmpeg-$pkgver.tar.xz")
-sha256sums=('71f4aac3573ed9060489cb62526a6c7dda815ae10993789611acd7be9fa9fbf4')
+sha256sums=('de668509caf9e35e3cd162473441fdb29538c6d96ed080292b3cf9e6fc5d558f')
 groups=('ps4-openorbis-portlibs')
 
 build() {

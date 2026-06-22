@@ -5,7 +5,7 @@
 # Contributor: jakibaki <jakibaki live com>
 
 pkgname=switch-ffmpeg
-pkgver=7.1.4
+pkgver=7.1.5
 pkgrel=5
 pkgdesc='ffmpeg port (for Nintendo Switch homebrew development)'
 arch=('any')
@@ -19,7 +19,7 @@ source=(
   "https://ffmpeg.org/releases/ffmpeg-${pkgver}.tar.xz"
   "ffmpeg-${pkgver}.patch" "getnameinfo.patch" "avio.patch"
 )
-sha256sums=('71f4aac3573ed9060489cb62526a6c7dda815ae10993789611acd7be9fa9fbf4' 'SKIP' 'SKIP' 'SKIP')
+sha256sums=('de668509caf9e35e3cd162473441fdb29538c6d96ed080292b3cf9e6fc5d558f' 'SKIP' 'SKIP' 'SKIP')
 
 groups=('switch-portlibs')
 

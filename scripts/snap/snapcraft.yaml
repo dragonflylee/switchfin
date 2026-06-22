@@ -57,7 +57,7 @@ parts:
       - libplacebo
 
   ffmpeg:
-    source: https://ffmpeg.org/releases/ffmpeg-7.1.4.tar.xz
+    source: https://ffmpeg.org/releases/ffmpeg-7.1.5.tar.xz
     source-type: tar
     plugin: autotools
     autotools-configure-parameters:
@@ -147,7 +147,7 @@ parts:
       - -usr/share
 
   libass:
-    source: https://github.com/libass/libass/releases/download/0.17.4/libass-0.17.4.tar.gz
+    source: https://github.com/libass/libass/releases/download/0.17.5/libass-0.17.5.tar.gz
     source-type: tar
     plugin: autotools
     autotools-configure-parameters:
