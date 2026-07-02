@@ -9,6 +9,21 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [0.1.11] - 2026-07-03
+
+### Fixes
+
+- **PS Vita: servers reached by a hostname no longer stall with an endless
+  "timeout reached".** libcurl was built with the synchronous name resolver, so
+  a DNS lookup issued from a background thread could not be bounded by any
+  timeout — the synchronous resolver can only abort a slow `getaddrinfo()` via
+  `SIGALRM`, which libcurl arms on the main thread alone. A slow-to-resolve
+  hostname (e.g. a duckdns address) therefore hung every request indefinitely,
+  and raising the request-timeout setting had no effect; only a raw LAN IP,
+  which skips name resolution, worked. curl is now built with the threaded
+  resolver so lookups run in a worker thread the timeout can abandon, and
+  `CURLOPT_NOSIGNAL` keeps libcurl off signals on its background threads.
+
 ## [0.1.10] - 2026-06-15
 
 ### Fixes
