@@ -188,7 +188,7 @@ jobs:
       env:
         BASE_URL: https://github.com/dragonflylee/switchfin/releases/download/vita-packages
       run: |
-        for pkg in mbedtls-3.6.5-1 curl-8.16.0-2 ffmpeg-n6.0-3 mpv-0.36.0-3; do
+        for pkg in mbedtls-3.6.5-1 curl-8.16.0-3 ffmpeg-n6.0-3 mpv-0.36.0-3; do
           wget $BASE_URL/${pkg}-arm.tar.xz
         done
         apk add ninja

@@ -1,6 +1,6 @@
 pkgname=curl
 pkgver=8.16.0
-pkgrel=2
+pkgrel=3
 url="https://curl.se/"
 source=("https://curl.haxx.se/download/curl-${pkgver}.tar.xz")
 sha256sums=('40c8cddbcb6cc6251c03dea423a472a6cea4037be654ba5cf5dec6eb2d22ff1d')
@@ -9,6 +9,16 @@ depends=('mbedtls' 'zlib')
 build() {
   cd curl-${pkgver}
 
+  # ENABLE_THREADED_RESOLVER=ON is required, not optional, on the Vita: the app
+  # runs every request from a background pthread (ThreadPool, __PSV__), and the
+  # synchronous resolver can only abort a slow/hung getaddrinfo via SIGALRM,
+  # which libcurl uses on the main thread only. Without an async resolver a slow
+  # DNS lookup blocks past ANY CURLOPT_*TIMEOUT (curl's own docs: "timeouts
+  # cannot be honored during DNS lookups ... work around by building with c-ares
+  # or threaded-resolver"), so hostname servers stall forever while a raw LAN IP
+  # (no getaddrinfo) works — the exact symptom users hit. The threaded resolver
+  # runs getaddrinfo in a worker thread that the timeout can abandon; c-ares is
+  # unusable here (no /etc/resolv.conf on the Vita, unlike sceNet's getaddrinfo).
   cmake -B build -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.toolchain.cmake \
     -DCMAKE_INSTALL_PREFIX=$prefix \
     -DCMAKE_BUILD_TYPE=Release \
@@ -23,7 +33,7 @@ build() {
     -DCURL_USE_MBEDTLS=ON \
     -DCURL_DISABLE_PROGRESS_METER=ON \
     -DENABLE_IPV6=OFF \
-    -DENABLE_THREADED_RESOLVER=OFF \
+    -DENABLE_THREADED_RESOLVER=ON \
     -DUSE_NGHTTP2=OFF \
     -DUSE_LIBIDN2=OFF \
     -DCURL_BROTLI=OFF \
