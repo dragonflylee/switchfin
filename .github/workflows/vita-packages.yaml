@@ -1,6 +1,7 @@
 name: vita-packages
 
 on:
+  workflow_dispatch:
   push:
     tags: [ vita-packages ]
     branches: [ gxm, mpv ]
