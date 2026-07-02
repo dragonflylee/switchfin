@@ -9,6 +9,31 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [0.1.12] - 2026-07-03
+
+### Player
+
+- **Changing the audio or subtitle track no longer stops playback with a
+  "playback error" on PS Vita.** In transcode mode a track change reloads the
+  stream, but the reload happened in place and never released the hardware
+  decoder, so it stalled and then failed. The reload now resets the player
+  first (like episode navigation) and tears the previous transcode session
+  down on the server instead of leaving it orphaned.
+- **Audio and subtitle tracks are now selectable during local playback from
+  the file browser.** The player showed the track buttons but had no handler
+  wired, so they appeared to do nothing.
+- **A failed transcode now falls back to direct play once**, instead of going
+  straight to an error — a smoother recovery on constrained hardware.
+- **Playback errors now show the underlying mpv reason** (e.g. "unrecognized
+  file format") instead of a bare "playback error", making bug reports
+  actionable.
+
+### Fixes
+
+- **PS Vita: the transcoder height is capped at 1080p**, the hardware decoder's
+  limit, so a 4K source at a high bitrate no longer produces a stream the Vita
+  cannot decode.
+
 ## [0.1.11] - 2026-07-03
 
 ### Fixes
