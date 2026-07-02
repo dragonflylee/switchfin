@@ -17,28 +17,35 @@
 - `DMCA` (the obvious "D-pad Media Center Aggregator" acronym) was **rejected**: it collides with the
   copyright-takedown term — SEO-dead, takedown-bait and reads as a piracy tool.
 
-## Why a new repo (not a GitHub rename)
+## Why rename the repo (not create a new one)
 
-A clean break avoids the two hazards a rename would cause: GitHub Pages project URLs are **not**
-redirected on rename (the site would 404), and redirect chains are fragile. pleNx stays online as a
-pointer; GMCA starts fresh with its own identity, so the two **install in parallel** on a device and
-users switch when they want. Trade-off accepted: the new repo starts with zero stars.
+Renaming `thcolin/pleNx` → `thcolin/gamepad-media-center-aggregator` **keeps the stars, watchers,
+forks, issues and history**, and GitHub auto-redirects clone/fetch/push, the API and web URLs. A
+valuable side effect: the installed pleNx updater is pinned to `thcolin/pleNx`, so after the rename the
+API redirect means existing installs **find the GMCA releases automatically** — the update bridge is
+almost free. Two costs, both minor: GitHub Pages project URLs are **not** redirected, so
+`thcolin.github.io/pleNx/` will 404 (the site content already lives at the new path — only old inbound
+links break); and the freed `pleNx` name **must not be reused** (reusing it breaks the redirects).
 
-## The four phases (both online throughout)
+Note this is separate from the **app** identity: the console title IDs and reverse-DNS app-id are kept
+**fresh** (not pleNx's), so GMCA still installs *in parallel* with an existing pleNx app on a device
+and escapes the Switch HOME-menu name/icon cache — data is carried over by the migration shim. Repo
+continuity (stars) and a clean app install are thus both achieved.
 
-1. **Ship multi-backend as pleNx `v0.2.0`.** Merge the multi-backend work and tag it — a "pure"
-   feature release, *without* announcing the rename (no destination exists yet). This release already
-   **pre-migrates user data to the GMCA folder** (see below) so the eventual switch is seamless.
-2. **Build GMCA in parallel.** On `feat/rebrand-gmca`: full rebrand (identity, fresh IDs, app-id,
-   updater, forwarder, packaging, Android, site, README). Create the repo, wire CI + Pages + release,
-   tag **GMCA `v1.0.0`**, publish builds, then submit to hb-app.store (new listing) and VitaDB (new
-   entry). At the end of this phase GMCA is downloadable everywhere.
-3. **Announce & bridge.** A final pleNx `v0.2.x` release ("pleNx is now GMCA") with a one-time in-app
-   notice and release notes pointing to GMCA — the installed pleNx updater is pinned to
-   `thcolin/pleNx`, so this is how existing users are told. Add "→ GMCA" banners to the pleNx README
-   and site, and post on the forums (GBAtemp, r/SwitchHomebrew, VitaDB).
-4. **Coexist, then wind down.** Keep both repos/listings online as long as useful; later archive the
-   pleNx repo (read-only, never unpublished) so old links and installs keep resolving.
+## The transition
+
+1. **(Optional) Ship multi-backend as pleNx `v0.2.0` first.** Tag the multi-backend work under the
+   current name — a "pure" feature release that also **pre-migrates user data to the GMCA folder** (see
+   below). Softens the change by getting multi-backend out before the rename. Can be skipped: GMCA
+   `v1.0.0` carries the same shim and reaches pleNx users via the updater redirect anyway.
+2. **Rename the repo & release GMCA `v1.0.0`.** Rename `thcolin/pleNx` in GitHub settings, push the
+   `feat/rebrand-gmca` branch, let Pages redeploy at the new path. Tag **GMCA `v1.0.0`**, publish
+   builds, then submit to hb-app.store (new listing — its slug is name-based) and VitaDB (new entry —
+   auto-update matches on the fresh TITLE_ID). GMCA is now downloadable everywhere and the redirected
+   updater already serves it to existing pleNx installs.
+3. **Announce.** GMCA `v1.0.x` (or the notes of `v1.0.0`) carries a one-time in-app "pleNx is now
+   GMCA" notice for clarity — the mechanical bridge is automatic, this is just messaging. Update the
+   README/site and post on the forums (GBAtemp, r/SwitchHomebrew, VitaDB).
 
 ## Migration mechanics
 
@@ -72,5 +79,7 @@ users switch when they want. Trade-off accepted: the new repo starts with zero s
 - [ ] **GMCA brand art** — the site and README use a typographic wordmark placeholder; a real logo /
       icon and re-shot screenshots (showing the GMCA name, plus PS Vita and Raspberry-Pi-on-a-TV
       imagery) are still to be produced.
-- [ ] Create the `thcolin/gamepad-media-center-aggregator` GitHub repo, enable Pages, port CI secrets.
-- [ ] Submit to hb-app.store and VitaDB; add the pointer notices to the pleNx repo/site.
+- [ ] **Rename** `thcolin/pleNx` → `thcolin/gamepad-media-center-aggregator` in GitHub settings, push
+      `feat/rebrand-gmca`, and let Pages redeploy at the new path. Do **not** create anything at the
+      freed `pleNx` name (it would break the redirects).
+- [ ] Submit to hb-app.store (new listing) and VitaDB (new entry).
