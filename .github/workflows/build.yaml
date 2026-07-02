@@ -206,10 +206,17 @@ jobs:
     - name: Update dependencies
       env:
         BASE_URL: https://github.com/dragonflylee/switchfin/releases/download/vita-packages
+        # curl is rebuilt with ENABLE_THREADED_RESOLVER=ON (scripts/vita/curl) and
+        # hosted on this fork's own vita-packages release: the app resolves server
+        # hostnames from background threads, where the synchronous resolver cannot
+        # honor DNS timeouts, so a slow lookup stalls forever. The other packages
+        # stay on the upstream (known-good) release.
+        CURL_URL: https://github.com/thcolin/pleNx/releases/download/vita-packages
       run: |
-        for pkg in mbedtls-3.6.5-1 curl-8.16.0-2 ffmpeg-n6.0-3 mpv-0.36.0-3; do
+        for pkg in mbedtls-3.6.5-1 ffmpeg-n6.0-3 mpv-0.36.0-3; do
           wget $BASE_URL/${pkg}-arm.tar.xz
         done
+        wget $CURL_URL/curl-8.16.0-3-arm.tar.xz
         apk add ninja
         vdpm $PWD/*-arm.tar.xz
         git config --system --add safe.directory $GITHUB_WORKSPACE
