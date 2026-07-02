@@ -39,6 +39,13 @@ private:
     void playMedia(const int64_t seekMs);
     void playDirect(const int64_t seekMs);
     void playTranscode(const int64_t seekMs);
+    /// Tears the current transcode session down server-side (no-op for direct
+    /// play). Fire-and-forget; safe to call after `this` is gone.
+    void stopTranscode();
+    /// On a transcode playback error, retry once in direct play (helps Vita,
+    /// where the hardware decoder can choke on the transcoded stream). Returns
+    /// true when a fallback was started (so the error dialog is suppressed).
+    bool tryDirectPlayFallback();
     bool playIndex(int index);
     /// POST /:/timeline report (time/duration in ms)
     void reportTimeline(const std::string& state, int64_t timeMs);
@@ -58,6 +65,9 @@ private:
     plex::Item item;     // fresh metadata (media/chapters/markers)
     plex::Media stream;  // selected version
     bool scrobbled = false;
+    /// guards tryDirectPlayFallback so a failing stream falls back at most once
+    /// per (re)load; reset by playMedia on every deliberate (re)start
+    bool directPlayFallback = false;
     std::vector<plex::Item> episodes;
 
     MPVEvent::Subscription eventSubscribeID;

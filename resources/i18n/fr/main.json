@@ -40,6 +40,7 @@
     "prev": "Précédent",
     "next": "Suivant",
     "error": "Échec de lecture",
+    "direct_fallback": "Échec du transcodage, lecture directe",
     "episode": "Sélections",
     "speed_up": "Vitesse actuelle {}"
   },

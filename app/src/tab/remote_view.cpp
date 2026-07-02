@@ -24,6 +24,17 @@ public:
         view->setId("video");
         view->setTitie(item.name);
         view->hideVideoQuality();
+        // local/remote playback: embedded mpv tracks only (no Plex Media). Same
+        // wiring as the downloads player — without this the audio/subtitle OSD
+        // buttons were shown but had no handler, so tracks looked unavailable.
+        view->registerVideoSubtitle([](...) {
+            PlayerSetting::showSubtitleMenu(nullptr);
+            return true;
+        });
+        view->registerVideoAudio([](...) {
+            PlayerSetting::showAudioMenu(nullptr);
+            return true;
+        });
         this->setDimensions(width, height);
         this->addView(view);
 

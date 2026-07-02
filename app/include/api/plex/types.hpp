@@ -86,6 +86,9 @@ const std::string_view apiTimeline = "/:/timeline?{}";
 const std::string_view apiPhotoTranscode = "/photo/:/transcode?{}";
 const std::string_view apiTranscodeDecision = "/video/:/transcode/universal/decision?{}";
 const std::string_view apiTranscodeStart = "/video/:/transcode/universal/start?{}";
+/// Tears a transcode session down server-side (frees the transcoder). Must be
+/// called on every (re)start and on player exit or sessions pile up orphaned.
+const std::string_view apiTranscodeStop = "/video/:/transcode/universal/stop?{}";
 const std::string_view apiPartIndexes = "/library/parts/{}/indexes/sd";
 
 /// Numeric types (`type=` parameter)

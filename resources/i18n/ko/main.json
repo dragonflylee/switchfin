@@ -36,6 +36,7 @@
     "prev": "이전",
     "next": "다음",
     "error": "재생 실패",
+    "direct_fallback": "트랜스코딩 실패, 직접 재생합니다",
     "episode": "에피소드",
     "speed_up": "{} 배속 재생 중"
   },

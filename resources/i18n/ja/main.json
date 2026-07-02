@@ -36,6 +36,7 @@
     "prev": "前へ",
     "next": "次へ",
     "error": "再生エラー",
+    "direct_fallback": "トランスコード失敗、直接再生します",
     "episode": "エピソード",
     "speed_up": "現在の速度 {}"
   },

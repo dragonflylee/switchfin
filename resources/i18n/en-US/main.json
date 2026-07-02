@@ -40,6 +40,7 @@
     "prev": "Prev",
     "next": "Next",
     "error": "Playback error",
+    "direct_fallback": "Transcode failed, playing directly",
     "episode": "Episode",
     "speed_up": "Current speed {}"
   },

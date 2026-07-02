@@ -658,7 +658,16 @@ void VideoView::registerMpvEvent() {
             this->volumeIcon->setImageFromSVGRes("icon/ico-volume.svg");
             break;
         case MpvEventEnum::MPV_FILE_ERROR: {
-            auto dialog = new brls::Dialog("main/player/error"_i18n);
+            // Let an owner (PlayerView) try to recover first (e.g. fall back to
+            // direct play). If it reports the error handled, show nothing.
+            if (this->errorAction && this->errorAction(this)) break;
+            // Otherwise surface the concrete mpv reason so bug reports are
+            // actionable ("Playback error (mpv -13: unrecognized file format)")
+            // instead of an opaque "Playback error".
+            std::string reason = MPVCore::instance().getError();
+            std::string msg = "main/player/error"_i18n;
+            if (!reason.empty()) msg += "\n(" + reason + ")";
+            auto dialog = new brls::Dialog(msg);
             dialog->addButton("hints/back"_i18n, []() { VideoView::close(true); });
             dialog->open();
             break;
@@ -870,6 +879,8 @@ void VideoView::registerVideoAudio(brls::ActionListener action) {
     this->btnVideoAudio->registerClickAction(action);
     this->btnVideoAudio->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoAudio));
 }
+
+void VideoView::registerError(brls::ActionListener action) { this->errorAction = action; }
 
 void VideoView::registerActions(const std::string& hintText, const brls::ControllerButton button,
     const brls::BrlsKeyCombination key, const brls::ActionListener& actionListener, bool hidden, bool allowRepeating) {

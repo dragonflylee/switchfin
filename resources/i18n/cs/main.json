@@ -36,6 +36,7 @@
     "prev": "Předchozí",
     "next": "Další",
     "error": "Chyba přehrávání",
+    "direct_fallback": "Překódování selhalo, přímé přehrávání",
     "episode": "Epizoda",
     "speed_up": "Aktuální rychlost {}"
   },

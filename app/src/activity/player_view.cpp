@@ -41,6 +41,9 @@ PlayerView::PlayerView(const plex::Item& item, const int64_t seekMs) : itemId(it
         PlayerSetting::showAudioMenu(&this->stream);
         return true;
     });
+    // transcode stream failed to play -> retry once in direct play before the
+    // error dialog (Vita hardware decode can reject the transcoded stream)
+    view->registerError([this](...) { return this->tryDirectPlayFallback(); });
 
     // stable session identifier (24 characters)
     this->sessionId = misc::randHex(12);
@@ -98,7 +101,16 @@ PlayerView::PlayerView(const plex::Item& item, const int64_t seekMs) : itemId(it
     });
     customEventSubscribeID = mpv.getCustomEvent()->subscribe([this](const std::string& event, void* data) {
         if (event == QUALITY_CHANGE) {
-            this->playMedia(int64_t(MPVCore::instance().playback_time) * 1000);
+            // Quality/audio/subtitle change: the HLS transcode carries a single
+            // audio track and no selectable subtitle, so switching means asking
+            // the server for a fresh transcode and reloading it. Mirror
+            // playIndex and reset() mpv first: reloading in place kept the old
+            // (Vita hardware) decoder pinned, so the switch stalled and then
+            // failed with a playback error. Read the position before reset()
+            // zeroes it so the new transcode resumes where we were.
+            int64_t pos = int64_t(MPVCore::instance().playback_time) * 1000;
+            MPVCore::instance().reset();
+            this->playMedia(pos);
         } else if (event == "PreviousTrack") {
             this->view->playNext(-1);
         } else if (event == "NextTrack") {
@@ -127,6 +139,8 @@ PlayerView::~PlayerView() {
     PlayerSetting::selectedAudio = 0;
 
     if (!mpv.isStopped()) this->reportStop();
+    // Free the server-side transcode session on exit (else it lingers orphaned).
+    this->stopTranscode();
     brls::Application::getExitEvent()->unsubscribe(this->exitSubscribeID);
     brls::Logger::debug("trying delete PlayerView...");
 }
@@ -189,6 +203,14 @@ bool PlayerView::playIndex(int index) {
 }
 
 void PlayerView::playMedia(const int64_t seekMs) {
+    // Release any transcode session we were running before (re)loading. Covers
+    // quality/track switches, episode navigation, and transcode->direct play.
+    // Without it each reload orphaned a server-side session (verified: they
+    // stack up at ~0% progress and never free), starving new transcodes.
+    this->stopTranscode();
+    // deliberate (re)start: allow the direct-play fallback to trigger again
+    this->directPlayFallback = false;
+
     auto& conf = AppConfig::instance();
     std::string query = HTTP::encode_form({
         {"includeChapters", "1"},
@@ -308,6 +330,15 @@ void PlayerView::playTranscode(const int64_t seekMs) {
         "add-transcode-target(type=videoProfile&context=streaming&protocol=hls&container=mpegts&videoCodec=h264&"
         "audioCodec=aac,ac3,mp3&replace=true)",
     };
+#if defined(__PSV__)
+    // The Vita hardware H.264 decoder tops out at 1080p (scripts/vita/ffmpeg
+    // patch). The bitrate cap alone lets a >1080p source through at higher
+    // qualities (verified: 8 Mbps keeps 1080p, and a 4K source would stay 4K),
+    // which the decoder then cannot handle -> playback error. Cap the height so
+    // the transcode never exceeds what the decoder can play.
+    clauses.push_back(
+        "add-limitation(scope=videoCodec&scopeName=*&type=upperBound&name=video.height&value=1080&replace=true)");
+#endif
     std::string profile;
     for (auto& clause : clauses) {
         HTTP::Form one = {{"p", clause}};
@@ -359,6 +390,33 @@ void PlayerView::playTranscode(const int64_t seekMs) {
             });
         }
     });
+}
+
+bool PlayerView::tryDirectPlayFallback() {
+    auto& mpv = MPVCore::instance();
+    // only recover a failed transcode, and only once per (re)load
+    if (this->playMethod != "transcode" || this->directPlayFallback) return false;
+    this->directPlayFallback = true;
+
+    int64_t pos = int64_t(mpv.playback_time) * 1000;  // read before reset() zeroes it
+    brls::Logger::error("PlayerView: transcode playback failed ({}) — falling back to direct play at {} ms",
+        mpv.getError(), pos);
+    mpv.reset();            // release the (Vita hardware) decoder held by the failed stream
+    this->stopTranscode();  // drop the dead transcode session server-side
+    this->playDirect(pos);
+    // surface the reason to the user too, so bug reports carry the mpv code
+    brls::Application::notify(fmt::format("{} ({})", "main/player/direct_fallback"_i18n, mpv.getError()));
+    return true;  // handled: no error dialog
+}
+
+void PlayerView::stopTranscode() {
+    if (this->transcodeSession.empty()) return;
+    auto& conf = AppConfig::instance();
+    // Fire-and-forget: getAction copies url+token, so it is safe even if this
+    // PlayerView is being destroyed. A stale session id just 404s server-side.
+    plex::getAction(conf.getUrl(), conf.getToken(), nullptr, plex::apiTranscodeStop,
+        HTTP::encode_form({{"session", this->transcodeSession}}));
+    this->transcodeSession.clear();
 }
 
 void PlayerView::reportTimeline(const std::string& state, int64_t timeMs) {

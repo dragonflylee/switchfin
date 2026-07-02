@@ -36,6 +36,7 @@
     "prev": "Trước",
     "next": "Sau",
     "error": "Lỗi trong khi phát",
+    "direct_fallback": "Chuyển mã thất bại, đang phát trực tiếp",
     "episode": "Tập",
     "speed_up": "Tốc độ hiện tại {}"
   },

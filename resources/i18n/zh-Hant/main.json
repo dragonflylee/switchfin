@@ -36,6 +36,7 @@
     "prev": "上一個",
     "next": "下一個",
     "error": "播放錯誤",
+    "direct_fallback": "轉碼失敗，直接播放",
     "episode": "選集",
     "speed_up": "{} 倍速播放中"
   },

@@ -36,6 +36,7 @@
     "prev": "Anterior",
     "next": "Seguinte",
     "error": "Erro de reprodução",
+    "direct_fallback": "Falha na transcodificação, reprodução direta",
     "episode": "Episódio",
     "speed_up": "Velocidade atual {}"
   },
