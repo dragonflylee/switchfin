@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Guide — pleNx</title>
-  <meta name="description" content="How to install pleNx on Nintendo Switch and desktop, playback controls, system requirements and FAQ.">
-  <link rel="canonical" href="https://thcolin.github.io/pleNx/guide.html">
+  <title>Guide — GMCA</title>
+  <meta name="description" content="How to install GMCA on Nintendo Switch, PS Vita, Raspberry Pi/Linux and desktop, connect Plex/Jellyfin/Emby/Stremio, playback controls, system requirements and FAQ.">
+  <link rel="canonical" href="https://thcolin.github.io/gamepad-media-center-aggregator/guide.html">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Guide — pleNx">
-  <meta property="og:description" content="How to install pleNx on Nintendo Switch and desktop, playback controls, system requirements and FAQ.">
-  <meta property="og:image" content="https://thcolin.github.io/pleNx/assets/img/og.jpg">
+  <meta property="og:title" content="Guide — GMCA">
+  <meta property="og:description" content="Install GMCA on Switch, PS Vita, Raspberry Pi and desktop; connect Plex, Jellyfin, Emby or Stremio.">
+  <meta property="og:image" content="https://thcolin.github.io/gamepad-media-center-aggregator/assets/img/og.jpg">
   <meta name="theme-color" content="#14110d">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
   <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
@@ -23,16 +23,16 @@
   <a class="skip-link" href="#main">Skip to content</a>
 
   <header class="nav">
-    <a class="nav-brand" href="./">
-      <img src="assets/img/logo-full-white-ghost.png" alt="pleNx — home" width="90" height="31">
+    <a class="nav-brand" href="./" aria-label="GMCA — home">
+      <span class="wordmark">GMCA</span>
     </a>
     <nav class="nav-links" aria-label="Main">
-      <a href="./#features">Features</a>
-      <a href="./#screens">Screens</a>
+      <a href="./#backends">Backends</a>
+      <a href="./#devices">Devices</a>
       <a href="./#install">Install</a>
       <a href="guide.html" aria-current="page">Guide</a>
     </nav>
-    <a class="nav-gh" href="https://github.com/thcolin/pleNx" aria-label="pleNx on GitHub">
+    <a class="nav-gh" href="https://github.com/thcolin/gamepad-media-center-aggregator" aria-label="GMCA on GitHub">
       <svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
     </a>
   </header>
@@ -43,10 +43,11 @@
       <h1 class="reveal" style="--i:1">Guide</h1>
       <nav class="toc reveal" style="--i:2" aria-label="On this page">
         <a href="#switch"><span class="toc-num">01</span> Install on Nintendo Switch</a>
-        <a href="#desktop"><span class="toc-num">02</span> Desktop &amp; mobile builds</a>
-        <a href="#controls"><span class="toc-num">03</span> Controls during playback</a>
-        <a href="#requirements"><span class="toc-num">04</span> System requirements</a>
-        <a href="#faq"><span class="toc-num">05</span> FAQ</a>
+        <a href="#other"><span class="toc-num">02</span> PS Vita, Raspberry Pi &amp; desktop</a>
+        <a href="#connect"><span class="toc-num">03</span> Connect a server</a>
+        <a href="#controls"><span class="toc-num">04</span> Controls during playback</a>
+        <a href="#requirements"><span class="toc-num">05</span> System requirements</a>
+        <a href="#faq"><span class="toc-num">06</span> FAQ</a>
       </nav>
     </header>
 
@@ -60,47 +61,74 @@
         <p>You'll need a console running <a href="https://github.com/Atmosphere-NX/Atmosphere">Atmosphère</a> CFW
            and the homebrew menu.</p>
         <ol>
-          <li>Download <a href="https://github.com/thcolin/pleNx/releases/latest/download/pleNx.nro"><code>pleNx.nro</code></a>
+          <li>Download <a href="https://github.com/thcolin/gamepad-media-center-aggregator/releases/latest/download/GMCA.nro"><code>GMCA.nro</code></a>
               from the latest release and copy it to <code>sdmc:/switch/</code>.</li>
-          <li>Launch pleNx from the homebrew menu.</li>
-          <li>On first launch in <strong>applet mode</strong>, pleNx offers to install a HOME menu tile:
+          <li>Launch GMCA from the homebrew menu.</li>
+          <li>On first launch in <strong>applet mode</strong>, GMCA offers to install a HOME menu tile:
               press the button, confirm, and the app relaunches as a regular title with full memory.
               Alternatively, hold <kbd>R</kbd> while launching any game (title takeover).</li>
-          <li>Sign in with your Plex account: enter the 4-character code shown on screen at
-              <a href="https://plex.tv/link">plex.tv/link</a>, then pick your server and your
-              Plex Home profile.</li>
+          <li>Add your media server (see <a href="#connect">Connect a server</a>) and start watching.</li>
         </ol>
         <aside class="note">
           <strong>Video playback needs full-memory mode.</strong> Applet mode (launching over the
           HOME menu) is fine for browsing, but install the HOME tile — or use title takeover —
           before starting a movie.
         </aside>
+        <p>Coming from pleNx? GMCA reads your existing library, logins and downloads automatically on
+           first launch — nothing to re-configure.</p>
       </div>
     </section>
 
-    <!-- ============ DESKTOP ============ -->
-    <section class="guide-section" id="desktop">
+    <!-- ============ OTHER PLATFORMS ============ -->
+    <section class="guide-section" id="other">
       <div class="sec-head reveal">
         <span class="sec-num" aria-hidden="true">02</span>
-        <h2>Desktop &amp; mobile builds</h2>
+        <h2>PS Vita, Raspberry Pi &amp; desktop</h2>
       </div>
       <div class="guide-body reveal">
-        <p>Every <a href="https://github.com/thcolin/pleNx/releases/latest">release</a> ships builds for
+        <p>Every <a href="https://github.com/thcolin/gamepad-media-center-aggregator/releases/latest">release</a> ships builds for
            all supported platforms, with fresh nightly artifacts on
-           <a href="https://nightly.link/thcolin/pleNx/workflows/build.yaml/dev">nightly.link</a>.</p>
+           <a href="https://nightly.link/thcolin/gamepad-media-center-aggregator/workflows/build.yaml/dev">nightly.link</a>.</p>
         <dl class="platform-list">
+          <div><dt>PS Vita</dt>
+          <dd>Install <code>GMCA.vpk</code> with VitaShell, or find GMCA on
+              <a href="https://www.rinnegatamante.eu/vitadb/">VitaDB</a> — for jailbroken consoles.</dd></div>
+          <div><dt>Raspberry Pi / Linux</dt>
+          <dd>Flatpak bundles for x86_64 and arm64v8 (OpenGL 3), plus an Arch package. Wire a Pi to the TV
+              with a controller or keyboard for a full 10-foot media center.</dd></div>
           <div><dt>macOS</dt>
           <dd>DMG for Intel and Apple Silicon, macOS 10.15+. If Gatekeeper refuses to open the app,
               clear the quarantine attribute:
-              <pre><code>sudo xattr -rd com.apple.quarantine /Applications/pleNx.app</code></pre></dd></div>
+              <pre><code>sudo xattr -rd com.apple.quarantine /Applications/GMCA.app</code></pre></dd></div>
           <div><dt>Windows</dt>
           <dd>Portable 7z archives for x64, x86 and ARM64 — Windows 7 or later with DirectX 11.1.</dd></div>
-          <div><dt>Linux</dt>
-          <dd>Flatpak bundles for x86_64 and arm64v8 (OpenGL 3), plus an Arch package.</dd></div>
-          <div><dt>Android</dt>
-          <dd>APKs for arm64-v8a and armeabi-v7a.</dd></div>
-          <div><dt>PS4 &amp; PS Vita</dt>
-          <dd>Homebrew PKG and VPK for jailbroken consoles — experimental.</dd></div>
+          <div><dt>PS4</dt>
+          <dd>Homebrew PKG for jailbroken consoles — experimental.</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- ============ CONNECT ============ -->
+    <section class="guide-section" id="connect">
+      <div class="sec-head reveal">
+        <span class="sec-num" aria-hidden="true">03</span>
+        <h2>Connect a server</h2>
+      </div>
+      <div class="guide-body reveal">
+        <p>On first launch, pick a backend — the same interface follows whichever you choose.</p>
+        <dl class="platform-list">
+          <div><dt>Plex</dt>
+          <dd>Enter the 4-character code shown on screen at <a href="https://plex.tv/link">plex.tv/link</a>,
+              then pick your server and your Plex Home profile (PIN-protected profiles supported).</dd></div>
+          <div><dt>Jellyfin / Emby</dt>
+          <dd>Type your server URL, then authenticate with Quick Connect (no keyboard) or your username
+              and password.</dd></div>
+          <div><dt>Stremio</dt>
+          <dd>Log in with your Stremio account — your addon catalogs and library sync across. Streams play
+              from direct links or your configured debrid service.</dd></div>
+          <div><dt>File servers</dt>
+          <dd>Add a WebDAV, FTP, SFTP or HTTP(S) share straight from the UI, with a connection test before
+              saving. USB drives work too on Switch.</dd></div>
         </dl>
       </div>
     </section>
@@ -108,7 +136,7 @@
     <!-- ============ CONTROLS ============ -->
     <section class="guide-section" id="controls">
       <div class="sec-head reveal">
-        <span class="sec-num" aria-hidden="true">03</span>
+        <span class="sec-num" aria-hidden="true">04</span>
         <h2>Controls during playback</h2>
       </div>
       <div class="guide-body reveal">
@@ -128,49 +156,56 @@
           </tbody>
         </table>
         <p>Anywhere in the app, press <kbd>X</kbd> — or long-press — on a poster to open the
-           quick actions panel: go to show, go to season, mark watched, download, watchlist.</p>
+           quick actions panel: go to show, go to season, mark watched, download, add to your list.</p>
       </div>
     </section>
 
     <!-- ============ REQUIREMENTS ============ -->
     <section class="guide-section" id="requirements">
       <div class="sec-head reveal">
-        <span class="sec-num" aria-hidden="true">04</span>
+        <span class="sec-num" aria-hidden="true">05</span>
         <h2>System requirements</h2>
       </div>
       <div class="guide-body reveal">
         <ul>
           <li><strong>Nintendo Switch</strong> — Atmosphère CFW, full-memory mode for playback</li>
+          <li><strong>PS Vita</strong> — HENkaku/h-encore jailbreak</li>
+          <li><strong>Raspberry Pi / Linux</strong> — Flatpak (x86_64 / arm64v8), OpenGL 3 support</li>
           <li><strong>Windows</strong> — Windows 7 or later, DirectX 11.1 support</li>
           <li><strong>macOS</strong> — 10.15 or later, Intel or Apple Silicon</li>
-          <li><strong>Linux</strong> — Flatpak (x86_64 / arm64v8), OpenGL 3 support</li>
         </ul>
         <p>MPV decodes H.264, H.265, VP8, VP9 and AV1 video; Opus, FLAC, MP3, AAC, AC-3, E-AC-3,
            TrueHD and DTS audio; and SRT, VTT, SSA/ASS and DVDSUB subtitles. Anything your
-           hardware can't direct-play, your Plex server transcodes.</p>
+           hardware can't direct-play, a Plex/Jellyfin/Emby server transcodes.</p>
       </div>
     </section>
 
     <!-- ============ FAQ ============ -->
     <section class="guide-section" id="faq">
       <div class="sec-head reveal">
-        <span class="sec-num" aria-hidden="true">05</span>
+        <span class="sec-num" aria-hidden="true">06</span>
         <h2>FAQ</h2>
       </div>
       <div class="guide-body reveal">
         <details>
+          <summary>Is this pleNx? What happened to it?</summary>
+          <p>GMCA is the evolution of pleNx: same app and team, renamed as it grew from a Plex-only client
+             into a multi-backend one (Plex, Jellyfin, Emby, Stremio). Existing pleNx installs migrate their
+             data to GMCA automatically on first launch.</p>
+        </details>
+        <details>
           <summary>Subtitles don't show up on Switch?</summary>
-          <p>Drop any TrueType font at <code>sdmc:/switch/pleNx/subfont.ttf</code> — it will be
+          <p>Drop any TrueType font at <code>sdmc:/switch/GMCA/subfont.ttf</code> — it will be
              used to render text subtitles.</p>
         </details>
         <details>
           <summary>macOS won't open the app?</summary>
           <p>Gatekeeper quarantines unsigned apps downloaded from the internet. Clear the attribute:</p>
-          <pre><code>sudo xattr -rd com.apple.quarantine /Applications/pleNx.app</code></pre>
+          <pre><code>sudo xattr -rd com.apple.quarantine /Applications/GMCA.app</code></pre>
         </details>
         <details>
           <summary>How do I enable an external USB drive on Switch?</summary>
-          <p>Set <code>ums</code> in <code>config.json</code> (in <code>sdmc:/switch/pleNx/</code>):</p>
+          <p>Set <code>ums</code> in <code>config.json</code> (in <code>sdmc:/switch/GMCA/</code>):</p>
           <pre><code>{
   "setting": {
     "ums": true
@@ -178,16 +213,15 @@
 }</code></pre>
         </details>
         <details>
-          <summary>Is pleNx affiliated with Plex?</summary>
-          <p>No. pleNx is an independent, open-source, third-party client — not affiliated with or
-             endorsed by Plex, Inc. It talks to <em>your</em> Plex Media Server with your own account.</p>
+          <summary>Is GMCA affiliated with Plex, Jellyfin, Emby or Stremio?</summary>
+          <p>No. GMCA is an independent, open-source, third-party client — not affiliated with or
+             endorsed by any of them. It talks to <em>your</em> server with your own account.</p>
         </details>
         <details>
           <summary>Where do I report a bug?</summary>
-          <p>On the <a href="https://github.com/thcolin/pleNx/issues">GitHub issue tracker</a> —
-             describe what you did, what happened, and your console model and Atmosphère version.
-             On desktop, launching the app with <code>-d -o plenx.log</code> writes a debug log
-             you can attach.</p>
+          <p>On the <a href="https://github.com/thcolin/gamepad-media-center-aggregator/issues">GitHub issue tracker</a> —
+             describe what you did, what happened, your backend, and your device model. On desktop, launching
+             the app with <code>-d -o gmca.log</code> writes a debug log you can attach.</p>
         </details>
       </div>
     </section>
@@ -201,15 +235,15 @@
     </div>
     <div class="cb-right">
       <a class="cb-hint" href="./"><span class="btn-glyph">B</span> Back home</a>
-      <a class="cb-hint" href="https://github.com/thcolin/pleNx/releases/latest"><span class="btn-glyph btn-glyph-a">A</span> Download</a>
+      <a class="cb-hint" href="https://github.com/thcolin/gamepad-media-center-aggregator/releases/latest"><span class="btn-glyph btn-glyph-a">A</span> Download</a>
     </div>
   </div>
 
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-brand">
-        <img src="assets/img/logo-full-black-ghost.png" alt="pleNx" width="165" height="57">
-        <p>A native, controller-first Plex client for Nintendo Switch.<br>
+        <span class="wordmark wordmark-footer">GMCA</span>
+        <p>Gamepad Media Center Aggregator — a native, controller-first client for Plex, Jellyfin, Emby and Stremio.<br>
            Free and open source, forked from
            <a href="https://github.com/dragonflylee/switchfin">Switchfin</a>, built on
            <a href="https://github.com/natinusala/borealis">borealis</a> and
@@ -217,10 +251,10 @@
       </div>
       <nav class="footer-col" aria-label="Project">
         <h3>Project</h3>
-        <a href="https://github.com/thcolin/pleNx">GitHub</a>
-        <a href="https://github.com/thcolin/pleNx/releases">Releases</a>
-        <a href="https://nightly.link/thcolin/pleNx/workflows/build.yaml/dev">Nightly builds</a>
-        <a href="https://github.com/thcolin/pleNx/issues">Issues</a>
+        <a href="https://github.com/thcolin/gamepad-media-center-aggregator">GitHub</a>
+        <a href="https://github.com/thcolin/gamepad-media-center-aggregator/releases">Releases</a>
+        <a href="https://nightly.link/thcolin/gamepad-media-center-aggregator/workflows/build.yaml/dev">Nightly builds</a>
+        <a href="https://github.com/thcolin/gamepad-media-center-aggregator/issues">Issues</a>
       </nav>
       <nav class="footer-col" aria-label="Help">
         <h3>Help</h3>
@@ -231,9 +265,9 @@
       </nav>
     </div>
     <p class="footer-legal">
-      pleNx is a third-party project, not affiliated with or endorsed by Plex, Inc.
-      Nintendo Switch is a trademark of Nintendo. ·
-      <span data-version>v0.1.10</span> · <a href="https://github.com/thcolin/pleNx/blob/dev/CHANGELOG.md">Changelog</a>
+      GMCA is an independent, third-party project, not affiliated with or endorsed by Plex, Jellyfin, Emby or Stremio.
+      Nintendo Switch is a trademark of Nintendo; PS Vita and PS4 are trademarks of Sony. ·
+      <span data-version>v1.0.0</span> · <a href="https://github.com/thcolin/gamepad-media-center-aggregator/blob/dev/CHANGELOG.md">Changelog</a>
     </p>
   </footer>
 

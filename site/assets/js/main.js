@@ -1,4 +1,4 @@
-/* pleNx promo site — progressive enhancements only.
+/* GMCA promo site — progressive enhancements only.
    The <html> element gets a "js" class from an inline head script;
    all hide-then-reveal styling is scoped to it, so the page renders
    fully without JavaScript. */
@@ -41,7 +41,7 @@ if (clock) {
 }
 
 // Latest release version, fetched once — falls back to static text
-fetch('https://api.github.com/repos/thcolin/pleNx/releases/latest')
+fetch('https://api.github.com/repos/thcolin/gamepad-media-center-aggregator/releases/latest')
   .then((r) => (r.ok ? r.json() : null))
   .then((release) => {
     if (!release || !release.tag_name) return;

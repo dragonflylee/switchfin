@@ -1,31 +1,30 @@
 <div align="center">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="logo-full-white-ghost.png">
-  <img src="logo-full-black-ghost.png" alt="pleNx" width="320">
-</picture>
+# GMCA — Gamepad Media Center Aggregator
 
-*/plɛn.ɛks/ — Plex × NX*
+*/ˌdʒiː.ɛm.siː.ˈeɪ/ — Gamepad Media Center Aggregator*
 
-**🎮 📺 - A third-party native, controller-first Plex client for Nintendo Switch.**
+**🎮 📺 — every media server, on the consoles everyone forgot.**
 
-Browse and play your movies and shows from your Plex Media Server, with a fully
-native interface designed for the gamepad. Also (should) runs on Windows,
-macOS, Linux, PS4 and PS Vita.
+A native, controller-first client for **Plex, Jellyfin, Emby and Stremio** — built for the
+devices their official apps ignore: **Nintendo Switch**, **PS Vita** and **Raspberry Pi** on a
+TV. The same interface, whatever you run; only the actions and tabs change with your backend.
+Also runs on Windows, macOS, Linux and PS4.
 
-[![build](https://github.com/thcolin/pleNx/actions/workflows/build.yaml/badge.svg)](https://github.com/thcolin/pleNx/actions/workflows/build.yaml)
-[![NS](https://img.shields.io/badge/-Nintendo%20Switch-e4000f?style=flat&logo=Nintendo%20Switch)](https://hb-app.store/switch/pleNx)
-[![PSVita](https://img.shields.io/badge/-PSVita-003791?style=flat&logo=PlayStation)](https://www.rinnegatamante.eu/vitadb/#/info/1411)
-[![download](https://img.shields.io/github/downloads/thcolin/pleNx/total?label=downloads)](https://github.com/thcolin/pleNx/releases/latest)
-[![nightly](https://img.shields.io/badge/nightly-build-green)](https://nightly.link/thcolin/pleNx/workflows/build.yaml/dev)
+[![build](https://github.com/thcolin/gamepad-media-center-aggregator/actions/workflows/build.yaml/badge.svg)](https://github.com/thcolin/gamepad-media-center-aggregator/actions/workflows/build.yaml)
+[![NS](https://img.shields.io/badge/-Nintendo%20Switch-e4000f?style=flat&logo=Nintendo%20Switch)](https://github.com/thcolin/gamepad-media-center-aggregator/releases/latest)
+[![PSVita](https://img.shields.io/badge/-PSVita-003791?style=flat&logo=PlayStation)](https://github.com/thcolin/gamepad-media-center-aggregator/releases/latest)
+[![download](https://img.shields.io/github/downloads/thcolin/gamepad-media-center-aggregator/total?label=downloads)](https://github.com/thcolin/gamepad-media-center-aggregator/releases/latest)
+[![nightly](https://img.shields.io/badge/nightly-build-green)](https://nightly.link/thcolin/gamepad-media-center-aggregator/workflows/build.yaml/dev)
 [![sponsor](https://img.shields.io/badge/sponsor-%E2%9D%A4-db61a2)](https://github.com/sponsors/thcolin)
 
 </div>
 
 > [!NOTE]
-> pleNx is a fork of [Switchfin](https://github.com/dragonflylee/switchfin) (Nitendo Switch Jellyfin
-> client) fully migrated to the **Plex API**, with a redesigned interface.
-> It is a third-party project, not affiliated with or endorsed by Plex.
+> GMCA is the multi-backend evolution of **pleNx** (a native Plex client), itself a fork of
+> [Switchfin](https://github.com/dragonflylee/switchfin) — the Nintendo Switch Jellyfin client.
+> Existing pleNx installs migrate their data to GMCA automatically on first launch. It is an
+> independent, third-party project, not affiliated with or endorsed by Plex, Jellyfin, Emby or Stremio.
 
 ---
 
@@ -41,49 +40,64 @@ macOS, Linux, PS4 and PS Vita.
 
 </div>
 
+## Backends — one app, every server
+
+- **Plex** — sign in with a 4-character code on [plex.tv/link](https://plex.tv/link), pick your
+  server and your Plex Home profile (PIN-protected profiles supported). Watchlist, hubs, universal transcode.
+- **Jellyfin / Emby** — add your server URL, then Quick Connect (no keyboard) or username & password.
+  Favorites, resume, Next Up, transcoding — no third-party account required.
+- **Stremio** — log in to your account; your addon catalogs and library sync across. Direct links and
+  debrid streams play straight through.
+- **File servers** — no media server? Browse and play from **WebDAV, FTP, SFTP and HTTP(S)** shares,
+  added straight from the UI with a connection test. USB drives too, on Switch.
+
+## Devices — built for the forgotten consoles
+
+- **Nintendo Switch** — native NRO on Atmosphère CFW; HOME-menu tile for full-memory playback;
+  external USB drives via [libusbhsfs](https://github.com/DarkMatterCore/libusbhsfs).
+- **PS Vita** — a first-class VPK for jailbroken consoles (on [VitaDB](https://www.rinnegatamante.eu/vitadb/)).
+- **Raspberry Pi / Linux** — Flatpak (x86_64 / arm64v8) and an Arch package; a Pi on the TV with a
+  controller becomes a full media center.
+- **Desktop** — Windows, macOS and Linux builds.
+- **PS4** — homebrew PKG for jailbroken consoles (experimental).
+
 ## Features
 
-- **Sign in with Plex** — type a 4-character code on [plex.tv/link](https://plex.tv/link),
-  then pick your server and your Plex Home profile (PIN-protected profiles supported).
-- **Home mirrors your server** — Continue Watching followed by every hub configured on
-  your Plex, in the order your server returns them.
-- **Libraries in the sidebar** — one entry per library, each with Home, Suggestions,
-  Collections and Genres views, and server-side sorting.
-- **Rich detail pages** — full-bleed backdrop with the title logo, cast with full
-  **person pages** (filmography), and related rows pulled from your server.
-- **Season pages** — artwork, episode count and synopsis, with one-tap
-  **full-season download**.
-- **Quick actions on any poster** — press <kbd>X</kbd> (or long-press): go to show,
-  go to season, mark watched, download.
-- **Plex Watchlist** — browse your account watchlist in the sidebar, add or remove
-  any movie or show from its detail page or the quick actions menu.
-- **Playback with MPV** — direct play and universal transcode (HLS), resume, chapters,
-  external and embedded subtitles, audio track selection.
+- **Sign in without a keyboard** — code-based sign-in, Quick Connect and PIN profiles.
+- **Home mirrors your server** — Continue Watching, then every hub your server exposes, in its order.
+- **Your personal list** — Plex Watchlist, Jellyfin/Emby Favorites or the Stremio library, in the sidebar
+  and on every detail page.
+- **Rich detail pages** — full-bleed backdrop with title logo, cast with full **person pages**, related rows.
+- **Season pages** — artwork, episode count and synopsis, with one-tap **full-season download**.
+- **Quick actions on any poster** — press <kbd>X</kbd> (or long-press): go to show/season, mark watched, download.
+- **Playback with MPV** — direct play and transcode (HLS), resume, chapters, external/embedded subtitles, audio tracks.
 - **Offline downloads** for playback without a connection (original quality).
-- **Remote file browser** for WebDAV / Apache / Nginx / FTP / SFTP servers.
-- **External drive support on Switch** via [libusbhsfs](https://github.com/DarkMatterCore/libusbhsfs).
 - **Available in 14 languages.**
 
 > [!TIP]
 > MPV decodes H.264, H.265, VP8, VP9 and AV1 video; Opus, FLAC, MP3, AAC, AC-3, E-AC-3,
 > TrueHD and DTS audio; and SRT, VTT, SSA/ASS and DVDSUB subtitles.
 
-## Install on Nintendo Switch
+## Install
 
-1. Copy `pleNx.nro` to `sdmc:/switch/` and launch it from the homebrew menu.
-2. On first launch in **applet mode**, pleNx offers to install a HOME menu tile: press
-   the button, confirm, and the app relaunches as a regular title with full memory
-   (required for video playback). Alternatively, hold <kbd>R</kbd> while launching any
-   game (title takeover).
-3. Sign in with your Plex account at [plex.tv/link](https://plex.tv/link) and enjoy.
+Builds for every platform are attached to each
+[release](https://github.com/thcolin/gamepad-media-center-aggregator/releases/latest), with nightly
+artifacts on [nightly.link](https://nightly.link/thcolin/gamepad-media-center-aggregator/workflows/build.yaml/dev).
+
+**Nintendo Switch**
+
+1. Copy `GMCA.nro` to `sdmc:/switch/` and launch it from the homebrew menu.
+2. On first launch in **applet mode**, GMCA offers to install a HOME menu tile: press the button,
+   confirm, and the app relaunches as a regular title with full memory (required for video playback).
+   Alternatively, hold <kbd>R</kbd> while launching any game (title takeover).
+3. Connect a Plex, Jellyfin, Emby or Stremio server — or a file share — and enjoy.
 
 > [!IMPORTANT]
 > Video playback needs full-memory mode. Applet mode is fine for browsing, but install
 > the HOME tile (or use title takeover) before starting a movie.
 
-Desktop builds for Windows, macOS and Linux are attached to every
-[release](https://github.com/thcolin/pleNx/releases/latest), with nightly artifacts on
-[nightly.link](https://nightly.link/thcolin/pleNx/workflows/build.yaml/dev).
+**PS Vita** — install `GMCA.vpk` with VitaShell, or find GMCA on VitaDB. **Raspberry Pi / desktop** —
+grab the Flatpak or the desktop package from the latest release.
 
 ## Controls during playback
 
@@ -101,24 +115,28 @@ Desktop builds for Windows, macOS and Linux are attached to every
 ## System requirements
 
 - **Nintendo Switch** with Atmosphère CFW (full-memory mode for playback)
+- **PS Vita** with HENkaku / h-encore
+- **Raspberry Pi / Linux** Flatpak (x86_64 / arm64v8) with OpenGL 3 support
 - **Windows** 7 or later with DirectX 11.1 support
 - **macOS** 10.15 or later (Intel or Apple Silicon)
-- **Linux** Flatpak (x86_64 / arm64v8) with OpenGL 3 support
 
 ## FAQ
 
-**Subtitles don't show up?**
-Drop any TrueType font at `sdmc:/switch/pleNx/subfont.ttf`.
+**Coming from pleNx?**
+GMCA reads your existing library, logins and downloads automatically on first launch — nothing to re-configure.
+
+**Subtitles don't show up on Switch?**
+Drop any TrueType font at `sdmc:/switch/GMCA/subfont.ttf`.
 
 **macOS won't open the app?**
 Clear the quarantine attribute:
 
 ```shell
-sudo xattr -rd com.apple.quarantine /Applications/pleNx.app
+sudo xattr -rd com.apple.quarantine /Applications/GMCA.app
 ```
 
 **How do I enable an external drive on Switch?**
-Set `ums` in `config.json`:
+Set `ums` in `config.json` (in `sdmc:/switch/GMCA/`):
 
 ```json
 {
@@ -130,12 +148,15 @@ Set `ums` in `config.json`:
 
 ## Building from source
 
-pleNx is C++17, built on [borealis](https://github.com/natinusala/borealis) for the UI
+GMCA is C++17, built on [borealis](https://github.com/natinusala/borealis) for the UI
 and [mpv](https://github.com/mpv-player/mpv) for playback.
 
 ```shell
-git clone https://github.com/thcolin/pleNx.git --recurse-submodules --shallow-submodules
+git clone https://github.com/thcolin/gamepad-media-center-aggregator.git --recurse-submodules --shallow-submodules
 ```
+
+The borealis submodule carries local fixes applied at build time — CI runs
+`git -C library/borealis apply scripts/patches/borealis-fixes.patch` before building.
 
 ### Nintendo Switch
 
@@ -151,10 +172,7 @@ Or with a local [devkitPro](https://devkitpro.org/wiki/Getting_Started) toolchai
 ```shell
 sudo dkp-pacman -S switch-dev switch-glfw switch-libwebp switch-curl switch-libmpv
 cmake -B build_switch -DPLATFORM_SWITCH=ON
-make -C build_switch pleNx.nro -j$(nproc)
-
-# debug over the network
-nxlink -a <SWITCH_IP> -p pleNx/pleNx.nro -s pleNx.nro --args -d -v
+make -C build_switch GMCA.nro -j$(nproc)
 ```
 
 ### Desktop (macOS / Linux)
@@ -172,29 +190,21 @@ cmake -B build_mingw -G Ninja -DPLATFORM_DESKTOP=ON
 cmake --build build_mingw
 ```
 
-> [!TIP]
-> The desktop UI test harness in `scripts/ui-audit/` drives the app with keyboard events
-> and captures window screenshots; replayable scenarios live alongside it. On macOS, grant
-> your terminal Accessibility and Screen Recording permissions first.
-
-Migration notes from Jellyfin to Plex are documented in
-[PLEX_MIGRATION.md](PLEX_MIGRATION.md), and the visual redesign in
-[UI_REDESIGN.md](UI_REDESIGN.md).
+The multi-backend architecture is documented in [MULTI_BACKEND.md](MULTI_BACKEND.md); the
+pleNx → GMCA transition in [GMCA_MIGRATION.md](GMCA_MIGRATION.md).
 
 ## Support
 
-If pleNx is useful to you, consider [sponsoring the project](https://github.com/sponsors/thcolin) —
+If GMCA is useful to you, consider [sponsoring the project](https://github.com/sponsors/thcolin) —
 it directly funds development time and devices to test on.
 
 ## Acknowledgements
 
-pleNx stands on the shoulders of the homebrew and open-source community:
+GMCA stands on the shoulders of the homebrew and open-source community:
 
-- **[@dragonflylee](https://github.com/dragonflylee)** for [Switchfin](https://github.com/dragonflylee/switchfin), the Jellyfin client pleNx is forked from
+- **[@dragonflylee](https://github.com/dragonflylee)** for [Switchfin](https://github.com/dragonflylee/switchfin), the Jellyfin client this is forked from
 - **[@xfangfang](https://github.com/xfangfang)** for [wiliwili](https://github.com/xfangfang/wiliwili)
 - [@natinusala](https://github.com/natinusala) and XITRIX for [borealis](https://github.com/natinusala/borealis)
 - [@devkitPro](https://github.com/devkitPro) and switchbrew for [libnx](https://github.com/switchbrew/libnx)
 - [@proconsule](https://github.com/proconsule) for [nxmp](https://github.com/proconsule/nxmp)
 - [@averne](https://github.com/averne) for the [FFmpeg](https://github.com/averne/FFmpeg) hwaccel backend and the deko3d backend of mpv
-</content>
-</invoke>

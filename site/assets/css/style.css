@@ -1,5 +1,5 @@
 /* ============================================================
-   pleNx — promo site
+   GMCA — promo site
    Aesthetic: "instruction manual" — Nintendo game-box flat
    design language, dark edition. Warm near-black ground, paper
    ink, ruled lines, condensed black uppercase display type,
@@ -890,6 +890,107 @@ kbd {
   transition-delay: calc(var(--i, 0) * 70ms);
 }
 .js .reveal.in { opacity: 1; transform: none; }
+
+/* ============ Wordmark (typographic lockup, stands in for a logo) ============ */
+.wordmark {
+  font-family: var(--font-display);
+  font-stretch: 75%;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: var(--text);
+}
+.nav-brand .wordmark { font-size: 1.3rem; }
+.wordmark-hero {
+  font-size: clamp(3rem, 9vw, 5.5rem);
+  letter-spacing: 0.06em;
+  line-height: 0.9;
+}
+.footer .wordmark-footer { font-size: 2rem; color: var(--bg); display: block; margin-bottom: 1rem; }
+
+/* ============ Backends — colour-coded compatibility panel ============ */
+.backend-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1px;
+  background: var(--rule-soft);
+  border: 1px solid var(--rule-soft);
+  margin-top: 2.2rem;
+}
+.backend {
+  background: var(--bg);
+  padding: 1.4rem 1.3rem 1.6rem;
+  border-top: 3px solid var(--accent, var(--amber));
+  transition: background 0.12s;
+}
+.backend:hover { background: var(--surface); }
+.backend-head { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.7rem; }
+.backend-dot { width: 11px; height: 11px; flex: none; background: var(--accent, var(--amber)); }
+.backend h3 {
+  font-family: var(--font-body);
+  font-stretch: 100%;
+  font-weight: 800;
+  text-transform: none;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+.backend p { font-size: 0.88rem; color: var(--text-soft); }
+.backend[data-b="plex"]     { --accent: #e5a00d; }
+.backend[data-b="jellyfin"] { --accent: #00a4dc; }
+.backend[data-b="emby"]     { --accent: #52b54b; }
+.backend[data-b="stremio"]  { --accent: #7b5bf5; }
+.backend[data-b="files"]    { --accent: #a59d8e; }
+
+/* ============ Devices — supported-hardware matrix ============ */
+.device-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--rule-soft);
+  border: 1px solid var(--rule-soft);
+  margin-top: 2.2rem;
+}
+.device {
+  background: var(--bg);
+  padding: 1.5rem 1.4rem 1.7rem;
+  transition: background 0.12s;
+}
+.device:hover { background: var(--surface); }
+.device-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: var(--amber);
+  color: var(--on-amber);
+  padding: 0.16rem 0.45rem;
+  margin-bottom: 0.85rem;
+}
+.device:not(.device-lead) .device-tag {
+  background: transparent;
+  color: var(--text-soft);
+  border: 1px solid var(--rule-soft);
+}
+.device h3 {
+  font-family: var(--font-body);
+  font-stretch: 100%;
+  font-weight: 800;
+  text-transform: none;
+  font-size: 1.15rem;
+  margin-bottom: 0.5rem;
+}
+.device p { font-size: 0.9rem; color: var(--text-soft); }
+
+/* new-grid responsive collapse */
+@media (max-width: 980px) {
+  .backend-grid { grid-template-columns: repeat(2, 1fr); }
+  .device-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .backend-grid, .device-grid { grid-template-columns: 1fr; }
+}
 
 /* ============ Responsive ============ */
 @media (max-width: 980px) {
