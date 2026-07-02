@@ -1,5 +1,5 @@
 /*
-    pleNx — "Watchlist" sidebar tab (see watchlist_tab.hpp).
+    GMCA — "Watchlist" sidebar tab (see watchlist_tab.hpp).
 */
 
 #include "tab/watchlist_tab.hpp"

@@ -1,5 +1,5 @@
 /*
-    pleNx — "Playlists" sidebar tab (see playlists_tab.hpp).
+    GMCA — "Playlists" sidebar tab (see playlists_tab.hpp).
 */
 
 #include "tab/playlists_tab.hpp"

@@ -1,5 +1,5 @@
 /*
-    pleNx — view of a playlist (see playlist_view.hpp).
+    GMCA — view of a playlist (see playlist_view.hpp).
     Reuses VideoDataSource: movies -> detail page, episodes -> playback,
     X/long-press context menu included (video_card.cpp).
 */

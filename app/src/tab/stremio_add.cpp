@@ -1,5 +1,5 @@
 /*
-    pleNx — sign-in form for a Stremio account (see stremio_add.hpp).
+    GMCA — sign-in form for a Stremio account (see stremio_add.hpp).
 
     A clickable cell per field opens the IME for THAT field only (no chained IME
     prompts). "Connect" validates the form, then runs stremio::auth::login off

@@ -1,5 +1,5 @@
 /*
-    pleNx — full page of a hub (see hub_view.hpp).
+    GMCA — full page of a hub (see hub_view.hpp).
     Reuses VideoDataSource: movies/shows -> detail page, episodes -> playback,
     X/long-press context menu included (video_card.cpp).
 */

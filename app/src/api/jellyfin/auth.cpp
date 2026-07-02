@@ -1,5 +1,5 @@
 /*
-    pleNx — Jellyfin/Emby authentication (see jellyfin/auth.hpp).
+    GMCA — Jellyfin/Emby authentication (see jellyfin/auth.hpp).
 */
 
 #include "api/jellyfin/auth.hpp"

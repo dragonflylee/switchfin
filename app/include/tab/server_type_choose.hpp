@@ -1,5 +1,5 @@
 /*
-    pleNx — first screen of the add-server flow: pick the backend type.
+    GMCA — first screen of the add-server flow: pick the backend type.
     A neutral, focusable list (Plex / Jellyfin / Emby / Stremio) rendered
     in-content as a view of the ServerList AppletFrame (pushed via
     View::present), so it keeps the footer. Each cell present()s its dedicated

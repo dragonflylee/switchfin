@@ -1,5 +1,5 @@
 /*
-    pleNx — Jellyfin/Emby protocol: endpoints, auth header, transport helpers,
+    GMCA — Jellyfin/Emby protocol: endpoints, auth header, transport helpers,
     and mappers Jellyfin JSON -> neutral media:: model.
 
     Emby and Jellyfin share the same API shape (Emby is the ancestor). The only

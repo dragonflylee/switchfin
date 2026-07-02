@@ -1,5 +1,5 @@
 /*
-    pleNx — Plex-specific constants and auth models.
+    GMCA — Plex-specific constants and auth models.
     The neutral media model now lives in api/media/types.hpp; this file keeps
     only what is specific to the Plex protocol (plex.tv endpoints, PMS endpoints,
     numeric type codes, PIN/resources auth structs).

@@ -1,5 +1,5 @@
 /*
-    pleNx — connection switcher grid (Switch-style profile picker).
+    GMCA — connection switcher grid (Switch-style profile picker).
 
     One brand-tinted tile per connection (server + profile) + a trailing "+"
     tile. Self-contained Box, used both as the logged-out ServerList content and

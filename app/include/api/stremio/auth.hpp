@@ -1,5 +1,5 @@
 /*
-    pleNx — Stremio account authentication (api.strem.io login + addon sync).
+    GMCA — Stremio account authentication (api.strem.io login + addon sync).
     Synchronous helper (call from brls::async); throws std::runtime_error on
     failure, carrying the api.strem.io error message when present.
 

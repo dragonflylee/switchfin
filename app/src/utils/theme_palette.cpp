@@ -1,5 +1,5 @@
 /*
-    pleNx — per-backend theme palettes (see theme_palette.hpp).
+    GMCA — per-backend theme palettes (see theme_palette.hpp).
 
     Values are { accent, accentGlowTop, onAccentText, listValue }, dark then
     light. Hex are the verified brand colors. The light variant flips the accent

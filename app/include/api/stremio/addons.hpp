@@ -1,5 +1,5 @@
 /*
-    pleNx — Stremio addon engine. Owns the loaded set of addons (one per
+    GMCA — Stremio addon engine. Owns the loaded set of addons (one per
     configured transportUrl) and answers routing queries: which addons serve a
     given resource/type/id, what catalogs exist, and how to build a resource URL.
 

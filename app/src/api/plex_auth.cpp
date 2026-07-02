@@ -1,5 +1,5 @@
 /*
-    pleNx — plex.tv authentication implementation.
+    GMCA — plex.tv authentication implementation.
     Specification: PLEX_MIGRATION.md §2.2-2.3.
 */
 

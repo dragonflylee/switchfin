@@ -1,5 +1,5 @@
 /*
-    pleNx — sign-in form for a Jellyfin or Emby server.
+    GMCA — sign-in form for a Jellyfin or Emby server.
 
     A clickable cell per field opens the IME for THAT field only (no chained
     IME prompts — the chaining used to flicker open then close at once on

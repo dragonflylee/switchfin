@@ -1,5 +1,5 @@
 /*
-    pleNx — Plex implementation of media::Backend.
+    GMCA — Plex implementation of media::Backend.
 
     Wraps the existing Plex transport (X-Plex-* headers, MediaContainer parsing,
     universal transcoder, plex.tv watchlist). Reads the active server/token from

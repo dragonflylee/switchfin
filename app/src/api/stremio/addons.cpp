@@ -1,5 +1,5 @@
 /*
-    pleNx — Stremio addon engine implementation (see stremio/addons.hpp).
+    GMCA — Stremio addon engine implementation (see stremio/addons.hpp).
     Loads the configured transportUrls' manifests once, then routes resource
     queries across them.
 */

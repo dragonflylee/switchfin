@@ -16,9 +16,9 @@ BEGIN
     BEGIN
         BLOCK "040904B0"
         BEGIN
-            VALUE "FileDescription", "pleNx for Windows"
-            VALUE "LegalCopyright", "dragonflyee (C) Copyright 2026"
-            VALUE "OriginalFilename", "pleNx.exe"
+            VALUE "FileDescription", "${PROJECT_NAME} for Windows"
+            VALUE "LegalCopyright", "thcolin (C) Copyright 2026"
+            VALUE "OriginalFilename", "${PROJECT_NAME}.exe"
             VALUE "ProductVersion", "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}.${VERSION_BUILD}"
         END
     END

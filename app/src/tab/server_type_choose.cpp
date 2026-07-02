@@ -1,5 +1,5 @@
 /*
-    pleNx — server type chooser (first step of the add-server flow).
+    GMCA — server type chooser (first step of the add-server flow).
     See server_type_choose.hpp. Each cell present()s its dedicated sign-in
     screen onto the ServerList AppletFrame content stack (View::present →
     AppletFrame::pushContentView), which keeps the footer and gives focus to the

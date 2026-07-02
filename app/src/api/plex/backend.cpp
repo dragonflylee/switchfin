@@ -1,5 +1,5 @@
 /*
-    pleNx — Plex implementation of media::Backend (see api/plex/backend.hpp).
+    GMCA — Plex implementation of media::Backend (see api/plex/backend.hpp).
     Faithful relocation of the query/playback/watchlist logic that used to live
     at the UI call sites. Reads the active server/token from AppConfig live.
 */

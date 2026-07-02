@@ -1,5 +1,5 @@
 /*
-    pleNx — Stremio implementation of media::Backend (étape 1: NAVIGATION).
+    GMCA — Stremio implementation of media::Backend (étape 1: NAVIGATION).
     Translates the Stremio addon protocol (manifests, catalogs, meta, episodes)
     into the neutral media:: model. Stateless, unauthenticated, multi-addon: an
     AddonEngine aggregates the configured addons and routes each request.

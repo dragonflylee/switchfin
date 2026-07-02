@@ -1,5 +1,5 @@
 /*
-    pleNx — sign-in to Plex.
+    GMCA — sign-in to Plex.
     PIN flow (only method): PLEX_MIGRATION.md §2.2;
     server/profile discovery: §2.3.
     Entered from ServerTypeChoose (the Plex cell present()s this view), so it is

@@ -1,5 +1,5 @@
 /*
-    pleNx — button with icon + label (brls::Button does not support an icon).
+    GMCA — button with icon + label (brls::Button does not support an icon).
     Styles: "primary" (gold background, dark text) and "bordered" (outline).
     XML attributes: icon (@res/...), text (@i18n/...), buttonStyle.
 */

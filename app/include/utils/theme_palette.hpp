@@ -1,5 +1,5 @@
 /*
-    pleNx — per-backend theme palettes.
+    GMCA — per-backend theme palettes.
 
     The accent surface of the UI follows the connected server's brand. Before a
     server is connected (server list, server-type chooser, sign-in/add screens,

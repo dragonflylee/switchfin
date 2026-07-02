@@ -1,5 +1,5 @@
 /*
-    pleNx — connection switcher grid (see connection_switcher.hpp).
+    GMCA — connection switcher grid (see connection_switcher.hpp).
 */
 
 #include "view/connection_switcher.hpp"

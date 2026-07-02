@@ -1,5 +1,5 @@
 /*
-    pleNx — centered loading spinner overlay.
+    GMCA — centered loading spinner overlay.
 
     For views that fill their content ASYNCHRONOUSLY into a plain brls::Box
     (Home, Suggestions…): the box stays empty while the backend request is in

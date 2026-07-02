@@ -1,5 +1,5 @@
 /*
-    pleNx — Plex video player.
+    GMCA — Plex video player.
     Pipeline: PLEX_MIGRATION.md §2.7 (direct play, universal transcoder, timeline, scrobble).
 */
 

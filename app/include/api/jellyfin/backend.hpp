@@ -1,5 +1,5 @@
 /*
-    pleNx — Jellyfin/Emby implementation of media::Backend.
+    GMCA — Jellyfin/Emby implementation of media::Backend.
     Translates the Jellyfin API (Authorization: MediaBrowser, ticks, /Users/{u}/...)
     into the neutral media:: model. Reads the active server/token/userId from
     AppConfig live. See MULTI_BACKEND.md §7.

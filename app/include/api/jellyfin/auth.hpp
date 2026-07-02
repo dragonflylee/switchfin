@@ -1,5 +1,5 @@
 /*
-    pleNx — Jellyfin/Emby authentication (username/password login).
+    GMCA — Jellyfin/Emby authentication (username/password login).
     Synchronous helpers (call from brls::async); throw std::runtime_error on failure.
     Quick Connect could be added later (GET /QuickConnect/Initiate -> poll).
 */

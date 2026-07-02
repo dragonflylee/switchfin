@@ -1,5 +1,5 @@
 /*
-    pleNx — Plex video player.
+    GMCA — Plex video player.
     Verified pipeline: PLEX_MIGRATION.md §2.7.
     Units: mpv positions in seconds, Plex API in milliseconds,
     transcoder offset in whole seconds.

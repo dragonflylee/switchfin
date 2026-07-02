@@ -1,5 +1,5 @@
 /*
-    pleNx — full page of a Plex hub (the "related" rows of detail pages:
+    GMCA — full page of a Plex hub (the "related" rows of detail pages:
     suggestions, collections, "More with..."). Opened by the "+" card at the
     end of a row when the server announces more=1.
     Scrolled header (title + "N items") and grid in server order;

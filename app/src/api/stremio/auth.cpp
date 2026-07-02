@@ -1,5 +1,5 @@
 /*
-    pleNx — Stremio account authentication (see stremio/auth.hpp).
+    GMCA — Stremio account authentication (see stremio/auth.hpp).
 
     api.strem.io envelope: success is {"result":{…}}, failure is
     {"error":{"code":N,"message":"…"}} (no `result`). Verified empirically

@@ -1,5 +1,5 @@
 /*
-    pleNx — plex.tv authentication and server discovery.
+    GMCA — plex.tv authentication and server discovery.
     Specification: PLEX_MIGRATION.md §2.2 (PIN flow) and §2.3 (resources + connections).
 
     All functions are SYNCHRONOUS (they chain HTTP requests): call them from
