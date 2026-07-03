@@ -122,8 +122,7 @@ int main(int argc, char* argv[]) {
             {"resolution", fmt::format("{}x{}", brls::Application::windowWidth, brls::Application::windowHeight)},
         })
 
-    std::string v = conf.getItem(AppConfig::APP_UPDATE, std::string("NaN"));
-    if (AppVersion::getVersion().compare(v)) AppVersion::checkUpdate();
+    AppVersion::checkUpdate();
 
     // Run the app
     while (brls::Application::mainLoop());

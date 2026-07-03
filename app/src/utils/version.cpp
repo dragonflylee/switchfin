@@ -134,10 +134,7 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
             brls::sync([latest_ver]() {
                 std::string title = brls::getStr("main/setting/others/upgrade", latest_ver);
                 auto dialog = new brls::Dialog(title);
-                dialog->addButton("hints/cancel"_i18n, []() {
-                    auto& conf = AppConfig::instance();
-                    conf.setItem(AppConfig::APP_UPDATE, getVersion());
-                });
+                dialog->addButton("hints/cancel"_i18n, []() {});
 #ifdef __SWITCH__
                 dialog->addButton("hints/ok"_i18n, [latest_ver]() {
                     AppVersion::updating->store(false);

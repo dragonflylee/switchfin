@@ -66,7 +66,6 @@ public:
         OVERCLOCK,
         APP_THEME,
         APP_LANG,
-        APP_UPDATE,
         APP_UI_SCALE,
         AUDIO_CHANNELS,
         KEYMAP,
