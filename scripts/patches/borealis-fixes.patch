@@ -823,3 +823,26 @@ index 61978bd5..d7ee0eb8 100644
  enum Sound ScrollingFrame::getFocusSound()
  {
      if (!contentView->getDefaultFocus())
+diff --git a/library/lib/views/image.cpp b/library/lib/views/image.cpp
+index 04db0522..b2a80380 100644
+--- a/library/lib/views/image.cpp
++++ b/library/lib/views/image.cpp
+@@ -186,7 +186,17 @@ void Image::draw(NVGcontext* vg, float x, float y, float width, float height, St
+     nvgBeginPath(vg);
+     if (getClipsToBounds())
+     {
+-        nvgRoundedRect(vg, x, y, width, height, getCornerRadius());
++        // Fill the intersection of the view bounds and the fitted image, not the
++        // whole view. In FILL the image covers the whole view so this stays the
++        // view rect (overflow is cropped as before); in FIT/CENTER the image is
++        // smaller than the view, so filling the empty letterbox would sample the
++        // image pattern outside its [0,1] range and — with CLAMP_TO_EDGE wrapping —
++        // smear the edge pixels vertically/horizontally under every shape.
++        float left   = std::max(x, coordX);
++        float top    = std::max(y, coordY);
++        float right  = std::min(x + width, coordX + this->imageWidth);
++        float bottom = std::min(y + height, coordY + this->imageHeight);
++        nvgRoundedRect(vg, left, top, right - left, bottom - top, getCornerRadius());
+     }
+     else
+     {
