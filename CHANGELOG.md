@@ -9,6 +9,18 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [0.1.13] - 2026-07-03
+
+### Interface
+
+- **Series and movie logos no longer smear.** The transparent title logos on
+  detail pages are drawn in "fit" mode, so the image is smaller than its box
+  and sits letterboxed inside it. The empty area around it was still being
+  painted with the image, which sampled outside the texture and — because edge
+  pixels are clamped — dragged vertical streaks down from every shape. The
+  image now fills only its own fitted area, so logos render cleanly. Affects
+  every platform (the fix is in the shared image renderer).
+
 ## [0.1.12] - 2026-07-03
 
 ### Player
