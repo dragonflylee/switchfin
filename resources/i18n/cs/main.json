@@ -302,6 +302,7 @@
       "upgrade": "{} je nyní k dispozici! Připraveni aktualizovat?",
       "updating": "Probíhá aktualizace, zrušit nyní?",
       "downloading": "Stahování {}… {}%",
+      "installing": "Instalace aktualizace…",
       "updated": "Aktualizace nainstalována. Aplikace se nyní zavře: spusťte ji znovu pro použití nové verze",
       "release": "Zkontrolovat aktualizace"
     }

@@ -4,6 +4,8 @@
 #include <filesystem>
 #elif defined(__PSV__)
 #include <psp2/vshbridge.h>
+#include <psp2/io/fcntl.h>
+#include <psp2/io/stat.h>
 #elif defined(ANDROID)
 #include <SDL2/SDL.h>
 #include <jni.h>
@@ -22,6 +24,7 @@
 #include "utils/dialog.hpp"
 #include "utils/thread.hpp"
 #include "utils/misc.hpp"
+#include "utils/vita_install.hpp"
 #include "api/http.hpp"
 
 using namespace brls::literals;
@@ -214,6 +217,101 @@ static void startUpdate(const std::string& latest_ver, const std::string& url, i
         }
     });
 }
+#elif defined(__PSV__)
+static int64_t vitaFileSize(const std::string& path) {
+    SceIoStat st;
+    if (sceIoGetstat(path.c_str(), &st) < 0) return -1;
+    return static_cast<int64_t>(st.st_size);
+}
+
+/// Downloads the release VPK into configDir, verifies its size, then installs
+/// it in place via ScePromoterUtility (cf. vita::installVpk). Unlike the Switch
+/// path there is no in-process restart: the bubble is replaced under
+/// `ux0:app`, so the app quits to the LiveArea and the user relaunches the new
+/// version. Progress is shown in a dialog with a cancel button.
+static void startUpdate(const std::string& latest_ver, const std::string& url, int64_t size) {
+    AppVersion::updating->store(false);
+
+    brls::Style style = brls::Application::getStyle();
+    auto* label = new brls::Label();
+    label->setFontSize(style["brls/dialog/fontSize"]);
+    label->setHorizontalAlign(brls::HorizontalAlign::CENTER);
+    label->setSingleLine(false);
+    label->setText(brls::getStr("main/setting/others/downloading", latest_ver, 0));
+
+    auto* box = new brls::Box();
+    box->addView(label);
+    box->setAlignItems(brls::AlignItems::CENTER);
+    box->setJustifyContent(brls::JustifyContent::CENTER);
+    box->setPadding(style["brls/dialog/paddingTopBottom"], style["brls/dialog/paddingLeftRight"],
+        style["brls/dialog/paddingTopBottom"], style["brls/dialog/paddingLeftRight"]);
+
+    auto* dialog = new brls::Dialog(box);
+    dialog->setCancelable(false);
+    auto dismissed = std::make_shared<std::atomic_bool>(false);
+    dialog->addButton("hints/cancel"_i18n, [dismissed]() {
+        dismissed->store(true);
+        AppVersion::updating->store(true);  // true = cancel the transfer, cf. HTTP::easy_progress_cb
+    });
+    dialog->open();
+
+    ThreadPool::instance().submit([latest_ver, url, size, label, dialog, dismissed](HTTP& s) {
+        std::string conf_dir = AppConfig::instance().configDir();
+        std::string pkg_name = AppVersion::getPackageName();
+        std::string path = fmt::format("{}/{}_{}.vpk", conf_dir, pkg_name, latest_ver);
+        std::string work = fmt::format("{}/update", conf_dir);
+
+        auto finish = [dialog, dismissed](std::function<void()> then) {
+            brls::sync([dialog, dismissed, then]() {
+                if (dismissed->exchange(true))
+                    then();
+                else
+                    dialog->close(then);
+            });
+        };
+
+        auto last = std::make_shared<std::chrono::steady_clock::time_point>();
+        HTTP::Progress::Callback progress = [latest_ver, label, dismissed, last](curl_off_t total, curl_off_t now) {
+            auto tp = std::chrono::steady_clock::now();
+            if (total <= 0 || tp - *last < std::chrono::milliseconds(500)) return;
+            *last = tp;
+            int percent = static_cast<int>(now * 100 / total);
+            brls::sync([label, dismissed, latest_ver, percent]() {
+                if (!dismissed->load())
+                    label->setText(brls::getStr("main/setting/others/downloading", latest_ver, percent));
+            });
+        };
+
+        try {
+            HTTP::download(url, path, HTTP::Timeout{-1}, AppVersion::updating, progress);
+
+            // size verified BEFORE unpacking/promoting the package
+            int64_t actual = vitaFileSize(path);
+            if (size > 0 && actual != size)
+                throw std::runtime_error(fmt::format("incomplete download ({}/{} bytes)", actual, size));
+
+            // extraction + head.bin + promotion is blocking and cannot report a
+            // percentage: swap the label so the app doesn't look frozen
+            brls::sync([label, dismissed]() {
+                if (!dismissed->load()) label->setText("main/setting/others/installing"_i18n);
+            });
+
+            std::string err;
+            int rc = vita::installVpk(path, work, err);
+            sceIoRemove(path.c_str());
+            if (rc != 0) throw std::runtime_error(err);
+
+            finish([]() { Dialog::quitApp(false, "main/setting/others/updated"_i18n); });
+        } catch (const std::exception& ex) {
+            sceIoRemove(path.c_str());
+            bool canceled = AppVersion::updating->load();
+            AppVersion::updating->store(true);
+            if (canceled) return;  // user cancellation, not a failure
+            std::string msg = ex.what();
+            finish([msg]() { Dialog::show(msg); });
+        }
+    });
+}
 #endif
 
 // Update popup content: the version prompt + the new release's notes (GitHub
@@ -258,22 +356,29 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
             // release notes shown in the popup (only this version's changelog)
             std::string release_body = j.value("body", std::string());
 
+#if defined(__SWITCH__) || defined(__PSV__)
+            // Installable asset URL and size from the API response rather than a
+            // hardcoded URL: robust to an asset rename, and the size lets us
+            // validate the download before installing. Switch ships an .nro,
+            // Vita a .vpk.
 #ifdef __SWITCH__
-            // NRO URL and size from the API response rather than a hardcoded
-            // URL: robust to an asset rename, and the size lets us validate
-            // the download before overwriting the app
+            const std::string asset_ext = ".nro";
+#else
+            const std::string asset_ext = ".vpk";
+#endif
             std::string asset_url;
             int64_t asset_size = 0;
             for (auto& asset : j.at("assets")) {
                 std::string name = asset.at("name").get<std::string>();
-                if (name.size() > 4 && name.compare(name.size() - 4, 4, ".nro") == 0) {
+                if (name.size() > asset_ext.size() &&
+                    name.compare(name.size() - asset_ext.size(), asset_ext.size(), asset_ext) == 0) {
                     asset_url = asset.at("browser_download_url").get<std::string>();
                     asset_size = asset.value("size", int64_t(0));
                     break;
                 }
             }
             if (asset_url.empty()) {
-                brls::Logger::error("checkUpdate: no NRO asset in release {}", latest_ver);
+                brls::Logger::error("checkUpdate: no {} asset in release {}", asset_ext, latest_ver);
                 return;
             }
 

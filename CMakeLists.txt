@@ -92,6 +92,14 @@ elseif (PLATFORM_PS4)
     list(APPEND MAIN_SRC ${BOREALIS_LIBRARY}/lib/platforms/ps4/crashlog.c)
 elseif (PLATFORM_PSV)
     configure_file("${CMAKE_SOURCE_DIR}/app/platform/vita/template.xml.in" "${CMAKE_BINARY_DIR}/template.xml")
+    # In-app self-update (issue #14): app/src/utils/vita_install.cpp unpacks the
+    # downloaded VPK (miniz) and promotes it in place via ScePromoterUtility.
+    # miniz is built with MINIZ_NO_STDIO/MINIZ_NO_TIME and every file access is
+    # routed through sceIo, so the Vita newlib stdio quirks never come into play.
+    list(APPEND MAIN_SRC ${CMAKE_SOURCE_DIR}/library/miniz/miniz.c)
+    list(APPEND APP_PLATFORM_INCLUDE ${CMAKE_SOURCE_DIR}/library/miniz)
+    list(APPEND APP_PLATFORM_OPTION -DMINIZ_NO_STDIO -DMINIZ_NO_TIME)
+    list(APPEND APP_PLATFORM_LIB ScePromoterUtil_stub SceSysmodule_stub)
 elseif (WIN32)
     configure_file("${CMAKE_SOURCE_DIR}/app/platform/win32/app.rc.in" "${CMAKE_BINARY_DIR}/app.rc")
     list(APPEND MAIN_SRC ${CMAKE_BINARY_DIR}/app.rc)
