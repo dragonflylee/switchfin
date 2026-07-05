@@ -302,6 +302,7 @@
       "upgrade": "{} já está disponível! Quer atualizar?",
       "updating": "Atualização em curso, cancelar agora?",
       "downloading": "A transferir {}… {}%",
+      "installing": "Instalando a atualização…",
       "updated": "Atualização instalada. A aplicação vai agora fechar: abra-a novamente para usar a nova versão",
       "release": "Procurar atualizações"
     }

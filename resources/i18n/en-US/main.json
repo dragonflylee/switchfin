@@ -307,6 +307,7 @@
       "upgrade": "{} is available now! Ready to update?",
       "updating": "Updating in progress, cancel now?",
       "downloading": "Downloading {}… {}%",
+      "installing": "Installing the update…",
       "updated": "Update installed. The application will now close: launch it again to use the new version",
       "release": "Check for updates",
       "changelog": "Changelog"

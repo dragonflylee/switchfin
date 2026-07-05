@@ -302,6 +302,7 @@
       "upgrade": "{} hiện đã có! Bạn đã sẵn sàng để cập nhật chưa?",
       "updating": "Đang cập nhật, hủy bỏ ngay bây giờ?",
       "downloading": "Đang tải xuống {}… {}%",
+      "installing": "Đang cài đặt bản cập nhật…",
       "updated": "Đã cài đặt bản cập nhật. Ứng dụng sẽ đóng ngay bây giờ: hãy mở lại để sử dụng phiên bản mới",
       "release": "Kiểm tra cập nhật"
     }

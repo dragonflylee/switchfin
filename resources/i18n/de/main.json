@@ -302,6 +302,7 @@
       "upgrade": "{} ist jetzt verfügbar! Bereit zum Aktualisieren?",
       "updating": "Aktualisierung läuft, jetzt abbrechen?",
       "downloading": "Wird heruntergeladen {}… {}%",
+      "installing": "Aktualisierung wird installiert…",
       "updated": "Aktualisierung installiert. Die Applikation wird jetzt geschlossen: starte sie erneut, um die neue Version zu nutzen",
       "release": "Nach Aktualisierungen suchen"
     }

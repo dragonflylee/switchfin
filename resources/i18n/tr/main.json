@@ -302,6 +302,7 @@
       "upgrade": "{} sürümü şimdi mevcut! Güncellensin mi?",
       "updating": "Güncelleniyor, iptal edilsin mi?",
       "downloading": "İndiriliyor {}… %{}",
+      "installing": "Güncelleme yükleniyor…",
       "updated": "Güncelleme yüklendi. Uygulama şimdi kapanacak: yeni sürümü kullanmak için yeniden başlatın",
       "release": "Güncellemeleri denetle"
     }
