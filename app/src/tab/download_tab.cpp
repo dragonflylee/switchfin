@@ -252,7 +252,7 @@ public:
             } else {
                 detail = item.name;
             }
-            RemoteView::play(path, detail);
+            RemoteView::play(path, detail, "Local");
         } else if (item.status == DownloadStatus::Downloading) {
             std::string id = item.itemId;
             Dialog::cancelable("main/download/confirm_cancel"_i18n, [id]() {
