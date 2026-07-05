@@ -15,7 +15,7 @@ using namespace brls::literals;
 
 class RemotePlayer : public brls::Box {
 public:
-    RemotePlayer(const remote::DirEntry& item) {
+    RemotePlayer(const remote::DirEntry& item, const std::string& method = "") {
         float width = brls::Application::contentWidth;
         float height = brls::Application::contentHeight;
         view->setDimensions(width, height);
@@ -40,15 +40,17 @@ public:
 
         if (item.type == remote::EntryType::PLAYLIST) {
             view->hideVideoProgressSlider();
+        } else if (item.name.size() > 0) {
+            titles.push_back(item.name);
         }
 
         auto& mpv = MPVCore::instance();
-        eventSubscribeID = mpv.getEvent()->subscribe([this](MpvEventEnum event) {
+        eventSubscribeID = mpv.getEvent()->subscribe([this, method](MpvEventEnum event) {
             auto& mpv = MPVCore::instance();
             switch (event) {
             case MpvEventEnum::MPV_LOADED: {
                 if (titles.empty()) this->loadList();
-                view->getProfile()->init();
+                view->getProfile()->init(method);
                 const char* flag = MPVCore::SUBS_FALLBACK ? "select" : "auto";
                 for (auto& it : this->subtitles) {
                     mpv.command("sub-add", it.second.c_str(), flag, it.first.c_str());
@@ -87,6 +89,9 @@ public:
 
     void setList(const DirList& list, size_t index, const std::string& extra) {
         // 播放列表
+        // the constructor may have seeded a single title (standalone playback);
+        // a real list rebuilds it from scratch, otherwise titles/urls desync
+        titles.clear();
         DirList urls;
         for (size_t i = 1; i < list.size(); i++) {
             auto& it = list.at(i);
@@ -467,8 +472,8 @@ RecyclingGrid* RemoteView::newRecycler() {
     return view;
 }
 
-void RemoteView::play(const std::string& path) {
-    RemotePlayer* view = new RemotePlayer({remote::EntryType::VIDEO, path});
+void RemoteView::play(const std::string& path, const std::string& name, const std::string& method) {
+    RemotePlayer* view = new RemotePlayer({remote::EntryType::VIDEO, name, path}, method);
     brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
     view->setUrl(path);
 }

@@ -1,11 +1,11 @@
 #include "tab/download_tab.hpp"
+#include "tab/remote_view.hpp"
 #include "view/recycling_grid.hpp"
 #include "view/video_view.hpp"
 #include "view/mpv_core.hpp"
 #include "view/video_profile.hpp"
 #include "view/player_setting.hpp"
 #include "view/presenter.hpp"
-#include "view/auto_tab_frame.hpp"
 #include "utils/config.hpp"
 #include "utils/dialog.hpp"
 #include "utils/misc.hpp"
@@ -242,55 +242,17 @@ public:
 
         if (item.status == DownloadStatus::Completed) {
             std::string path = dm.getLocalPath(item.itemId);
-            if (!path.empty()) {
-                VideoView* view = new VideoView();
-                float width = brls::Application::contentWidth;
-                float height = brls::Application::contentHeight;
-                view->setDimensions(width, height);
-                view->setWidthPercentage(100);
-                view->setHeightPercentage(100);
-                view->setTitie(item.name);
-                view->hideVideoQuality();
-                // local playback: embedded tracks only (no Plex Media)
-                view->registerVideoSubtitle([](...) {
-                    PlayerSetting::showSubtitleMenu(nullptr);
-                    return true;
-                });
-                view->registerVideoAudio([](...) {
-                    PlayerSetting::showAudioMenu(nullptr);
-                    return true;
-                });
+            if (path.empty()) return;
 
-                auto* profile = view->getProfile();
-                auto& mpv = MPVCore::instance();
-                auto subId = std::make_shared<MPVEvent::Subscription>();
-                auto unsub = std::make_shared<std::atomic_bool>(false);
-                *subId = mpv.getEvent()->subscribe([profile, subId, unsub](MpvEventEnum event) {
-                    if (unsub->load()) return;
-                    if (event == MpvEventEnum::MPV_RESUME) {
-                        profile->init("Local");
-                    } else if (event == MpvEventEnum::MPV_STOP || event == MpvEventEnum::END_OF_FILE ||
-                               event == MpvEventEnum::MPV_FILE_ERROR) {
-                        unsub->store(true);
-                        auto id = *subId;
-                        brls::sync([id]() {
-                            MPVCore::instance().getEvent()->unsubscribe(id);
-                        });
-                    }
-                });
-
-                view->getPlayEvent()->subscribe([](int) { return VideoView::close(true); });
-                view->getSettingEvent()->subscribe([]() {
-                    brls::Application::pushActivity(new brls::Activity(new PlayerSetting()));
-                });
-
-                brls::Box* container = new brls::Box();
-                container->setDimensions(width, height);
-                container->addView(view);
-                brls::Application::pushActivity(new brls::Activity(container), brls::TransitionAnimation::NONE);
-
-                MPVCore::instance().setUrl(path);
+            std::string detail;
+            if (!item.seriesName.empty()) {
+                detail = fmt::format("{} - S{}E{}", item.seriesName, item.seasonIndex, item.episodeIndex);
+            } else if (item.productionYear > 0) {
+                detail = fmt::format("{} ({})", item.name, item.productionYear);
+            } else {
+                detail = item.name;
             }
+            RemoteView::play(path, detail, "Local");
         } else if (item.status == DownloadStatus::Downloading) {
             std::string id = item.itemId;
             Dialog::cancelable("main/download/confirm_cancel"_i18n, [id]() {
