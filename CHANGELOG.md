@@ -9,6 +9,20 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [0.1.14] - 2026-07-05
+
+### PS Vita
+
+- **The in-app updater now installs the new version directly instead of opening
+  a broken browser page.** When an update was available, the Vita opened the
+  GitHub release page in the system browser — a page its ageing WebKit cannot
+  render, so it hung and the download never showed up. The Vita now self-updates
+  in place like the Switch does: it downloads the VPK, unpacks it and installs
+  it through the system package installer, then drops you back to the LiveArea to
+  relaunch the updated bubble. (The VitaDB "downgrade to 0.1.4" prompt reported
+  alongside this is a stale VitaDB store entry, not a pleNx bug; see
+  `RELEASING.md`.)
+
 ## [0.1.13] - 2026-07-03
 
 ### Interface
