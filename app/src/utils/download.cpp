@@ -115,9 +115,7 @@ void DownloadManager::cancelDownload(const std::string& itemId) {
     }
 
     if (erased) {
-        brls::sync([this, itemId]() {
-            this->statusEvent.fire(itemId, DownloadStatus::Failed);
-        });
+        brls::sync([this, itemId]() { this->statusEvent.fire(itemId, DownloadStatus::Failed); });
     }
 }
 
@@ -160,9 +158,7 @@ void DownloadManager::removeDownload(const std::string& itemId) {
     }
 
     if (erased) {
-        brls::sync([this, itemId]() {
-            this->statusEvent.fire(itemId, DownloadStatus::Failed);
-        });
+        brls::sync([this, itemId]() { this->statusEvent.fire(itemId, DownloadStatus::Failed); });
     }
 }
 
@@ -208,41 +204,41 @@ std::string DownloadManager::buildDownloadUrl(const DownloadItem& item) const {
 
     switch (item.quality) {
     case DownloadQuality::Original:
-        return server + fmt::format(fmt::runtime(jellyfin::apiDownload), item.itemId,
-            HTTP::encode_form({{"api_key", token}}));
+        return server +
+               fmt::format(fmt::runtime(jellyfin::apiDownload), item.itemId, HTTP::encode_form({{"api_key", token}}));
     case DownloadQuality::Q1080p:
         return server + fmt::format(fmt::runtime(jellyfin::apiStream), item.itemId,
-            HTTP::encode_form({
-                {"static", "false"},
-                {"mediaSourceId", item.itemId},
-                {"videoCodec", MPVCore::VIDEO_CODEC},
-                {"audioCodec", "aac"},
-                {"maxStreamingBitrate", "4000000"},
-                {"maxHeight", "1080"},
-                {"api_key", token},
-            }));
+                            HTTP::encode_form({
+                                {"static", "false"},
+                                {"mediaSourceId", item.itemId},
+                                {"videoCodec", MPVCore::VIDEO_CODEC},
+                                {"audioCodec", "aac"},
+                                {"maxStreamingBitrate", "4000000"},
+                                {"maxHeight", "1080"},
+                                {"api_key", token},
+                            }));
     case DownloadQuality::Q720p:
         return server + fmt::format(fmt::runtime(jellyfin::apiStream), item.itemId,
-            HTTP::encode_form({
-                {"static", "false"},
-                {"mediaSourceId", item.itemId},
-                {"videoCodec", MPVCore::VIDEO_CODEC},
-                {"audioCodec", "aac"},
-                {"maxStreamingBitrate", "2000000"},
-                {"maxHeight", "720"},
-                {"api_key", token},
-            }));
+                            HTTP::encode_form({
+                                {"static", "false"},
+                                {"mediaSourceId", item.itemId},
+                                {"videoCodec", MPVCore::VIDEO_CODEC},
+                                {"audioCodec", "aac"},
+                                {"maxStreamingBitrate", "2000000"},
+                                {"maxHeight", "720"},
+                                {"api_key", token},
+                            }));
     case DownloadQuality::Q480p:
         return server + fmt::format(fmt::runtime(jellyfin::apiStream), item.itemId,
-            HTTP::encode_form({
-                {"static", "false"},
-                {"mediaSourceId", item.itemId},
-                {"videoCodec", MPVCore::VIDEO_CODEC},
-                {"audioCodec", "aac"},
-                {"maxStreamingBitrate", "1000000"},
-                {"maxHeight", "480"},
-                {"api_key", token},
-            }));
+                            HTTP::encode_form({
+                                {"static", "false"},
+                                {"mediaSourceId", item.itemId},
+                                {"videoCodec", MPVCore::VIDEO_CODEC},
+                                {"audioCodec", "aac"},
+                                {"maxStreamingBitrate", "1000000"},
+                                {"maxHeight", "480"},
+                                {"api_key", token},
+                            }));
     }
     return "";
 }
@@ -254,10 +250,14 @@ void DownloadManager::processQueue() {
     for (auto& item : this->items) {
         if (item.status == DownloadStatus::Queued) {
             this->downloading = true;
+            brls::Application::getPlatform()->disableScreenDimming(true, "Downloading");
             this->doDownload(item);
             return;
         }
     }
+
+    auto& mpv = MPVCore::instance();
+    if (mpv.isStopped()) brls::Application::getPlatform()->disableScreenDimming(false, "Downloading");
 }
 
 // Must be called with mutex held. Copies what it needs, then releases via async.
