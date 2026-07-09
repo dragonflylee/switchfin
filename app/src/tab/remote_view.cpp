@@ -180,6 +180,12 @@ public:
             this->size->setText("");
             return;
         }
+        if (item.type == remote::EntryType::BLURAY) {
+            this->icon->setImageFromSVGRes("icon/ico-play.svg");
+            this->name->setText("main/remote/bluray"_i18n);
+            this->size->setText("");
+            return;
+        }
         this->name->setText(item.name);
         if (item.type == remote::EntryType::DIR) {
             this->icon->setImageFromSVGRes("icon/ico-folder.svg");
@@ -216,7 +222,8 @@ private:
     BRLS_BIND(brls::Label, size, "file/misc");
 };
 
-static std::set<std::string> videoExt = {".mp4", ".mkv", ".avi", ".flv", ".mov", ".wmv", ".webm", ".rm", ".rmvb", ".mpg"};
+static std::set<std::string> videoExt = {".mp4", ".mkv", ".avi", ".flv", ".mov", ".wmv", ".webm", ".rm",
+    ".rmvb", ".mpg", ".m2ts", ".mts", ".ts"};
 static std::set<std::string> audioExt = {".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma", ".ape"};
 static std::set<std::string> imageExt = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"};
 static std::set<std::string> playlistExt = {".m3u", ".m3u8"};
@@ -265,6 +272,47 @@ public:
         if (item.type == remote::EntryType::DIR || item.type == remote::EntryType::DEVICE) {
             auto* view = dynamic_cast<RemoteView*>(recycler->getParent());
             if (view) view->push(item.path);
+            return;
+        }
+
+        if (item.type == remote::EntryType::BLURAY) {
+            // item.path is the BDMV/STREAM folder: gather its .m2ts streams and
+            // hand them to the player as a title list in natural (disc) order,
+            // auto-starting on the largest — on a movie backup the biggest
+            // stream is the feature film (issue #18). Listing local storage is
+            // synchronous, so no async round-trip is needed here.
+            DirList streams;
+            try {
+                streams = client->list(item.path);
+            } catch (const std::exception&) {
+                return;
+            }
+            DirList urls;
+            for (auto& s : streams) {
+                if (s.type != remote::EntryType::FILE) continue;
+                auto pos = s.name.find_last_of('.');
+                if (pos == std::string::npos) continue;
+                std::string ext = s.name.substr(pos);
+                std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+                if (ext != ".m2ts" && ext != ".mts") continue;
+                s.type = remote::EntryType::VIDEO;
+                urls.push_back(s);
+            }
+            if (urls.empty()) return;
+            std::sort(urls.begin(), urls.end(),
+                [](const remote::DirEntry& a, const remote::DirEntry& b) { return a.name < b.name; });
+            size_t largest = 0;
+            for (size_t i = 1; i < urls.size(); i++) {
+                if (urls.at(i).fileSize > urls.at(largest).fileSize) largest = i;
+            }
+            // setList skips index 0 and treats the argument as a list index, so
+            // prepend the UP sentinel and target the largest at largest + 1
+            DirList list;
+            list.push_back({remote::EntryType::UP});
+            for (auto& u : urls) list.push_back(u);
+            RemotePlayer* view = new RemotePlayer(urls.at(largest));
+            view->setList(list, largest + 1, client->extraOption());
+            brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
             return;
         }
 

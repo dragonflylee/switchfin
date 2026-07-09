@@ -24,6 +24,9 @@ enum class EntryType {
     SUBTITLE,
     TEXT,
     UP,
+    // virtual "Play Blu-ray" entry synthesised for a folder that holds a
+    // BDMV/STREAM backup (issue #18); path points at the STREAM directory
+    BLURAY,
 };
 
 struct DirEntry {
