@@ -155,4 +155,22 @@ inline std::vector<plex::Item> leavesOf(const std::vector<plex::Item>& nodes, co
     return out;
 }
 
+/// Image paths worth caching for a fiche (non-empty only): poster, backdrop,
+/// cut-out logo, parent/grandparent art and every cast face. Fed to
+/// ImageCache::store at download time (SPEC §4.2).
+inline std::vector<std::string> assetPaths(const plex::Item& it) {
+    std::vector<std::string> out;
+    auto add = [&](const std::string& p) {
+        if (!p.empty()) out.push_back(p);
+    };
+    add(it.thumb);
+    add(it.art);
+    add(it.clearLogo);
+    add(it.parentThumb);
+    add(it.grandparentThumb);
+    add(it.grandparentArt);
+    for (const auto& r : it.roles) add(r.thumb);
+    return out;
+}
+
 }  // namespace offline

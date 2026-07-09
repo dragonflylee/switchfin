@@ -70,6 +70,12 @@ private:
     void loadIndex();
     void processQueue();
     void doDownload(DownloadItem& item);
+    /// Captures the full fiche + ancestors (season/show) + the season's full
+    /// episode list + artwork into OfflineLibrary/ImageCache so the item is
+    /// browsable offline (SPEC §4.1). Runs on the download worker thread,
+    /// SYNCHRONOUSLY and serially — the curl DNS share has no lock callback, so
+    /// no extra concurrent HTTP is introduced.
+    void captureOfflineSync(const std::string& itemId);
     std::string downloadDir() const;
     std::string buildDownloadUrl(const DownloadItem& item) const;
 
