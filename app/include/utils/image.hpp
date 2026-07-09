@@ -3,6 +3,7 @@
 #include <borealis.hpp>
 #include "api/http.hpp"
 #include "config.hpp"
+#include "image_cache.hpp"
 
 class Image {
     using Ref = std::shared_ptr<Image>;
@@ -18,6 +19,13 @@ public:
     /// (PLEX_MIGRATION.md §2.5).
     static void load(brls::Image* view, const std::string& path, int width = 0, int height = 0) {
         if (path.empty()) return;
+        // offline cache wins: a locally cached asset renders without the server
+        // and gives downloaded content instant local artwork even online
+        // (SPEC §4.2, AC6/AC17). Keyed by the raw path/url below.
+        if (ImageCache::has(path)) {
+            view->setImageFromFile(ImageCache::localPath(path));
+            return;
+        }
         // external agent paths (cast faces...) are absolute
         if (path.rfind("http", 0) == 0) return with(view, path);
         auto& conf = AppConfig::instance();
