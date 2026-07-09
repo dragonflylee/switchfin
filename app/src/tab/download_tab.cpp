@@ -444,6 +444,20 @@ void DownloadView::updateStorage() {
         }
     }
 
+    // offline catalog caches (fiche snapshots + artwork) also live under the
+    // downloads folder and count towards pleNx' footprint
+    auto dirBytes = [](const std::string& d) -> int64_t {
+        int64_t total = 0;
+        try {
+            if (fs::exists(d))
+                for (auto& e : fs::recursive_directory_iterator(d))
+                    if (fs::is_regular_file(e.path())) total += (int64_t)fs::file_size(e.path());
+        } catch (const std::exception&) {
+        }
+        return total;
+    };
+    appBytes += dirBytes(dir + "/meta") + dirBytes(dir + "/art");
+
     size_t count = items.size();
     this->storageApp->setText(fmt::format("{}: {} · {} {}", AppVersion::getPackageName(),
         appBytes > 0 ? misc::formatSize(appBytes) : "0GB", count,

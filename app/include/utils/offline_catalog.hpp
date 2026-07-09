@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <functional>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -153,6 +154,37 @@ inline std::vector<plex::Item> leavesOf(const std::vector<plex::Item>& nodes, co
         return a.parentIndex != b.parentIndex ? a.parentIndex < b.parentIndex : a.index < b.index;
     });
     return out;
+}
+
+/// ratingKeys to KEEP given which leaves are actually downloaded (predicate).
+/// Prunes movies/clips not downloaded, shows and seasons with no downloaded
+/// episode, and their now-orphaned children; keeps a non-downloaded episode
+/// whose season still has a download (greyed sibling). (SPEC AC18)
+inline std::unordered_set<std::string> survivors(
+    const std::vector<plex::Item>& nodes, const std::function<bool(const std::string&)>& isDownloaded) {
+    std::unordered_set<std::string> seasonsWithDl, showsWithDl;
+    for (const auto& it : nodes) {
+        if (it.type == plex::mediaTypeEpisode && isDownloaded(it.ratingKey)) {
+            if (!it.parentRatingKey.empty()) seasonsWithDl.insert(it.parentRatingKey);
+            if (!it.grandparentRatingKey.empty()) showsWithDl.insert(it.grandparentRatingKey);
+        }
+    }
+    std::unordered_set<std::string> keep;
+    for (const auto& it : nodes) {
+        bool k;
+        if (it.type == plex::mediaTypeMovie || it.type == plex::mediaTypeClip)
+            k = isDownloaded(it.ratingKey);
+        else if (it.type == plex::mediaTypeShow)
+            k = showsWithDl.count(it.ratingKey) > 0;
+        else if (it.type == plex::mediaTypeSeason)
+            k = showsWithDl.count(it.parentRatingKey) > 0 && seasonsWithDl.count(it.ratingKey) > 0;
+        else if (it.type == plex::mediaTypeEpisode)
+            k = seasonsWithDl.count(it.parentRatingKey) > 0;
+        else
+            k = true;  // unknown type: keep defensively
+        if (k) keep.insert(it.ratingKey);
+    }
+    return keep;
 }
 
 /// Image paths worth caching for a fiche (non-empty only): poster, backdrop,

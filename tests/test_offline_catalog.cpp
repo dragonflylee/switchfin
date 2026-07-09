@@ -124,6 +124,40 @@ int main() {
     auto assets = offline::assetPaths(art);
     CHECK(assets.size() == 4);
 
+    // prune survivors (T4): given which leaves are downloaded, decide what to keep
+    {
+        auto mk = [](const std::string& key, const std::string& type, const std::string& parent,
+                      const std::string& grand) {
+            plex::Item it;
+            it.ratingKey = key;
+            it.type = type;
+            it.parentRatingKey = parent;
+            it.grandparentRatingKey = grand;
+            return it;
+        };
+        std::vector<plex::Item> pn;
+        pn.push_back(mk("m1", plex::mediaTypeMovie, "", ""));      // downloaded
+        pn.push_back(mk("m2", plex::mediaTypeMovie, "", ""));      // NOT downloaded
+        pn.push_back(mk("S", plex::mediaTypeShow, "", ""));
+        pn.push_back(mk("S1", plex::mediaTypeSeason, "S", ""));    // has a download
+        pn.push_back(mk("S2", plex::mediaTypeSeason, "S", ""));    // no download
+        pn.push_back(mk("e1", plex::mediaTypeEpisode, "S1", "S")); // downloaded
+        pn.push_back(mk("e2", plex::mediaTypeEpisode, "S1", "S")); // sibling, not downloaded
+        pn.push_back(mk("e3", plex::mediaTypeEpisode, "S2", "S")); // not downloaded
+
+        std::unordered_set<std::string> dl = {"m1", "e1"};
+        auto keep = offline::survivors(pn, [&](const std::string& k) { return dl.count(k) > 0; });
+
+        CHECK(keep.count("m1") == 1);
+        CHECK(keep.count("m2") == 0);  // movie not downloaded -> pruned
+        CHECK(keep.count("S") == 1);   // show has a downloaded episode
+        CHECK(keep.count("S1") == 1);  // season with a download
+        CHECK(keep.count("e1") == 1);
+        CHECK(keep.count("e2") == 1);  // greyed sibling kept (season has a download)
+        CHECK(keep.count("S2") == 0);  // season with no download -> pruned
+        CHECK(keep.count("e3") == 0);  // its episode -> pruned
+    }
+
     if (failures == 0) {
         printf("test_offline_catalog: OK\n");
         return 0;
