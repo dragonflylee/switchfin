@@ -2,7 +2,12 @@
 #include "utils/download.hpp"
 #include "utils/config.hpp"
 #include "utils/misc.hpp"
+#include "utils/offline_library.hpp"
+#include "utils/offline_catalog.hpp"
+#include "utils/image_cache.hpp"
 #include "api/plex.hpp"
+
+#include <optional>
 
 using namespace brls::literals;  // for _i18n
 
@@ -229,6 +234,60 @@ std::string DownloadManager::buildDownloadUrl(const DownloadItem& item) const {
     return plex::withToken(conf.getUrl() + item.partKey + "?download=1", conf.getToken());
 }
 
+// Runs on the download worker thread AFTER the file transfer, synchronously and
+// serially (no extra concurrent HTTP — the curl DNS share has no lock callback).
+void DownloadManager::captureOfflineSync(const std::string& itemId) {
+    auto& conf = AppConfig::instance();
+    const std::string base = conf.getUrl();
+    const std::string token = conf.getToken();
+    auto& lib = OfflineLibrary::instance();
+
+    auto fetchOne = [&](const std::string& id) -> std::optional<plex::Item> {
+        std::string url = base + fmt::format(fmt::runtime(plex::apiMetadata), id, "");
+        auto c = plex::getSync(url, token).get<plex::Container<plex::Item>>();
+        if (c.Items.empty()) return std::nullopt;
+        return c.Items.front();
+    };
+    auto fetchChildren = [&](const std::string& id) -> std::vector<plex::Item> {
+        std::string url = base + fmt::format(fmt::runtime(plex::apiChildren), id, "");
+        return plex::getSync(url, token).get<plex::Container<plex::Item>>().Items;
+    };
+    auto cacheAssets = [](const plex::Item& it) {
+        for (const auto& p : offline::assetPaths(it)) ImageCache::store(p);
+    };
+
+    // leaf fiche + its artwork (poster/backdrop/logo/cast)
+    auto leaf = fetchOne(itemId);
+    if (!leaf) return;
+    lib.putItem(*leaf);
+    cacheAssets(*leaf);
+
+    if (leaf->type != plex::mediaTypeEpisode) return;
+
+    // show fiche + every season (seasons row) — once per show
+    if (!leaf->grandparentRatingKey.empty() && !lib.hasItem(leaf->grandparentRatingKey)) {
+        if (auto show = fetchOne(leaf->grandparentRatingKey)) {
+            lib.putItem(*show);
+            cacheAssets(*show);
+        }
+        for (auto& season : fetchChildren(leaf->grandparentRatingKey)) {
+            if (season.parentRatingKey.empty()) season.parentRatingKey = leaf->grandparentRatingKey;
+            lib.putItem(season);
+            cacheAssets(season);
+        }
+    }
+    // the season's FULL episode list — non-downloaded siblings appear greyed
+    // (SPEC AC9). Once per season, metadata only (no per-sibling artwork).
+    if (!leaf->parentRatingKey.empty() && lib.children(leaf->parentRatingKey).empty()) {
+        for (auto& ep : fetchChildren(leaf->parentRatingKey)) {
+            if (ep.ratingKey == itemId) continue;  // keep the richer leaf fiche
+            if (ep.parentRatingKey.empty()) ep.parentRatingKey = leaf->parentRatingKey;
+            if (ep.grandparentRatingKey.empty()) ep.grandparentRatingKey = leaf->grandparentRatingKey;
+            lib.putItem(ep);
+        }
+    }
+}
+
 // Must be called with mutex held
 void DownloadManager::processQueue() {
     if (this->downloading) return;
@@ -390,6 +449,16 @@ void DownloadManager::doDownload(DownloadItem& item) {
         } catch (const std::exception& ex) {
             error = ex.what();
             brls::Logger::error("Download failed: {} - {}", itemId, error);
+        }
+
+        // Offline capture (fiche + ancestors + artwork) on this worker thread,
+        // before signalling completion — best-effort, never fails the download.
+        if (success) {
+            try {
+                this->captureOfflineSync(itemId);
+            } catch (const std::exception& e) {
+                brls::Logger::warning("Offline capture failed {}: {}", itemId, e.what());
+            }
         }
 
         brls::sync([this, itemId, fileName, cancelled, success, error]() {

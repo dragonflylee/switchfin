@@ -112,6 +112,18 @@ int main() {
     CHECK(offline::childrenOf(real2, "S9").size() == 1);
     CHECK(offline::childrenOf(real2, "S9-1").size() == 1);
 
+    // asset paths to cache for a fiche (T3): non-empty images only
+    plex::Item art;
+    art.thumb = "/t";
+    art.art = "/a";
+    art.clearLogo = "/l";
+    plex::Role withFace;
+    withFace.thumb = "/r1";
+    plex::Role noFace;  // empty thumb must be skipped
+    art.roles = {withFace, noFace};
+    auto assets = offline::assetPaths(art);
+    CHECK(assets.size() == 4);
+
     if (failures == 0) {
         printf("test_offline_catalog: OK\n");
         return 0;
