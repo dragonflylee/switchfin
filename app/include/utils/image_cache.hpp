@@ -39,5 +39,7 @@ bool has(const std::string& pathOrUrl);
 /// fetch the asset (server for a relative path, direct for an absolute URL) and
 /// store it locally. Best-effort, blocking — call off the UI thread.
 bool store(const std::string& pathOrUrl);
+/// remove a cached asset (no-op if absent).
+void remove(const std::string& pathOrUrl);
 
 }  // namespace ImageCache

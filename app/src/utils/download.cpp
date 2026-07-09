@@ -192,6 +192,10 @@ void DownloadManager::removeDownload(const std::string& itemId) {
             this->statusEvent.fire(itemId, DownloadStatus::Failed);
         });
     }
+
+    // reconcile the offline catalog with the new download set (cascade prune of
+    // movies/shows/seasons no longer backed by a file). Called without our lock.
+    OfflineLibrary::instance().prune();
 }
 
 bool DownloadManager::isDownloaded(const std::string& itemId) const {

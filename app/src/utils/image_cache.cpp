@@ -54,4 +54,14 @@ bool store(const std::string& pathOrUrl) {
     }
 }
 
+void remove(const std::string& pathOrUrl) {
+    if (pathOrUrl.empty()) return;
+    try {
+        std::string local = localPath(pathOrUrl);
+        if (fs::exists(local)) fs::remove(local);
+    } catch (const std::exception& e) {
+        brls::Logger::warning("ImageCache: remove failed {}: {}", pathOrUrl, e.what());
+    }
+}
+
 }  // namespace ImageCache

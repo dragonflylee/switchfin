@@ -1,6 +1,7 @@
 #include <borealis.hpp>
 #include "utils/offline_library.hpp"
 #include "utils/offline_catalog.hpp"
+#include "utils/image_cache.hpp"
 #include "utils/config.hpp"
 #include "utils/misc.hpp"
 #include "utils/download.hpp"
@@ -126,6 +127,11 @@ bool OfflineLibrary::empty() const {
 
 void OfflineLibrary::removeItem(const std::string& ratingKey) {
     std::lock_guard<std::mutex> lock(this->mutex);
+    for (const auto& n : this->nodes) {
+        if (n.ratingKey != ratingKey) continue;
+        for (const auto& a : offline::assetPaths(n)) ImageCache::remove(a);
+        break;
+    }
     try {
         std::string path = this->metaPath(ratingKey);
         if (fs::exists(path)) fs::remove(path);
@@ -135,6 +141,33 @@ void OfflineLibrary::removeItem(const std::string& ratingKey) {
     this->nodes.erase(std::remove_if(this->nodes.begin(), this->nodes.end(),
                           [&](const plex::Item& n) { return n.ratingKey == ratingKey; }),
         this->nodes.end());
+    this->rebuild();
+}
+
+void OfflineLibrary::prune() {
+    // NOTE: must NOT be called while holding DownloadManager's lock — it queries
+    // DownloadManager::isDownloaded (its own lock) while holding ours.
+    auto& dm = DownloadManager::instance();
+    std::lock_guard<std::mutex> lock(this->mutex);
+    auto keep =
+        offline::survivors(this->nodes, [&dm](const std::string& k) { return dm.isDownloaded(k); });
+
+    std::vector<plex::Item> kept;
+    kept.reserve(this->nodes.size());
+    for (auto& n : this->nodes) {
+        if (keep.count(n.ratingKey)) {
+            kept.push_back(std::move(n));
+            continue;
+        }
+        // pruned: drop meta + cached artwork
+        try {
+            std::string p = this->metaPath(n.ratingKey);
+            if (fs::exists(p)) fs::remove(p);
+        } catch (...) {
+        }
+        for (const auto& a : offline::assetPaths(n)) ImageCache::remove(a);
+    }
+    this->nodes = std::move(kept);
     this->rebuild();
 }
 

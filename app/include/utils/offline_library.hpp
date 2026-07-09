@@ -41,8 +41,12 @@ public:
     /// No browsable content — drives the offline-entry decision (main.cpp).
     bool empty() const;
 
-    /// Drop a node and its meta file (cascade pruning handled separately).
+    /// Drop a node, its meta file and its cached artwork.
     void removeItem(const std::string& ratingKey);
+    /// Cascade-prune everything no longer backed by a downloaded file: movies
+    /// not downloaded, shows/seasons with no downloaded episode and their
+    /// orphaned children (SPEC AC18). Uses DownloadManager for the file state.
+    void prune();
 
     std::string metaDir() const;
 
