@@ -2,6 +2,7 @@
 
 #include "utils/config.hpp"
 #include "utils/download.hpp"
+#include "utils/offline_library.hpp"
 #include "utils/thread.hpp"
 
 #include "view/svg_image.hpp"
@@ -120,6 +121,7 @@ int main(int argc, char* argv[]) {
 
     conf.initThemes();
     DownloadManager::instance().init();
+    OfflineLibrary::instance().init();
 
     // Return directly to the desktop when closing the application (only for NX)
     brls::Application::getPlatform()->exitToHomeMode(true);
