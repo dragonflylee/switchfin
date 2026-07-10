@@ -6,7 +6,9 @@
 #include "tab/media_movie.hpp"
 #include "tab/playlist_view.hpp"
 #include "tab/hub_view.hpp"
+#include "tab/remote_view.hpp"
 #include "utils/misc.hpp"
+#include "utils/download.hpp"
 #include "view/svg_image.hpp"
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
@@ -110,17 +112,25 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
     auto& item = this->list.at(index);
 
     if (item.type == plex::mediaTypeShow) {
-        ui::presentDetail(recycler, new MediaSeries(item));
+        ui::presentDetail(recycler, new MediaSeries(item, this->localContext));
     } else if (item.type == plex::mediaTypeMovie) {
-        ui::presentDetail(recycler, new MediaMovie(item));
+        ui::presentDetail(recycler, new MediaMovie(item, this->localContext));
     } else if (item.type == plex::mediaTypeSeason) {
-        ui::presentDetail(recycler, new MediaSeries(item));
+        ui::presentDetail(recycler, new MediaSeries(item, this->localContext));
     } else if (item.type == plex::mediaTypeCollection) {
         ui::presentDetail(recycler, new MediaCollection(item.ratingKey, plex::mediaTypeCollection));
     } else if (item.type == plex::mediaTypeClip) {
         PlayerView* view = new PlayerView(item);
         view->setTitie(item.year ? fmt::format("{} ({})", item.title, item.year) : item.title);
     } else if (item.type == plex::mediaTypeEpisode) {
+        // downloaded episode -> local file (offline, and preferred in the
+        // downloads area even online); otherwise stream from the server
+        auto& dm = DownloadManager::instance();
+        std::string local = dm.isDownloaded(item.ratingKey) ? dm.getLocalPath(item.ratingKey) : "";
+        if (!local.empty()) {
+            RemoteView::play(local, fmt::format("S{}E{} - {}", item.parentIndex, item.index, item.title), "Local");
+            return;
+        }
         PlayerView* view = new PlayerView(item);
         view->setTitie(fmt::format("S{}E{} - {}", item.parentIndex, item.index, item.title));
         if (!item.grandparentRatingKey.empty()) view->setSeries(item.grandparentRatingKey);
