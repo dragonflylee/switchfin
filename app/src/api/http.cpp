@@ -83,6 +83,18 @@ private:
 static std::string user_agent =
     fmt::format("{}/{} ({})", AppVersion::getPackageName(), AppVersion::getVersion(), AppVersion::getPlatform());
 
+/// Per-data locks for the shared DNS cache. Without these callbacks a CURLSH
+/// shared across threads (every easy handle sets CURLOPT_SHARE) is undefined
+/// behaviour — the cause of the intermittent SIGABRT in Curl_resolv/Curl_hash
+/// under concurrent requests. One mutex per curl_lock_data class.
+static std::mutex curlShareLocks[CURL_LOCK_DATA_LAST];
+static void curlShareLock(CURL*, curl_lock_data data, curl_lock_access, void*) {
+    if (data < CURL_LOCK_DATA_LAST) curlShareLocks[data].lock();
+}
+static void curlShareUnlock(CURL*, curl_lock_data data, void*) {
+    if (data < CURL_LOCK_DATA_LAST) curlShareLocks[data].unlock();
+}
+
 /// @brief curl context
 
 HTTP::HTTP() : chunk(nullptr) {
@@ -96,6 +108,8 @@ HTTP::HTTP() : chunk(nullptr) {
             brls::Logger::debug("curl global init {}", std::to_string(rc));
 #endif
             this->share = curl_share_init();
+            curl_share_setopt(share, CURLSHOPT_LOCKFUNC, curlShareLock);
+            curl_share_setopt(share, CURLSHOPT_UNLOCKFUNC, curlShareUnlock);
             curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
         }
         ~Global() {

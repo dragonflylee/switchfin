@@ -268,21 +268,23 @@ void DownloadManager::captureOfflineSync(const std::string& itemId) {
 
     if (leaf->type != plex::mediaTypeEpisode) return;
 
-    // show fiche + every season (seasons row) — once per show
+    // show fiche only — once per show. We deliberately do NOT persist every
+    // season: only seasons that actually get a downloaded episode are stored
+    // (below), so the offline seasons row lists just those (SPEC AC10).
     if (!leaf->grandparentRatingKey.empty() && !lib.hasItem(leaf->grandparentRatingKey)) {
         if (auto show = fetchOne(leaf->grandparentRatingKey)) {
             lib.putItem(*show);
             cacheAssets(*show);
         }
-        for (auto& season : fetchChildren(leaf->grandparentRatingKey)) {
-            if (season.parentRatingKey.empty()) season.parentRatingKey = leaf->grandparentRatingKey;
-            lib.putItem(season);
-            cacheAssets(season);
-        }
     }
-    // the season's FULL episode list — non-downloaded siblings appear greyed
-    // (SPEC AC9). Once per season, metadata only (no per-sibling artwork).
-    if (!leaf->parentRatingKey.empty() && lib.children(leaf->parentRatingKey).empty()) {
+    // this season's fiche + its FULL episode list — non-downloaded siblings
+    // appear greyed (SPEC AC9). Once per season (guarded on the season node).
+    if (!leaf->parentRatingKey.empty() && !lib.hasItem(leaf->parentRatingKey)) {
+        if (auto season = fetchOne(leaf->parentRatingKey)) {
+            if (season->parentRatingKey.empty()) season->parentRatingKey = leaf->grandparentRatingKey;
+            lib.putItem(*season);
+            cacheAssets(*season);
+        }
         for (auto& ep : fetchChildren(leaf->parentRatingKey)) {
             if (ep.ratingKey == itemId) continue;  // keep the richer leaf fiche
             if (ep.parentRatingKey.empty()) ep.parentRatingKey = leaf->parentRatingKey;

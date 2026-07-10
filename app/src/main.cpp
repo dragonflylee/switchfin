@@ -3,6 +3,7 @@
 #include "utils/config.hpp"
 #include "utils/download.hpp"
 #include "utils/offline_library.hpp"
+#include "utils/image_cache.hpp"
 #include "utils/network_state.hpp"
 #include "utils/thread.hpp"
 
@@ -121,6 +122,7 @@ int main(int argc, char* argv[]) {
     }
 
     conf.initThemes();
+    ImageCache::init();
     DownloadManager::instance().init();
     OfflineLibrary::instance().init();
 
