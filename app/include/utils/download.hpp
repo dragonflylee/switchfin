@@ -51,6 +51,8 @@ public:
     void addDownload(const std::string& itemId);
     void cancelDownload(const std::string& itemId);
     void removeDownload(const std::string& itemId);
+    /// Re-queues a failed download (keeps its metadata/partKey).
+    void retryDownload(const std::string& itemId);
     void resumeQueue();
 
     bool isDownloaded(const std::string& itemId) const;

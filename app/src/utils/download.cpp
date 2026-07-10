@@ -198,6 +198,25 @@ void DownloadManager::removeDownload(const std::string& itemId) {
     OfflineLibrary::instance().prune();
 }
 
+void DownloadManager::retryDownload(const std::string& itemId) {
+    {
+        std::lock_guard<std::mutex> lock(this->mutex);
+        for (auto& item : this->items) {
+            if (item.itemId == itemId && item.status == DownloadStatus::Failed) {
+                // keep the metadata/partKey, just re-queue it from scratch
+                item.status = DownloadStatus::Queued;
+                item.errorMessage.clear();
+                item.downloadedBytes = 0;
+                item.totalBytes = 0;
+                break;
+            }
+        }
+        this->saveIndex();
+        this->processQueue();
+    }
+    brls::sync([this, itemId]() { this->statusEvent.fire(itemId, DownloadStatus::Queued); });
+}
+
 bool DownloadManager::isDownloaded(const std::string& itemId) const {
     std::lock_guard<std::mutex> lock(this->mutex);
     for (auto& item : this->items) {

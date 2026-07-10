@@ -261,10 +261,8 @@ public:
         } else if (item.status == DownloadStatus::Queued) {
             DownloadManager::instance().resumeQueue();
         } else if (item.status == DownloadStatus::Failed) {
-            std::string id = item.itemId;
-            Dialog::cancelable("main/download/confirm_remove"_i18n, [id]() {
-                DownloadManager::instance().removeDownload(id);
-            });
+            // tap a failed row to retry it; X still removes it
+            DownloadManager::instance().retryDownload(item.itemId);
         }
     }
 

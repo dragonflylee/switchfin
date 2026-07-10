@@ -80,7 +80,12 @@ MediaMovie::MediaMovie(const plex::Item& item, bool localContext)
                 this->updateDownloadButton();
             });
         } else if (dm.isDownloaded(this->itemId)) {
-            brls::Application::notify("main/download/completed"_i18n);
+            // already downloaded: offer to remove it (clicking "Downloaded"
+            // should do something useful, not just re-announce the state)
+            Dialog::cancelable("main/download/confirm_remove"_i18n, [this]() {
+                DownloadManager::instance().removeDownload(this->itemId);
+                this->updateDownloadButton();
+            });
         } else {
             dm.addDownload(this->itemId);
             this->updateDownloadButton();
