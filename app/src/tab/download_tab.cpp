@@ -319,6 +319,12 @@ DownloadView::DownloadView() {
     this->storageBar->setGrow(1.0f);
     this->storageBarBox->addView(this->storageBar);
 
+    // The "Storage" card scrolls WITH the list: attach it as the recycler's
+    // scrolled header instead of leaving it pinned above (it stayed fixed
+    // while the list scrolled once there were enough downloads).
+    if (brls::View* card = this->getView("downloads/storage/card"))
+        this->recycler->setHeaderView(card, 150);
+
     this->recycler->registerCell("Cell", []() { return new DownloadCard(); });
     this->recycler->registerCell("Header", []() { return new DownloadSectionHeader(); });
     // row 0 is always a section header: zero initial offset, the focus
