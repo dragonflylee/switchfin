@@ -21,7 +21,8 @@
 
 using namespace brls::literals;  // for _i18n
 
-MediaMovie::MediaMovie(const plex::Item& item) : itemId(item.ratingKey) {
+MediaMovie::MediaMovie(const plex::Item& item, bool localContext)
+    : itemId(item.ratingKey), localContext(localContext) {
     brls::Logger::debug("Tab MediaMovie: create");
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/movie.xml");
@@ -169,7 +170,7 @@ void MediaMovie::doRequest() {
 void MediaMovie::doMovie() {
     // downloaded item, or fully offline: render from the local catalog and skip
     // the server round-trip entirely (SPEC AC5/AC6).
-    if (media::preferLocal(this->itemId)) {
+    if (media::preferLocal(this->localContext)) {
         plex::Item it;
         if (OfflineLibrary::instance().getItem(this->itemId, it)) {
             this->applyMovie(it);

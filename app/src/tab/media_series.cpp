@@ -21,6 +21,10 @@
 #include "utils/rating.hpp"
 #include "utils/download.hpp"
 #include "utils/dialog.hpp"
+#include "utils/media_source.hpp"
+#include "utils/offline_library.hpp"
+#include "utils/network_state.hpp"
+#include "tab/remote_view.hpp"
 #include <fmt/ranges.h>
 
 using namespace brls::literals;  // for _i18n
@@ -91,8 +95,9 @@ public:
 
     using MediaList = std::vector<plex::Item>;
 
-    SeasonEpisodesDataSource(const plex::Item& season, const std::string& fallback, const MediaList& episodes)
-        : season(season), fallbackSummary(fallback), list(episodes) {}
+    SeasonEpisodesDataSource(
+        const plex::Item& season, const std::string& fallback, const MediaList& episodes, bool localContext = false)
+        : season(season), fallbackSummary(fallback), list(episodes), localContext(localContext) {}
 
     size_t getItemCount() override { return this->list.size() + 1; }
 
@@ -140,12 +145,45 @@ public:
             cell->rectProgress->getParent()->setVisibility(brls::Visibility::GONE);
         }
 
+        // offline browsing: dim the episodes that aren't downloaded — they are
+        // shown for structure but greyed and non-playable (SPEC AC9)
+        if (this->localContext) {
+            cell->setAlpha(DownloadManager::instance().isDownloaded(item.ratingKey) ? 1.0f : 0.4f);
+        }
+
         return cell;
     }
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
         if (index == 0) return;  // the header only acts through its button
         auto& item = this->list.at(index - 1);
+        auto& dm = DownloadManager::instance();
+
+        // downloaded episode -> play the local file (works offline, preferred
+        // in the downloads area even online — SPEC AC11)
+        std::string local = dm.isDownloaded(item.ratingKey) ? dm.getLocalPath(item.ratingKey) : "";
+        if (!local.empty()) {
+            std::string title = item.grandparentTitle.empty()
+                                    ? fmt::format("S{}E{} — {}", item.parentIndex, item.index, item.title)
+                                    : fmt::format("{} · S{}E{} — {}", item.grandparentTitle, item.parentIndex,
+                                          item.index, item.title);
+            RemoteView::play(local, title, "Local");
+            return;
+        }
+        // not downloaded: offline it is unavailable; online (downloads area) it
+        // can be fetched on the spot
+        if (NetworkState::isOffline()) {
+            brls::Application::notify("main/download/unavailable_offline"_i18n);
+            return;
+        }
+        if (this->localContext) {
+            std::string id = item.ratingKey;
+            Dialog::cancelable("main/download/confirm_episode"_i18n, [id]() {
+                DownloadManager::instance().addDownload(id);
+            });
+            return;
+        }
+
         PlayerView* view = new PlayerView(item);
         view->setTitie(item.grandparentTitle.empty()
                            ? fmt::format("S{}E{} — {}", item.parentIndex, item.index, item.title)
@@ -192,6 +230,7 @@ private:
     plex::Item season;
     std::string fallbackSummary;
     MediaList list;
+    bool localContext;  // offline downloads area (grey non-downloaded episodes)
 };
 
 /// Season detail view: EVERYTHING scrolls — the header (cover + info +
@@ -201,8 +240,8 @@ private:
 /// doRequest).
 class MediaSeason : public brls::Box, public Presenter {
 public:
-    MediaSeason(const plex::Item& item, const std::string& fallbackSummary)
-        : season(item), fallbackSummary(fallbackSummary) {
+    MediaSeason(const plex::Item& item, const std::string& fallbackSummary, bool localContext = false)
+        : season(item), fallbackSummary(fallbackSummary), localContext(localContext) {
         this->inflateFromXMLRes("xml/tabs/seasons.xml");
 
         this->recycler->registerCell("Header", []() { return new SeasonHeaderCell(); });
@@ -236,6 +275,15 @@ public:
     /// (re)loads the episodes — also triggered when the player closes
     /// to refresh watched badges / progress (Presenter)
     void doRequest() override {
+        // downloads area / offline: episodes from the local catalog — the full
+        // season is shown, non-downloaded ones greyed and non-playable (AC9)
+        if (media::preferLocal(this->localContext)) {
+            auto eps = OfflineLibrary::instance().children(this->season.ratingKey);
+            this->recycler->setDataSource(
+                new SeasonEpisodesDataSource(this->season, this->fallbackSummary, eps, true));
+            return;
+        }
+
         ASYNC_RETAIN
         // season episodes: GET /library/metadata/{seasonKey}/children
         plex::getJSON<plex::Container<plex::Item>>(
@@ -278,6 +326,7 @@ private:
 
     plex::Item season;
     std::string fallbackSummary;
+    bool localContext;  // offline downloads area
 };
 
 /// "Seasons" row of the show page: poster cards (season title localized
@@ -289,8 +338,8 @@ public:
     /// `fallbackSummary` points to MediaSeries::seriesSummary (stable
     /// address, shared lifetime: the source dies with the page's recycler)
     /// — the summary is only known after doSeries.
-    SeasonDataSource(const MediaList& r, const std::string* fallbackSummary)
-        : list(std::move(r)), fallbackSummary(fallbackSummary) {}
+    SeasonDataSource(const MediaList& r, const std::string* fallbackSummary, bool localContext = false)
+        : list(std::move(r)), fallbackSummary(fallbackSummary), localContext(localContext) {}
 
     size_t getItemCount() override { return this->list.size(); }
 
@@ -330,7 +379,7 @@ public:
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
         auto& item = this->list.at(index);
-        ui::presentDetail(recycler, new MediaSeason(item, *this->fallbackSummary));
+        ui::presentDetail(recycler, new MediaSeason(item, *this->fallbackSummary, this->localContext));
     }
 
     void clearData() override { this->list.clear(); }
@@ -338,11 +387,13 @@ public:
 private:
     MediaList list;
     const std::string* fallbackSummary;
+    bool localContext;  // offline downloads area (propagated to the season view)
 };
 
-MediaSeries::MediaSeries(const plex::Item& item)
+MediaSeries::MediaSeries(const plex::Item& item, bool localContext)
     : seriesId(item.type == plex::mediaTypeSeason && !item.parentRatingKey.empty() ? item.parentRatingKey
-                                                                                   : item.ratingKey) {
+                                                                                   : item.ratingKey)
+    , localContext(localContext) {
     brls::Logger::debug("Tab MediaSeries: create");
     if (item.type == plex::mediaTypeSeason) this->wantedSeason = item.ratingKey;
     // Inflate the tab from the XML file
@@ -371,6 +422,8 @@ MediaSeries::MediaSeries(const plex::Item& item)
         this->doDownloadSeries();
         return true;
     });
+    // offline: no new downloads possible
+    if (NetworkState::isOffline()) this->btnDownload->setVisibility(brls::Visibility::GONE);
 
     this->doSeason();
     this->doSeries();
@@ -492,6 +545,20 @@ void MediaSeries::updateWatchlistButton() {
 }
 
 void MediaSeries::doSeries() {
+    // downloaded show opened from the downloads area, or fully offline: render
+    // from the local catalog (SPEC AC5/AC6)
+    if (media::preferLocal(this->localContext)) {
+        plex::Item it;
+        if (OfflineLibrary::instance().getItem(this->seriesId, it)) {
+            this->applySeries(it);
+            return;
+        }
+        if (NetworkState::isOffline()) {
+            this->people->setVisibility(brls::Visibility::GONE);
+            return;
+        }
+    }
+
     std::string query = HTTP::encode_form({
         {"includeChapters", "1"},
         {"includeMarkers", "1"},
@@ -508,62 +575,7 @@ void MediaSeries::doSeries() {
                 this->people->setVisibility(brls::Visibility::GONE);
                 return;
             }
-            auto& item = r.Items.front();
-            this->labelTitle->setText(item.title);
-            Image::load(this->imagePoster, item.thumb, 325);
-            // banner: backdrop (art) + cut-out logo nested at the bottom of
-            // the fade; the text title is ALWAYS shown (below the banner).
-            // The banner stays shown while loading (dark placeholder):
-            // no layout jump when the image arrives — and the
-            // gone->visible transition triggered a first-render bug
-            // (gradient + image fill).
-            if (!item.art.empty()) {
-                Image::load(this->imageBackdrop, item.art, 1080, 608);
-                if (!item.clearLogo.empty()) {
-                    Image::load(this->imageLogo, item.clearLogo, 440, 120);
-                }
-            } else {
-                this->bannerBox->setVisibility(brls::Visibility::GONE);
-                this->contentRow->setMarginTop(0);
-                this->contentInfo->setMarginTop(0);
-                this->invalidate();
-            }
-            // "year · N seasons" pill (childCount = number of seasons of the show)
-            if (item.childCount > 0) {
-                this->labelYear->setText(fmt::format(
-                    "{}  ·  {} {}", item.year, item.childCount,
-                    item.childCount > 1 ? "main/media/seasons"_i18n : "main/media/season"_i18n));
-            } else {
-                this->labelYear->setText(std::to_string(item.year));
-            }
-            if (item.contentRating.empty()) {
-                this->parentalRating->getParent()->setVisibility(brls::Visibility::GONE);
-            } else {
-                this->parentalRating->setText(item.contentRating);
-                this->parentalRating->getParent()->setVisibility(brls::Visibility::VISIBLE);
-            }
-            // critic (ratingImage) + audience (audienceRatingImage) with the
-            // official Plex icons; generic-star fallback, hidden when absent
-            rating::applyPill(this->iconRating, this->labelRating, item.ratingImage, item.rating);
-            rating::applyPill(this->iconAudience, this->labelAudience, item.audienceRatingImage, item.audienceRating);
-            this->labelOverview->setText(item.summary);
-            this->seriesSummary = item.summary;
-
-            if (item.genres.empty()) {
-                this->labelGenres->setVisibility(brls::Visibility::GONE);
-            } else {
-                this->labelGenres->setText(fmt::format("{}", fmt::join(item.genres, ", ")));
-                this->labelGenres->setVisibility(brls::Visibility::VISIBLE);
-            }
-            if (item.roles.size() > 0) {
-                this->people->setDataSource(new PeopleDataSource(item.roles));
-            } else {
-                this->people->setVisibility(brls::Visibility::GONE);
-            }
-
-            // the watchlist applies to the SHOW: guid of the show (seriesId),
-            // also valid when the page was opened from a season
-            this->initWatchlist(item.guid);
+            this->applySeries(r.Items.front());
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
@@ -572,7 +584,85 @@ void MediaSeries::doSeries() {
         plex::apiMetadata, this->seriesId, query);
 }
 
+// Renders the show fiche from an Item — shared by the server and local paths.
+void MediaSeries::applySeries(const plex::Item& item) {
+    this->labelTitle->setText(item.title);
+    Image::load(this->imagePoster, item.thumb, 325);
+    // banner: backdrop (art) + cut-out logo nested at the bottom of
+    // the fade; the text title is ALWAYS shown (below the banner).
+    // The banner stays shown while loading (dark placeholder):
+    // no layout jump when the image arrives — and the
+    // gone->visible transition triggered a first-render bug
+    // (gradient + image fill).
+    if (!item.art.empty()) {
+        Image::load(this->imageBackdrop, item.art, 1080, 608);
+        if (!item.clearLogo.empty()) {
+            Image::load(this->imageLogo, item.clearLogo, 440, 120);
+        }
+    } else {
+        this->bannerBox->setVisibility(brls::Visibility::GONE);
+        this->contentRow->setMarginTop(0);
+        this->contentInfo->setMarginTop(0);
+        this->invalidate();
+    }
+    // "year · N seasons" pill (childCount = number of seasons of the show)
+    if (item.childCount > 0) {
+        this->labelYear->setText(fmt::format("{}  ·  {} {}", item.year, item.childCount,
+            item.childCount > 1 ? "main/media/seasons"_i18n : "main/media/season"_i18n));
+    } else {
+        this->labelYear->setText(std::to_string(item.year));
+    }
+    if (item.contentRating.empty()) {
+        this->parentalRating->getParent()->setVisibility(brls::Visibility::GONE);
+    } else {
+        this->parentalRating->setText(item.contentRating);
+        this->parentalRating->getParent()->setVisibility(brls::Visibility::VISIBLE);
+    }
+    // critic (ratingImage) + audience (audienceRatingImage) with the
+    // official Plex icons; generic-star fallback, hidden when absent
+    rating::applyPill(this->iconRating, this->labelRating, item.ratingImage, item.rating);
+    rating::applyPill(this->iconAudience, this->labelAudience, item.audienceRatingImage, item.audienceRating);
+    this->labelOverview->setText(item.summary);
+    this->seriesSummary = item.summary;
+
+    if (item.genres.empty()) {
+        this->labelGenres->setVisibility(brls::Visibility::GONE);
+    } else {
+        this->labelGenres->setText(fmt::format("{}", fmt::join(item.genres, ", ")));
+        this->labelGenres->setVisibility(brls::Visibility::VISIBLE);
+    }
+    if (item.roles.size() > 0) {
+        this->people->setDataSource(new PeopleDataSource(item.roles));
+    } else {
+        this->people->setVisibility(brls::Visibility::GONE);
+    }
+
+    // the watchlist applies to the SHOW (online only — needs the plex.tv account)
+    if (!NetworkState::isOffline()) this->initWatchlist(item.guid);
+}
+
 void MediaSeries::doSeason() {
+    // downloads area / offline: seasons from the local catalog (only seasons
+    // with a downloaded episode survive pruning — SPEC AC10)
+    if (media::preferLocal(this->localContext)) {
+        auto seasons = OfflineLibrary::instance().children(this->seriesId);
+        if (seasons.empty()) {
+            this->labelSeasons->setVisibility(brls::Visibility::GONE);
+            this->seasons->setVisibility(brls::Visibility::GONE);
+        } else {
+            this->seasons->setDataSource(new SeasonDataSource(seasons, &this->seriesSummary, true));
+            if (!this->wantedSeason.empty()) {
+                for (auto& it : seasons) {
+                    if (it.ratingKey != this->wantedSeason) continue;
+                    ui::presentDetail(this, new MediaSeason(it, this->seriesSummary, true));
+                    break;
+                }
+                this->wantedSeason.clear();
+            }
+        }
+        return;
+    }
+
     ASYNC_RETAIN
     // seasons: GET /library/metadata/{showKey}/children
     plex::getJSON<plex::Container<plex::Item>>(
@@ -605,6 +695,14 @@ void MediaSeries::doSeason() {
 }
 
 void MediaSeries::doNextup() {
+    // OnDeck comes from the server; offline there is no "next up" — episodes are
+    // played from the season list instead (SPEC AC11)
+    if (NetworkState::isOffline()) {
+        this->onDeck = plex::Item();
+        this->btnPlay->setVisibility(brls::Visibility::GONE);
+        return;
+    }
+
     auto& conf = AppConfig::instance();
     std::string url = conf.getUrl() + fmt::format("/library/metadata/{}?includeOnDeck=1", this->seriesId);
     // fully watched show (no OnDeck): first episode across all seasons,
@@ -657,6 +755,12 @@ void MediaSeries::doNextup() {
 }
 
 void MediaSeries::doRelated() {
+    // no "related" rows offline — that content is not downloaded (SPEC AC7)
+    if (NetworkState::isOffline()) {
+        this->boxRelated->clearViews();
+        return;
+    }
+
     std::string query = HTTP::encode_form({{"count", "12"}});
 
     ASYNC_RETAIN
@@ -690,6 +794,13 @@ void MediaSeries::doRelated() {
 }
 
 void MediaSeries::doSpecial() {
+    // extras aren't cached offline
+    if (NetworkState::isOffline()) {
+        this->special->setVisibility(brls::Visibility::GONE);
+        this->labelSpecial->setVisibility(brls::Visibility::GONE);
+        return;
+    }
+
     ASYNC_RETAIN
     // extras: GET /library/metadata/{key}/extras;
     // type "clip" -> direct playback handled by VideoDataSource
