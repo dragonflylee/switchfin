@@ -74,6 +74,10 @@ public:
         this->labelOverview->setText(item.summary.empty() ? fallbackSummary : item.summary);
     }
 
+    void setDownloadVisible(bool v) {
+        this->btnDownload->setVisibility(v ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
+    }
+
     std::function<void()> onDownload = nullptr;
 
 private:
@@ -110,6 +114,8 @@ public:
             auto* header = dynamic_cast<SeasonHeaderCell*>(recycler->dequeueReusableCell("Header"));
             header->setItem(this->season, this->fallbackSummary);
             header->onDownload = [this]() { this->downloadRemaining(); };
+            // no new downloads possible offline
+            header->setDownloadVisible(!NetworkState::isOffline());
             return header;
         }
 
