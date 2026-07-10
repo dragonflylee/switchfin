@@ -161,6 +161,8 @@
     "season": "Descargar temporada",
     "confirm_season": "¿Descargar {} episodios?",
     "season_queued": "Temporada añadida a las descargas",
+    "confirm_episode": "¿Descargar este episodio?",
+    "unavailable_offline": "No disponible sin conexión",
     "storage": "Almacenamiento",
     "storage_free": "{} libres de {}",
     "section_active": "En curso",

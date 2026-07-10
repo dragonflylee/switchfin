@@ -161,6 +161,8 @@
     "season": "Завантажити сезон",
     "confirm_season": "Завантажити {} серій?",
     "season_queued": "Сезон додано до завантажень",
+    "confirm_episode": "Завантажити цю серію?",
+    "unavailable_offline": "Недоступно офлайн",
     "storage": "Сховище",
     "storage_free": "Вільно {} з {}",
     "section_active": "У процесі",

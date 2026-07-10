@@ -161,6 +161,8 @@
     "season": "시즌 다운로드",
     "confirm_season": "에피소드 {}개를 다운로드할까요?",
     "season_queued": "시즌이 다운로드에 추가되었습니다",
+    "confirm_episode": "이 에피소드를 다운로드할까요?",
+    "unavailable_offline": "오프라인에서 사용할 수 없습니다",
     "storage": "저장 공간",
     "storage_free": "{} 사용 가능 / 전체 {}",
     "section_active": "다운로드 중",

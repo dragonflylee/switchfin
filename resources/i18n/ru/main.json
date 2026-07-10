@@ -161,6 +161,8 @@
     "season": "Скачать сезон",
     "confirm_season": "Скачать {} серий?",
     "season_queued": "Сезон добавлен в загрузки",
+    "confirm_episode": "Скачать эту серию?",
+    "unavailable_offline": "Недоступно офлайн",
     "storage": "Хранилище",
     "storage_free": "Свободно {} из {}",
     "section_active": "В процессе",

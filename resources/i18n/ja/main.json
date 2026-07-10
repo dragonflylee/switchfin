@@ -161,6 +161,8 @@
     "season": "シーズンをダウンロード",
     "confirm_season": "{}話をダウンロードしますか？",
     "season_queued": "シーズンをダウンロードに追加しました",
+    "confirm_episode": "このエピソードをダウンロードしますか？",
+    "unavailable_offline": "オフラインでは利用できません",
     "storage": "ストレージ",
     "storage_free": "空き {} / {}",
     "section_active": "ダウンロード中",

@@ -161,6 +161,8 @@
     "season": "Tải mùa này",
     "confirm_season": "Tải {} tập?",
     "season_queued": "Đã thêm mùa vào danh sách tải",
+    "confirm_episode": "Tải tập này xuống?",
+    "unavailable_offline": "Không khả dụng ngoại tuyến",
     "storage": "Bộ nhớ",
     "storage_free": "Còn trống {} / {}",
     "section_active": "Đang tải",

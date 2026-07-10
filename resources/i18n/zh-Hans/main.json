@@ -161,6 +161,8 @@
     "season": "下载本季",
     "confirm_season": "下载 {} 集？",
     "season_queued": "已将本季加入下载",
+    "confirm_episode": "下载此集？",
+    "unavailable_offline": "离线时不可用",
     "storage": "存储空间",
     "storage_free": "可用 {} / 共 {}",
     "section_active": "下载中",

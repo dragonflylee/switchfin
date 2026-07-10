@@ -161,6 +161,8 @@
     "season": "Transferir temporada",
     "confirm_season": "Transferir {} episódios?",
     "season_queued": "Temporada adicionada às transferências",
+    "confirm_episode": "Baixar este episódio?",
+    "unavailable_offline": "Indisponível offline",
     "storage": "Armazenamento",
     "storage_free": "{} livres de {}",
     "section_active": "Em curso",
