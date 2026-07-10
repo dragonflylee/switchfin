@@ -3,6 +3,7 @@
 #include "utils/config.hpp"
 #include "utils/download.hpp"
 #include "utils/offline_library.hpp"
+#include "utils/network_state.hpp"
 #include "utils/thread.hpp"
 
 #include "view/svg_image.hpp"
@@ -177,6 +178,11 @@ int main(int argc, char* argv[]) {
 #if defined(__SWITCH__) && defined(BUILTIN_NSP)
                     proposeForwarderInstall();
 #endif
+                } else if (!OfflineLibrary::instance().empty()) {
+                    // no server reachable but downloads exist: browse them
+                    // offline (SPEC §4.4) instead of the server picker
+                    NetworkState::setOffline(true);
+                    brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
                 } else {
                     brls::Application::pushActivity(new ServerList(), brls::TransitionAnimation::NONE);
                 }

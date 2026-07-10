@@ -1,7 +1,9 @@
 #include "tab/home_tab.hpp"
+#include "tab/offline_collection.hpp"
 #include "view/recyling_video.hpp"
 #include "api/plex.hpp"
 #include "utils/keybind.hpp"
+#include "utils/network_state.hpp"
 
 using namespace brls::literals;  // for _i18n
 
@@ -18,6 +20,16 @@ brls::View* HomeTab::create() { return new HomeTab(); }
 /// watching" then the hubs from /hubs, with their localized titles
 /// (X-Plex-Language) — PLEX_MIGRATION.md §2.5.
 void HomeTab::doRequest() {
+    // offline: the server hubs are unavailable — show the downloaded library
+    // as a single grid instead (SPEC AC13)
+    if (NetworkState::isOffline()) {
+        this->boxHome->clearViews();
+        auto* grid = new OfflineCollection();
+        grid->setGrow(1.f);
+        this->boxHome->addView(grid);
+        return;
+    }
+
     // clearViews destroys the focused card when refreshing after playback:
     // remember to give the focus back to the first rebuilt row, otherwise it
     // falls back to the sidebar and the user loses track of it

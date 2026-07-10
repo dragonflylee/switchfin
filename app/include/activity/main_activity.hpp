@@ -33,6 +33,9 @@ public:
 
 private:
     void addLibraryTabs(const std::vector<plex::Section>& sections);
+    /// offline mode: build the library tabs from the local catalog instead of
+    /// /library/sections (SPEC §4.4)
+    void addOfflineLibraryTabs();
 
     bool librariesLoaded = false;
 };
