@@ -82,7 +82,16 @@ int Ums::init() {
 }
 
 #else
-int Ums::init() { return 0; }
+#include <cstdlib>
+
+// generic desktop (macOS/Linux): expose the user's home directory as a
+// browsable root so the Files tab is usable off-Switch (Windows already
+// pins "My Videos" above). Pinned folders (config) are appended on top.
+int Ums::init() {
+    const char* home = std::getenv("HOME");
+    if (home && *home) this->devices.push_back({.id = -1, .name = "Home", .mount = home});
+    return 0;
+}
 #endif
 
 bool Ums::unmount(const Device& dev) { return false; }

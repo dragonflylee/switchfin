@@ -145,7 +145,16 @@
     "save": "测试并保存",
     "test_failed": "连接失败：{}",
     "retry": "重试？",
-    "required": "请至少填写名称和主机。"
+    "required": "请至少填写名称和主机。",
+    "sort": "文件排序",
+    "date": "修改日期",
+    "size": "大小",
+    "pin": "固定到文件",
+    "unpin": "从文件中移除",
+    "pinned": "已固定到文件",
+    "unpinned": "已从文件中移除",
+    "already_pinned": "已固定",
+    "pin_missing": "该文件夹已不可用。要从文件中移除吗？"
   },
   "download": {
     "start": "开始下载",

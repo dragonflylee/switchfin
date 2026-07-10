@@ -145,7 +145,16 @@
     "save": "Otestovat a uložit",
     "test_failed": "Připojení selhalo: {}",
     "retry": "Zkusit znovu?",
-    "required": "Zadejte alespoň název a hostitele."
+    "required": "Zadejte alespoň název a hostitele.",
+    "sort": "Seřadit soubory",
+    "date": "Datum úpravy",
+    "size": "Velikost",
+    "pin": "Připnout do Souborů",
+    "unpin": "Odebrat ze Souborů",
+    "pinned": "Připnuto do Souborů",
+    "unpinned": "Odebráno ze Souborů",
+    "already_pinned": "Již připnuto",
+    "pin_missing": "Tato složka již není dostupná. Odebrat ze Souborů?"
   },
   "download": {
     "start": "Stáhnout",

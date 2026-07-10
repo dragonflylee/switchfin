@@ -149,7 +149,16 @@
     "save": "Test and save",
     "test_failed": "Connection failed: {}",
     "retry": "Try again?",
-    "required": "Enter at least a name and a host."
+    "required": "Enter at least a name and a host.",
+    "sort": "Sort files",
+    "date": "Date modified",
+    "size": "Size",
+    "pin": "Pin to Files",
+    "unpin": "Remove from Files",
+    "pinned": "Pinned to Files",
+    "unpinned": "Removed from Files",
+    "already_pinned": "Already pinned",
+    "pin_missing": "This folder is no longer available. Remove it from Files?"
   },
   "download": {
     "start": "Download",

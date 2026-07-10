@@ -145,7 +145,16 @@
     "save": "測試並儲存",
     "test_failed": "連線失敗：{}",
     "retry": "重試？",
-    "required": "請至少填寫名稱與主機。"
+    "required": "請至少填寫名稱與主機。",
+    "sort": "檔案排序",
+    "date": "修改日期",
+    "size": "大小",
+    "pin": "釘選至檔案",
+    "unpin": "從檔案移除",
+    "pinned": "已釘選至檔案",
+    "unpinned": "已從檔案移除",
+    "already_pinned": "已釘選",
+    "pin_missing": "此資料夾已無法使用。要從檔案移除嗎？"
   },
   "download": {
     "start": "下載",

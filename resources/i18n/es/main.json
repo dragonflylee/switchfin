@@ -145,7 +145,16 @@
     "save": "Probar y guardar",
     "test_failed": "Error de conexión: {}",
     "retry": "¿Reintentar?",
-    "required": "Introduce al menos un nombre y un host."
+    "required": "Introduce al menos un nombre y un host.",
+    "sort": "Ordenar archivos",
+    "date": "Fecha de modificación",
+    "size": "Tamaño",
+    "pin": "Fijar en Archivos",
+    "unpin": "Quitar de Archivos",
+    "pinned": "Fijado en Archivos",
+    "unpinned": "Quitado de Archivos",
+    "already_pinned": "Ya está fijado",
+    "pin_missing": "Esta carpeta ya no está disponible. ¿Quitarla de Archivos?"
   },
   "download": {
     "start": "Descargar",

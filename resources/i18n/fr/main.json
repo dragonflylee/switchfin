@@ -149,7 +149,16 @@
     "save": "Tester et enregistrer",
     "test_failed": "Connexion impossible : {}",
     "retry": "Réessayer ?",
-    "required": "Renseigne au moins le nom et l'hôte."
+    "required": "Renseigne au moins le nom et l'hôte.",
+    "sort": "Trier les fichiers",
+    "date": "Date de modification",
+    "size": "Taille",
+    "pin": "Épingler aux Fichiers",
+    "unpin": "Retirer des Fichiers",
+    "pinned": "Épinglé aux Fichiers",
+    "unpinned": "Retiré des Fichiers",
+    "already_pinned": "Déjà épinglé",
+    "pin_missing": "Ce dossier n'est plus disponible. Le retirer des Fichiers ?"
   },
   "download": {
     "start": "Télécharger",

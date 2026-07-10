@@ -145,7 +145,16 @@
     "save": "테스트 후 저장",
     "test_failed": "연결 실패: {}",
     "retry": "다시 시도할까요?",
-    "required": "이름과 호스트를 입력하세요."
+    "required": "이름과 호스트를 입력하세요.",
+    "sort": "파일 정렬",
+    "date": "수정한 날짜",
+    "size": "크기",
+    "pin": "파일에 고정",
+    "unpin": "파일에서 제거",
+    "pinned": "파일에 고정됨",
+    "unpinned": "파일에서 제거됨",
+    "already_pinned": "이미 고정됨",
+    "pin_missing": "이 폴더를 더 이상 사용할 수 없습니다. 파일에서 제거할까요?"
   },
   "download": {
     "start": "다운로드",

@@ -145,7 +145,16 @@
     "save": "Test et ve kaydet",
     "test_failed": "Bağlantı başarısız: {}",
     "retry": "Yeniden denensin mi?",
-    "required": "En azından bir ad ve ana makine girin."
+    "required": "En azından bir ad ve ana makine girin.",
+    "sort": "Dosyaları sırala",
+    "date": "Değiştirilme tarihi",
+    "size": "Boyut",
+    "pin": "Dosyalar'a sabitle",
+    "unpin": "Dosyalar'dan kaldır",
+    "pinned": "Dosyalar'a sabitlendi",
+    "unpinned": "Dosyalar'dan kaldırıldı",
+    "already_pinned": "Zaten sabitlenmiş",
+    "pin_missing": "Bu klasör artık kullanılamıyor. Dosyalar'dan kaldırılsın mı?"
   },
   "download": {
     "start": "İndir",

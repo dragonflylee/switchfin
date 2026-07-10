@@ -145,7 +145,16 @@
     "save": "Kiểm tra và lưu",
     "test_failed": "Kết nối thất bại: {}",
     "retry": "Thử lại?",
-    "required": "Nhập ít nhất tên và máy chủ."
+    "required": "Nhập ít nhất tên và máy chủ.",
+    "sort": "Sắp xếp tệp",
+    "date": "Ngày sửa đổi",
+    "size": "Kích thước",
+    "pin": "Ghim vào Tệp",
+    "unpin": "Gỡ khỏi Tệp",
+    "pinned": "Đã ghim vào Tệp",
+    "unpinned": "Đã gỡ khỏi Tệp",
+    "already_pinned": "Đã ghim",
+    "pin_missing": "Thư mục này không còn khả dụng. Gỡ khỏi Tệp?"
   },
   "download": {
     "start": "Tải xuống",

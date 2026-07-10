@@ -145,7 +145,16 @@
     "save": "Testen und speichern",
     "test_failed": "Verbindung fehlgeschlagen: {}",
     "retry": "Erneut versuchen?",
-    "required": "Gib mindestens einen Namen und einen Host an."
+    "required": "Gib mindestens einen Namen und einen Host an.",
+    "sort": "Dateien sortieren",
+    "date": "Änderungsdatum",
+    "size": "Größe",
+    "pin": "An Dateien anheften",
+    "unpin": "Von Dateien entfernen",
+    "pinned": "An Dateien angeheftet",
+    "unpinned": "Von Dateien entfernt",
+    "already_pinned": "Bereits angeheftet",
+    "pin_missing": "Dieser Ordner ist nicht mehr verfügbar. Von Dateien entfernen?"
   },
   "download": {
     "start": "Herunterladen",

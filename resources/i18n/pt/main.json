@@ -145,7 +145,16 @@
     "save": "Testar e guardar",
     "test_failed": "Falha na ligação: {}",
     "retry": "Tentar novamente?",
-    "required": "Indique pelo menos um nome e um anfitrião."
+    "required": "Indique pelo menos um nome e um anfitrião.",
+    "sort": "Ordenar ficheiros",
+    "date": "Data de modificação",
+    "size": "Tamanho",
+    "pin": "Fixar em Ficheiros",
+    "unpin": "Remover de Ficheiros",
+    "pinned": "Fixado em Ficheiros",
+    "unpinned": "Removido de Ficheiros",
+    "already_pinned": "Já fixado",
+    "pin_missing": "Esta pasta já não está disponível. Removê-la de Ficheiros?"
   },
   "download": {
     "start": "Transferir",
