@@ -10,16 +10,16 @@
 */
 
 #include <api/plex/types.hpp>
-#include "utils/offline_library.hpp"
 #include "utils/network_state.hpp"
 
 namespace media {
 
-/// Serve this item from the local catalog: offline globally, or the item is
-/// downloaded (so a downloaded fiche renders locally even online — SPEC AC6).
-inline bool preferLocal(const std::string& itemId) {
-    return NetworkState::isOffline() || OfflineLibrary::instance().hasItem(itemId);
-}
+/// Serve a fiche/grid from the local catalog rather than the server. True when
+/// browsing fully offline, or when the view was opened from the offline
+/// downloads area (localContext) — so the Downloads section always renders
+/// locally, even online (SPEC AC6), WITHOUT hiding non-downloaded episodes when
+/// the same title is opened from the online library.
+inline bool preferLocal(bool localContext) { return NetworkState::isOffline() || localContext; }
 
 /// Wrap items into the MediaContainer shape the views consume.
 inline plex::Container<plex::Item> container(std::vector<plex::Item> items) {

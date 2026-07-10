@@ -16,7 +16,9 @@ class IconButton;
 
 class MediaMovie : public brls::Box, public Presenter {
 public:
-    MediaMovie(const plex::Item& item);
+    /// localContext = opened from the offline downloads area (render locally
+    /// even when a server is reachable, SPEC AC6)
+    MediaMovie(const plex::Item& item, bool localContext = false);
     ~MediaMovie() override;
 
 private:
@@ -61,6 +63,7 @@ private:
     int64_t viewOffsetMs = 0;
     std::string itemId;
     std::string itemGuid;
+    bool localContext = false;  // opened from the offline downloads area
     bool watchlisted = false;
     /// selected version (item.media[]) — no effect in v1 (playback = first
     /// accessible version, cf. activity/player_view.cpp)
