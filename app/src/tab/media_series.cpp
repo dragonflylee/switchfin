@@ -37,6 +37,7 @@ public:
     BRLS_BIND(brls::Label, labelOverview, "episode/card/overview");
     BRLS_BIND(SVGImage, badgeTopRight, "video/card/badge/top");
     BRLS_BIND(brls::Rectangle, rectProgress, "video/card/progress");
+    BRLS_BIND(brls::Box, badgeDownload, "video/card/badge/download");
 };
 
 /// Season view header cell (cover + info + download button):
@@ -150,6 +151,12 @@ public:
             cell->badgeTopRight->setVisibility(brls::Visibility::GONE);
             cell->rectProgress->getParent()->setVisibility(brls::Visibility::GONE);
         }
+
+        // "downloaded" badge (also visible online, so the fiche shows what is
+        // already available offline)
+        cell->badgeDownload->setVisibility(DownloadManager::instance().isDownloaded(item.ratingKey)
+                                               ? brls::Visibility::VISIBLE
+                                               : brls::Visibility::GONE);
 
         // offline browsing: dim the episodes that aren't downloaded — they are
         // shown for structure but greyed and non-playable (SPEC AC9)
@@ -382,6 +389,10 @@ public:
             cell->badgeTopRight->setVisibility(brls::Visibility::GONE);
         }
         cell->rectProgress->getParent()->setVisibility(brls::Visibility::GONE);
+        // a season is in the offline catalog iff at least one of its episodes
+        // is downloaded -> "downloaded" badge on the season card
+        cell->badgeDownload->setVisibility(
+            OfflineLibrary::instance().hasItem(item.ratingKey) ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
         return cell;
     }
 

@@ -10,6 +10,7 @@
 #include "utils/misc.hpp"
 #include "utils/download.hpp"
 #include "utils/media_source.hpp"
+#include "utils/offline_library.hpp"
 #include "view/svg_image.hpp"
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
@@ -102,6 +103,17 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
         cell->rectProgress->getParent()->setVisibility(brls::Visibility::GONE);
         cell->badgeTopRight->setVisibility(brls::Visibility::GONE);
     }
+
+    // "downloaded" badge: leaves (movie/episode/clip) by file presence,
+    // shows/seasons by catalog membership (persisted iff a child is downloaded)
+    bool downloaded = false;
+    if (item.type == plex::mediaTypeMovie || item.type == plex::mediaTypeEpisode ||
+        item.type == plex::mediaTypeClip)
+        downloaded = DownloadManager::instance().isDownloaded(item.ratingKey);
+    else if (item.type == plex::mediaTypeShow || item.type == plex::mediaTypeSeason)
+        downloaded = OfflineLibrary::instance().hasItem(item.ratingKey);
+    cell->badgeDownload->setVisibility(downloaded ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
+
     return cell;
 }
 
