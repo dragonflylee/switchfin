@@ -248,6 +248,80 @@ private:
     bool localContext;  // offline downloads area (grey non-downloaded episodes)
 };
 
+/// Loading skeleton that matches the season layout (header cover + info, then
+/// landscape-thumbnail episode rows) — the generic poster-card skeleton looked
+/// nothing like the real content.
+class SeasonSkeletonCell : public RecyclingGridItem {
+public:
+    SeasonSkeletonCell() { this->setFocusable(false); }
+    static RecyclingGridItem* create() { return new SeasonSkeletonCell(); }
+
+    bool header = false;
+
+    void draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style,
+        brls::FrameContext* ctx) override {
+        brls::Time curTime = brls::getCPUTimeUsec() / 1000;
+        float p = (curTime % 1000) * 1.0f / 1000;
+        p = std::fabs(0.5f - p) + 0.25f;
+        NVGcolor end = this->bg;
+        end.a = p;
+        NVGpaint paint = nvgLinearGradient(vg, x, y, x + width, y + height, a(this->bg), a(end));
+        auto bar = [&](float bx, float by, float bw, float bh, float r) {
+            nvgBeginPath(vg);
+            nvgFillPaint(vg, paint);
+            nvgRoundedRect(vg, bx, by, bw, bh, r);
+            nvgFill(vg);
+        };
+
+        if (this->header) {
+            // left portrait cover (season_header.xml: 150x225) + text block
+            bar(x, y, 150, 225, 10);
+            float rx = x + 150 + 24;  // marginLeft 24
+            float rw = width - 150 - 24;
+            bar(rx, y + 30, rw * 0.5f, 26, 8);    // title
+            bar(rx, y + 72, rw * 0.30f, 15, 6);   // meta
+            bar(rx, y + 104, rw * 0.92f, 12, 5);  // overview line 1
+            bar(rx, y + 124, rw * 0.85f, 12, 5);  // overview line 2
+            bar(rx, y + 160, 150, 36, 18);        // download button
+        } else {
+            // left landscape thumbnail (episode_card.xml: 300x180) + text lines
+            bar(x, y, 300, 180, 8);
+            float rx = x + 300 + 20;  // marginLeft 20
+            float rw = width - 300 - 20;
+            bar(rx, y + 14, rw * 0.45f, 18, 7);   // episode name
+            bar(rx, y + 48, rw * 0.95f, 12, 5);   // overview lines
+            bar(rx, y + 68, rw * 0.90f, 12, 5);
+            bar(rx, y + 88, rw * 0.70f, 12, 5);
+        }
+    }
+
+private:
+    NVGcolor bg = brls::Application::getTheme()["color/grey_3"];
+};
+
+class SeasonSkeletonSource : public RecyclingGridDataSource {
+public:
+    explicit SeasonSkeletonSource(size_t episodes) : episodes(episodes) {}
+
+    size_t getItemCount() override { return 1 + this->episodes; }
+
+    float heightForRow(brls::View*, size_t index) override {
+        return index == 0 ? 255 : 190;  // HEADER_HEIGHT / CARD_HEIGHT
+    }
+
+    RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
+        auto* cell = dynamic_cast<SeasonSkeletonCell*>(recycler->dequeueReusableCell("SeasonSkeleton"));
+        cell->header = index == 0;
+        cell->setHeight(index == 0 ? 255 : 190);
+        return cell;
+    }
+
+    void clearData() override { this->episodes = 0; }
+
+private:
+    size_t episodes;
+};
+
 /// Season detail view: EVERYTHING scrolls — the header (cover + info +
 /// button) is the first cell of the RecyclingGrid (flow), followed by the
 /// episodes. Stacked on top of the show page via ui::presentDetail — the
@@ -278,6 +352,12 @@ public:
             cell->registerAction(KeyBind::getSetting(), actionListener);
             return cell;
         });
+
+        // season-shaped loading skeleton (header + episode rows) — replaces the
+        // generic poster-card skeleton that looked nothing like the content
+        this->recycler->registerCell("SeasonSkeleton", SeasonSkeletonCell::create);
+        size_t skel = item.leafCount > 0 ? (item.leafCount > 12 ? 12 : (size_t)item.leafCount) : 6;
+        this->recycler->setDataSource(new SeasonSkeletonSource(skel));
 
         // season summary missing AND show summary not yet known ("go to
         // season" path: doSeries has not answered) -> fetch it ourselves,
