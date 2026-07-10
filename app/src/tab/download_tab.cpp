@@ -322,8 +322,15 @@ DownloadView::DownloadView() {
     // The "Storage" card scrolls WITH the list: attach it as the recycler's
     // scrolled header instead of leaving it pinned above (it stayed fixed
     // while the list scrolled once there were enough downloads).
-    if (brls::View* card = this->getView("downloads/storage/card"))
-        this->recycler->setHeaderView(card, 150);
+    // NOTE: the "Storage" card is a PINNED header (left where the XML puts it,
+    // above the recycler) — NOT a scrolled header via RecyclingGrid::setHeaderView.
+    // Moving it into the recycler's scroll content crashes here: DownloadView is
+    // the RemoteTab's default pill, created + laid out inside AutoTabFrame::addTab
+    // while that nested frame still has an indefinite height, and measuring the
+    // card as scroll content in that state makes Yoga abort the app
+    // ("availableHeight is indefinite"). Deferring doesn't help (breaks the
+    // set-before-first-layout contract and still measures indefinite). A pinned
+    // header is stable; the scroll-with-list refinement needs a Borealis-level fix.
 
     this->recycler->registerCell("Cell", []() { return new DownloadCard(); });
     this->recycler->registerCell("Header", []() { return new DownloadSectionHeader(); });
