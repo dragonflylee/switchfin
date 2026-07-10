@@ -165,9 +165,11 @@ public:
         auto& item = this->list.at(index - 1);
         auto& dm = DownloadManager::instance();
 
-        // downloaded episode -> play the local file (works offline, preferred
-        // in the downloads area even online — SPEC AC11)
-        std::string local = dm.isDownloaded(item.ratingKey) ? dm.getLocalPath(item.ratingKey) : "";
+        // in the downloads area / offline a downloaded episode plays its local
+        // file; from the ONLINE library it keeps streaming (server resume)
+        std::string local = media::preferLocal(this->localContext) && dm.isDownloaded(item.ratingKey)
+                                ? dm.getLocalPath(item.ratingKey)
+                                : "";
         if (!local.empty()) {
             std::string title = item.grandparentTitle.empty()
                                     ? fmt::format("S{}E{} — {}", item.parentIndex, item.index, item.title)
@@ -660,7 +662,16 @@ void MediaSeries::doSeason() {
             if (!this->wantedSeason.empty()) {
                 for (auto& it : seasons) {
                     if (it.ratingKey != this->wantedSeason) continue;
-                    ui::presentDetail(this, new MediaSeason(it, this->seriesSummary, true));
+                    // doSeason runs inside the constructor, before this view is
+                    // attached; defer so presentDetail resolves the tab-frame
+                    // detail stack (not the unattached-parent fallback)
+                    plex::Item season = it;
+                    std::string summary = this->seriesSummary;
+                    ASYNC_RETAIN
+                    brls::sync([ASYNC_TOKEN, season, summary]() {
+                        ASYNC_RELEASE
+                        ui::presentDetail(this, new MediaSeason(season, summary, true));
+                    });
                     break;
                 }
                 this->wantedSeason.clear();

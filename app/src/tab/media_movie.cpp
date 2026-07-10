@@ -42,10 +42,13 @@ MediaMovie::MediaMovie(const plex::Item& item, bool localContext)
 
     this->btnPlay->registerClickAction([this, item](...) {
         std::string title = item.year ? fmt::format("{} ({})", item.title, item.year) : item.title;
-        // a downloaded movie plays from the local file (works offline, and is
-        // preferred even online — SPEC AC6); otherwise stream from the server
+        // in the offline downloads area (or fully offline) a downloaded movie
+        // plays from the local file; from the ONLINE library it keeps streaming
+        // with the server resume position (SPEC — no online regression)
         auto& dm = DownloadManager::instance();
-        std::string local = dm.isDownloaded(this->itemId) ? dm.getLocalPath(this->itemId) : "";
+        std::string local = media::preferLocal(this->localContext) && dm.isDownloaded(this->itemId)
+                                ? dm.getLocalPath(this->itemId)
+                                : "";
         if (!local.empty()) {
             RemoteView::play(local, title, "Local");
             return true;

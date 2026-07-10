@@ -30,6 +30,10 @@ inline std::string key(const std::string& s) {
     return std::string(buf);
 }
 
+/// Populate the in-memory index of cached keys by scanning the art dir once.
+/// Call at startup — keeps has() off the disk on the UI thread.
+void init();
+
 /// {config}/downloads/art
 std::string dir();
 /// absolute local file where this asset is (or would be) cached.

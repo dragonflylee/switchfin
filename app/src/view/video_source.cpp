@@ -9,6 +9,7 @@
 #include "tab/remote_view.hpp"
 #include "utils/misc.hpp"
 #include "utils/download.hpp"
+#include "utils/media_source.hpp"
 #include "view/svg_image.hpp"
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
@@ -123,10 +124,12 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
         PlayerView* view = new PlayerView(item);
         view->setTitie(item.year ? fmt::format("{} ({})", item.title, item.year) : item.title);
     } else if (item.type == plex::mediaTypeEpisode) {
-        // downloaded episode -> local file (offline, and preferred in the
-        // downloads area even online); otherwise stream from the server
+        // downloads area / offline: play the local file; ONLINE library keeps
+        // streaming from the server (no online regression)
         auto& dm = DownloadManager::instance();
-        std::string local = dm.isDownloaded(item.ratingKey) ? dm.getLocalPath(item.ratingKey) : "";
+        std::string local = media::preferLocal(this->localContext) && dm.isDownloaded(item.ratingKey)
+                                ? dm.getLocalPath(item.ratingKey)
+                                : "";
         if (!local.empty()) {
             RemoteView::play(local, fmt::format("S{}E{} - {}", item.parentIndex, item.index, item.title), "Local");
             return;
