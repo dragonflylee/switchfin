@@ -4,6 +4,7 @@
 #include "utils/keybind.hpp"
 #include "utils/network_state.hpp"
 #include "utils/offline_library.hpp"
+#include "utils/offline_ui.hpp"
 
 using namespace brls::literals;  // for _i18n
 
@@ -25,6 +26,7 @@ void HomeTab::doRequest() {
     if (NetworkState::isOffline()) {
         this->boxHome->clearViews();
         auto& lib = OfflineLibrary::instance();
+        bool any = false;
         for (auto& s : lib.sections()) {
             auto items = lib.sectionItems(s.key);
             if (items.empty()) continue;
@@ -35,7 +37,10 @@ void HomeTab::doRequest() {
             row->setSidePadding(brls::getStyle()["main/content_padding_sides"]);
             row->setItems(items);
             this->boxHome->addView(row);
+            any = true;
         }
+        // nothing downloaded: offline empty state (icon + message + Retry)
+        if (!any) this->boxHome->addView(offline_ui::makeEmpty());
         return;
     }
 

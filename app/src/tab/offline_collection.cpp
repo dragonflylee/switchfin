@@ -26,7 +26,8 @@ OfflineCollection::OfflineCollection(const std::string& sectionKey) {
     }
 
     if (items.empty()) {
-        this->setEmpty();
+        this->setEmpty(brls::getStr("main/download/offline_title"), brls::getStr("main/download/offline_sub"),
+            "icon/ico-cloud.svg");
         return;
     }
     auto* ds = new VideoDataSource(items);

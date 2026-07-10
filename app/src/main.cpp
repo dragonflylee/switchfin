@@ -180,9 +180,12 @@ int main(int argc, char* argv[]) {
 #if defined(__SWITCH__) && defined(BUILTIN_NSP)
                     proposeForwarderInstall();
 #endif
-                } else if (!OfflineLibrary::instance().empty()) {
-                    // no server reachable but downloads exist: browse them
-                    // offline (SPEC §4.4) instead of the server picker
+                } else if (!OfflineLibrary::instance().empty() ||
+                           !AppConfig::instance().getServers().empty()) {
+                    // a server is remembered (just unreachable) and/or downloads
+                    // exist: enter the offline shell (browse downloads + a Retry
+                    // to reconnect) instead of the server picker (SPEC §4.4).
+                    // A fresh install with no server still goes to ServerList.
                     NetworkState::setOffline(true);
                     brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
                 } else {
