@@ -45,6 +45,9 @@ private:
 
     void doRequest() override;
     void doMovie();
+    /// renders the fiche from an Item — shared by the server and local-catalog
+    /// (offline / downloaded) paths
+    void applyMovie(const plex::Item& item);
     void doRelated();
     void updateDownloadButton();
     /// reveals the Watchlist button once the provider state is known (plex:// guid)
