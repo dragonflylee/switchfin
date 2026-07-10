@@ -167,6 +167,8 @@
     "season": "Download season",
     "confirm_season": "Download {} episodes?",
     "season_queued": "Season added to downloads",
+    "confirm_episode": "Download this episode?",
+    "unavailable_offline": "Not available offline",
     "storage": "Storage",
     "storage_free": "{} free of {}",
     "section_active": "In Progress",

@@ -162,6 +162,8 @@
     "season": "Stáhnout řadu",
     "confirm_season": "Stáhnout {} epizod?",
     "season_queued": "Řada přidána ke stažení",
+    "confirm_episode": "Stáhnout tuto epizodu?",
+    "unavailable_offline": "Není dostupné offline",
     "storage": "Úložiště",
     "storage_free": "{} volných z {}",
     "section_active": "Probíhá",

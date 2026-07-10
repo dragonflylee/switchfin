@@ -162,6 +162,8 @@
     "season": "Sezonu indir",
     "confirm_season": "{} bölüm indirilsin mi?",
     "season_queued": "Sezon indirmelere eklendi",
+    "confirm_episode": "Bu bölüm indirilsin mi?",
+    "unavailable_offline": "Çevrimdışı kullanılamaz",
     "storage": "Depolama",
     "storage_free": "{} boş / toplam {}",
     "section_active": "Devam ediyor",
