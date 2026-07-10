@@ -167,6 +167,7 @@
     "offline_retry": "Повторить",
     "reconnecting": "Переподключение…",
     "still_offline": "Всё ещё офлайн",
+    "offline_section": "Этот раздел недоступен офлайн.",
     "confirm_episode": "Скачать эту серию?",
     "unavailable_offline": "Недоступно офлайн",
     "storage": "Хранилище",

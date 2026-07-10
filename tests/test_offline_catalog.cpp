@@ -74,6 +74,30 @@ int main() {
     CHECK(films.size() == 2);
     CHECK(films.size() == 2 && films[0].title == "Amelie" && films[1].title == "Zodiac");
 
+    // offline search (T-search): top-level items only (movies + shows),
+    // case-insensitive title contains, sorted by title
+    {
+        // empty term -> all top-level items (offline "suggestions"): Amelie,
+        // Scrubs, Zodiac (episodes excluded)
+        auto all = offline::search(full, "");
+        CHECK(all.size() == 3);
+        CHECK(all.size() == 3 && all[0].title == "Amelie" && all[1].title == "Scrubs" && all[2].title == "Zodiac");
+
+        // case-insensitive contains on the show title
+        auto scrubs = offline::search(full, "SCR");
+        CHECK(scrubs.size() == 1 && scrubs.front().title == "Scrubs");
+
+        // matches a movie
+        auto ame = offline::search(full, "ame");
+        CHECK(ame.size() == 1 && ame.front().title == "Amelie");
+
+        // episodes are NOT top-level: their title ("Ep 1") never surfaces
+        CHECK(offline::search(full, "Ep 1").empty());
+
+        // no match
+        CHECK(offline::search(full, "zzz").empty());
+    }
+
     // find the synthesized show and walk down to episodes
     std::string showKey;
     for (auto& it : full)

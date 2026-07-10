@@ -167,6 +167,7 @@
     "offline_retry": "다시 시도",
     "reconnecting": "다시 연결 중…",
     "still_offline": "여전히 오프라인입니다",
+    "offline_section": "이 섹션은 오프라인에서 사용할 수 없습니다.",
     "confirm_episode": "이 에피소드를 다운로드할까요?",
     "unavailable_offline": "오프라인에서 사용할 수 없습니다",
     "storage": "저장 공간",

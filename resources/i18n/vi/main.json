@@ -167,6 +167,7 @@
     "offline_retry": "Thử lại",
     "reconnecting": "Đang kết nối lại…",
     "still_offline": "Vẫn ngoại tuyến",
+    "offline_section": "Mục này không khả dụng khi ngoại tuyến.",
     "confirm_episode": "Tải tập này xuống?",
     "unavailable_offline": "Không khả dụng ngoại tuyến",
     "storage": "Bộ nhớ",

@@ -134,6 +134,27 @@ inline std::vector<plex::Item> sectionItems(const std::vector<plex::Item>& nodes
     return out;
 }
 
+/// Offline search over the local catalog: top-level items (movies + shows)
+/// whose title contains `term` (case-insensitive), sorted by title. An empty
+/// term returns every top-level item (the offline "suggestions" grid). Scope
+/// mirrors the online movies,tv search — episodes surface by drilling into a
+/// show, never as standalone poster cards (SPEC §4.4).
+inline std::vector<plex::Item> search(const std::vector<plex::Item>& nodes, const std::string& term) {
+    auto lower = [](std::string s) {
+        for (char& c : s) c = (char)std::tolower((unsigned char)c);
+        return s;
+    };
+    std::string needle = lower(term);
+    std::vector<plex::Item> out;
+    for (const auto& it : nodes) {
+        if (!isTopLevel(it)) continue;
+        if (!needle.empty() && lower(it.title).find(needle) == std::string::npos) continue;
+        out.push_back(it);
+    }
+    std::sort(out.begin(), out.end(), [](const plex::Item& a, const plex::Item& b) { return a.title < b.title; });
+    return out;
+}
+
 /// Direct children (seasons of a show, or episodes of a season), sorted by index.
 inline std::vector<plex::Item> childrenOf(const std::vector<plex::Item>& nodes, const std::string& parentRatingKey) {
     std::vector<plex::Item> out;

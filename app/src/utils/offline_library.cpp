@@ -120,6 +120,11 @@ std::vector<plex::Item> OfflineLibrary::leaves(const std::string& showRatingKey)
     return offline::leavesOf(this->derived, showRatingKey);
 }
 
+std::vector<plex::Item> OfflineLibrary::search(const std::string& term) const {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    return offline::search(this->derived, term);
+}
+
 bool OfflineLibrary::empty() const {
     std::lock_guard<std::mutex> lock(this->mutex);
     return offline::buildSections(this->derived).empty();

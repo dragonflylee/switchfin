@@ -11,6 +11,7 @@
 #include "view/auto_tab_frame.hpp"
 #include "utils/image.hpp"
 #include "utils/keybind.hpp"
+#include "utils/network_state.hpp"
 
 using namespace brls::literals;  // for _i18n
 
@@ -88,6 +89,14 @@ brls::View* PlaylistsTab::getDefaultFocus() { return this->recycler; }
 brls::View* PlaylistsTab::create() { return new PlaylistsTab(); }
 
 void PlaylistsTab::doRequest() {
+    // offline: playlists live on the server — unavailable without a
+    // connection (SPEC §4.4)
+    if (NetworkState::isOffline()) {
+        this->recycler->setEmpty(
+            "main/download/offline_title"_i18n, "main/download/offline_section"_i18n, "icon/ico-cloud.svg");
+        return;
+    }
+
     HTTP::Form query;
     // video scope only (music is out of scope, PLEX_MIGRATION D2/D4)
     query["playlistType"] = "video";

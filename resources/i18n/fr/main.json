@@ -172,6 +172,7 @@
     "offline_retry": "Réessayer",
     "reconnecting": "Reconnexion…",
     "still_offline": "Toujours hors ligne",
+    "offline_section": "Cette section n'est pas disponible hors ligne.",
     "confirm_episode": "Télécharger cet épisode ?",
     "unavailable_offline": "Indisponible hors ligne",
     "storage": "Stockage",

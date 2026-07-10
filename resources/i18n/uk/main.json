@@ -167,6 +167,7 @@
     "offline_retry": "Повторити",
     "reconnecting": "Перепідключення…",
     "still_offline": "Досі офлайн",
+    "offline_section": "Цей розділ недоступний офлайн.",
     "confirm_episode": "Завантажити цю серію?",
     "unavailable_offline": "Недоступно офлайн",
     "storage": "Сховище",

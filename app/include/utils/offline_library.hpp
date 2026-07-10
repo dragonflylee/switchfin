@@ -37,6 +37,9 @@ public:
     std::vector<plex::Item> children(const std::string& ratingKey) const;
     /// All episodes under a show (mirrors /library/metadata/{id}/allLeaves).
     std::vector<plex::Item> leaves(const std::string& showRatingKey) const;
+    /// Offline search: top-level items (movies + shows) matching `term` by
+    /// title (case-insensitive); an empty term returns every top-level item.
+    std::vector<plex::Item> search(const std::string& term) const;
 
     /// No browsable content — drives the offline-entry decision (main.cpp).
     bool empty() const;

@@ -167,6 +167,7 @@
     "offline_retry": "Tentar novamente",
     "reconnecting": "Reconectando…",
     "still_offline": "Ainda offline",
+    "offline_section": "Esta seção não está disponível offline.",
     "confirm_episode": "Baixar este episódio?",
     "unavailable_offline": "Indisponível offline",
     "storage": "Armazenamento",

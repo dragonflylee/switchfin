@@ -172,6 +172,7 @@
     "offline_retry": "Retry",
     "reconnecting": "Reconnecting…",
     "still_offline": "Still offline",
+    "offline_section": "This section isn't available offline.",
     "confirm_episode": "Download this episode?",
     "unavailable_offline": "Not available offline",
     "storage": "Storage",

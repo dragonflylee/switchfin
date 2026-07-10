@@ -167,6 +167,7 @@
     "offline_retry": "Tekrar dene",
     "reconnecting": "Yeniden bağlanılıyor…",
     "still_offline": "Hâlâ çevrimdışı",
+    "offline_section": "Bu bölüm çevrimdışı kullanılamaz.",
     "confirm_episode": "Bu bölüm indirilsin mi?",
     "unavailable_offline": "Çevrimdışı kullanılamaz",
     "storage": "Depolama",

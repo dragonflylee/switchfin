@@ -12,6 +12,7 @@
 #include "view/auto_tab_frame.hpp"
 #include "utils/image.hpp"
 #include "utils/keybind.hpp"
+#include "utils/network_state.hpp"
 
 using namespace brls::literals;  // for _i18n
 
@@ -226,6 +227,13 @@ brls::View* WatchlistTab::getDefaultFocus() { return this->recycler; }
 brls::View* WatchlistTab::create() { return new WatchlistTab(); }
 
 void WatchlistTab::refresh(bool reloadGuids) {
+    // offline: the watchlist lives on discover.provider (account token) — it is
+    // unreachable without a connection (SPEC §4.4)
+    if (NetworkState::isOffline()) {
+        this->recycler->setEmpty(
+            "main/download/offline_title"_i18n, "main/download/offline_section"_i18n, "icon/ico-cloud.svg");
+        return;
+    }
     this->startIndex = 0;
     this->loaded = false;
     this->recycler->showSkeleton();

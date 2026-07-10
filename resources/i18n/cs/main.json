@@ -167,6 +167,7 @@
     "offline_retry": "Zkusit znovu",
     "reconnecting": "Připojování…",
     "still_offline": "Stále offline",
+    "offline_section": "Tato sekce není dostupná offline.",
     "confirm_episode": "Stáhnout tuto epizodu?",
     "unavailable_offline": "Není dostupné offline",
     "storage": "Úložiště",

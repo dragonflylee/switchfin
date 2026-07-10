@@ -167,6 +167,7 @@
     "offline_retry": "再試行",
     "reconnecting": "再接続中…",
     "still_offline": "まだオフラインです",
+    "offline_section": "このセクションはオフラインでは利用できません。",
     "confirm_episode": "このエピソードをダウンロードしますか？",
     "unavailable_offline": "オフラインでは利用できません",
     "storage": "ストレージ",

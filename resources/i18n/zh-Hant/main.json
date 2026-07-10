@@ -167,6 +167,7 @@
     "offline_retry": "重試",
     "reconnecting": "正在重新連線…",
     "still_offline": "仍處於離線狀態",
+    "offline_section": "此區塊在離線時無法使用。",
     "confirm_episode": "下載此集？",
     "unavailable_offline": "離線時無法使用",
     "storage": "儲存空間",
