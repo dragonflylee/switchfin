@@ -508,6 +508,14 @@ RecyclingGrid* RemoteView::newRecycler() {
     view->spanCount = 1;
     view->estimatedRowHeight = 48;
     view->estimatedRowSpace = 10;
+    // RecyclingGrid seeds a 12-cell skeleton (poster grid: 4 cols x 240px)
+    // in its constructor. In this single-column file browser it just flashes
+    // a screenful of oversized placeholders on every folder change — and
+    // because that skeleton overflows the viewport, reloadData scrolls to the
+    // default focus cell, which drags the floating tab bar off the top. Local
+    // listings are instant and even remote ones are quick, so drop the
+    // placeholder: an empty grid for the frame or two before the data lands.
+    view->setDataSource(nullptr);
     // inside the scroll: the list starts under the Downloads tab's
     // floating tab bar (60) and scrolls beneath it
     view->setPaddingTop(70);
