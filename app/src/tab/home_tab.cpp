@@ -1,9 +1,9 @@
 #include "tab/home_tab.hpp"
-#include "tab/offline_collection.hpp"
 #include "view/recyling_video.hpp"
 #include "api/plex.hpp"
 #include "utils/keybind.hpp"
 #include "utils/network_state.hpp"
+#include "utils/offline_library.hpp"
 
 using namespace brls::literals;  // for _i18n
 
@@ -20,13 +20,22 @@ brls::View* HomeTab::create() { return new HomeTab(); }
 /// watching" then the hubs from /hubs, with their localized titles
 /// (X-Plex-Language) — PLEX_MIGRATION.md §2.5.
 void HomeTab::doRequest() {
-    // offline: the server hubs are unavailable — show the downloaded library
-    // as a single grid instead (SPEC AC13)
+    // offline: the server hubs are unavailable — show one poster row per
+    // downloaded library instead (same row layout as online) (SPEC AC13)
     if (NetworkState::isOffline()) {
         this->boxHome->clearViews();
-        auto* grid = new OfflineCollection();
-        grid->setGrow(1.f);
-        this->boxHome->addView(grid);
+        auto& lib = OfflineLibrary::instance();
+        for (auto& s : lib.sections()) {
+            auto items = lib.sectionItems(s.key);
+            if (items.empty()) continue;
+            RecylingVideo* row = new RecylingVideo();
+            row->setTitle(s.title);
+            row->setFrameHeight(brls::getStyle()["app/card/poster/row"]);
+            row->setItemWidth(brls::getStyle()["app/card/poster/width"]);
+            row->setSidePadding(brls::getStyle()["main/content_padding_sides"]);
+            row->setItems(items);
+            this->boxHome->addView(row);
+        }
         return;
     }
 
