@@ -14,6 +14,7 @@
 #include "view/svg_image.hpp"
 #include "api/plex/auth.hpp"
 #include <optional>
+#include <vector>
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
@@ -352,9 +353,14 @@ ConnectionSwitcher::ConnectionSwitcher() {
     title->setMarginBottom(36);
     this->addView(title);
 
+    // The tiles form a centered grid that WRAPS onto several rows instead of
+    // overflowing a single row (which got clipped by the sidebar / window edge
+    // past ~5 connections). tilesBox is a COLUMN of centered ROW boxes, filled
+    // in rebuild(). A column (rather than one wrapped row) gives real up/down
+    // navigation between rows: Box::getNextFocus delegates up/down to the parent,
+    // so a single wrapped row could only be traversed left/right.
     this->tilesBox = new brls::Box();
-    this->tilesBox->setAxis(brls::Axis::ROW);
-    this->tilesBox->setJustifyContent(brls::JustifyContent::CENTER);
+    this->tilesBox->setAxis(brls::Axis::COLUMN);
     this->tilesBox->setAlignItems(brls::AlignItems::CENTER);
     this->addView(this->tilesBox);
 
@@ -372,18 +378,35 @@ void ConnectionSwitcher::rebuild() {
         return nullptr;
     };
 
+    // Flat list of tiles: one per connection + the trailing "+" tile.
+    std::vector<brls::View*> tiles;
     for (auto& u : AppConfig::instance().getUsers()) {
         const AppServer* srv = serverFor(u.server_id);
         if (!srv) continue;  // orphan profile (server removed) — skip
         auto* tile = new ConnectionTile(u, *srv, this);
-        tile->setMarginRight(18);
-        this->tilesBox->addView(tile);
+        tiles.push_back(tile);
         if (u.id == AppConfig::instance().getUserId()) this->firstFocus = tile;
     }
+    tiles.push_back(new AddTile());
+    if (!this->firstFocus) this->firstFocus = tiles.front();
 
-    auto* add = new AddTile();
-    this->tilesBox->addView(add);
-    if (!this->firstFocus) this->firstFocus = this->tilesBox->getChildren().front();
+    // Chunk into centered rows. kColumns fits the fixed 1280-wide logical canvas
+    // (5 × (184 tile + 18 gap) = 1010 < usable width). Each row is a ROW box
+    // (left/right within), stacked in the COLUMN tilesBox (up/down between rows);
+    // both center, and the shorter last row centers under the full ones.
+    const size_t kColumns = 5;
+    brls::Box* row = nullptr;
+    for (size_t i = 0; i < tiles.size(); i++) {
+        if (i % kColumns == 0) {
+            row = new brls::Box();
+            row->setAxis(brls::Axis::ROW);
+            row->setJustifyContent(brls::JustifyContent::CENTER);
+            row->setAlignItems(brls::AlignItems::CENTER);
+            this->tilesBox->addView(row);
+        }
+        tiles[i]->setMargins(9, 9, 9, 9);
+        row->addView(tiles[i]);
+    }
 }
 
 brls::View* ConnectionSwitcher::getDefaultFocus() {

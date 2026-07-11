@@ -23,18 +23,18 @@ private:
     void startPin();
     void pollOnce();
 
-    /// Steps after the account token is obtained
+    /// Steps after the account token is obtained. A single link registers ALL
+    /// the account's servers as connections; the profile (if the account has
+    /// several Plex Home profiles) is chosen once and applies to every server.
     void onAccount(const std::string& accountToken);
-    void onServerPicked(
-        const plex::AccountUser& account, const std::string& accountToken, const plex::ServerResource& server);
-    void onProfilePicked(const plex::HomeUser& home, const std::string& accountToken,
-        const plex::ServerResource& server, const std::string& baseUrl);
-    void doSwitch(const plex::HomeUser& home, const std::string& accountToken, const plex::ServerResource& server,
-        const std::string& baseUrl, const std::string& pin);
+    void onProfilePicked(const plex::HomeUser& home, const std::string& accountToken);
+    void doSwitch(const plex::HomeUser& home, const std::string& accountToken, const std::string& pin);
 
-    /// Saves the active server + user and enters the application
-    void finish(const std::string& uuid, const std::string& name, const std::string& thumb,
-        const std::string& plexTvToken, const plex::ServerResource& server, const std::string& baseUrl);
+    /// Registers every server of the account, activates one (the first owned,
+    /// else the first), and enters the application. Only the activated server is
+    /// probed now; the others resolve their reachable url lazily on switch.
+    void finishAll(const std::string& uuid, const std::string& name, const std::string& thumb,
+        const std::string& plexTvToken, const std::vector<plex::ServerResource>& servers);
 
     BRLS_BIND(brls::Label, labelCode, "plex/label/code");
     BRLS_BIND(brls::Label, labelStatus, "plex/label/status");

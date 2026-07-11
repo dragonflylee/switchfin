@@ -5,8 +5,10 @@
 #include "tab/media_collection.hpp"
 #include "tab/media_series.hpp"
 #include "tab/media_movie.hpp"
+#include "tab/media_music.hpp"
 #include "tab/playlist_view.hpp"
 #include "tab/hub_view.hpp"
+#include "view/music_now_playing.hpp"
 #include "utils/misc.hpp"
 #include "view/svg_image.hpp"
 #include "view/video_card.hpp"
@@ -37,6 +39,12 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
     // recycled cell: purge the previous media's poster (otherwise an item
     // without a thumb inherits another's texture — the placeholder reappears)
     cell->picture->clear();
+    // music items get a note placeholder (not the video-camera glyph) when they
+    // have no cover art; reset per-cell for recycling (issue #11)
+    bool isMusicCard = item.type == plex::mediaTypeArtist || item.type == plex::mediaTypeAlbum ||
+                       item.type == plex::mediaTypeTrack;
+    if (auto* ph = dynamic_cast<SVGImage*>(cell->getView("video/card/placeholder")))
+        ph->setImageFromSVGRes(isMusicCard ? "icon/ico-audio.svg" : "icon/ico-media.svg");
 
     if (item.type == plex::mediaTypeEpisode) {
         if (item.grandparentTitle.empty()) {
@@ -60,6 +68,36 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
         cell->labelTitle->setText(item.parentTitle.empty() ? item.title : item.parentTitle);
         cell->labelExt->setText(item.parentTitle.empty() ? "" : item.title);
         Image::load(cell->picture, item.thumb.empty() ? item.parentThumb : item.thumb, 325);
+    } else if (item.type == plex::mediaTypeArtist) {
+        // artist: name + album count (square cover, cf. grid geometry)
+        cell->labelTitle->setText(item.title);
+        if (item.childCount > 0)
+            cell->labelExt->setText(fmt::format("{} {}", item.childCount,
+                item.childCount > 1 ? "main/music/albums"_i18n : "main/music/album"_i18n));
+        else
+            cell->labelExt->setVisibility(brls::Visibility::GONE);
+        if (!item.thumb.empty()) Image::load(cell->picture, item.thumb, 325);
+    } else if (item.type == plex::mediaTypeAlbum) {
+        // album: title + artist (fallback year); square cover
+        cell->labelTitle->setText(item.title);
+        if (!item.parentTitle.empty())
+            cell->labelExt->setText(item.parentTitle);
+        else if (item.year > 0)
+            cell->labelExt->setText(std::to_string(item.year));
+        else
+            cell->labelExt->setVisibility(brls::Visibility::GONE);
+        if (!item.thumb.empty()) Image::load(cell->picture, item.thumb, 325);
+    } else if (item.type == plex::mediaTypeTrack) {
+        // track: title + artist (fallback duration)
+        cell->labelTitle->setText(item.title);
+        if (!item.grandparentTitle.empty())
+            cell->labelExt->setText(item.grandparentTitle);
+        else
+            cell->labelExt->setText(misc::sec2Time(item.duration / 1000));
+        if (!item.thumb.empty())
+            Image::load(cell->picture, item.thumb, 325);
+        else if (!item.parentThumb.empty())
+            Image::load(cell->picture, item.parentThumb, 325);
     } else {
         cell->labelTitle->setText(item.title);
 
@@ -104,7 +142,9 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
     // A-button hint + focus overlay reflect what selecting the card DOES: it
     // PLAYS for items that start playback on select (episode/clip — incl. the
     // continue-watching row), and OPENS a detail page otherwise.
-    bool plays = (item.type == plex::mediaTypeEpisode || item.type == plex::mediaTypeClip);
+    bool plays = (item.type == plex::mediaTypeEpisode || item.type == plex::mediaTypeClip ||
+                  item.type == plex::mediaTypeTrack ||
+                  (item.type == plex::mediaTypePlaylist && item.playlistType == "audio"));
     cell->setPlayOverlay(plays);
     cell->updateActionHint(brls::BUTTON_A, plays ? "main/media/play"_i18n : "main/media/open"_i18n);
     return cell;
@@ -133,13 +173,21 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
         view->setTitie(fmt::format("S{}E{} - {}", item.parentIndex, item.index, item.title));
         if (!item.grandparentRatingKey.empty()) view->setSeries(item.grandparentRatingKey);
     } else if (item.type == plex::mediaTypePlaylist) {
-        ui::presentDetail(recycler, new PlaylistView(item));
+        // audio playlist -> music queue; video playlist -> PlaylistView (issue #11)
+        ui::presentPlaylist(recycler, item);
     } else if (item.type == plex::mediaTypePhoto) {
         // photo: original file served by the Part (PLEX_MIGRATION.md §2.5)
         if (!item.media.empty() && !item.media.front().parts.empty()) {
             std::string url = AppConfig::instance().backend().imageUrl(item.media.front().parts.front().key);
             brls::Application::pushActivity(new GalleryActivity(url));
         }
+    } else if (item.type == plex::mediaTypeArtist) {
+        ui::presentDetail(recycler, new MediaArtist(item));
+    } else if (item.type == plex::mediaTypeAlbum) {
+        ui::presentDetail(recycler, new MediaAlbum(item));
+    } else if (item.type == plex::mediaTypeTrack) {
+        // a lone track (search/hub): play it as a one-item queue
+        MusicNowPlaying::present({item}, 0, false);
     } else {
         auto dialog = new brls::Dialog(fmt::format("Unsupported media type: {}", item.type));
         dialog->addButton("hints/cancel"_i18n, []() {});

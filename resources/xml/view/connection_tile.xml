@@ -53,16 +53,23 @@
         </brls:Box>
     </brls:Box>
 
+    <!-- These labels carry no explicit width on purpose: a definite width makes
+         Yoga measure them "exactly", which can skip the borealis Label measure
+         func (requiredWidth never set). Left unset, they inherit maxWidth=100% of
+         the tile's inner width (184 - 2*16 padding), are measured "at most", so
+         requiredWidth is computed and onLayout can ellipsize a long name to "…".
+         Short names stay content-width and are centered by the tile's alignItems;
+         long names truncate and, thanks to the label.cpp truncation fix (glyph
+         advances now measured left-aligned), the trailing "…" stays centered too.
+         See scripts/patches/borealis-fixes.patch. -->
     <brls:Label
         id="tile/title"
-        width="152"
         fontSize="18"
         horizontalAlign="center"
         singleLine="true" />
 
     <brls:Label
         id="tile/type"
-        width="152"
         fontSize="12"
         marginTop="5"
         horizontalAlign="center"
@@ -70,7 +77,6 @@
 
     <brls:Label
         id="tile/detail"
-        width="152"
         fontSize="13"
         marginTop="3"
         horizontalAlign="center"

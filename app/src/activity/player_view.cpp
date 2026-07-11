@@ -5,6 +5,8 @@
     transcoder offset in whole seconds.
 */
 
+#include <cstdlib>
+
 #include "activity/player_view.hpp"
 #include "api/plex.hpp"
 #include "api/backend.hpp"
@@ -14,6 +16,7 @@
 #include "view/player_setting.hpp"
 #include "view/video_view.hpp"
 #include "view/video_profile.hpp"
+#include "view/audio_player.hpp"
 
 using namespace brls::literals;
 
@@ -23,6 +26,10 @@ static const double SCROBBLE_THRESHOLD = 0.90;
 
 PlayerView::PlayerView(const plex::Item& item, const int64_t seekMs, int versionIndex)
     : itemId(item.ratingKey), item(item), preferredVersion(versionIndex) {
+    // take sole ownership of MPVCore: if music was playing, the audio controller
+    // must stop owning the shared event bus (else it reports this video's
+    // progress against the audio track and auto-advances over it). SPEC.md §11.
+    AudioPlayer::instance().release();
     float width = brls::Application::contentWidth;
     float height = brls::Application::contentHeight;
     view = new VideoView();
@@ -185,6 +192,12 @@ bool PlayerView::playIndex(int index) {
 }
 
 void PlayerView::playMedia(const int64_t seekMs) {
+    // Capture/automation guard: in GMCA_NAV_PIPE mode a stray "Play" from the
+    // screenshot harness must never actually start playback — doing so pushes a
+    // watch-progress report to the server and pollutes Continue Watching. Bail
+    // out immediately (the empty player pops itself, leaving us on the detail).
+    if (std::getenv("GMCA_NAV_PIPE")) { VideoView::close(); return; }
+
     // Fast path: the caller already resolved the exact source (Stremio source
     // picker passes the fully-resolved item + chosen index). Re-fetching would
     // re-resolve streams and could return a different order/set, silently playing

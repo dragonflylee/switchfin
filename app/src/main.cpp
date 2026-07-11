@@ -5,6 +5,7 @@
 #include "utils/thread.hpp"
 
 #include "view/svg_image.hpp"
+#include "view/disclosure_cell.hpp"
 #include "view/icon_button.hpp"
 #include "view/context_menu.hpp"
 #include "view/custom_button.hpp"
@@ -118,6 +119,16 @@ int main(int argc, char* argv[]) {
     }
 
     conf.initThemes();
+
+    // Scroll indicator (scrollbar) visibility — global, driven by config
+    // ("scrollbar", default true). Off = clean captures / a quieter chrome.
+    brls::ScrollingFrame::setScrollingIndicatorVisibleGlobal(conf.getItem(AppConfig::SCROLLBAR, true));
+
+    // Screenshot/automation harness (GMCA_NAV_PIPE input hook): keep the render
+    // + input loop at full speed even while unfocused, so background navigation
+    // and captures stay in sync (the default 5 FPS idle throttle desyncs them).
+    if (std::getenv("GMCA_NAV_PIPE")) brls::Application::setDeactivatedFPS(60);
+
     DownloadManager::instance().init();
 
     // Return directly to the desktop when closing the application (only for NX)
@@ -130,6 +141,7 @@ int main(int argc, char* argv[]) {
 
     // Register custom views (including tabs, which are views)
     brls::Application::registerXMLView("SVGImage", SVGImage::create);
+    brls::Application::registerXMLView("DisclosureCell", DisclosureCell::create);
     brls::Application::registerXMLView("IconButton", IconButton::create);
     brls::Application::registerXMLView("MenuItem", MenuItem::create);
     brls::Application::registerXMLView("CustomButton", CustomButton::create);

@@ -18,6 +18,11 @@
             paddingTop="@style/main/content_padding_top_bottom"
             paddingBottom="@style/main/content_padding_top_bottom">
 
+            <DisclosureCell
+                title="@i18n/main/setting/libraries/header"
+                id="setting/libraries"
+                marginBottom="16px" />
+
             <brls:Header
                 width="auto"
                 height="auto"
@@ -185,7 +190,7 @@
                 <brls:RadioCell
                     id="setting/changelog"
                     title="@i18n/main/setting/others/changelog" />
-                <brls:DetailCell
+                <DisclosureCell
                     title="@i18n/main/about/header"
                     id="setting/about" />
             </brls:Box>

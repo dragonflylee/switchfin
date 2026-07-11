@@ -62,6 +62,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
                                 brls::LOCALE_ES, brls::LOCALE_PT, "cs", "uk", "tr", "vi"}}},
     {APP_UPDATE, {"app_update"}},
     {APP_UI_SCALE, {"app_ui_scale", {"544p", "720p", "900p", "1080p"}}},
+    {SCROLLBAR, {"scrollbar"}},
     {AUDIO_CHANNELS, {"audio-channels", {"auto-safe", "stereo", "mono"}}},
     {KEYMAP, {"keymap", {"xbox", "ps", "keyboard"}}},
     {WINDOW_STATE, {"window_state"}},
@@ -106,6 +107,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {HTTP_PROXY, {"http_proxy"}},
 
     {LIBRARY_SORT, {"library_sort"}},
+    {SIDEBAR_LAYOUT, {"sidebar_layout"}},
 
     {HINT_FORWARDER, {"hint_forwarder"}},
 
@@ -709,6 +711,42 @@ void AppConfig::addUser(const AppUser& u, const std::string& url) {
     }
     this->resetBackend();
     this->applyTheme(backendTypeFromString(activeType));
+    this->save();
+}
+
+void AppConfig::upsertServer(const AppServer& s) {
+    // Like addServer but never touches the active server_url/server_token: this
+    // registers a server we are NOT switching to. On an existing entry, refresh
+    // name/token and merge any new candidate urls, keeping the current ordering
+    // so a previously resolved (reachable) front url survives.
+    for (auto& o : this->servers) {
+        if (s.id == o.id) {
+            if (!s.name.empty()) o.name = s.name;
+            if (!s.access_token.empty()) o.access_token = s.access_token;
+            for (auto& u : s.urls) {
+                if (std::find(o.urls.begin(), o.urls.end(), u) == o.urls.end()) o.urls.push_back(u);
+            }
+            this->save();
+            return;
+        }
+    }
+    this->servers.push_back(s);
+    this->save();
+}
+
+void AppConfig::upsertUser(const AppUser& u) {
+    // Like addUser but never sets the active profile: registers a connection
+    // tile without switching to it.
+    auto is_user = [u](const AppUser& o) { return o.id == u.id; };
+    auto it = std::find_if(this->users.begin(), this->users.end(), is_user);
+    if (it != this->users.end()) {
+        it->name = u.name;
+        it->access_token = u.access_token;
+        it->server_id = u.server_id;
+        it->thumb = u.thumb;
+    } else {
+        this->users.push_back(u);
+    }
     this->save();
 }
 

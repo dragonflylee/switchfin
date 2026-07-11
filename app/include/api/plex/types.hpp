@@ -39,6 +39,8 @@ using media::jnum;
 using media::jstr;
 using media::jtags;
 // generic media type strings
+using media::mediaTypeAlbum;
+using media::mediaTypeArtist;
 using media::mediaTypeClip;
 using media::mediaTypeCollection;
 using media::mediaTypeEpisode;
@@ -47,6 +49,7 @@ using media::mediaTypePhoto;
 using media::mediaTypePlaylist;
 using media::mediaTypeSeason;
 using media::mediaTypeShow;
+using media::mediaTypeTrack;
 // normalized streamType values
 using media::streamTypeAudio;
 using media::streamTypeSubtitle;
@@ -124,6 +127,10 @@ const std::string_view apiTimeline = "/:/timeline?{}";
 const std::string_view apiPhotoTranscode = "/photo/:/transcode?{}";
 const std::string_view apiTranscodeDecision = "/video/:/transcode/universal/decision?{}";
 const std::string_view apiTranscodeStart = "/video/:/transcode/universal/start?{}";
+/// Music (audio) universal transcoder — mirrors the video endpoints (issue #11).
+/// Best-effort / UNVERIFIED against a live server (see backend.cpp resolvePlayback).
+const std::string_view apiMusicTranscodeDecision = "/music/:/transcode/universal/decision?{}";
+const std::string_view apiMusicTranscodeStart = "/music/:/transcode/universal/start.mp3?{}";
 const std::string_view apiPartIndexes = "/library/parts/{}/indexes/sd";
 
 /// Numeric types (`type=` parameter) — Plex-specific encoding
@@ -131,6 +138,9 @@ const int typeMovie = 1;
 const int typeShow = 2;
 const int typeSeason = 3;
 const int typeEpisode = 4;
+const int typeArtist = 8;
+const int typeAlbum = 9;
+const int typeTrack = 10;
 
 /// ---- Authentication (plex.tv) -------------------------------------------------
 

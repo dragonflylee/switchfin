@@ -102,8 +102,17 @@ AutoTabFrame::AutoTabFrame() {
 
     this->registerFloatXMLAttribute("tabHeight", [this](float value) { this->sidebar->setHeight(value); });
 
-    this->registerColorXMLAttribute(
-        "tabBackgroundColor", [this](NVGcolor value) { this->sidebar->setBackgroundColor(value); });
+    this->registerColorXMLAttribute("tabBackgroundColor", [this](NVGcolor value) {
+        // In vertical mode `sidebar` is only the scrollable tab list (the scroll
+        // frame's content view), so its background covers just the tabs' height.
+        // The full-height holder column must carry the color so the footer and
+        // the empty scroll area stay filled. Stored so buildVerticalSidebar can
+        // apply it whatever the XML attribute order.
+        this->sidebarBackgroundColor = value;
+        this->sidebar->setBackgroundColor(value);
+        if (this->sidebarHolder && this->sidebarHolder != this->sidebar)
+            this->sidebarHolder->setBackgroundColor(value);
+    });
 
     // alignment of the items along the tab bar (e.g. centered top tabs)
     BRLS_REGISTER_ENUM_XML_ATTRIBUTE("tabJustifyContent", brls::JustifyContent, this->sidebar->setJustifyContent,
@@ -137,6 +146,10 @@ AutoTabFrame::AutoTabFrame() {
     // right edge — zero pixels of spacing. Tight top/bottom (14): Home sits
     // high, the avatar + settings sit low, against the sidebar's vertical edges.
     this->sidebar->setPadding(14, 0, 14, 0);
+
+    // horizontal / top mode default: the tab bar itself is the holder.
+    // setSideBarPosition(LEFT/RIGHT) rewrites this into a scroll+footer column.
+    this->sidebarHolder = this->sidebar;
 }
 
 void AutoTabFrame::setTabChangedAction(const std::function<void(size_t)>& event) { this->tabChangedAction = event; }
@@ -163,13 +176,13 @@ void AutoTabFrame::setSideBarPosition(AutoTabBarPosition position) {
         this->setAxis(brls::Axis::ROW);
         this->setDirection(brls::Direction::RIGHT_TO_LEFT);
         this->setHorizontalMode(false);
-        this->sidebar->setWidth(sidebarWidth);
+        this->buildVerticalSidebar();
         break;
     case AutoTabBarPosition::LEFT:
         this->setAxis(brls::Axis::ROW);
         this->setDirection(brls::Direction::LEFT_TO_RIGHT);
         this->setHorizontalMode(false);
-        this->sidebar->setWidth(sidebarWidth);
+        this->buildVerticalSidebar();
         break;
     default:;
     }
@@ -177,6 +190,70 @@ void AutoTabFrame::setSideBarPosition(AutoTabBarPosition position) {
 }
 
 int AutoTabFrame::getActiveIndex() { return this->group.getActiveIndex(); }
+
+brls::GenericEvent::Callback AutoTabFrame::makeTabSwitchCallback() {
+    return [this](brls::View* view) {
+        auto* sidebarItem = (AutoSidebarItem*)view;
+
+        // Only trigger when the sidebar item gains focus
+        if (!view->isFocused()) return;
+
+        // Add the new tab
+        View* newContent = sidebarItem->getAttachedView();
+        if (!newContent) {
+            newContent = sidebarItem->createAttachedView();
+        }
+
+        if (newContent == this->getActiveTab()) return;
+
+        this->setTabAttachedView(newContent);
+
+        if (this->tabChangedAction) this->tabChangedAction(sidebarItem->getCurrentIndex());
+    };
+}
+
+void AutoTabFrame::buildVerticalSidebar() {
+    // Built once, from the first setSideBarPosition(LEFT/RIGHT). "Only set once"
+    // per the header, but stay idempotent: just refresh the width on re-entry.
+    if (this->sidebarScroll) {
+        this->sidebarHolder->setWidth(this->sidebarWidth);
+        return;
+    }
+
+    // A vertical sidebar is a scrollable tab list stacked on top of a fixed
+    // footer (avatar, settings, network status). When the tabs no longer fit
+    // (many libraries), the LIST scrolls while the footer stays pinned at the
+    // bottom — the avatar and gear are always reachable. Previously the whole
+    // bar was a single Box with a grow spacer, so extra tabs pushed the avatar
+    // off-screen.
+    auto* column = new brls::Box(brls::Axis::COLUMN);
+    column->setWidth(this->sidebarWidth);
+    // full-height background so the footer + empty scroll area keep the sidebar
+    // color (the scroll content view only covers the tabs' own height)
+    column->setBackgroundColor(this->sidebarBackgroundColor);
+
+    this->sidebarScroll = new brls::ScrollingFrame();
+    // CENTERED: keeps the focused tab centered while scrolling and, crucially,
+    // hands focus down to the footer once scrolled to the bottom (see the
+    // ScrollingFrame::getNextFocus delegation). Same behavior as brls::Sidebar.
+    this->sidebarScroll->setScrollingBehavior(brls::ScrollingBehavior::CENTERED);
+    this->sidebarScroll->setScrollingIndicatorVisible(false);
+    this->sidebarScroll->setGrow(1.0f);
+
+    this->sidebarFooter = new brls::Box(brls::Axis::COLUMN);
+    // 14px bottom inset mirrors the old sidebar's bottom padding (status row).
+    this->sidebarFooter->setPadding(0, 0, 14, 0);
+
+    // move the tab list into the scroll frame, keeping it (and its items) alive
+    this->removeView(this->sidebar, false);
+    this->sidebarScroll->setContentView(this->sidebar);
+
+    column->addView(this->sidebarScroll);
+    column->addView(this->sidebarFooter);
+    // replaces `sidebar` as the frame's first child (index 0, before content)
+    this->addView(column, 0);
+    this->sidebarHolder = column;
+}
 
 void AutoTabFrame::addTab(AutoSidebarItem* tab, TabViewCreator creator) {
     this->addTab(tab, std::move(creator), this->sidebar->getChildren().size());
@@ -187,27 +264,7 @@ void AutoTabFrame::addTab(AutoSidebarItem* tab, TabViewCreator creator, size_t p
     tab->setActiveBackgroundColor(this->tabItemActiveBackgroundColor);
     tab->setActiveTextColor(this->tabItemActiveTextColor);
 
-    this->addItem(
-        tab, std::move(creator),
-        [this](brls::View* view) {
-            auto* sidebarItem = (AutoSidebarItem*)view;
-
-            // Only trigger when the sidebar item gains focus
-            if (!view->isFocused()) return;
-
-            // Add the new tab
-            View* newContent = sidebarItem->getAttachedView();
-            if (!newContent) {
-                newContent = sidebarItem->createAttachedView();
-            }
-
-            if (newContent == this->getActiveTab()) return;
-
-            this->setTabAttachedView(newContent);
-
-            if (this->tabChangedAction) this->tabChangedAction(sidebarItem->getCurrentIndex());
-        },
-        position);
+    this->addItem(tab, std::move(creator), this->makeTabSwitchCallback(), position);
     auto isDefaultTab = position == this->getDefaultTabIndex();
 
     if (isDefaultTab || !isDemandMode) {
@@ -255,42 +312,49 @@ void AutoTabFrame::registerTabAction(brls::View* view) {
 }
 
 void AutoTabFrame::focus2NextTab() {
-    size_t sideBarNum = this->sidebar->getChildren().size();
-    if (sideBarNum == 0) return;
+    // Cycle across the full visual order (scrollable list + pinned footer), so
+    // LB/RB reaches the avatar and settings too — the old grow spacer used to
+    // sit between them and swallowed the jump.
+    std::vector<AutoSidebarItem*> seq = this->navSequence();
+    if (seq.empty()) return;
 
-    int currentIndex = this->group.getActiveIndex();
+    int currentIndex = -1;
+    for (size_t i = 0; i < seq.size(); i++)
+        if (seq[i]->isActive()) {
+            currentIndex = (int)i;
+            break;
+        }
+
     if (currentIndex < 0) {
-        // not found
-        this->focusTab(0);
-    } else if (sideBarNum == 1) {
+        brls::Application::giveFocus(seq[0]);
+    } else if (seq.size() == 1) {
         // shake highlight (currentFocus can be null during a destruction)
         brls::View* focus = brls::Application::getCurrentFocus();
         if (focus) focus->shakeHighlight(this->isHorizontal ? brls::FocusDirection::RIGHT : brls::FocusDirection::DOWN);
-    } else if (currentIndex + 1 >= (int)sideBarNum) {
-        // loop
-        this->focusTab(0);
     } else {
-        this->focusTab(currentIndex + 1);
+        brls::Application::giveFocus(seq[(currentIndex + 1) % seq.size()]);
     }
 }
 
 void AutoTabFrame::focus2LastTab() {
-    size_t sideBarNum = this->sidebar->getChildren().size();
-    if (sideBarNum == 0) return;
+    std::vector<AutoSidebarItem*> seq = this->navSequence();
+    if (seq.empty()) return;
 
-    int currentIndex = this->group.getActiveIndex();
+    int currentIndex = -1;
+    for (size_t i = 0; i < seq.size(); i++)
+        if (seq[i]->isActive()) {
+            currentIndex = (int)i;
+            break;
+        }
+
     if (currentIndex < 0) {
-        // not found
-        this->focusTab(0);
-    } else if (sideBarNum == 1) {
+        brls::Application::giveFocus(seq[0]);
+    } else if (seq.size() == 1) {
         // shake highlight (currentFocus can be null during a destruction)
         brls::View* focus = brls::Application::getCurrentFocus();
         if (focus) focus->shakeHighlight(this->isHorizontal ? brls::FocusDirection::LEFT : brls::FocusDirection::UP);
-    } else if (currentIndex == 0) {
-        // loop
-        this->focusTab(sideBarNum - 1);
     } else {
-        this->focusTab(currentIndex - 1);
+        brls::Application::giveFocus(seq[(currentIndex - 1 + (int)seq.size()) % (int)seq.size()]);
     }
 }
 
@@ -566,8 +630,10 @@ void AutoTabFrame::setDefaultTabIndex(size_t index) { this->sidebar->setDefaultF
 size_t AutoTabFrame::getDefaultTabIndex() { return this->sidebar->getDefaultFocusedIndex(); }
 
 brls::View* AutoTabFrame::getNextFocus(brls::FocusDirection direction, brls::View* currentView) {
-    // Do not navigate down, except through sidebar area
-    if (direction == brls::FocusDirection::DOWN && currentView != this->sidebar) {
+    // Do not navigate down, except through sidebar area. The direct child that
+    // holds the tab bar is `sidebarHolder` (== sidebar in horizontal mode, ==
+    // the scroll+footer column in vertical mode), so key off that.
+    if (direction == brls::FocusDirection::DOWN && currentView != this->sidebarHolder) {
         return nullptr;
     }
 
@@ -660,14 +726,45 @@ AutoSidebarItem* AutoTabFrame::getItem(int position) {
     return dynamic_cast<AutoSidebarItem*>(this->sidebar->getChildren()[position]);
 }
 
+void AutoTabFrame::addFooterTab(AutoSidebarItem* tab, TabViewCreator creator) {
+    // no footer (horizontal / top mode): behave like a normal tab
+    if (!this->sidebarFooter) {
+        this->addTab(tab, std::move(creator));
+        return;
+    }
+    // same wiring as addTab (colors + group + content-switch on focus), but the
+    // item lands in the pinned footer instead of the scrollable tab list.
+    tab->setDefaultBackgroundColor(this->tabItemBackgroundColor);
+    tab->setActiveBackgroundColor(this->tabItemActiveBackgroundColor);
+    tab->setActiveTextColor(this->tabItemActiveTextColor);
+    tab->setAttachedViewCreator(std::move(creator));
+    tab->setHorizontalMode(this->isHorizontal);
+    tab->setGroup(&this->group);
+    tab->getActiveEvent()->subscribe(this->makeTabSwitchCallback());
+    this->sidebarFooter->addView(tab);
+}
+
 void AutoTabFrame::clearItems() {
     this->setTabAttachedView(nullptr);
     this->sidebar->clearViews();
+    if (this->sidebarFooter) this->sidebarFooter->clearViews();
     this->group.clear();
     this->setLastFocusedView(nullptr);
 }
 
 brls::Box* AutoTabFrame::getSidebar() { return this->sidebar; }
+
+brls::Box* AutoTabFrame::getSidebarFooter() { return this->sidebarFooter; }
+
+std::vector<AutoSidebarItem*> AutoTabFrame::navSequence() {
+    std::vector<AutoSidebarItem*> seq;
+    for (auto* v : this->sidebar->getChildren())
+        if (auto* item = dynamic_cast<AutoSidebarItem*>(v)) seq.push_back(item);
+    if (this->sidebarFooter)
+        for (auto* v : this->sidebarFooter->getChildren())
+            if (auto* item = dynamic_cast<AutoSidebarItem*>(v)) seq.push_back(item);
+    return seq;
+}
 
 brls::View* AutoTabFrame::getActiveTab() { return this->activeTab; }
 

@@ -22,9 +22,9 @@
             marginBottom="30">
 
             <brls:Image
-                width="84"
-                height="84"
-                cornerRadius="20"
+                width="120"
+                height="120"
+                cornerRadius="28"
                 marginBottom="16"
                 scalingType="fit"
                 image="@res/icon/icon.png" />

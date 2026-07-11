@@ -54,7 +54,8 @@ public:
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
         auto& item = this->list.at(index);
-        ui::presentDetail(recycler, new PlaylistView(item));
+        // audio playlist -> music queue; video playlist -> PlaylistView (issue #11)
+        ui::presentPlaylist(recycler, item);
     }
 
     void clearData() override { this->list.clear(); }

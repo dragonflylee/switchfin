@@ -54,6 +54,8 @@ const std::string_view apiFavoriteItem = "/Users/{}/FavoriteItems/{}";
 const std::string_view apiSpecialFeatures = "/Users/{}/Items/{}/SpecialFeatures";
 const std::string_view apiVideoStream = "/Videos/{}/stream?static=true&mediaSourceId={}";
 const std::string_view apiVideoMaster = "/Videos/{}/master.m3u8?{}";
+/// Universal Audio endpoint (music transcode) — best-effort / UNVERIFIED (issue #11).
+const std::string_view apiAudioUniversal = "/Audio/{}/universal?{}";
 
 /// Common `Fields` value requested for rich items (used as a query-param value)
 const std::string itemFieldsValue =
@@ -94,6 +96,9 @@ inline std::string mapType(const std::string& t) {
     if (t == "Playlist") return media::mediaTypePlaylist;
     if (t == "Photo") return media::mediaTypePhoto;
     if (t == "Trailer" || t == "Clip") return media::mediaTypeClip;
+    if (t == "MusicArtist") return media::mediaTypeArtist;
+    if (t == "MusicAlbum") return media::mediaTypeAlbum;
+    if (t == "Audio") return media::mediaTypeTrack;
     return t;
 }
 
@@ -123,7 +128,7 @@ inline media::Stream parseStream(const nlohmann::json& j) {
     return s;
 }
 
-inline media::Media parseMediaSource(const nlohmann::json& j, const std::string& itemId) {
+inline media::Media parseMediaSource(const nlohmann::json& j, const std::string& itemId, bool audio = false) {
     media::Media m;
     std::string msId = jstr(j, "Id");
     m.container = jstr(j, "Container");
@@ -131,8 +136,10 @@ inline media::Media parseMediaSource(const nlohmann::json& j, const std::string&
     m.duration = jint(j, "RunTimeTicks") / TICKS_PER_MS;
     media::Part p;
     // direct-play / download path (also valid for downloadUrl): the backend
-    // tokenizes {base}{key}. mediaSourceId defaults to the item id for single-file items.
-    p.key = fmt::format("/Videos/{}/stream?static=true&mediaSourceId={}", itemId, msId.empty() ? itemId : msId);
+    // tokenizes {base}{key}. Audio items use /Audio/ (not /Videos/), else the
+    // stream 404s (issue #11). mediaSourceId defaults to the item id.
+    p.key = fmt::format("/{}/{}/stream?static=true&mediaSourceId={}", audio ? "Audio" : "Videos", itemId,
+        msId.empty() ? itemId : msId);
     p.container = m.container;
     p.duration = m.duration;
     p.accessible = true;
@@ -181,7 +188,37 @@ inline media::Item parseItem(const nlohmann::json& j) {
     it.rating = jnum(j, "CommunityRating");
     it.contentRating = jstr(j, "OfficialRating");
     it.originallyAvailableAt = jstr(j, "PremiereDate");
-    it.playlistType = "video";
+    // Playlists carry a MediaType ("Audio" for music playlists, else "Video");
+    // map onto the neutral video|audio playlistType so the UI branches (audio ->
+    // music queue, video -> PlaylistView grid). Issue #11.
+    it.playlistType = (it.type == media::mediaTypePlaylist && jstr(j, "MediaType") == "Audio") ? "audio" : "video";
+
+    // Music: map album/artist onto the parent/grandparent slots, matching the
+    // Plex convention (album.parentTitle = artist; track.parentTitle = album,
+    // track.grandparentTitle = artist). See media/types.hpp.
+    std::string jtype = jstr(j, "Type");
+    auto firstArtist = [&j](std::string& outId, std::string& outName) {
+        for (const char* key : {"AlbumArtists", "ArtistItems"}) {
+            auto a = j.find(key);
+            if (a != j.end() && a->is_array() && !a->empty()) {
+                outId = jstr(a->front(), "Id");
+                if (outName.empty()) outName = jstr(a->front(), "Name");
+                return;
+            }
+        }
+    };
+    if (jtype == "Audio") {  // track
+        it.parentTitle = jstr(j, "Album");
+        it.parentRatingKey = jstr(j, "AlbumId");
+        it.grandparentTitle = jstr(j, "AlbumArtist");
+        firstArtist(it.grandparentRatingKey, it.grandparentTitle);
+    } else if (jtype == "MusicAlbum") {  // album -> parent is the artist
+        it.grandparentTitle.clear();
+        it.grandparentRatingKey.clear();
+        it.parentTitle = jstr(j, "AlbumArtist");
+        it.parentRatingKey.clear();
+        firstArtist(it.parentRatingKey, it.parentTitle);
+    }
     // images (path form: /Items/{id}/Images/{kind}?tag=...) — JellyfinBackend::imageUrl finishes the URL
     auto tags = j.find("ImageTags");
     if (tags != j.end() && tags->is_object()) {
@@ -189,6 +226,13 @@ inline media::Item parseItem(const nlohmann::json& j) {
         if (!primary.empty()) it.thumb = fmt::format("/Items/{}/Images/Primary?tag={}", it.ratingKey, primary);
         std::string logo = jstr(*tags, "Logo");
         if (!logo.empty()) it.clearLogo = fmt::format("/Items/{}/Images/Logo?tag={}", it.ratingKey, logo);
+    }
+    // Music: a track with no own image falls back to its album's cover, which
+    // Jellyfin/Emby expose via AlbumPrimaryImageTag + AlbumId (issue #11).
+    if (it.thumb.empty()) {
+        std::string apt = jstr(j, "AlbumPrimaryImageTag");
+        std::string aid = jstr(j, "AlbumId");
+        if (!apt.empty() && !aid.empty()) it.thumb = fmt::format("/Items/{}/Images/Primary?tag={}", aid, apt);
     }
     if (j.contains("BackdropImageTags") && j["BackdropImageTags"].is_array() && !j["BackdropImageTags"].empty()) {
         it.art = fmt::format("/Items/{}/Images/Backdrop/0?tag={}", it.ratingKey,
@@ -221,8 +265,10 @@ inline media::Item parseItem(const nlohmann::json& j) {
         }
     }
     // media sources -> versions
-    if (j.contains("MediaSources") && j["MediaSources"].is_array())
-        for (auto& m : j["MediaSources"]) it.media.push_back(parseMediaSource(m, it.ratingKey));
+    if (j.contains("MediaSources") && j["MediaSources"].is_array()) {
+        bool audio = it.type == media::mediaTypeTrack;
+        for (auto& m : j["MediaSources"]) it.media.push_back(parseMediaSource(m, it.ratingKey, audio));
+    }
     // chapters (ticks -> ms; Jellyfin has no end offset)
     if (j.contains("Chapters") && j["Chapters"].is_array()) {
         for (auto& c : j["Chapters"]) {
@@ -247,9 +293,10 @@ inline media::Section parseSection(const nlohmann::json& j) {
     s.title = jstr(j, "Name");
     // CollectionType: movies | tvshows | music | ...
     std::string ct = jstr(j, "CollectionType");
-    s.type = ct == "movies"  ? "movie"
+    s.type = ct == "movies"    ? "movie"
              : ct == "tvshows" ? "show"
              : ct == "photos"  ? "photo"
+             : ct == "music"   ? media::mediaTypeArtist
                                : ct;
     auto tags = j.find("ImageTags");
     if (tags != j.end() && tags->is_object()) {

@@ -33,6 +33,15 @@ const std::string mediaTypeClip = "clip";
 const std::string mediaTypeCollection = "collection";
 const std::string mediaTypePhoto = "photo";
 const std::string mediaTypePlaylist = "playlist";
+/// Music hierarchy (SPEC.md — issue #11). The existing Item fields are reused
+/// exactly like show/season/episode does, no new field is needed:
+///   track.index            -> track number        track.parentIndex     -> disc number
+///   track.parentTitle      -> album (+ parentRatingKey), grandparent* -> artist
+///   album.parentTitle      -> (album) artist       album.leafCount       -> track count
+///   album.year / duration  -> as-is
+const std::string mediaTypeArtist = "artist";
+const std::string mediaTypeAlbum = "album";
+const std::string mediaTypeTrack = "track";
 
 /// Normalized streamType values (each backend maps onto these)
 const int streamTypeVideo = 1;

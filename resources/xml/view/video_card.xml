@@ -23,6 +23,7 @@
             alignItems="center"
             justifyContent="center">
             <SVGImage
+                id="video/card/placeholder"
                 width="40"
                 height="40"
                 svg="@res/icon/ico-media.svg" />

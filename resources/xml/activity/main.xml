@@ -55,6 +55,7 @@
 
             <Tab label=""
                 fontSize="18"
+                id="tab/settings"
                 icon="@res/icon/ico-setting.svg"
                 iconActivate="@res/icon/ico-setting-activate.svg">
                 <SettingTab />

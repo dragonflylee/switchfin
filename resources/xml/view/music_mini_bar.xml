@@ -1,0 +1,59 @@
+<!-- Persistent bottom "now playing" mini-bar: shows the current track while the
+     user keeps browsing. Click opens the full Now Playing screen (SPEC.md T11).
+     The BottomBar button-hints float over the bottom-right corner, on top of this
+     full-width bar; the large paddingRight reserves that corner so the title and
+     the play/pause glyph stop before the hints (A / B / Y) instead of colliding
+     with them. Sized for the browsing hint set; widen if more hints are added. -->
+<brls:Box
+    height="66"
+    width="100%"
+    axis="row"
+    alignItems="center"
+    paddingLeft="16"
+    paddingRight="460"
+    backgroundColor="@theme/color/grey_1">
+
+    <brls:Box
+        width="48"
+        height="48"
+        cornerRadius="6"
+        backgroundColor="@theme/color/grey_2"
+        alignItems="center"
+        justifyContent="center">
+        <SVGImage width="24" height="24" svg="@res/icon/ico-audio.svg" />
+        <brls:Image
+            id="mini/cover"
+            positionType="absolute"
+            positionTop="0"
+            positionLeft="0"
+            width="100%"
+            height="100%"
+            cornerRadius="6"
+            scalingType="fill" />
+    </brls:Box>
+
+    <brls:Box
+        axis="column"
+        grow="1"
+        marginLeft="14"
+        justifyContent="center">
+        <brls:Label
+            id="mini/title"
+            singleLine="true"
+            fontSize="16" />
+        <brls:Label
+            id="mini/artist"
+            singleLine="true"
+            fontSize="13"
+            marginTop="2"
+            textColor="@theme/font/grey" />
+    </brls:Box>
+
+    <SVGImage
+        id="mini/toggle"
+        width="26"
+        height="26"
+        marginLeft="12"
+        svg="@res/icon/ico-play.svg" />
+
+</brls:Box>

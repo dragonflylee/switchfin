@@ -98,6 +98,7 @@ public:
         APP_LANG,
         APP_UPDATE,
         APP_UI_SCALE,
+        SCROLLBAR,  // show the scroll indicator (scrollbar); default true
         AUDIO_CHANNELS,
         KEYMAP,
         WINDOW_STATE,
@@ -132,6 +133,13 @@ public:
         /// {itemId: "sortBy,sortOrder,filter"} — /DisplayPreferences does not
         /// exist in Plex, cf. PLEX_MIGRATION.md §2.5)
         LIBRARY_SORT,
+
+        /// Per-server sidebar layout: order + hidden state of the reorderable
+        /// tabs (libraries + Playlists + Watchlist), keyed by the active server
+        /// id (getUser().server_id). Section keys collide across servers, so
+        /// this MUST stay server-scoped. JSON:
+        /// { "<serverId>": { "order": [ids...], "hidden": [ids...] } }
+        SIDEBAR_LAYOUT,
 
         /// HOME tile install prompt (forwarder NSP) already shown at first
         /// launch in application mode (Switch).
@@ -200,6 +208,11 @@ public:
 
     bool addServer(const AppServer& s);
     void addUser(const AppUser& u, const std::string& url);
+    /// Registers a server/connection WITHOUT making it active — no change to the
+    /// active url/token/profile or the backend/theme. Used to store the other
+    /// servers of a Plex account at link time; addServer/addUser activate one.
+    void upsertServer(const AppServer& s);
+    void upsertUser(const AppUser& u);
     bool removeServer(const std::string& id);
     bool removeUser(const std::string& id);
     const std::string& getDeviceId() { return this->device; }

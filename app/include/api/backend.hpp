@@ -34,7 +34,7 @@ enum class BackendType { Plex, Jellyfin, Emby, Stremio };
 
 /// Content kind requested by the UI (each backend maps onto its own encoding:
 /// Plex type=1|2, Jellyfin includeItemTypes=Movie|Series, Stremio movie|series).
-enum class MediaKind { Any, Movie, Show, Season, Episode, Collection, Playlist, Photo };
+enum class MediaKind { Any, Movie, Show, Season, Episode, Collection, Playlist, Photo, Artist, Album, Track };
 
 /// Playback report state
 enum class PlayState { Playing, Paused, Stopped };
@@ -138,6 +138,17 @@ public:
     /// Single item detail. `full` requests heavy includes (streams/chapters/markers).
     virtual void getItemDetail(const std::string& id, bool full, Then<Item> then, OnError error) = 0;
     virtual void getChildren(const std::string& id, Then<Container<Item>> then, OnError error) = 0;
+    /// Albums of a music artist. Hierarchical backends (Plex) resolve this like
+    /// getChildren; Jellyfin/Emby must override (artists are virtual entities,
+    /// queried by ArtistIds, not by folder ParentId). See MULTI_BACKEND / issue #11.
+    virtual void getArtistAlbums(const std::string& artistId, Then<Container<Item>> then, OnError error) {
+        getChildren(artistId, then, error);
+    }
+    /// All tracks of an artist (flattened across albums), for "play/shuffle
+    /// artist". Backends override; default reports unsupported.
+    virtual void getArtistTracks(const std::string& artistId, Then<Container<Item>> then, OnError error) {
+        if (error) error("artist tracks unsupported");
+    }
     virtual void getAllEpisodes(
         const std::string& showId, bool includeStreams, Then<Container<Item>> then, OnError error) = 0;
     /// Next episode to play. `then(item, fromStart)`: fromStart=true means the

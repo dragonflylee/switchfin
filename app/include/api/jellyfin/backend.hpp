@@ -36,6 +36,10 @@ public:
         media::Then<media::Container<media::Item>> then, media::OnError error) override;
     void getItemDetail(const std::string& id, bool full, media::Then<media::Item> then, media::OnError error) override;
     void getChildren(const std::string& id, media::Then<media::Container<media::Item>> then, media::OnError error) override;
+    void getArtistAlbums(
+        const std::string& artistId, media::Then<media::Container<media::Item>> then, media::OnError error) override;
+    void getArtistTracks(
+        const std::string& artistId, media::Then<media::Container<media::Item>> then, media::OnError error) override;
     void getAllEpisodes(const std::string& showId, bool includeStreams,
         media::Then<media::Container<media::Item>> then, media::OnError error) override;
     void getNextUp(const std::string& showId, std::function<void(media::Item, bool)> then, media::OnError error) override;

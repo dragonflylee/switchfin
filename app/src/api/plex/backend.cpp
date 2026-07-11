@@ -68,6 +68,12 @@ void PlexBackend::getLibraryGrid(const std::string& sectionId, const media::Grid
         query["type"] = std::to_string(typeMovie);
     else if (q.kind == media::MediaKind::Show)
         query["type"] = std::to_string(typeShow);
+    else if (q.kind == media::MediaKind::Artist)
+        query["type"] = std::to_string(typeArtist);
+    else if (q.kind == media::MediaKind::Album)
+        query["type"] = std::to_string(typeAlbum);
+    else if (q.kind == media::MediaKind::Track)
+        query["type"] = std::to_string(typeTrack);
     addPagination(query, start, size);
     getJSON<media::Container<media::Item>>(
         conf.getUrl(), conf.getToken(), then, error, apiSectionAll, sectionId, HTTP::encode_form(query));
@@ -119,6 +125,14 @@ void PlexBackend::getChildren(
     const std::string& id, media::Then<media::Container<media::Item>> then, media::OnError error) {
     auto& conf = AppConfig::instance();
     getJSON<media::Container<media::Item>>(conf.getUrl(), conf.getToken(), then, error, apiChildren, id, "");
+}
+
+void PlexBackend::getArtistTracks(
+    const std::string& artistId, media::Then<media::Container<media::Item>> then, media::OnError error) {
+    // all tracks of an artist (across albums): Plex exposes them via allLeaves,
+    // like a show's episodes (issue #11).
+    auto& conf = AppConfig::instance();
+    getJSON<media::Container<media::Item>>(conf.getUrl(), conf.getToken(), then, error, apiAllLeaves, artistId);
 }
 
 void PlexBackend::getAllEpisodes(const std::string& showId, bool includeStreams,
@@ -193,9 +207,12 @@ void PlexBackend::getPersonMedia(const std::string& personId, int count,
 void PlexBackend::search(const std::string& query, media::MediaKind kind, int limit,
     media::Then<media::Container<media::Item>> then, media::OnError error) {
     auto& conf = AppConfig::instance();
+    bool musicKind = kind == media::MediaKind::Artist || kind == media::MediaKind::Album ||
+                     kind == media::MediaKind::Track;
     std::string searchTypes = kind == media::MediaKind::Movie ? "movies"
                               : kind == media::MediaKind::Show ? "tv"
-                                                               : "movies,tv";
+                              : musicKind                      ? "music"
+                                                               : "movies,tv,music";
     std::string q = HTTP::encode_form({
         {"query", query},
         {"limit", std::to_string(limit)},
@@ -217,7 +234,11 @@ void PlexBackend::getRecentlyAdded(
 void PlexBackend::getGenres(const std::string& sectionId, media::MediaKind kind,
     media::Then<media::Container<media::Section>> then, media::OnError error) {
     auto& conf = AppConfig::instance();
-    int type = kind == media::MediaKind::Show ? typeShow : typeMovie;
+    int type = kind == media::MediaKind::Show                                           ? typeShow
+               : (kind == media::MediaKind::Artist || kind == media::MediaKind::Album ||
+                     kind == media::MediaKind::Track)
+                   ? typeArtist
+                   : typeMovie;
     getJSON<media::Container<media::Section>>(conf.getUrl(), conf.getToken(), then, error, apiSectionGenres, sectionId, type);
 }
 
@@ -234,7 +255,11 @@ void PlexBackend::getPlaylists(
     size_t start, size_t size, media::Then<media::Container<media::Item>> then, media::OnError error) {
     auto& conf = AppConfig::instance();
     HTTP::Form query;
-    query["playlistType"] = "video";  // video scope only (PLEX_MIGRATION D2/D4)
+    // No playlistType filter: return video AND audio playlists in one call
+    // (Plex has no multi-value filter, so we omit it and let the UI branch on
+    // Item::playlistType — audio -> music queue, video -> PlaylistView grid).
+    // Music playlists added for issue #11; video playlists keep working. Photo
+    // playlists, if any, fall through to the video grid harmlessly.
     addPagination(query, start, size);
     getJSON<media::Container<media::Item>>(conf.getUrl(), conf.getToken(), then, error, apiPlaylists, HTTP::encode_form(query));
 }
@@ -281,6 +306,63 @@ media::PlaybackSource PlexBackend::resolvePlayback(
     }
 
     auto& conf = AppConfig::instance();
+
+    // ---- audio (music) transcode — best-effort, issue #11 --------------------
+    // Mirrors the video universal transcoder but on the MUSIC endpoint
+    // (/music/:/transcode/universal). UNVERIFIED against a live server (no test
+    // server needs it): the decision call is wrapped so that ANY failure falls
+    // back to direct play — a bitrate cap on audio never breaks playback.
+    // NOTE for the reviewer: the exact "bitrate" param name for the Plex music
+    // transcoder is uncertain (seen as bitrate / musicBitrate / audioBitrate);
+    // we use `bitrate` per the task brief. No X-Plex-Client-Profile-Extra clause
+    // is sent (the .mp3 endpoint transcodes to MP3 at `bitrate` on its own).
+    if (item.type == media::mediaTypeTrack) {
+        std::string audioSession = misc::randHex(12);
+        HTTP::Form aform = {
+            {"hasMDE", "1"},
+            {"path", fmt::format("/library/metadata/{}", item.ratingKey)},
+            {"mediaIndex", "0"},
+            {"partIndex", "0"},
+            {"protocol", "http"},
+            {"directPlay", "0"},
+            {"directStream", "1"},
+            {"directStreamAudio", "0"},
+            {"bitrate", std::to_string(opts.bitrateCap / 1000)},  // kbps
+            {"location", "lan"},
+            {"session", audioSession},
+            {"X-Plex-Session-Identifier", opts.sessionId},
+            {"X-Plex-Platform", "Generic"},  // mandatory: other values -> HTTP 400
+            {"X-Plex-Client-Identifier", conf.getDeviceId()},
+            {"X-Plex-Product", AppVersion::getPackageName()},
+            {"X-Plex-Version", AppVersion::getVersion()},
+            {"X-Plex-Token", conf.getToken()},
+        };
+        if (opts.seekMs > 0) aform["offset"] = std::to_string(opts.seekMs / 1000);  // whole seconds
+        std::string aquery = HTTP::encode_form(aform);
+
+        // decision (same gating as video): >= 2000 = failure, 1000 = direct only.
+        // Any exception (endpoint absent/unreachable) -> conservative direct play.
+        try {
+            std::string decUrl = conf.getUrl() + fmt::format(fmt::runtime(apiMusicTranscodeDecision), aquery);
+            nlohmann::json decision = getSync(decUrl, "", 10000);
+            const nlohmann::json& mc = decision.contains("MediaContainer") ? decision.at("MediaContainer") : decision;
+            int64_t general = media::jint(mc, "generalDecisionCode");
+            int64_t transcode = media::jint(mc, "transcodeDecisionCode");
+            int64_t mde = media::jint(mc, "mdeDecisionCode");
+            if (general >= 2000 || mde >= 2000 || transcode == 1000) {
+                return directSource(version, opts.seekMs);
+            }
+        } catch (const std::exception& ex) {
+            brls::Logger::warning("plex music decision: {} (direct play)", ex.what());
+            return directSource(version, opts.seekMs);
+        }
+
+        std::string aextra = fmt::format("network-timeout={}", HTTP::TIMEOUT / 100);
+        if (HTTP::PROXY_STATUS) aextra += fmt::format(",http-proxy=\"{}\"", HTTP::PROXY);
+        std::string aplay = conf.getUrl() + fmt::format(fmt::runtime(apiMusicTranscodeStart), aquery);
+        return {aplay, aextra, true, "transcode"};
+    }
+
     std::string session = misc::randHex(12);  // transcoder session: regenerated on every start
     HTTP::Form form = {
         {"hasMDE", "1"},

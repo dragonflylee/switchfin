@@ -189,11 +189,22 @@ public:
     void addItem(
         AutoSidebarItem* tab, TabViewCreator creator, brls::GenericEvent::Callback focusCallback, size_t position);
 
+    /// Adds a tab to the fixed bottom footer of a vertical sidebar (avatar,
+    /// settings), instead of the scrollable tab list. Wired exactly like a
+    /// normal tab (same group, same content-switch on focus). Falls back to a
+    /// regular tab when there is no footer (horizontal / top mode).
+    void addFooterTab(AutoSidebarItem* tab, TabViewCreator creator);
+
     AutoSidebarItem* getItem(int position);
 
     void clearItems();
 
     Box* getSidebar();
+
+    /// The pinned bottom block of a vertical sidebar (avatar, settings, network
+    /// status). nullptr in horizontal / top mode. Its items live outside the
+    /// scrollable tab list so they stay visible however many tabs there are.
+    Box* getSidebarFooter();
 
     /// Fixed width of the vertical sidebar (px). The footer uses it to inset its
     /// gradient scrim so it never tints the sidebar.
@@ -255,6 +266,25 @@ private:
 
     BRLS_BIND(Box, sidebar, "auto_tab_frame/auto_sidebar");
 
+    /// The direct child of this frame that holds the whole tab bar. In
+    /// horizontal / top mode it is `sidebar` itself; in vertical mode it is the
+    /// column wrapping the scrollable tab list + the fixed footer. getNextFocus
+    /// keys the sidebar<->content transition off this, not off `sidebar`.
+    Box* sidebarHolder = nullptr;
+    /// vertical mode only: scroll frame wrapping `sidebar`, and the pinned
+    /// footer below it. Both nullptr in horizontal / top mode.
+    brls::ScrollingFrame* sidebarScroll = nullptr;
+    Box* sidebarFooter = nullptr;
+
+    /// Builds the vertical layout: sidebar (tab list) moves into a CENTERED
+    /// scroll frame, with a fixed footer box below. Idempotent (built once).
+    void buildVerticalSidebar();
+    /// The tab-switch-on-focus callback shared by addTab and addFooterTab.
+    brls::GenericEvent::Callback makeTabSwitchCallback();
+    /// Focusable tabs in visual order: the scrollable list, then the footer.
+    /// Drives LB/RB cycling across both zones.
+    std::vector<AutoSidebarItem*> navSequence();
+
     struct DetailEntry {
         View* view = nullptr;
         /// focus at push time — pointer potentially dead at pop time,
@@ -286,6 +316,9 @@ private:
     void focus2LastTab();
 
     NVGcolor skeletonBackground = brls::Application::getTheme()["color/grey_3"];
+    /// background of the whole sidebar area (tabBackgroundColor); applied to the
+    /// full-height holder column in vertical mode, not just the tab list.
+    NVGcolor sidebarBackgroundColor = nvgRGBA(0, 0, 0, 0);
     NVGcolor tabItemBackgroundColor = nvgRGBA(0, 0, 0, 0);
     NVGcolor tabItemActiveBackgroundColor = nvgRGBA(0, 0, 0, 0);
     NVGcolor tabItemActiveTextColor = brls::Application::getTheme()["brls/text"];

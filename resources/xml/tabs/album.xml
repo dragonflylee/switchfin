@@ -1,0 +1,20 @@
+<brls:Box
+    width="auto"
+    height="auto"
+    axis="column">
+
+    <!-- Album detail: everything scrolls (header = first flow cell), then the
+         track rows. Mirrors seasons.xml. -->
+    <RecyclingGrid
+        grow="1"
+        wireframe="false"
+        paddingLeft="@style/main/content_padding_sides"
+        paddingRight="@style/main/content_padding_sides"
+        paddingTop="@style/main/content_padding_top_bottom"
+        paddingBottom="@style/main/content_padding_top_bottom"
+        spanCount="1"
+        flowMode="true"
+        itemSpace="6"
+        id="music/tracks" />
+
+</brls:Box>

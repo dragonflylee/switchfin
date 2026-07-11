@@ -115,16 +115,24 @@ void PlexAdd::pollOnce() {
 }
 
 void PlexAdd::onAccount(const std::string& accountToken) {
-    // getResources hits plex.tv with a 10 s timeout: show a loading screen
-    // rather than a frozen one while we wait (cf. ServerList::onItemSelected).
+    // getResources + getHomeUsers hit plex.tv (10 s timeout): show a loading
+    // screen rather than a frozen one while we wait (cf. ServerList).
     brls::Application::blockInputs();
     brls::Application::pushActivity(new LoadingOverlay(), brls::TransitionAnimation::NONE);
     ASYNC_RETAIN
     brls::async([ASYNC_TOKEN, accountToken]() {
         try {
             plex::AccountUser account = plex::getUser(accountToken);
+            // ALL the account's servers (owned + shared) become connections.
             std::vector<plex::ServerResource> servers = plex::getResources(accountToken);
-            brls::sync([ASYNC_TOKEN, account, accountToken, servers]() {
+            // Home profiles use the account token only — no server needed yet.
+            std::vector<plex::HomeUser> homes;
+            try {
+                homes = plex::getHomeUsers(accountToken);
+            } catch (const std::exception& ex) {
+                brls::Logger::warning("getHomeUsers: {}", ex.what());
+            }
+            brls::sync([ASYNC_TOKEN, account, accountToken, servers, homes]() {
                 ASYNC_RELEASE
                 brls::Application::unblockInputs();
                 brls::Application::popActivity(brls::TransitionAnimation::NONE);
@@ -132,89 +140,35 @@ void PlexAdd::onAccount(const std::string& accountToken) {
                     Dialog::show("main/plex/no_server"_i18n);
                     return;
                 }
-                std::vector<std::string> names;
-                for (auto& s : servers) names.push_back(s.owned ? s.name : fmt::format("{} 🔗", s.name));
-                // The server pick must run AFTER the dropdown has popped itself:
-                // brls::Dropdown fires cb() while still on top of the stack, then
-                // pops (dropdown.cpp:147-152). If onServerPicked pushed its loading
-                // screen from cb(), that pop would tear the loading screen back
-                // down. dismissCb runs in the pop completion, so the stack is clean.
-                auto* dropdown = new brls::Dropdown(
-                    "main/plex/choose_server"_i18n, names, [](int) {}, 0,
-                    [this, account, accountToken, servers](int selected) {
-                        if (selected < 0) return;
-                        this->onServerPicked(account, accountToken, servers.at(selected));
-                    });
-                brls::Application::pushActivity(new brls::Activity(dropdown));
-                // The dropdown's recycler builds its rows (and marks the
-                // selected one) only on its first layout, which runs AFTER this
-                // push. At push time getDefaultFocus() finds no cell, so focus
-                // stays stranded on the (now hidden) screen underneath and A
-                // does nothing. Re-give focus a tick later, once it has laid
-                // out — target the top of the stack (not a captured pointer, so
-                // a same-frame dismiss can't leave us with a dangling dropdown).
-                brls::sync([]() {
-                    auto stack = brls::Application::getActivitiesStack();
-                    if (!stack.empty()) brls::Application::giveFocus(stack.back()->getDefaultFocus());
-                });
-            });
-        } catch (const std::exception& ex) {
-            std::string msg = ex.what();
-            brls::sync([ASYNC_TOKEN, msg]() {
-                ASYNC_RELEASE
-                brls::Application::unblockInputs();
-                brls::Application::popActivity(brls::TransitionAnimation::NONE);
-                Dialog::show(msg);
-            });
-        }
-    });
-}
-
-void PlexAdd::onServerPicked(
-    const plex::AccountUser& account, const std::string& accountToken, const plex::ServerResource& server) {
-    // findBestConnection probes each candidate URL in series (2 s timeout each;
-    // plex.direct servers advertise 10+), so this can take many seconds. Without
-    // a loading screen the dropdown just vanishes and the app looks frozen — the
-    // exact symptom reported in thcolin/pleNx#1 on Vita.
-    brls::Application::blockInputs();
-    brls::Application::pushActivity(new LoadingOverlay(), brls::TransitionAnimation::NONE);
-    ASYNC_RETAIN
-    brls::async([ASYNC_TOKEN, account, accountToken, server]() {
-        try {
-            std::string base = plex::findBestConnection(server);
-            if (base.empty()) throw std::runtime_error("main/plex/unreachable"_i18n);
-
-            std::vector<plex::HomeUser> homes;
-            try {
-                homes = plex::getHomeUsers(accountToken);
-            } catch (const std::exception& ex) {
-                brls::Logger::warning("getHomeUsers: {}", ex.what());
-            }
-
-            brls::sync([ASYNC_TOKEN, account, accountToken, server, base, homes]() {
-                ASYNC_RELEASE
-                brls::Application::unblockInputs();
-                brls::Application::popActivity(brls::TransitionAnimation::NONE);
+                // More than one Plex Home profile: pick one; it applies to every
+                // server we register (one link = one account+profile, all its
+                // servers). A single/absent profile uses the account holder.
                 if (homes.size() > 1) {
                     std::vector<std::string> names;
                     for (auto& h : homes) names.push_back(h.isProtected ? fmt::format("{} 🔒", h.title) : h.title);
-                    // dismissCb (not cb) so the profile pick fires after the
-                    // dropdown pops — same stack ordering as the server dropdown.
+                    // The profile pick must run AFTER the dropdown has popped
+                    // itself: brls::Dropdown fires cb() while still on top of the
+                    // stack, then pops (dropdown.cpp:147-152). doSwitch pushes a
+                    // loading screen, so run it from dismissCb (fires in the pop
+                    // completion) to keep the stack clean.
                     auto* dropdown = new brls::Dropdown(
                         "main/plex/choose_profile"_i18n, names, [](int) {}, 0,
-                        [this, homes, accountToken, server, base](int selected) {
+                        [this, homes, accountToken](int selected) {
                             if (selected < 0) return;
-                            this->onProfilePicked(homes.at(selected), accountToken, server, base);
+                            this->onProfilePicked(homes.at(selected), accountToken);
                         });
                     brls::Application::pushActivity(new brls::Activity(dropdown));
-                    // See onAccount: focus the freshly-pushed dropdown once its
-                    // recycler has laid out, otherwise pressing A does nothing.
+                    // The dropdown's recycler builds its rows only on its first
+                    // layout, which runs AFTER this push; at push time
+                    // getDefaultFocus() finds no cell and A does nothing. Re-give
+                    // focus a tick later — target the top of the stack, not a
+                    // captured pointer, so a same-frame dismiss can't dangle.
                     brls::sync([]() {
                         auto stack = brls::Application::getActivitiesStack();
                         if (!stack.empty()) brls::Application::giveFocus(stack.back()->getDefaultFocus());
                     });
                 } else {
-                    this->finish(account.uuid, account.username, account.thumb, accountToken, server, base);
+                    this->finishAll(account.uuid, account.username, account.thumb, accountToken, servers);
                 }
             });
         } catch (const std::exception& ex) {
@@ -229,40 +183,33 @@ void PlexAdd::onServerPicked(
     });
 }
 
-void PlexAdd::onProfilePicked(const plex::HomeUser& home, const std::string& accountToken,
-    const plex::ServerResource& server, const std::string& baseUrl) {
+void PlexAdd::onProfilePicked(const plex::HomeUser& home, const std::string& accountToken) {
     if (home.isProtected) {
         brls::Application::getImeManager()->openForText(
-            [this, home, accountToken, server, baseUrl](const std::string& pin) {
-                this->doSwitch(home, accountToken, server, baseUrl, pin);
-            },
+            [this, home, accountToken](const std::string& pin) { this->doSwitch(home, accountToken, pin); },
             "main/plex/profile_pin"_i18n, "", 4, "");
     } else {
-        this->doSwitch(home, accountToken, server, baseUrl, "");
+        this->doSwitch(home, accountToken, "");
     }
 }
 
-void PlexAdd::doSwitch(const plex::HomeUser& home, const std::string& accountToken,
-    const plex::ServerResource& server, const std::string& baseUrl, const std::string& pin) {
+void PlexAdd::doSwitch(const plex::HomeUser& home, const std::string& accountToken, const std::string& pin) {
     // switchHomeUser + a fresh getResources round-trip: keep the loading screen
-    // up so the profile switch never reads as a freeze either.
+    // up so the profile switch never reads as a freeze either. The per-server
+    // accessToken depends on the active profile (PLEX_MIGRATION.md §2.3), so we
+    // re-fetch ALL resources with the profile token.
     brls::Application::blockInputs();
     brls::Application::pushActivity(new LoadingOverlay(), brls::TransitionAnimation::NONE);
     ASYNC_RETAIN
-    brls::async([ASYNC_TOKEN, home, accountToken, server, baseUrl, pin]() {
+    brls::async([ASYNC_TOKEN, home, accountToken, pin]() {
         try {
             std::string profileToken = plex::switchHomeUser(accountToken, home.uuid, pin);
-            // resources WITH the profile token: the server accessToken
-            // depends on the active profile (PLEX_MIGRATION.md §2.3, three tokens)
-            plex::ServerResource fresh = server;
-            for (auto& r : plex::getResources(profileToken)) {
-                if (r.clientIdentifier == server.clientIdentifier) fresh = r;
-            }
-            brls::sync([ASYNC_TOKEN, home, profileToken, fresh, baseUrl]() {
+            std::vector<plex::ServerResource> servers = plex::getResources(profileToken);
+            brls::sync([ASYNC_TOKEN, home, profileToken, servers]() {
                 ASYNC_RELEASE
                 brls::Application::unblockInputs();
                 brls::Application::popActivity(brls::TransitionAnimation::NONE);
-                this->finish(home.uuid, home.title, home.thumb, profileToken, fresh, baseUrl);
+                this->finishAll(home.uuid, home.title, home.thumb, profileToken, servers);
             });
         } catch (const std::exception& ex) {
             std::string msg = ex.what();
@@ -277,26 +224,94 @@ void PlexAdd::doSwitch(const plex::HomeUser& home, const std::string& accountTok
     });
 }
 
-void PlexAdd::finish(const std::string& uuid, const std::string& name, const std::string& thumb,
-    const std::string& plexTvToken, const plex::ServerResource& server, const std::string& baseUrl) {
-    AppServer s;
-    s.name = server.name;
-    s.id = server.clientIdentifier;
-    s.access_token = server.accessToken;
-    s.urls.push_back(baseUrl);
-    for (auto& c : server.connections) {
-        if (!c.uri.empty() && c.uri != baseUrl) s.urls.push_back(c.uri);
+void PlexAdd::finishAll(const std::string& uuid, const std::string& name, const std::string& thumb,
+    const std::string& plexTvToken, const std::vector<plex::ServerResource>& servers) {
+    // Activate the first owned server (a server you own is the natural landing
+    // point), else the first available. Only THIS server is probed now:
+    // findBestConnection races its candidates in series (2 s each; plex.direct
+    // servers advertise 10+), so probing every server would take far too long.
+    // The other servers store their ranked candidate urls and resolve a
+    // reachable one lazily when the user switches to them (connectWithUser).
+    size_t primaryIdx = 0;
+    for (size_t i = 0; i < servers.size(); i++) {
+        if (servers[i].owned) {
+            primaryIdx = i;
+            break;
+        }
     }
-    AppConfig::instance().addServer(s);
+    // Keep the loading screen up during the (possibly multi-second) probe —
+    // without it the app looks frozen (thcolin/pleNx#1 on Vita).
+    brls::Application::blockInputs();
+    brls::Application::pushActivity(new LoadingOverlay(), brls::TransitionAnimation::NONE);
+    ASYNC_RETAIN
+    brls::async([ASYNC_TOKEN, uuid, name, thumb, plexTvToken, servers, primaryIdx]() {
+        try {
+            std::string base = plex::findBestConnection(servers.at(primaryIdx));
+            if (base.empty()) throw std::runtime_error("main/plex/unreachable"_i18n);
+            brls::sync([ASYNC_TOKEN, uuid, name, thumb, plexTvToken, servers, primaryIdx, base]() {
+                ASYNC_RELEASE
+                brls::Application::unblockInputs();
+                brls::Application::popActivity(brls::TransitionAnimation::NONE);
 
-    AppUser u;
-    u.id = uuid;
-    u.name = name;
-    u.access_token = plexTvToken;
-    u.server_id = server.clientIdentifier;
-    u.thumb = thumb;
-    AppConfig::instance().addUser(u, baseUrl);
+                auto persist = [&](const plex::ServerResource& r, const std::string& frontUrl, bool activate) {
+                    AppServer s;
+                    s.name = r.name;
+                    s.id = r.clientIdentifier;
+                    s.access_token = r.accessToken;
+                    s.type = "plex";
+                    // frontUrl (the probed, reachable url) first for the active
+                    // server; then the ranked candidates for a later re-probe.
+                    if (!frontUrl.empty()) s.urls.push_back(frontUrl);
+                    for (auto& u : plex::rankConnections(r)) {
+                        if (u != frontUrl) s.urls.push_back(u);
+                    }
 
-    brls::Application::clear();
-    brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
+                    AppUser u;
+                    // Composite id: one profile can back several servers, so key
+                    // the connection by (profile uuid + server). A bare uuid
+                    // would dedupe every server of the account onto one tile.
+                    u.id = fmt::format("{}@{}", uuid, r.clientIdentifier);
+                    u.name = name;
+                    u.access_token = plexTvToken;
+                    u.server_id = r.clientIdentifier;
+                    u.thumb = thumb;
+
+                    if (activate) {
+                        AppConfig::instance().addServer(s);
+                        AppConfig::instance().addUser(u, frontUrl);
+                    } else {
+                        AppConfig::instance().upsertServer(s);
+                        AppConfig::instance().upsertUser(u);
+                    }
+                };
+
+                // Re-link cleanup: before multi-server support a connection was
+                // keyed by the bare profile uuid, so an already-configured
+                // account has one legacy tile for this profile. Its composite
+                // replacement (uuid@server) won't dedupe onto it, so drop it
+                // here to avoid a duplicate tile. uuids are globally unique, so
+                // this only ever matches this very profile's old entry.
+                AppConfig::instance().removeUser(uuid);
+
+                // Register the secondary servers first (stored, not activated),
+                // then the primary last — addUser sets the active connection.
+                for (size_t i = 0; i < servers.size(); i++) {
+                    if (i == primaryIdx) continue;
+                    persist(servers[i], "", false);
+                }
+                persist(servers.at(primaryIdx), base, true);
+
+                brls::Application::clear();
+                brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
+            });
+        } catch (const std::exception& ex) {
+            std::string msg = ex.what();
+            brls::sync([ASYNC_TOKEN, msg]() {
+                ASYNC_RELEASE
+                brls::Application::unblockInputs();
+                brls::Application::popActivity(brls::TransitionAnimation::NONE);
+                Dialog::show(msg);
+            });
+        }
+    });
 }

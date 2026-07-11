@@ -14,8 +14,11 @@ public:
     /// @param itemId section key OR collection ratingKey
     /// @param itemType Plex type: "movie" | "show" | "photo" | "collection"
     /// @param genresId Plex genre key (genre= filter)
-    explicit MediaCollection(
-        const std::string& itemId, const std::string& itemType = "", const std::string& genresId = "");
+    /// @param title library display name (library mode only): replaces the
+    ///        first tab's "Accueil" label with the library's own name; empty
+    ///        keeps "Accueil"
+    explicit MediaCollection(const std::string& itemId, const std::string& itemType = "",
+        const std::string& genresId = "", const std::string& title = "");
 
     brls::View* getDefaultFocus() override;
 

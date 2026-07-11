@@ -24,6 +24,7 @@
 #include <curl/curl.h>
 #include "view/mpv_core.hpp"
 #include "view/selector_cell.hpp"
+#include "view/library_manager.hpp"
 #include "api/plex.hpp"
 #include "utils/dialog.hpp"
 #ifdef __SWITCH__
@@ -411,11 +412,22 @@ void SettingTab::onCreate() {
         return true;
     });
 
-    btnAbout->setDetailText(">");
+    // DisclosureCell renders its own (SVG) chevron — see disclosure_cell.hpp.
     btnAbout->registerClickAction([](...) {
         brls::Dialog* dialog = new brls::Dialog(new SettingAbout());
         dialog->addButton("hints/ok"_i18n, []() {});
         dialog->open();
+        return true;
+    });
+
+    // Reorder / hide the sidebar tabs (libraries + Playlists + Watchlist).
+    // Presented as a detail view so the sidebar stays visible and previews the
+    // changes live; needs the MainTabFrame (outermost AutoTabFrame) to rebuild.
+    btnLibraries->registerClickAction([](brls::View* view) -> bool {
+        MainTabFrame* frame = nullptr;
+        for (brls::View* v = view; v; v = v->getParent())
+            if (auto* f = dynamic_cast<MainTabFrame*>(v)) frame = f;
+        if (frame) ui::presentDetail(view, new LibraryManager(frame));
         return true;
     });
 }

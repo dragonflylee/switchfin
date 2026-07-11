@@ -139,13 +139,23 @@ private:
     size_t pageSize = 60;
 };
 
-MediaCollection::MediaCollection(const std::string& itemId, const std::string& itemType, const std::string& genresId)
+MediaCollection::MediaCollection(const std::string& itemId, const std::string& itemType, const std::string& genresId,
+    const std::string& title)
     : itemId(itemId), genresId(genresId), itemType(itemType), startIndex(0) {
     brls::Logger::debug("MediaCollection: create {} type {}", itemId, itemType);
     if (genresId.size() > 0) {
         this->inflateFromXMLRes("xml/tabs/media.xml");
     } else if (itemType == plex::mediaTypeMovie || itemType == plex::mediaTypeShow) {
         this->inflateFromXMLRes("xml/tabs/collection.xml");
+
+        // the first tab (labelled "Accueil" in the XML) carries the whole-library
+        // grid, so it takes the library's own name when known (e.g. "Looney
+        // Tunes"); getTab(size_t) targets the XML tab at index 0. Falls back to
+        // "Accueil" when the name is unknown.
+        if (!title.empty()) {
+            if (auto* home = this->tabFrame->getTab(size_t(0))) home->setLabel(title);
+        }
+
         // centered top tabs: home (from XML), then suggest, collections, genres
 
         auto* item = new AutoSidebarItem();
@@ -188,6 +198,9 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
             this->labelMeta = dynamic_cast<brls::Label*>(header->getView("grid/header/meta"));
             this->recycler->setHeaderView(header, 84);
             this->doMetadata();
+        } else if (itemType == plex::mediaTypeArtist) {
+            // music library: square covers (1:1) instead of the 2:3 poster
+            this->recycler->itemImageRatio = 1.0f;
         }
     }
 
@@ -342,6 +355,8 @@ void MediaCollection::doRequest() {
         q.kind = media::MediaKind::Movie;
     else if (this->itemType == media::mediaTypeShow)
         q.kind = media::MediaKind::Show;
+    else if (this->itemType == media::mediaTypeArtist)
+        q.kind = media::MediaKind::Artist;
     // photo / collection: no type= filter
 
     ASYNC_RETAIN

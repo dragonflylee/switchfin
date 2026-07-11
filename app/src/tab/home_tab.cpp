@@ -96,11 +96,13 @@ void HomeTab::doHubs() {
                 row->setTitle(hub.title);
                 float frameHeight = brls::getStyle()["app/card/poster/row"];
                 row->setFrameHeight(frameHeight);
-                // playlists: SQUARE covers (custom poster or 1:1 composite)
+                // playlists AND music (artist/album/track): SQUARE covers (1:1)
                 // — width = image height of the row (frame - 55 of labels,
-                // video_card.xml metrics)
-                bool playlists = !items.empty() && items.front().type == plex::mediaTypePlaylist;
-                row->setItemWidth(playlists ? frameHeight - 55 : brls::getStyle()["app/card/poster/width"]);
+                // video_card.xml metrics); everything else keeps 2:3 posters
+                const std::string& t0 = items.front().type;
+                bool square = t0 == plex::mediaTypePlaylist || t0 == plex::mediaTypeArtist ||
+                              t0 == plex::mediaTypeAlbum || t0 == plex::mediaTypeTrack;
+                row->setItemWidth(square ? frameHeight - 55 : brls::getStyle()["app/card/poster/width"]);
                 row->setSidePadding(brls::getStyle()["main/content_padding_sides"]);
                 // truncated hub (more=1): "+" card to the full page
                 if (hub.more && !hub.key.empty()) {

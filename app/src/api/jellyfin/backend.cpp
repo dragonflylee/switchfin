@@ -38,6 +38,9 @@ std::string mapSort(const std::string& f) {
 std::string kindTypes(media::MediaKind k) {
     if (k == media::MediaKind::Movie) return "Movie";
     if (k == media::MediaKind::Show) return "Series";
+    if (k == media::MediaKind::Artist) return "MusicArtist";
+    if (k == media::MediaKind::Album) return "MusicAlbum";
+    if (k == media::MediaKind::Track) return "Audio";
     return "Movie,Series";
 }
 
@@ -173,7 +176,9 @@ void JellyfinBackend::getHomeHubs(
             auto views = parseContainer<media::Section>(
                 getSync(b + fmt::format(fmt::runtime(apiViews), uid), tok), parseSection);
             for (auto& v : views.Items) {
-                if (v.type != media::mediaTypeMovie && v.type != media::mediaTypeShow) continue;
+                if (v.type != media::mediaTypeMovie && v.type != media::mediaTypeShow &&
+                    v.type != media::mediaTypeArtist)
+                    continue;
                 HTTP::Form f = {{"ParentId", v.key}, {"Limit", std::to_string(cnt)}, {"Fields", itemFieldsValue}};
                 auto c = parseContainer<media::Item>(
                     getSync(b + fmt::format(fmt::runtime(apiLatest), uid, HTTP::encode_form(f)), tok), parseItem);
@@ -213,6 +218,22 @@ void JellyfinBackend::getContinueWatching(
 
 void JellyfinBackend::getLibraryGrid(const std::string& sectionId, const media::GridQuery& q, size_t start,
     size_t size, media::Then<media::Container<media::Item>> then, media::OnError error) {
+    // Music artists are virtual entities: /Items?IncludeItemTypes=MusicArtist
+    // returns nothing, they must come from the dedicated /Artists endpoint (issue #11).
+    if (q.kind == media::MediaKind::Artist) {
+        HTTP::Form form = {
+            {"ParentId", sectionId},
+            {"UserId", userId()},
+            {"SortBy", "SortName"},
+            {"SortOrder", q.descending ? "Descending" : "Ascending"},
+            {"StartIndex", std::to_string(start)},
+            {"Limit", std::to_string(size)},
+            {"Fields", itemFieldsValue},
+        };
+        std::string url = base() + "/Artists?" + HTTP::encode_form(form);
+        fetchContainer<media::Item>(url, parseItem, then, error);
+        return;
+    }
     HTTP::Form form = {
         {"ParentId", sectionId},
         {"Recursive", "true"},
@@ -225,6 +246,37 @@ void JellyfinBackend::getLibraryGrid(const std::string& sectionId, const media::
     };
     if (q.unwatchedOnly) form["Filters"] = "IsUnplayed";
     if (!q.genreId.empty()) form["GenreIds"] = q.genreId;
+    std::string url = base() + fmt::format(fmt::runtime(apiItems), userId(), HTTP::encode_form(form));
+    fetchContainer<media::Item>(url, parseItem, then, error);
+}
+
+void JellyfinBackend::getArtistTracks(
+    const std::string& artistId, media::Then<media::Container<media::Item>> then, media::OnError error) {
+    // all tracks of an artist, flattened across albums (issue #11)
+    HTTP::Form form = {
+        {"ArtistIds", artistId},
+        {"IncludeItemTypes", "Audio"},
+        {"Recursive", "true"},
+        {"UserId", userId()},
+        {"SortBy", "Album,ParentIndexNumber,IndexNumber"},
+        {"Fields", itemFieldsValue},
+    };
+    std::string url = base() + fmt::format(fmt::runtime(apiItems), userId(), HTTP::encode_form(form));
+    fetchContainer<media::Item>(url, parseItem, then, error);
+}
+
+void JellyfinBackend::getArtistAlbums(
+    const std::string& artistId, media::Then<media::Container<media::Item>> then, media::OnError error) {
+    // artist -> albums: Jellyfin artists are virtual, so filter albums by
+    // ArtistIds rather than folder ParentId (which returns nothing).
+    HTTP::Form form = {
+        {"ArtistIds", artistId},
+        {"IncludeItemTypes", "MusicAlbum"},
+        {"Recursive", "true"},
+        {"UserId", userId()},
+        {"SortBy", "PremiereDate,ProductionYear,SortName"},
+        {"Fields", itemFieldsValue},
+    };
     std::string url = base() + fmt::format(fmt::runtime(apiItems), userId(), HTTP::encode_form(form));
     fetchContainer<media::Item>(url, parseItem, then, error);
 }
@@ -417,12 +469,38 @@ media::PlaybackSource JellyfinBackend::resolvePlayback(
         return e;
     };
 
-    // direct play: version.parts[0].key = /Videos/{id}/stream?static=true&mediaSourceId=...
+    // direct play (static): version.parts[0].key = /{Videos|Audio}/{id}/stream?static=true&...
+    // Default for anything with no bitrate cap or when forced (mpv handles
+    // mp3/flac/aac natively). Audio with a cap falls through to the audio
+    // transcode branch below.
+    bool audio = item.type == media::mediaTypeTrack;
     if (opts.bitrateCap <= 0 || opts.forceDirectPlay) {
         std::stringstream e = extra();
         if (opts.seekMs > 0) e << ",start=" << misc::sec2Time(opts.seekMs / 1000);
         std::string url = withToken(base() + version.parts.front().key, tok);
         return {url, e.str(), false, "directplay"};
+    }
+
+    // ---- audio (music) transcode — best-effort, issue #11 --------------------
+    // Jellyfin Universal Audio endpoint: accepts mp3 direct, else transcodes to
+    // aac in an HLS (ts) stream, capped at MaxStreamingBitrate. Placed before
+    // the video master path because audio items must use /Audio/, not /Videos/.
+    // UNVERIFIED against a live server; direct play (static) stays the default.
+    if (audio) {
+        std::stringstream e = extra();
+        if (opts.seekMs > 0) e << ",start=" << misc::sec2Time(opts.seekMs / 1000);  // mpv-side seek on HLS
+        HTTP::Form aform = {
+            {"UserId", userId()},
+            {"DeviceId", AppConfig::instance().getDeviceId()},
+            {"MaxStreamingBitrate", std::to_string(opts.bitrateCap)},  // bps
+            {"Container", "mp3"},                                      // client can direct-play mp3
+            {"AudioCodec", "aac"},                                     // transcode target codec
+            {"TranscodingContainer", "ts"},
+            {"TranscodingProtocol", "hls"},
+            {"api_key", tok},
+        };
+        std::string url = base() + fmt::format(fmt::runtime(apiAudioUniversal), item.ratingKey, HTTP::encode_form(aform));
+        return {url, e.str(), true, "transcode"};
     }
 
     // transcode (best-effort HLS master)

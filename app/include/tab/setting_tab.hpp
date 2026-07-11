@@ -17,6 +17,7 @@
 #pragma once
 
 #include <view/auto_tab_frame.hpp>
+#include <view/disclosure_cell.hpp>
 
 class SelectorCell;
 
@@ -64,5 +65,6 @@ private:
     BRLS_BIND(brls::RadioCell, btnOpenConfig, "tools/config_dir");
     BRLS_BIND(brls::RadioCell, btnReleaseChecker, "setting/release_checker");
     BRLS_BIND(brls::RadioCell, btnChangelog, "setting/changelog");
-    BRLS_BIND(brls::DetailCell, btnAbout, "setting/about");
+    BRLS_BIND(DisclosureCell, btnAbout, "setting/about");
+    BRLS_BIND(DisclosureCell, btnLibraries, "setting/libraries");
 };

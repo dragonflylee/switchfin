@@ -10,6 +10,7 @@
 #include "view/recycling_grid.hpp"
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
+#include "view/music_now_playing.hpp"
 #include "utils/keybind.hpp"
 
 using namespace brls::literals;  // for _i18n
@@ -94,4 +95,23 @@ void PlaylistView::doRequest() {
                 this->recycler->setError(ex);
             }
         });
+}
+
+void ui::presentPlaylist(brls::View* from, const media::Item& item) {
+    if (item.playlistType == "audio") {
+        // Audio playlist: load its tracks into the shared music controller and
+        // open Now Playing (issue #11), not the video poster grid. A single
+        // large page fetches the whole queue at once (parity with "play artist"
+        // / getArtistTracks, which are likewise unbounded); playlists larger
+        // than this are effectively unbounded for playback purposes.
+        std::string id = item.ratingKey;
+        AppConfig::instance().backend().getPlaylistItems(
+            id, 0, 10000,
+            [](const media::Container<media::Item>& r) {
+                if (!r.Items.empty()) MusicNowPlaying::present(r.Items, 0, false);
+            },
+            [](const std::string& ex) { brls::Application::notify(ex); });
+        return;
+    }
+    ui::presentDetail(from, new PlaylistView(item));
 }
