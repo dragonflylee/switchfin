@@ -41,6 +41,25 @@
             positionRight="8"
             height="24" />
 
+        <!-- "downloaded" badge (top-left, opposite the watched checkmark) -->
+        <brls:Box
+            id="video/card/badge/download"
+            positionType="absolute"
+            positionTop="8"
+            positionLeft="8"
+            visibility="gone"
+            cornerRadius="6"
+            paddingTop="4"
+            paddingBottom="4"
+            paddingLeft="4"
+            paddingRight="4"
+            backgroundColor="@theme/color/app">
+            <SVGImage
+                width="16"
+                height="16"
+                svg="@res/icon/ico-download-light.svg" />
+        </brls:Box>
+
         <brls:Box
             positionType="absolute"
             positionBottom="8"

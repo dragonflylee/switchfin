@@ -13,11 +13,16 @@
 #include "utils/dialog.hpp"
 #include "utils/download.hpp"
 #include "utils/rating.hpp"
+#include "utils/media_source.hpp"
+#include "utils/offline_library.hpp"
+#include "utils/network_state.hpp"
+#include "tab/remote_view.hpp"
 #include <fmt/ranges.h>
 
 using namespace brls::literals;  // for _i18n
 
-MediaMovie::MediaMovie(const plex::Item& item) : itemId(item.ratingKey) {
+MediaMovie::MediaMovie(const plex::Item& item, bool localContext)
+    : itemId(item.ratingKey), localContext(localContext) {
     brls::Logger::debug("Tab MediaMovie: create");
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/movie.xml");
@@ -36,8 +41,20 @@ MediaMovie::MediaMovie(const plex::Item& item) : itemId(item.ratingKey) {
     this->btnWatchlist->setCustomNavigationRoute(brls::FocusDirection::DOWN, "movie/people");
 
     this->btnPlay->registerClickAction([this, item](...) {
+        std::string title = item.year ? fmt::format("{} ({})", item.title, item.year) : item.title;
+        // in the offline downloads area (or fully offline) a downloaded movie
+        // plays from the local file; from the ONLINE library it keeps streaming
+        // with the server resume position (SPEC — no online regression)
+        auto& dm = DownloadManager::instance();
+        std::string local = media::preferLocal(this->localContext) && dm.isDownloaded(this->itemId)
+                                ? dm.getLocalPath(this->itemId)
+                                : "";
+        if (!local.empty()) {
+            RemoteView::play(local, title, "Local");
+            return true;
+        }
         PlayerView* view = new PlayerView(item, this->viewOffsetMs);
-        view->setTitie(item.year ? fmt::format("{} ({})", item.title, item.year) : item.title);
+        view->setTitie(title);
         return true;
     });
 
@@ -63,7 +80,12 @@ MediaMovie::MediaMovie(const plex::Item& item) : itemId(item.ratingKey) {
                 this->updateDownloadButton();
             });
         } else if (dm.isDownloaded(this->itemId)) {
-            brls::Application::notify("main/download/completed"_i18n);
+            // already downloaded: offer to remove it (clicking "Downloaded"
+            // should do something useful, not just re-announce the state)
+            Dialog::cancelable("main/download/confirm_remove"_i18n, [this]() {
+                DownloadManager::instance().removeDownload(this->itemId);
+                this->updateDownloadButton();
+            });
         } else {
             dm.addDownload(this->itemId);
             this->updateDownloadButton();
@@ -154,6 +176,20 @@ void MediaMovie::doRequest() {
 }
 
 void MediaMovie::doMovie() {
+    // downloaded item, or fully offline: render from the local catalog and skip
+    // the server round-trip entirely (SPEC AC5/AC6).
+    if (media::preferLocal(this->localContext)) {
+        plex::Item it;
+        if (OfflineLibrary::instance().getItem(this->itemId, it)) {
+            this->applyMovie(it);
+            return;
+        }
+        if (NetworkState::isOffline()) {
+            this->people->setVisibility(brls::Visibility::GONE);
+            return;
+        }
+    }
+
     std::string query = HTTP::encode_form({
         {"includeChapters", "1"},
         {"includeMarkers", "1"},
@@ -171,86 +207,7 @@ void MediaMovie::doMovie() {
                 this->people->setVisibility(brls::Visibility::GONE);
                 return;
             }
-            auto& item = r.Items.front();
-            this->labelTitle->setText(item.title);
-            Image::load(this->imagePoster, item.thumb, 325);
-            // banner: backdrop (art) + centered cut-out logo; the poster
-            // block overlaps the banner (XML margins) to keep the buttons
-            // visible. The banner stays shown while loading (dark
-            // placeholder): no layout jump when the image arrives — and
-            // the gone->visible transition triggered a first-render bug
-            // (gradient + image fill).
-            // cut-out logo nested at the bottom of the banner fade; the
-            // text title is ALWAYS shown above the pills
-            if (!item.art.empty()) {
-                Image::load(this->imageBackdrop, item.art, 1080, 608);
-                if (!item.clearLogo.empty()) {
-                    Image::load(this->imageLogo, item.clearLogo, 440, 120);
-                }
-            } else {
-                this->bannerBox->setVisibility(brls::Visibility::GONE);
-                this->contentRow->setMarginTop(0);
-                this->contentInfo->setMarginTop(0);
-                this->invalidate();
-            }
-            if (item.duration > 0) {
-                int min = int(item.duration / 60000);
-                this->labelYear->setText(min >= 60
-                                             ? fmt::format("{}  ·  {} h {:02d}", item.year, min / 60, min % 60)
-                                             : fmt::format("{}  ·  {} min", item.year, min));
-            } else {
-                this->labelYear->setText(std::to_string(item.year));
-            }
-            if (item.contentRating.empty()) {
-                this->parentalRating->getParent()->setVisibility(brls::Visibility::GONE);
-            } else {
-                this->parentalRating->setText(item.contentRating);
-                this->parentalRating->getParent()->setVisibility(brls::Visibility::VISIBLE);
-            }
-            // critic (ratingImage: RT tomato / IMDb / TMDb) + audience
-            // (audienceRatingImage: RT popcorn), official icons with a
-            // generic-star fallback; each pill hides itself when absent
-            rating::applyPill(this->iconRating, this->labelRating, item.ratingImage, item.rating);
-            rating::applyPill(this->iconAudience, this->labelAudience, item.audienceRatingImage, item.audienceRating);
-            this->labelOverview->setText(item.summary);
-
-            if (item.genres.empty()) {
-                this->labelGenres->setVisibility(brls::Visibility::GONE);
-            } else {
-                this->labelGenres->setText(fmt::format("{}", fmt::join(item.genres, ", ")));
-                this->labelGenres->setVisibility(brls::Visibility::VISIBLE);
-            }
-            // the director opens the row, subtitled "Director", clickable
-            // to their person page like the actors
-            std::vector<plex::Role> credits = item.directors;
-            for (auto& d : credits) d.role = "main/media/director"_i18n;
-            credits.insert(credits.end(), item.roles.begin(), item.roles.end());
-            if (credits.size() > 0) {
-                this->people->setDataSource(new PeopleDataSource(credits));
-            } else {
-                this->people->setVisibility(brls::Visibility::GONE);
-            }
-
-            // multiple versions (item.media[]): the selector remembers the choice
-            // but v1 playback always uses the first accessible version
-            if (item.media.size() > 1) {
-                std::vector<std::string> names;
-                for (auto& m : item.media) {
-                    names.push_back(
-                        fmt::format("{} {} ({} kbps)", m.videoResolution, m.videoCodec, m.bitrate));
-                }
-                this->btnSource->init(
-                    "main/setting/version"_i18n, names, 0, [this](int index) { this->selectedVersion = index; });
-                this->btnSource->setVisibility(brls::Visibility::VISIBLE);
-            } else {
-                this->btnSource->setVisibility(brls::Visibility::GONE);
-            }
-
-            this->viewOffsetMs = item.viewOffset;
-            this->btnPlay->setText(
-                this->viewOffsetMs > 0 ? misc::sec2Time(this->viewOffsetMs / 1000) : "main/media/play"_i18n);
-
-            this->initWatchlist(item.guid);
+            this->applyMovie(r.Items.front());
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
@@ -259,7 +216,95 @@ void MediaMovie::doMovie() {
         plex::apiMetadata, this->itemId, query);
 }
 
+// Renders the fiche from an Item — shared by the server and local-catalog
+// (offline / downloaded) paths.
+void MediaMovie::applyMovie(const plex::Item& item) {
+    this->labelTitle->setText(item.title);
+    Image::load(this->imagePoster, item.thumb, 325);
+    // banner: backdrop (art) + centered cut-out logo; the poster
+    // block overlaps the banner (XML margins) to keep the buttons
+    // visible. The banner stays shown while loading (dark
+    // placeholder): no layout jump when the image arrives — and
+    // the gone->visible transition triggered a first-render bug
+    // (gradient + image fill).
+    // cut-out logo nested at the bottom of the banner fade; the
+    // text title is ALWAYS shown above the pills
+    if (!item.art.empty()) {
+        Image::load(this->imageBackdrop, item.art, 1080, 608);
+        if (!item.clearLogo.empty()) {
+            Image::load(this->imageLogo, item.clearLogo, 440, 120);
+        }
+    } else {
+        this->bannerBox->setVisibility(brls::Visibility::GONE);
+        this->contentRow->setMarginTop(0);
+        this->contentInfo->setMarginTop(0);
+        this->invalidate();
+    }
+    if (item.duration > 0) {
+        int min = int(item.duration / 60000);
+        this->labelYear->setText(min >= 60 ? fmt::format("{}  ·  {} h {:02d}", item.year, min / 60, min % 60)
+                                           : fmt::format("{}  ·  {} min", item.year, min));
+    } else {
+        this->labelYear->setText(std::to_string(item.year));
+    }
+    if (item.contentRating.empty()) {
+        this->parentalRating->getParent()->setVisibility(brls::Visibility::GONE);
+    } else {
+        this->parentalRating->setText(item.contentRating);
+        this->parentalRating->getParent()->setVisibility(brls::Visibility::VISIBLE);
+    }
+    // critic (ratingImage: RT tomato / IMDb / TMDb) + audience
+    // (audienceRatingImage: RT popcorn), official icons with a
+    // generic-star fallback; each pill hides itself when absent
+    rating::applyPill(this->iconRating, this->labelRating, item.ratingImage, item.rating);
+    rating::applyPill(this->iconAudience, this->labelAudience, item.audienceRatingImage, item.audienceRating);
+    this->labelOverview->setText(item.summary);
+
+    if (item.genres.empty()) {
+        this->labelGenres->setVisibility(brls::Visibility::GONE);
+    } else {
+        this->labelGenres->setText(fmt::format("{}", fmt::join(item.genres, ", ")));
+        this->labelGenres->setVisibility(brls::Visibility::VISIBLE);
+    }
+    // the director opens the row, subtitled "Director", clickable
+    // to their person page like the actors
+    std::vector<plex::Role> credits = item.directors;
+    for (auto& d : credits) d.role = "main/media/director"_i18n;
+    credits.insert(credits.end(), item.roles.begin(), item.roles.end());
+    if (credits.size() > 0) {
+        this->people->setDataSource(new PeopleDataSource(credits));
+    } else {
+        this->people->setVisibility(brls::Visibility::GONE);
+    }
+
+    // multiple versions (item.media[]): the selector remembers the choice
+    // but v1 playback always uses the first accessible version
+    if (item.media.size() > 1) {
+        std::vector<std::string> names;
+        for (auto& m : item.media) {
+            names.push_back(fmt::format("{} {} ({} kbps)", m.videoResolution, m.videoCodec, m.bitrate));
+        }
+        this->btnSource->init(
+            "main/setting/version"_i18n, names, 0, [this](int index) { this->selectedVersion = index; });
+        this->btnSource->setVisibility(brls::Visibility::VISIBLE);
+    } else {
+        this->btnSource->setVisibility(brls::Visibility::GONE);
+    }
+
+    this->viewOffsetMs = item.viewOffset;
+    this->btnPlay->setText(this->viewOffsetMs > 0 ? misc::sec2Time(this->viewOffsetMs / 1000) : "main/media/play"_i18n);
+
+    // watchlist relies on the plex.tv account — online only
+    if (!NetworkState::isOffline()) this->initWatchlist(item.guid);
+}
+
 void MediaMovie::doRelated() {
+    // no "related" rows offline — that content is not downloaded (SPEC AC7)
+    if (NetworkState::isOffline()) {
+        this->boxRelated->clearViews();
+        return;
+    }
+
     std::string query = HTTP::encode_form({{"count", "12"}});
 
     ASYNC_RETAIN

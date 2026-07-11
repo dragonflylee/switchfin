@@ -96,4 +96,5 @@ public:
 
     BRLS_BIND(SVGImage, badgeTopRight, "video/card/badge/top");
     BRLS_BIND(brls::Rectangle, rectProgress, "video/card/progress");
+    BRLS_BIND(brls::Box, badgeDownload, "video/card/badge/download");
 };

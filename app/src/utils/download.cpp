@@ -2,7 +2,12 @@
 #include "utils/download.hpp"
 #include "utils/config.hpp"
 #include "utils/misc.hpp"
+#include "utils/offline_library.hpp"
+#include "utils/offline_catalog.hpp"
+#include "utils/image_cache.hpp"
 #include "api/plex.hpp"
+
+#include <optional>
 
 using namespace brls::literals;  // for _i18n
 
@@ -187,6 +192,29 @@ void DownloadManager::removeDownload(const std::string& itemId) {
             this->statusEvent.fire(itemId, DownloadStatus::Failed);
         });
     }
+
+    // reconcile the offline catalog with the new download set (cascade prune of
+    // movies/shows/seasons no longer backed by a file). Called without our lock.
+    OfflineLibrary::instance().prune();
+}
+
+void DownloadManager::retryDownload(const std::string& itemId) {
+    {
+        std::lock_guard<std::mutex> lock(this->mutex);
+        for (auto& item : this->items) {
+            if (item.itemId == itemId && item.status == DownloadStatus::Failed) {
+                // keep the metadata/partKey, just re-queue it from scratch
+                item.status = DownloadStatus::Queued;
+                item.errorMessage.clear();
+                item.downloadedBytes = 0;
+                item.totalBytes = 0;
+                break;
+            }
+        }
+        this->saveIndex();
+        this->processQueue();
+    }
+    brls::sync([this, itemId]() { this->statusEvent.fire(itemId, DownloadStatus::Queued); });
 }
 
 bool DownloadManager::isDownloaded(const std::string& itemId) const {
@@ -227,6 +255,64 @@ std::string DownloadManager::buildDownloadUrl(const DownloadItem& item) const {
     // original file: {base}{Part.key}?download=1&X-Plex-Token=...
     // (PLEX_MIGRATION.md D2 — no transcoded download in v1)
     return plex::withToken(conf.getUrl() + item.partKey + "?download=1", conf.getToken());
+}
+
+// Runs on the download worker thread AFTER the file transfer, synchronously and
+// serially — one capture at a time on the queue worker, a deliberate simplicity
+// choice (not a concurrency requirement: the shared curl DNS cache is lock-
+// guarded, http.cpp).
+void DownloadManager::captureOfflineSync(const std::string& itemId) {
+    auto& conf = AppConfig::instance();
+    const std::string base = conf.getUrl();
+    const std::string token = conf.getToken();
+    auto& lib = OfflineLibrary::instance();
+
+    auto fetchOne = [&](const std::string& id) -> std::optional<plex::Item> {
+        std::string url = base + fmt::format(fmt::runtime(plex::apiMetadata), id, "");
+        auto c = plex::getSync(url, token).get<plex::Container<plex::Item>>();
+        if (c.Items.empty()) return std::nullopt;
+        return c.Items.front();
+    };
+    auto fetchChildren = [&](const std::string& id) -> std::vector<plex::Item> {
+        std::string url = base + fmt::format(fmt::runtime(plex::apiChildren), id, "");
+        return plex::getSync(url, token).get<plex::Container<plex::Item>>().Items;
+    };
+    auto cacheAssets = [](const plex::Item& it) {
+        for (const auto& p : offline::assetPaths(it)) ImageCache::store(p);
+    };
+
+    // leaf fiche + its artwork (poster/backdrop/logo/cast)
+    auto leaf = fetchOne(itemId);
+    if (!leaf) return;
+    lib.putItem(*leaf);
+    cacheAssets(*leaf);
+
+    if (leaf->type != plex::mediaTypeEpisode) return;
+
+    // show fiche only — once per show. We deliberately do NOT persist every
+    // season: only seasons that actually get a downloaded episode are stored
+    // (below), so the offline seasons row lists just those (SPEC AC10).
+    if (!leaf->grandparentRatingKey.empty() && !lib.hasItem(leaf->grandparentRatingKey)) {
+        if (auto show = fetchOne(leaf->grandparentRatingKey)) {
+            lib.putItem(*show);
+            cacheAssets(*show);
+        }
+    }
+    // this season's fiche + its FULL episode list — non-downloaded siblings
+    // appear greyed (SPEC AC9). Once per season (guarded on the season node).
+    if (!leaf->parentRatingKey.empty() && !lib.hasItem(leaf->parentRatingKey)) {
+        if (auto season = fetchOne(leaf->parentRatingKey)) {
+            if (season->parentRatingKey.empty()) season->parentRatingKey = leaf->grandparentRatingKey;
+            lib.putItem(*season);
+            cacheAssets(*season);
+        }
+        for (auto& ep : fetchChildren(leaf->parentRatingKey)) {
+            if (ep.ratingKey == itemId) continue;  // keep the richer leaf fiche
+            if (ep.parentRatingKey.empty()) ep.parentRatingKey = leaf->parentRatingKey;
+            if (ep.grandparentRatingKey.empty()) ep.grandparentRatingKey = leaf->grandparentRatingKey;
+            lib.putItem(ep);
+        }
+    }
 }
 
 // Must be called with mutex held
@@ -390,6 +476,16 @@ void DownloadManager::doDownload(DownloadItem& item) {
         } catch (const std::exception& ex) {
             error = ex.what();
             brls::Logger::error("Download failed: {} - {}", itemId, error);
+        }
+
+        // Offline capture (fiche + ancestors + artwork) on this worker thread,
+        // before signalling completion — best-effort, never fails the download.
+        if (success) {
+            try {
+                this->captureOfflineSync(itemId);
+            } catch (const std::exception& e) {
+                brls::Logger::warning("Offline capture failed {}: {}", itemId, e.what());
+            }
         }
 
         brls::sync([this, itemId, fileName, cancelled, success, error]() {

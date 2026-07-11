@@ -2,6 +2,9 @@
 #include "view/recyling_video.hpp"
 #include "api/plex.hpp"
 #include "utils/keybind.hpp"
+#include "utils/network_state.hpp"
+#include "utils/offline_library.hpp"
+#include "utils/offline_ui.hpp"
 
 using namespace brls::literals;  // for _i18n
 
@@ -18,6 +21,41 @@ brls::View* HomeTab::create() { return new HomeTab(); }
 /// watching" then the hubs from /hubs, with their localized titles
 /// (X-Plex-Language) — PLEX_MIGRATION.md §2.5.
 void HomeTab::doRequest() {
+    // drop any previous offline empty overlay -> back to the scrollable list
+    if (this->offlineEmpty) {
+        this->removeView(this->offlineEmpty);
+        this->offlineEmpty = nullptr;
+        this->scroll->setVisibility(brls::Visibility::VISIBLE);
+    }
+
+    // offline: the server hubs are unavailable — show one poster row per
+    // downloaded library instead (same row layout as online) (SPEC AC13)
+    if (NetworkState::isOffline()) {
+        this->boxHome->clearViews();
+        auto& lib = OfflineLibrary::instance();
+        bool any = false;
+        for (auto& s : lib.sections()) {
+            auto items = lib.sectionItems(s.key);
+            if (items.empty()) continue;
+            RecylingVideo* row = new RecylingVideo();
+            row->setTitle(s.title);
+            row->setFrameHeight(brls::getStyle()["app/card/poster/row"]);
+            row->setItemWidth(brls::getStyle()["app/card/poster/width"]);
+            row->setSidePadding(brls::getStyle()["main/content_padding_sides"]);
+            row->setItems(items);
+            this->boxHome->addView(row);
+            any = true;
+        }
+        // nothing downloaded: offline empty state (icon + message + Retry),
+        // centered by filling the tab (scroll hidden) instead of scrolling
+        if (!any) {
+            this->scroll->setVisibility(brls::Visibility::GONE);
+            this->offlineEmpty = offline_ui::makeEmpty();
+            this->addView(this->offlineEmpty);
+        }
+        return;
+    }
+
     // clearViews destroys the focused card when refreshing after playback:
     // remember to give the focus back to the first rebuilt row, otherwise it
     // falls back to the sidebar and the user loses track of it

@@ -16,7 +16,9 @@ class IconButton;
 
 class MediaMovie : public brls::Box, public Presenter {
 public:
-    MediaMovie(const plex::Item& item);
+    /// localContext = opened from the offline downloads area (render locally
+    /// even when a server is reachable, SPEC AC6)
+    MediaMovie(const plex::Item& item, bool localContext = false);
     ~MediaMovie() override;
 
 private:
@@ -45,6 +47,9 @@ private:
 
     void doRequest() override;
     void doMovie();
+    /// renders the fiche from an Item — shared by the server and local-catalog
+    /// (offline / downloaded) paths
+    void applyMovie(const plex::Item& item);
     void doRelated();
     void updateDownloadButton();
     /// reveals the Watchlist button once the provider state is known (plex:// guid)
@@ -58,6 +63,7 @@ private:
     int64_t viewOffsetMs = 0;
     std::string itemId;
     std::string itemGuid;
+    bool localContext = false;  // opened from the offline downloads area
     bool watchlisted = false;
     /// selected version (item.media[]) — no effect in v1 (playback = first
     /// accessible version, cf. activity/player_view.cpp)

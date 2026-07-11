@@ -424,6 +424,8 @@ struct Item {
     std::string grandparentTitle;
     std::string grandparentThumb;
     std::string grandparentArt;
+    std::string librarySectionID;     // numeric id of the owning library (as string)
+    std::string librarySectionTitle;  // display name of the owning library
     std::vector<std::string> genres;
     std::vector<Role> roles;
     std::vector<Role> directors;  // Director: same shape as Role (id/tag/thumb)
@@ -470,6 +472,8 @@ inline void from_json(const nlohmann::json& j, Item& r) {
     r.grandparentTitle = jstr(j, "grandparentTitle");
     r.grandparentThumb = jstr(j, "grandparentThumb");
     r.grandparentArt = jstr(j, "grandparentArt");
+    r.librarySectionID = jstr(j, "librarySectionID");
+    r.librarySectionTitle = jstr(j, "librarySectionTitle");
     r.genres = jtags(j, "Genre");
     // cut-out logo: Image[{type:"clearLogo"}].url
     if (j.contains("Image") && j["Image"].is_array()) {
@@ -482,6 +486,150 @@ inline void from_json(const nlohmann::json& j, Item& r) {
     if (j.contains("Media") && j["Media"].is_array()) r.media = j["Media"].get<std::vector<Media>>();
     if (j.contains("Chapter") && j["Chapter"].is_array()) r.chapters = j["Chapter"].get<std::vector<Chapter>>();
     if (j.contains("Marker") && j["Marker"].is_array()) r.markers = j["Marker"].get<std::vector<Marker>>();
+}
+
+/// ---- Serialization for the offline cache (SPEC §4.1) -----------------------
+/// to_json mirrors the exact JSON keys read by the matching from_json so a
+/// fetched Item can be persisted to disk (meta/{ratingKey}.json) and re-read
+/// identically offline. Nested overloads are declared before to_json(Item) so
+/// that `j["Role"] = r.roles;` resolves them.
+inline void to_json(nlohmann::json& j, const Stream& r) {
+    j = nlohmann::json::object();
+    j["id"] = r.id;
+    j["streamType"] = r.streamType;
+    j["index"] = r.index;
+    j["codec"] = r.codec;
+    j["language"] = r.language;
+    j["languageTag"] = r.languageTag;
+    j["displayTitle"] = r.displayTitle;
+    j["selected"] = r.selected;
+    j["default"] = r.isDefault;  // from_json reads isDefault from "default"
+    j["forced"] = r.forced;
+    j["channels"] = r.channels;
+    j["key"] = r.key;
+}
+
+inline void to_json(nlohmann::json& j, const Part& r) {
+    j = nlohmann::json::object();
+    j["id"] = r.id;
+    j["key"] = r.key;
+    j["container"] = r.container;
+    j["size"] = r.size;
+    j["duration"] = r.duration;
+    j["accessible"] = r.accessible;
+    j["exists"] = r.exists;
+    if (!r.streams.empty()) j["Stream"] = r.streams;
+}
+
+inline void to_json(nlohmann::json& j, const Media& r) {
+    j = nlohmann::json::object();
+    j["id"] = r.id;
+    j["videoResolution"] = r.videoResolution;
+    j["videoCodec"] = r.videoCodec;
+    j["audioCodec"] = r.audioCodec;
+    j["container"] = r.container;
+    j["bitrate"] = r.bitrate;
+    j["width"] = r.width;
+    j["height"] = r.height;
+    j["duration"] = r.duration;
+    if (!r.parts.empty()) j["Part"] = r.parts;
+}
+
+inline void to_json(nlohmann::json& j, const Role& r) {
+    j = nlohmann::json::object();
+    j["id"] = r.id;
+    j["tag"] = r.tag;
+    j["role"] = r.role;
+    j["thumb"] = r.thumb;
+}
+
+inline void to_json(nlohmann::json& j, const Chapter& r) {
+    j = nlohmann::json::object();
+    j["tag"] = r.tag;
+    j["startTimeOffset"] = r.startTimeOffset;
+    j["endTimeOffset"] = r.endTimeOffset;
+}
+
+inline void to_json(nlohmann::json& j, const Marker& r) {
+    j = nlohmann::json::object();
+    j["type"] = r.type;
+    j["startTimeOffset"] = r.startTimeOffset;
+    j["endTimeOffset"] = r.endTimeOffset;
+}
+
+inline void to_json(nlohmann::json& j, const Section& r) {
+    j = nlohmann::json::object();
+    j["key"] = r.key;
+    j["type"] = r.type;
+    j["title"] = r.title;
+    j["uuid"] = r.uuid;
+    j["composite"] = r.composite;
+    j["art"] = r.art;
+    j["hidden"] = r.hidden;
+}
+
+inline void to_json(nlohmann::json& j, const Item& r) {
+    j = nlohmann::json::object();
+    j["ratingKey"] = r.ratingKey;
+    j["key"] = r.key;
+    j["guid"] = r.guid;
+    j["type"] = r.type;
+    j["title"] = r.title;
+    j["summary"] = r.summary;
+    j["year"] = r.year;
+    j["thumb"] = r.thumb;
+    j["art"] = r.art;
+    j["duration"] = r.duration;
+    j["viewOffset"] = r.viewOffset;
+    j["viewCount"] = r.viewCount;
+    j["addedAt"] = r.addedAt;
+    j["lastViewedAt"] = r.lastViewedAt;
+    j["watchlistedAt"] = r.watchlistedAt;
+    j["index"] = r.index;
+    j["parentIndex"] = r.parentIndex;
+    j["leafCount"] = r.leafCount;
+    j["viewedLeafCount"] = r.viewedLeafCount;
+    j["childCount"] = r.childCount;
+    j["composite"] = r.composite;
+    j["smart"] = r.smart;
+    j["playlistType"] = r.playlistType;
+    j["contentRating"] = r.contentRating;
+    j["rating"] = r.rating;
+    j["audienceRating"] = r.audienceRating;
+    j["ratingImage"] = r.ratingImage;
+    j["audienceRatingImage"] = r.audienceRatingImage;
+    j["originallyAvailableAt"] = r.originallyAvailableAt;
+    j["parentRatingKey"] = r.parentRatingKey;
+    j["parentTitle"] = r.parentTitle;
+    j["parentThumb"] = r.parentThumb;
+    j["grandparentRatingKey"] = r.grandparentRatingKey;
+    j["grandparentTitle"] = r.grandparentTitle;
+    j["grandparentThumb"] = r.grandparentThumb;
+    j["grandparentArt"] = r.grandparentArt;
+    j["librarySectionID"] = r.librarySectionID;
+    j["librarySectionTitle"] = r.librarySectionTitle;
+    // cut-out logo: Image[{type:"clearLogo"}].url (mirrors from_json)
+    if (!r.clearLogo.empty()) {
+        nlohmann::json img = nlohmann::json::object();
+        img["type"] = "clearLogo";
+        img["url"] = r.clearLogo;
+        j["Image"] = nlohmann::json::array({img});
+    }
+    // Genre/Director/Role/Media/Chapter/Marker: same wrapper arrays as from_json
+    if (!r.genres.empty()) {
+        nlohmann::json arr = nlohmann::json::array();
+        for (const auto& g : r.genres) {
+            nlohmann::json tag = nlohmann::json::object();
+            tag["tag"] = g;
+            arr.push_back(tag);
+        }
+        j["Genre"] = arr;
+    }
+    if (!r.roles.empty()) j["Role"] = r.roles;
+    if (!r.directors.empty()) j["Director"] = r.directors;
+    if (!r.media.empty()) j["Media"] = r.media;
+    if (!r.chapters.empty()) j["Chapter"] = r.chapters;
+    if (!r.markers.empty()) j["Marker"] = r.markers;
 }
 
 /// Hub row (/hubs...)

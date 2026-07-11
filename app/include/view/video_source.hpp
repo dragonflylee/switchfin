@@ -29,9 +29,14 @@ public:
     /// "More" cell (MoreCardCell) — cf. RecylingVideo.
     void setMore(const std::string& title, const std::string& key);
 
+    /// Grid shown in the offline downloads area: opened fiches render from the
+    /// local catalog and a selected episode/movie plays its local file.
+    void setLocalContext(bool v) { this->localContext = v; }
+
 protected:
     MediaList list;
     std::string parentId;
     std::string moreTitle;
     std::string moreKey;
+    bool localContext = false;
 };

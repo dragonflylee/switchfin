@@ -11,11 +11,16 @@
         <brls:Box
             id="video/card/pic_box"
             focusable="true"
+            width="300"
+            height="180"
             highlightCornerRadius="12"
             cornerRadius="8"
             backgroundColor="@theme/color/grey_1">
 
-            <!-- placeholder icon behind the thumbnail (cf. video_card.xml) -->
+            <!-- placeholder icon behind the thumbnail (cf. video_card.xml);
+                 pic_box carries the fixed 300x180 size so a missing thumbnail
+                 (non-downloaded/greyed episode) keeps the box, icon and focus
+                 halo instead of collapsing to a thin sliver -->
             <brls:Box
                 positionType="absolute"
                 positionTop="0"
@@ -33,6 +38,7 @@
             <brls:Image
                 id="video/card/picture"
                 scalingType="fill"
+                width="300"
                 height="180"
                 cornerRadius="8" />
 
@@ -42,6 +48,25 @@
                 positionTop="8"
                 positionRight="8"
                 height="24" />
+
+            <!-- "downloaded" badge (top-left, opposite the watched checkmark) -->
+            <brls:Box
+                id="video/card/badge/download"
+                positionType="absolute"
+                positionTop="8"
+                positionLeft="8"
+                visibility="gone"
+                cornerRadius="6"
+                paddingTop="4"
+                paddingBottom="4"
+                paddingLeft="4"
+                paddingRight="4"
+                backgroundColor="@theme/color/app">
+                <SVGImage
+                    width="16"
+                    height="16"
+                    svg="@res/icon/ico-download-light.svg" />
+            </brls:Box>
 
             <brls:Box
                 wireframe="false"

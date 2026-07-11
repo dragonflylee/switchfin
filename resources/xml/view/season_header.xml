@@ -2,13 +2,34 @@
     axis="row"
     paddingBottom="16">
 
-    <brls:Image
-        id="season/image/poster"
+    <!-- poster over a grey_1 box with a media-icon placeholder BEHIND it
+         (same pattern as video_card.xml): a missing poster shows the icon,
+         not a bare grey rectangle. Image transparent until loaded. -->
+    <brls:Box
         width="150"
         height="225"
         cornerRadius="10"
-        scalingType="fill"
-        backgroundColor="@theme/color/grey_1" />
+        backgroundColor="@theme/color/grey_1">
+        <brls:Box
+            positionType="absolute"
+            positionTop="0"
+            positionLeft="0"
+            width="100%"
+            height="100%"
+            alignItems="center"
+            justifyContent="center">
+            <SVGImage
+                width="40"
+                height="40"
+                svg="@res/icon/ico-media.svg" />
+        </brls:Box>
+        <brls:Image
+            id="season/image/poster"
+            width="150"
+            height="225"
+            scalingType="fill"
+            cornerRadius="10" />
+    </brls:Box>
 
     <brls:Box
         axis="column"

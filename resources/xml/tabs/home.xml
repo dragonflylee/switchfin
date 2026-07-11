@@ -4,6 +4,7 @@
 
     <!-- centered: cf. suggest_show.xml (natural stole the focus) -->
     <brls:ScrollingFrame
+        id="home/scroll"
         width="auto"
         height="auto"
         grow="1.0"

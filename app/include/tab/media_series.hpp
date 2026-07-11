@@ -19,8 +19,10 @@ class IconButton;
 class MediaSeries : public brls::Box, public Presenter {
 public:
     /// item of type "show" OR "season" (the parent show is then resolved,
-    /// and the wanted season is opened on top of the page once listed)
-    MediaSeries(const plex::Item& item);
+    /// and the wanted season is opened on top of the page once listed).
+    /// localContext = opened from the offline downloads area (render locally
+    /// even when a server is reachable, SPEC AC6).
+    MediaSeries(const plex::Item& item, bool localContext = false);
     ~MediaSeries() override;
 
     void doRequest() override;
@@ -53,6 +55,8 @@ private:
     BRLS_BIND(brls::Box, boxRelated, "series/related/box");
 
     void doSeries();
+    /// renders the show fiche from an Item — shared by server and local paths
+    void applySeries(const plex::Item& item);
     void doSeason();
     void doRelated();
     void doNextup();
@@ -69,6 +73,7 @@ private:
 
     std::string seriesId;  // ratingKey of the show
     std::string seriesGuid;
+    bool localContext = false;  // opened from the offline downloads area
     bool watchlisted = false;
     /// ratingKey of the season to open on top of the page once seasons are
     /// listed (item of type "season" or "go to season")

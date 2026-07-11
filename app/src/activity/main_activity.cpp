@@ -1,5 +1,8 @@
 #include "activity/main_activity.hpp"
 #include "tab/media_collection.hpp"
+#include "tab/offline_collection.hpp"
+#include "utils/offline_library.hpp"
+#include "utils/network_state.hpp"
 #include "api/plex.hpp"
 
 MainActivity::MainActivity() { brls::Logger::debug("MainActivity: create"); }
@@ -9,6 +12,12 @@ void MainActivity::onContentAvailable() { this->tabFrame->loadLibraries(); }
 brls::View* MainTabFrame::create() { return new MainTabFrame(); }
 
 void MainTabFrame::loadLibraries() {
+    // offline: no server to query — build the library tabs from the catalog
+    if (NetworkState::isOffline()) {
+        this->addOfflineLibraryTabs();
+        return;
+    }
+
     ASYNC_RETAIN
     // GET /library/sections -> Directory[]
     plex::getJSON<plex::Container<plex::Section>>(
@@ -53,5 +62,25 @@ void MainTabFrame::addLibraryTabs(const std::vector<plex::Section>& sections) {
 
         std::string key = s.key, type = s.type;
         this->addTab(item, [key, type]() { return new MediaCollection(key, type); }, position++);
+    }
+}
+
+void MainTabFrame::addOfflineLibraryTabs() {
+    if (this->librariesLoaded) return;
+    this->librariesLoaded = true;
+
+    size_t position = 1;
+    for (auto& s : OfflineLibrary::instance().sections()) {
+        auto* item = new AutoSidebarItem();
+        item->setTabStyle(AutoTabBarStyle::ACCENT);
+        if (s.type == plex::mediaTypeShow) {
+            item->applyXMLAttribute("icon", "@res/icon/ico-tv.svg");
+            item->applyXMLAttribute("iconActivate", "@res/icon/ico-tv-activate.svg");
+        } else {
+            item->applyXMLAttribute("icon", "@res/icon/ico-movie.svg");
+            item->applyXMLAttribute("iconActivate", "@res/icon/ico-movie-activate.svg");
+        }
+        std::string key = s.key;
+        this->addTab(item, [key]() { return new OfflineCollection(key); }, position++);
     }
 }

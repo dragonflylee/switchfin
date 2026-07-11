@@ -39,6 +39,7 @@ constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
 
 #include <borealis.hpp>
 #include <borealis/core/cache_helper.hpp>
+#include <algorithm>
 #include <borealis/views/edit_text_dialog.hpp>
 #include "api/plex/auth.hpp"
 #include "api/http.hpp"
@@ -667,6 +668,23 @@ void AppConfig::updateRemote(size_t index, const AppRemote& r) {
 void AppConfig::removeRemote(size_t index) {
     if (index >= this->remotes.size()) return;
     this->remotes.erase(this->remotes.begin() + index);
+    this->save();
+}
+
+bool AppConfig::isPinned(const std::string& path) const {
+    return std::find(this->pins.begin(), this->pins.end(), path) != this->pins.end();
+}
+
+void AppConfig::addPin(const std::string& path) {
+    if (path.empty() || this->isPinned(path)) return;
+    this->pins.push_back(path);
+    this->save();
+}
+
+void AppConfig::removePin(const std::string& path) {
+    auto it = std::find(this->pins.begin(), this->pins.end(), path);
+    if (it == this->pins.end()) return;
+    this->pins.erase(it);
     this->save();
 }
 

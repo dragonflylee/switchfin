@@ -8,8 +8,11 @@
 #include "view/music_view.hpp"
 #include "view/player_setting.hpp"
 #include "client/local.hpp"
+#include "view/remote_filter.hpp"
 #include "utils/misc.hpp"
 #include "utils/config.hpp"
+#include "utils/dialog.hpp"
+#include "utils/keybind.hpp"
 
 using namespace brls::literals;
 
@@ -171,7 +174,22 @@ private:
 
 class FileCard : public RecyclingGridItem {
 public:
-    FileCard() { this->inflateFromXMLRes("xml/view/dir_entry.xml"); }
+    FileCard() {
+        this->inflateFromXMLRes("xml/view/dir_entry.xml");
+        // X / F4 = pin/unpin a folder to the Files screen (issue #24). Enabled
+        // per row via setActionAvailable (see cellForRow); when disabled X
+        // falls through to the tab's "Add a server" as before.
+        auto options = [this](brls::View*) -> bool {
+            if (!this->onOptions) return false;
+            this->onOptions();
+            return true;
+        };
+        this->registerAction("hints/option"_i18n, brls::BUTTON_X, options);
+        this->registerAction(KeyBind::getSetting(), options);
+    }
+
+    /// Set per bind by FileDataSource::cellForRow — opens the pin context menu.
+    std::function<void()> onOptions;
 
     void setCard(const remote::DirEntry& item) {
         if (item.type == remote::EntryType::UP) {
@@ -187,6 +205,13 @@ public:
             return;
         }
         this->name->setText(item.name);
+        // pinned shortcut on the Files root (issue #24): a star sets it apart
+        // from plain folders / the SD card
+        if (item.pinned) {
+            this->icon->setImageFromSVGRes("icon/ico-star.svg");
+            this->size->setText("main/remote/folder"_i18n);
+            return;
+        }
         if (item.type == remote::EntryType::DIR) {
             this->icon->setImageFromSVGRes("icon/ico-folder.svg");
             this->size->setText("main/remote/folder"_i18n);
@@ -231,7 +256,12 @@ static std::set<std::string> subtitleExt = {".srt", ".ass", ".ssa", ".sub", ".sm
 
 class FileDataSource : public RecyclingGridDataSource {
 public:
-    FileDataSource(const DirList& r, RemoteView::Client c) : list(std::move(r)), client(c) {
+    /// isRoot: the Files root screen (devices + pinned shortcuts). Its order is
+    /// fixed (SD card first, then pins) and never re-sorted (issue #23).
+    FileDataSource(const DirList& r, RemoteView::Client c, bool isRoot = false)
+        : list(std::move(r)), client(c), isRoot(isRoot) {
+        // pinning targets the local storage only (issue #24)
+        this->isLocal = (bool)std::dynamic_pointer_cast<remote::Local>(c);
         for (auto& it : this->list) {
             if (it.type != remote::EntryType::FILE) continue;
 
@@ -251,14 +281,28 @@ public:
                 it.type = remote::EntryType::PLAYLIST;
             }
         }
+        this->resort();
     }
 
     size_t getItemCount() override { return this->list.size(); }
+
+    /// Re-apply the current sort choice to the listing (issue #23). No-op on
+    /// the root screen, whose order is intentional.
+    void resort() {
+        if (this->isRoot) return;
+        remote::sortEntries(this->list, RemoteFilter::key(), RemoteFilter::desc());
+    }
 
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         FileCard* cell = dynamic_cast<FileCard*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
         cell->setCard(item);
+        // pin/unpin is offered only on local folders; on the root screen only
+        // pinned shortcuts are actionable (a device root can't be pinned)
+        bool folder = item.type == remote::EntryType::DIR || item.type == remote::EntryType::DEVICE;
+        bool actionable = this->isLocal && folder && (this->isRoot ? item.pinned : true);
+        cell->onOptions = actionable ? std::function<void()>([this, index]() { this->onContextMenu(index); }) : nullptr;
+        cell->setActionAvailable(brls::BUTTON_X, actionable);
         return cell;
     }
 
@@ -270,6 +314,16 @@ public:
         }
 
         if (item.type == remote::EntryType::DIR || item.type == remote::EntryType::DEVICE) {
+            // a pinned shortcut whose folder vanished (renamed/removed/unplugged):
+            // offer to drop it instead of failing silently (issue #24)
+            if (item.pinned && !folderExists(item.path)) {
+                std::string path = item.path;
+                Dialog::cancelable("main/remote/pin_missing"_i18n, [path]() {
+                    AppConfig::instance().removePin(path);
+                    brls::sync([]() { Ums::instance().getEvent()->fire(Ums::instance().getDevice()); });
+                });
+                return;
+            }
             auto* view = dynamic_cast<RemoteView*>(recycler->getParent());
             if (view) view->push(item.path);
             return;
@@ -349,10 +403,62 @@ public:
 
     void clearData() override { this->list.clear(); }
 
+    /// X / F4 on a folder: pin it to the Files root, or remove an existing
+    /// pin (issue #24). Local storage only; devices roots can't be pinned.
+    void onContextMenu(size_t index) {
+        if (!this->isLocal || index >= this->list.size()) return;
+        auto& item = this->list.at(index);
+        bool isFolder = item.type == remote::EntryType::DIR || item.type == remote::EntryType::DEVICE;
+        if (!isFolder) return;
+        // on the root screen only pinned shortcuts are actionable (a device
+        // root like "sdmc:/" is already there, nothing to pin)
+        if (this->isRoot && !item.pinned) return;
+
+        auto& conf = AppConfig::instance();
+        std::string path = item.path;
+        bool pinned = item.pinned || conf.isPinned(path);
+        std::string label = pinned ? "main/remote/unpin"_i18n : "main/remote/pin"_i18n;
+
+        auto* dropdown = new brls::Dropdown(item.name, {label}, [path, pinned](int selected) {
+            auto& conf = AppConfig::instance();
+            if (pinned) {
+                conf.removePin(path);
+                brls::Application::notify("main/remote/unpinned"_i18n);
+            } else {
+                conf.addPin(path);
+                brls::Application::notify("main/remote/pinned"_i18n);
+            }
+            // rebuild the root shortcut list on the next frame (this data
+            // source may be the one being replaced — don't self-destruct)
+            brls::sync([]() { Ums::instance().getEvent()->fire(Ums::instance().getDevice()); });
+        });
+        brls::Application::pushActivity(new brls::Activity(dropdown));
+    }
+
 private:
+    /// True if the browser path points at an existing directory (issue #24).
+    static bool folderExists(const std::string& path) {
+        std::string p = path.rfind("file://") == 0 ? path.substr(7) : path;
+        std::error_code ec;
+        return fs::is_directory(p, ec);
+    }
+
     DirList list;
     RemoteView::Client client;
+    bool isRoot = false;
+    bool isLocal = false;
 };
+
+/// Short label for a pinned folder shown on the Files root: its last path
+/// component (issue #24). "sdmc:/A_Media/" -> "A_Media".
+static std::string pinDisplayName(const std::string& path) {
+    std::string p = path;
+    if (p.rfind("file://", 0) == 0) p = p.substr(7);
+    while (p.size() > 1 && p.back() == '/') p.pop_back();
+    auto pos = p.find_last_of('/');
+    std::string name = pos == std::string::npos ? p : p.substr(pos + 1);
+    return name.empty() ? path : name;
+}
 
 UmsView::UmsView(std::function<void()> onAddServer) : RemoteView(std::make_shared<remote::Local>()) {
     RecyclingGrid* view = this->newRecycler();
@@ -408,7 +514,8 @@ UmsView::UmsView(std::function<void()> onAddServer) : RemoteView(std::make_share
     auto ev = Ums::instance().getEvent();
     deviceSubscribeID = ev->subscribe([this, view](const Ums::DeviceList& r) {
         DirList dirs;
-        dirs.reserve(r.size());
+        const auto& pins = AppConfig::instance().getPins();
+        dirs.reserve(r.size() + pins.size());
         for (auto& it : r) {
             remote::DirEntry entry;
             entry.type = it.id < 0 ? remote::EntryType::DIR : remote::EntryType::DEVICE;
@@ -416,7 +523,17 @@ UmsView::UmsView(std::function<void()> onAddServer) : RemoteView(std::make_share
             entry.path = it.mount + "/";
             dirs.push_back(entry);
         }
-        // no mounted device/volume: explicit empty state rather than a
+        // pinned local folders (issue #24): listed after the devices, flagged
+        // so FileCard shows the star icon and the context menu offers "unpin"
+        for (const auto& p : pins) {
+            remote::DirEntry entry;
+            entry.type = remote::EntryType::DIR;
+            entry.pinned = true;
+            entry.path = p;
+            entry.name = pinDisplayName(p);
+            dirs.push_back(entry);
+        }
+        // no device/volume AND no pin: explicit empty state rather than a
         // mute grid ("Files" placeholder)
         if (dirs.empty()) {
             view->setVisibility(brls::Visibility::GONE);
@@ -424,7 +541,8 @@ UmsView::UmsView(std::function<void()> onAddServer) : RemoteView(std::make_share
         } else {
             this->emptyBox->setVisibility(brls::Visibility::GONE);
             view->setVisibility(brls::Visibility::VISIBLE);
-            view->setDataSource(new FileDataSource(dirs, this->client));
+            // isRoot: keep the device/pin order, never re-sorted (issue #23)
+            view->setDataSource(new FileDataSource(dirs, this->client, true));
         }
     });
     ev->fire(Ums::instance().getDevice());
@@ -523,6 +641,20 @@ RecyclingGrid* RemoteView::newRecycler() {
     view->registerCell("Cell", []() { return new FileCard(); });
     view->registerAction("hints/back"_i18n, brls::BUTTON_B, [this](...) {
         this->dismiss();
+        return true;
+    });
+    // Y = sort panel (Name/Date/Size). Client-side: re-apply to the current
+    // listing on close, no re-fetch (issue #23). No-op on the root screen.
+    view->registerAction("main/media/sort"_i18n, brls::BUTTON_Y, [this](...) {
+        RemoteFilter* filter = new RemoteFilter();
+        filter->getEvent()->subscribe([this]() {
+            auto* ds = dynamic_cast<FileDataSource*>(this->recycler->getDataSource());
+            if (ds) {
+                ds->resort();
+                this->recycler->reloadData();
+            }
+        });
+        brls::Application::pushActivity(new brls::Activity(filter));
         return true;
     });
     return view;

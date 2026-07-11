@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cctype>
 
+#include <chrono>
+
 namespace remote {
 
 static bool iequals(const std::string& a, const std::string& b) {
@@ -73,6 +75,14 @@ std::vector<DirEntry> Local::list(const std::string& path) {
         } else {
             item.type = EntryType::FILE;
             item.fileSize = fs::file_size(p);
+        }
+        // modification time for the "Date" sort — only the relative order
+        // within this listing matters, so the (implementation-defined) clock
+        // base of file_time_type needs no calendar conversion (issue #23)
+        try {
+            auto ft = fs::last_write_time(fp);
+            item.mtime = (uint64_t)std::chrono::duration_cast<std::chrono::seconds>(ft.time_since_epoch()).count();
+        } catch (...) {
         }
         s.push_back(item);
     }
