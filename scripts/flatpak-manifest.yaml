@@ -214,12 +214,13 @@ modules:
       - -DGLFW_BUILD_WAYLAND=ON
       - -DGLFW_BUILD_X11=ON
     sources:
-      - type: git
-        url: https://github.com/dragonflylee/glfw.git
-        commit: db08cc163dacbabfb37fb62d70ab7f62865008c6
-        # Full clone: flatpak-builder's shallow fetch of this pinned SHA fails
-        # with "unable to read tree" (git exit 128) on the CI runners.
-        disable-shallow-clone: true
+      - type: archive
+        # flatpak-builder's git fetch of this pinned SHA fails with "unable to
+        # read tree" (git 128) on the CI runners, and disable-shallow-clone did
+        # not help; use GitHub's per-commit tarball instead (bypasses git).
+        # sha256 verified stable across repeated downloads.
+        url: https://github.com/dragonflylee/glfw/archive/db08cc163dacbabfb37fb62d70ab7f62865008c6.tar.gz
+        sha256: cfce09c15c64c1db915145b4a69ce2c8e68b447095723fc17a5cfdad89842350
 
   - name: gmca
     buildsystem: cmake-ninja
