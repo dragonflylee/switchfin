@@ -161,6 +161,7 @@
     "cancel": "İndirmeyi İptal Et",
     "remove": "İndirmeyi Kaldır",
     "downloading": "İndiriliyor...",
+    "eta": "{} kaldı",
     "completed": "İndirildi",
     "failed": "İndirme Başarısız",
     "queued": "Kuyruğa Eklendi",

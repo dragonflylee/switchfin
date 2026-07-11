@@ -161,6 +161,7 @@
     "cancel": "다운로드 취소",
     "remove": "다운로드 삭제",
     "downloading": "다운로드 중...",
+    "eta": "{} 남음",
     "completed": "다운로드 완료",
     "failed": "다운로드 실패",
     "queued": "대기 중",

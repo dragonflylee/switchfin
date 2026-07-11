@@ -161,6 +161,7 @@
     "cancel": "Hủy tải xuống",
     "remove": "Xóa bản tải",
     "downloading": "Đang tải xuống...",
+    "eta": "còn {}",
     "completed": "Đã tải xuống",
     "failed": "Tải xuống thất bại",
     "queued": "Trong hàng đợi",

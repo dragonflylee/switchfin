@@ -258,7 +258,9 @@ std::string DownloadManager::buildDownloadUrl(const DownloadItem& item) const {
 }
 
 // Runs on the download worker thread AFTER the file transfer, synchronously and
-// serially (no extra concurrent HTTP — the curl DNS share has no lock callback).
+// serially — one capture at a time on the queue worker, a deliberate simplicity
+// choice (not a concurrency requirement: the shared curl DNS cache is lock-
+// guarded, http.cpp).
 void DownloadManager::captureOfflineSync(const std::string& itemId) {
     auto& conf = AppConfig::instance();
     const std::string base = conf.getUrl();

@@ -161,6 +161,7 @@
     "cancel": "Cancelar transferência",
     "remove": "Remover transferência",
     "downloading": "A transferir...",
+    "eta": "{} restante",
     "completed": "Transferido",
     "failed": "Transferência falhada",
     "queued": "Em fila",

@@ -161,6 +161,7 @@
     "cancel": "Download abbrechen",
     "remove": "Download entfernen",
     "downloading": "Wird heruntergeladen...",
+    "eta": "{} verbleibend",
     "completed": "Heruntergeladen",
     "failed": "Download fehlgeschlagen",
     "queued": "In Warteschlange",

@@ -161,6 +161,7 @@
     "cancel": "取消下載",
     "remove": "移除下載",
     "downloading": "下載中...",
+    "eta": "剩餘 {}",
     "completed": "已下載",
     "failed": "下載失敗",
     "queued": "已加入佇列",

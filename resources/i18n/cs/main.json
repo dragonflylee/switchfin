@@ -161,6 +161,7 @@
     "cancel": "Zrušit stahování",
     "remove": "Odstranit stažené",
     "downloading": "Stahování…",
+    "eta": "zbývá {}",
     "completed": "Staženo",
     "failed": "Stahování selhalo",
     "queued": "Ve frontě",

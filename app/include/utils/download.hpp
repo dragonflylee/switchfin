@@ -75,8 +75,9 @@ private:
     /// Captures the full fiche + ancestors (season/show) + the season's full
     /// episode list + artwork into OfflineLibrary/ImageCache so the item is
     /// browsable offline (SPEC §4.1). Runs on the download worker thread,
-    /// SYNCHRONOUSLY and serially — the curl DNS share has no lock callback, so
-    /// no extra concurrent HTTP is introduced.
+    /// SYNCHRONOUSLY and serially on the queue worker — one capture at a time,
+    /// a simplicity choice (not a concurrency requirement: the shared curl DNS
+    /// cache is lock-guarded, http.cpp).
     void captureOfflineSync(const std::string& itemId);
     std::string downloadDir() const;
     std::string buildDownloadUrl(const DownloadItem& item) const;

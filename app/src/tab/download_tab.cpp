@@ -73,14 +73,36 @@ public:
         this->barBox->addView(this->bar);
     }
 
-    void update() {
+    /// Recursive size of the offline caches (fiche snapshots + artwork) under
+    /// the downloads folder. This is the EXPENSIVE part (walks hundreds of
+    /// artwork files — every cast face), so it is recomputed only when the
+    /// download set changes (list rebuild), not on every progress tick: the
+    /// caller passes the cached value to update(). Never call this on a tick.
+    static int64_t computeCacheBytes() {
+        const std::string dir = DownloadManager::instance().getDownloadDir();
+        auto dirBytes = [](const std::string& d) -> int64_t {
+            int64_t total = 0;
+            try {
+                if (fs::exists(d))
+                    for (auto& e : fs::recursive_directory_iterator(d))
+                        if (fs::is_regular_file(e.path())) total += (int64_t)fs::file_size(e.path());
+            } catch (const std::exception&) {
+            }
+            return total;
+        };
+        return dirBytes(dir + "/meta") + dirBytes(dir + "/art");
+    }
+
+    /// cacheBytes: pre-walked size of meta+art (see computeCacheBytes) — cheap
+    /// to re-run per progress tick since only the in-memory item bytes move.
+    void update(int64_t cacheBytes) {
         auto& dm = DownloadManager::instance();
         const std::string dir = dm.getDownloadDir();
         auto items = dm.getItems();
 
         // pleNx bytes: completed = known size (or real file for an inherited
         // index), in progress/failed = bytes already written to disk
-        int64_t appBytes = 0;
+        int64_t appBytes = cacheBytes;
         for (auto& it : items) {
             if (it.status == DownloadStatus::Completed) {
                 if (it.totalBytes > 0) {
@@ -95,20 +117,6 @@ public:
                 appBytes += it.downloadedBytes;
             }
         }
-
-        // offline catalog caches (fiche snapshots + artwork) also live under the
-        // downloads folder and count towards pleNx' footprint
-        auto dirBytes = [](const std::string& d) -> int64_t {
-            int64_t total = 0;
-            try {
-                if (fs::exists(d))
-                    for (auto& e : fs::recursive_directory_iterator(d))
-                        if (fs::is_regular_file(e.path())) total += (int64_t)fs::file_size(e.path());
-            } catch (const std::exception&) {
-            }
-            return total;
-        };
-        appBytes += dirBytes(dir + "/meta") + dirBytes(dir + "/art");
 
         size_t count = items.size();
         this->app->setText(fmt::format("{}: {} · {} {}", AppVersion::getPackageName(),
@@ -335,8 +343,8 @@ public:
         DownloadItem item;
     };
 
-    explicit DownloadDataSource(std::vector<DownloadItem> all)
-        : dlDir(DownloadManager::instance().getDownloadDir()) {
+    DownloadDataSource(std::vector<DownloadItem> all, int64_t cacheBytes)
+        : dlDir(DownloadManager::instance().getDownloadDir()), cacheBytes(cacheBytes) {
         // row 0: the "Storage" card, always present so it scrolls with the list
         Row storage;
         storage.kind = Row::Kind::Storage;
@@ -375,7 +383,7 @@ public:
         auto& row = this->rows.at(index);
         if (row.kind == Row::Kind::Storage) {
             auto* cell = dynamic_cast<StorageCard*>(recycler->dequeueReusableCell("Storage"));
-            cell->update();
+            cell->update(this->cacheBytes);
             return cell;
         }
         if (row.kind == Row::Kind::Empty) {
@@ -476,6 +484,7 @@ private:
 
     std::vector<Row> rows;
     std::string dlDir;
+    int64_t cacheBytes = 0;  // pre-walked meta+art size (StorageCard row 0)
 };
 
 DownloadView::DownloadView() {
@@ -506,8 +515,7 @@ DownloadView::DownloadView() {
         std::string id = item->itemId;
         Dialog::cancelable("main/download/confirm_remove"_i18n, [this, id]() {
             DownloadManager::instance().removeDownload(id);
-            this->loadItems();
-            this->updateStorage();
+            this->loadItems();  // rebuilds the list (walks the caches + refreshes storage)
         });
         return true;
     };
@@ -520,7 +528,6 @@ DownloadView::DownloadView() {
         Dialog::cancelable("main/download/confirm_remove_all"_i18n, [this, items]() {
             for (auto& it : items) DownloadManager::instance().removeDownload(it.itemId);
             this->loadItems();
-            this->updateStorage();
         });
         return true;
     });
@@ -532,8 +539,9 @@ DownloadView::DownloadView() {
 
     this->statusSubId = DownloadManager::instance().getStatusEvent()->subscribe(
         [this](const std::string&, DownloadStatus) {
+            // a download changed state (e.g. completed -> new meta/art on disk):
+            // loadItems() rebuilds the list and re-walks the caches
             this->loadItems();
-            this->updateStorage();
         });
 
     // tick (<= 2 Hz): IN-PLACE update of the visible card — rebuilding the
@@ -545,15 +553,17 @@ DownloadView::DownloadView() {
             if (ds && ds->updateProgress(itemId, downloaded, total, index)) {
                 auto* cell = dynamic_cast<DownloadCard*>(this->recycler->getGridItemByIndex(index));
                 if (cell) cell->setProgress(downloaded, total, speed);
+                // cheap storage refresh: reuse the cached meta+art size (the
+                // caches only change on completion, not mid-download), no disk
+                // walk on the render thread per tick
+                this->updateStorage();
             } else {
-                // row not yet materialized (safety): rebuild
+                // row not yet materialized (safety): a rebuild also refreshes storage
                 this->loadItems();
             }
-            this->updateStorage();
         });
 
     this->loadItems();
-    this->updateStorage();
 }
 
 DownloadView::~DownloadView() {
@@ -566,16 +576,18 @@ brls::View* DownloadView::getDefaultFocus() { return this->recycler; }
 
 void DownloadView::willAppear(bool resetState) {
     brls::Box::willAppear(resetState);
-    this->loadItems();
-    this->updateStorage();
+    this->loadItems();  // rebuilds + walks the caches + refreshes storage
 }
 
 void DownloadView::loadItems() {
     auto items = DownloadManager::instance().getItems();
     bool empty = items.empty();
+    // a full (re)build: re-walk the meta+art caches once here (the download set
+    // changed), then reuse the result for the cheap per-tick refreshes
+    this->storageCacheBytes = StorageCard::computeCacheBytes();
     // always a data source now (row 0 = storage card, then the sections or an
     // empty placeholder row) — no setEmpty, which would hide the storage card
-    this->recycler->setDataSource(new DownloadDataSource(std::move(items)));
+    this->recycler->setDataSource(new DownloadDataSource(std::move(items), this->storageCacheBytes));
     if (empty) {
         // no focusable card left (e.g. removing the last one): the focus was on
         // a now-recycled card -> ghost highlight halo. Deferred so a confirm
@@ -589,11 +601,14 @@ void DownloadView::loadItems() {
     }
 }
 
-void DownloadView::updateStorage() {
+void DownloadView::updateStorage(bool recomputeCache) {
     // in-place refresh of the storage card (row 0) — no list rebuild, so the
-    // scroll/focus are preserved during download progress ticks
+    // scroll/focus are preserved during download progress ticks. The expensive
+    // meta+art walk is reused (recomputeCache=false) unless the caller knows the
+    // cache changed; the live pleNx bytes still move via the item byte counts.
+    if (recomputeCache) this->storageCacheBytes = StorageCard::computeCacheBytes();
     auto* cell = dynamic_cast<StorageCard*>(this->recycler->getGridItemByIndex(DownloadDataSource::STORAGE_ROW));
-    if (cell) cell->update();
+    if (cell) cell->update(this->storageCacheBytes);
 }
 
 void DownloadView::dismiss(std::function<void(void)> cb) { AutoTabFrame::focus2Sidebar(this); }

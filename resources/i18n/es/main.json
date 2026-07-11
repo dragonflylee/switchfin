@@ -161,6 +161,7 @@
     "cancel": "Cancelar descarga",
     "remove": "Eliminar descarga",
     "downloading": "Descargando...",
+    "eta": "{} restante",
     "completed": "Descargado",
     "failed": "Descarga fallida",
     "queued": "En cola",

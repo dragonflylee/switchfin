@@ -22,10 +22,15 @@ public:
 private:
     void loadItems();
     /// Refreshes the storage card (row 0) in place: disk figures + segmented
-    /// bar (fs::space on the downloads folder + bytes occupied by pleNx).
-    void updateStorage();
+    /// bar. recomputeCache re-walks the meta+art caches (expensive) — only do
+    /// that on a download set change, NOT on a progress tick (reuse the cache).
+    void updateStorage(bool recomputeCache = false);
 
     BRLS_BIND(RecyclingGrid, recycler, "downloads/list");
+
+    /// Cached recursive size of the offline caches (meta+art), refreshed on a
+    /// list rebuild; a progress tick reuses it instead of re-walking the disk.
+    int64_t storageCacheBytes = 0;
 
     DownloadManager::StatusEvent::Subscription statusSubId;
     DownloadManager::ProgressEvent::Subscription progressSubId;
