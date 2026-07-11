@@ -4,11 +4,10 @@
 #include "utils/download.hpp"
 
 class RecyclingGrid;
-class SegmentedBar;
 
-/// Downloads tab (xml/tabs/downloads.xml): "Storage" header (segmented disk
-/// bar + legend) above a sectioned "In progress" / "Downloaded" list
-/// (flow mode, per-row heights).
+/// Downloads tab (xml/tabs/downloads.xml): a single flow-mode list whose row 0
+/// is the "Storage" card (segmented disk bar + legend), scrolling with the
+/// sectioned "In progress" / "Downloaded" rows below it.
 class DownloadView : public AttachedView {
 public:
     DownloadView();
@@ -22,16 +21,11 @@ public:
 
 private:
     void loadItems();
-    /// Recomputes the header bar and figures: fs::space on the downloads
-    /// folder + bytes occupied by pleNx
+    /// Refreshes the storage card (row 0) in place: disk figures + segmented
+    /// bar (fs::space on the downloads folder + bytes occupied by pleNx).
     void updateStorage();
 
     BRLS_BIND(RecyclingGrid, recycler, "downloads/list");
-    BRLS_BIND(brls::Box, storageBarBox, "downloads/storage/bar");
-    BRLS_BIND(brls::Label, storageApp, "downloads/storage/app");
-    BRLS_BIND(brls::Label, storageFree, "downloads/storage/free");
-
-    SegmentedBar* storageBar = nullptr;
 
     DownloadManager::StatusEvent::Subscription statusSubId;
     DownloadManager::ProgressEvent::Subscription progressSubId;

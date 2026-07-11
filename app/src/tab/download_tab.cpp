@@ -1,6 +1,7 @@
 #include "tab/download_tab.hpp"
 #include "tab/remote_view.hpp"
 #include "view/recycling_grid.hpp"
+#include "view/svg_image.hpp"
 #include "view/video_view.hpp"
 #include "view/mpv_core.hpp"
 #include "view/video_profile.hpp"
@@ -55,6 +56,138 @@ public:
 private:
     NVGcolor track;
     std::vector<std::pair<float, NVGcolor>> segments;
+};
+
+/// "Storage" card, row 0 of the list (non-focusable) so it scrolls with the
+/// content. Self-contained: update() recomputes the disk figures + bar from
+/// DownloadManager. NOT a RecyclingGrid scrolled header (setHeaderView), which
+/// aborts Yoga when the Downloads pill is the RemoteTab's default tab.
+class StorageCard : public RecyclingGridItem {
+public:
+    StorageCard() {
+        this->setFocusable(false);
+        this->inflateFromXMLRes("xml/view/storage_card.xml");
+        this->bar = new SegmentedBar();
+        this->bar->setCornerRadius(6);
+        this->bar->setGrow(1.0f);
+        this->barBox->addView(this->bar);
+    }
+
+    void update() {
+        auto& dm = DownloadManager::instance();
+        const std::string dir = dm.getDownloadDir();
+        auto items = dm.getItems();
+
+        // pleNx bytes: completed = known size (or real file for an inherited
+        // index), in progress/failed = bytes already written to disk
+        int64_t appBytes = 0;
+        for (auto& it : items) {
+            if (it.status == DownloadStatus::Completed) {
+                if (it.totalBytes > 0) {
+                    appBytes += it.totalBytes;
+                } else if (!it.filePath.empty()) {
+                    try {
+                        appBytes += (int64_t)fs::file_size(dir + "/" + it.itemId + "/" + it.filePath);
+                    } catch (const std::exception&) {
+                    }
+                }
+            } else if (it.downloadedBytes > 0) {
+                appBytes += it.downloadedBytes;
+            }
+        }
+
+        // offline catalog caches (fiche snapshots + artwork) also live under the
+        // downloads folder and count towards pleNx' footprint
+        auto dirBytes = [](const std::string& d) -> int64_t {
+            int64_t total = 0;
+            try {
+                if (fs::exists(d))
+                    for (auto& e : fs::recursive_directory_iterator(d))
+                        if (fs::is_regular_file(e.path())) total += (int64_t)fs::file_size(e.path());
+            } catch (const std::exception&) {
+            }
+            return total;
+        };
+        appBytes += dirBytes(dir + "/meta") + dirBytes(dir + "/art");
+
+        size_t count = items.size();
+        this->app->setText(fmt::format("{}: {} · {} {}", AppVersion::getPackageName(),
+            appBytes > 0 ? misc::formatSize(appBytes) : "0GB", count,
+            count == 1 ? "main/playlist/item"_i18n : "main/playlist/items"_i18n));
+
+        // capacity/available: std::filesystem::space and boost::filesystem::space
+        // expose the same fields (macOS/Linux/Windows/Switch)
+        bool spaceOk = false;
+        fs::space_info space{};
+        try {
+            space = fs::space(dir);
+            spaceOk = space.capacity > 0 && space.capacity != (uintmax_t)-1;
+        } catch (const std::exception&) {
+        }
+
+        if (!spaceOk) {
+            this->free->setText("");
+            this->bar->setSegments({});
+            return;
+        }
+
+        double total = (double)space.capacity;
+        int64_t othersBytes = (int64_t)(space.capacity - space.available) - appBytes;
+        if (othersBytes < 0) othersBytes = 0;
+
+        float appFrac = (float)(appBytes / total);
+        float othersFrac = (float)(othersBytes / total);
+        // gold sliver always discernible as soon as there is at least one download
+        if (appBytes > 0 && appFrac < 0.006f) appFrac = 0.006f;
+
+        auto theme = brls::Application::getTheme();
+        this->bar->setSegments({
+            {othersFrac, theme.getColor("color/grey_3")},
+            {appFrac, theme.getColor("color/app")},
+        });
+
+        this->free->setText(fmt::format(fmt::runtime("main/download/storage_free"_i18n),
+            misc::formatSize((uint64_t)space.available), misc::formatSize((uint64_t)space.capacity)));
+    }
+
+private:
+    BRLS_BIND(brls::Box, barBox, "downloads/storage/bar");
+    BRLS_BIND(brls::Label, app, "downloads/storage/app");
+    BRLS_BIND(brls::Label, free, "downloads/storage/free");
+    SegmentedBar* bar = nullptr;
+};
+
+/// Empty placeholder as a list row (non-focusable): icon + title + subtitle,
+/// centered — shown under the storage card when there is no download.
+class DownloadEmptyCell : public RecyclingGridItem {
+public:
+    DownloadEmptyCell() {
+        this->setFocusable(false);
+        this->setAxis(brls::Axis::COLUMN);
+        this->setJustifyContent(brls::JustifyContent::CENTER);
+        this->setAlignItems(brls::AlignItems::CENTER);
+
+        auto* icon = new SVGImage();
+        icon->setDimensions(56, 56);
+        icon->setImageFromSVGRes("icon/ico-download.svg");
+        this->addView(icon);
+
+        auto* title = new brls::Label();
+        title->setFontSize(17);
+        title->setMarginTop(12);
+        title->setHorizontalAlign(brls::HorizontalAlign::CENTER);
+        title->setText("main/download/no_downloads"_i18n);
+        this->addView(title);
+
+        auto* sub = new brls::Label();
+        sub->setFontSize(14);
+        sub->setMarginTop(6);
+        sub->setWidth(460);
+        sub->setTextColor(brls::Application::getTheme().getColor("font/grey"));
+        sub->setHorizontalAlign(brls::HorizontalAlign::CENTER);
+        sub->setText("main/download/empty_sub"_i18n);
+        this->addView(sub);
+    }
 };
 
 /// Section header ("In progress", "Downloaded"): non-focusable row,
@@ -188,12 +321,14 @@ private:
 /// heightForRow (flow mode).
 class DownloadDataSource : public RecyclingGridDataSource {
 public:
+    static constexpr float STORAGE_HEIGHT = 150;     // the "Storage" card (row 0)
+    static constexpr float EMPTY_HEIGHT = 260;       // centered empty placeholder
     static constexpr float HEADER_FIRST_HEIGHT = 42;
     static constexpr float HEADER_NEXT_HEIGHT = 64;  // +22 of air between sections
     static constexpr float CARD_HEIGHT = 140;        // poster 114 + padding 2x13
 
     struct Row {
-        enum class Kind { Header, Item };
+        enum class Kind { Storage, Header, Item, Empty };
         Kind kind = Kind::Item;
         float height = CARD_HEIGHT;
         std::string title;
@@ -202,6 +337,12 @@ public:
 
     explicit DownloadDataSource(std::vector<DownloadItem> all)
         : dlDir(DownloadManager::instance().getDownloadDir()) {
+        // row 0: the "Storage" card, always present so it scrolls with the list
+        Row storage;
+        storage.kind = Row::Kind::Storage;
+        storage.height = STORAGE_HEIGHT;
+        this->rows.push_back(std::move(storage));
+
         std::vector<DownloadItem> active, done;
         for (auto& it : all) {
             if (it.status == DownloadStatus::Completed && it.totalBytes <= 0 && !it.filePath.empty()) {
@@ -216,6 +357,14 @@ public:
         }
         this->addSection("main/download/section_active"_i18n, active);
         this->addSection("main/download/section_done"_i18n, done);
+
+        // nothing downloaded: an empty placeholder row under the storage card
+        if (active.empty() && done.empty()) {
+            Row empty;
+            empty.kind = Row::Kind::Empty;
+            empty.height = EMPTY_HEIGHT;
+            this->rows.push_back(std::move(empty));
+        }
     }
 
     size_t getItemCount() override { return this->rows.size(); }
@@ -224,6 +373,14 @@ public:
 
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         auto& row = this->rows.at(index);
+        if (row.kind == Row::Kind::Storage) {
+            auto* cell = dynamic_cast<StorageCard*>(recycler->dequeueReusableCell("Storage"));
+            cell->update();
+            return cell;
+        }
+        if (row.kind == Row::Kind::Empty) {
+            return recycler->dequeueReusableCell("Empty");
+        }
         if (row.kind == Row::Kind::Header) {
             auto* cell = dynamic_cast<DownloadSectionHeader*>(recycler->dequeueReusableCell("Header"));
             cell->setTitle(row.title);
@@ -233,6 +390,16 @@ public:
         cell->setItem(row.item, this->dlDir);
         return cell;
     }
+
+    /// True if there is at least one real download row (not just storage/empty).
+    bool hasItems() const {
+        for (auto& r : this->rows)
+            if (r.kind == Row::Kind::Item) return true;
+        return false;
+    }
+
+    /// Row index of the storage card (0), for in-place refresh.
+    static constexpr size_t STORAGE_ROW = 0;
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
         auto& row = this->rows.at(index);
@@ -295,7 +462,8 @@ private:
         Row header;
         header.kind = Row::Kind::Header;
         header.title = title;
-        header.height = this->rows.empty() ? HEADER_FIRST_HEIGHT : HEADER_NEXT_HEIGHT;
+        // only the storage card precedes the first section -> tighter header
+        header.height = this->rows.size() <= 1 ? HEADER_FIRST_HEIGHT : HEADER_NEXT_HEIGHT;
         this->rows.push_back(std::move(header));
         for (auto& it : items) {
             Row row;
@@ -314,28 +482,18 @@ DownloadView::DownloadView() {
     this->inflateFromXMLRes("xml/tabs/downloads.xml");
     brls::Logger::debug("DownloadView: create");
 
-    this->storageBar = new SegmentedBar();
-    this->storageBar->setCornerRadius(6);
-    this->storageBar->setGrow(1.0f);
-    this->storageBarBox->addView(this->storageBar);
-
-    // The "Storage" card scrolls WITH the list: attach it as the recycler's
-    // scrolled header instead of leaving it pinned above (it stayed fixed
-    // while the list scrolled once there were enough downloads).
-    // NOTE: the "Storage" card is a PINNED header (left where the XML puts it,
-    // above the recycler) — NOT a scrolled header via RecyclingGrid::setHeaderView.
-    // Moving it into the recycler's scroll content crashes here: DownloadView is
-    // the RemoteTab's default pill, created + laid out inside AutoTabFrame::addTab
-    // while that nested frame still has an indefinite height, and measuring the
-    // card as scroll content in that state makes Yoga abort the app
-    // ("availableHeight is indefinite"). Deferring doesn't help (breaks the
-    // set-before-first-layout contract and still measures indefinite). A pinned
-    // header is stable; the scroll-with-list refinement needs a Borealis-level fix.
-
+    // The "Storage" card is row 0 of the list (StorageCard cell), so it scrolls
+    // WITH the downloads instead of being pinned above. It is NOT a scrolled
+    // header (RecyclingGrid::setHeaderView): that aborts Yoga when the Downloads
+    // pill is the RemoteTab's default tab (nested frame laid out off-tree with an
+    // indefinite height). A cell goes through the detached-positioning path and
+    // is safe.
+    this->recycler->registerCell("Storage", []() { return new StorageCard(); });
+    this->recycler->registerCell("Empty", []() { return new DownloadEmptyCell(); });
     this->recycler->registerCell("Cell", []() { return new DownloadCard(); });
     this->recycler->registerCell("Header", []() { return new DownloadSectionHeader(); });
-    // row 0 is always a section header: zero initial offset, the focus
-    // falls back to the first focusable card (Box::getDefaultFocus)
+    // row 0 is the non-focusable storage card: the focus falls back to the
+    // first focusable card (Box::getDefaultFocus)
     this->recycler->setDefaultCellFocus(0);
 
     auto deleteAction = [this](brls::View*) {
@@ -414,99 +572,28 @@ void DownloadView::willAppear(bool resetState) {
 
 void DownloadView::loadItems() {
     auto items = DownloadManager::instance().getItems();
-    if (items.empty()) {
-        this->recycler->setEmpty(
-            "main/download/no_downloads"_i18n, "main/download/empty_sub"_i18n, "icon/ico-download.svg");
-        // the grid just emptied (e.g. removing the last card): the focus was
-        // on a now-recycled card -> ghost highlight halo in the empty area.
-        // Deferred so a confirm dialog has finished closing/restoring focus;
-        // if the focus is still inside this (now unfocusable) tab, hand it
-        // back to the sidebar.
+    bool empty = items.empty();
+    // always a data source now (row 0 = storage card, then the sections or an
+    // empty placeholder row) — no setEmpty, which would hide the storage card
+    this->recycler->setDataSource(new DownloadDataSource(std::move(items)));
+    if (empty) {
+        // no focusable card left (e.g. removing the last one): the focus was on
+        // a now-recycled card -> ghost highlight halo. Deferred so a confirm
+        // dialog has finished closing/restoring focus; if the focus is still
+        // inside this (now unfocusable) tab, hand it back to the sidebar.
         ASYNC_RETAIN
         brls::sync([ASYNC_TOKEN]() {
             ASYNC_RELEASE
             if (hasFocusWithin(this)) AutoTabFrame::focus2Sidebar(this);
         });
-    } else {
-        this->recycler->setDataSource(new DownloadDataSource(std::move(items)));
     }
 }
 
 void DownloadView::updateStorage() {
-    auto& dm = DownloadManager::instance();
-    const std::string dir = dm.getDownloadDir();
-    auto items = dm.getItems();
-
-    // pleNx bytes: completed = known size (or real file for an inherited
-    // index), in progress/failed = bytes already written to disk
-    int64_t appBytes = 0;
-    for (auto& it : items) {
-        if (it.status == DownloadStatus::Completed) {
-            if (it.totalBytes > 0) {
-                appBytes += it.totalBytes;
-            } else if (!it.filePath.empty()) {
-                try {
-                    appBytes += (int64_t)fs::file_size(dir + "/" + it.itemId + "/" + it.filePath);
-                } catch (const std::exception&) {
-                }
-            }
-        } else if (it.downloadedBytes > 0) {
-            appBytes += it.downloadedBytes;
-        }
-    }
-
-    // offline catalog caches (fiche snapshots + artwork) also live under the
-    // downloads folder and count towards pleNx' footprint
-    auto dirBytes = [](const std::string& d) -> int64_t {
-        int64_t total = 0;
-        try {
-            if (fs::exists(d))
-                for (auto& e : fs::recursive_directory_iterator(d))
-                    if (fs::is_regular_file(e.path())) total += (int64_t)fs::file_size(e.path());
-        } catch (const std::exception&) {
-        }
-        return total;
-    };
-    appBytes += dirBytes(dir + "/meta") + dirBytes(dir + "/art");
-
-    size_t count = items.size();
-    this->storageApp->setText(fmt::format("{}: {} · {} {}", AppVersion::getPackageName(),
-        appBytes > 0 ? misc::formatSize(appBytes) : "0GB", count,
-        count == 1 ? "main/playlist/item"_i18n : "main/playlist/items"_i18n));
-
-    // capacity/available: std::filesystem::space and boost::filesystem::space
-    // expose the same fields (macOS/Linux/Windows/Switch)
-    bool spaceOk = false;
-    fs::space_info space{};
-    try {
-        space = fs::space(dir);
-        spaceOk = space.capacity > 0 && space.capacity != (uintmax_t)-1;
-    } catch (const std::exception&) {
-    }
-
-    if (!spaceOk) {
-        this->storageFree->setText("");
-        this->storageBar->setSegments({});
-        return;
-    }
-
-    double total = (double)space.capacity;
-    int64_t othersBytes = (int64_t)(space.capacity - space.available) - appBytes;
-    if (othersBytes < 0) othersBytes = 0;
-
-    float appFrac = (float)(appBytes / total);
-    float othersFrac = (float)(othersBytes / total);
-    // gold sliver always discernible as soon as there is at least one download
-    if (appBytes > 0 && appFrac < 0.006f) appFrac = 0.006f;
-
-    auto theme = brls::Application::getTheme();
-    this->storageBar->setSegments({
-        {othersFrac, theme.getColor("color/grey_3")},
-        {appFrac, theme.getColor("color/app")},
-    });
-
-    this->storageFree->setText(fmt::format(fmt::runtime("main/download/storage_free"_i18n),
-        misc::formatSize((uint64_t)space.available), misc::formatSize((uint64_t)space.capacity)));
+    // in-place refresh of the storage card (row 0) — no list rebuild, so the
+    // scroll/focus are preserved during download progress ticks
+    auto* cell = dynamic_cast<StorageCard*>(this->recycler->getGridItemByIndex(DownloadDataSource::STORAGE_ROW));
+    if (cell) cell->update();
 }
 
 void DownloadView::dismiss(std::function<void(void)> cb) { AutoTabFrame::focus2Sidebar(this); }
