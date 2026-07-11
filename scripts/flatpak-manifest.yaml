@@ -121,7 +121,12 @@ modules:
           - -DBUILD_STATIC=0
         sources:
           - type: archive
-            url: https://www.freedesktop.org/software/uchardet/releases/uchardet-0.0.8.tar.xz
+            # Primary URL switched to the Debian mirror: freedesktop.org's
+            # "go-away" anti-bot returns HTTP 418 to CI downloaders (verified),
+            # which broke build-flatpak. Byte-identical tarball (sha256 matches).
+            url: https://deb.debian.org/debian/pool/main/u/uchardet/uchardet_0.0.8.orig.tar.xz
+            mirror-urls:
+              - https://www.freedesktop.org/software/uchardet/releases/uchardet-0.0.8.tar.xz
             sha256: e97a60cfc00a1c147a674b097bb1422abd9fa78a2d9ce3f3fdcc2e78a34ac5f0
             x-checker-data:
               type: anitya
