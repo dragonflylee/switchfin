@@ -9,6 +9,56 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [0.1.15] - 2026-07-11
+
+### Offline downloads (#19)
+
+- **Browse your downloads with no connection, just like online.** Downloaded
+  movies and shows now get a full local catalogue: their complete fiche
+  (summary, genres, ratings, cast) plus poster, backdrop, logo and cast photos
+  are cached to disk at download time, so a downloaded title renders offline
+  exactly as it does against the server. Shows keep their season/episode
+  structure — the season lists every episode, and episodes you did not download
+  are greyed out and not playable.
+- **A real offline mode.** When the server is unreachable at launch and you have
+  downloads, pleNx now opens straight into an offline shell — sidebar, home rows
+  and library grids built from the local catalogue — instead of the server
+  picker. A **Retry** affordance reconnects you when the server is back.
+- **Offline Search** looks through your local catalogue; **Watchlist** and
+  **Playlists** show a clear "unavailable offline" state. Deleting a download
+  prunes its catalogue entry and cached artwork (cascade).
+- The downloaded fiche is preferred even while online, so opening a downloaded
+  title is instant and plays the local file.
+
+### Files
+
+- **Sort folder listings** (#23) — a Y "Sort" panel orders any local/remote
+  folder by name, date or size (ascending/descending); ".." stays first and
+  folders always sort above files.
+- **Pin local folders** (#24) — pin the focused folder to the Files root
+  (X / F4) for one-tap access; pins persist in `config.json`. The home folder is
+  now exposed on macOS/Linux.
+
+### Blu-ray
+
+- **Play Blu-ray/BDMV folder backups from local storage** (#18): a folder
+  holding a `BDMV/STREAM` backup now offers a "Play Blu-ray" entry at the top of
+  its listing.
+
+### Bug fixes
+
+- **Downloads tab** — the Storage card now scrolls with the list (it was a
+  pinned header that also crashed the offline Files tab); failed downloads can
+  be retried; the "Downloaded" button is actionable; cards show a downloaded
+  badge; the scroll indicator sits flush with the window edge.
+- **File browser** — dropped an oversized loading-skeleton flash when changing
+  folders.
+- **Consistent placeholders** — fiche posters (movie/series/season) and episode
+  thumbnails without artwork now show the media icon instead of an empty
+  rectangle, and episode cards keep their size (no collapsed focus halo).
+- Lock callbacks on the shared curl DNS cache — fixes a latent concurrent crash.
+- New i18n keys added across all 14 languages.
+
 ## [0.1.14] - 2026-07-05
 
 ### PS Vita
