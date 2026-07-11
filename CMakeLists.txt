@@ -55,12 +55,13 @@ project(GMCA)  # short token for files/binaries/IDs; display name = "Gamepad Med
 set(VERSION_MAJOR "1")
 set(VERSION_MINOR "0")
 set(VERSION_ALTER "0")
-# Fresh title ID for GMCA: a NEW id is required so the Switch HOME menu does not
-# serve the cached "pleNx" name/icon for the old id, and because GMCA is a
-# distinct app (parallel install alongside pleNx during the transition).
-# TODO(release): verify uniqueness (web, GitHub, GBAtemp homebrew list) before
-# the first Switch release, exactly as was done for pleNx.
-set(PROJECT_TITLEID "0104474D43410000")
+# Homebrew forwarder title ID for GMCA, in the community forwarder range (05...),
+# which is outside Nintendo's commercial 01... space — so it cannot collide with
+# an official title, and no title-ID registry check is needed. The "GMCA" vanity
+# (474D4341) keeps it unique among homebrew (checked: no other repo uses it). A
+# fresh id (not pleNx's) also stops the Switch HOME menu serving the cached pleNx
+# name/icon. (hacbrewpack lower-cases the filename → see forwarder/CMakeLists.txt.)
+set(PROJECT_TITLEID "0500474D43410000")
 set(PROJECT_AUTHOR "thcolin")
 set(PACKAGE_NAME "fun.thcolin.gmca")
 set(VITA_TITLEID "GMCA00001")

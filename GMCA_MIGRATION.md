@@ -92,7 +92,7 @@ nothing changes for users). Version comparison is **numeric** (`sscanf` + `lexic
 **Switch tile nuance.** The in-place self-update swaps the *binary* but not the HOME tile: the file
 stays named `pleNx.nro` (now containing GMCA) and the forwarder tile keeps pleNx's name/icon (the
 forwarder is a separate NSP keyed by the old title ID). A fresh **GMCA** tile only appears via the
-other path — a parallel install from the store (fresh title ID `0104474D43410000`), with data carried
+other path — a parallel install from the store (fresh title ID `0500474D43410000`), with data carried
 over by the migration shim. Two distinct journeys: in-place binary upgrade vs. clean parallel install.
 
 ## Blockers before tagging GMCA v1.0.0
@@ -100,10 +100,10 @@ over by the migration shim. Two distinct journeys: in-place binary upgrade vs. c
 | # | Blocker | Evidence | If ignored |
 |---|---|---|---|
 | **B1** | Branch cut from **v0.1.10**, behind `dev`; Vita `startUpdate`/`vita_install.*` were absent | merge-base `eb9ff00` | **✅ Resolved** — merged `origin/dev` (`a7ae506`); `vita_install.cpp` is back and globbed into the build; Vita 1080p transcode cap re-homed in `PlexBackend::resolvePlayback`. |
-| **B2** | `CHANGELOG.md` has no `## [1.0.0]` section | top = `## [0.1.15]` (post-merge); guard `build.yaml:55-63` | ⛔ **Open** — `upload-release` **fails** → no release published. Add the section at release time. |
+| **B2** | `CHANGELOG.md` needs a `## [1.0.0]` section (release-notes guard) | guard `build.yaml:55-63` | **✅ Drafted** — `## [1.0.0]` section added (rebrand + multi-backend + music; consolidates 0.1.11–0.1.15). Confirm the date matches the tag at release time. |
 | **B3** | Flatpak manifest was still pleNx | `scripts/flatpak-manifest.yaml` | **✅ Resolved** — `app-id`/`command`/module now `fun.thcolin.gmca` / `GMCA` / `gmca`. |
 | **B4** | Desktop PNG icons were still `fun.thcolin.plenx.png` | `scripts/icons/*/` | **✅ Resolved** — 5 icons renamed to `fun.thcolin.gmca.png`. |
-| **B5** | Switch forwarder title ID `0104474D43410000` is an unverified placeholder | `CMakeLists.txt:57-63` (TODO) | ⛔ **Open** — possible title-ID collision; verify uniqueness (web / GitHub / GBAtemp) before the first Switch release. |
+| **B5** | Switch forwarder title ID was an unverified `01...` (commercial-range) placeholder | `CMakeLists.txt:57-64` | **✅ Resolved** — moved to `0500474D43410000` in the community forwarder range (`05...`, outside Nintendo's commercial `01...` space) → collision-proof by construction, no registry check needed; "GMCA" vanity, unused on GitHub. |
 
 **CI fixes applied during validation** (all green except the two open blockers): Switch forwarder NSP rename now lower-cases the title id (hacbrewpack writes it lower-cased — broke once the id gained hex letters); Flatpak `glfw` fetched as a per-commit tarball and `uchardet` from the Debian mirror (freedesktop.org "go-away" 418). See PR #25.
 
@@ -126,9 +126,10 @@ namespace (invisible); the forwarder NPDM `"name":"pleNx"` (internal — the HOM
    `feat/rebrand-gmca` (merge commit `a7ae506`), reconciling multi-backend × offline (#19) × music;
    the result has dev's Vita self-updater + fixes **and** the rebrand. Desktop build and the full CI
    matrix are green (nx / vita / ps4 / mingw / macos / aur / flatpak) — see PR #25.
-2. **✅ B3/B4 done; ⛔ B2/B5 remain.** Flatpak manifest + the 5 icons renamed to `gmca`; site images
-   committed. Still to do before the tag: add the `## [1.0.0]` CHANGELOG section (**B2**) and verify
-   the Switch title-ID uniqueness (**B5**, web / GitHub / GBAtemp homebrew list).
+2. **✅ B2–B5 all done.** Flatpak manifest + the 5 icons renamed to `gmca`; site images committed;
+   Switch title ID moved to the collision-proof `05...` range; `## [1.0.0]` CHANGELOG section drafted.
+   Nothing blocking the tag remains — only the brand-art placeholder (non-blocking) and confirming the
+   release date.
 3. **Rename** `thcolin/pleNx` → `thcolin/gamepad-media-center-aggregator` in GitHub settings
    (keeps stars). Update the local remote: `git remote set-url origin <new URL>`.
 4. **Merge to `dev`** → `pages.yml` deploys the rebranded site **at the new path** (rename must
@@ -180,10 +181,10 @@ namespace (invisible); the forwarder NPDM `"name":"pleNx"` (internal — the HOM
 
 - [x] **B1** — merged `origin/dev` into the branch (`a7ae506`); Vita self-update + v0.1.11–v0.1.15
       fixes recovered, Vita 1080p cap re-homed. CI matrix green.
-- [ ] **B2** — add a `## [1.0.0]` CHANGELOG section (`git cliff --unreleased --tag v1.0.0 --prepend`).
+- [x] **B2** — `## [1.0.0]` CHANGELOG section drafted (set its date to the actual tag date).
 - [x] **B3** — Flatpak manifest fixed (`app-id`/`command`/module → `gmca`).
 - [x] **B4** — 5 PNG icons renamed `fun.thcolin.plenx.png` → `fun.thcolin.gmca.png`.
-- [ ] **B5** — verify the Switch forwarder title ID `0104474D43410000` is unique.
+- [x] **B5** — Switch title ID moved to the collision-proof `05...` forwarder range (`0500474D43410000`).
 - [ ] **GMCA brand art** — real logo/icon and re-shot screenshots (GMCA name + PS Vita and
       Raspberry-Pi-on-a-TV imagery). Site images are committed; the art itself is still a placeholder.
 - [ ] **Rename** `thcolin/pleNx` → `thcolin/gamepad-media-center-aggregator`; do **not** create

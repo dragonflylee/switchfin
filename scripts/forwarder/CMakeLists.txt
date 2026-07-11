@@ -40,7 +40,7 @@ add_custom_target(${PROJECT_NAME}.pfs0 DEPENDS ${PROJECT_NAME}
 
 # hacbrewpack writes the NSP with a lower-case title-ID filename, so the rename
 # source below must be lower-cased. No-op for all-digit IDs (old pleNx
-# 0104201312000000) but required for GMCA 0104474D43410000 (474D4341 = "GMCA"):
+# 0104201312000000) but required for GMCA 0500474D43410000 (474D4341 = "GMCA"):
 # on case-sensitive Linux the upper-case source path is not found.
 string(TOLOWER "${PROJECT_TITLEID}" PROJECT_TITLEID_LOWER)
 
