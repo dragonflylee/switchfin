@@ -1,15 +1,17 @@
 <div align="center">
 
+<img src="site/assets/img/gmca-logo.webp" alt="GMCA" width="132">
+
 # GMCA — Gamepad Media Center Aggregator
 
 */ˌdʒiː.ɛm.siː.ˈeɪ/ — Gamepad Media Center Aggregator*
 
-**🎮 📺 — every media server, on the consoles everyone forgot.**
+**🎮 📺 — every media server, on the screens you forgot.**
 
-A native, controller-first client for **Plex, Jellyfin, Emby and Stremio** — built for the
-devices their official apps ignore: **Nintendo Switch**, **PS Vita** and **Raspberry Pi** on a
-TV. The same interface, whatever you run; only the actions and tabs change with your backend.
-Also runs on Windows, macOS, Linux and PS4.
+GMCA is one native, controller-first **client**. Point it at any **media center** —
+**Plex, Jellyfin, Emby or Stremio** — and run it on any **device** you left in a drawer:
+**Nintendo Switch**, **PS Vita** or a **Raspberry Pi wired to the TV**. The interface never
+changes; only the accent colour and the tabs follow your server. Also runs on Windows, macOS, Linux and PS4.
 
 [![build](https://github.com/thcolin/gamepad-media-center-aggregator/actions/workflows/build.yaml/badge.svg)](https://github.com/thcolin/gamepad-media-center-aggregator/actions/workflows/build.yaml)
 [![NS](https://img.shields.io/badge/-Nintendo%20Switch-e4000f?style=flat&logo=Nintendo%20Switch)](https://github.com/thcolin/gamepad-media-center-aggregator/releases/latest)
@@ -30,15 +32,35 @@ Also runs on Windows, macOS, Linux and PS4.
 
 ## Screenshots
 
+One interface across every source. The same layout serves a Plex library, a Jellyfin series,
+an Emby film and a Stremio catalogue — only the accent and the tabs change.
+
+**The same Home, whatever you run**
+
 <div align="center">
 
-| Home | Movie | Library |
-|:---:|:---:|:---:|
-| ![Home](images/home.png) | ![Movie detail](images/movie_0.png) | ![Movies library](images/movies.png) |
-| **Season** | **Search** | **Downloads** |
-| ![Season](images/season.png) | ![Search](images/search.png) | ![Downloads](images/downloads.png) |
+| Plex | Jellyfin | Emby | Stremio |
+|:---:|:---:|:---:|:---:|
+| ![Home on Plex](site/assets/img/gallery/scr-home-plex.webp) | ![Home on Jellyfin](site/assets/img/gallery/scr-home-jellyfin.webp) | ![Home on Emby](site/assets/img/gallery/scr-home-emby.webp) | ![Home on Stremio](site/assets/img/gallery/scr-home-stremio.webp) |
 
 </div>
+
+**Every screen, built for a gamepad**
+
+<div align="center">
+
+| Movie detail | Series | Season |
+|:---:|:---:|:---:|
+| ![Movie detail](site/assets/img/gallery/scr-movie-plex.webp) | ![Series](site/assets/img/gallery/scr-series-jellyfin.webp) | ![Season](site/assets/img/gallery/scr-season-emby.webp) |
+| **Search** | **Genres** | **Quick actions** |
+| ![Search](site/assets/img/gallery/scr-search-stremio.webp) | ![Genres](site/assets/img/gallery/scr-genres-plex.webp) | ![Quick actions](site/assets/img/gallery/scr-quickactions-jellyfin.webp) |
+| **Offline downloads** | **Person page** | **Connection switcher** |
+| ![Downloads](site/assets/img/gallery/scr-downloads-emby.webp) | ![Person page](site/assets/img/gallery/plex-person.webp) | ![Connection switcher](site/assets/img/gallery/switcher.webp) |
+
+</div>
+
+> More shots — and a live gallery you can flip between servers — on the
+> [GMCA site](https://thcolin.github.io/gamepad-media-center-aggregator/#screens).
 
 ## Backends — one app, every server
 
@@ -51,15 +73,19 @@ Also runs on Windows, macOS, Linux and PS4.
 - **File servers** — no media server? Browse and play from **WebDAV, FTP, SFTP and HTTP(S)** shares,
   added straight from the UI with a connection test. USB drives too, on Switch.
 
-## Devices — built for the forgotten consoles
+The tabs are **capability-aware**: Watchlist, Favorites and Collections appear only on the servers that
+have them. Keep every server and profile side by side and hop between them from one avatar — the
+**connection switcher** never asks you to log in twice.
+
+## Devices — built for the screens you forgot
 
 - **Nintendo Switch** — native NRO on Atmosphère CFW; HOME-menu tile for full-memory playback;
   external USB drives via [libusbhsfs](https://github.com/DarkMatterCore/libusbhsfs).
-- **PS Vita** — a first-class VPK for jailbroken consoles (on [VitaDB](https://www.rinnegatamante.eu/vitadb/)).
-- **Raspberry Pi / Linux** — Flatpak (x86_64 / arm64v8) and an Arch package; a Pi on the TV with a
-  controller becomes a full media center.
-- **Desktop** — Windows, macOS and Linux builds.
-- **PS4** — homebrew PKG for jailbroken consoles (experimental).
+- **PS Vita** — a first-class VPK for jailbroken consoles (on [VitaDB](https://www.rinnegatamante.eu/vitadb/));
+  that OLED finally earns its keep again.
+- **Raspberry Pi on the TV** — a Flatpak (x86_64 / arm64v8) and an Arch package; a Pi wired to the
+  television plus any controller becomes a couch-ready media box.
+- **Desktop** — Windows, macOS and Linux builds; plug in a pad or drive it all from the keyboard.
 
 ## Features
 
@@ -70,8 +96,11 @@ Also runs on Windows, macOS, Linux and PS4.
 - **Rich detail pages** — full-bleed backdrop with title logo, cast with full **person pages**, related rows.
 - **Season pages** — artwork, episode count and synopsis, with one-tap **full-season download**.
 - **Quick actions on any poster** — press <kbd>X</kbd> (or long-press): go to show/season, mark watched, download.
+- **Per-server theming** — the accent follows the source: Plex amber, Jellyfin cyan, Emby green, Stremio violet.
+- **Connection switcher** — every server and account side by side; switch from one avatar, no re-login.
 - **Playback with MPV** — direct play and transcode (HLS), resume, chapters, external/embedded subtitles, audio tracks.
 - **Offline downloads** for playback without a connection (original quality).
+- **Native & fast** — compiled per platform, no Electron and no browser tab, even on nine-year-old silicon.
 - **Available in 14 languages.**
 
 > [!TIP]
