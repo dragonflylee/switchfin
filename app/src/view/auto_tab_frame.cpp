@@ -1093,8 +1093,9 @@ AutoSidebarItem::AutoSidebarItem() : Box(brls::Axis::ROW) {
             auto* sidebarBox = this->getParent();
             auto* frame = sidebarBox ? dynamic_cast<AutoTabFrame*>(sidebarBox->getParent()) : nullptr;
             if (this->active && frame && frame->hasDetailView()) {
-                brls::Application::giveFocus(frame->getTopDetailView());
-                return true;
+                // re-selecting the active tab returns to its root (library
+                // grid), popping any stacked detail page (fiche)
+                frame->clearDetailViews();
             }
             if (this->attachedView) brls::Application::giveFocus(this->attachedView);
             return true;
@@ -1103,7 +1104,20 @@ AutoSidebarItem::AutoSidebarItem() : Box(brls::Axis::ROW) {
 
     this->addGestureRecognizer(
         new brls::TapGestureRecognizer([this](brls::TapGestureStatus status, brls::Sound* soundToPlay) {
-            if (this->active) return;
+            if (this->active) {
+                // clicking the already-active tab returns to its root: pop any
+                // stacked detail page (fiche) back to the library grid
+                if (status.state == brls::GestureState::END) {
+                    auto* sidebarBox = this->getParent();
+                    auto* frame = sidebarBox ? dynamic_cast<AutoTabFrame*>(sidebarBox->getParent()) : nullptr;
+                    if (frame && frame->hasDetailView()) {
+                        *soundToPlay = brls::SOUND_CLICK_SIDEBAR;
+                        frame->clearDetailViews();
+                        if (this->attachedView) brls::Application::giveFocus(this->attachedView);
+                    }
+                }
+                return;
+            }
 
             this->playClickAnimation(status.state != brls::GestureState::UNSURE);
 

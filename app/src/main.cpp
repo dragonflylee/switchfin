@@ -2,6 +2,9 @@
 
 #include "utils/config.hpp"
 #include "utils/download.hpp"
+#include "utils/offline_library.hpp"
+#include "utils/image_cache.hpp"
+#include "utils/network_state.hpp"
 #include "utils/thread.hpp"
 
 #include "view/svg_image.hpp"
@@ -129,7 +132,9 @@ int main(int argc, char* argv[]) {
     // and captures stay in sync (the default 5 FPS idle throttle desyncs them).
     if (std::getenv("GMCA_NAV_PIPE")) brls::Application::setDeactivatedFPS(60);
 
+    ImageCache::init();
     DownloadManager::instance().init();
+    OfflineLibrary::instance().init();
 
     // Return directly to the desktop when closing the application (only for NX)
     brls::Application::getPlatform()->exitToHomeMode(true);
@@ -186,6 +191,14 @@ int main(int argc, char* argv[]) {
 #if defined(__SWITCH__) && defined(BUILTIN_NSP)
                     proposeForwarderInstall();
 #endif
+                } else if (!OfflineLibrary::instance().empty() ||
+                           !AppConfig::instance().getServers().empty()) {
+                    // a server is remembered (just unreachable) and/or downloads
+                    // exist: enter the offline shell (browse downloads + a Retry
+                    // to reconnect) instead of the server picker (SPEC §4.4).
+                    // A fresh install with no server still goes to ServerList.
+                    NetworkState::setOffline(true);
+                    brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
                 } else {
                     brls::Application::pushActivity(new ServerList(), brls::TransitionAnimation::NONE);
                 }

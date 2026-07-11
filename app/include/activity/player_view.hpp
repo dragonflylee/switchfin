@@ -40,8 +40,19 @@ private:
     void setChapters(const std::vector<plex::Chapter>& chaps, int64_t durationMs);
     /// Fetches fresh metadata then resolves the playback URL via the backend
     void playMedia(const int64_t seekMs);
-    /// Resolves the playback URL (direct/transcode) through the active backend
-    void startPlayback(const int64_t seekMs);
+    /// Resolves the playback URL through the active backend (resolvePlayback,
+    /// which decides direct vs transcode internally). forceDirect bypasses
+    /// transcoding for the direct-play fallback after a transcode playback error
+    /// (helps the Vita hardware decoder, which can choke on the transcoded stream).
+    void startPlayback(const int64_t seekMs, bool forceDirect = false);
+    /// Tears the current Plex transcode session down server-side (no-op for
+    /// direct play or non-Plex backends). Fire-and-forget; safe to call after
+    /// `this` is gone.
+    void stopTranscode();
+    /// On a transcode playback error, retry once in direct play (helps Vita,
+    /// where the hardware decoder can choke on the transcoded stream). Returns
+    /// true when a fallback was started (so the error dialog is suppressed).
+    bool tryDirectPlayFallback();
     bool playIndex(int index);
     /// POST /:/timeline report (time/duration in ms)
     void reportTimeline(const std::string& state, int64_t timeMs);
@@ -56,12 +67,19 @@ private:
     std::string playMethod;
     /// stable play-session id for the whole playback session
     std::string sessionId;
+    /// Plex universal-transcoder session, extracted from the resolved transcode
+    /// URL so stopTranscode() can free it server-side. Empty for direct play or
+    /// non-Plex backends. Regenerated (by the backend) on every (re)start.
+    std::string transcodeSession;
     plex::Item item;     // fresh metadata (media/chapters/markers)
     plex::Media stream;  // selected version
     /// caller-chosen source index (Stremio picker); -1 = first accessible.
     /// Reset to -1 on episode switch so binge auto-picks the best source.
     int preferredVersion = -1;
     bool scrobbled = false;
+    /// guards tryDirectPlayFallback so a failing stream falls back at most once
+    /// per (re)load; reset by playMedia on every deliberate (re)start
+    bool directPlayFallback = false;
     std::vector<plex::Item> episodes;
 
     MPVEvent::Subscription eventSubscribeID;

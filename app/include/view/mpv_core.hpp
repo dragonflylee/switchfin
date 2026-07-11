@@ -55,6 +55,10 @@ public:
 
     std::string getCacheSpeed() const;
 
+    /// Human-readable string for the last file error (mpv_error_string), or ""
+    /// when there was none. Shown in the playback-error dialog for bug reports.
+    std::string getError() const;
+
     void setUrl(const std::string &url, const std::string &extra = "", const std::string &method = "replace",
         uint64_t userdata = 0);
 
@@ -113,6 +117,9 @@ public:
     int64_t volume = 0;
     double video_speed = 0;
     double playback_time = 0;
+    /// mpv error code of the last MPV_END_FILE_REASON_ERROR (0 = none). Kept so
+    /// the OSD/error dialog can surface a concrete reason for bug reports.
+    int last_error = 0;
 
     inline static bool DEBUG = false;
 

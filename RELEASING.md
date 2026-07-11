@@ -48,6 +48,28 @@ fails the build instead of shipping a broken release:
    `upload-release` succeeds, the GitHub release is published and the AUR
    `pkgver` is derived automatically from the tag. Nothing else to do.
 
+## Store listings
+
+pleNx is listed on the two console homebrew stores. Users who installed through
+a store expect updates from it, so keep the listings in sync — otherwise they
+get stuck on (or are offered) an old version.
+
+- **Switch — Homebrew App Store (ForTheUsers).** Fully automated: ForTheUsers'
+  `update-checker` bot watches this repo's GitHub releases and opens a PR to
+  [`fortheusers/switch-hbas-repo`](https://github.com/fortheusers/switch-hbas-repo)
+  (`packages/pleNx/pkgbuild.json`) for every new tag. Nothing to build on our
+  side — the PR just has to be merged by ForTheUsers. If the store lags, check
+  the open `[auto] Update pleNx to X.Y.Z` PRs there and ping them to merge.
+
+- **Vita — VitaDB.** Not automatable: VitaDB updates are moderator/role-gated
+  (no self-service API). pleNx is entry **#1411**. After a release, update that
+  entry to the new version so its daemon does not offer VitaDB users an outdated
+  build (the "downgrade" prompt reported in issue #14). Best long-term fix: ask
+  the VitaDB maintainer to point the entry's `url` at the stable permalink
+  `https://github.com/thcolin/pleNx/releases/latest/download/pleNx.vpk`, which
+  always resolves to the newest asset. Note that pleNx also self-updates in-app
+  on Vita since v0.1.14, so users who stay on that channel are unaffected.
+
 ## Notes
 
 - The default/main branch is `dev`.

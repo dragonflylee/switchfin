@@ -16,7 +16,9 @@ class IconButton;
 
 class MediaMovie : public brls::Box, public Presenter {
 public:
-    MediaMovie(const plex::Item& item);
+    /// localContext = opened from the offline downloads area (render locally
+    /// even when a server is reachable, SPEC AC6)
+    MediaMovie(const plex::Item& item, bool localContext = false);
     ~MediaMovie() override;
 
 private:
@@ -49,6 +51,9 @@ private:
 
     void doRequest() override;
     void doMovie();
+    /// renders the fiche from an Item — shared by the server and local-catalog
+    /// (offline / downloaded) paths
+    void applyMovie(const media::Item& item);
     void doRelated();
     void updateDownloadButton();
     /// Builds the inline Stremio source list (one row per source) and wires the
@@ -72,6 +77,7 @@ private:
     bool hasPlayableSource = false;
     brls::View* firstSourceRow = nullptr;  // default focus target (Stremio release list)
     media::Item listItem;  // item backing the personal-list (watchlist/favorite) button
+    bool localContext = false;  // opened from the offline downloads area
     bool watchlisted = false;
     /// selected version (item.media[]) — no effect in v1 (playback = first
     /// accessible version, cf. activity/player_view.cpp)

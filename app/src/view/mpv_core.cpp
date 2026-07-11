@@ -527,6 +527,11 @@ void MPVCore::draw(brls::Rect area, float alpha) {
 #endif
 }
 
+std::string MPVCore::getError() const {
+    if (this->last_error == 0) return "";
+    return fmt::format("mpv {}: {}", this->last_error, mpv_error_string(this->last_error));
+}
+
 std::string MPVCore::getCacheSpeed() const {
     if (cache_speed >> 20 > 0) {
         return fmt::format("{:.2f} MB/s", (cache_speed >> 10) / 1024.0f);
@@ -586,6 +591,7 @@ void MPVCore::eventMainLoop() {
             this->video_stopped = true;
             auto node = (mpv_event_end_file *)event->data;
             if (node->reason == MPV_END_FILE_REASON_ERROR) {
+                this->last_error = node->error;
                 brls::Logger::error("MPVCore => FILE ERROR: {}", mpv_error_string(node->error));
                 this->stop();
                 mpvCoreEvent.fire(MpvEventEnum::MPV_FILE_ERROR);

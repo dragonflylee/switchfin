@@ -131,6 +131,9 @@ const std::string_view apiTranscodeStart = "/video/:/transcode/universal/start?{
 /// Best-effort / UNVERIFIED against a live server (see backend.cpp resolvePlayback).
 const std::string_view apiMusicTranscodeDecision = "/music/:/transcode/universal/decision?{}";
 const std::string_view apiMusicTranscodeStart = "/music/:/transcode/universal/start.mp3?{}";
+/// Tears a transcode session down server-side (frees the transcoder). Must be
+/// called on every (re)start and on player exit or sessions pile up orphaned.
+const std::string_view apiTranscodeStop = "/video/:/transcode/universal/stop?{}";
 const std::string_view apiPartIndexes = "/library/parts/{}/indexes/sd";
 
 /// Numeric types (`type=` parameter) — Plex-specific encoding

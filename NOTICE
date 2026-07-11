@@ -1,0 +1,33 @@
+pleNx
+Copyright 2026 thcolin
+
+This product includes software developed as part of the Switchfin project
+(https://github.com/dragonflylee/switchfin), licensed under the Apache License,
+Version 2.0.
+
+Third-party components
+======================
+
+miniz (library/miniz/)
+  Public domain / MIT, by Rich Geldreich et al.
+  https://github.com/richgel999/miniz — see library/miniz/LICENSE.
+
+PS Vita in-app self-update (app/src/utils/vita_install.cpp, issue #14)
+  The technique used to install a homebrew VPK from within the app — forging a
+  self-signed fake-package "head.bin" and promoting the extracted directory with
+  ScePromoterUtility — is the de-facto interoperability standard shared by every
+  PS Vita homebrew installer, originating from the HENkaku / molecularShell
+  lineage. The canonical reference implementation is VitaShell by TheOfficialFloW
+  (https://github.com/TheOfficialFloW/VitaShell), licensed under the GNU General
+  Public License v3.0.
+
+  The C++ in vita_install.cpp is an independent reimplementation. The fake-package
+  header template embedded in app/src/utils/vita_head_bin.h is copied verbatim
+  from VitaShell's resources/head.bin (a fixed functional artifact the patched
+  system promoter requires; sha256
+  cbb88299319048e19115a1fc9c76b04e33745291749de0e08963b9b425623f45).
+
+  The PS Vita build links a GPL build of libmpv, so the distributed pleNx.vpk is
+  already a GPL combined work; reusing this GPLv3-derived material in that binary
+  is licence-compatible. This attribution is provided in recognition of that
+  origin.

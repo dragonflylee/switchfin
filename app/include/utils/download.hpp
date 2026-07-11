@@ -57,6 +57,8 @@ public:
     void addDownload(const media::Item& item, const std::string& partKey);
     void cancelDownload(const std::string& itemId);
     void removeDownload(const std::string& itemId);
+    /// Re-queues a failed download (keeps its metadata/partKey).
+    void retryDownload(const std::string& itemId);
     void resumeQueue();
 
     bool isDownloaded(const std::string& itemId) const;
@@ -76,6 +78,13 @@ private:
     void loadIndex();
     void processQueue();
     void doDownload(DownloadItem& item);
+    /// Captures the full fiche + ancestors (season/show) + the season's full
+    /// episode list + artwork into OfflineLibrary/ImageCache so the item is
+    /// browsable offline (SPEC §4.1). Runs on the download worker thread,
+    /// SYNCHRONOUSLY and serially on the queue worker — one capture at a time,
+    /// a simplicity choice (not a concurrency requirement: the shared curl DNS
+    /// cache is lock-guarded, http.cpp).
+    void captureOfflineSync(const std::string& itemId);
     std::string downloadDir() const;
     std::string buildDownloadUrl(const DownloadItem& item) const;
 

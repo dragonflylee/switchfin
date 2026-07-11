@@ -60,6 +60,10 @@ public:
     void registerVideoQuality(brls::ActionListener action);
     void registerVideoSubtitle(brls::ActionListener action);
     void registerVideoAudio(brls::ActionListener action);
+    /// Optional hook fired on MPV_FILE_ERROR. If it returns true the error is
+    /// considered handled (e.g. PlayerView fell back to direct play) and no
+    /// error dialog is shown. Unset for local/remote players -> dialog as before.
+    void registerError(brls::ActionListener action);
     void registerActions(const std::string& hintText, const brls::ControllerButton button,
         const brls::BrlsKeyCombination key, const brls::ActionListener& actionListener, bool hidden = false,
         bool allowRepeating = false);
@@ -148,6 +152,9 @@ private:
     const brls::Time OSD_SHOW_TIME = 5000000;  //默认5秒
     OSDState osdState = OSDState::HIDDEN;
     VideoProfile* profile;
+
+    /// fired on MPV_FILE_ERROR; returning true suppresses the error dialog
+    brls::ActionListener errorAction = nullptr;
 
     int64_t seekingRange = 0;
     size_t seekingIter = 0;

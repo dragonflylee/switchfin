@@ -409,6 +409,17 @@ media::PlaybackSource PlexBackend::resolvePlayback(
                     "videoCodec={}&audioCodec=aac,ac3,mp3&replace=true)",
             opts.videoCodec),
     };
+#if defined(__PSV__)
+    // The Vita hardware H.264 decoder tops out at 1080p (scripts/vita/ffmpeg
+    // patch). The bitrate cap alone lets a >1080p source through at higher
+    // qualities (verified: 8 Mbps keeps 1080p, and a 4K source would stay 4K),
+    // which the decoder then cannot handle -> playback error. Cap the height so
+    // the transcode never exceeds what the decoder can play. Re-homed here from
+    // player_view's old playTranscode when transcode construction moved into the
+    // backend during the multi-backend merge (guards the issue #14 Vita path).
+    clauses.push_back(
+        "add-limitation(scope=videoCodec&scopeName=*&type=upperBound&name=video.height&value=1080&replace=true)");
+#endif
     std::string profile;
     for (auto& clause : clauses) {
         HTTP::Form one = {{"p", clause}};

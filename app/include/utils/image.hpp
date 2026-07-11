@@ -4,6 +4,7 @@
 #include "api/http.hpp"
 #include "api/backend.hpp"
 #include "config.hpp"
+#include "image_cache.hpp"
 
 class Image {
     using Ref = std::shared_ptr<Image>;
@@ -19,6 +20,13 @@ public:
     /// (PLEX_MIGRATION.md §2.5).
     static void load(brls::Image* view, const std::string& path, int width = 0, int height = 0) {
         if (path.empty()) return;
+        // offline cache wins: a locally cached asset renders without the server
+        // and gives downloaded content instant local artwork even online
+        // (SPEC §4.2, AC6/AC17). Keyed by the raw path/url passed here.
+        if (ImageCache::has(path)) {
+            view->setImageFromFile(ImageCache::localPath(path));
+            return;
+        }
         // backend-specific URL building (Plex /photo/:/transcode, Jellyfin /Images...);
         // absolute external paths (cast faces...) are returned unchanged by the backend
         std::string url = AppConfig::instance().backend().imageUrl(path, width, height);

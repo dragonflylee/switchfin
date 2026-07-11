@@ -1,6 +1,7 @@
 name: vita-packages
 
 on:
+  workflow_dispatch:
   push:
     tags: [ vita-packages ]
     branches: [ gxm, mpv ]
@@ -20,21 +21,20 @@ jobs:
     - name: Install dependency
       run: |
         apk add ninja meson tar patch
-    - name: Build packages
+    - name: Build curl
       run: |
+        # Only curl is customized in this fork (ENABLE_THREADED_RESOLVER=ON, see
+        # scripts/vita/curl); the other Vita deps stay on the upstream
+        # vita-packages release. curl links mbedtls + zlib at build time — zlib
+        # ships with vitasdk, so install just the upstream mbedtls package, then
+        # build curl as an unprivileged user (vita-makepkg refuses to run as root).
+        wget https://github.com/dragonflylee/switchfin/releases/download/vita-packages/mbedtls-3.6.5-1-arm.tar.xz
+        vdpm mbedtls-3.6.5-1-arm.tar.xz
+
         adduser --gecos '' --home ${GITHUB_WORKSPACE}/scripts/vita --disabled-password builder
         echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder
         chown -R builder:builder scripts/vita
 
-        su - builder -c "cd mbedtls && vita-makepkg"
-        vdpm $PWD/scripts/vita/mbedtls/*-arm.tar.xz
-        touch /tmp/vdpm_install_mbedtls
-
-        su - builder -c "cd ffmpeg && vita-makepkg"
-        vdpm $PWD/scripts/vita/ffmpeg/*-arm.tar.xz
-        touch /tmp/vdpm_install_ffmpeg
-
-        su - builder -c "cd mpv && vita-makepkg"
         su - builder -c "cd curl && vita-makepkg"
 
     - name: Upload packages
@@ -43,6 +43,9 @@ jobs:
         name: vita-packages
         tag_name: vita-packages
         prerelease: true
-        files: scripts/vita/*/*-arm.tar.xz
+        files: scripts/vita/curl/*-arm.tar.xz
         body: |
+          curl rebuilt with `ENABLE_THREADED_RESOLVER=ON` so the PS Vita can
+          apply DNS timeouts (async resolver) instead of stalling on hostnames.
+
           ![download](https://img.shields.io/github/downloads/${{ github.repository }}/vita-packages/total?label=Downloads)

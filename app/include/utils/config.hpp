@@ -235,6 +235,13 @@ public:
     void addRemote(const AppRemote& r);
     void updateRemote(size_t index, const AppRemote& r);
     void removeRemote(size_t index);
+
+    /// Local folders pinned to the Files root screen (issue #24). Stored as
+    /// absolute browser paths (e.g. "sdmc:/A_Media/").
+    const std::vector<std::string>& getPins() const { return this->pins; }
+    bool isPinned(const std::string& path) const;
+    void addPin(const std::string& path);
+    void removePin(const std::string& path);
     const std::vector<AppServer>& getServers() const { return this->servers; }
     const std::vector<AppUser> getUsers(const std::string& id) const;
     /// All known connections (one AppUser = one server+profile pair).
@@ -243,7 +250,7 @@ public:
     /// Public so the connection switcher can tint each tile by its backend brand.
     static media::BackendType backendTypeFromString(const std::string& type);
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AppConfig, user_id, device, users, servers, setting, remotes);
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AppConfig, user_id, device, users, servers, setting, remotes, pins);
 
     inline static bool SYNC = true;
 
@@ -267,6 +274,7 @@ private:
     std::vector<AppUser> users;
     std::vector<AppServer> servers;
     std::vector<AppRemote> remotes;
+    std::vector<std::string> pins;
     nlohmann::json setting = {};
 
     void addColor(const brls::ThemeVariant tv, const std::string& name, NVGcolor defaultColor);

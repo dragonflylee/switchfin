@@ -89,16 +89,17 @@ static std::string user_agent =
 /// est utilisé par des easy handles répartis sur plusieurs threads. Sans eux, les accès
 /// concurrents corrompent la hash table du cache DNS (SIGABRT dans Curl_hash_delete /
 /// Curl_resolv). Un mutex exclusif par type de donnée suffit : la section critique se
-/// limite à la lecture/écriture du cache, les requêtes restent parallèles.
+/// limite à la lecture/écriture du cache, les requêtes restent parallèles. Le garde
+/// `data < CURL_LOCK_DATA_LAST` protège contre un index hors bornes.
 static std::mutex share_locks[CURL_LOCK_DATA_LAST];
 
 static void curl_share_lock_cb(CURL* /*handle*/, curl_lock_data data, curl_lock_access /*access*/,
                                void* /*userptr*/) {
-    share_locks[data].lock();
+    if (data < CURL_LOCK_DATA_LAST) share_locks[data].lock();
 }
 
 static void curl_share_unlock_cb(CURL* /*handle*/, curl_lock_data data, void* /*userptr*/) {
-    share_locks[data].unlock();
+    if (data < CURL_LOCK_DATA_LAST) share_locks[data].unlock();
 }
 
 /// @brief curl context
@@ -141,6 +142,13 @@ HTTP::HTTP() : chunk(nullptr) {
     curl_easy_setopt(this->easy, CURLOPT_VERBOSE, 0L);
     curl_easy_setopt(this->easy, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(this->easy, CURLOPT_SSL_VERIFYHOST, 0L);
+    // Every request runs from a background thread (ThreadPool / brls::async), so
+    // libcurl must never reach for SIGALRM to time out a name resolve — signals
+    // only work on the main thread and are unsafe multi-threaded (curl docs:
+    // "libcurl cannot function properly multi-threaded unless CURLOPT_NOSIGNAL
+    // is set"). With NOSIGNAL, DNS timeouts rely solely on the async (threaded)
+    // resolver, which is why the Vita curl build must enable it.
+    curl_easy_setopt(this->easy, CURLOPT_NOSIGNAL, 1L);
 #if LIBCURL_VERSION_NUM >= 0x071900 && !defined(__PS4__)
     curl_easy_setopt(this->easy, CURLOPT_TCP_KEEPALIVE, 1L);
 #endif

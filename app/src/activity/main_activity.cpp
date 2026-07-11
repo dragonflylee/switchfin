@@ -6,6 +6,9 @@
 #include "tab/media_collection.hpp"
 #include "utils/image.hpp"
 #include "utils/config.hpp"
+#include "tab/offline_collection.hpp"
+#include "utils/offline_library.hpp"
+#include "utils/network_state.hpp"
 #include "api/plex.hpp"
 #include "api/backend.hpp"
 #include <borealis/views/bottom_bar.hpp>
@@ -141,6 +144,12 @@ void MainTabFrame::applyCapabilities() {
 brls::View* MainTabFrame::create() { return new MainTabFrame(); }
 
 void MainTabFrame::loadLibraries() {
+    // offline: no server to query — build the library tabs from the catalog
+    if (NetworkState::isOffline()) {
+        this->addOfflineLibraryTabs();
+        return;
+    }
+
     ASYNC_RETAIN
     // libraries / catalogs -> sidebar tabs
     AppConfig::instance().backend().listSections(
@@ -371,4 +380,24 @@ std::vector<MainTabFrame::SidebarEntry> MainTabFrame::getReorderableEntries() {
         out.push_back(e);
     }
     return out;
+}
+
+void MainTabFrame::addOfflineLibraryTabs() {
+    if (this->librariesLoaded) return;
+    this->librariesLoaded = true;
+
+    size_t position = 1;
+    for (auto& s : OfflineLibrary::instance().sections()) {
+        auto* item = new AutoSidebarItem();
+        item->setTabStyle(AutoTabBarStyle::ACCENT);
+        if (s.type == plex::mediaTypeShow) {
+            item->applyXMLAttribute("icon", "@res/icon/ico-tv.svg");
+            item->applyXMLAttribute("iconActivate", "@res/icon/ico-tv-activate.svg");
+        } else {
+            item->applyXMLAttribute("icon", "@res/icon/ico-movie.svg");
+            item->applyXMLAttribute("iconActivate", "@res/icon/ico-movie-activate.svg");
+        }
+        std::string key = s.key;
+        this->addTab(item, [key]() { return new OfflineCollection(key); }, position++);
+    }
 }

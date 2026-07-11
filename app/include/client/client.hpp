@@ -2,6 +2,7 @@
 
 #include <utils/config.hpp>
 #include <api/http.hpp>
+#include <client/dir_entry.hpp>
 
 namespace remote {
 
@@ -11,29 +12,6 @@ public:
     const char* what() const noexcept override { return m.c_str(); }
 private:
     std::string m;
-};
-
-enum class EntryType {
-    FILE,
-    DIR,
-    DEVICE,
-    VIDEO,
-    AUDIO,
-    IMAGE,
-    PLAYLIST,
-    SUBTITLE,
-    TEXT,
-    UP,
-};
-
-struct DirEntry {
-    EntryType type;
-    std::string name;
-    std::string path;
-    uint64_t fileSize;
-    std::tm modified;
-
-    const std::string& url() const { return this->path; }
 };
 
 class Client {

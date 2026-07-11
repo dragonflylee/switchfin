@@ -32,6 +32,11 @@ private:
     bool restoreFocus = false;
 
     LoadingSpinner* spinner = nullptr;  // centered overlay while hubs load
+    // offline empty state: added to the tab root (definite height) with the
+    // scroll hidden, so it centers — a grow child of the scroll content would
+    // be measured with an indefinite height and stay top-aligned
+    brls::View* offlineEmpty = nullptr;
 
     BRLS_BIND(brls::Box, boxHome, "home/box");
+    BRLS_BIND(brls::ScrollingFrame, scroll, "home/scroll");
 };

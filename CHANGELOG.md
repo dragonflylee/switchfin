@@ -9,6 +9,122 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [0.1.15] - 2026-07-11
+
+### Offline downloads (#19)
+
+- **Browse your downloads with no connection, just like online.** Downloaded
+  movies and shows now get a full local catalogue: their complete fiche
+  (summary, genres, ratings, cast) plus poster, backdrop, logo and cast photos
+  are cached to disk at download time, so a downloaded title renders offline
+  exactly as it does against the server. Shows keep their season/episode
+  structure — the season lists every episode, and episodes you did not download
+  are greyed out and not playable.
+- **A real offline mode.** When the server is unreachable at launch and you have
+  downloads, pleNx now opens straight into an offline shell — sidebar, home rows
+  and library grids built from the local catalogue — instead of the server
+  picker. A **Retry** affordance reconnects you when the server is back.
+- **Offline Search** looks through your local catalogue; **Watchlist** and
+  **Playlists** show a clear "unavailable offline" state. Deleting a download
+  prunes its catalogue entry and cached artwork (cascade).
+- The downloaded fiche is preferred even while online, so opening a downloaded
+  title is instant and plays the local file.
+
+### Files
+
+- **Sort folder listings** (#23) — a Y "Sort" panel orders any local/remote
+  folder by name, date or size (ascending/descending); ".." stays first and
+  folders always sort above files.
+- **Pin local folders** (#24) — pin the focused folder to the Files root
+  (X / F4) for one-tap access; pins persist in `config.json`. The home folder is
+  now exposed on macOS/Linux.
+
+### Blu-ray
+
+- **Play Blu-ray/BDMV folder backups from local storage** (#18): a folder
+  holding a `BDMV/STREAM` backup now offers a "Play Blu-ray" entry at the top of
+  its listing.
+
+### Bug fixes
+
+- **Downloads tab** — the Storage card now scrolls with the list (it was a
+  pinned header that also crashed the offline Files tab); failed downloads can
+  be retried; the "Downloaded" button is actionable; cards show a downloaded
+  badge; the scroll indicator sits flush with the window edge.
+- **File browser** — dropped an oversized loading-skeleton flash when changing
+  folders.
+- **Consistent placeholders** — fiche posters (movie/series/season) and episode
+  thumbnails without artwork now show the media icon instead of an empty
+  rectangle, and episode cards keep their size (no collapsed focus halo).
+- Lock callbacks on the shared curl DNS cache — fixes a latent concurrent crash.
+- New i18n keys added across all 14 languages.
+
+## [0.1.14] - 2026-07-05
+
+### PS Vita
+
+- **The in-app updater now installs the new version directly instead of opening
+  a broken browser page.** When an update was available, the Vita opened the
+  GitHub release page in the system browser — a page its ageing WebKit cannot
+  render, so it hung and the download never showed up. The Vita now self-updates
+  in place like the Switch does: it downloads the VPK, unpacks it and installs
+  it through the system package installer, then drops you back to the LiveArea to
+  relaunch the updated bubble. (The VitaDB "downgrade to 0.1.4" prompt reported
+  alongside this is a stale VitaDB store entry, not a pleNx bug; see
+  `RELEASING.md`.)
+
+## [0.1.13] - 2026-07-03
+
+### Interface
+
+- **Series and movie logos no longer smear.** The transparent title logos on
+  detail pages are drawn in "fit" mode, so the image is smaller than its box
+  and sits letterboxed inside it. The empty area around it was still being
+  painted with the image, which sampled outside the texture and — because edge
+  pixels are clamped — dragged vertical streaks down from every shape. The
+  image now fills only its own fitted area, so logos render cleanly. Affects
+  every platform (the fix is in the shared image renderer).
+
+## [0.1.12] - 2026-07-03
+
+### Player
+
+- **Changing the audio or subtitle track no longer stops playback with a
+  "playback error" on PS Vita.** In transcode mode a track change reloads the
+  stream, but the reload happened in place and never released the hardware
+  decoder, so it stalled and then failed. The reload now resets the player
+  first (like episode navigation) and tears the previous transcode session
+  down on the server instead of leaving it orphaned.
+- **Audio and subtitle tracks are now selectable during local playback from
+  the file browser.** The player showed the track buttons but had no handler
+  wired, so they appeared to do nothing.
+- **A failed transcode now falls back to direct play once**, instead of going
+  straight to an error — a smoother recovery on constrained hardware.
+- **Playback errors now show the underlying mpv reason** (e.g. "unrecognized
+  file format") instead of a bare "playback error", making bug reports
+  actionable.
+
+### Fixes
+
+- **PS Vita: the transcoder height is capped at 1080p**, the hardware decoder's
+  limit, so a 4K source at a high bitrate no longer produces a stream the Vita
+  cannot decode.
+
+## [0.1.11] - 2026-07-03
+
+### Fixes
+
+- **PS Vita: servers reached by a hostname no longer stall with an endless
+  "timeout reached".** libcurl was built with the synchronous name resolver, so
+  a DNS lookup issued from a background thread could not be bounded by any
+  timeout — the synchronous resolver can only abort a slow `getaddrinfo()` via
+  `SIGALRM`, which libcurl arms on the main thread alone. A slow-to-resolve
+  hostname (e.g. a duckdns address) therefore hung every request indefinitely,
+  and raising the request-timeout setting had no effect; only a raw LAN IP,
+  which skips name resolution, worked. curl is now built with the threaded
+  resolver so lookups run in a worker thread the timeout can abandon, and
+  `CURLOPT_NOSIGNAL` keeps libcurl off signals on its background threads.
+
 ## [0.1.10] - 2026-06-15
 
 ### Fixes

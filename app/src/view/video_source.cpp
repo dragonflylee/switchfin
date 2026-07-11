@@ -9,7 +9,11 @@
 #include "tab/playlist_view.hpp"
 #include "tab/hub_view.hpp"
 #include "view/music_now_playing.hpp"
+#include "tab/remote_view.hpp"
 #include "utils/misc.hpp"
+#include "utils/download.hpp"
+#include "utils/media_source.hpp"
+#include "utils/offline_library.hpp"
 #include "view/svg_image.hpp"
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
@@ -147,6 +151,17 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
                   (item.type == plex::mediaTypePlaylist && item.playlistType == "audio"));
     cell->setPlayOverlay(plays);
     cell->updateActionHint(brls::BUTTON_A, plays ? "main/media/play"_i18n : "main/media/open"_i18n);
+
+    // "downloaded" badge: leaves (movie/episode/clip) by file presence,
+    // shows/seasons by catalog membership (persisted iff a child is downloaded)
+    bool downloaded = false;
+    if (item.type == plex::mediaTypeMovie || item.type == plex::mediaTypeEpisode ||
+        item.type == plex::mediaTypeClip)
+        downloaded = DownloadManager::instance().isDownloaded(item.ratingKey);
+    else if (item.type == plex::mediaTypeShow || item.type == plex::mediaTypeSeason)
+        downloaded = OfflineLibrary::instance().hasItem(item.ratingKey);
+    cell->badgeDownload->setVisibility(downloaded ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
+
     return cell;
 }
 
@@ -158,17 +173,27 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
     auto& item = this->list.at(index);
 
     if (item.type == plex::mediaTypeShow) {
-        ui::presentDetail(recycler, new MediaSeries(item));
+        ui::presentDetail(recycler, new MediaSeries(item, this->localContext));
     } else if (item.type == plex::mediaTypeMovie) {
-        ui::presentDetail(recycler, new MediaMovie(item));
+        ui::presentDetail(recycler, new MediaMovie(item, this->localContext));
     } else if (item.type == plex::mediaTypeSeason) {
-        ui::presentDetail(recycler, new MediaSeries(item));
+        ui::presentDetail(recycler, new MediaSeries(item, this->localContext));
     } else if (item.type == plex::mediaTypeCollection) {
         ui::presentDetail(recycler, new MediaCollection(item.ratingKey, plex::mediaTypeCollection));
     } else if (item.type == plex::mediaTypeClip) {
         PlayerView* view = new PlayerView(item);
         view->setTitie(item.year ? fmt::format("{} ({})", item.title, item.year) : item.title);
     } else if (item.type == plex::mediaTypeEpisode) {
+        // downloads area / offline: play the local file; ONLINE library keeps
+        // streaming from the server (no online regression)
+        auto& dm = DownloadManager::instance();
+        std::string local = media::preferLocal(this->localContext) && dm.isDownloaded(item.ratingKey)
+                                ? dm.getLocalPath(item.ratingKey)
+                                : "";
+        if (!local.empty()) {
+            RemoteView::play(local, fmt::format("S{}E{} - {}", item.parentIndex, item.index, item.title), "Local");
+            return;
+        }
         PlayerView* view = new PlayerView(item);
         view->setTitie(fmt::format("S{}E{} - {}", item.parentIndex, item.index, item.title));
         if (!item.grandparentRatingKey.empty()) view->setSeries(item.grandparentRatingKey);

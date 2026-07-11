@@ -93,6 +93,9 @@ std::vector<DirEntry> Webdav::list(const std::string& path) {
                     if (timeStr) {
                         std::stringstream ss(timeStr);
                         ss >> std::get_time(&item.modified, "%a, %d %b %Y %H:%M:%S %Z");
+                        // sortable timestamp for the "Date" order (issue #23);
+                        // interpreted consistently across this listing
+                        if (!ss.fail()) item.mtime = (uint64_t)std::mktime(&item.modified);
                     }
                 }
             }

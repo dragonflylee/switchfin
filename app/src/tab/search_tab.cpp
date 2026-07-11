@@ -10,6 +10,8 @@
 #include "tab/search_result.hpp"
 #include "utils/dialog.hpp"
 #include "utils/keybind.hpp"
+#include "utils/network_state.hpp"
+#include "utils/offline_library.hpp"
 #include "api/plex.hpp"
 #include "api/backend.hpp"
 #include <fstream>
@@ -319,10 +321,31 @@ void SearchTab::buildHistoryChips() {
 void SearchTab::launchSearch() {
     if (this->currentSearch.empty()) return;
     this->history->append(this->currentSearch);
+    // offline: the paginated results page (SearchResult) is server-backed —
+    // the in-tab grid already shows the local matches, so just refresh it
+    if (NetworkState::isOffline()) {
+        this->updateInput();
+        return;
+    }
     this->present(new SearchResult(this->currentSearch));
 }
 
 void SearchTab::doSuggest() {
+    // offline: the server suggestions (recentlyAdded) are unavailable — seed
+    // the grid with the whole downloaded catalog instead (SPEC §4.4)
+    if (NetworkState::isOffline()) {
+        auto items = OfflineLibrary::instance().search("");
+        if (items.empty()) {
+            this->searchSuggest->setEmpty(
+                "main/download/offline_title"_i18n, "main/download/offline_sub"_i18n, "icon/ico-cloud.svg");
+            return;
+        }
+        auto* ds = new VideoDataSource(items);
+        ds->setLocalContext(true);
+        this->searchSuggest->setDataSource(ds);
+        return;
+    }
+
     ASYNC_RETAIN
     AppConfig::instance().backend().getRecentlyAdded(0, 24,
         [ASYNC_TOKEN](const media::Container<media::Item>& r) {
@@ -337,6 +360,21 @@ void SearchTab::doSuggest() {
 }
 
 void SearchTab::doSearch(const std::string& searchTerm) {
+    // offline: search the local catalog (title contains, case-insensitive)
+    // instead of the server (SPEC §4.4)
+    if (NetworkState::isOffline()) {
+        auto items = OfflineLibrary::instance().search(searchTerm);
+        if (items.empty()) {
+            this->searchSuggest->setEmpty(
+                "main/search/no_results"_i18n, "main/search/no_results_sub"_i18n, "icon/ico-search.svg");
+        } else {
+            auto* ds = new VideoDataSource(items);
+            ds->setLocalContext(true);
+            this->searchSuggest->setDataSource(ds);
+        }
+        return;
+    }
+
     ASYNC_RETAIN
     // a single page: search does not paginate reliably
     AppConfig::instance().backend().search(searchTerm, media::MediaKind::Any, 40,
