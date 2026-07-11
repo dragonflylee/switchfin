@@ -15,9 +15,9 @@ public:
 
     virtual ~Image();
 
-    /// Loads an image from the Plex server given a relative path (thumb/art...).
-    /// width/height > 0 -> server-side resize via /photo/:/transcode
-    /// (PLEX_MIGRATION.md §2.5).
+    /// Loads an image for a backend path: the on-disk cached asset if present
+    /// (offline), else the active backend's image URL. width/height > 0 requests
+    /// backend-side resize where the backend supports it.
     static void load(brls::Image* view, const std::string& path, int width = 0, int height = 0) {
         if (path.empty()) return;
         // offline cache wins: a locally cached asset renders without the server

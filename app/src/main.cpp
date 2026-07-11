@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
         } else if (std::strcmp(argv[i], "-t") == 0) {
             MPVCore::DEBUG = true;
         } else if (std::strcmp(argv[i], "-o") == 0) {
-            const char* path = (i + 1 < argc) ? argv[++i] : "plenx.log";
+            const char* path = (i + 1 < argc) ? argv[++i] : "gmca.log";
             FILE* logFile = std::fopen(path, "w+");
             // line-buffered: without this the last ~16 KB of logs (including
             // the line preceding a crash) stay in the buffer and die with
