@@ -65,13 +65,34 @@
                     axis="column"
                     marginTop="64"
                     marginRight="34">
-                    <brls:Image
-                        id="series/image/poster"
+                    <!-- poster over a grey_1 box with a media-icon placeholder
+                         BEHIND it (same pattern as video_card.xml): a missing
+                         poster shows the icon, not a bare dark rectangle. The
+                         image is transparent until loaded, then covers it. -->
+                    <brls:Box
                         height="330"
-                        scalingType="fill"
                         cornerRadius="10"
-                        backgroundColor="@theme/color/grey_1"
-                        image="@res/img/video-card-bg.png" />
+                        backgroundColor="@theme/color/grey_1">
+                        <brls:Box
+                            positionType="absolute"
+                            positionTop="0"
+                            positionLeft="0"
+                            width="100%"
+                            height="100%"
+                            alignItems="center"
+                            justifyContent="center">
+                            <SVGImage
+                                width="48"
+                                height="48"
+                                svg="@res/icon/ico-media.svg" />
+                        </brls:Box>
+                        <brls:Image
+                            id="series/image/poster"
+                            width="100%"
+                            height="330"
+                            scalingType="fill"
+                            cornerRadius="10" />
+                    </brls:Box>
                 </brls:Box>
 
                 <!-- 184 = 150 of banner overlap + ~34 px of air between the
