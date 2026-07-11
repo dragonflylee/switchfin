@@ -3,33 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GMCA — every media server, on the consoles everyone forgot</title>
-  <meta name="description" content="Gamepad Media Center Aggregator (GMCA) is a native, controller-first client for Plex, Jellyfin, Emby and Stremio — built for the devices their official apps ignore: Nintendo Switch, PS Vita and Raspberry Pi on a TV.">
-  <link rel="canonical" href="https://thcolin.github.io/gamepad-media-center-aggregator/">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="GMCA — every media server, on the consoles everyone forgot">
-  <meta property="og:description" content="One controller-first app for Plex, Jellyfin, Emby & Stremio — on Nintendo Switch, PS Vita and Raspberry Pi. Free, open source, built on borealis and MPV.">
-  <meta property="og:image" content="https://thcolin.github.io/gamepad-media-center-aggregator/assets/img/og.jpg">
-  <meta property="og:url" content="https://thcolin.github.io/gamepad-media-center-aggregator/">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="theme-color" content="#14110d">
+  <title>GMCA — a gamepad-first media client for every server, on the screens you forgot</title>
+  <meta name="description" content="GMCA (Gamepad Media Center Aggregator) is a native, controller-first client for Plex, Jellyfin, Emby, Stremio and file servers, running on the Nintendo Switch, PS Vita, a Raspberry Pi on the TV and the desktop. Free and open source.">
+  <meta name="theme-color" content="#0d0d10">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
   <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <meta property="og:title" content="GMCA — every media server, on the screens you forgot">
+  <meta property="og:description" content="One controller-first app for Plex, Jellyfin, Emby and Stremio, on the Switch, PS Vita, a Raspberry Pi on the TV, and the desktop.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/img/og.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Hanken+Grotesk:wght@400;700;800&family=Fragment+Mono&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Hanken+Grotesk:wght@400;500;700;800&family=Fragment+Mono&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
   <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
 
-  <header class="nav nav-float">
+  <header class="nav">
     <a class="nav-brand" href="./" aria-label="GMCA — home">
+      <img class="brand-mark" src="assets/img/gmca-logo.webp" alt="" width="30" height="30">
       <span class="wordmark">GMCA</span>
     </a>
     <nav class="nav-links" aria-label="Main">
-      <a href="#backends">Backends</a>
+      <a href="#servers">Servers</a>
       <a href="#devices">Devices</a>
       <a href="#features">Features</a>
       <a href="#screens">Screens</a>
@@ -42,308 +40,404 @@
   </header>
 
   <main id="main">
-    <!-- ============ HERO ============ -->
-    <section class="hero">
-      <div class="hero-top">
-        <div class="hero-brand reveal">
-          <img class="hero-app-icon" src="assets/img/app-icon.png" alt="" width="256" height="256" fetchpriority="high">
+
+    <!-- ============ HERO — giant logo split ============ -->
+    <section class="hero hero-center">
+      <div class="center">
+        <div class="center-head">
+          <div class="center-lockup">
+            <a class="center-logo-link" href="./" aria-label="GMCA — home">
+              <img class="center-logo" src="assets/img/gmca-logo.webp" alt="" width="512" height="512">
+            </a>
+            <span class="center-name">
+              <span class="center-wordmark">GMCA</span>
+              <span class="center-baseline">Gamepad Media Center Aggregator</span>
+              <span class="center-tag">Controller-first client</span>
+            </span>
+          </div>
         </div>
-        <div class="hero-mark reveal" style="--i:1">
-          <span class="wordmark wordmark-hero">GMCA</span>
-          <span class="hero-mark-say" aria-hidden="true">Gamepad Media Center Aggregator</span>
+
+        <h1 class="hero-rotator center-rotator" aria-label="GMCA runs any media center on any device">
+          <span class="hl-line">Runs <span class="rot rot-mc">Plex</span></span>
+          <span class="hl-line">on your</span>
+          <span class="hl-line"><span class="rot rot-dev">Nintendo&nbsp;Switch</span></span>
+        </h1>
+
+        <figure class="hero-media center-media reveal">
+          <div class="hero-stage" id="hero-stage">
+            <!-- 12 combos = every device x every media center. Order = rotation
+                 cycle: device advances (switch/vita/pi) and media center advances
+                 (plex/jellyfin/emby/stremio) at each step, covering all 12. -->
+            <img class="dev-img on" src="assets/img/hero/switch-plex.webp" alt="GMCA playing a media center on a repurposed game console" width="1280" height="640">
+            <img class="dev-img" src="assets/img/hero/vita-jellyfin.webp" alt="" aria-hidden="true" width="1280" height="640">
+            <img class="dev-img" src="assets/img/hero/tv-emby.webp" alt="" aria-hidden="true" width="1280" height="640">
+            <img class="dev-img" src="assets/img/hero/switch-stremio.webp" alt="" aria-hidden="true" width="1280" height="640">
+            <img class="dev-img" src="assets/img/hero/vita-plex.webp" alt="" aria-hidden="true" width="1280" height="640">
+            <img class="dev-img" src="assets/img/hero/tv-jellyfin.webp" alt="" aria-hidden="true" width="1280" height="640">
+            <img class="dev-img" src="assets/img/hero/switch-emby.webp" alt="" aria-hidden="true" width="1280" height="640">
+            <img class="dev-img" src="assets/img/hero/vita-stremio.webp" alt="" aria-hidden="true" width="1280" height="640">
+            <img class="dev-img" src="assets/img/hero/tv-plex.webp" alt="" aria-hidden="true" width="1280" height="640">
+            <img class="dev-img" src="assets/img/hero/switch-jellyfin.webp" alt="" aria-hidden="true" width="1280" height="640">
+            <img class="dev-img" src="assets/img/hero/vita-emby.webp" alt="" aria-hidden="true" width="1280" height="640">
+            <img class="dev-img" src="assets/img/hero/tv-stremio.webp" alt="" aria-hidden="true" width="1280" height="640">
+          </div>
+          <figcaption><span class="tag" id="hero-cap-mc">Plex</span> · <span id="hero-cap-dev">Nintendo Switch</span></figcaption>
+        </figure>
+
+        <p class="hero-sub">GMCA is one gamepad-first <strong>client</strong>. Point it at any <strong>media center</strong>, and run it on any <strong>device</strong> you left in a drawer.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="https://github.com/thcolin/gamepad-media-center-aggregator/releases/latest"><span class="btn-glyph">A</span> Download <span data-version>v0.1.10</span></a>
+          <a class="btn btn-ghost" href="https://github.com/thcolin/gamepad-media-center-aggregator"><span class="btn-glyph">B</span> View on GitHub</a>
         </div>
-        <aside class="hero-spec reveal" style="--i:2" aria-label="At a glance">
-          <div class="spec-strong">Multi-backend media client</div>
-          <div><a href="https://github.com/thcolin/gamepad-media-center-aggregator/releases/latest">Ver. <span data-version>v1.0.0</span> — out now</a></div>
-          <div>Free &amp; open source</div>
-          <div class="spec-muted">Not affiliated with Plex, Jellyfin, Emby or Stremio.</div>
-        </aside>
-      </div><!-- /hero-top -->
-      <h1 class="reveal" style="--i:1">
-        <span class="h1-line">every <span class="hl">media server</span>,</span>
-        <span class="h1-line">on the consoles</span>
-        <span class="h1-line">everyone forgot.</span>
-      </h1>
-      <p class="hero-lead reveal" style="--i:3">
-        <strong>GMCA</strong> is a <strong>native</strong>, controller-first client for
-        <strong>Plex</strong>, <strong>Jellyfin</strong>, <strong>Emby</strong> and <strong>Stremio</strong> —
-        built for the devices their official apps ignore:
-        <strong>Nintendo&nbsp;Switch</strong>, <strong>PS&nbsp;Vita</strong> and <strong>Raspberry&nbsp;Pi</strong> on a TV.
-      </p>
-      <div class="hero-cta reveal" style="--i:4">
-        <a class="btn btn-primary" href="https://github.com/thcolin/gamepad-media-center-aggregator/releases/latest">Download</a>
-        <a class="btn btn-ghost" href="https://github.com/thcolin/gamepad-media-center-aggregator">View on GitHub</a>
-      </div>
-
-      <figure class="hero-figure reveal" style="--i:5">
-        <img src="assets/img/switch-hero.webp" alt="A handheld console running GMCA: the home screen shows Continue Watching and recently added rows from a media server" width="1800" height="766" fetchpriority="high">
-        <figcaption><span class="fig-tag">Fig. 00</span> Running handheld — home screen, mirroring your server's hubs</figcaption>
-      </figure>
-    </section>
-
-    <!-- ============ SPEC STRIP — game-box back panel ============ -->
-    <ul class="spec-strip" aria-label="Product specifications">
-      <li class="spec-label">Specs</li>
-      <li><span class="spec-k">Backends</span> Plex · Jellyfin · Emby · Stremio</li>
-      <li><span class="spec-k">Runs on</span> Switch · Vita · Linux · desktop</li>
-      <li><span class="spec-k">Input</span> Gamepad-first</li>
-      <li><span class="spec-k">Languages</span> 14</li>
-      <li><span class="spec-k">Price</span> Free &amp; open source</li>
-    </ul>
-
-    <!-- ============ BACKENDS ============ -->
-    <section class="section" id="backends">
-      <div class="sec-head reveal">
-        <span class="sec-num" aria-hidden="true">01</span>
-        <h2>One app, every server</h2>
-        <span class="sec-note" aria-hidden="true">The same interface, whatever you run</span>
-      </div>
-      <p class="section-sub reveal">Point GMCA at whatever you already have. Only the actions and tabs change — the experience doesn't.</p>
-
-      <div class="backend-grid">
-        <article class="backend reveal" style="--i:0" data-b="plex">
-          <div class="backend-head"><span class="backend-dot"></span><h3>Plex</h3></div>
-          <p>Sign in with a 4-character code at plex.tv/link, pick your server and Plex Home profile. Watchlist, hubs, universal transcode.</p>
-        </article>
-        <article class="backend reveal" style="--i:1" data-b="jellyfin">
-          <div class="backend-head"><span class="backend-dot"></span><h3>Jellyfin</h3></div>
-          <p>Add your server URL, then Quick Connect or username &amp; password. Favorites, resume, Next Up, transcoding — no account required.</p>
-        </article>
-        <article class="backend reveal" style="--i:2" data-b="emby">
-          <div class="backend-head"><span class="backend-dot"></span><h3>Emby</h3></div>
-          <p>Same flow as Jellyfin, same feature set. Your libraries, collections and genres, gamepad-first.</p>
-        </article>
-        <article class="backend reveal" style="--i:3" data-b="stremio">
-          <div class="backend-head"><span class="backend-dot"></span><h3>Stremio</h3></div>
-          <p>Log in to your Stremio account — your addon catalogs and library sync across. Direct links and debrid streams play straight through.</p>
-        </article>
-        <article class="backend reveal" style="--i:4" data-b="files">
-          <div class="backend-head"><span class="backend-dot"></span><h3>File servers</h3></div>
-          <p>No media server? Browse and play from WebDAV, FTP, SFTP and HTTP(S) shares — added straight from the UI, with a connection test.</p>
-        </article>
+        <p class="center-note">Free &amp; open source · Not affiliated with Plex · Jellyfin · Emby · Stremio</p>
       </div>
     </section>
 
-    <!-- ============ DEVICES ============ -->
+    <!-- ============ SPEC STRIP ============ -->
+    <section class="specs reveal" aria-label="Technical details">
+      <dl class="specs-inner">
+        <div class="spec">
+          <dt>Runtime</dt>
+          <dd>Native C++ · <strong>no Electron</strong></dd>
+        </div>
+        <div class="spec">
+          <dt>Built on</dt>
+          <dd><a href="https://github.com/natinusala/borealis">borealis</a> · <a href="https://mpv.io">mpv</a> · forked from <a href="https://github.com/dragonflylee/switchfin">Switchfin</a></dd>
+        </div>
+        <div class="spec">
+          <dt>License</dt>
+          <dd><strong>Apache-2.0</strong> · open source</dd>
+        </div>
+        <div class="spec spec-builds">
+          <dt>Builds</dt>
+          <dd class="builds">
+            <span class="fmt" data-b="switch">NRO</span>
+            <span class="fmt" data-b="vita">VPK</span>
+            <span class="fmt" data-b="pi">Flatpak</span>
+            <span class="fmt" data-b="desktop">DMG · 7z</span>
+          </dd>
+        </div>
+      </dl>
+    </section>
+
+    <!-- ============ 01 · SERVERS ============ -->
+    <section class="section" id="servers">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="lead">
+            <span class="sec-num">01</span>
+            <span class="sec-kicker">Five sources · one interface</span>
+            <h2>One app, every server</h2>
+            <p>Point GMCA at whatever you already run. Each source brings its own colour and its own tabs — but the way you browse, search and play never changes.</p>
+          </div>
+          <div class="aside">Tabs adapt<br>to each server</div>
+        </div>
+
+        <div class="channels reveal">
+          <div class="channel" data-b="plex">
+            <span class="bar" aria-hidden="true"></span>
+            <span class="no">01</span>
+            <div class="body">
+              <span class="name">Plex</span><span class="kind">Media server</span>
+              <span class="desc">Sign in with plex.tv: your server, Home profiles, Watchlist, hubs and transcode.</span>
+            </div>
+          </div>
+          <div class="channel" data-b="jellyfin">
+            <span class="bar" aria-hidden="true"></span>
+            <span class="no">02</span>
+            <div class="body">
+              <span class="name">Jellyfin</span><span class="kind">Media server</span>
+              <span class="desc">Just your URL and Quick Connect, no account. Resume, Next Up and favourites.</span>
+            </div>
+          </div>
+          <div class="channel" data-b="emby">
+            <span class="bar" aria-hidden="true"></span>
+            <span class="no">03</span>
+            <div class="body">
+              <span class="name">Emby</span><span class="kind">Media server</span>
+              <span class="desc">Jellyfin's close cousin, same deal: libraries, collections, genres and resume.</span>
+            </div>
+          </div>
+          <div class="channel" data-b="stremio">
+            <span class="bar" aria-hidden="true"></span>
+            <span class="no">04</span>
+            <div class="body">
+              <span class="name">Stremio</span><span class="kind">Add-ons</span>
+              <span class="desc">One login syncs your add-on catalogues and library, debrid streams included.</span>
+            </div>
+          </div>
+          <div class="channel" data-b="files">
+            <span class="bar" aria-hidden="true"></span>
+            <span class="no">05</span>
+            <div class="body">
+              <span class="name">File servers</span><span class="kind">No server needed</span>
+              <span class="desc">Browse and play straight from WebDAV, FTP, SFTP and HTTP(S) shares.</span>
+            </div>
+          </div>
+        </div>
+        <p class="channels-note">Connection switcher · every server and profile side by side, no re-login</p>
+      </div>
+    </section>
+
+    <!-- ============ 02 · DEVICES ============ -->
     <section class="section" id="devices">
-      <div class="sec-head reveal">
-        <span class="sec-num" aria-hidden="true">02</span>
-        <h2>Built for the forgotten consoles</h2>
-        <span class="sec-note" aria-hidden="true">The 10-foot devices nobody ships to</span>
-      </div>
-      <p class="section-sub reveal">The big media-server apps skip the hardware people actually have under the TV or in their bag. GMCA doesn't.</p>
-
-      <div class="device-grid">
-        <article class="device device-lead reveal" style="--i:0">
-          <span class="device-tag">Homebrew</span>
-          <h3>Nintendo Switch</h3>
-          <p>Native NRO on Atmosphère CFW. Install a HOME-menu tile for full-memory video playback. External USB drives supported.</p>
-        </article>
-        <article class="device device-lead reveal" style="--i:1">
-          <span class="device-tag">Homebrew</span>
-          <h3>PS Vita</h3>
-          <p>A first-class target, not an afterthought — a real VPK for jailbroken consoles, on VitaDB. Your whole library, in your pocket.</p>
-        </article>
-        <article class="device device-lead reveal" style="--i:2">
-          <span class="device-tag">Living room</span>
-          <h3>Raspberry Pi &amp; Linux</h3>
-          <p>Flatpak for x86_64 and arm64 — a Pi wired to the TV with a controller or keyboard becomes a full media center.</p>
-        </article>
-        <article class="device reveal" style="--i:3">
-          <span class="device-tag">Desktop</span>
-          <h3>Windows · macOS · Linux</h3>
-          <p>The very same app on the desktop — test, browse and play with a keyboard or a plugged-in controller.</p>
-        </article>
-        <article class="device reveal" style="--i:4">
-          <span class="device-tag">Experimental</span>
-          <h3>PS4</h3>
-          <p>A homebrew PKG for jailbroken consoles, for the tinkerers.</p>
-        </article>
-      </div>
-    </section>
-
-    <!-- ============ FEATURES ============ -->
-    <section class="section" id="features">
-      <div class="sec-head reveal">
-        <span class="sec-num" aria-hidden="true">03</span>
-        <h2>Built controller-first</h2>
-        <span class="sec-note" aria-hidden="true">Everything your server does</span>
-      </div>
-      <p class="section-sub reveal">Every feature of your media server, redesigned for a gamepad and a 10-foot screen.</p>
-
-      <div class="feature-grid">
-        <article class="feature reveal" style="--i:0">
-          <div class="feature-head">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>
-            <h3>Sign in without a keyboard</h3>
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="lead">
+            <span class="sec-num">02</span>
+            <span class="sec-kicker">The devices you already own</span>
+            <h2>The screens you forgot</h2>
+            <p>The big media-server apps stop at phones, TVs and computers. GMCA goes further — to the game consoles in the drawer and the Raspberry Pi wired to the TV — with a native, gamepad-first build for each.</p>
           </div>
-          <p>Code-based sign-in for Plex and Jellyfin Quick Connect, PIN-protected profiles, account switching — no passwords typed on a console.</p>
-        </article>
-
-        <article class="feature reveal" style="--i:1">
-          <div class="feature-head">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 10h18"/></svg>
-            <h3>Home mirrors your server</h3>
-          </div>
-          <p>Continue Watching first, then every hub your server exposes, in the order it returns them. Your setup, your rules.</p>
-        </article>
-
-        <article class="feature reveal" style="--i:2">
-          <div class="feature-head">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-            <h3>Your personal list</h3>
-          </div>
-          <p>Plex Watchlist, Jellyfin/Emby Favorites, the Stremio library — surfaced in the sidebar and on every detail page, whichever your backend uses.</p>
-        </article>
-
-        <article class="feature reveal" style="--i:3">
-          <div class="feature-head">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-            <h3>Offline downloads</h3>
-          </div>
-          <p>Take episodes on the road in original quality. One tap grabs a full season — with a storage gauge for your SD card.</p>
-        </article>
-
-        <article class="feature reveal" style="--i:4">
-          <div class="feature-head">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>
-            <h3>Playback with MPV</h3>
-          </div>
-          <p>Direct play and transcode (HLS), resume, chapters, external and embedded subtitles, audio track selection.</p>
-          <p class="codec-list" aria-label="Supported codecs">H.264 · H.265 · VP9 · AV1 · Opus · FLAC · <span class="nb">AC-3</span> · TrueHD · DTS</p>
-        </article>
-
-        <article class="feature reveal" style="--i:5">
-          <div class="feature-head">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><circle cx="12" cy="12" r="9" stroke-dasharray="4 3"/></svg>
-            <h3>Quick actions anywhere</h3>
-          </div>
-          <p>Press <kbd>X</kbd> (or long-press) on any poster: go to show, go to season, mark watched, download, add to your list.</p>
-        </article>
-
-        <article class="feature reveal" style="--i:6">
-          <div class="feature-head">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 10a6 6 0 0 0-11.5-1.7A5 5 0 0 0 7 18h11a4 4 0 0 0 0-8Z"/></svg>
-            <h3>Remote file servers</h3>
-          </div>
-          <p>Add WebDAV, FTP, SFTP and HTTP(S) shares straight from the UI — with a connection test. USB drives work too, on Switch.</p>
-        </article>
-
-        <article class="feature reveal" style="--i:7">
-          <div class="feature-head">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3.5 9h17M3.5 15h17M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>
-            <h3>14 languages</h3>
-          </div>
-          <p>Fully translated interface, rich detail pages with cast and person filmographies, season pages, collections and genres.</p>
-        </article>
-      </div>
-    </section>
-
-    <!-- ============ SCREENS ============ -->
-    <section class="section section-screens" id="screens">
-      <div class="sec-wrap">
-        <div class="sec-head reveal">
-          <span class="sec-num" aria-hidden="true">04</span>
-          <h2>See it running</h2>
-          <span class="sec-note" aria-hidden="true">Captured on the desktop build</span>
         </div>
-        <p class="section-sub reveal">The very same interface ships on every platform and every backend.</p>
-      </div>
 
-      <div class="screens-rail" role="region" tabindex="0" aria-label="Screenshot gallery, scroll horizontally">
-        <figure>
-          <button class="shot" data-full="assets/img/shot-home.webp" type="button">
-            <img loading="lazy" src="assets/img/shot-home.webp" alt="Home screen with Continue Watching and recently added rows" width="1280" height="794">
-          </button>
-          <figcaption><span class="fig-tag">Fig. 01</span> Home · your server's hubs</figcaption>
-        </figure>
-        <figure>
-          <button class="shot" data-full="assets/img/shot-movie_0.webp" type="button">
-            <img loading="lazy" src="assets/img/shot-movie_0.webp" alt="Movie detail page with full-bleed backdrop, title logo and action buttons" width="1280" height="794">
-          </button>
-          <figcaption><span class="fig-tag">Fig. 02</span> Movie · full-bleed detail page</figcaption>
-        </figure>
-        <figure>
-          <button class="shot" data-full="assets/img/shot-tvshow_0.webp" type="button">
-            <img loading="lazy" src="assets/img/shot-tvshow_0.webp" alt="TV show detail page with seasons row" width="1280" height="794">
-          </button>
-          <figcaption><span class="fig-tag">Fig. 03</span> Show · seasons &amp; next up</figcaption>
-        </figure>
-        <figure>
-          <button class="shot" data-full="assets/img/shot-season.webp" type="button">
-            <img loading="lazy" src="assets/img/shot-season.webp" alt="Season page with episode list and one-tap full-season download" width="1280" height="794">
-          </button>
-          <figcaption><span class="fig-tag">Fig. 04</span> Season · one-tap download</figcaption>
-        </figure>
-        <figure>
-          <button class="shot" data-full="assets/img/shot-long-press.webp" type="button">
-            <img loading="lazy" src="assets/img/shot-long-press.webp" alt="Quick actions side panel opened on a poster" width="1280" height="794">
-          </button>
-          <figcaption><span class="fig-tag">Fig. 05</span> Quick actions · press X on any poster</figcaption>
-        </figure>
-        <figure>
-          <button class="shot" data-full="assets/img/shot-search.webp" type="button">
-            <img loading="lazy" src="assets/img/shot-search.webp" alt="Search screen with fixed keyboard, history and suggestions" width="1280" height="794">
-          </button>
-          <figcaption><span class="fig-tag">Fig. 06</span> Search · keyboard, history, suggestions</figcaption>
-        </figure>
-        <figure>
-          <button class="shot" data-full="assets/img/shot-downloads.webp" type="button">
-            <img loading="lazy" src="assets/img/shot-downloads.webp" alt="Downloads screen with storage gauge and active transfers" width="1280" height="794">
-          </button>
-          <figcaption><span class="fig-tag">Fig. 07</span> Downloads · offline, original quality</figcaption>
-        </figure>
-        <figure>
-          <button class="shot" data-full="assets/img/shot-movies.webp" type="button">
-            <img loading="lazy" src="assets/img/shot-movies.webp" alt="Movie library grid with server-side sorting" width="1280" height="794">
-          </button>
-          <figcaption><span class="fig-tag">Fig. 08</span> Library · the whole catalog</figcaption>
-        </figure>
-        <figure>
-          <button class="shot" data-full="assets/img/shot-collections.webp" type="button">
-            <img loading="lazy" src="assets/img/shot-collections.webp" alt="Collections grid of a movie library" width="1280" height="794">
-          </button>
-          <figcaption><span class="fig-tag">Fig. 09</span> Collections · libraries, genres, more</figcaption>
-        </figure>
+        <div class="devices">
+          <article class="device reveal" data-b="switch">
+            <div class="device-shot"><img src="assets/img/device-switch.webp" alt="GMCA showing a Plex home screen on a Nintendo Switch" width="3335" height="1419" loading="lazy"></div>
+            <p class="tagline"><span class="t1">Handheld</span> · <span class="t2">docked</span></p>
+            <h3>Nintendo Switch</h3>
+            <p>The console in the drawer becomes a full media center. A native build on Atmosphère CFW, docked to the TV or handheld in bed.</p>
+            <div class="meta"><span>Homebrew</span><span>Joy-Con</span><span>1080p docked</span></div>
+          </article>
+
+          <article class="device reveal" data-b="vita" style="--i:1">
+            <div class="device-shot"><img src="assets/img/device-vita.webp" alt="GMCA showing a Jellyfin home screen on a PS Vita" width="1280" height="578" loading="lazy"></div>
+            <p class="tagline"><span style="color:#5f6470">Pocket</span> · <span style="color:#3ec98a">O</span><span style="color:#e5484d">L</span><span style="color:#4c7ff0">E</span><span style="color:#e7509f">D</span></p>
+            <h3>PS Vita</h3>
+            <p>That gorgeous OLED finally earns its keep again. A native player, tuned to what the Vita's hardware can really do.</p>
+            <div class="meta"><span>VPK</span><span>Touch + pad</span><span>Offline sync</span></div>
+          </article>
+
+          <article class="device reveal" data-b="pi" style="--i:2">
+            <div class="device-shot"><img src="assets/img/device-tv.webp" alt="GMCA showing an Emby home screen on a Raspberry Pi wired to a TV" width="1839" height="1370" loading="lazy"></div>
+            <p class="tagline"><span class="t1">Living</span> <span class="t2">room</span></p>
+            <h3>Raspberry Pi on the TV</h3>
+            <p>A Pi wired to the television plus any controller turns into a couch-ready media box. Flatpak for arm64 and x86_64.</p>
+            <div class="meta"><span>Flatpak</span><span>ARM64 · x86</span><span>HDMI</span></div>
+          </article>
+
+          <article class="device reveal" data-b="desktop" style="--i:3">
+            <div class="device-shot"><img src="assets/img/device-laptop.webp" alt="GMCA showing a Stremio catalogue on a laptop" width="1776" height="1241" loading="lazy"></div>
+            <p class="tagline"><span class="t1">Desktop</span> · <span class="t2">laptop</span></p>
+            <h3>Windows · macOS · Linux</h3>
+            <p>The same app, on the computer you use every day. Plug in a pad, or drive the whole thing from the keyboard.</p>
+            <div class="meta"><span>Win</span><span>macOS</span><span>Linux</span></div>
+          </article>
+        </div>
       </div>
-      <p class="rail-hint" aria-hidden="true">Scroll sideways for more figures →</p>
     </section>
 
-    <!-- ============ INSTALL ============ -->
-    <section class="section" id="install">
-      <div class="sec-head reveal">
-        <span class="sec-num" aria-hidden="true">05</span>
-        <h2>Up and running fast</h2>
-        <span class="sec-note" aria-hidden="true">Pick your platform</span>
+    <!-- ============ 03 · FEATURES ============ -->
+    <section class="section" id="features">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="lead">
+            <span class="sec-num">03</span>
+            <span class="sec-kicker">Every feature, designed for a gamepad</span>
+            <h2>Native, down to the metal</h2>
+            <p>No browser, no web view. Compiled straight to each platform, with hardware playback, per-server theming and offline downloads.</p>
+          </div>
+        </div>
+
+        <div class="features reveal">
+          <div class="feature">
+            <svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M13 2 3 14h8l-1 8 10-12h-8l1-8Z"/></svg>
+            <h3>Native &amp; fast</h3>
+            <p>Compiled per platform. No Electron, no browser tab. Cold-starts in a blink, even on nine-year-old silicon.</p>
+          </div>
+          <div class="feature">
+            <svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="6"/><path d="M7 10v4M5 12h4"/><circle cx="16" cy="11" r="1"/><circle cx="18.5" cy="13.5" r="1"/></svg>
+            <h3>Gamepad navigation</h3>
+            <p>Every screen is laid out for a stick and four buttons. A confirms, B goes back, everywhere.</p>
+          </div>
+          <div class="feature">
+            <svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 9l5 3-5 3V9Z" fill="currentColor" stroke="none"/></svg>
+            <h3>MPV playback</h3>
+            <p>The mpv engine under the hood: hardware decode, subtitles and the formats that just work.</p>
+          </div>
+          <div class="feature">
+            <svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16"/></svg>
+            <h3>Downloads &amp; offline</h3>
+            <p>Pull episodes to the device and watch on the train. Watch-state syncs back when you reconnect.</p>
+          </div>
+          <div class="feature">
+            <svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18Z"/></svg>
+            <h3>14 languages</h3>
+            <p>Fully translated across fourteen locales. Every string, never machine-guessed.</p>
+          </div>
+          <div class="feature">
+            <svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>
+            <h3>Per-server theming</h3>
+            <p>The accent follows the source: Plex amber, Jellyfin cyan, Emby green, Stremio violet.</p>
+          </div>
+          <div class="feature">
+            <svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M2 20c0-3 3-5 6-5s6 2 6 5"/><path d="M16 4l4 3-4 3M20 7h-6"/></svg>
+            <h3>Connection switcher</h3>
+            <p>Keep every server and account side by side. Hop between them from one avatar, no re-login.</p>
+          </div>
+          <div class="feature">
+            <svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="5" rx="1"/><rect x="3" y="12" width="11" height="8" rx="1"/><path d="M18 13v6M15 16h6"/></svg>
+            <h3>Tabs that adapt</h3>
+            <p>The interface changes with the server. Watchlist, favourites and collections show up only where they exist.</p>
+          </div>
+        </div>
       </div>
-      <p class="section-sub reveal">Every <a href="https://github.com/thcolin/gamepad-media-center-aggregator/releases/latest">release</a> ships builds for all supported platforms.</p>
+    </section>
 
-      <ol class="steps" role="list">
-        <li class="step reveal" style="--i:0">
-          <span class="step-num" aria-hidden="true">1</span>
-          <h3>Get the build</h3>
-          <p>Grab the <code>.nro</code> (Switch), <code>.vpk</code> (Vita), Flatpak (Linux/Pi) or desktop package from the latest release.</p>
-        </li>
-        <li class="step reveal" style="--i:1">
-          <span class="step-num" aria-hidden="true">2</span>
-          <h3>Launch it</h3>
-          <p>On Switch, drop <code>GMCA.nro</code> into <code>sdmc:/switch/</code> and install the HOME-menu tile for full-memory playback. Elsewhere, just run it.</p>
-        </li>
-        <li class="step reveal" style="--i:2">
-          <span class="step-num" aria-hidden="true">3</span>
-          <h3>Connect &amp; play</h3>
-          <p>Add a Plex, Jellyfin, Emby or Stremio server — or a file share — and grab the popcorn.</p>
-        </li>
-      </ol>
+    <!-- ============ 04 · SCREENS ============ -->
+    <section class="section" id="screens">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="lead">
+            <span class="sec-num">04</span>
+            <span class="sec-kicker">Captured on the desktop build</span>
+            <h2>See it running</h2>
+            <p>One interface across every source. The same layout serves a Plex library, a Jellyfin series, an Emby film and a Stremio catalogue.</p>
+          </div>
+          <div class="aside">Full-frame captures<br>from the desktop build</div>
+        </div>
+      </div>
 
-      <div class="install-cta reveal">
-        <a class="btn btn-primary" href="https://github.com/thcolin/gamepad-media-center-aggregator/releases/latest">Download GMCA</a>
-        <a class="btn btn-ghost" href="guide.html">Full guide, all platforms &amp; FAQ</a>
+      <div class="rail-wrap wrap">
+        <!-- One control flips every card between servers: same screen, same
+             layout, different source — that IS the point of the section. -->
+        <div class="mc-switch reveal" role="tablist" aria-label="Choose a media center">
+          <span class="mc-switch-label">Same app, every server</span>
+          <div class="mc-tabs">
+            <button class="mc-tab is-on" data-mc="plex" role="tab" aria-selected="true">Plex</button>
+            <button class="mc-tab" data-mc="jellyfin" role="tab" aria-selected="false">Jellyfin</button>
+            <button class="mc-tab" data-mc="emby" role="tab" aria-selected="false">Emby</button>
+            <button class="mc-tab" data-mc="stremio" role="tab" aria-selected="false">Stremio</button>
+          </div>
+        </div>
+
+        <div class="rail screens-rail reveal" data-mc="plex">
+          <figure class="scr" data-screen="Home">
+            <div class="scr-stack">
+              <img class="scr-img on" data-mc="plex" src="assets/img/gallery/scr-home-plex.webp" alt="The Home screen — identical layout on Plex, Jellyfin, Emby and Stremio" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="jellyfin" src="assets/img/gallery/scr-home-jellyfin.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="emby" src="assets/img/gallery/scr-home-emby.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="stremio" src="assets/img/gallery/scr-home-stremio.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+            </div>
+            <figcaption><span class="pin"></span> Home <span class="scr-na"></span></figcaption>
+          </figure>
+          <figure class="scr" data-screen="Library">
+            <div class="scr-stack">
+              <img class="scr-img on" data-mc="plex" src="assets/img/gallery/scr-library-plex.webp" alt="A library grid — the same layout across every server" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="jellyfin" src="assets/img/gallery/scr-library-jellyfin.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="emby" src="assets/img/gallery/scr-library-emby.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="stremio" src="assets/img/gallery/scr-library-stremio.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+            </div>
+            <figcaption><span class="pin"></span> Library <span class="scr-na"></span></figcaption>
+          </figure>
+          <figure class="scr" data-screen="Movie detail">
+            <div class="scr-stack">
+              <img class="scr-img on" data-mc="plex" src="assets/img/gallery/scr-movie-plex.webp" alt="A movie detail page — the same layout across every server" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="jellyfin" src="assets/img/gallery/scr-movie-jellyfin.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="emby" src="assets/img/gallery/scr-movie-emby.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="stremio" src="assets/img/gallery/scr-movie-stremio.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+            </div>
+            <figcaption><span class="pin"></span> Movie detail <span class="scr-na"></span></figcaption>
+          </figure>
+          <figure class="scr" data-screen="Series">
+            <div class="scr-stack">
+              <img class="scr-img on" data-mc="plex" src="assets/img/gallery/scr-series-plex.webp" alt="A series detail page — the same layout across every server" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="jellyfin" src="assets/img/gallery/scr-series-jellyfin.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="emby" src="assets/img/gallery/scr-series-emby.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="stremio" src="assets/img/gallery/scr-series-stremio.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+            </div>
+            <figcaption><span class="pin"></span> Series <span class="scr-na"></span></figcaption>
+          </figure>
+          <figure class="scr" data-screen="Season">
+            <div class="scr-stack">
+              <img class="scr-img on" data-mc="plex" src="assets/img/gallery/scr-season-plex.webp" alt="A season with its episodes — the same layout across every server that has seasons" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="jellyfin" src="assets/img/gallery/scr-season-jellyfin.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="emby" src="assets/img/gallery/scr-season-emby.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+            </div>
+            <figcaption><span class="pin"></span> Season <span class="scr-na"></span></figcaption>
+          </figure>
+          <figure class="scr" data-screen="Genres">
+            <div class="scr-stack">
+              <img class="scr-img on" data-mc="plex" src="assets/img/gallery/scr-genres-plex.webp" alt="The genre browser — the same layout across every server" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="jellyfin" src="assets/img/gallery/scr-genres-jellyfin.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="emby" src="assets/img/gallery/scr-genres-emby.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="stremio" src="assets/img/gallery/scr-genres-stremio.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+            </div>
+            <figcaption><span class="pin"></span> Genres <span class="scr-na"></span></figcaption>
+          </figure>
+          <figure class="scr" data-screen="Search">
+            <div class="scr-stack">
+              <img class="scr-img on" data-mc="plex" src="assets/img/gallery/scr-search-plex.webp" alt="The on-screen search keyboard — the same layout across every server" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="jellyfin" src="assets/img/gallery/scr-search-jellyfin.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="emby" src="assets/img/gallery/scr-search-emby.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="stremio" src="assets/img/gallery/scr-search-stremio.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+            </div>
+            <figcaption><span class="pin"></span> Search <span class="scr-na"></span></figcaption>
+          </figure>
+          <figure class="scr" data-screen="Downloads">
+            <div class="scr-stack">
+              <img class="scr-img on" data-mc="plex" src="assets/img/gallery/scr-downloads-plex.webp" alt="Offline downloads — the same layout across every server" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="jellyfin" src="assets/img/gallery/scr-downloads-jellyfin.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="emby" src="assets/img/gallery/scr-downloads-emby.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="stremio" src="assets/img/gallery/scr-downloads-stremio.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+            </div>
+            <figcaption><span class="pin"></span> Downloads <span class="scr-na"></span></figcaption>
+          </figure>
+          <figure class="scr" data-screen="Quick actions">
+            <div class="scr-stack">
+              <img class="scr-img on" data-mc="plex" src="assets/img/gallery/scr-quickactions-plex.webp" alt="The quick-actions context menu — the same layout across every server" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="jellyfin" src="assets/img/gallery/scr-quickactions-jellyfin.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="emby" src="assets/img/gallery/scr-quickactions-emby.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+              <img class="scr-img" data-mc="stremio" src="assets/img/gallery/scr-quickactions-stremio.webp" alt="" aria-hidden="true" loading="lazy" width="1280" height="720">
+            </div>
+            <figcaption><span class="pin"></span> Quick actions <span class="scr-na"></span></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 05 · INSTALL ============ -->
+    <section class="section" id="install">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="lead">
+            <span class="sec-num">05</span>
+            <span class="sec-kicker">Pick your platform · point at your server</span>
+            <h2>Three steps to play</h2>
+          </div>
+        </div>
+
+        <div class="steps reveal">
+          <div class="step">
+            <span class="step-num">1</span>
+            <h3>Get your build</h3>
+            <p>Grab the release for your device from GitHub. Every tag ships builds for all supported platforms.</p>
+            <p class="mono">SWITCH · VITA · PI · DESKTOP</p>
+          </div>
+          <div class="step">
+            <span class="step-num">2</span>
+            <h3>Point it at your server</h3>
+            <p>Add Plex, Jellyfin, Emby or Stremio, or a plain file share. Add as many as you like.</p>
+            <p class="mono">PLEX · JELLYFIN · EMBY · STREMIO</p>
+          </div>
+          <div class="step">
+            <span class="step-num">3</span>
+            <h3>Grab a controller</h3>
+            <p>Pick up any gamepad and press A — you're in, browsing a couch-ready interface.</p>
+            <p class="mono">GAMEPAD-FIRST</p>
+          </div>
+        </div>
+
+        <div class="install-cta">
+          <a class="btn btn-primary" href="https://github.com/thcolin/gamepad-media-center-aggregator/releases/latest"><span class="btn-glyph">A</span> Download latest release</a>
+          <a class="btn btn-ghost" href="guide.html">Read the guide</a>
+          <a class="btn btn-ghost" href="https://nightly.link/thcolin/gamepad-media-center-aggregator/workflows/build.yaml/dev">Nightly builds</a>
+        </div>
       </div>
     </section>
   </main>
 
-  <!-- ============ CONSOLE BAR + FOOTER ============ -->
+  <!-- ============ Console bar ============ -->
   <div class="console-bar">
     <div class="cb-left">
       <svg viewBox="0 0 28 14" width="26" height="13" aria-hidden="true"><rect x="1" y="1" width="23" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="3.5" y="3.5" width="15" height="7" rx="1.4" fill="currentColor"/><rect x="25.5" y="4.5" width="2.5" height="5" rx="1" fill="currentColor"/></svg>
@@ -351,16 +445,17 @@
       <time id="clock">00:00:00</time>
     </div>
     <div class="cb-right">
-      <a class="cb-hint" href="#top" id="back-top"><span class="btn-glyph">B</span> Back to top</a>
+      <a class="cb-hint" href="#servers"><span class="btn-glyph">B</span> Servers</a>
       <a class="cb-hint" href="https://github.com/thcolin/gamepad-media-center-aggregator/releases/latest"><span class="btn-glyph btn-glyph-a">A</span> Download</a>
     </div>
   </div>
 
+  <!-- ============ Footer ============ -->
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-brand">
-        <span class="wordmark wordmark-footer">GMCA</span>
-        <p>Gamepad Media Center Aggregator — a native, controller-first client for Plex, Jellyfin, Emby and Stremio.<br>
+        <span class="wordmark-footer">GMCA</span>
+        <p>Gamepad Media Center Aggregator: a native, controller-first client for Plex, Jellyfin, Emby and Stremio.<br>
            Free and open source, forked from
            <a href="https://github.com/dragonflylee/switchfin">Switchfin</a>, built on
            <a href="https://github.com/natinusala/borealis">borealis</a> and
@@ -383,14 +478,14 @@
     </div>
     <p class="footer-legal">
       GMCA is an independent, third-party project, not affiliated with or endorsed by Plex, Jellyfin, Emby or Stremio.
-      Nintendo Switch is a trademark of Nintendo; PS Vita and PS4 are trademarks of Sony. ·
-      <span data-version>v1.0.0</span> · <a href="https://github.com/thcolin/gamepad-media-center-aggregator/blob/dev/CHANGELOG.md">Changelog</a>
+      Nintendo Switch is a trademark of Nintendo; PS Vita is a trademark of Sony. ·
+      <span data-version>v0.1.10</span> · <a href="https://github.com/thcolin/gamepad-media-center-aggregator/blob/dev/CHANGELOG.md">Changelog</a>
     </p>
   </footer>
 
   <dialog class="lightbox" id="lightbox" aria-label="Screenshot">
-    <button class="lightbox-close" type="button" aria-label="Close"><span class="btn-glyph">B</span></button>
-    <img alt="">
+    <button class="lightbox-close" aria-label="Close">✕</button>
+    <img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="">
   </dialog>
 
   <script src="assets/js/main.js" defer></script>

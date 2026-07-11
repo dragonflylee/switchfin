@@ -10,7 +10,7 @@
   <meta property="og:title" content="Guide — GMCA">
   <meta property="og:description" content="Install GMCA on Switch, PS Vita, Raspberry Pi and desktop; connect Plex, Jellyfin, Emby or Stremio.">
   <meta property="og:image" content="https://thcolin.github.io/gamepad-media-center-aggregator/assets/img/og.jpg">
-  <meta name="theme-color" content="#14110d">
+  <meta name="theme-color" content="#0d0d10">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
   <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,15 +19,16 @@
   <link rel="stylesheet" href="assets/css/style.css">
   <script>document.documentElement.classList.add('js')</script>
 </head>
-<body>
+<body class="page-guide">
   <a class="skip-link" href="#main">Skip to content</a>
 
   <header class="nav">
     <a class="nav-brand" href="./" aria-label="GMCA — home">
+      <img class="brand-mark" src="assets/img/gmca-logo.webp" alt="" width="26" height="26">
       <span class="wordmark">GMCA</span>
     </a>
     <nav class="nav-links" aria-label="Main">
-      <a href="./#backends">Backends</a>
+      <a href="./#servers">Servers</a>
       <a href="./#devices">Devices</a>
       <a href="./#install">Install</a>
       <a href="guide.html" aria-current="page">Guide</a>
@@ -71,11 +72,11 @@
         </ol>
         <aside class="note">
           <strong>Video playback needs full-memory mode.</strong> Applet mode (launching over the
-          HOME menu) is fine for browsing, but install the HOME tile — or use title takeover —
+          HOME menu) is fine for browsing, but install the HOME tile (or use title takeover)
           before starting a movie.
         </aside>
         <p>Coming from pleNx? GMCA reads your existing library, logins and downloads automatically on
-           first launch — nothing to re-configure.</p>
+           first launch, nothing to re-configure.</p>
       </div>
     </section>
 
@@ -92,7 +93,7 @@
         <dl class="platform-list">
           <div><dt>PS Vita</dt>
           <dd>Install <code>GMCA.vpk</code> with VitaShell, or find GMCA on
-              <a href="https://www.rinnegatamante.eu/vitadb/">VitaDB</a> — for jailbroken consoles.</dd></div>
+              <a href="https://www.rinnegatamante.eu/vitadb/">VitaDB</a>, for jailbroken consoles.</dd></div>
           <div><dt>Raspberry Pi / Linux</dt>
           <dd>Flatpak bundles for x86_64 and arm64v8 (OpenGL 3), plus an Arch package. Wire a Pi to the TV
               with a controller or keyboard for a full 10-foot media center.</dd></div>
@@ -101,9 +102,7 @@
               clear the quarantine attribute:
               <pre><code>sudo xattr -rd com.apple.quarantine /Applications/GMCA.app</code></pre></dd></div>
           <div><dt>Windows</dt>
-          <dd>Portable 7z archives for x64, x86 and ARM64 — Windows 7 or later with DirectX 11.1.</dd></div>
-          <div><dt>PS4</dt>
-          <dd>Homebrew PKG for jailbroken consoles — experimental.</dd></div>
+          <dd>Portable 7z archives for x64, x86 and ARM64 (Windows 7 or later, DirectX 11.1).</dd></div>
         </dl>
       </div>
     </section>
@@ -115,7 +114,7 @@
         <h2>Connect a server</h2>
       </div>
       <div class="guide-body reveal">
-        <p>On first launch, pick a backend — the same interface follows whichever you choose.</p>
+        <p>On first launch, pick a backend. The same interface follows whichever you choose.</p>
         <dl class="platform-list">
           <div><dt>Plex</dt>
           <dd>Enter the 4-character code shown on screen at <a href="https://plex.tv/link">plex.tv/link</a>,
@@ -124,7 +123,7 @@
           <dd>Type your server URL, then authenticate with Quick Connect (no keyboard) or your username
               and password.</dd></div>
           <div><dt>Stremio</dt>
-          <dd>Log in with your Stremio account — your addon catalogs and library sync across. Streams play
+          <dd>Log in with your Stremio account. Your add-on catalogues and library sync across your devices. Streams play
               from direct links or your configured debrid service.</dd></div>
           <div><dt>File servers</dt>
           <dd>Add a WebDAV, FTP, SFTP or HTTP(S) share straight from the UI, with a connection test before
@@ -155,7 +154,7 @@
             <tr><td><span class="btn-glyph">LS</span></td><td><kbd>f3</kbd></td><td>Playback speed</td></tr>
           </tbody>
         </table>
-        <p>Anywhere in the app, press <kbd>X</kbd> — or long-press — on a poster to open the
+        <p>Anywhere in the app, press <kbd>X</kbd> (or long-press) on a poster to open the
            quick actions panel: go to show, go to season, mark watched, download, add to your list.</p>
       </div>
     </section>
@@ -168,11 +167,11 @@
       </div>
       <div class="guide-body reveal">
         <ul>
-          <li><strong>Nintendo Switch</strong> — Atmosphère CFW, full-memory mode for playback</li>
-          <li><strong>PS Vita</strong> — HENkaku/h-encore jailbreak</li>
-          <li><strong>Raspberry Pi / Linux</strong> — Flatpak (x86_64 / arm64v8), OpenGL 3 support</li>
-          <li><strong>Windows</strong> — Windows 7 or later, DirectX 11.1 support</li>
-          <li><strong>macOS</strong> — 10.15 or later, Intel or Apple Silicon</li>
+          <li><strong>Nintendo Switch</strong>:Atmosphère CFW, full-memory mode for playback</li>
+          <li><strong>PS Vita</strong>:HENkaku/h-encore jailbreak</li>
+          <li><strong>Raspberry Pi / Linux</strong>:Flatpak (x86_64 / arm64v8), OpenGL 3 support</li>
+          <li><strong>Windows</strong>:Windows 7 or later, DirectX 11.1 support</li>
+          <li><strong>macOS</strong>:10.15 or later, Intel or Apple Silicon</li>
         </ul>
         <p>MPV decodes H.264, H.265, VP8, VP9 and AV1 video; Opus, FLAC, MP3, AAC, AC-3, E-AC-3,
            TrueHD and DTS audio; and SRT, VTT, SSA/ASS and DVDSUB subtitles. Anything your
@@ -195,7 +194,7 @@
         </details>
         <details>
           <summary>Subtitles don't show up on Switch?</summary>
-          <p>Drop any TrueType font at <code>sdmc:/switch/GMCA/subfont.ttf</code> — it will be
+          <p>Drop any TrueType font at <code>sdmc:/switch/GMCA/subfont.ttf</code>; it will be
              used to render text subtitles.</p>
         </details>
         <details>
@@ -214,13 +213,13 @@
         </details>
         <details>
           <summary>Is GMCA affiliated with Plex, Jellyfin, Emby or Stremio?</summary>
-          <p>No. GMCA is an independent, open-source, third-party client — not affiliated with or
+          <p>No. GMCA is an independent, open-source, third-party client, not affiliated with or
              endorsed by any of them. It talks to <em>your</em> server with your own account.</p>
         </details>
         <details>
           <summary>Where do I report a bug?</summary>
-          <p>On the <a href="https://github.com/thcolin/gamepad-media-center-aggregator/issues">GitHub issue tracker</a> —
-             describe what you did, what happened, your backend, and your device model. On desktop, launching
+          <p>On the <a href="https://github.com/thcolin/gamepad-media-center-aggregator/issues">GitHub issue tracker</a>.
+             Describe what you did, what happened, your backend, and your device model. On desktop, launching
              the app with <code>-d -o gmca.log</code> writes a debug log you can attach.</p>
         </details>
       </div>
@@ -243,7 +242,7 @@
     <div class="footer-inner">
       <div class="footer-brand">
         <span class="wordmark wordmark-footer">GMCA</span>
-        <p>Gamepad Media Center Aggregator — a native, controller-first client for Plex, Jellyfin, Emby and Stremio.<br>
+        <p>Gamepad Media Center Aggregator: a native, controller-first client for Plex, Jellyfin, Emby and Stremio.<br>
            Free and open source, forked from
            <a href="https://github.com/dragonflylee/switchfin">Switchfin</a>, built on
            <a href="https://github.com/natinusala/borealis">borealis</a> and
@@ -266,8 +265,8 @@
     </div>
     <p class="footer-legal">
       GMCA is an independent, third-party project, not affiliated with or endorsed by Plex, Jellyfin, Emby or Stremio.
-      Nintendo Switch is a trademark of Nintendo; PS Vita and PS4 are trademarks of Sony. ·
-      <span data-version>v1.0.0</span> · <a href="https://github.com/thcolin/gamepad-media-center-aggregator/blob/dev/CHANGELOG.md">Changelog</a>
+      Nintendo Switch is a trademark of Nintendo; PS Vita is a trademark of Sony. ·
+      <span data-version>v0.1.10</span> · <a href="https://github.com/thcolin/gamepad-media-center-aggregator/blob/dev/CHANGELOG.md">Changelog</a>
     </p>
   </footer>
 
