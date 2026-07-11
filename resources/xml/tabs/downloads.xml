@@ -1,16 +1,17 @@
 <!-- Downloads tab: a single scrolling list whose ROW 0 is the "Storage" card
      (StorageCard cell) so it scrolls with the "In progress" / "Downloaded"
-     sections below it. paddingTop 70: the tab bar (60) floats above the list,
-     which scrolls beneath it. -->
+     sections below it. -->
 <brls:Box
     width="auto"
-    height="auto"
-    axis="column"
-    paddingLeft="@style/main/content_padding_sides"
-    paddingRight="@style/main/content_padding_sides">
+    height="auto">
 
     <!-- flowMode: per-row heights (heightForRow) to mix the storage card,
-         section headers (non-focusable) and download cards -->
+         section headers (non-focusable) and download cards.
+         Side insets carried by the grid (padding INSIDE the scroll) — like the
+         library grids (collection.xml) — so the grid spans the full width and
+         its scroll indicator sits at the window edge instead of over the cards.
+         paddingTop 70: the tab bar (60) floats above the list, which scrolls
+         beneath it. -->
     <RecyclingGrid
         id="downloads/list"
         grow="1.0"
@@ -18,5 +19,7 @@
         itemHeight="160"
         itemSpace="12"
         paddingTop="70"
-        paddingBottom="20" />
+        paddingLeft="@style/main/content_padding_sides"
+        paddingRight="@style/main/content_padding_sides"
+        paddingBottom="@style/main/content_padding_top_bottom" />
 </brls:Box>
