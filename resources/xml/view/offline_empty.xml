@@ -34,7 +34,7 @@
 
     <IconButton
         id="offline/empty/retry"
-        icon="@res/icon/ico-download-light.svg"
+        icon="@res/icon/ico-download-dark.svg"
         text="@i18n/main/download/offline_retry"
         buttonStyle="primary" />
 

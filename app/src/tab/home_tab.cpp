@@ -21,6 +21,13 @@ brls::View* HomeTab::create() { return new HomeTab(); }
 /// watching" then the hubs from /hubs, with their localized titles
 /// (X-Plex-Language) — PLEX_MIGRATION.md §2.5.
 void HomeTab::doRequest() {
+    // drop any previous offline empty overlay -> back to the scrollable list
+    if (this->offlineEmpty) {
+        this->removeView(this->offlineEmpty);
+        this->offlineEmpty = nullptr;
+        this->scroll->setVisibility(brls::Visibility::VISIBLE);
+    }
+
     // offline: the server hubs are unavailable — show one poster row per
     // downloaded library instead (same row layout as online) (SPEC AC13)
     if (NetworkState::isOffline()) {
@@ -39,8 +46,13 @@ void HomeTab::doRequest() {
             this->boxHome->addView(row);
             any = true;
         }
-        // nothing downloaded: offline empty state (icon + message + Retry)
-        if (!any) this->boxHome->addView(offline_ui::makeEmpty());
+        // nothing downloaded: offline empty state (icon + message + Retry),
+        // centered by filling the tab (scroll hidden) instead of scrolling
+        if (!any) {
+            this->scroll->setVisibility(brls::Visibility::GONE);
+            this->offlineEmpty = offline_ui::makeEmpty();
+            this->addView(this->offlineEmpty);
+        }
         return;
     }
 
