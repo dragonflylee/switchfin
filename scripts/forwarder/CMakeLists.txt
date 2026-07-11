@@ -38,6 +38,12 @@ add_custom_target(${PROJECT_NAME}.pfs0 DEPENDS ${PROJECT_NAME}
     COMMAND ${NX_NPDMTOOL_EXE} "${PROJECT_BINARY_DIR}/config.json" "exefs/main.npdm"
 )
 
+# hacbrewpack writes the NSP with a lower-case title-ID filename, so the rename
+# source below must be lower-cased. No-op for all-digit IDs (old pleNx
+# 0104201312000000) but required for GMCA 0104474D43410000 (474D4341 = "GMCA"):
+# on case-sensitive Linux the upper-case source path is not found.
+string(TOLOWER "${PROJECT_TITLEID}" PROJECT_TITLEID_LOWER)
+
 add_custom_target(${PROJECT_NAME}.nsp DEPENDS ${PROJECT_NAME}.pfs0
     COMMAND ${CMAKE_COMMAND} -E make_directory "control" "logo"
     COMMAND ${NX_NACPTOOL_EXE} --create "${PROJECT_NAME}" "${PROJECT_AUTHOR}" "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}" "control/control.nacp"
@@ -45,5 +51,5 @@ add_custom_target(${PROJECT_NAME}.nsp DEPENDS ${PROJECT_NAME}.pfs0
     COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/icon/logo.gif" "logo/StartupMovie.gif"
     COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_ICON}" "control/icon_AmericanEnglish.dat"
     COMMAND ${HACBREWPACK_EXE} -k "${PROJECT_KEYSET}" --titleid ${PROJECT_TITLEID} --titlename ${CMAKE_PROJECT_NAME} --noromfs --nostartupuser
-    COMMAND ${CMAKE_COMMAND} -E rename "hacbrewpack_nsp/${PROJECT_TITLEID}.nsp" "${PROJECT_RESOURCES}/${PROJECT_NAME}.nsp"
+    COMMAND ${CMAKE_COMMAND} -E rename "hacbrewpack_nsp/${PROJECT_TITLEID_LOWER}.nsp" "${PROJECT_RESOURCES}/${PROJECT_NAME}.nsp"
 )

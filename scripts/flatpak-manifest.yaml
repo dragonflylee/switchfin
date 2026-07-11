@@ -212,6 +212,9 @@ modules:
       - type: git
         url: https://github.com/dragonflylee/glfw.git
         commit: db08cc163dacbabfb37fb62d70ab7f62865008c6
+        # Full clone: flatpak-builder's shallow fetch of this pinned SHA fails
+        # with "unable to read tree" (git exit 128) on the CI runners.
+        disable-shallow-clone: true
 
   - name: gmca
     buildsystem: cmake-ninja
