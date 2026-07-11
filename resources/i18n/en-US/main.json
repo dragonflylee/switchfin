@@ -112,6 +112,18 @@
     "item": "item",
     "items": "items"
   },
+  "music": {
+    "album": "album",
+    "albums": "albums",
+    "track": "track",
+    "tracks": "tracks",
+    "play_album": "Play album",
+    "play_artist": "Shuffle play",
+    "shuffle": "Shuffle",
+    "repeat": "Repeat",
+    "queue": "Queue",
+    "now_playing": "Now Playing"
+  },
   "favorites": {
     "title": "Favorites",
     "add": "Add to Favorites",
@@ -286,6 +298,16 @@
       "font_a2": "1. GMCA prioritizes the display of custom fonts, with built-in fonts as a fallback\n2. \"Settings - Tutorial\" provides a menu item to quickly open the config directory\n3. On Linux, GMCA uses xdg-open to open the directory. If the configuration directory cannot be opened correctly, you can consider installing this tool",
       "font_q3": "Subtitles didn't display",
       "font_a3": "Put any ttf file at {}/subfont.ttf"
+    },
+    "libraries": {
+      "header": "Libraries",
+      "description": "Reorder and hide the sidebar tabs (libraries, playlists, Watchlist). This setting is saved per server.",
+      "grab": "Move",
+      "drop": "Drop",
+      "toggle": "Show / Hide",
+      "visible": "Shown",
+      "hidden": "Hidden",
+      "empty": "No tabs to organize"
     },
     "others": {
       "header": "Others",

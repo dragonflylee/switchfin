@@ -108,6 +108,18 @@
     "item": "項目",
     "items": "項目"
   },
+  "music": {
+    "album": "專輯",
+    "albums": "專輯",
+    "track": "曲目",
+    "tracks": "曲目",
+    "play_album": "播放專輯",
+    "play_artist": "隨機播放",
+    "shuffle": "隨機",
+    "repeat": "重複",
+    "queue": "播放佇列",
+    "now_playing": "正在播放"
+  },
   "watchlist": {
     "title": "待看清單",
     "add": "加入待看清單",
@@ -273,6 +285,16 @@
       "font_a2": "1. GMCA 優先顯示自訂字型，以內建字型作為後備\n2. 「設定 - 使用教學」提供快速打開設定目錄的選單\n3. 在 Linux 上，GMCA 使用 xdg-open 來打開目錄，如果無法正常開啟設定檔目錄，可以考慮安裝此工具",
       "font_q3": "字幕無法顯示",
       "font_a3": "將任意 ttf 檔案放到 {}/subfont.ttf"
+    },
+    "libraries": {
+      "header": "媒體庫",
+      "description": "重新排序或隱藏側邊欄標籤（媒體庫、播放清單、稍後觀看）。此設定會依伺服器分別儲存。",
+      "grab": "移動",
+      "drop": "放下",
+      "toggle": "顯示 / 隱藏",
+      "visible": "顯示",
+      "hidden": "隱藏",
+      "empty": "沒有可整理的標籤"
     },
     "others": {
       "header": "其他",

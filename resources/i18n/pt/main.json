@@ -108,6 +108,18 @@
     "item": "item",
     "items": "itens"
   },
+  "music": {
+    "album": "álbum",
+    "albums": "álbuns",
+    "track": "faixa",
+    "tracks": "faixas",
+    "play_album": "Reproduzir álbum",
+    "play_artist": "Reprodução aleatória",
+    "shuffle": "Aleatório",
+    "repeat": "Repetir",
+    "queue": "Fila",
+    "now_playing": "A reproduzir"
+  },
   "watchlist": {
     "title": "Watchlist",
     "add": "Adicionar à Watchlist",
@@ -273,6 +285,16 @@
       "font_a2": "1. O GMCA dá prioridade à apresentação de tipos de letra personalizados, utilizando os tipos de letra integrados como alternativa\n2. \"Definições - Tutorial\" disponibiliza uma opção de menu para abrir rapidamente o diretório de configuração\n3. No Linux, o GMCA utiliza o xdg-open para abrir o diretório. Se o diretório de configuração não abrir corretamente, pode considerar instalar esta ferramenta",
       "font_q3": "As legendas não foram apresentadas",
       "font_a3": "Coloque qualquer ficheiro ttf em {}/subfont.ttf"
+    },
+    "libraries": {
+      "header": "Bibliotecas",
+      "description": "Reordene e oculte as abas da barra lateral (bibliotecas, playlists, lista de interesses). Esta definição é guardada por servidor.",
+      "grab": "Mover",
+      "drop": "Soltar",
+      "toggle": "Mostrar / Ocultar",
+      "visible": "Visível",
+      "hidden": "Oculta",
+      "empty": "Nenhuma aba para organizar"
     },
     "others": {
       "header": "Outros",

@@ -108,6 +108,18 @@
     "item": "öğe",
     "items": "öğe"
   },
+  "music": {
+    "album": "albüm",
+    "albums": "albümler",
+    "track": "parça",
+    "tracks": "parçalar",
+    "play_album": "Albümü çal",
+    "play_artist": "Karışık çal",
+    "shuffle": "Karıştır",
+    "repeat": "Tekrarla",
+    "queue": "Sıra",
+    "now_playing": "Şimdi çalıyor"
+  },
   "watchlist": {
     "title": "İzleme Listesi",
     "add": "İzleme Listesine ekle",
@@ -273,6 +285,16 @@
       "font_a2": "1. GMCA, özel yazı tiplerinin görüntülenmesine öncelik verir; yerleşik yazı tipleri ise yedek olarak kullanılır.\n2. 'Ayarlar - Kılavuz' bölümünde, yapılandırma dizinini hızlıca açmak için bir menü öğesi bulunur.\n3. Linux’ta GMCA, dizini açmak için xdg-open kullanır. Yapılandırma dizini düzgün şekilde açılamıyorsa bu aracı yüklemeyi düşünebilirsiniz.",
       "font_q3": "Alt yazılar görünmüyor",
       "font_a3": "Herhangi bir TTF dosyasını {}/subfont.ttf konumuna yerleştirin."
+    },
+    "libraries": {
+      "header": "Kitaplıklar",
+      "description": "Kenar çubuğu sekmelerini yeniden sıralayın ve gizleyin (kitaplıklar, oynatma listeleri, izleme listesi). Bu ayar her sunucu için ayrı kaydedilir.",
+      "grab": "Taşı",
+      "drop": "Bırak",
+      "toggle": "Göster / Gizle",
+      "visible": "Görünür",
+      "hidden": "Gizli",
+      "empty": "Düzenlenecek sekme yok"
     },
     "others": {
       "header": "Diğer",

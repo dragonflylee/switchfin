@@ -108,6 +108,18 @@
     "item": "položka",
     "items": "položky"
   },
+  "music": {
+    "album": "album",
+    "albums": "alba",
+    "track": "skladba",
+    "tracks": "skladby",
+    "play_album": "Přehrát album",
+    "play_artist": "Náhodné přehrávání",
+    "shuffle": "Náhodně",
+    "repeat": "Opakovat",
+    "queue": "Fronta",
+    "now_playing": "Právě hraje"
+  },
   "watchlist": {
     "title": "Watchlist",
     "add": "Přidat do Watchlistu",
@@ -273,6 +285,16 @@
       "font_a2": "1. GMCA upřednostňuje zobrazení vlastních písem, s vestavěnými fonty jako záložní\n2. „Nastavení – Výukový program“ poskytuje položku nabídky pro rychlé otevření konfiguračního adresáře\n3. V Linuxu používá GMCA k otevření adresáře xdg-open. Pokud konfigurační adresář nelze správně otevřít, můžete zvážit instalaci tohoto nástroje",
       "font_q3": "Titulky se nezobrazily",
       "font_a3": "Vložte libovolný soubor ttf do {}/subfont.ttf"
+    },
+    "libraries": {
+      "header": "Knihovny",
+      "description": "Změňte pořadí a skryjte karty postranního panelu (knihovny, playlisty, seznam sledování). Toto nastavení se ukládá pro každý server zvlášť.",
+      "grab": "Přesunout",
+      "drop": "Položit",
+      "toggle": "Zobrazit / Skrýt",
+      "visible": "Zobrazeno",
+      "hidden": "Skryto",
+      "empty": "Žádné karty k uspořádání"
     },
     "others": {
       "header": "Ostatní",

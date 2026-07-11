@@ -108,6 +108,18 @@
     "item": "项",
     "items": "项"
   },
+  "music": {
+    "album": "专辑",
+    "albums": "专辑",
+    "track": "曲目",
+    "tracks": "曲目",
+    "play_album": "播放专辑",
+    "play_artist": "随机播放",
+    "shuffle": "随机",
+    "repeat": "重复",
+    "queue": "播放队列",
+    "now_playing": "正在播放"
+  },
   "watchlist": {
     "title": "待看清单",
     "add": "添加到待看清单",
@@ -273,6 +285,16 @@
       "font_a2": "1. 软件优先显示自定义字体，以内置字体作为后备\n2. 「设置 - 使用教程」 提供了快速打开配置目录的菜单项\n3. 在 Linux 上，GMCA 使用 xdg-open 打开目录。如果无法正确打开配置目录，可以考虑安装该工具",
       "font_q3": "字幕无法正常显示",
       "font_a3": "将合适的 ttf 字体文件复制到 {}/subfont.ttf"
+    },
+    "libraries": {
+      "header": "媒体库",
+      "description": "重新排序或隐藏侧边栏标签（媒体库、播放列表、稍后观看）。此设置按服务器分别保存。",
+      "grab": "移动",
+      "drop": "放下",
+      "toggle": "显示 / 隐藏",
+      "visible": "显示",
+      "hidden": "隐藏",
+      "empty": "没有可整理的标签"
     },
     "others": {
       "header": "其他",

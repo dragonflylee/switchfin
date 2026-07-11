@@ -108,6 +108,18 @@
     "item": "elemento",
     "items": "elementos"
   },
+  "music": {
+    "album": "álbum",
+    "albums": "álbumes",
+    "track": "pista",
+    "tracks": "pistas",
+    "play_album": "Reproducir álbum",
+    "play_artist": "Reproducción aleatoria",
+    "shuffle": "Aleatorio",
+    "repeat": "Repetir",
+    "queue": "Cola",
+    "now_playing": "Reproduciendo"
+  },
   "watchlist": {
     "title": "Watchlist",
     "add": "Añadir a la Watchlist",
@@ -273,6 +285,16 @@
       "font_a2": "1. GMCA prioriza mostrar las fuentes personalizadas, usando las integradas como alternativa\n2. \"Ajustes - Tutorial\" ofrece un menú para abrir rápidamente el directorio de configuración\n3. En Linux, GMCA usa xdg-open para abrir el directorio. Si el directorio de configuración no se abre correctamente, considera instalar esta herramienta",
       "font_q3": "No se muestran los subtítulos",
       "font_a3": "Coloca cualquier archivo ttf en {}/subfont.ttf"
+    },
+    "libraries": {
+      "header": "Bibliotecas",
+      "description": "Reordena y oculta las pestañas de la barra lateral (bibliotecas, listas de reproducción, lista de seguimiento). Este ajuste se guarda por servidor.",
+      "grab": "Mover",
+      "drop": "Soltar",
+      "toggle": "Mostrar / Ocultar",
+      "visible": "Visible",
+      "hidden": "Oculta",
+      "empty": "No hay pestañas que organizar"
     },
     "others": {
       "header": "Miscelánea",

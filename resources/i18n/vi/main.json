@@ -108,6 +108,18 @@
     "item": "mục",
     "items": "mục"
   },
+  "music": {
+    "album": "album",
+    "albums": "album",
+    "track": "bài hát",
+    "tracks": "bài hát",
+    "play_album": "Phát album",
+    "play_artist": "Phát ngẫu nhiên",
+    "shuffle": "Ngẫu nhiên",
+    "repeat": "Lặp lại",
+    "queue": "Hàng đợi",
+    "now_playing": "Đang phát"
+  },
   "watchlist": {
     "title": "Danh sách xem",
     "add": "Thêm vào Danh sách xem",
@@ -273,6 +285,16 @@
       "font_a2": "1. GMCA ưu tiên hiển thị phông chữ tùy chỉnh, với phông chữ tích hợp sẵn làm phương án dự phòng\n2. Mục \"Cài đặt - Hướng dẫn\" cung cấp một mục menu để mở nhanh thư mục cấu hình\n3. Trên Linux, GMCA sử dụng xdg-open để mở thư mục. Nếu không thể mở đúng thư mục cấu hình, bạn có thể cân nhắc cài đặt công cụ này",
       "font_q3": "Phụ đề không hiển thị",
       "font_a3": "Đặt bất kỳ tệp ttf nào vào {}/subfont.ttf"
+    },
+    "libraries": {
+      "header": "Thư viện",
+      "description": "Sắp xếp lại và ẩn các thẻ ở thanh bên (thư viện, danh sách phát, danh sách theo dõi). Cài đặt này được lưu riêng cho từng máy chủ.",
+      "grab": "Di chuyển",
+      "drop": "Thả",
+      "toggle": "Hiện / Ẩn",
+      "visible": "Hiển thị",
+      "hidden": "Đã ẩn",
+      "empty": "Không có thẻ nào để sắp xếp"
     },
     "others": {
       "header": "Khác",

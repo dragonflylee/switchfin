@@ -98,10 +98,10 @@ index 227cd789..a651c841 100644
        * Called by frame() to draw the view onscreen.
        * Views should not draw outside of their bounds (they
 diff --git a/library/include/borealis/views/bottom_bar.hpp b/library/include/borealis/views/bottom_bar.hpp
-index 17a93796..28828e4b 100644
+index 17a93796..21ff14e9 100644
 --- a/library/include/borealis/views/bottom_bar.hpp
 +++ b/library/include/borealis/views/bottom_bar.hpp
-@@ -19,26 +19,36 @@
+@@ -19,26 +19,43 @@
  #include <borealis/core/application.hpp>
  #include <borealis/core/bind.hpp>
  #include <borealis/core/box.hpp>
@@ -132,6 +132,12 @@ index 17a93796..28828e4b 100644
 +    // where the footer starts. Screens with a left sidebar pass its width.
 +    void setContentInsetLeft(float inset);
 +
++    // A content view pushed onto the AppletFrame stack fills the full width (the
++    // sidebar belongs to the root view only), so the scrim must span edge to edge
++    // while a view is stacked on top — ignoring the sidebar inset. The frame
++    // toggles this on every content change.
++    void setContentStacked(bool stacked);
++
    private:
 -    void updateText();
 -    std::string bottomText;
@@ -144,6 +150,7 @@ index 17a93796..28828e4b 100644
 +
 +    BRLS_BIND(Box, hintWrap, "brls/bottombar/hint_wrap");
 +    float leftInset = 0.f;
++    bool stacked    = false;
  };
  
  } // namespace brls
@@ -159,8 +166,32 @@ index c83c51ad..4bd52ba0 100644
      Rect getVisibleFrame();
  
      /**
+diff --git a/library/include/borealis/views/recycler.hpp b/library/include/borealis/views/recycler.hpp
+index a29b5324..088e19b4 100644
+--- a/library/include/borealis/views/recycler.hpp
++++ b/library/include/borealis/views/recycler.hpp
+@@ -241,6 +241,10 @@ class RecyclerFrame : public ScrollingFrame
+     bool deleteDataSource          = false;
+     bool layouted                  = false;
+ 
++    // Last viewport size seen by onLayout (per-instance, cf. checkSize()).
++    float oldWidth  = 0;
++    float oldHeight = 0;
++
+     uint32_t visibleMin, visibleMax;
+ 
+     IndexPath defaultCellFocus;
+@@ -257,7 +261,7 @@ class RecyclerFrame : public ScrollingFrame
+     std::map<std::string, std::vector<RecyclerCell*>*> queueMap;
+     std::map<std::string, std::function<RecyclerCell*(void)>> allocationMap;
+ 
+-    bool checkWidth();
++    bool checkSize();
+ 
+     void cacheCellFrames();
+     void cellsRecyclingLoop();
 diff --git a/library/include/borealis/views/scrolling_frame.hpp b/library/include/borealis/views/scrolling_frame.hpp
-index bb6275a2..e74b55a2 100644
+index bb6275a2..0dc5b817 100644
 --- a/library/include/borealis/views/scrolling_frame.hpp
 +++ b/library/include/borealis/views/scrolling_frame.hpp
 @@ -61,6 +61,7 @@ class ScrollingFrame : public Box
@@ -171,10 +202,17 @@ index bb6275a2..e74b55a2 100644
      Rect getVisibleFrame();
  
      /**
-@@ -93,6 +94,17 @@ class ScrollingFrame : public Box
+@@ -93,6 +94,24 @@ class ScrollingFrame : public Box
          showScrollingIndicator = visible;
      }
  
++    /// Global kill-switch for the scroll indicators (both axes). When false, no
++    /// ScrollingFrame / HScrollingFrame draws its indicator, regardless of the
++    /// per-view flag. Driven by the "scrollbar" app setting (default true) — used
++    /// e.g. to capture clean screenshots without the scrollbar overlay.
++    static void setScrollingIndicatorVisibleGlobal(bool visible) { globalScrollingIndicatorVisible = visible; }
++    static bool isScrollingIndicatorVisibleGlobal() { return globalScrollingIndicatorVisible; }
++
 +    /**
 +     * Marks a view as the "top anchor" (CENTERED behavior only): when that view
 +     * gains focus, the frame scrolls to the TOP (offset 0) instead of centering
@@ -189,7 +227,15 @@ index bb6275a2..e74b55a2 100644
      static View* create();
  
    protected:
-@@ -117,9 +129,19 @@ class ScrollingFrame : public Box
+@@ -102,6 +121,7 @@ class ScrollingFrame : public Box
+     bool updateScrollingOnNextFrame = false;
+     bool childFocused               = false;
+     bool showScrollingIndicator     = true;
++    inline static bool globalScrollingIndicatorVisible = true;
+ 
+     float middleY = 0; // y + height/2
+     float bottomY = 0; // y + height
+@@ -117,9 +137,19 @@ class ScrollingFrame : public Box
      float getScrollingAreaTopBoundary();
      float getScrollingAreaHeight();
  
@@ -469,7 +515,7 @@ index 52aefffa..af5bcf54 100644
  
  }; // namespace brls
 diff --git a/library/lib/core/style.cpp b/library/lib/core/style.cpp
-index acc310a4..bc294545 100644
+index acc310a4..538a3786 100644
 --- a/library/lib/core/style.cpp
 +++ b/library/lib/core/style.cpp
 @@ -36,10 +36,13 @@ static StyleValues styleValues = {
@@ -490,6 +536,18 @@ index acc310a4..bc294545 100644
  
      // Highlight
      { "brls/highlight/stroke_width", 5.0f },
+@@ -115,6 +118,11 @@ static StyleValues styleValues = {
+     { "brls/shadow/opacity", 63.75f },
+     { "brls/shadow/offset", 10.0f },
+ 
++    // BottomBar (floating hints overlay, cf. bottom_bar.cpp) — single source of
++    // truth for its height so overlaid content (e.g. the Dropdown list) can
++    // reserve the same band and never rest hidden behind it.
++    { "brls/bottom_bar/height", 108.0f },
++
+     // Dropdown
+     { "brls/dropdown/listPadding", 40.0f },
+     { "brls/dropdown/listPaddingSides", 232.0f },
 diff --git a/library/lib/core/theme.cpp b/library/lib/core/theme.cpp
 index aa63fa09..75af9ff2 100644
 --- a/library/lib/core/theme.cpp
@@ -643,10 +701,20 @@ index 59ec77bb..546db73f 100644
      this->registerStringXMLAttribute("title", [this](std::string value) {
          this->getAppletFrameItem()->title = value;
 diff --git a/library/lib/platforms/glfw/glfw_input.cpp b/library/lib/platforms/glfw/glfw_input.cpp
-index 9b31fcfa..a6b8a8a4 100644
+index 9b31fcfa..00bb8f3c 100644
 --- a/library/lib/platforms/glfw/glfw_input.cpp
 +++ b/library/lib/platforms/glfw/glfw_input.cpp
-@@ -121,9 +121,28 @@ static void glfwTouchCallback(GLFWwindow* window, int touch, int action, double
+@@ -23,6 +23,9 @@
+ #define GLFW_INCLUDE_NONE
+ #include <GLFW/glfw3.h>
+ #include <unistd.h>
++#include <cstdio>
++#include <cstring>
++#include <cstdlib>
+ 
+ namespace brls
+ {
+@@ -121,9 +124,28 @@ static void glfwTouchCallback(GLFWwindow* window, int touch, int action, double
      Application::setActiveEvent(true);
  }
  
@@ -675,7 +743,60 @@ index 9b31fcfa..a6b8a8a4 100644
      KeyState state {};
      state.key            = (BrlsKeyboardScancode)key;
      state.mods           = mods;
-@@ -265,22 +284,22 @@ void GLFWInputManager::updateUnifiedControllerState(ControllerState* state)
+@@ -241,6 +263,52 @@ void GLFWInputManager::updateUnifiedControllerState(ControllerState* state)
+     for (size_t i = 0; i < _AXES_MAX; i++)
+         state->axes[i] = 0;
+ 
++    // --- Remote navigation injection (desktop automation / screenshots) -------
++    // When GMCA_NAV_PIPE names a file, one button token read from it is injected
++    // for a couple of frames, driving the UI even while the window is NOT focused
++    // (the GLFW_FOCUSED early-return below is deliberately bypassed for it). This
++    // lets an external tool navigate + screenshot GMCA without stealing the
++    // keyboard focus. Zero I/O / no effect when the env var is unset.
++    static const char* navPipe = std::getenv("GMCA_NAV_PIPE");
++    if (navPipe)
++    {
++        static int injBtn = -1, injFrames = 0;
++        if (injFrames <= 0)
++        {
++            injBtn = -1;
++            if (std::FILE* f = std::fopen(navPipe, "r"))
++            {
++                char tok[16] = {};
++                if (std::fgets(tok, sizeof(tok), f))
++                {
++                    for (char* p = tok; *p; ++p)
++                        if (*p == '\n' || *p == '\r') { *p = 0; break; }
++                    if (!std::strcmp(tok, "up")) injBtn = BUTTON_UP;
++                    else if (!std::strcmp(tok, "down")) injBtn = BUTTON_DOWN;
++                    else if (!std::strcmp(tok, "left")) injBtn = BUTTON_LEFT;
++                    else if (!std::strcmp(tok, "right")) injBtn = BUTTON_RIGHT;
++                    else if (!std::strcmp(tok, "a")) injBtn = BUTTON_A;
++                    else if (!std::strcmp(tok, "b")) injBtn = BUTTON_B;
++                    else if (!std::strcmp(tok, "x")) injBtn = BUTTON_X;
++                    else if (!std::strcmp(tok, "y")) injBtn = BUTTON_Y;
++                }
++                std::fclose(f);
++                if (injBtn >= 0) injFrames = 2;
++                if (std::FILE* t = std::fopen(navPipe, "w")) std::fclose(t); // consume token
++            }
++        }
++        if (injFrames > 0 && injBtn >= 0)
++        {
++            state->buttons[injBtn] = true;
++            if (injBtn == BUTTON_UP) state->buttons[BUTTON_NAV_UP] = true;
++            else if (injBtn == BUTTON_DOWN) state->buttons[BUTTON_NAV_DOWN] = true;
++            else if (injBtn == BUTTON_LEFT) state->buttons[BUTTON_NAV_LEFT] = true;
++            else if (injBtn == BUTTON_RIGHT) state->buttons[BUTTON_NAV_RIGHT] = true;
++            injFrames--;
++        }
++    }
++    // --------------------------------------------------------------------------
++
+     if (!glfwGetWindowAttrib(window, GLFW_FOCUSED))
+         return;
+ 
+@@ -265,22 +333,22 @@ void GLFWInputManager::updateUnifiedControllerState(ControllerState* state)
  
      // Add keyboard keys on top of gamepad buttons
      if (Application::isSwapInputKeys()) {
@@ -764,8 +885,24 @@ index 3bba8891..b2c03d66 100644
      // Simplified Chinese ext
      rc = plGetSharedFontByType(&font, PlSharedFontType_ExtChineseSimplified);
      if (R_SUCCEEDED(rc) && Application::loadFontFromMemory(FONT_CHINESE_SIMPLIFIED_EXT, font.address, font.size, false))
+diff --git a/library/lib/views/applet_frame.cpp b/library/lib/views/applet_frame.cpp
+index 9d7fd9d5..1b7c60ca 100644
+--- a/library/lib/views/applet_frame.cpp
++++ b/library/lib/views/applet_frame.cpp
+@@ -214,6 +214,11 @@ void AppletFrame::setContentView(View* view)
+     this->addView(this->contentView, 1);
+ 
+     this->updateAppletFrameItem();
++
++    // Keep the footer scrim aligned with the visible content: the sidebar only
++    // exists at the root of the stack, so a pushed content view (size > 1) fills
++    // the full width and the scrim must span edge to edge (drop the inset).
++    this->footer->setContentStacked(this->contentViewStack.size() > 1);
+ }
+ 
+ void AppletFrame::handleXMLElement(tinyxml2::XMLElement* element)
 diff --git a/library/lib/views/bottom_bar.cpp b/library/lib/views/bottom_bar.cpp
-index ba4d0048..f1ec7d26 100644
+index ba4d0048..1621955e 100644
 --- a/library/lib/views/bottom_bar.cpp
 +++ b/library/lib/views/bottom_bar.cpp
 @@ -14,77 +14,37 @@
@@ -864,7 +1001,7 @@ index ba4d0048..f1ec7d26 100644
  </brls:Box>
  )xml";
  
-@@ -92,46 +52,60 @@ BottomBar::BottomBar()
+@@ -92,46 +52,70 @@ BottomBar::BottomBar()
  {
      this->inflateFromXMLString(bottomBarXML);
  
@@ -880,14 +1017,22 @@ index ba4d0048..f1ec7d26 100644
 +    this->setPositionLeft(0);
 +
 +    this->configureFooter();
++}
++
++void BottomBar::setContentInsetLeft(float inset)
++{
++    this->leftInset = inset;
++    this->configureFooter();
  }
  
 -void BottomBar::draw(NVGcontext* vg, float x, float y, float width, float height, Style style, FrameContext* ctx)
-+void BottomBar::setContentInsetLeft(float inset)
++void BottomBar::setContentStacked(bool stacked)
  {
 -    this->updateText();
 -    Box::draw(vg, x, y, width, height, style, ctx);
-+    this->leftInset = inset;
++    if (this->stacked == stacked)
++        return;
++    this->stacked = stacked;
 +    this->configureFooter();
  }
  
@@ -915,12 +1060,14 @@ index ba4d0048..f1ec7d26 100644
 +    NVGcolor fade = bg;
 +    fade.a        = 0.0f;
 +
-+    // start the bar after a left sidebar so the scrim never tints it
-+    this->setPositionLeft(this->leftInset);
++    // Start the bar after a left sidebar so the scrim never tints it — but only
++    // at the root of the content stack, where the sidebar actually lives. A
++    // stacked (pushed) content view fills the full width, so the scrim must too.
++    this->setPositionLeft(this->stacked ? 0.f : this->leftInset);
 +
 +    // soft vertical fade (transparent -> background): hints stay legible over
 +    // scrolling content, invisible when nothing is behind them
-+    this->setHeight(108.0f);
++    this->setHeight(Application::getStyle()["brls/bottom_bar/height"]);
 +    this->setBackground(ViewBackground::VERTICAL_LINEAR);
 +    this->backgroundStartColor = fade;
 +    this->backgroundEndColor   = bg;
@@ -957,10 +1104,45 @@ index ba4d0048..f1ec7d26 100644
  }
  
  View* BottomBar::create()
+diff --git a/library/lib/views/dropdown.cpp b/library/lib/views/dropdown.cpp
+index 65c6b9ad..0da36eff 100644
+--- a/library/lib/views/dropdown.cpp
++++ b/library/lib/views/dropdown.cpp
+@@ -39,6 +39,7 @@ const std::string dropdownFrameXML = R"xml(
+                 id="brls/dropdown/content"
+                 width="auto"
+                 height="330"
++                marginBottom="@style/brls/bottom_bar/height"
+                 axis="column"
+                 backgroundColor="@theme/brls/background">
+ 
+@@ -128,7 +129,12 @@ Dropdown::Dropdown(std::string title, std::vector<std::string> values, ValueSele
+         + style["brls/dropdown/listPadding"] // bottom
+         ;
+ 
+-    content->setHeight(min(height, Application::contentHeight * 0.73f));
++    // Cap so the list plus the reserved bottom-bar band (see the content's
++    // marginBottom) always fit on screen: min of the 73%-of-screen aesthetic
++    // ceiling and "screen minus the floating bottom bar".
++    float bottomBar = style["brls/bottom_bar/height"];
++    float ceiling   = min(Application::contentHeight * 0.73f, Application::contentHeight - bottomBar);
++    content->setHeight(min(height, ceiling));
+ }
+ 
+ int Dropdown::numberOfRows(RecyclerFrame* recycler, int section)
 diff --git a/library/lib/views/h_scrolling_frame.cpp b/library/lib/views/h_scrolling_frame.cpp
-index da1210f4..20135066 100644
+index da1210f4..6533b0a7 100644
 --- a/library/lib/views/h_scrolling_frame.cpp
 +++ b/library/lib/views/h_scrolling_frame.cpp
+@@ -113,7 +113,7 @@ void HScrollingFrame::updateScrollingIndicatior()
+     float contentWidth = getContentWidth();
+     float viewWidth    = getWidth();
+ 
+-    if (contentWidth <= viewWidth || !showScrollingIndicator)
++    if (contentWidth <= viewWidth || !showScrollingIndicator || !ScrollingFrame::isScrollingIndicatorVisibleGlobal())
+     {
+         scrollingIndicator->setAlpha(0);
+         return;
 @@ -157,8 +157,10 @@ void HScrollingFrame::naturalScrollingBehaviour()
      {
          // If current focus view is outside scrolling bounds,
@@ -1059,8 +1241,97 @@ index da1210f4..20135066 100644
          return currentFocus;
  
      return this;
+diff --git a/library/lib/views/image.cpp b/library/lib/views/image.cpp
+index 04db0522..b2a80380 100644
+--- a/library/lib/views/image.cpp
++++ b/library/lib/views/image.cpp
+@@ -186,7 +186,17 @@ void Image::draw(NVGcontext* vg, float x, float y, float width, float height, St
+     nvgBeginPath(vg);
+     if (getClipsToBounds())
+     {
+-        nvgRoundedRect(vg, x, y, width, height, getCornerRadius());
++        // Fill the intersection of the view bounds and the fitted image, not the
++        // whole view. In FILL the image covers the whole view so this stays the
++        // view rect (overflow is cropped as before); in FIT/CENTER the image is
++        // smaller than the view, so filling the empty letterbox would sample the
++        // image pattern outside its [0,1] range and — with CLAMP_TO_EDGE wrapping —
++        // smear the edge pixels vertically/horizontally under every shape.
++        float left   = std::max(x, coordX);
++        float top    = std::max(y, coordY);
++        float right  = std::min(x + width, coordX + this->imageWidth);
++        float bottom = std::min(y + height, coordY + this->imageHeight);
++        nvgRoundedRect(vg, left, top, right - left, bottom - top, getCornerRadius());
+     }
+     else
+     {
+diff --git a/library/lib/views/label.cpp b/library/lib/views/label.cpp
+index 0e0474c1..f28fa18a 100644
+--- a/library/lib/views/label.cpp
++++ b/library/lib/views/label.cpp
+@@ -597,7 +597,13 @@ void Label::onLayout()
+         // Cannot do it in the measure function because the margins are not applied yet there
+         auto vg = Application::getNVGContext();
+         nvgFontSize(vg, this->fontSize);
+-        nvgTextAlign(vg, this->getNVGHorizontalAlign() | this->getNVGVerticalAlign());
++        // Always measure glyph advances from the start (left/top), independently of
++        // the display alignment: nvgTextGlyphPositions returns positions relative to
++        // the given origin honouring the current align, so a centered/right label
++        // would yield positions symmetric around 0 and the "maxx > width" cutoff
++        // below would never fire correctly (long centered text then overflows and
++        // clips instead of ellipsizing). The truncatedText is re-aligned at draw().
++        nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+         nvgFontFaceId(vg, this->font);
+         nvgTextLineHeight(vg, this->lineHeight);
+ 
+diff --git a/library/lib/views/recycler.cpp b/library/lib/views/recycler.cpp
+index 8e6acb30..76c92499 100644
+--- a/library/lib/views/recycler.cpp
++++ b/library/lib/views/recycler.cpp
+@@ -366,17 +366,22 @@ void RecyclerFrame::cacheCellFrames()
+     }
+ }
+ 
+-bool RecyclerFrame::checkWidth()
+-{
+-    float width           = getWidth();
+-    static float oldWidth = width;
+-    if ((int)oldWidth != (int)width && width != 0)
+-    {
+-        oldWidth = width;
+-        return true;
+-    }
+-    oldWidth = width;
+-    return false;
++bool RecyclerFrame::checkSize()
++{
++    // Trigger a reload whenever the viewport width OR height changes. Height
++    // matters because the set of cached/visible cells is sized against the
++    // viewport: a frame whose height is still growing toward its final value
++    // (e.g. Dropdown fixes its content height only after setDataSource has
++    // already reloaded once) would otherwise keep the cell set computed for the
++    // stale, smaller viewport and leave the last rows unreachable. oldWidth /
++    // oldHeight are per-instance (a former function-static shared them across
++    // every recycler, so only the first one to lay out ever reloaded).
++    float width  = getWidth();
++    float height = getHeight();
++    bool changed = ((int)oldWidth != (int)width || (int)oldHeight != (int)height) && width != 0 && height != 0;
++    oldWidth  = width;
++    oldHeight = height;
++    return changed;
+ }
+ 
+ void RecyclerFrame::cellsRecyclingLoop()
+@@ -531,7 +536,7 @@ void RecyclerFrame::onLayout()
+ {
+     ScrollingFrame::onLayout();
+     this->contentBox->setWidth(this->getWidth());
+-    if (checkWidth())
++    if (checkSize())
+     {
+         layouted = true;
+         reloadData();
 diff --git a/library/lib/views/scrolling_frame.cpp b/library/lib/views/scrolling_frame.cpp
-index 61978bd5..6be25091 100644
+index 61978bd5..6104ec8e 100644
 --- a/library/lib/views/scrolling_frame.cpp
 +++ b/library/lib/views/scrolling_frame.cpp
 @@ -18,6 +18,7 @@
@@ -1071,6 +1342,15 @@ index 61978bd5..6be25091 100644
  #include <borealis/views/scrolling_frame.hpp>
  
  namespace brls
+@@ -113,7 +114,7 @@ void ScrollingFrame::updateScrollingIndicatior()
+     float contentHeight = getContentHeight();
+     float viewHeight    = getHeight();
+ 
+-    if (contentHeight <= viewHeight || !showScrollingIndicator)
++    if (contentHeight <= viewHeight || !showScrollingIndicator || !globalScrollingIndicatorVisible)
+     {
+         scrollingIndicator->setAlpha(0);
+         return;
 @@ -128,6 +129,7 @@ void ScrollingFrame::updateScrollingIndicatior()
  
  void ScrollingFrame::draw(NVGcontext* vg, float x, float y, float width, float height, Style style, FrameContext* ctx)

@@ -108,6 +108,18 @@
     "item": "Element",
     "items": "Elemente"
   },
+  "music": {
+    "album": "Album",
+    "albums": "Alben",
+    "track": "Titel",
+    "tracks": "Titel",
+    "play_album": "Album abspielen",
+    "play_artist": "Zufällig abspielen",
+    "shuffle": "Zufall",
+    "repeat": "Wiederholen",
+    "queue": "Warteschlange",
+    "now_playing": "Aktuelle Wiedergabe"
+  },
   "watchlist": {
     "title": "Watchlist",
     "add": "Zur Watchlist hinzufügen",
@@ -273,6 +285,16 @@
       "font_a2": "1. GMCA bevorzugt die Anzeige eigener Schriftarten und greift auf die eingebauten Schriftarten zurück\n2. \"Einstellungen - Anleitungen\" enthält einen Menüpunkt, um den Konfigurationsordner schnell zu öffnen\n3. Auf Linux verwendet GMCA xdg-open, um den Ordner zu öffnen. Falls sich der Konfigurationsordner nicht richtig öffnen lässt, kannst du erwägen, dieses Werkzeug zu installieren",
       "font_q3": "Untertitel werden nicht angezeigt",
       "font_a3": "Lege eine beliebige ttf-Datei unter {}/subfont.ttf ab"
+    },
+    "libraries": {
+      "header": "Bibliotheken",
+      "description": "Ordne die Tabs der Seitenleiste neu an oder blende sie aus (Bibliotheken, Wiedergabelisten, Merkliste). Diese Einstellung wird pro Server gespeichert.",
+      "grab": "Verschieben",
+      "drop": "Ablegen",
+      "toggle": "Anzeigen / Ausblenden",
+      "visible": "Sichtbar",
+      "hidden": "Ausgeblendet",
+      "empty": "Keine Tabs zum Anordnen"
     },
     "others": {
       "header": "Diverses",

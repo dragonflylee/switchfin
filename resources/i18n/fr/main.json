@@ -112,6 +112,18 @@
     "item": "élément",
     "items": "éléments"
   },
+  "music": {
+    "album": "album",
+    "albums": "albums",
+    "track": "titre",
+    "tracks": "titres",
+    "play_album": "Lire l'album",
+    "play_artist": "Lecture aléatoire",
+    "shuffle": "Aléatoire",
+    "repeat": "Répéter",
+    "queue": "File d'attente",
+    "now_playing": "Lecture en cours"
+  },
   "favorites": {
     "title": "Favoris",
     "add": "Ajouter aux favoris",
@@ -286,6 +298,16 @@
       "font_a2": "1. Le logiciel donne la priorité à l'affichage des polices personnalisées, en utilisant les polices intégrées comme sauvegarde.\n2. \"Paramètres - Tutoriel utilisateur\"  fournit un élément de menu pour ouvrir rapidement le répertoire de configuration.",
       "font_q3": "Les sous-titres ne peuvent être affichés correctement.",
       "font_a3": "Copiez le fichier de police TTF approprié dans {}/subfont.ttf"
+    },
+    "libraries": {
+      "header": "Bibliothèques",
+      "description": "Réorganisez et masquez les onglets de la barre latérale (bibliothèques, listes de lecture, Watchlist). Réglage propre à ce serveur.",
+      "grab": "Déplacer",
+      "drop": "Poser",
+      "toggle": "Afficher / Masquer",
+      "visible": "Affiché",
+      "hidden": "Masqué",
+      "empty": "Aucun onglet à organiser"
     },
     "others": {
       "header": "Autres",
