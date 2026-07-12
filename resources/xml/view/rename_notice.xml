@@ -3,22 +3,24 @@
      MainActivity). Only ever shown to users migrated from a legacy pleNx /
      Switchlex data dir — see AppConfig::migratedFromLegacy + RENAME_NOTICE_SHOWN.
      Warm, celebratory tone: same app, grown up. All accent color comes from the
-     live GMCA/backend theme token @theme/color/app. -->
+     live GMCA/backend theme token @theme/color/app.
+     Logo + title stay fixed; the body is a height-capped ScrollingFrame so long
+     translations scroll instead of overflowing the 544p PS Vita dialog. -->
 <brls:Box
     axis="column"
     alignItems="center"
     width="720"
     height="auto"
-    paddingTop="28"
+    paddingTop="26"
     paddingBottom="8"
     paddingLeft="46"
     paddingRight="46">
 
     <!-- brand mark (scalingType=fit: no cornerRadius needed) -->
     <brls:Image
-        width="76"
-        height="76"
-        marginBottom="14"
+        width="64"
+        height="64"
+        marginBottom="12"
         scalingType="fit"
         image="@res/icon/logo-ghost.png" />
 
@@ -33,56 +35,68 @@
         width="64"
         height="3"
         cornerRadius="2"
-        marginBottom="16"
+        marginBottom="14"
         backgroundColor="@theme/color/app" />
 
-    <brls:Label
-        fontSize="16"
-        lineHeight="1.4"
-        marginBottom="20"
-        horizontalAlign="center"
-        text="@i18n/main/rename/intro" />
+    <brls:ScrollingFrame
+        width="auto"
+        height="300"
+        scrollingBehavior="natural">
+        <brls:Box
+            axis="column"
+            alignItems="center"
+            width="auto"
+            height="auto">
 
-    <!-- feature highlights: an accent-dotted list, block-centered but the rows
-         themselves left-aligned so the bullets line up. -->
-    <brls:Box
-        axis="column"
-        alignSelf="center"
-        alignItems="flexStart"
-        marginBottom="18">
+            <brls:Label
+                fontSize="16"
+                lineHeight="1.4"
+                marginBottom="20"
+                horizontalAlign="center"
+                text="@i18n/main/rename/intro" />
 
-        <brls:Label
-            fontSize="13"
-            marginBottom="12"
-            textColor="@theme/color/app"
-            text="@i18n/main/rename/whats_new" />
+            <!-- feature highlights: an accent-dotted list, block-centered but the
+                 rows themselves left-aligned so the bullets line up. -->
+            <brls:Box
+                axis="column"
+                alignSelf="center"
+                alignItems="flexStart"
+                marginBottom="18">
 
-        <brls:Box axis="row" alignItems="center" marginBottom="10">
-            <brls:Box width="8" height="8" cornerRadius="4" marginRight="14" backgroundColor="@theme/color/app" />
-            <brls:Label fontSize="16" text="@i18n/main/rename/feature_backends" />
+                <brls:Label
+                    fontSize="13"
+                    marginBottom="12"
+                    textColor="@theme/color/app"
+                    text="@i18n/main/rename/whats_new" />
+
+                <brls:Box axis="row" alignItems="center" marginBottom="10">
+                    <brls:Box width="8" height="8" cornerRadius="4" marginRight="14" backgroundColor="@theme/color/app" />
+                    <brls:Label fontSize="16" text="@i18n/main/rename/feature_backends" />
+                </brls:Box>
+
+                <brls:Box axis="row" alignItems="center" marginBottom="10">
+                    <brls:Box width="8" height="8" cornerRadius="4" marginRight="14" backgroundColor="@theme/color/app" />
+                    <brls:Label fontSize="16" text="@i18n/main/rename/feature_music" />
+                </brls:Box>
+
+                <brls:Box axis="row" alignItems="center" marginBottom="10">
+                    <brls:Box width="8" height="8" cornerRadius="4" marginRight="14" backgroundColor="@theme/color/app" />
+                    <brls:Label fontSize="16" text="@i18n/main/rename/feature_offline" />
+                </brls:Box>
+
+                <brls:Box axis="row" alignItems="center">
+                    <brls:Box width="8" height="8" cornerRadius="4" marginRight="14" backgroundColor="@theme/color/app" />
+                    <brls:Label fontSize="16" text="@i18n/main/rename/feature_updates" />
+                </brls:Box>
+            </brls:Box>
+
+            <brls:Label
+                fontSize="14"
+                lineHeight="1.4"
+                horizontalAlign="center"
+                textColor="@theme/font/grey"
+                text="@i18n/main/rename/reassure" />
         </brls:Box>
-
-        <brls:Box axis="row" alignItems="center" marginBottom="10">
-            <brls:Box width="8" height="8" cornerRadius="4" marginRight="14" backgroundColor="@theme/color/app" />
-            <brls:Label fontSize="16" text="@i18n/main/rename/feature_music" />
-        </brls:Box>
-
-        <brls:Box axis="row" alignItems="center" marginBottom="10">
-            <brls:Box width="8" height="8" cornerRadius="4" marginRight="14" backgroundColor="@theme/color/app" />
-            <brls:Label fontSize="16" text="@i18n/main/rename/feature_offline" />
-        </brls:Box>
-
-        <brls:Box axis="row" alignItems="center">
-            <brls:Box width="8" height="8" cornerRadius="4" marginRight="14" backgroundColor="@theme/color/app" />
-            <brls:Label fontSize="16" text="@i18n/main/rename/feature_updates" />
-        </brls:Box>
-    </brls:Box>
-
-    <brls:Label
-        fontSize="14"
-        lineHeight="1.4"
-        horizontalAlign="center"
-        textColor="@theme/font/grey"
-        text="@i18n/main/rename/reassure" />
+    </brls:ScrollingFrame>
 
 </brls:Box>
