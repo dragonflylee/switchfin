@@ -9,6 +9,17 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [1.0.2] - 2026-07-12
+
+### Fixed
+
+- **Switch HOME tile showed no icon and refused to launch (error 2016-1257,
+  "the console must be updated").** The app icon regenerated during the rebrand
+  grew to 1024×1024 and carried an XMP metadata profile; the HOME menu is strict
+  about the forwarder's control icon (the album is lenient, which is why it
+  looked fine there). Regenerated `resources/icon/icon.jpg` as a clean 256×256
+  baseline JPEG with all metadata stripped — the format the pleNx forwarder used.
+
 ## [1.0.1] - 2026-07-12
 
 Fixes the HOME-tile experience for Switch users who self-updated from pleNx to
