@@ -9,6 +9,19 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [1.0.3] - 2026-07-12
+
+### Fixed
+
+- **Switch HOME tile crashed on launch ("an error occurred") after installing
+  it on a self-updated install.** 1.0.1's "stage the NRO to `GMCA.nro`" step used
+  `std::filesystem::copy_file`, which fails on the console and left a **0-byte
+  `GMCA.nro`**; the forwarder then loaded that empty file (and, because it
+  existed, never fell back to the real NRO). Removed the in-app copy entirely —
+  the forwarder now falls back to the self-updated `pleNx.nro` on its own — and
+  hardened the forwarder to **skip any candidate that isn't a valid NRO** (magic
+  check), so a leftover 0-byte `GMCA.nro` is ignored instead of crashing.
+
 ## [1.0.2] - 2026-07-12
 
 ### Fixed

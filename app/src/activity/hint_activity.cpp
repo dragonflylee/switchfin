@@ -2,8 +2,6 @@
 
 #ifdef BUILTIN_NSP
 #include <nspmini.hpp>
-#include <filesystem>
-#include "utils/config.hpp"
 #endif
 
 using namespace brls::literals;
@@ -26,20 +24,6 @@ void HintActivity::onContentAvailable() {
         dialog->addButton("hints/cancel"_i18n, []() {});
         dialog->addButton("hints/ok"_i18n, []() {
             brls::Application::blockInputs();
-            // The forwarder launches sdmc:/switch/GMCA.nro. pleNx users who
-            // self-updated in place still have the binary at the old path
-            // (AppVersion::nro_path, e.g. .../pleNx.nro), so stage it under the
-            // canonical name first — otherwise the freshly installed GMCA tile
-            // falls through to hbmenu. Best-effort; the forwarder also falls back
-            // to the legacy pleNx path.
-            try {
-                const std::string& src = AppVersion::nro_path;
-                const std::string dst = "sdmc:/switch/GMCA.nro";
-                if (src.size() > 4 && src != dst && std::filesystem::exists(src))
-                    std::filesystem::copy_file(src, dst, std::filesystem::copy_options::overwrite_existing);
-            } catch (const std::exception& e) {
-                brls::Logger::warning("forwarder: could not stage GMCA.nro: {}", e.what());
-            }
             mini::InstallSD("romfs:/forwarder.nsp");
             unsigned long long AppTitleID = mini::GetTitleID();
             appletRequestLaunchApplication(AppTitleID, NULL);
