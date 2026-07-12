@@ -1,0 +1,24 @@
+<!-- Scrolled header for the artist page: name + album count + shuffle-play. -->
+<brls:Box
+    axis="column"
+    justifyContent="flexStart">
+
+    <brls:Label
+        id="grid/header/title"
+        fontSize="30" />
+
+    <brls:Label
+        id="grid/header/meta"
+        fontSize="15"
+        marginTop="6"
+        textColor="@theme/font/grey" />
+
+    <brls:Box marginTop="14">
+        <IconButton
+            id="artist/shuffle"
+            icon="@res/icon/ico-shuffle.svg"
+            text="@i18n/main/music/play_artist"
+            buttonStyle="primary" />
+    </brls:Box>
+
+</brls:Box>

@@ -1,7 +1,7 @@
 /*
     Translucent loading overlay: a dimmed scrim drawn OVER the current screen
     (the pairing screen stays visible underneath) with a centered spinner +
-    "Connecting…" card. Used by the Plex pairing flow (ServerAdd) while probing
+    "Connecting…" card. Used by the Plex pairing flow (PlexAdd) while probing
     server connections, which can take several seconds — see thcolin/pleNx#1.
 
     Unlike LoadingActivity (the full-screen splash used at startup), this never

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to pleNx are documented in this file.
+All notable changes to GMCA (formerly pleNx) are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/) and the
 project adheres to [Semantic Versioning](https://semver.org/). Entries are
@@ -8,6 +8,38 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 (`git cliff --unreleased --tag vX.Y.Z --prepend CHANGELOG.md`), then curated by
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
+
+## [1.0.0] - 2026-07-12
+
+First release under the new name **GMCA — Gamepad Media Center Aggregator**
+(formerly pleNx). This milestone opens the app to multiple media servers and
+adds music, on top of the 0.1.x work listed below.
+
+### Rebrand — pleNx is now GMCA
+
+- The app, packaging, website and in-app identity are rebranded to GMCA. Your
+  logins, settings and downloads migrate automatically on first launch —
+  nothing to re-configure. On Linux the `gmca` package supersedes `plenx` in
+  place; on console GMCA installs alongside an existing pleNx (fresh title IDs).
+
+### Multi-backend media servers
+
+- **Jellyfin, Emby and Stremio** join **Plex**. Choose the server type when
+  adding a connection; home, libraries, search, playback, downloads and the
+  connection switcher all work across every backend.
+
+### Music (#11)
+
+- Browse and play a music library — **Artist → Album → Track** — from Plex,
+  Jellyfin or Emby, with a dedicated **Now Playing** screen and a persistent
+  **mini-bar** that keeps playing across the app and in the background (screen
+  off / HOME). Reuses the existing MPV playback engine.
+
+### Notes
+
+- Consolidates the 0.1.11–0.1.15 releases below — offline download browsing,
+  folder sorting/pinning, Blu-ray folder playback, the PS Vita in-app
+  self-update and the Vita transcode/DNS fixes are all included.
 
 ## [0.1.15] - 2026-07-11
 

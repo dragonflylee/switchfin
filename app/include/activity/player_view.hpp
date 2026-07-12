@@ -1,5 +1,5 @@
 /*
-    pleNx — Plex video player.
+    GMCA — Plex video player.
     Pipeline: PLEX_MIGRATION.md §2.7 (direct play, universal transcoder, timeline, scrobble).
 */
 
@@ -13,7 +13,10 @@ class VideoView;
 
 class PlayerView : public brls::Box {
 public:
-    PlayerView(const plex::Item& item, const int64_t seekMs = 0);
+    /// versionIndex selects which item.media[] source to play (default -1 = the
+    /// first accessible version, i.e. unchanged Plex/Jellyfin behavior). The
+    /// Stremio source picker passes an explicit index to honor the user's choice.
+    PlayerView(const plex::Item& item, const int64_t seekMs = 0, int versionIndex = -1);
     ~PlayerView();
 
     /// Loads the show's episode list (previous/next navigation)
@@ -35,12 +38,16 @@ public:
 
 private:
     void setChapters(const std::vector<plex::Chapter>& chaps, int64_t durationMs);
-    /// Fetches fresh metadata then picks direct play or transcode
+    /// Fetches fresh metadata then resolves the playback URL via the backend
     void playMedia(const int64_t seekMs);
-    void playDirect(const int64_t seekMs);
-    void playTranscode(const int64_t seekMs);
-    /// Tears the current transcode session down server-side (no-op for direct
-    /// play). Fire-and-forget; safe to call after `this` is gone.
+    /// Resolves the playback URL through the active backend (resolvePlayback,
+    /// which decides direct vs transcode internally). forceDirect bypasses
+    /// transcoding for the direct-play fallback after a transcode playback error
+    /// (helps the Vita hardware decoder, which can choke on the transcoded stream).
+    void startPlayback(const int64_t seekMs, bool forceDirect = false);
+    /// Tears the current Plex transcode session down server-side (no-op for
+    /// direct play or non-Plex backends). Fire-and-forget; safe to call after
+    /// `this` is gone.
     void stopTranscode();
     /// On a transcode playback error, retry once in direct play (helps Vita,
     /// where the hardware decoder can choke on the transcoded stream). Returns
@@ -58,12 +65,17 @@ private:
     std::string itemId;  // ratingKey
     /// playMethod: "directplay" | "transcode" (VideoProfile display)
     std::string playMethod;
-    /// X-Plex-Session-Identifier: stable for the whole playback session
+    /// stable play-session id for the whole playback session
     std::string sessionId;
-    /// transcoder session: regenerated on every (re)start
+    /// Plex universal-transcoder session, extracted from the resolved transcode
+    /// URL so stopTranscode() can free it server-side. Empty for direct play or
+    /// non-Plex backends. Regenerated (by the backend) on every (re)start.
     std::string transcodeSession;
     plex::Item item;     // fresh metadata (media/chapters/markers)
     plex::Media stream;  // selected version
+    /// caller-chosen source index (Stremio picker); -1 = first accessible.
+    /// Reset to -1 on episode switch so binge auto-picks the best source.
+    int preferredVersion = -1;
     bool scrobbled = false;
     /// guards tryDirectPlayFallback so a failing stream falls back at most once
     /// per (re)load; reset by playMedia on every deliberate (re)start

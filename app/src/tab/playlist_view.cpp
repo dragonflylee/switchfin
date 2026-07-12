@@ -1,14 +1,16 @@
 /*
-    pleNx — view of a playlist (see playlist_view.hpp).
+    GMCA — view of a playlist (see playlist_view.hpp).
     Reuses VideoDataSource: movies -> detail page, episodes -> playback,
     X/long-press context menu included (video_card.cpp).
 */
 
 #include "tab/playlist_view.hpp"
 #include "api/plex.hpp"
+#include "api/backend.hpp"
 #include "view/recycling_grid.hpp"
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
+#include "view/music_now_playing.hpp"
 #include "utils/keybind.hpp"
 
 using namespace brls::literals;  // for _i18n
@@ -62,20 +64,17 @@ void PlaylistView::updateMeta(int64_t count, int64_t durationMs) {
 }
 
 void PlaylistView::doRequest() {
-    HTTP::Form query;
-    // playlist order = server order: NO sort parameter
-    plex::addPagination(query, this->startIndex, this->pageSize);
-
     ASYNC_RETAIN
-    // GET /playlists/{ratingKey}/items -> Metadata[] (movies/episodes)
-    plex::getJSON<plex::Container<plex::Item>>(
-        AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-        [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
+    // requested offset, not r.StartIndex: Jellyfin/Emby omit StartIndex on an
+    // empty past-the-end page (it parses to 0) and would wipe a filled grid
+    size_t reqStart = this->startIndex;
+    AppConfig::instance().backend().getPlaylistItems(this->playlistId, this->startIndex, this->pageSize,
+        [ASYNC_TOKEN, reqStart](const media::Container<media::Item>& r) {
             ASYNC_RELEASE
-            this->startIndex = r.StartIndex + this->pageSize;
-            if (r.TotalRecordCount == 0) {
+            this->startIndex = reqStart + this->pageSize;
+            if (r.TotalRecordCount == 0 && reqStart == 0) {
                 this->recycler->setEmpty();
-            } else if (r.StartIndex == 0) {
+            } else if (reqStart == 0) {
                 // incomplete header (Item without leafCount): completed on the 1st batch
                 if (this->knownCount <= 0) {
                     this->knownCount = r.TotalRecordCount;
@@ -88,13 +87,31 @@ void PlaylistView::doRequest() {
                 this->recycler->notifyDataChanged();
             }
         },
-        [ASYNC_TOKEN](const std::string& ex) {
+        [ASYNC_TOKEN, reqStart](const std::string& ex) {
             ASYNC_RELEASE
-            if (this->startIndex > 0) {
+            if (reqStart > 0) {
                 brls::Application::notify(ex);
             } else {
                 this->recycler->setError(ex);
             }
-        },
-        plex::apiPlaylistItems, this->playlistId, HTTP::encode_form(query));
+        });
+}
+
+void ui::presentPlaylist(brls::View* from, const media::Item& item) {
+    if (item.playlistType == "audio") {
+        // Audio playlist: load its tracks into the shared music controller and
+        // open Now Playing (issue #11), not the video poster grid. A single
+        // large page fetches the whole queue at once (parity with "play artist"
+        // / getArtistTracks, which are likewise unbounded); playlists larger
+        // than this are effectively unbounded for playback purposes.
+        std::string id = item.ratingKey;
+        AppConfig::instance().backend().getPlaylistItems(
+            id, 0, 10000,
+            [](const media::Container<media::Item>& r) {
+                if (!r.Items.empty()) MusicNowPlaying::present(r.Items, 0, false);
+            },
+            [](const std::string& ex) { brls::Application::notify(ex); });
+        return;
+    }
+    ui::presentDetail(from, new PlaylistView(item));
 }

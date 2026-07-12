@@ -2,6 +2,7 @@
 #include "utils/config.hpp"
 #include <borealis/core/logger.hpp>
 #include <curl/curl.h>
+#include <mutex>
 #if defined(BOREALIS_USE_GXM)
 #include <mbedtls/platform.h>
 #include <psp2/gxm.h>
@@ -83,16 +84,22 @@ private:
 static std::string user_agent =
     fmt::format("{}/{} ({})", AppVersion::getPackageName(), AppVersion::getVersion(), AppVersion::getPlatform());
 
-/// Per-data locks for the shared DNS cache. Without these callbacks a CURLSH
-/// shared across threads (every easy handle sets CURLOPT_SHARE) is undefined
-/// behaviour — the cause of the intermittent SIGABRT in Curl_resolv/Curl_hash
-/// under concurrent requests. One mutex per curl_lock_data class.
-static std::mutex curlShareLocks[CURL_LOCK_DATA_LAST];
-static void curlShareLock(CURL*, curl_lock_data data, curl_lock_access, void*) {
-    if (data < CURL_LOCK_DATA_LAST) curlShareLocks[data].lock();
+/// @brief Verrous du cache partagé libcurl (CURLSH), indexés par curl_lock_data.
+/// libcurl exige des callbacks lock/unlock dès qu'un objet partagé (ici le cache DNS)
+/// est utilisé par des easy handles répartis sur plusieurs threads. Sans eux, les accès
+/// concurrents corrompent la hash table du cache DNS (SIGABRT dans Curl_hash_delete /
+/// Curl_resolv). Un mutex exclusif par type de donnée suffit : la section critique se
+/// limite à la lecture/écriture du cache, les requêtes restent parallèles. Le garde
+/// `data < CURL_LOCK_DATA_LAST` protège contre un index hors bornes.
+static std::mutex share_locks[CURL_LOCK_DATA_LAST];
+
+static void curl_share_lock_cb(CURL* /*handle*/, curl_lock_data data, curl_lock_access /*access*/,
+                               void* /*userptr*/) {
+    if (data < CURL_LOCK_DATA_LAST) share_locks[data].lock();
 }
-static void curlShareUnlock(CURL*, curl_lock_data data, void*) {
-    if (data < CURL_LOCK_DATA_LAST) curlShareLocks[data].unlock();
+
+static void curl_share_unlock_cb(CURL* /*handle*/, curl_lock_data data, void* /*userptr*/) {
+    if (data < CURL_LOCK_DATA_LAST) share_locks[data].unlock();
 }
 
 /// @brief curl context
@@ -108,8 +115,9 @@ HTTP::HTTP() : chunk(nullptr) {
             brls::Logger::debug("curl global init {}", std::to_string(rc));
 #endif
             this->share = curl_share_init();
-            curl_share_setopt(share, CURLSHOPT_LOCKFUNC, curlShareLock);
-            curl_share_setopt(share, CURLSHOPT_UNLOCKFUNC, curlShareUnlock);
+            // Callbacks de verrouillage obligatoires pour un partage inter-threads sûr
+            curl_share_setopt(share, CURLSHOPT_LOCKFUNC, curl_share_lock_cb);
+            curl_share_setopt(share, CURLSHOPT_UNLOCKFUNC, curl_share_unlock_cb);
             curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
         }
         ~Global() {

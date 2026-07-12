@@ -36,9 +36,12 @@ import subprocess
 import sys
 import time
 
-APP = "pleNx"
+APP = os.environ.get("APP", "GMCA")
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-BINARY = os.path.join(ROOT, "build_desktop", "pleNx.app", "Contents", "MacOS", "pleNx")
+BINARY = os.environ.get(
+    "APP_BINARY",
+    os.path.join(ROOT, "build_gmca", "GMCA.app", "Contents", "MacOS", "GMCA"),
+)
 SHOTS_DIR = os.environ.get("SHOTS_DIR", "/tmp/sx-shots")
 TITLEBAR = 32  # points; 1280x752 window for a 1280x720 canvas
 KEY_DELAY = float(os.environ.get("KEY_DELAY", "0.4"))
@@ -61,7 +64,21 @@ def running():
 
 def activate():
     osa(f'tell application "System Events" to set frontmost of (first process whose name is "{APP}") to true')
-    time.sleep(0.5)
+    time.sleep(0.6)
+
+
+def _warmup():
+    """A lone modifier press wakes the window's input focus so the FIRST real
+    keystroke after (re)activation is never swallowed by the polling. Fixes the
+    "dropped first key after activate" flakiness."""
+    try:
+        import Quartz
+        for pressed in (True, False):
+            ev = Quartz.CGEventCreateKeyboardEvent(None, 56, pressed)  # left Shift
+            Quartz.CGEventPost(Quartz.kCGHIDEventTap, ev)
+    except ImportError:
+        pass
+    time.sleep(0.12)
 
 
 def window_ready():
@@ -103,6 +120,7 @@ def bounds():
 
 def key(names):
     activate()
+    _warmup()
     for name in names:
         code = KEYS[name.lower()]
         _press(code)

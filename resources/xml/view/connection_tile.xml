@@ -1,0 +1,86 @@
+<!-- One connection tile (server + profile). All brand color (background, border,
+     avatar ring, type label, connected badge) and the three visual states
+     (resting / connected / focused) are applied in C++ from
+     plenx::backendPalette(type) — this template only carries the structure. -->
+<brls:Box
+    axis="column"
+    width="184"
+    height="220"
+    alignItems="center"
+    justifyContent="center"
+    cornerRadius="18"
+    paddingLeft="16"
+    paddingRight="16"
+    borderThickness="1"
+    focusable="true">
+
+    <brls:Box
+        id="tile/ring"
+        width="88"
+        height="88"
+        cornerRadius="44"
+        borderThickness="2"
+        alignItems="center"
+        justifyContent="center"
+        marginBottom="16">
+
+        <brls:Image
+            id="tile/avatar"
+            width="82"
+            height="82"
+            cornerRadius="41"
+            scalingType="fill"
+            image="@res/img/account.png" />
+
+        <!-- connected badge: a brand disc with a white check, lower-right of the
+             avatar. Shown in C++ for the active connection only. -->
+        <brls:Box
+            id="tile/badge"
+            width="26"
+            height="26"
+            cornerRadius="13"
+            positionType="absolute"
+            positionBottom="2"
+            positionRight="2"
+            borderThickness="2.5"
+            alignItems="center"
+            justifyContent="center"
+            visibility="gone">
+            <SVGImage
+                id="tile/check"
+                width="13"
+                height="13" />
+        </brls:Box>
+    </brls:Box>
+
+    <!-- These labels carry no explicit width on purpose: a definite width makes
+         Yoga measure them "exactly", which can skip the borealis Label measure
+         func (requiredWidth never set). Left unset, they inherit maxWidth=100% of
+         the tile's inner width (184 - 2*16 padding), are measured "at most", so
+         requiredWidth is computed and onLayout can ellipsize a long name to "…".
+         Short names stay content-width and are centered by the tile's alignItems;
+         long names truncate and, thanks to the label.cpp truncation fix (glyph
+         advances now measured left-aligned), the trailing "…" stays centered too.
+         See scripts/patches/borealis-fixes.patch. -->
+    <brls:Label
+        id="tile/title"
+        fontSize="18"
+        horizontalAlign="center"
+        singleLine="true" />
+
+    <brls:Label
+        id="tile/type"
+        fontSize="12"
+        marginTop="5"
+        horizontalAlign="center"
+        singleLine="true" />
+
+    <brls:Label
+        id="tile/detail"
+        fontSize="13"
+        marginTop="3"
+        horizontalAlign="center"
+        singleLine="true"
+        textColor="@theme/font/grey" />
+
+</brls:Box>

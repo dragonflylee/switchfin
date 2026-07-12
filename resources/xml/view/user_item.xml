@@ -1,20 +1,26 @@
 <brls:Box
-    highlightCornerRadius="8"
+    highlightCornerRadius="16"
     axis="column"
+    justifyContent="center"
     width="auto"
     height="auto">
     <brls:Box
         id="video/card/pic_box"
         axis="row"
         width="100%"
-        padding="10">
+        padding="10"
+        justifyContent="center">
+        <!-- circular avatar (cornerRadius = half the side), consistent with the
+             cast/person photos (people.xml). cornerRadius is also what clips the
+             scalingType="fill" render. Square box -> perfect circle. -->
         <brls:Image
             id="user/avatar"
+            width="120"
+            height="120"
             backgroundColor="@theme/color/grey_1"
             scalingType="fill"
-            grow="1.0f"
-            image="@res/img/video-card-bg.png"
-            cornerRadius="10" />
+            image="@res/img/account.png"
+            cornerRadius="60" />
     </brls:Box>
 
     <brls:Box

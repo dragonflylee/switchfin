@@ -1,3 +1,9 @@
+gmca (1.0.0-1) unstable; urgency=medium
+
+  * Rebrand of pleNx to Gamepad Media Center Aggregator (GMCA), with multi-backend support (Plex, Jellyfin, Emby, Stremio). Supersedes the plenx package.
+
+ -- thcolin <thomas.colin@les-tilleuls.coop>  Sat, 20 Jun 2026 11:00:00 +0000
+
 plenx (0.1.0-1) unstable; urgency=medium
 
   * First release of pleNx: native Plex client (fork of Switchfin migrated from Jellyfin to Plex)

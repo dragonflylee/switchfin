@@ -1,11 +1,12 @@
 /*
-    pleNx — full page of a hub (see hub_view.hpp).
+    GMCA — full page of a hub (see hub_view.hpp).
     Reuses VideoDataSource: movies/shows -> detail page, episodes -> playback,
     X/long-press context menu included (video_card.cpp).
 */
 
 #include "tab/hub_view.hpp"
 #include "api/plex.hpp"
+#include "api/backend.hpp"
 #include "view/recycling_grid.hpp"
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
@@ -46,21 +47,17 @@ HubView::HubView(const std::string& title, const std::string& key) : hubKey(key)
 brls::View* HubView::getDefaultFocus() { return this->recycler; }
 
 void HubView::doRequest() {
-    HTTP::Form query;
-    // hub order = server order: NO sort parameter
-    plex::addPagination(query, this->startIndex, this->pageSize);
-    // the hub key may already carry parameters (.../all?actor=...)
-    std::string sep = this->hubKey.find('?') == std::string::npos ? "?" : "&";
-
     ASYNC_RETAIN
-    plex::getJSON<plex::Container<plex::Item>>(
-        AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-        [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
+    // requested offset, not r.StartIndex: Jellyfin/Emby omit StartIndex on an
+    // empty past-the-end page (it parses to 0) and would wipe a filled grid
+    size_t reqStart = this->startIndex;
+    AppConfig::instance().backend().getHubPage(this->hubKey, this->startIndex, this->pageSize,
+        [ASYNC_TOKEN, reqStart](const media::Container<media::Item>& r) {
             ASYNC_RELEASE
-            this->startIndex = r.StartIndex + this->pageSize;
-            if (r.TotalRecordCount == 0) {
+            this->startIndex = reqStart + this->pageSize;
+            if (r.TotalRecordCount == 0 && reqStart == 0) {
                 this->recycler->setEmpty();
-            } else if (r.StartIndex == 0) {
+            } else if (reqStart == 0) {
                 int64_t count = r.TotalRecordCount;
                 this->labelMeta->setText(fmt::format(
                     "{} {}", count, count > 1 ? "main/playlist/items"_i18n : "main/playlist/item"_i18n));
@@ -72,13 +69,12 @@ void HubView::doRequest() {
                 this->recycler->notifyDataChanged();
             }
         },
-        [ASYNC_TOKEN](const std::string& ex) {
+        [ASYNC_TOKEN, reqStart](const std::string& ex) {
             ASYNC_RELEASE
-            if (this->startIndex > 0) {
+            if (reqStart > 0) {
                 brls::Application::notify(ex);
             } else {
                 this->recycler->setError(ex);
             }
-        },
-        "{}{}{}", this->hubKey, sep, HTTP::encode_form(query));
+        });
 }

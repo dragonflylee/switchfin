@@ -1,5 +1,5 @@
 /*
-    pleNx — view of ONE Plex playlist.
+    GMCA — view of ONE Plex playlist.
     Plain header (title + "N items · total duration") and grid of the
     items in the server order of the playlist (no sort/filters).
     API: GET /playlists/{ratingKey}/items (plex::apiPlaylistItems),
@@ -40,3 +40,14 @@ private:
     size_t pageSize;
     size_t startIndex = 0;
 };
+
+namespace ui {
+
+/// Route a playlist selection (issue #11). An AUDIO playlist loads all its
+/// tracks into the shared music controller and opens Now Playing; a video (or
+/// other) playlist opens the PlaylistView grid via presentDetail. Shared by the
+/// Playlists tab (PlaylistsDataSource) and any grid — hubs/search — that
+/// surfaces a playlist (VideoDataSource), so both entry points behave the same.
+void presentPlaylist(brls::View* from, const media::Item& item);
+
+}  // namespace ui

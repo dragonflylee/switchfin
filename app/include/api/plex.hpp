@@ -1,5 +1,5 @@
 /*
-    pleNx — HTTP transport to Plex (plex.tv and Plex Media Server).
+    GMCA — HTTP transport to Plex (plex.tv and Plex Media Server).
     Specification: PLEX_MIGRATION.md §2.1 (X-Plex-* headers) and §2.4 (MediaContainer).
 
     Same philosophy as the former Jellyfin API layer: async helpers that run

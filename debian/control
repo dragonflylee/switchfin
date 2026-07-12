@@ -1,7 +1,7 @@
-Source: plenx
+Source: gmca
 Section: video
 Priority: optional
-Maintainer: dragonflylee <dragonflylee@outlook.com>
+Maintainer: thcolin <thomas.colin@les-tilleuls.coop>
 Build-Depends: debhelper (>= 10),
                cmake,
                ninja-build,
@@ -9,10 +9,16 @@ Build-Depends: debhelper (>= 10),
                libdbus-1-dev,
                libwebp-dev,
                libmpv-dev
-Vcs-Git: https://github.com/thcolin/pleNx.git
+Vcs-Git: https://github.com/thcolin/gamepad-media-center-aggregator.git
 
-Package: plenx
+Package: gmca
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Architecture: any
 Recommends: va-driver-all
-Description: Third-party native Plex client for Nintendo Switch
+Provides: plenx
+Conflicts: plenx
+Replaces: plenx
+Description: Controller-first media client for Plex, Jellyfin, Emby and Stremio
+ Gamepad Media Center Aggregator (GMCA) is a native, controller-first client
+ that brings your media servers to the devices their official apps ignore —
+ game consoles and Raspberry-Pi-on-a-TV — behind one identical interface.

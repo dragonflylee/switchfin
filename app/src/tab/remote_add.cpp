@@ -1,5 +1,5 @@
 /*
-    pleNx — add/edit form for a remote file server.
+    GMCA — add/edit form for a remote file server.
 
     Produced URL schemes (routing: app/src/client/client.cpp):
       webdav://host:port/path/      -> Webdav client (PROPFIND, basic auth via

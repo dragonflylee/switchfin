@@ -31,6 +31,7 @@
 
             <Tab label=""
                 fontSize="18"
+                id="tab/playlists"
                 icon="@res/icon/ico-playlist.svg"
                 iconActivate="@res/icon/ico-playlist-activate.svg">
                 <PlaylistsTab />
@@ -38,6 +39,7 @@
 
             <Tab label=""
                 fontSize="18"
+                id="tab/watchlist"
                 icon="@res/icon/ico-bookmark-fill.svg"
                 iconActivate="@res/icon/ico-bookmark-fill-activate.svg">
                 <WatchlistTab />
@@ -53,6 +55,7 @@
 
             <Tab label=""
                 fontSize="18"
+                id="tab/settings"
                 icon="@res/icon/ico-setting.svg"
                 iconActivate="@res/icon/ico-setting-activate.svg">
                 <SettingTab />

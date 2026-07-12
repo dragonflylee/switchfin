@@ -113,7 +113,7 @@ LONG WINAPI createMiniDump(_EXCEPTION_POINTERS* pep) {
     DWORD cbTemp = ::GetTempPathA(sizeof(tempPath), tempPath);
     ::GetLocalTime(&lt);
 
-    snprintf(tempPath + cbTemp, sizeof(tempPath) - cbTemp, "plenx-%04d%02d%02d-%02d%02d%02d.dmp", lt.wYear,
+    snprintf(tempPath + cbTemp, sizeof(tempPath) - cbTemp, "gmca-%04d%02d%02d-%02d%02d%02d.dmp", lt.wYear,
         lt.wMonth, lt.wDay, lt.wHour, lt.wMinute, lt.wSecond);
     HANDLE hDump = ::CreateFileA(tempPath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 

@@ -8,6 +8,7 @@
 #include <view/presenter.hpp>
 
 class RecylingVideo;
+class LoadingSpinner;
 
 class HomeTab : public AttachedView, public Presenter {
 public:
@@ -30,6 +31,7 @@ private:
     // see where it landed
     bool restoreFocus = false;
 
+    LoadingSpinner* spinner = nullptr;  // centered overlay while hubs load
     // offline empty state: added to the tab root (definite height) with the
     // scroll hidden, so it centers — a grow child of the scroll content would
     // be measured with an indefinite height and stay top-aligned

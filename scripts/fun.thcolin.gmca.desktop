@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Gamepad Media Center Aggregator
+Comment=Controller-first media client for Plex, Jellyfin, Emby and Stremio
+Exec=${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}
+Icon=${PACKAGE_NAME}
+Terminal=false
+Type=Application
+Categories=AudioVideo;Audio;Video;

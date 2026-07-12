@@ -1,11 +1,23 @@
 {
+  "rename": {
+    "title": "O pleNx agora é o GMCA",
+    "intro": "A mesma app, mas maior. O pleNx tornou-se o GMCA — o Gamepad Media Center Aggregator — e agora faz muito mais.",
+    "whats_new": "NOVIDADES",
+    "feature_backends": "Uma só app, todos os teus servidores — Plex, Jellyfin, Emby e Stremio",
+    "feature_music": "A tua biblioteca de música, ao lado de filmes e séries",
+    "feature_offline": "Transferências offline para veres em qualquer lugar, sem ligação",
+    "feature_updates": "Atualizações regulares, entregues diretamente na app",
+    "reassure": "As tuas contas, definições e transferências foram mantidas automaticamente — não é preciso configurar nada de novo. Bom visionamento!",
+    "continue": "Vamos lá"
+  },
   "tabs": {
     "home": "Início",
     "genres": "Géneros",
     "suggest": "Sugestões",
     "search": "Pesquisar",
     "downloads": "Transferências",
-    "setting": "Definições"
+    "setting": "Definições",
+    "remote": "Servidores"
   },
   "home": {
     "resume": "Continuar a ver",
@@ -20,7 +32,7 @@
   },
   "about": {
     "header": "Sobre",
-    "brief": "Mais um cliente Plex de terceiros",
+    "brief": "Mais um cliente multimédia de terceiros",
     "repo_header": "Repositório"
   },
   "player": {
@@ -73,7 +85,8 @@
     "seasons_title": "Temporadas",
     "go_series": "Ir para a série",
     "go_season": "Ir para a temporada",
-    "director": "Realizador"
+    "director": "Realizador",
+    "open": "Abrir"
   },
   "search": {
     "hint": "Suporta palavras-chave e as suas iniciais",
@@ -106,6 +119,18 @@
     "title": "Listas de reprodução",
     "item": "item",
     "items": "itens"
+  },
+  "music": {
+    "album": "álbum",
+    "albums": "álbuns",
+    "track": "faixa",
+    "tracks": "faixas",
+    "play_album": "Reproduzir álbum",
+    "play_artist": "Reprodução aleatória",
+    "shuffle": "Aleatório",
+    "repeat": "Repetir",
+    "queue": "Fila",
+    "now_playing": "A reproduzir"
   },
   "watchlist": {
     "title": "Watchlist",
@@ -186,7 +211,8 @@
     "section_done": "Transferidos",
     "remove_all": "Remover tudo",
     "confirm_remove_all": "Remover todas as transferências?",
-    "empty_sub": "Os filmes e episódios transferidos ficam aqui, prontos para ver offline."
+    "empty_sub": "Os filmes e episódios transferidos ficam aqui, prontos para ver offline.",
+    "eta": "{} restante"
   },
   "setting": {
     "quit_hint": "Está prestes a sair da aplicação. As definições entram em vigor após o próximo arranque",
@@ -201,7 +227,7 @@
       "header": "Servidor",
       "detail": "Detalhes do servidor",
       "connect_new": "Novo servidor",
-      "connect_to": "Ligar a um servidor Plex",
+      "connect_to": "Ligar a um servidor multimédia",
       "invalid": "O URL deve começar com http:// ou https://",
       "connect": "Ligar",
       "delete": "Confirmar a eliminação?",
@@ -287,9 +313,19 @@
       "font_q1": "Como definir um tipo de letra ou ícone de teclas personalizado",
       "font_a1": "1. Descarregue o tipo de letra ou o tipo de letra de ícones que pretende\n2. Renomeie o tipo de letra para: font.ttf; Renomeie o ícone para: icon.ttf\n3. Coloque os ficheiros do tipo de letra no diretório de configuração\n4. Reinicie a aplicação",
       "font_q2": "Perguntas frequentes",
-      "font_a2": "1. O pleNx dá prioridade à apresentação de tipos de letra personalizados, utilizando os tipos de letra integrados como alternativa\n2. \"Definições - Tutorial\" disponibiliza uma opção de menu para abrir rapidamente o diretório de configuração\n3. No Linux, o pleNx utiliza o xdg-open para abrir o diretório. Se o diretório de configuração não abrir corretamente, pode considerar instalar esta ferramenta",
+      "font_a2": "1. O GMCA dá prioridade à apresentação de tipos de letra personalizados, utilizando os tipos de letra integrados como alternativa\n2. \"Definições - Tutorial\" disponibiliza uma opção de menu para abrir rapidamente o diretório de configuração\n3. No Linux, o GMCA utiliza o xdg-open para abrir o diretório. Se o diretório de configuração não abrir corretamente, pode considerar instalar esta ferramenta",
       "font_q3": "As legendas não foram apresentadas",
       "font_a3": "Coloque qualquer ficheiro ttf em {}/subfont.ttf"
+    },
+    "libraries": {
+      "header": "Bibliotecas",
+      "description": "Reordene e oculte as abas da barra lateral (bibliotecas, playlists, lista de interesses). Esta definição é guardada por servidor.",
+      "grab": "Mover",
+      "drop": "Soltar",
+      "toggle": "Mostrar / Ocultar",
+      "visible": "Visível",
+      "hidden": "Oculta",
+      "empty": "Nenhuma aba para organizar"
     },
     "others": {
       "header": "Outros",
@@ -323,19 +359,20 @@
       "downloading": "A transferir {}… {}%",
       "installing": "Instalando a atualização…",
       "updated": "Atualização instalada. A aplicação vai agora fechar: abra-a novamente para usar a nova versão",
-      "release": "Procurar atualizações"
+      "release": "Procurar atualizações",
+      "changelog": "Histórico"
     }
   },
   "hints": {
-    "title": "Iniciar o pleNx como aplicação completa",
-    "text_applet": "O pleNx está a correr em modo applet: a memória disponível não é suficiente para a reprodução de vídeo. Inicie-o como aplicação completa através de uma das opções abaixo.",
-    "text_app": "O pleNx está a correr como aplicação completa. Instale o ícone no menu HOME para o iniciar diretamente desta forma.",
+    "title": "Iniciar o GMCA como aplicação completa",
+    "text_applet": "O GMCA está a correr em modo applet: a memória disponível não é suficiente para a reprodução de vídeo. Inicie-o como aplicação completa através de uma das opções abaixo.",
+    "text_app": "O GMCA está a correr como aplicação completa. Instale o ícone no menu HOME para o iniciar diretamente desta forma.",
     "install_title": "Ícone no menu HOME (recomendado)",
-    "install_text": "Instala o encaminhador NSP integrado: o ícone inicia o pleNx como aplicação completa diretamente a partir do menu HOME.",
+    "install_text": "Instala o encaminhador NSP integrado: o ícone inicia o GMCA como aplicação completa diretamente a partir do menu HOME.",
     "install_button": "Instalar o ícone",
     "takeover_title": "Alternativa: substituição de título",
-    "takeover_text": "Mantenha R premido ao iniciar qualquer jogo instalado para abrir o menu de homebrew como aplicação completa e, depois, inicie o pleNx a partir daí.",
-    "prompt": "Instalar o ícone do pleNx no menu HOME?\nO ícone inicia a aplicação como aplicação completa (necessário para a reprodução de vídeo).",
+    "takeover_text": "Mantenha R premido ao iniciar qualquer jogo instalado para abrir o menu de homebrew como aplicação completa e, depois, inicie o GMCA a partir daí.",
+    "prompt": "Instalar o ícone do GMCA no menu HOME?\nO ícone inicia a aplicação como aplicação completa (necessário para a reprodução de vídeo).",
     "hint_confirm": "A instalação do encaminhador NSP pode resultar num banimento\nConfirme novamente"
   },
   "plex": {
@@ -354,10 +391,86 @@
     "wrong_pin": "PIN incorreto",
     "no_server": "Nenhum servidor encontrado nesta conta",
     "connecting": "A ligar ao servidor…",
-    "unreachable": "Servidor inacessível"
+    "unreachable": "Servidor inacessível",
+    "connecting_slow": "Está a demorar mais do que o normal — ainda a tentar contactar o seu servidor. Aguarde um momento…"
   },
   "empty": {
     "title": "Nada a mostrar",
     "error": "Não foi possível carregar"
+  },
+  "changelog": {
+    "header": "Histórico",
+    "empty": "Histórico indisponível"
+  },
+  "favorites": {
+    "title": "Favoritos",
+    "add": "Adicionar aos favoritos",
+    "remove": "Remover dos favoritos",
+    "added": "Adicionado aos favoritos",
+    "removed": "Removido dos favoritos",
+    "empty_title": "Ainda não há favoritos",
+    "empty_sub": "Marque filmes e séries como favoritos para os encontrar aqui."
+  },
+  "server": {
+    "choose_type": "Escolha o tipo de ligação",
+    "switch_title": "Ligações",
+    "add": "Adicionar",
+    "jellyfin": {
+      "title_jellyfin": "Iniciar sessão no Jellyfin",
+      "title_emby": "Iniciar sessão no Emby",
+      "url": "Endereço do servidor",
+      "username": "Nome de utilizador",
+      "password": "Palavra-passe",
+      "connect": "Ligar"
+    },
+    "stremio": {
+      "title": "Iniciar sessão no Stremio",
+      "email": "Endereço de e-mail",
+      "password": "Palavra-passe",
+      "connect": "Ligar",
+      "invalid": "Introduza o seu endereço de e-mail e a palavra-passe"
+    }
+  },
+  "stremio": {
+    "movies": "Filmes",
+    "series": "Séries",
+    "popular": "Populares",
+    "new": "Novidades",
+    "featured": "Em destaque",
+    "genre": {
+      "action": "Ação",
+      "adventure": "Aventura",
+      "animation": "Animação",
+      "biography": "Biografia",
+      "comedy": "Comédia",
+      "crime": "Crime",
+      "documentary": "Documentário",
+      "drama": "Drama",
+      "family": "Família",
+      "fantasy": "Fantasia",
+      "history": "História",
+      "horror": "Terror",
+      "mystery": "Mistério",
+      "romance": "Romance",
+      "scifi": "Ficção científica",
+      "sport": "Desporto",
+      "thriller": "Suspense",
+      "war": "Guerra",
+      "western": "Faroeste"
+    },
+    "source": {
+      "unavailable": "Nenhuma fonte reproduzível",
+      "none": "Nenhum fluxo para este título. Instale um addon de fluxos (com um serviço de debrid) na sua conta Stremio para o reproduzir aqui.",
+      "cached": "Em cache",
+      "uncached": "Transferir",
+      "direct": "Direto",
+      "torrent_badge": "Torrent",
+      "link_badge": "Ligação",
+      "torrents": "{} fonte(s) torrent — debrid obrigatório",
+      "links": "{} ligação(ões) externa(s) — não reproduzível(is) aqui",
+      "more": "+{} fonte(s) reproduzível(is)",
+      "torrents_help": "Estas fontes são torrents brutos. Esta plataforma não tem cliente torrent: instale um addon com debrid (Torrentio + Real-Debrid, Comet, MediaFusion…) na sua conta Stremio para obter ligações reproduzíveis.",
+      "links_help": "Estas fontes são ligações externas (navegador ou serviço de terceiros) que não podem ser reproduzidas diretamente na aplicação nesta plataforma."
+    }
   }
 }

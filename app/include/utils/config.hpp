@@ -5,6 +5,19 @@
 #include <borealis/core/theme.hpp>
 #include <nlohmann/json.hpp>
 #include <atomic>
+#include <memory>
+#include <optional>
+
+namespace media {
+class Backend;
+// opaque (scoped enums default to an int base, so this is a complete type) —
+// avoids pulling api/backend.hpp into every TU that includes config.hpp.
+enum class BackendType;
+}  // namespace media
+
+namespace plenx {
+struct ThemePalette;
+}
 
 class AppVersion {
 public:
@@ -17,12 +30,12 @@ public:
     static void checkUpdate(int delay = 2000, bool showUpToDateDialog = false);
 
     inline static std::shared_ptr<std::atomic_bool> updating = std::make_shared<std::atomic_bool>(true);
-    inline static std::string git_repo = "thcolin/pleNx";
+    inline static std::string git_repo = "thcolin/gamepad-media-center-aggregator";
 
     /// Real path of the running NRO (argv[0] provided by hbloader or the
     /// forwarder), filled in main(). THIS is the file the auto-update must
-    /// replace: the NRO may live at `sdmc:/switch/pleNx.nro` (forwarder)
-    /// or `sdmc:/switch/pleNx/pleNx.nro`. Empty off-Switch or if unavailable.
+    /// replace: the NRO may live at `sdmc:/switch/GMCA.nro` (forwarder)
+    /// or `sdmc:/switch/GMCA/GMCA.nro`. Empty off-Switch or if unavailable.
     inline static std::string nro_path;
 };
 
@@ -38,16 +51,21 @@ struct AppUser {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(AppUser, id, name, access_token, server_id, thumb);
 
-/// A known Plex Media Server. `access_token` is the server access token
-/// obtained via /api/v2/resources for the active user (refreshed on every
-/// sign-in/profile switch). urls.front() = last reachable connection.
+/// A known media server. `access_token` is the server access token (Plex: from
+/// /api/v2/resources; Jellyfin: AccessToken from authentication). urls.front()
+/// = last reachable connection. `type` discriminates the backend implementation
+/// (defaults to "plex" for configs written before multi-backend support).
 struct AppServer {
     std::string name;
-    std::string id;  // clientIdentifier (machine id)
+    std::string id;  // clientIdentifier (machine id) / Jellyfin server Id / Stremio account user id
     std::string access_token;
     std::vector<std::string> urls;
+    std::string type = "plex";  // plex | jellyfin | emby | stremio
+    // Stremio only: transport URLs (…/manifest.json) of the installed addons,
+    // either entered manually or synced from the account's addon collection.
+    std::vector<std::string> addons;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(AppServer, id, name, access_token, urls);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(AppServer, id, name, access_token, urls, type, addons);
 
 struct AppRemote {
     std::string name;
@@ -80,6 +98,7 @@ public:
         APP_LANG,
         APP_UPDATE,
         APP_UI_SCALE,
+        SCROLLBAR,  // show the scroll indicator (scrollbar); default true
         AUDIO_CHANNELS,
         KEYMAP,
         WINDOW_STATE,
@@ -115,9 +134,21 @@ public:
         /// exist in Plex, cf. PLEX_MIGRATION.md §2.5)
         LIBRARY_SORT,
 
+        /// Per-server sidebar layout: order + hidden state of the reorderable
+        /// tabs (libraries + Playlists + Watchlist), keyed by the active server
+        /// id (getUser().server_id). Section keys collide across servers, so
+        /// this MUST stay server-scoped. JSON:
+        /// { "<serverId>": { "order": [ids...], "hidden": [ids...] } }
+        SIDEBAR_LAYOUT,
+
         /// HOME tile install prompt (forwarder NSP) already shown at first
         /// launch in application mode (Switch).
         HINT_FORWARDER,
+
+        /// One-time "pleNx is now GMCA" welcome notice already shown. Set the
+        /// first time the notice is displayed (only to users migrated from a
+        /// legacy pleNx/Switchlex data dir — see AppConfig::migratedFromLegacy).
+        RENAME_NOTICE_SHOWN,
 
         KEY_REFRESH,        // 刷新快捷键
         KEY_LAST,           // 上一个Tab快捷键
@@ -135,9 +166,15 @@ public:
     };
 
     AppConfig() = default;
+    ~AppConfig();  // out-of-line: activeBackend is a unique_ptr to an incomplete type
 
     bool init();
     void initThemes();
+    /// (Re)applies the accent surface for `type` onto BOTH borealis theme
+    /// objects (dark + light). std::nullopt = the neutral pleNx DEFAULT theme
+    /// used on pre-connection screens. Structural chrome is left untouched.
+    /// Must run BEFORE the activity that will read the colors is (re)built.
+    void applyTheme(std::optional<media::BackendType> type);
     void save();
     bool checkLogin();
 
@@ -176,6 +213,11 @@ public:
 
     bool addServer(const AppServer& s);
     void addUser(const AppUser& u, const std::string& url);
+    /// Registers a server/connection WITHOUT making it active — no change to the
+    /// active url/token/profile or the backend/theme. Used to store the other
+    /// servers of a Plex account at link time; addServer/addUser activate one.
+    void upsertServer(const AppServer& s);
+    void upsertUser(const AppUser& u);
     bool removeServer(const std::string& id);
     bool removeUser(const std::string& id);
     const std::string& getDeviceId() { return this->device; }
@@ -188,6 +230,12 @@ public:
     /// plex.tv token of the active profile (resources, home users).
     const std::string& getAccountToken() const { return this->user->access_token; }
     const std::string& getUrl() const { return this->server_url; }
+    /// Stremio only: addon transport URLs of the active server (manifest URLs).
+    /// Empty for other backends / when not logged in.
+    const std::vector<std::string>& getStremioAddons() const;
+    /// Active media backend (built lazily from the active server's type).
+    /// The UI talks to this; it never formats a provider URL itself.
+    media::Backend& backend();
     const std::vector<AppRemote>& getRemotes() const { return this->remotes; }
     void addRemote(const AppRemote& r);
     void updateRemote(size_t index, const AppRemote& r);
@@ -201,15 +249,34 @@ public:
     void removePin(const std::string& path);
     const std::vector<AppServer>& getServers() const { return this->servers; }
     const std::vector<AppUser> getUsers(const std::string& id) const;
+    /// All known connections (one AppUser = one server+profile pair).
+    const std::vector<AppUser>& getUsers() const { return this->users; }
+    /// Maps the AppServer::type discriminant to a BackendType (defaults to Plex).
+    /// Public so the connection switcher can tint each tile by its backend brand.
+    static media::BackendType backendTypeFromString(const std::string& type);
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(AppConfig, user_id, device, users, servers, setting, remotes, pins);
 
     inline static bool SYNC = true;
 
+    /// True for this session only when init() relocated a legacy data dir
+    /// (pleNx/Switchlex -> GMCA). Runtime-only (never serialized): combined with
+    /// the persistent RENAME_NOTICE_SHOWN flag it gates the one-time rebrand
+    /// welcome notice so it shows exactly once, and only to migrated users.
+    bool migratedFromLegacy = false;
+
 private:
     static std::unordered_map<Item, Option> settingMap;
 
+    /// (Re)builds activeBackend from the active server's type on next backend().
+    void resetBackend();
+
+    /// Writes one palette variant onto the matching borealis Theme singleton.
+    void applyThemeVariant(brls::ThemeVariant tv, const plenx::ThemePalette& p);
+
     UserIter user;
+    // owning raw pointer (forward-declared type): deleted in ~AppConfig/resetBackend
+    media::Backend* activeBackend = nullptr;
     std::string user_id;
     std::string server_url;
     std::string server_token;

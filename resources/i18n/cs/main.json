@@ -1,11 +1,23 @@
 {
+  "rename": {
+    "title": "pleNx je teď GMCA",
+    "intro": "Stejná aplikace, jen dospělejší. Z pleNx se stal GMCA — Gamepad Media Center Aggregator — a umí toho teď mnohem víc.",
+    "whats_new": "CO JE NOVÉHO",
+    "feature_backends": "Jedna aplikace, všechny servery — Plex, Jellyfin, Emby a Stremio",
+    "feature_music": "Vaše hudební knihovna hned vedle filmů a seriálů",
+    "feature_offline": "Stahování offline, abyste mohli sledovat kdekoli bez připojení",
+    "feature_updates": "Pravidelné aktualizace doručené přímo do aplikace",
+    "reassure": "Vaše přihlášení, nastavení a stažené soubory byly přeneseny automaticky — nic není třeba nastavovat znovu. Užijte si to!",
+    "continue": "Jdeme na to"
+  },
   "tabs": {
     "home": "Domů",
     "genres": "Žánry",
     "suggest": "Návrhy",
     "search": "Vyhledat",
     "downloads": "Stahování",
-    "setting": "Nastavení"
+    "setting": "Nastavení",
+    "remote": "Servery"
   },
   "home": {
     "resume": "Pokračovat ve sledování",
@@ -20,7 +32,7 @@
   },
   "about": {
     "header": "O aplikaci",
-    "brief": "Jen další Plex klient třetí strany",
+    "brief": "Jen další mediální klient třetí strany",
     "repo_header": "Repozitář"
   },
   "player": {
@@ -73,7 +85,8 @@
     "seasons_title": "Řady",
     "go_series": "Přejít na seriál",
     "go_season": "Přejít na řadu",
-    "director": "Režie"
+    "director": "Režie",
+    "open": "Otevřít"
   },
   "search": {
     "hint": "Podporuje klíčová slova i jejich počáteční písmena",
@@ -106,6 +119,18 @@
     "title": "Playlisty",
     "item": "položka",
     "items": "položky"
+  },
+  "music": {
+    "album": "album",
+    "albums": "alba",
+    "track": "skladba",
+    "tracks": "skladby",
+    "play_album": "Přehrát album",
+    "play_artist": "Náhodné přehrávání",
+    "shuffle": "Náhodně",
+    "repeat": "Opakovat",
+    "queue": "Fronta",
+    "now_playing": "Právě hraje"
   },
   "watchlist": {
     "title": "Watchlist",
@@ -186,7 +211,8 @@
     "section_done": "Staženo",
     "remove_all": "Odstranit vše",
     "confirm_remove_all": "Odstranit všechna stažení?",
-    "empty_sub": "Stažené filmy a epizody se zobrazí zde, připravené ke sledování offline."
+    "empty_sub": "Stažené filmy a epizody se zobrazí zde, připravené ke sledování offline.",
+    "eta": "Zbývá {}"
   },
   "setting": {
     "quit_hint": "Chystáte se ukončit aplikaci. Nastavení se projeví po příštím spuštění",
@@ -201,7 +227,7 @@
       "header": "Server",
       "detail": "Detaily serveru",
       "connect_new": "Nový server",
-      "connect_to": "Připojit se k Plex serveru",
+      "connect_to": "Připojit se k mediálnímu serveru",
       "invalid": "URL musí začínat na http:// nebo https://",
       "connect": "Připojit",
       "delete": "Potvrdit smazání?",
@@ -287,9 +313,19 @@
       "font_q1": "Jak nastavit vlastní písmo nebo ikonu mapy kláves",
       "font_a1": "1. Stáhněte si požadované písmo nebo písmo ikon\n2. Přejmenujte písmo na: font.ttf; Přejmenujte ikony na: icon.ttf\n3. Umístěte soubory písem do adresáře config\n4. Restartujte aplikaci",
       "font_q2": "Často kladené otázky",
-      "font_a2": "1. pleNx upřednostňuje zobrazení vlastních písem, s vestavěnými fonty jako záložní\n2. „Nastavení – Výukový program“ poskytuje položku nabídky pro rychlé otevření konfiguračního adresáře\n3. V Linuxu používá pleNx k otevření adresáře xdg-open. Pokud konfigurační adresář nelze správně otevřít, můžete zvážit instalaci tohoto nástroje",
+      "font_a2": "1. GMCA upřednostňuje zobrazení vlastních písem, s vestavěnými fonty jako záložní\n2. „Nastavení – Výukový program“ poskytuje položku nabídky pro rychlé otevření konfiguračního adresáře\n3. V Linuxu používá GMCA k otevření adresáře xdg-open. Pokud konfigurační adresář nelze správně otevřít, můžete zvážit instalaci tohoto nástroje",
       "font_q3": "Titulky se nezobrazily",
       "font_a3": "Vložte libovolný soubor ttf do {}/subfont.ttf"
+    },
+    "libraries": {
+      "header": "Knihovny",
+      "description": "Změňte pořadí a skryjte karty postranního panelu (knihovny, playlisty, seznam sledování). Toto nastavení se ukládá pro každý server zvlášť.",
+      "grab": "Přesunout",
+      "drop": "Položit",
+      "toggle": "Zobrazit / Skrýt",
+      "visible": "Zobrazeno",
+      "hidden": "Skryto",
+      "empty": "Žádné karty k uspořádání"
     },
     "others": {
       "header": "Ostatní",
@@ -323,19 +359,20 @@
       "downloading": "Stahování {}… {}%",
       "installing": "Instalace aktualizace…",
       "updated": "Aktualizace nainstalována. Aplikace se nyní zavře: spusťte ji znovu pro použití nové verze",
-      "release": "Zkontrolovat aktualizace"
+      "release": "Zkontrolovat aktualizace",
+      "changelog": "Changelog"
     }
   },
   "hints": {
-    "title": "Spustit pleNx jako plnou aplikaci",
-    "text_applet": "pleNx běží v režimu apletu: dostupná paměť nestačí pro přehrávání videa. Spusťte jej jako plnou aplikaci pomocí některé z níže uvedených možností.",
-    "text_app": "pleNx běží jako plná aplikace. Nainstalujte dlaždici do nabídky HOME, abyste jej takto spouštěli přímo.",
+    "title": "Spustit GMCA jako plnou aplikaci",
+    "text_applet": "GMCA běží v režimu apletu: dostupná paměť nestačí pro přehrávání videa. Spusťte jej jako plnou aplikaci pomocí některé z níže uvedených možností.",
+    "text_app": "GMCA běží jako plná aplikace. Nainstalujte dlaždici do nabídky HOME, abyste jej takto spouštěli přímo.",
     "install_title": "Dlaždice v nabídce HOME (doporučeno)",
-    "install_text": "Nainstaluje vestavěný NSP forwarder: dlaždice spustí pleNx jako plnou aplikaci přímo z nabídky HOME.",
+    "install_text": "Nainstaluje vestavěný NSP forwarder: dlaždice spustí GMCA jako plnou aplikaci přímo z nabídky HOME.",
     "install_button": "Nainstalovat dlaždici",
     "takeover_title": "Alternativa: převzetí titulu",
-    "takeover_text": "Při spouštění jakékoli nainstalované hry podržte R, čímž otevřete homebrew menu jako plnou aplikaci, a poté odtud spusťte pleNx.",
-    "prompt": "Nainstalovat dlaždici pleNx do nabídky HOME?\nDlaždice spustí aplikaci jako plnou aplikaci (nutné pro přehrávání videa).",
+    "takeover_text": "Při spouštění jakékoli nainstalované hry podržte R, čímž otevřete homebrew menu jako plnou aplikaci, a poté odtud spusťte GMCA.",
+    "prompt": "Nainstalovat dlaždici GMCA do nabídky HOME?\nDlaždice spustí aplikaci jako plnou aplikaci (nutné pro přehrávání videa).",
     "hint_confirm": "Instalace NSP forwarderu může vést k banu\nProsím potvrďte znovu"
   },
   "plex": {
@@ -354,10 +391,86 @@
     "wrong_pin": "Nesprávný PIN",
     "no_server": "Na tomto účtu nebyl nalezen žádný server",
     "connecting": "Připojování k serveru…",
-    "unreachable": "Server je nedostupný"
+    "unreachable": "Server je nedostupný",
+    "connecting_slow": "Trvá to déle než obvykle — stále se snažíme připojit k vašemu serveru. Ještě chvilku…"
   },
   "empty": {
     "title": "Nic k zobrazení",
     "error": "Nelze načíst"
+  },
+  "changelog": {
+    "header": "Changelog",
+    "empty": "Changelog není dostupný"
+  },
+  "favorites": {
+    "title": "Oblíbené",
+    "add": "Přidat do oblíbených",
+    "remove": "Odebrat z oblíbených",
+    "added": "Přidáno do oblíbených",
+    "removed": "Odebráno z oblíbených",
+    "empty_title": "Zatím žádné oblíbené",
+    "empty_sub": "Označte filmy a seriály jako oblíbené, abyste je zde našli."
+  },
+  "server": {
+    "choose_type": "Zvolte typ připojení",
+    "switch_title": "Připojení",
+    "add": "Přidat",
+    "jellyfin": {
+      "title_jellyfin": "Přihlásit se do Jellyfin",
+      "title_emby": "Přihlásit se do Emby",
+      "url": "Adresa serveru",
+      "username": "Uživatelské jméno",
+      "password": "Heslo",
+      "connect": "Připojit"
+    },
+    "stremio": {
+      "title": "Přihlásit se do Stremio",
+      "email": "E-mail",
+      "password": "Heslo",
+      "connect": "Připojit",
+      "invalid": "Zadejte svůj e-mail a heslo"
+    }
+  },
+  "stremio": {
+    "movies": "Filmy",
+    "series": "Seriály",
+    "popular": "Populární",
+    "new": "Novinky",
+    "featured": "Vybrané",
+    "genre": {
+      "action": "Akční",
+      "adventure": "Dobrodružný",
+      "animation": "Animovaný",
+      "biography": "Životopisný",
+      "comedy": "Komedie",
+      "crime": "Krimi",
+      "documentary": "Dokumentární",
+      "drama": "Drama",
+      "family": "Rodinný",
+      "fantasy": "Fantasy",
+      "history": "Historický",
+      "horror": "Horor",
+      "mystery": "Mysteriózní",
+      "romance": "Romantický",
+      "scifi": "Sci-Fi",
+      "sport": "Sportovní",
+      "thriller": "Thriller",
+      "war": "Válečný",
+      "western": "Western"
+    },
+    "source": {
+      "unavailable": "Žádný přehratelný zdroj",
+      "none": "Žádný stream pro tento titul. Nainstalujte si addon pro streamování (s debrid službou) do svého účtu Stremio, abyste jej zde mohli přehrávat.",
+      "cached": "Uloženo",
+      "uncached": "Stáhnout",
+      "direct": "Přímé",
+      "torrent_badge": "Torrent",
+      "link_badge": "Odkaz",
+      "torrents": "{} torrentových zdrojů — vyžaduje debrid",
+      "links": "{} externí odkaz(y) — zde nelze přehrát",
+      "more": "+{} dalších přehratelných zdrojů",
+      "torrents_help": "Tyto zdroje jsou čisté torrenty. Na této platformě není k dispozici žádný torrentový klient: nainstalujte si addon s podporou debrid služby (Torrentio + Real-Debrid, Comet, MediaFusion…) do svého účtu Stremio, abyste získali přehratelné odkazy.",
+      "links_help": "Tyto zdroje jsou externí odkazy (prohlížeč nebo služba třetí strany), které nelze přehrát přímo v aplikaci na této platformě."
+    }
   }
 }

@@ -327,6 +327,10 @@ void MPVCore::init() {
 #endif
 
     focusSubscription = brls::Application::getWindowFocusChangedEvent()->subscribe([this](bool focus) {
+        // Music (audio-only, VO disabled) keeps playing in the background: don't
+        // pause/resume it on focus changes, and don't toggle VO (issue #11 T17).
+        // Video is still paused when the app is backgrounded, as before.
+        if (!this->voEnabled) return;
         static bool playing = false;
         if (!focus) {
             // application is sleep, save the current state
@@ -727,7 +731,10 @@ void MPVCore::setSpeed(double value) {
     this->command("set", "speed", speed.c_str());
 }
 
-void MPVCore::enableVO(bool value) { mpv_set_option_string(mpv, "vo", value ? MPVCore::VO.c_str() : "null"); }
+void MPVCore::enableVO(bool value) {
+    this->voEnabled = value;
+    mpv_set_option_string(mpv, "vo", value ? MPVCore::VO.c_str() : "null");
+}
 
 void MPVCore::setAspect(const std::string &value) {
     if (value == "auto") {

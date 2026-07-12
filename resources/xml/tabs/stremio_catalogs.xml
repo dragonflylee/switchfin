@@ -1,0 +1,16 @@
+<brls:Box
+    width="auto"
+    height="auto">
+
+    <!-- Stremio section: all sub-tabs (one per catalog + Genres) are added
+         programmatically by StremioCatalogs; no static Tab here. -->
+    <AutoTabFrame
+        id="stremio/tabFrame"
+        grow="1"
+        defaultTab="0"
+        tabHeight="60"
+        tabJustifyContent="center"
+        tabItemActiveTextColor="@theme/color/app"
+        sidebarPosition="top" />
+
+</brls:Box>

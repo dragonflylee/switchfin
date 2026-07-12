@@ -24,3 +24,12 @@ debian/.debhelper
 plezy/
 .prod.keys.tmp
 
+# Brand: raw device mockups kept locally (site ships derivatives under site/assets/img/)
+/brand/mockups/
+# Redesign / feature scratch, kept locally out of the repo
+/site/_explore/
+/site/REDESIGN-BRIEF.md
+/.wip/
+# Local dev tooling hook (points at an untracked .github/skills/)
+/.github/hooks/
+

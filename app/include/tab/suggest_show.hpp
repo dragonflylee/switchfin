@@ -7,6 +7,8 @@
 #include <view/auto_tab_frame.hpp>
 #include <view/presenter.hpp>
 
+class LoadingSpinner;
+
 class SuggestShow : public AttachedView, public Presenter {
 public:
     explicit SuggestShow(const std::string& itemId);
@@ -19,5 +21,6 @@ public:
 private:
     BRLS_BIND(brls::Box, box, "suggest/box");
 
+    LoadingSpinner* spinner = nullptr;  // centered overlay while hubs load
     std::string itemId;  // section key
 };

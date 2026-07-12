@@ -24,6 +24,7 @@
 #include <curl/curl.h>
 #include "view/mpv_core.hpp"
 #include "view/selector_cell.hpp"
+#include "view/library_manager.hpp"
 #include "api/plex.hpp"
 #include "utils/dialog.hpp"
 #ifdef __SWITCH__
@@ -93,54 +94,12 @@ private:
 SettingTab::SettingTab() {
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/settings.xml");
-
-    this->registerBoolXMLAttribute("hideStatus", [this](bool value) {
-        auto visibility = value ? brls::Visibility::GONE : brls::Visibility::VISIBLE;
-        this->boxStatus->setVisibility(visibility);
-        this->btnServer->setVisibility(visibility);
-        this->btnUser->setVisibility(visibility);
-    });
+    // The connection/profile lives in the sidebar avatar + connection switcher
+    // now, not here — Settings is purely app configuration.
 }
 
 void SettingTab::onCreate() {
     auto& conf = AppConfig::instance();
-
-    if (boxStatus->getVisibility() == brls::Visibility::VISIBLE) {
-        // profile block: avatar + name + active server name
-        const AppUser& user = conf.getUser();
-        this->profileName->setText(user.name);
-        if (!user.thumb.empty()) Image::load(this->profileAvatar, user.thumb, 64, 64);
-
-        std::string serverName;
-        for (auto& s : conf.getServers()) {
-            if (s.id == user.server_id) {
-                serverName = s.name;
-                break;
-            }
-        }
-        if (serverName.empty()) serverName = conf.getUrl();
-        this->profileServer->setText(serverName);
-
-        // the server NAME rather than the endless plex.direct URL;
-        // the full URL stays visible in the servers sub-screen
-        btnServer->setDetailText(serverName);
-        btnServer->registerClickAction([](...) {
-            brls::Application::pushActivity(new ServerList(), brls::TransitionAnimation::NONE);
-            return true;
-        });
-
-        btnUser->setDetailText(conf.getUserName());
-        btnUser->registerClickAction([](...) {
-            Dialog::cancelable("main/setting/others/logout"_i18n, []() {
-                // Local sign-out: Plex has no server-side signout call in
-                // this flow (PLEX_MIGRATION.md §2.2)
-                auto& c = AppConfig::instance();
-                c.removeUser(c.getUserId());
-                brls::Application::quit();
-            });
-            return true;
-        });
-    }
 
 /// Hardware decode
 #ifdef __SWITCH__
@@ -453,11 +412,22 @@ void SettingTab::onCreate() {
         return true;
     });
 
-    btnAbout->setDetailText(">");
+    // DisclosureCell renders its own (SVG) chevron — see disclosure_cell.hpp.
     btnAbout->registerClickAction([](...) {
         brls::Dialog* dialog = new brls::Dialog(new SettingAbout());
         dialog->addButton("hints/ok"_i18n, []() {});
         dialog->open();
+        return true;
+    });
+
+    // Reorder / hide the sidebar tabs (libraries + Playlists + Watchlist).
+    // Presented as a detail view so the sidebar stays visible and previews the
+    // changes live; needs the MainTabFrame (outermost AutoTabFrame) to rebuild.
+    btnLibraries->registerClickAction([](brls::View* view) -> bool {
+        MainTabFrame* frame = nullptr;
+        for (brls::View* v = view; v; v = v->getParent())
+            if (auto* f = dynamic_cast<MainTabFrame*>(v)) frame = f;
+        if (frame) ui::presentDetail(view, new LibraryManager(frame));
         return true;
     });
 }

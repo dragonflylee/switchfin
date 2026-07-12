@@ -1,14 +1,16 @@
 /*
-    pleNx — "Watchlist" sidebar tab (see watchlist_tab.hpp).
+    GMCA — "Watchlist" sidebar tab (see watchlist_tab.hpp).
 */
 
 #include "tab/watchlist_tab.hpp"
 #include "tab/media_movie.hpp"
 #include "tab/media_series.hpp"
 #include "api/plex/watchlist.hpp"
+#include "api/backend.hpp"
 #include "view/recycling_grid.hpp"
 #include "view/svg_image.hpp"
 #include "view/video_card.hpp"
+#include "view/video_source.hpp"
 #include "view/auto_tab_frame.hpp"
 #include "utils/image.hpp"
 #include "utils/keybind.hpp"
@@ -21,16 +23,7 @@ using namespace brls::literals;  // for _i18n
 /// transcoder to get a thumbnail: /photo/:/transcode?url=<absolute>&width&height.
 static void loadProviderImage(brls::Image* view, const std::string& url, int width, int height) {
     if (url.empty()) return;
-    auto& conf = AppConfig::instance();
-    HTTP::Form form = {
-        {"minSize", "1"},
-        {"upscale", "1"},
-        {"url", url},
-        {"X-Plex-Token", conf.getToken()},
-        {"width", std::to_string(width)},
-        {"height", std::to_string(height)},
-    };
-    Image::with(view, conf.getUrl() + "/photo/:/transcode?" + HTTP::encode_form(form));
+    Image::with(view, AppConfig::instance().backend().imageUrlExternal(url, width, height));
 }
 
 /// Sort/filters side panel (Y action) — same pattern as MediaFilter
@@ -161,15 +154,14 @@ public:
         auto& item = this->list.at(index);
         // provider -> server matching by guid (plex::matchInLibrary);
         // the MediaMovie/MediaSeries pages require a SERVER ratingKey
-        plex::matchInLibrary(
+        AppConfig::instance().backend().matchInLibrary(
             item.guid,
-            [recycler, item](const plex::Container<plex::Item>& r) {
-                if (r.Items.empty()) {
+            [recycler, item](const media::Item& found) {
+                if (found.ratingKey.empty()) {
                     brls::Application::notify("main/watchlist/not_in_library"_i18n);
                     return;
                 }
-                auto& found = r.Items.front();
-                if (found.type == plex::mediaTypeShow) {
+                if (found.type == media::mediaTypeShow) {
                     ui::presentDetail(recycler, new MediaSeries(found));
                 } else {
                     ui::presentDetail(recycler, new MediaMovie(found));
@@ -196,6 +188,17 @@ WatchlistTab::WatchlistTab() {
 }
 
 void WatchlistTab::onCreate() {
+    // capability gate: backends without a watchlist (Jellyfin/Emby) show a
+    // graceful empty state instead of running the Plex provider calls.
+    // (Fully hiding the tab from the bar is a follow-up — the icon-only tabs
+    // have empty labels, so AutoTabFrame::clearTab cannot target them; the
+    // clean fix is to add Watchlist/Playlists dynamically in MainTabFrame
+    // gated by caps, like the library tabs.)
+    if (AppConfig::instance().backend().caps().listKind == media::ListKind::None) {
+        this->recycler->setEmpty();
+        return;
+    }
+
     auto actionRefresh = [this](...) {
         this->refresh(true);
         return true;
@@ -237,9 +240,12 @@ void WatchlistTab::refresh(bool reloadGuids) {
     this->startIndex = 0;
     this->loaded = false;
     this->recycler->showSkeleton();
+    // the guid cache (Plex availability dimming) only applies to the plex.tv
+    // watchlist; Jellyfin/Emby favorites are server items, no guid round-trip
+    bool plexWatchlist = AppConfig::instance().backend().caps().listKind == media::ListKind::Watchlist;
     // guid cache to (re)load: initial load/refresh, or Availability filter
     // active while a previous load failed
-    if (reloadGuids || (!this->libraryGuids && WatchlistFilter::selectedAvailability != 0)) {
+    if (plexWatchlist && (reloadGuids || (!this->libraryGuids && WatchlistFilter::selectedAvailability != 0))) {
         ASYNC_RETAIN
         plex::fetchLibraryGuids(
             [ASYNC_TOKEN](std::shared_ptr<std::unordered_set<std::string>> guids) {
@@ -265,18 +271,44 @@ void WatchlistTab::doRequest() {
     // plex::fetchWatchlist); provider Type filter via type=1|2
     std::string sort = WatchlistFilter::sortList[WatchlistFilter::selectedSort];
     sort += WatchlistFilter::selectedOrder ? ":desc" : ":asc";
-    int type = WatchlistFilter::selectedType == 1   ? plex::typeMovie
-               : WatchlistFilter::selectedType == 2 ? plex::typeShow
-                                                    : 0;
+    media::MediaKind kind = WatchlistFilter::selectedType == 1   ? media::MediaKind::Movie
+                            : WatchlistFilter::selectedType == 2 ? media::MediaKind::Show
+                                                                 : media::MediaKind::Any;
+    bool favorites = AppConfig::instance().backend().caps().listKind == media::ListKind::Favorites;
 
     ASYNC_RETAIN
-    // GET discover.provider/library/sections/watchlist/all (ACCOUNT token)
-    plex::fetchWatchlist(
-        this->startIndex, this->pageSize, sort, type,
-        [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
+    // personal list: Plex watchlist (provider items) or Jellyfin favorites (server items)
+    AppConfig::instance().backend().listWatchlist(
+        sort, kind, this->startIndex, this->pageSize,
+        [ASYNC_TOKEN, favorites](const media::Container<media::Item>& r) {
             ASYNC_RELEASE
             this->startIndex = r.StartIndex + this->pageSize;
             bool more = !r.Items.empty() && (long)this->startIndex < r.TotalRecordCount;
+
+            if (favorites) {
+                // favorites are normal server items -> standard grid (click opens
+                // the detail page, context menu works); no provider images, no dimming
+                if (!this->loaded) {
+                    if (!r.Items.empty()) {
+                        this->loaded = true;
+                        this->recycler->setDataSource(new VideoDataSource(r.Items));
+                    } else if (more) {
+                        this->doRequest();
+                    } else {
+                        this->recycler->setEmpty("main/favorites/empty_title"_i18n,
+                            "main/favorites/empty_sub"_i18n, "icon/ico-bookmark.svg");
+                    }
+                } else if (!r.Items.empty()) {
+                    auto* ds = dynamic_cast<VideoDataSource*>(this->recycler->getDataSource());
+                    if (ds) {
+                        ds->appendData(r.Items);
+                        this->recycler->notifyDataChanged();
+                    }
+                } else if (more) {
+                    this->doRequest();
+                }
+                return;
+            }
 
             // Availability filter: CLIENT-side (the provider knows nothing
             // about the server), backed by the guid cache; without a cache

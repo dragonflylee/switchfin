@@ -4,10 +4,13 @@
 
     <brls:Box
         axis="row"
-        width="300"
+        width="320"
         alignItems="center">
         <!-- same contract as video_card.xml: BaseCardCell::getDefaultFocus()
-             returns this box to limit the focus halo to the thumbnail -->
+             returns this box to limit the focus halo to the thumbnail.
+             Fixed 16:9 (320x180): the thumbnail must keep its size even with no
+             image — otherwise the Image (height only, width from the texture
+             aspect) collapses to a thin vertical strip on backdrop-less items. -->
         <brls:Box
             id="video/card/pic_box"
             focusable="true"

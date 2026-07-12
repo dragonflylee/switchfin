@@ -1,5 +1,5 @@
 /*
-    pleNx — plex.tv authentication implementation.
+    GMCA — plex.tv authentication implementation.
     Specification: PLEX_MIGRATION.md §2.2-2.3.
 */
 
@@ -136,11 +136,7 @@ bool probeConnection(const std::string& baseUrl, const std::string& accessToken,
     }
 }
 
-std::string findBestConnection(const ServerResource& server, const std::string& preferredUri) {
-    // Remembered endpoint first, with a shorter timeout (first phase of the
-    // connection race)
-    if (!preferredUri.empty() && probeConnection(preferredUri, server.accessToken, 1500)) return preferredUri;
-
+std::vector<std::string> rankConnections(const ServerResource& server) {
     // Priority by protocol + reachability: https+local -> https+remote ->
     // https+relay -> http+local -> ... (§2.3)
     auto rank = [](const std::string& protocol, bool local, bool relay) {
@@ -158,7 +154,7 @@ std::string findBestConnection(const ServerResource& server, const std::string& 
     };
     std::vector<Candidate> candidates;
     auto add = [&](const std::string& url, const std::string& protocol, bool local, bool relay) {
-        if (url.empty() || url == preferredUri) return;
+        if (url.empty()) return;
         for (auto& e : candidates)
             if (e.url == url) return;  // dedupe
         candidates.push_back({url, rank(protocol, local, relay)});
@@ -192,8 +188,20 @@ std::string findBestConnection(const ServerResource& server, const std::string& 
     std::stable_sort(candidates.begin(), candidates.end(),
         [](const Candidate& a, const Candidate& b) { return a.rank < b.rank; });
 
-    for (auto& c : candidates) {
-        if (probeConnection(c.url, server.accessToken)) return c.url;
+    std::vector<std::string> urls;
+    urls.reserve(candidates.size());
+    for (auto& c : candidates) urls.push_back(c.url);
+    return urls;
+}
+
+std::string findBestConnection(const ServerResource& server, const std::string& preferredUri) {
+    // Remembered endpoint first, with a shorter timeout (first phase of the
+    // connection race)
+    if (!preferredUri.empty() && probeConnection(preferredUri, server.accessToken, 1500)) return preferredUri;
+
+    for (auto& url : rankConnections(server)) {
+        if (url == preferredUri) continue;  // already probed above
+        if (probeConnection(url, server.accessToken)) return url;
     }
     return "";
 }

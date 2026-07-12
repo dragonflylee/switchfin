@@ -1,11 +1,23 @@
 {
+  "rename": {
+    "title": "이제 pleNx는 GMCA입니다",
+    "intro": "같은 앱이 더 크게 성장했습니다. pleNx는 GMCA(Gamepad Media Center Aggregator)로 새로워졌고, 훨씬 더 많은 것을 할 수 있습니다.",
+    "whats_new": "새로운 기능",
+    "feature_backends": "하나의 앱으로 모든 서버를 — Plex, Jellyfin, Emby, Stremio",
+    "feature_music": "영화와 시리즈와 함께 즐기는 음악 라이브러리",
+    "feature_offline": "오프라인 다운로드로 연결 없이 어디서나 감상",
+    "feature_updates": "앱으로 바로 전달되는 정기 업데이트",
+    "reassure": "로그인, 설정, 다운로드가 자동으로 옮겨졌습니다 — 다시 설정할 필요가 없습니다. 즐겁게 감상하세요!",
+    "continue": "시작하기"
+  },
   "tabs": {
     "home": "홈",
     "genres": "장르",
     "suggest": "제안",
     "search": "검색",
     "downloads": "다운로드",
-    "setting": "설정"
+    "setting": "설정",
+    "remote": "서버"
   },
   "home": {
     "resume": "계속 시청하기",
@@ -20,7 +32,7 @@
   },
   "about": {
     "header": "소프트웨어 정보",
-    "brief": "또 하나의 서드파티 Plex 클라이언트",
+    "brief": "또 하나의 서드파티 미디어 클라이언트",
     "repo_header": "리포지토리"
   },
   "player": {
@@ -73,7 +85,8 @@
     "seasons_title": "시즌",
     "go_series": "시리즈로 이동",
     "go_season": "시즌으로 이동",
-    "director": "감독"
+    "director": "감독",
+    "open": "열기"
   },
   "search": {
     "hint": "키워드와 키워드의 첫 글자를 지원합니다.",
@@ -106,6 +119,18 @@
     "title": "재생목록",
     "item": "항목",
     "items": "항목"
+  },
+  "music": {
+    "album": "앨범",
+    "albums": "앨범",
+    "track": "트랙",
+    "tracks": "트랙",
+    "play_album": "앨범 재생",
+    "play_artist": "셔플 재생",
+    "shuffle": "셔플",
+    "repeat": "반복",
+    "queue": "재생 대기열",
+    "now_playing": "재생 중"
   },
   "watchlist": {
     "title": "관심 목록",
@@ -186,7 +211,8 @@
     "section_done": "다운로드 완료",
     "remove_all": "모두 삭제",
     "confirm_remove_all": "모든 다운로드를 삭제하시겠습니까?",
-    "empty_sub": "다운로드한 영화와 에피소드가 여기에 표시되어 오프라인으로 시청할 수 있습니다."
+    "empty_sub": "다운로드한 영화와 에피소드가 여기에 표시되어 오프라인으로 시청할 수 있습니다.",
+    "eta": "{} 남음"
   },
   "setting": {
     "quit_hint": "앱을 종료합니다. 설정 내용은 다음 실행 시 적용됩니다.",
@@ -201,7 +227,7 @@
       "header": "서버",
       "detail": "서버 상세",
       "connect_new": "새 서버",
-      "connect_to": "Plex 서버에 연결",
+      "connect_to": "미디어 서버에 연결",
       "invalid": "URL은 http:// 또는 https://로 시작해야 합니다",
       "connect": "연결",
       "delete": "삭제하시겠습니까?",
@@ -287,9 +313,19 @@
       "font_q1": "커스텀 글꼴 또는 키맵 아이콘 설정 방법",
       "font_a1": "1. 원하는 글꼴 또는 아이콘 글꼴을 다운로드\n2. 글꼴은 font.ttf, 아이콘은 icon.ttf로 이름 변경\n3. 글꼴 파일을 구성 디렉터리에 배치\n4. 애플리케이션 재시작",
       "font_q2": "자주 묻는 질문",
-      "font_a2": "1. pleNx는 커스텀 글꼴을 우선으로 표시하고, 내장 글꼴을 보조적으로 사용합니다\n2. \"설정 - 튜토리얼\"에서 구성 디렉터리를 빠르게 열 수 있는 메뉴 항목을 제공합니다\n3. Linux에서 pleNx는 xdg-open으로 디렉터리를 엽니다. 구성 디렉터리가 제대로 열리지 않으면 이 도구를 설치하는 것을 고려하세요",
+      "font_a2": "1. GMCA는 커스텀 글꼴을 우선으로 표시하고, 내장 글꼴을 보조적으로 사용합니다\n2. \"설정 - 튜토리얼\"에서 구성 디렉터리를 빠르게 열 수 있는 메뉴 항목을 제공합니다\n3. Linux에서 GMCA는 xdg-open으로 디렉터리를 엽니다. 구성 디렉터리가 제대로 열리지 않으면 이 도구를 설치하는 것을 고려하세요",
       "font_q3": "자막이 표시되지 않음",
       "font_a3": "임의의 ttf 파일을 {}/subfont.ttf에 배치하세요"
+    },
+    "libraries": {
+      "header": "라이브러리",
+      "description": "사이드바 탭(라이브러리, 재생목록, 시청목록)의 순서를 바꾸거나 숨길 수 있습니다. 이 설정은 서버별로 저장됩니다.",
+      "grab": "이동",
+      "drop": "놓기",
+      "toggle": "표시 / 숨기기",
+      "visible": "표시됨",
+      "hidden": "숨김",
+      "empty": "정리할 탭이 없습니다"
     },
     "others": {
       "header": "기타",
@@ -323,19 +359,20 @@
       "downloading": "다운로드 중 {}… {}%",
       "installing": "업데이트 설치 중…",
       "updated": "업데이트가 설치되었습니다. 앱이 종료됩니다. 새 버전을 사용하려면 다시 실행하세요",
-      "release": "업데이트 확인"
+      "release": "업데이트 확인",
+      "changelog": "변경 사항"
     }
   },
   "hints": {
-    "title": "pleNx를 전체 애플리케이션으로 실행",
-    "text_applet": "pleNx가 애플릿 모드로 실행 중입니다: 동영상 재생에 필요한 메모리가 충분하지 않습니다. 아래 옵션 중 하나를 사용하여 전체 애플리케이션으로 실행하세요.",
-    "text_app": "pleNx가 전체 애플리케이션으로 실행 중입니다. HOME 메뉴 타일을 설치하면 바로 이 방식으로 실행할 수 있습니다.",
+    "title": "GMCA를 전체 애플리케이션으로 실행",
+    "text_applet": "GMCA가 애플릿 모드로 실행 중입니다: 동영상 재생에 필요한 메모리가 충분하지 않습니다. 아래 옵션 중 하나를 사용하여 전체 애플리케이션으로 실행하세요.",
+    "text_app": "GMCA가 전체 애플리케이션으로 실행 중입니다. HOME 메뉴 타일을 설치하면 바로 이 방식으로 실행할 수 있습니다.",
     "install_title": "HOME 메뉴 타일 (권장)",
-    "install_text": "내장 NSP 포워더를 설치합니다: 타일이 HOME 메뉴에서 곧바로 pleNx를 전체 애플리케이션으로 실행합니다.",
+    "install_text": "내장 NSP 포워더를 설치합니다: 타일이 HOME 메뉴에서 곧바로 GMCA를 전체 애플리케이션으로 실행합니다.",
     "install_button": "타일 설치",
     "takeover_title": "대안: 타이틀 탈취",
-    "takeover_text": "설치된 게임을 실행하면서 R을 누른 채로 있으면 홈브루 메뉴가 전체 애플리케이션으로 열립니다. 거기서 pleNx를 실행하세요.",
-    "prompt": "HOME 메뉴에 pleNx 타일을 설치할까요?\n타일은 앱을 전체 애플리케이션으로 실행합니다 (동영상 재생에 필요).",
+    "takeover_text": "설치된 게임을 실행하면서 R을 누른 채로 있으면 홈브루 메뉴가 전체 애플리케이션으로 열립니다. 거기서 GMCA를 실행하세요.",
+    "prompt": "HOME 메뉴에 GMCA 타일을 설치할까요?\n타일은 앱을 전체 애플리케이션으로 실행합니다 (동영상 재생에 필요).",
     "hint_confirm": "NSP 포워더 설치는 기기가 밴될 수 있습니다\n다시 한 번 확인하세요"
   },
   "plex": {
@@ -354,10 +391,86 @@
     "wrong_pin": "잘못된 PIN",
     "no_server": "이 계정에서 서버를 찾을 수 없습니다",
     "connecting": "서버에 연결하는 중…",
-    "unreachable": "서버에 연결할 수 없음"
+    "unreachable": "서버에 연결할 수 없음",
+    "connecting_slow": "평소보다 시간이 오래 걸리고 있습니다 — 계속 서버에 연결을 시도 중입니다. 잠시 기다려 주세요…"
   },
   "empty": {
     "title": "표시할 항목 없음",
     "error": "불러올 수 없음"
+  },
+  "changelog": {
+    "header": "변경 사항",
+    "empty": "변경 사항을 불러올 수 없음"
+  },
+  "favorites": {
+    "title": "즐겨찾기",
+    "add": "즐겨찾기에 추가",
+    "remove": "즐겨찾기에서 제거",
+    "added": "즐겨찾기에 추가됨",
+    "removed": "즐겨찾기에서 제거됨",
+    "empty_title": "즐겨찾기 없음",
+    "empty_sub": "영화와 시리즈를 즐겨찾기로 표시하면 여기에서 찾을 수 있습니다."
+  },
+  "server": {
+    "choose_type": "연결 유형을 선택하세요",
+    "switch_title": "연결 목록",
+    "add": "추가",
+    "jellyfin": {
+      "title_jellyfin": "Jellyfin에 로그인",
+      "title_emby": "Emby에 로그인",
+      "url": "서버 주소",
+      "username": "사용자 이름",
+      "password": "비밀번호",
+      "connect": "연결"
+    },
+    "stremio": {
+      "title": "Stremio에 로그인",
+      "email": "이메일",
+      "password": "비밀번호",
+      "connect": "연결",
+      "invalid": "이메일과 비밀번호를 입력하세요"
+    }
+  },
+  "stremio": {
+    "movies": "영화",
+    "series": "시리즈",
+    "popular": "인기",
+    "new": "신작",
+    "featured": "추천",
+    "genre": {
+      "action": "액션",
+      "adventure": "모험",
+      "animation": "애니메이션",
+      "biography": "전기",
+      "comedy": "코미디",
+      "crime": "범죄",
+      "documentary": "다큐멘터리",
+      "drama": "드라마",
+      "family": "가족",
+      "fantasy": "판타지",
+      "history": "역사",
+      "horror": "공포",
+      "mystery": "미스터리",
+      "romance": "로맨스",
+      "scifi": "SF",
+      "sport": "스포츠",
+      "thriller": "스릴러",
+      "war": "전쟁",
+      "western": "서부극"
+    },
+    "source": {
+      "unavailable": "재생 가능한 소스 없음",
+      "none": "이 콘텐츠의 스트림이 없습니다. Stremio 계정에 스트림 애드온(디브리드 서비스 포함)을 설치하여 여기에서 재생하세요.",
+      "cached": "캐시됨",
+      "uncached": "다운로드",
+      "direct": "직접",
+      "torrent_badge": "토렌트",
+      "link_badge": "링크",
+      "torrents": "토렌트 소스 {}개 — 디브리드 필요",
+      "links": "외부 링크 {}개 — 재생할 수 없음",
+      "more": "재생 가능한 소스 +{}개",
+      "torrents_help": "이 소스는 원본 토렌트입니다. 이 플랫폼에는 토렌트 클라이언트가 없으므로 Stremio 계정에 디브리드 기능이 있는 애드온(Torrentio + Real-Debrid, Comet, MediaFusion…)을 설치하여 재생 가능한 링크를 확보하세요.",
+      "links_help": "이 소스는 외부 링크(브라우저 또는 제3자 서비스)이므로 이 플랫폼의 앱에서 직접 재생할 수 없습니다."
+    }
   }
 }

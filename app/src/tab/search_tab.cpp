@@ -13,6 +13,7 @@
 #include "utils/network_state.hpp"
 #include "utils/offline_library.hpp"
 #include "api/plex.hpp"
+#include "api/backend.hpp"
 #include <fstream>
 
 using namespace brls::literals;  // for _i18n
@@ -345,22 +346,17 @@ void SearchTab::doSuggest() {
         return;
     }
 
-    HTTP::Form form;
-    plex::addPagination(form, 0, 24);
-
     ASYNC_RETAIN
-    plex::getJSON<plex::Container<plex::Item>>(
-        AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-        [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
+    AppConfig::instance().backend().getRecentlyAdded(0, 24,
+        [ASYNC_TOKEN](const media::Container<media::Item>& r) {
             ASYNC_RELEASE
-            // poster grid: the suggestions are complete plex::Item
+            // poster grid: the suggestions are complete items
             this->searchSuggest->setDataSource(new VideoDataSource(r.Items));
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             this->searchSuggest->setError(ex);
-        },
-        "/library/recentlyAdded?{}", HTTP::encode_form(form));
+        });
 }
 
 void SearchTab::doSearch(const std::string& searchTerm) {
@@ -379,18 +375,10 @@ void SearchTab::doSearch(const std::string& searchTerm) {
         return;
     }
 
-    std::string query = HTTP::encode_form({
-        {"query", searchTerm},
-        {"limit", "40"},
-        {"searchTypes", "movies,tv"},
-        {"includeCollections", "1"},
-    });
-
     ASYNC_RETAIN
-    // a single page: /library/search does not paginate reliably
-    plex::getJSON<plex::Container<plex::Item>>(
-        AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-        [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
+    // a single page: search does not paginate reliably
+    AppConfig::instance().backend().search(searchTerm, media::MediaKind::Any, 40,
+        [ASYNC_TOKEN](const media::Container<media::Item>& r) {
             ASYNC_RELEASE
             if (r.Items.empty()) {
                 this->searchSuggest->setEmpty(
@@ -402,8 +390,7 @@ void SearchTab::doSearch(const std::string& searchTerm) {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Application::notify(ex);
-        },
-        plex::apiSearch, query);
+        });
 }
 
 void SearchTab::updateInput() {

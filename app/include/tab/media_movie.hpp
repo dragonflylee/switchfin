@@ -22,6 +22,7 @@ public:
     ~MediaMovie() override;
 
 private:
+    BRLS_BIND(brls::ScrollingFrame, scroll, "movie/scroll");
     BRLS_BIND(brls::Box, bannerBox, "movie/banner");
     BRLS_BIND(brls::Box, contentRow, "movie/content/row");
     BRLS_BIND(brls::Box, contentInfo, "movie/content/info");
@@ -38,10 +39,13 @@ private:
     BRLS_BIND(brls::Label, labelAudience, "movie/label/audience");
     BRLS_BIND(TextBox, labelOverview, "movie/label/overview");
     BRLS_BIND(brls::Label, labelGenres, "movie/label/genres");
+    BRLS_BIND(brls::Box, noticeBox, "movie/notice");
+    BRLS_BIND(brls::Box, sourcesBox, "movie/sources");
     BRLS_BIND(brls::SelectorCell, btnSource, "movie/source");
     BRLS_BIND(IconButton, btnPlay, "movie/play");
     BRLS_BIND(IconButton, btnDownload, "movie/download");
     BRLS_BIND(IconButton, btnWatchlist, "movie/watchlist");
+    BRLS_BIND(brls::View, peopleHeader, "movie/label/people");
     BRLS_BIND(HRecyclerFrame, people, "movie/people");
     BRLS_BIND(brls::Box, boxRelated, "movie/related/box");
 
@@ -49,11 +53,18 @@ private:
     void doMovie();
     /// renders the fiche from an Item — shared by the server and local-catalog
     /// (offline / downloaded) paths
-    void applyMovie(const plex::Item& item);
+    void applyMovie(const media::Item& item);
     void doRelated();
     void updateDownloadButton();
-    /// reveals the Watchlist button once the provider state is known (plex:// guid)
-    void initWatchlist(const std::string& guid);
+    /// Builds the inline Stremio source list (one row per source) and wires the
+    /// Play button's enabled/muted state. No-op for single-file backends.
+    void buildSources(const media::Item& item);
+    /// Opens the player on a specific source row (item.media[mediaIndex]).
+    void playSource(int mediaIndex);
+    /// Queues a download of a specific source row (Stremio: X on a release line).
+    void downloadSource(int mediaIndex);
+    /// reveals the personal-list button (watchlist/favorite) once its state is known
+    void initWatchlist(const media::Item& item);
     void toggleWatchlist();
     void updateWatchlistButton();
 
@@ -62,7 +73,10 @@ private:
 
     int64_t viewOffsetMs = 0;
     std::string itemId;
-    std::string itemGuid;
+    media::Item movieItem;  // resolved detail (sources/title) — backs source playback
+    bool hasPlayableSource = false;
+    brls::View* firstSourceRow = nullptr;  // default focus target (Stremio release list)
+    media::Item listItem;  // item backing the personal-list (watchlist/favorite) button
     bool localContext = false;  // opened from the offline downloads area
     bool watchlisted = false;
     /// selected version (item.media[]) — no effect in v1 (playback = first

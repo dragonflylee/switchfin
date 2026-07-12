@@ -1,5 +1,5 @@
 /*
-    pleNx — end-of-row "+" card (hubs with more=1): opens the full hub page
+    GMCA — end-of-row "+" card (hubs with more=1): opens the full hub page
     (HubView). Skeleton aligned with video_card.xml; NOT a BaseCardCell
     (no poster nor context menu — and BaseCardCell resolves
     "video/card/picture", absent here).

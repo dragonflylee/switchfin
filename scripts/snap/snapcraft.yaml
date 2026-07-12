@@ -1,8 +1,8 @@
-name: plenx
-summary: plenx
+name: gmca
+summary: Gamepad Media Center Aggregator
 description: |
-  third-party native Plex client
-version: "0.1.0"
+  Controller-first media client for Plex, Jellyfin, Emby and Stremio
+version: "1.0.0"
 grade: stable
 icon: ../resources/icon/icon.png
 base: core20
@@ -10,8 +10,8 @@ confinement: strict
 license: Apache-2.0
 
 apps:
-  plenx:
-    command: bin/desktop-launch $SNAP/usr/bin/pleNx
+  gmca:
+    command: bin/desktop-launch $SNAP/usr/bin/GMCA
     plugs:
       - desktop
       - x11
@@ -235,7 +235,7 @@ parts:
       - -usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pkgconfig
       - -usr/lib/$SNAPCRAFT_ARCH_TRIPLET/cmake
 
-  plenx:
+  gmca:
     plugin: cmake
     source: ".."
     source-type: local

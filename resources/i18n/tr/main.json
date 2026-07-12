@@ -1,11 +1,23 @@
 {
+  "rename": {
+    "title": "pleNx artık GMCA",
+    "intro": "Aynı uygulama, ama büyüdü. pleNx artık GMCA oldu — Gamepad Media Center Aggregator — ve çok daha fazlasını yapıyor.",
+    "whats_new": "YENİLİKLER",
+    "feature_backends": "Tek uygulama, tüm sunucular — Plex, Jellyfin, Emby ve Stremio",
+    "feature_music": "Filmlerin ve dizilerin yanında müzik kitaplığın",
+    "feature_offline": "Bağlantı olmadan her yerde izlemek için çevrimdışı indirmeler",
+    "feature_updates": "Doğrudan uygulamaya gelen düzenli güncellemeler",
+    "reassure": "Girişlerin, ayarların ve indirmelerin otomatik olarak taşındı — yeniden ayarlamana gerek yok. İyi seyirler!",
+    "continue": "Hadi başlayalım"
+  },
   "tabs": {
     "home": "Ana Sayfa",
     "genres": "Türler",
     "suggest": "Öneriler",
     "search": "Arama",
     "downloads": "İndirilenler",
-    "setting": "Ayarlar"
+    "setting": "Ayarlar",
+    "remote": "Sunucular"
   },
   "home": {
     "resume": "İzlemeye Devam Et",
@@ -20,7 +32,7 @@
   },
   "about": {
     "header": "Hakkında",
-    "brief": "Başka bir üçüncü taraf Plex yazılımı daha",
+    "brief": "Başka bir üçüncü taraf medya istemcisi daha",
     "repo_header": "Kaynak kodu"
   },
   "player": {
@@ -73,7 +85,8 @@
     "seasons_title": "Sezonlar",
     "go_series": "Diziye git",
     "go_season": "Sezona git",
-    "director": "Yönetmen"
+    "director": "Yönetmen",
+    "open": "Aç"
   },
   "search": {
     "hint": "Anahtar kelimeleri ve baş harflerini destekler",
@@ -106,6 +119,18 @@
     "title": "Çalma listeleri",
     "item": "öğe",
     "items": "öğe"
+  },
+  "music": {
+    "album": "albüm",
+    "albums": "albümler",
+    "track": "parça",
+    "tracks": "parçalar",
+    "play_album": "Albümü çal",
+    "play_artist": "Karışık çal",
+    "shuffle": "Karıştır",
+    "repeat": "Tekrarla",
+    "queue": "Sıra",
+    "now_playing": "Şimdi çalıyor"
   },
   "watchlist": {
     "title": "İzleme Listesi",
@@ -186,7 +211,8 @@
     "section_done": "İndirildi",
     "remove_all": "Tümünü kaldır",
     "confirm_remove_all": "Tüm indirmeler kaldırılsın mı?",
-    "empty_sub": "İndirilen filmler ve bölümler çevrimdışı izlemek için burada görünür."
+    "empty_sub": "İndirilen filmler ve bölümler çevrimdışı izlemek için burada görünür.",
+    "eta": "{} kaldı"
   },
   "setting": {
     "quit_hint": "Uygulamadan çıkış yapmak üzeresiniz. Değiştirilen ayarlar bir sonraki başlangıçtan sonra uygulanacak",
@@ -201,7 +227,7 @@
       "header": "Sunucu",
       "detail": "Sunucu Ayrıntıları",
       "connect_new": "Yeni Sunucu",
-      "connect_to": "Bir Plex sunucusuna bağlan",
+      "connect_to": "Bir medya sunucusuna bağlan",
       "invalid": "Bağlantı http:// veya https:// ile başlamalıdır",
       "connect": "Bağlan",
       "delete": "Silmeyi onaylıyor musunuz?",
@@ -287,9 +313,19 @@
       "font_q1": "Nasıl özel bir yazı tipi veya tuş ataması simgesi kullanılır",
       "font_a1": "1. İstediğiniz yazı tipini veya simge yazı tipini indirin\n2. Yazı tipinin 'font.ttf', simge tipini de 'icon.ttf' olarak adlandırın\n3. Yazı tipi dosyalarını yapılandırma klasörüne yerleştirin\n4. Uygulamayı yeniden başlatın",
       "font_q2": "Sıkça Sorulan Sorular",
-      "font_a2": "1. pleNx, özel yazı tiplerinin görüntülenmesine öncelik verir; yerleşik yazı tipleri ise yedek olarak kullanılır.\n2. 'Ayarlar - Kılavuz' bölümünde, yapılandırma dizinini hızlıca açmak için bir menü öğesi bulunur.\n3. Linux’ta pleNx, dizini açmak için xdg-open kullanır. Yapılandırma dizini düzgün şekilde açılamıyorsa bu aracı yüklemeyi düşünebilirsiniz.",
+      "font_a2": "1. GMCA, özel yazı tiplerinin görüntülenmesine öncelik verir; yerleşik yazı tipleri ise yedek olarak kullanılır.\n2. 'Ayarlar - Kılavuz' bölümünde, yapılandırma dizinini hızlıca açmak için bir menü öğesi bulunur.\n3. Linux’ta GMCA, dizini açmak için xdg-open kullanır. Yapılandırma dizini düzgün şekilde açılamıyorsa bu aracı yüklemeyi düşünebilirsiniz.",
       "font_q3": "Alt yazılar görünmüyor",
       "font_a3": "Herhangi bir TTF dosyasını {}/subfont.ttf konumuna yerleştirin."
+    },
+    "libraries": {
+      "header": "Kitaplıklar",
+      "description": "Kenar çubuğu sekmelerini yeniden sıralayın ve gizleyin (kitaplıklar, oynatma listeleri, izleme listesi). Bu ayar her sunucu için ayrı kaydedilir.",
+      "grab": "Taşı",
+      "drop": "Bırak",
+      "toggle": "Göster / Gizle",
+      "visible": "Görünür",
+      "hidden": "Gizli",
+      "empty": "Düzenlenecek sekme yok"
     },
     "others": {
       "header": "Diğer",
@@ -323,19 +359,20 @@
       "downloading": "İndiriliyor {}… %{}",
       "installing": "Güncelleme yükleniyor…",
       "updated": "Güncelleme yüklendi. Uygulama şimdi kapanacak: yeni sürümü kullanmak için yeniden başlatın",
-      "release": "Güncellemeleri denetle"
+      "release": "Güncellemeleri denetle",
+      "changelog": "Changelog"
     }
   },
   "hints": {
-    "title": "pleNx'i tam uygulama olarak başlat",
-    "text_applet": "pleNx uygulama modunda çalışıyor: mevcut bellek video oynatma için yeterli değil. Aşağıdaki seçeneklerden birini kullanarak tam uygulama olarak başlatın.",
-    "text_app": "pleNx tam uygulama olarak çalışıyor. Doğrudan bu şekilde başlatmak için HOME menüsü kutucuğunu yükleyin.",
+    "title": "GMCA'i tam uygulama olarak başlat",
+    "text_applet": "GMCA uygulama modunda çalışıyor: mevcut bellek video oynatma için yeterli değil. Aşağıdaki seçeneklerden birini kullanarak tam uygulama olarak başlatın.",
+    "text_app": "GMCA tam uygulama olarak çalışıyor. Doğrudan bu şekilde başlatmak için HOME menüsü kutucuğunu yükleyin.",
     "install_title": "HOME menüsü kutucuğu (önerilir)",
-    "install_text": "Yerleşik NSP yönlendiricisini yükler: kutucuk, pleNx'i doğrudan HOME menüsünden tam uygulama olarak başlatır.",
+    "install_text": "Yerleşik NSP yönlendiricisini yükler: kutucuk, GMCA'i doğrudan HOME menüsünden tam uygulama olarak başlatır.",
     "install_button": "Kutucuğu yükle",
     "takeover_title": "Alternatif: oyun üzerinden başlatma",
-    "takeover_text": "Yüklü herhangi bir oyunu başlatırken R tuşunu basılı tutarak homebrew menüsünü tam uygulama olarak açın, ardından pleNx'i oradan başlatın.",
-    "prompt": "pleNx kutucuğu HOME menüsüne yüklensin mi?\nKutucuk, uygulamayı tam uygulama olarak başlatır (video oynatma için gereklidir).",
+    "takeover_text": "Yüklü herhangi bir oyunu başlatırken R tuşunu basılı tutarak homebrew menüsünü tam uygulama olarak açın, ardından GMCA'i oradan başlatın.",
+    "prompt": "GMCA kutucuğu HOME menüsüne yüklensin mi?\nKutucuk, uygulamayı tam uygulama olarak başlatır (video oynatma için gereklidir).",
     "hint_confirm": "NSP yönlendiricisini kurmak konsolunuzun çevrim içi özelliklerden yasaklanmasına neden olabilir\n\nLütfen tekrar onaylayın"
   },
   "plex": {
@@ -354,10 +391,86 @@
     "wrong_pin": "Yanlış PIN",
     "no_server": "Bu hesapta sunucu bulunamadı",
     "connecting": "Sunucuya bağlanılıyor…",
-    "unreachable": "Sunucuya ulaşılamıyor"
+    "unreachable": "Sunucuya ulaşılamıyor",
+    "connecting_slow": "Bu alışılmadık kadar uzun sürüyor — sunucunuza ulaşmaya çalışıyoruz. Biraz daha bekleyin…"
   },
   "empty": {
     "title": "Gösterilecek bir şey yok",
     "error": "Yüklenemedi"
+  },
+  "changelog": {
+    "header": "Changelog",
+    "empty": "Changelog kullanılamıyor"
+  },
+  "favorites": {
+    "title": "Favoriler",
+    "add": "Favorilere Ekle",
+    "remove": "Favorilerden Kaldır",
+    "added": "Favorilere Eklendi",
+    "removed": "Favorilerden Kaldırıldı",
+    "empty_title": "Henüz favori yok",
+    "empty_sub": "Film ve dizileri favori olarak işaretleyin, burada bulun."
+  },
+  "server": {
+    "choose_type": "Bağlantı türünü seçin",
+    "switch_title": "Bağlantılar",
+    "add": "Ekle",
+    "jellyfin": {
+      "title_jellyfin": "Jellyfin'e Giriş Yap",
+      "title_emby": "Emby'ye Giriş Yap",
+      "url": "Sunucu adresi",
+      "username": "Kullanıcı adı",
+      "password": "Şifre",
+      "connect": "Bağlan"
+    },
+    "stremio": {
+      "title": "Stremio'ya Giriş Yap",
+      "email": "E-posta",
+      "password": "Şifre",
+      "connect": "Bağlan",
+      "invalid": "E-postanızı ve şifrenizi girin"
+    }
+  },
+  "stremio": {
+    "movies": "Filmler",
+    "series": "Diziler",
+    "popular": "Popüler",
+    "new": "Yeni",
+    "featured": "Öne Çıkanlar",
+    "genre": {
+      "action": "Aksiyon",
+      "adventure": "Macera",
+      "animation": "Animasyon",
+      "biography": "Biyografi",
+      "comedy": "Komedi",
+      "crime": "Suç",
+      "documentary": "Belgesel",
+      "drama": "Dram",
+      "family": "Aile",
+      "fantasy": "Fantastik",
+      "history": "Tarih",
+      "horror": "Korku",
+      "mystery": "Gizem",
+      "romance": "Romantik",
+      "scifi": "Bilim Kurgu",
+      "sport": "Spor",
+      "thriller": "Gerilim",
+      "war": "Savaş",
+      "western": "Western"
+    },
+    "source": {
+      "unavailable": "Oynatılabilir kaynak yok",
+      "none": "Bu başlık için yayın yok. Burada oynatmak için Stremio hesabınıza bir yayın eklentisi (debrid servisiyle) yükleyin.",
+      "cached": "Önbellek",
+      "uncached": "İndir",
+      "direct": "Doğrudan",
+      "torrent_badge": "Torrent",
+      "link_badge": "Bağlantı",
+      "torrents": "{} torrent kaynağı — debrid gerekli",
+      "links": "{} harici bağlantı — burada oynatılamıyor",
+      "more": "+{} oynatılabilir kaynak daha",
+      "torrents_help": "Bu kaynaklar ham torrentlerdir. Bu platformda torrent istemcisi yok: oynatılabilir bağlantılar elde etmek için Stremio hesabınıza debrid destekli bir eklenti (Torrentio + Real-Debrid, Comet, MediaFusion…) yükleyin.",
+      "links_help": "Bu kaynaklar, bu platformda uygulama içinde doğrudan oynatılamayan harici bağlantılardır (tarayıcı veya üçüncü taraf hizmeti)."
+    }
   }
 }

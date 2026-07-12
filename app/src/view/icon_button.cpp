@@ -65,9 +65,21 @@ void IconButton::setButtonStyle(const std::string& style) {
     this->applyStyle();
 }
 
+void IconButton::setMuted(bool muted) {
+    if (this->muted == muted) return;
+    this->muted = muted;
+    this->applyStyle();
+}
+
 void IconButton::applyStyle() {
     auto theme = brls::Application::getTheme();
-    if (this->styleName == "primary") {
+    if (this->muted) {
+        // disabled look (still focusable): no fill, dim outline, grey text
+        this->setBackgroundColor(nvgRGBA(0, 0, 0, 0));
+        this->setBorderColor(theme.getColor("color/grey_1"));
+        this->setBorderThickness(2);
+        this->label->setTextColor(theme.getColor("font/grey"));
+    } else if (this->styleName == "primary") {
         this->setBackgroundColor(theme.getColor("color/app"));
         this->setBorderThickness(0);
         this->label->setTextColor(theme.getColor("brls/button/primary_enabled_text"));

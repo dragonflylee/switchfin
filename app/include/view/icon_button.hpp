@@ -1,5 +1,5 @@
 /*
-    pleNx — button with icon + label (brls::Button does not support an icon).
+    GMCA — button with icon + label (brls::Button does not support an icon).
     Styles: "primary" (gold background, dark text) and "bordered" (outline).
     XML attributes: icon (@res/...), text (@i18n/...), buttonStyle.
 */
@@ -17,6 +17,10 @@ public:
     void setIcon(const std::string& res);
     void setText(const std::string& text);
     void setButtonStyle(const std::string& style);
+    /// Muted = visually disabled (dim border + grey text) but STILL focusable, so
+    /// a D-pad user can land on it and trigger the "why is this unavailable" help
+    /// (the alternative — hiding it — strands the focus highlight on a gone view).
+    void setMuted(bool muted);
 
     static brls::View* create();
 
@@ -27,4 +31,5 @@ private:
     void applyStyle();
 
     std::string styleName = "bordered";
+    bool muted = false;
 };

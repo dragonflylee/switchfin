@@ -1,5 +1,5 @@
 /*
-    pleNx — person page: portrait + filmography (movies / shows).
+    GMCA — person page: portrait + filmography (movies / shows).
     Data: GET /library/people/{id}/media.
 */
 

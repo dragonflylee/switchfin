@@ -2,6 +2,7 @@
 
 #include <borealis.hpp>
 #include "api/http.hpp"
+#include "api/backend.hpp"
 #include "config.hpp"
 #include "image_cache.hpp"
 
@@ -14,41 +15,22 @@ public:
 
     virtual ~Image();
 
-    /// Loads an image from the Plex server given a relative path (thumb/art...).
-    /// width/height > 0 -> server-side resize via /photo/:/transcode
-    /// (PLEX_MIGRATION.md §2.5).
+    /// Loads an image for a backend path: the on-disk cached asset if present
+    /// (offline), else the active backend's image URL. width/height > 0 requests
+    /// backend-side resize where the backend supports it.
     static void load(brls::Image* view, const std::string& path, int width = 0, int height = 0) {
         if (path.empty()) return;
         // offline cache wins: a locally cached asset renders without the server
         // and gives downloaded content instant local artwork even online
-        // (SPEC §4.2, AC6/AC17). Keyed by the raw path/url below.
+        // (SPEC §4.2, AC6/AC17). Keyed by the raw path/url passed here.
         if (ImageCache::has(path)) {
             view->setImageFromFile(ImageCache::localPath(path));
             return;
         }
-        // external agent paths (cast faces...) are absolute
-        if (path.rfind("http", 0) == 0) return with(view, path);
-        auto& conf = AppConfig::instance();
-        std::string url;
-        if (width > 0 || height > 0) {
-            // the photo transcoder ALWAYS expects both dimensions;
-            // square box by default — minSize=1 preserves the ratio by
-            // covering the box
-            if (width <= 0) width = height;
-            if (height <= 0) height = width;
-            HTTP::Form form = {
-                {"minSize", "1"},
-                {"upscale", "1"},
-                {"url", path + "?X-Plex-Token=" + conf.getToken()},
-                {"X-Plex-Token", conf.getToken()},
-            };
-            form["width"] = std::to_string(width);
-            form["height"] = std::to_string(height);
-            url = conf.getUrl() + "/photo/:/transcode?" + HTTP::encode_form(form);
-        } else {
-            url = conf.getUrl() + path + "?X-Plex-Token=" + conf.getToken();
-        }
-        return with(view, url);
+        // backend-specific URL building (Plex /photo/:/transcode, Jellyfin /Images...);
+        // absolute external paths (cast faces...) are returned unchanged by the backend
+        std::string url = AppConfig::instance().backend().imageUrl(path, width, height);
+        if (!url.empty()) with(view, url);
     }
 
     /// @brief 设置要加载内容的图片组件。此函数需要工作在主线程。

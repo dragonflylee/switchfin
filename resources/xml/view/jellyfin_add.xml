@@ -1,0 +1,80 @@
+<!-- Jellyfin/Emby sign-in: full-screen centered page, same visual language as
+     the Plex PIN screen (server_add.xml). Icon + grey title, then a full-width
+     form (server address / username / password), centered Connect button and a
+     status label. B (Back) pops the activity. -->
+<brls:Box
+    width="auto"
+    height="auto"
+    alignItems="center"
+    justifyContent="center">
+
+    <brls:Box
+        width="640"
+        axis="column"
+        alignItems="stretch">
+
+        <brls:Box
+            width="100%"
+            height="auto"
+            axis="column"
+            alignItems="center"
+            marginBottom="30">
+
+            <brls:Image
+                width="120"
+                height="120"
+                cornerRadius="28"
+                marginBottom="16"
+                scalingType="fit"
+                image="@res/icon/icon.png" />
+
+            <brls:Label
+                id="jellyfin/add/header"
+                fontSize="16"
+                textColor="@theme/font/grey"
+                text="" />
+        </brls:Box>
+
+        <brls:InputCell
+            id="jellyfin/add/url" />
+
+        <brls:InputCell
+            id="jellyfin/add/user" />
+
+        <brls:InputCell
+            id="jellyfin/add/passwd"
+            type="password" />
+
+        <brls:Box
+            width="100%"
+            height="auto"
+            axis="column"
+            alignItems="center"
+            marginTop="28">
+
+            <brls:Button
+                id="jellyfin/add/connect"
+                style="primary"
+                paddingLeft="40"
+                paddingRight="40"
+                text="@i18n/main/server/jellyfin/connect" />
+
+            <brls:ProgressSpinner
+                id="jellyfin/add/spinner"
+                width="44"
+                height="44"
+                visibility="gone" />
+
+            <brls:Label
+                id="jellyfin/add/status"
+                width="100%"
+                height="auto"
+                marginTop="16"
+                fontSize="15"
+                horizontalAlign="center"
+                textColor="@theme/font/grey"
+                text="" />
+        </brls:Box>
+
+    </brls:Box>
+</brls:Box>

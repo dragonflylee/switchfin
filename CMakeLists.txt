@@ -51,19 +51,23 @@ message(STATUS "git commit ${GIT_TAG_SHORT} build ${VERSION_BUILD}")
 include(${BOREALIS_LIBRARY}/cmake/toolchain.cmake)
 
 # project info
-project(pleNx)
-set(VERSION_MAJOR "0")
-set(VERSION_MINOR "1")
-set(VERSION_ALTER "15")
-# 0420 1312: title ID specific to pleNx — the old one (inherited from
-# Switchfin) let the HOME menu serve the "Switchlex" name/icon from its cache
-# even after reinstalling; a fresh ID starts from scratch. Uniqueness verified
-# (web, GitHub, GBAtemp homebrew list) on 2026-06-11.
-set(PROJECT_TITLEID "0104201312000000")
+project(GMCA)  # short token for files/binaries/IDs; display name = "Gamepad Media Center Aggregator"
+set(VERSION_MAJOR "1")
+set(VERSION_MINOR "0")
+set(VERSION_ALTER "0")
+# Homebrew forwarder title ID for GMCA, in the community forwarder range (05...),
+# which is outside Nintendo's commercial 01... space — so it cannot collide with
+# an official title, and no title-ID registry check is needed. The "GMCA" vanity
+# (474D4341) keeps it unique among homebrew (checked: no other repo uses it). A
+# fresh id (not pleNx's) also stops the Switch HOME menu serving the cached pleNx
+# name/icon. (hacbrewpack lower-cases the filename → see forwarder/CMakeLists.txt.)
+set(PROJECT_TITLEID "0500474D43410000")
 set(PROJECT_AUTHOR "thcolin")
-set(PACKAGE_NAME "fun.thcolin.plenx")
-set(VITA_TITLEID "PLENX0000")
-set(PSN_TITLE_ID "PLNX00000")
+set(PACKAGE_NAME "fun.thcolin.gmca")
+set(VITA_TITLEID "GMCA00001")
+set(PSN_TITLE_ID "GMCA00000")
+# VITA_VERSION carried forward from dev (00.23 > our stale 00.18) so the Vita
+# package version does not regress relative to the shipped pleNx v0.1.15.
 set(VITA_VERSION "00.23")
 set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon.jpg)
 set(PROJECT_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/resources)
@@ -79,7 +83,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CHANGELOG.md ${PROJECT_RESOURCES}/CHA
 if (CUSTOM_RESOURCES_DIR)
     set(BRLS_RESOURCES_DIR ${CUSTOM_RESOURCES_DIR})
 elseif (CMAKE_INSTALL)
-    set(BRLS_RESOURCES_DIR ${CMAKE_INSTALL_PREFIX}/share/plenx)
+    set(BRLS_RESOURCES_DIR ${CMAKE_INSTALL_PREFIX}/share/gmca)
 endif ()
 
 # setting src and include
@@ -275,7 +279,7 @@ if (PLATFORM_DESKTOP)
         set(icon_dirs 32x32 48x48 64x64 128x128 256x256)
         linux_install(
             "${PROJECT_RESOURCES}" "${BRLS_RESOURCES_DIR}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/plenx.svg"
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/gmca.svg"
             "${CMAKE_CURRENT_SOURCE_DIR}/scripts/icons" "${icon_dirs}"
             "${CMAKE_CURRENT_SOURCE_DIR}/scripts/${PACKAGE_NAME}.appdata.xml"
             "${CMAKE_CURRENT_SOURCE_DIR}/scripts/${PACKAGE_NAME}.desktop"
@@ -325,7 +329,7 @@ elseif (PLATFORM_PS4)
     add_pkg(${PROJECT_NAME}
             ${CMAKE_BINARY_DIR}/ps4
             ${PSN_TITLE_ID}
-            "pleNx"
+            ${PROJECT_NAME}
             ${VITA_VERSION}
             8388608
     )

@@ -55,12 +55,12 @@ private:
     /// recycler's cached item + its visible cell, instead of re-fetching the
     /// whole view
     void refreshCard(bool played);
-    /// reveals the watchlist entry once the provider state is known (plex:// guid)
-    void initWatchlist(const std::string& guid);
+    /// reveals the personal-list entry (watchlist/favorite) once its state is known
+    void initWatchlist(const media::Item& item);
     bool toggleWatchlist();
 
     brls::Box* host = nullptr;
     std::string itemId;
-    std::string itemGuid;
+    media::Item listItem;  // item backing the personal-list (watchlist/favorite) entry
     bool watchlisted = false;
 };

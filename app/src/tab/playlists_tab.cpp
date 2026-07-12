@@ -1,10 +1,11 @@
 /*
-    pleNx — "Playlists" sidebar tab (see playlists_tab.hpp).
+    GMCA — "Playlists" sidebar tab (see playlists_tab.hpp).
 */
 
 #include "tab/playlists_tab.hpp"
 #include "tab/playlist_view.hpp"
 #include "api/plex.hpp"
+#include "api/backend.hpp"
 #include "view/recycling_grid.hpp"
 #include "view/svg_image.hpp"
 #include "view/video_card.hpp"
@@ -54,7 +55,8 @@ public:
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
         auto& item = this->list.at(index);
-        ui::presentDetail(recycler, new PlaylistView(item));
+        // audio playlist -> music queue; video playlist -> PlaylistView (issue #11)
+        ui::presentPlaylist(recycler, item);
     }
 
     void clearData() override { this->list.clear(); }
@@ -97,21 +99,17 @@ void PlaylistsTab::doRequest() {
         return;
     }
 
-    HTTP::Form query;
-    // video scope only (music is out of scope, PLEX_MIGRATION D2/D4)
-    query["playlistType"] = "video";
-    plex::addPagination(query, this->startIndex, this->pageSize);
-
     ASYNC_RETAIN
-    // GET /playlists?playlistType=video -> Metadata[] type "playlist"
-    plex::getJSON<plex::Container<plex::Item>>(
-        AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-        [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
+    // requested offset, not r.StartIndex: Jellyfin/Emby omit StartIndex on an
+    // empty past-the-end page (it parses to 0) and would wipe a filled grid
+    size_t reqStart = this->startIndex;
+    AppConfig::instance().backend().getPlaylists(this->startIndex, this->pageSize,
+        [ASYNC_TOKEN, reqStart](const media::Container<media::Item>& r) {
             ASYNC_RELEASE
-            this->startIndex = r.StartIndex + this->pageSize;
-            if (r.TotalRecordCount == 0) {
+            this->startIndex = reqStart + this->pageSize;
+            if (r.TotalRecordCount == 0 && reqStart == 0) {
                 this->recycler->setEmpty();
-            } else if (r.StartIndex == 0) {
+            } else if (reqStart == 0) {
                 this->recycler->setDataSource(new PlaylistsDataSource(r.Items));
             } else if (r.Items.size() > 0) {
                 auto dataSrc = dynamic_cast<PlaylistsDataSource*>(this->recycler->getDataSource());
@@ -119,13 +117,12 @@ void PlaylistsTab::doRequest() {
                 this->recycler->notifyDataChanged();
             }
         },
-        [ASYNC_TOKEN](const std::string& ex) {
+        [ASYNC_TOKEN, reqStart](const std::string& ex) {
             ASYNC_RELEASE
-            if (this->startIndex > 0) {
+            if (reqStart > 0) {
                 brls::Application::notify(ex);
             } else {
                 this->recycler->setError(ex);
             }
-        },
-        plex::apiPlaylists, HTTP::encode_form(query));
+        });
 }

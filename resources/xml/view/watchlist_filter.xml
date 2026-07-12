@@ -1,4 +1,4 @@
-<!-- pleNx — Watchlist sort/filters side panel (Y action),
+<!-- GMCA — Watchlist sort/filters side panel (Y action),
      same structure as media_filter.xml (the libraries' panel) -->
 <brls:Box
     width="auto"

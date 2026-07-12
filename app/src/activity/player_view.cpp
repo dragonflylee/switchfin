@@ -1,18 +1,22 @@
 /*
-    pleNx — Plex video player.
+    GMCA — Plex video player.
     Verified pipeline: PLEX_MIGRATION.md §2.7.
     Units: mpv positions in seconds, Plex API in milliseconds,
     transcoder offset in whole seconds.
 */
 
+#include <cstdlib>
+
 #include "activity/player_view.hpp"
 #include "api/plex.hpp"
+#include "api/backend.hpp"
 #include "utils/dialog.hpp"
 #include "utils/misc.hpp"
 #include "view/mpv_core.hpp"
 #include "view/player_setting.hpp"
 #include "view/video_view.hpp"
 #include "view/video_profile.hpp"
+#include "view/audio_player.hpp"
 
 using namespace brls::literals;
 
@@ -20,7 +24,12 @@ using namespace brls::literals;
 /// LibraryVideoPlayedThreshold
 static const double SCROBBLE_THRESHOLD = 0.90;
 
-PlayerView::PlayerView(const plex::Item& item, const int64_t seekMs) : itemId(item.ratingKey), item(item) {
+PlayerView::PlayerView(const plex::Item& item, const int64_t seekMs, int versionIndex)
+    : itemId(item.ratingKey), item(item), preferredVersion(versionIndex) {
+    // take sole ownership of MPVCore: if music was playing, the audio controller
+    // must stop owning the shared event bus (else it reports this video's
+    // progress against the audio track and auto-advances over it). SPEC.md §11.
+    AudioPlayer::instance().release();
     float width = brls::Application::contentWidth;
     float height = brls::Application::contentHeight;
     view = new VideoView();
@@ -54,7 +63,7 @@ PlayerView::PlayerView(const plex::Item& item, const int64_t seekMs) : itemId(it
 
     playSubscribeID = view->getPlayEvent()->subscribe([this](int index) { this->playIndex(index); });
 
-    settingSubscribeID = view->getSettingEvent()->subscribe([this]() {
+    settingSubscribeID = view->getSettingEvent()->subscribe([]() {
         brls::View* setting = new PlayerSetting();
         brls::Application::pushActivity(new brls::Activity(setting));
     });
@@ -76,14 +85,12 @@ PlayerView::PlayerView(const plex::Item& item, const int64_t seekMs) : itemId(it
             this->reportStop();
             break;
         case MpvEventEnum::MPV_LOADED: {
-            auto& conf = AppConfig::instance();
             const char* flag = MPVCore::SUBS_FALLBACK ? "select" : "auto";
-            // External (sidecar) subtitles: {base}{Stream.key}?encoding=utf-8
+            // External (sidecar) subtitles
             for (auto& part : this->stream.parts) {
                 for (auto& s : part.streams) {
-                    if (s.streamType != plex::streamTypeSubtitle || s.key.empty()) continue;
-                    std::string url =
-                        fmt::format("{}{}?encoding=utf-8&X-Plex-Token={}", conf.getUrl(), s.key, conf.getToken());
+                    if (s.streamType != media::streamTypeSubtitle || s.key.empty()) continue;
+                    std::string url = AppConfig::instance().backend().subtitleSidecarUrl(s.key);
                     mpv.command("sub-add", url.c_str(), flag, s.displayTitle.c_str());
                 }
             }
@@ -146,14 +153,10 @@ PlayerView::~PlayerView() {
 }
 
 void PlayerView::setSeries(const std::string& showRatingKey) {
-    std::string query = HTTP::encode_form({{"includeStreams", "1"}});
-    auto& conf = AppConfig::instance();
-
     ASYNC_RETAIN
     // all episodes of the show
-    plex::getJSON<plex::Container<plex::Item>>(
-        conf.getUrl(), conf.getToken(),
-        [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
+    AppConfig::instance().backend().getAllEpisodes(showRatingKey, true,
+        [ASYNC_TOKEN](const media::Container<media::Item>& r) {
             ASYNC_RELEASE
             int index = -1;
             std::vector<std::string> values;
@@ -168,8 +171,7 @@ void PlayerView::setSeries(const std::string& showRatingKey) {
         [ASYNC_TOKEN](const std::string& error) {
             ASYNC_RELEASE
             Dialog::show(error);
-        },
-        plex::apiGrandchildren, showRatingKey, query);
+        });
 }
 
 void PlayerView::setTitie(const std::string& title) { this->view->setTitie(title); }
@@ -194,6 +196,7 @@ bool PlayerView::playIndex(int index) {
     this->itemId = next.ratingKey;
     this->item = next;
     this->scrobbled = false;
+    this->preferredVersion = -1;  // binge: auto-pick the best source for the new episode
     this->playMedia(0);
     view->setTitie(next.grandparentTitle.empty()
                        ? fmt::format("S{}E{} — {}", next.parentIndex, next.index, next.title)
@@ -203,44 +206,62 @@ bool PlayerView::playIndex(int index) {
 }
 
 void PlayerView::playMedia(const int64_t seekMs) {
+    // Capture/automation guard: in GMCA_NAV_PIPE mode a stray "Play" from the
+    // screenshot harness must never actually start playback — doing so pushes a
+    // watch-progress report to the server and pollutes Continue Watching. Bail
+    // out immediately (the empty player pops itself, leaving us on the detail).
+    if (std::getenv("GMCA_NAV_PIPE")) { VideoView::close(); return; }
+
     // Release any transcode session we were running before (re)loading. Covers
     // quality/track switches, episode navigation, and transcode->direct play.
-    // Without it each reload orphaned a server-side session (verified: they
-    // stack up at ~0% progress and never free), starving new transcodes.
+    // Without it each reload orphaned a server-side session (verified on dev:
+    // they stack up at ~0% progress and never free), starving new transcodes.
     this->stopTranscode();
     // deliberate (re)start: allow the direct-play fallback to trigger again
     this->directPlayFallback = false;
 
-    auto& conf = AppConfig::instance();
-    std::string query = HTTP::encode_form({
-        {"includeChapters", "1"},
-        {"includeMarkers", "1"},
-        {"includeStreams", "1"},
-        {"checkFiles", "1"},
-    });
+    // Fast path: the caller already resolved the exact source (Stremio source
+    // picker passes the fully-resolved item + chosen index). Re-fetching would
+    // re-resolve streams and could return a different order/set, silently playing
+    // a different release than the one selected — so play the chosen one directly.
+    {
+        auto accessible = [](const plex::Media& m) {
+            for (auto& p : m.parts)
+                if (p.accessible && p.exists && !p.key.empty()) return true;
+            return false;
+        };
+        if (this->preferredVersion >= 0 && this->preferredVersion < (int)this->item.media.size() &&
+            accessible(this->item.media[this->preferredVersion])) {
+            this->stream = this->item.media[this->preferredVersion];
+            this->setChapters(this->item.chapters, this->item.duration);
+            this->startPlayback(seekMs);
+            return;
+        }
+    }
 
     ASYNC_RETAIN
     // fresh metadata: Media/Part/Stream + chapters
-    plex::getJSON<plex::Container<plex::Item>>(
-        conf.getUrl(), conf.getToken(),
-        [ASYNC_TOKEN, seekMs](const plex::Container<plex::Item>& r) {
+    AppConfig::instance().backend().getItemDetail(
+        this->itemId, true,
+        [ASYNC_TOKEN, seekMs](const media::Item& item) {
             ASYNC_RELEASE
-            if (r.Items.empty()) {
-                Dialog::show("main/plex/unreachable"_i18n, []() { VideoView::close(); });
-                return;
-            }
-            this->item = r.Items.front();
+            this->item = item;
 
-            // first version whose file is accessible
+            // caller-chosen source (Stremio picker) if it still resolves to an
+            // accessible file; otherwise the first accessible version.
             const plex::Media* chosen = nullptr;
+            auto accessible = [](const plex::Media& m) {
+                for (auto& p : m.parts)
+                    if (p.accessible && p.exists && !p.key.empty()) return true;
+                return false;
+            };
+            if (this->preferredVersion >= 0 && this->preferredVersion < (int)this->item.media.size() &&
+                accessible(this->item.media[this->preferredVersion])) {
+                chosen = &this->item.media[this->preferredVersion];
+            }
             for (auto& m : this->item.media) {
-                for (auto& p : m.parts) {
-                    if (p.accessible && p.exists && !p.key.empty()) {
-                        chosen = &m;
-                        break;
-                    }
-                }
                 if (chosen) break;
+                if (accessible(m)) chosen = &m;
             }
             if (!chosen) {
                 Dialog::show("main/player/error"_i18n, []() { VideoView::close(); });
@@ -248,139 +269,58 @@ void PlayerView::playMedia(const int64_t seekMs) {
             }
             this->stream = *chosen;
             this->setChapters(this->item.chapters, this->item.duration);
-
-            if (MPVCore::VIDEO_QUALITY <= 0 || MPVCore::FORCE_DIRECTPLAY) {
-                this->playDirect(seekMs);
-            } else {
-                this->playTranscode(seekMs);
-            }
+            this->startPlayback(seekMs);
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             Dialog::show(ex, []() { VideoView::close(); });
-        },
-        plex::apiMetadata, this->itemId, query);
+        });
 }
 
-void PlayerView::playDirect(const int64_t seekMs) {
-    auto& conf = AppConfig::instance();
-    auto& mpv = MPVCore::instance();
+void PlayerView::startPlayback(const int64_t seekMs, bool forceDirect) {
+    media::PlaybackOptions opts;
+    opts.seekMs = seekMs;
+    opts.bitrateCap = MPVCore::VIDEO_QUALITY;
+    // forceDirect: the transcode->direct-play fallback re-resolves with direct
+    // play forced (resolvePlayback returns the direct source when set).
+    opts.forceDirectPlay = MPVCore::FORCE_DIRECTPLAY || forceDirect;
+    opts.audioStreamId = PlayerSetting::selectedAudio;
+    opts.subtitleStreamId = PlayerSetting::selectedSubtitle;
+    opts.burnSubtitles = PlayerSetting::selectedSubtitle > 0;
+    // transcode target codec: kept identical to the former hard-coded value
+    // (MPVCore::VIDEO_CODEC was never wired into the Plex transcoder — see
+    // MULTI_BACKEND.md §6); revisit when exposing the codec choice per backend
+    opts.videoCodec = "h264";
+    opts.sessionId = this->sessionId;
 
-    std::stringstream ssextra;
-    ssextra << fmt::format("network-timeout={}", HTTP::TIMEOUT / 100);
-    if (seekMs > 0) ssextra << ",start=" << misc::sec2Time(seekMs / 1000);
-    if (HTTP::PROXY_STATUS) ssextra << ",http-proxy=\"" << HTTP::PROXY << "\"";
-
-    // direct play: {base}{Part.key}?X-Plex-Token=...
-    const plex::Part& part = this->stream.parts.front();
-    std::string url = plex::withToken(conf.getUrl() + part.key, conf.getToken());
-    this->playMethod = "directplay";
-    mpv.setUrl(url, ssextra.str());
-}
-
-void PlayerView::playTranscode(const int64_t seekMs) {
-    auto& conf = AppConfig::instance();
-    // transcoder session: regenerated on every start
-    this->transcodeSession = misc::randHex(12);
-
-    // Universal transcoder parameters.
-    // Documented revision: protocol=hls (PLEX_MIGRATION.md "Révision (phase 4)")
-    HTTP::Form form = {
-        {"hasMDE", "1"},
-        {"path", fmt::format("/library/metadata/{}", this->itemId)},
-        {"mediaIndex", "0"},
-        {"partIndex", "0"},
-        {"protocol", "hls"},
-        {"fastSeek", "1"},
-        {"directPlay", "0"},
-        {"directStream", "1"},
-        {"directStreamAudio", "0"},
-        {"subtitleSize", "100"},
-        {"audioBoost", "100"},
-        {"location", "lan"},
-        {"addDebugOverlay", "0"},
-        {"autoAdjustQuality", "0"},
-        {"mediaBufferSize", "102400"},
-        {"maxVideoBitrate", std::to_string(MPVCore::VIDEO_QUALITY / 1000)},  // kbps
-        {"session", this->transcodeSession},
-        {"X-Plex-Session-Identifier", this->sessionId},
-        {"X-Plex-Platform", "Generic"},  // mandatory: other values -> HTTP 400
-        {"X-Plex-Client-Identifier", conf.getDeviceId()},
-        {"X-Plex-Product", AppVersion::getPackageName()},
-        {"X-Plex-Version", AppVersion::getVersion()},
-        {"X-Plex-Token", conf.getToken()},
-    };
-    if (seekMs > 0) form["offset"] = std::to_string(seekMs / 1000);  // whole seconds
-
-    // selected tracks: Plex Stream IDs (not mpv indexes)
-    if (PlayerSetting::selectedAudio > 0) form["audioStreamID"] = std::to_string(PlayerSetting::selectedAudio);
-    if (PlayerSetting::selectedSubtitle > 0) {
-        form["subtitleStreamID"] = std::to_string(PlayerSetting::selectedSubtitle);
-        form["subtitles"] = "burn";  // burn-in (HLS; cf. phase 4 revision)
-    } else {
-        form["subtitles"] = "none";
-    }
-
-    // Client profile clauses, each percent-encoded then joined with "+"
-    std::vector<std::string> clauses = {
-        "add-settings(DirectPlayStreamSelection=true)",
-        fmt::format("add-limitation(scope=videoCodec&scopeName=*&type=upperBound&name=video.bitrate&value={}&"
-                    "replace=true)",
-            MPVCore::VIDEO_QUALITY / 1000),
-        "add-transcode-target(type=videoProfile&context=streaming&protocol=hls&container=mpegts&videoCodec=h264&"
-        "audioCodec=aac,ac3,mp3&replace=true)",
-    };
-#if defined(__PSV__)
-    // The Vita hardware H.264 decoder tops out at 1080p (scripts/vita/ffmpeg
-    // patch). The bitrate cap alone lets a >1080p source through at higher
-    // qualities (verified: 8 Mbps keeps 1080p, and a 4K source would stay 4K),
-    // which the decoder then cannot handle -> playback error. Cap the height so
-    // the transcode never exceeds what the decoder can play.
-    clauses.push_back(
-        "add-limitation(scope=videoCodec&scopeName=*&type=upperBound&name=video.height&value=1080&replace=true)");
-#endif
-    std::string profile;
-    for (auto& clause : clauses) {
-        HTTP::Form one = {{"p", clause}};
-        std::string encoded = HTTP::encode_form(one).substr(2);  // strips "p="
-        profile += (profile.empty() ? "" : "+") + encoded;
-    }
-    std::string query = HTTP::encode_form(form) + "&X-Plex-Client-Profile-Extra=" + profile;
+    // copies for the worker thread (avoids racing on this->item during a switch)
+    media::Item item = this->item;
+    media::Media version = this->stream;
 
     ASYNC_RETAIN
-    brls::async([ASYNC_TOKEN, query]() {
-        auto& conf = AppConfig::instance();
+    brls::async([ASYNC_TOKEN, item, version, opts]() {
         try {
-            // decision: codes >= 2000 = failure, 1000 = direct play only
-            std::string url = conf.getUrl() + fmt::format(fmt::runtime(plex::apiTranscodeDecision), query);
-            nlohmann::json decision = plex::getSync(url, "", 10000);
-            const nlohmann::json& mc =
-                decision.contains("MediaContainer") ? decision.at("MediaContainer") : decision;
-            int64_t general = plex::jint(mc, "generalDecisionCode");
-            int64_t transcode = plex::jint(mc, "transcodeDecisionCode");
-            int64_t mde = plex::jint(mc, "mdeDecisionCode");
-
-            brls::sync([ASYNC_TOKEN, query, general, transcode, mde]() {
+            // resolvePlayback runs the transcode decision synchronously and
+            // throws on failure; the direct-play fallback is internal. The Plex
+            // universal-transcoder request (incl. the Vita 1080p height cap) is
+            // built here — see PlexBackend::resolvePlayback.
+            media::PlaybackSource src = AppConfig::instance().backend().resolvePlayback(item, version, opts);
+            brls::sync([ASYNC_TOKEN, src]() {
                 ASYNC_RELEASE
-                if (general >= 2000 || mde >= 2000) {
-                    Dialog::show(fmt::format("{} ({})", "main/player/error"_i18n, general), []() {});
+                // A backend may report "nothing playable" with an empty url
+                // (e.g. Stremio with no direct/debrid stream) instead of throwing
+                // across the async/TU boundary; surface it as a player error.
+                if (src.url.empty()) {
+                    Dialog::show("main/player/error"_i18n, []() { VideoView::close(); });
                     return;
                 }
-                if (transcode == 1000) {
-                    // the server refuses to transcode: direct play
-                    this->playDirect(0);
-                    return;
-                }
-                auto& conf = AppConfig::instance();
-                auto& mpv = MPVCore::instance();
-                std::stringstream ssextra;
-                ssextra << fmt::format("network-timeout={}", HTTP::TIMEOUT / 100);
-                if (HTTP::PROXY_STATUS) ssextra << ",http-proxy=\"" << HTTP::PROXY << "\"";
-
-                std::string play =
-                    conf.getUrl() + "/video/:/transcode/universal/start.m3u8?" + query;
-                this->playMethod = "transcode";
-                mpv.setUrl(play, ssextra.str());
+                this->playMethod = src.playMethod;
+                // Remember the backend transcode session so we can tear it down
+                // server-side on reload/exit — the dev Vita fix. Set by the backend
+                // (Plex); empty for direct play or backends without a server
+                // transcode session, leaving stopTranscode a safe no-op.
+                this->transcodeSession = src.transcodeSession;
+                MPVCore::instance().setUrl(src.url, src.mpvExtra);
             });
         } catch (const std::exception& ex) {
             std::string msg = ex.what();
@@ -403,7 +343,7 @@ bool PlayerView::tryDirectPlayFallback() {
         mpv.getError(), pos);
     mpv.reset();            // release the (Vita hardware) decoder held by the failed stream
     this->stopTranscode();  // drop the dead transcode session server-side
-    this->playDirect(pos);
+    this->startPlayback(pos, /*forceDirect=*/true);  // re-resolve, forcing direct play
     // surface the reason to the user too, so bug reports carry the mpv code
     brls::Application::notify(fmt::format("{} ({})", "main/player/direct_fallback"_i18n, mpv.getError()));
     return true;  // handled: no error dialog
@@ -420,27 +360,10 @@ void PlayerView::stopTranscode() {
 }
 
 void PlayerView::reportTimeline(const std::string& state, int64_t timeMs) {
-    auto& conf = AppConfig::instance();
-    HTTP::Form form = {
-        {"ratingKey", this->itemId},
-        {"key", fmt::format("/library/metadata/{}", this->itemId)},
-        {"state", state},
-        {"time", std::to_string(timeMs)},
-        {"X-Plex-Session-Identifier", this->sessionId},
-    };
-    if (this->item.duration > 0) form["duration"] = std::to_string(this->item.duration);
-
-    std::string url =
-        conf.getUrl() + fmt::format(fmt::runtime(plex::apiTimeline), HTTP::encode_form(form));
-    std::string token = conf.getToken();
-    brls::async([url, token]() {
-        try {
-            // POST, parameters in query, empty body
-            plex::postSync(url, token);
-        } catch (const std::exception& ex) {
-            brls::Logger::warning("plex timeline: {}", ex.what());
-        }
-    });
+    media::PlayState st = state == "paused"    ? media::PlayState::Paused
+                          : state == "stopped" ? media::PlayState::Stopped
+                                               : media::PlayState::Playing;
+    AppConfig::instance().backend().reportProgress(this->itemId, st, timeMs, this->item.duration, this->sessionId);
 }
 
 void PlayerView::reportStop() {
@@ -455,9 +378,7 @@ void PlayerView::maybeScrobble(int64_t timeMs) {
     if (this->scrobbled || this->item.duration <= 0) return;
     if (double(timeMs) / double(this->item.duration) < SCROBBLE_THRESHOLD) return;
     this->scrobbled = true;
-
-    auto& conf = AppConfig::instance();
-    plex::getAction(conf.getUrl(), conf.getToken(), nullptr, plex::apiScrobble, this->itemId);
+    AppConfig::instance().backend().markWatched(this->itemId);
 }
 
 bool PlayerView::toggleQuality() {

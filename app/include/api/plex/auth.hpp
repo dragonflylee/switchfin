@@ -1,5 +1,5 @@
 /*
-    pleNx — plex.tv authentication and server discovery.
+    GMCA — plex.tv authentication and server discovery.
     Specification: PLEX_MIGRATION.md §2.2 (PIN flow) and §2.3 (resources + connections).
 
     All functions are SYNCHRONOUS (they chain HTTP requests): call them from
@@ -37,6 +37,12 @@ std::string switchHomeUser(const std::string& accountToken, const std::string& u
 
 /// Probes a base URL (GET {base}/ with token); returns true on 200.
 bool probeConnection(const std::string& baseUrl, const std::string& accessToken, long timeoutMs = 2000);
+
+/// Candidate base URLs of a server, ordered by priority (https+local ->
+/// https+remote -> https+relay -> http...) WITHOUT probing any of them.
+/// Used to persist a server's connection list ahead of a lazy probe at switch
+/// time; findBestConnection probes this list in order.
+std::vector<std::string> rankConnections(const ServerResource& server);
 
 /// Picks the best connection for a server: tries `preferredUri` then the
 /// candidates by priority https+local -> https+remote -> https+relay -> http...

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+    <id>fun.thcolin.gmca</id>
+    <metadata_license>CC0-1.0</metadata_license>
+    <name>Gamepad Media Center Aggregator</name>
+    <project_license>Apache-2.0</project_license>
+    <developer id="fun.thcolin">
+        <name>thcolin</name>
+    </developer>
+    <summary>Controller-first media client for Plex, Jellyfin, Emby and Stremio</summary>
+    <launchable type="desktop-id">fun.thcolin.gmca.desktop</launchable>
+    <translation type="gettext">gmca</translation>
+    <content_rating type="oars-1.1">
+        <content_attribute id="social-info">mild</content_attribute>
+    </content_rating>
+    <description>
+        <p>Gamepad Media Center Aggregator (GMCA) is a native, controller-first client that brings your media servers to the devices their official apps ignore — Nintendo Switch, PS Vita and Linux / Raspberry Pi on a TV.</p>
+        <p>One identical interface for every backend:</p>
+        <ul>
+            <li>Connect to Plex, Jellyfin, Emby or Stremio</li>
+            <li>Movies, shows, seasons and episodes with a 10-foot, gamepad-first UI</li>
+            <li>Based on the MPV player (direct play and transcoding)</li>
+            <li>Search, genres, collections and person pages; offline downloads</li>
+        </ul>
+    </description>
+    <categories>
+        <category>AudioVideo</category>
+        <category>Video</category>
+        <category>Player</category>
+        <category>TV</category>
+    </categories>
+    <branding>
+        <color type="primary" scheme_preference="light">#e5a00d</color>
+        <color type="primary" scheme_preference="dark">#0d0e11</color>
+    </branding>
+    <keywords>
+        <keyword>media player</keyword>
+        <keyword>plex</keyword>
+        <keyword>jellyfin</keyword>
+        <keyword>emby</keyword>
+        <keyword>stremio</keyword>
+    </keywords>
+    <releases>
+        <!-- version/date updated at tag time by the release process (RELEASING.md) -->
+        <release date="2026-06-20" version="1.0.0">
+            <description>
+                <p>
+                    Please see the official changelog at github.com/thcolin/gamepad-media-center-aggregator/releases
+                </p>
+            </description>
+        </release>
+    </releases>
+    <url type="homepage">https://github.com/thcolin/gamepad-media-center-aggregator</url>
+    <url type="vcs-browser">https://github.com/thcolin/gamepad-media-center-aggregator</url>
+    <url type="bugtracker">https://github.com/thcolin/gamepad-media-center-aggregator/issues</url>
+</component>

@@ -7,6 +7,7 @@
 #include "tab/media_series.hpp"
 #include "api/plex.hpp"
 #include "api/plex/watchlist.hpp"
+#include "api/backend.hpp"
 #include "utils/download.hpp"
 
 using namespace brls::literals;
@@ -149,24 +150,24 @@ ContextMenu::ContextMenu(const plex::Item& item, brls::Box* host) : host(host), 
     // plex.tv watchlist: movies and shows only (the provider API accepts
     // neither episodes nor seasons); the entry stays hidden until the
     // state is known (async provider request — see initWatchlist)
-    if (item.type == plex::mediaTypeMovie || item.type == plex::mediaTypeShow) {
-        if (!item.guid.empty()) {
-            this->initWatchlist(item.guid);
-        } else {
-            // guid missing from some listings: fetch it from the server
-            // before querying the provider
+    auto& be = AppConfig::instance().backend();
+    if (be.caps().listKind != media::ListKind::None) {
+        if (be.canList(item)) {
+            this->initWatchlist(item);
+        } else if (be.caps().listKind == media::ListKind::Watchlist &&
+                   (item.type == media::mediaTypeMovie || item.type == media::mediaTypeShow)) {
+            // Plex: guid missing from this listing -> fetch full metadata, then init
             ASYNC_RETAIN
-            plex::getJSON<plex::Container<plex::Item>>(
-                AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-                [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
+            be.getItemDetail(
+                this->itemId, false,
+                [ASYNC_TOKEN](const media::Item& full) {
                     ASYNC_RELEASE
-                    if (!r.Items.empty()) this->initWatchlist(r.Items.front().guid);
+                    this->initWatchlist(full);
                 },
                 [ASYNC_TOKEN](const std::string& ex) {
                     ASYNC_RELEASE
-                    brls::Logger::warning("ContextMenu watchlist guid: {}", ex);
-                },
-                plex::apiMetadata, this->itemId, "");
+                    brls::Logger::warning("ContextMenu list guid: {}", ex);
+                });
         }
     }
 
@@ -199,44 +200,46 @@ ContextMenu::ContextMenu(const plex::Item& item, brls::Box* host) : host(host), 
     }
 }
 
-void ContextMenu::initWatchlist(const std::string& guid) {
-    this->itemGuid = guid;
-    // legacy agent (non plex:// guid): title not addressable on the provider
-    if (plex::providerRatingKey(guid).empty()) return;
+void ContextMenu::initWatchlist(const media::Item& item) {
+    auto& be = AppConfig::instance().backend();
+    if (!be.canList(item)) return;
+    this->listItem = item;
+    bool fav = be.caps().listKind == media::ListKind::Favorites;
 
     this->btnWatchlist->registerClickAction([this](brls::View* view) { return this->toggleWatchlist(); });
     this->btnWatchlist->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnWatchlist));
 
     ASYNC_RETAIN
-    // state: GET metadata.provider/library/metadata/{key}?includeUserState=1
-    // (api/plex/watchlist.hpp — watchlistedAt field present iff watchlisted)
-    plex::fetchWatchlistState(
-        guid,
-        [ASYNC_TOKEN](bool state) {
+    // the entry stays hidden until the state (watchlisted / favorite) is known
+    be.getWatchlistState(
+        item,
+        [ASYNC_TOKEN, fav](bool state) {
             ASYNC_RELEASE
             this->watchlisted = state;
-            this->btnWatchlist->setTitle(state ? "main/watchlist/remove"_i18n : "main/watchlist/add"_i18n);
+            this->btnWatchlist->setTitle(state ? (fav ? "main/favorites/remove"_i18n : "main/watchlist/remove"_i18n)
+                                               : (fav ? "main/favorites/add"_i18n : "main/watchlist/add"_i18n));
             this->btnWatchlist->setVisibility(brls::Visibility::VISIBLE);
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            // unknown state: the entry stays hidden rather than offering a
-            // backwards action
-            brls::Logger::warning("ContextMenu watchlist state: {}", ex);
+            brls::Logger::warning("ContextMenu list state: {}", ex);
         });
 }
 
 bool ContextMenu::toggleWatchlist() {
     bool add = !this->watchlisted;
+    auto& be = AppConfig::instance().backend();
+    bool fav = be.caps().listKind == media::ListKind::Favorites;
     ASYNC_RETAIN
-    // PUT discover.provider/actions/addToWatchlist|removeFromWatchlist
-    plex::setWatchlisted(
-        this->itemGuid, add,
-        [ASYNC_TOKEN, add]() {
+    be.setWatchlisted(
+        this->listItem, add,
+        [ASYNC_TOKEN, add, fav]() {
             ASYNC_RELEASE
             this->watchlisted = add;
-            this->btnWatchlist->setTitle(add ? "main/watchlist/remove"_i18n : "main/watchlist/add"_i18n);
-            brls::Application::notify(add ? "main/watchlist/added"_i18n : "main/watchlist/removed"_i18n);
+            this->btnWatchlist->setTitle(add ? (fav ? "main/favorites/remove"_i18n : "main/watchlist/remove"_i18n)
+                                             : (fav ? "main/favorites/add"_i18n : "main/watchlist/add"_i18n));
+            brls::Application::notify(add ? (fav ? "main/favorites/added"_i18n : "main/watchlist/added"_i18n)
+                                          : (fav ? "main/favorites/removed"_i18n : "main/watchlist/removed"_i18n));
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
@@ -246,12 +249,8 @@ bool ContextMenu::toggleWatchlist() {
 }
 
 bool ContextMenu::doPlayed() {
-    auto& conf = AppConfig::instance();
-    // GET /:/scrobble — fire-and-forget; reflect it optimistically (like the
-    // button state) and refresh only this card, then close
-    plex::getAction(
-        conf.getUrl(), conf.getToken(), [](const std::string& ex) { brls::Application::notify(ex); },
-        plex::apiScrobble, this->itemId);
+    // mark watched — fire-and-forget; reflect optimistically, refresh card, close
+    AppConfig::instance().backend().markWatched(this->itemId);
     this->btnMarkPlay->setSelected(true);
     this->refreshCard(true);
     brls::Application::popActivity(brls::TransitionAnimation::NONE);
@@ -259,11 +258,8 @@ bool ContextMenu::doPlayed() {
 }
 
 bool ContextMenu::unPlayed() {
-    auto& conf = AppConfig::instance();
-    // GET /:/unscrobble — same optimistic refresh as doPlayed
-    plex::getAction(
-        conf.getUrl(), conf.getToken(), [](const std::string& ex) { brls::Application::notify(ex); },
-        plex::apiUnscrobble, this->itemId);
+    // mark unwatched — same optimistic refresh as doPlayed
+    AppConfig::instance().backend().markUnwatched(this->itemId);
     this->btnMarkPlay->setSelected(false);
     this->refreshCard(false);
     brls::Application::popActivity(brls::TransitionAnimation::NONE);

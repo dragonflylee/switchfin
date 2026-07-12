@@ -1,6 +1,7 @@
 #include "tab/media_person.hpp"
 #include "view/recyling_video.hpp"
 #include "api/plex.hpp"
+#include "api/backend.hpp"
 #include "utils/image.hpp"
 
 using namespace brls::literals;  // for _i18n
@@ -33,12 +34,9 @@ MediaPerson::~MediaPerson() {
 }
 
 void MediaPerson::doMedia() {
-    std::string query = HTTP::encode_form({{"count", "60"}});
-
     ASYNC_RETAIN
-    plex::getJSON<plex::Container<plex::Item>>(
-        AppConfig::instance().getUrl(), AppConfig::instance().getToken(),
-        [ASYNC_TOKEN](const plex::Container<plex::Item>& r) {
+    AppConfig::instance().backend().getPersonMedia(this->personId, 60,
+        [ASYNC_TOKEN](const media::Container<media::Item>& r) {
             ASYNC_RELEASE
             std::vector<plex::Item> movies, shows;
             for (auto& it : r.Items) {
@@ -63,6 +61,5 @@ void MediaPerson::doMedia() {
             this->rowMovies->setItems({});
             this->rowSeries->setItems({});
             brls::Application::notify(ex);
-        },
-        plex::apiPersonMedia, this->personId, query);
+        });
 }

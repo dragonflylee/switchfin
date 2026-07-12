@@ -8,6 +8,7 @@
 #include "utils/thread.hpp"
 
 #include "view/svg_image.hpp"
+#include "view/disclosure_cell.hpp"
 #include "view/icon_button.hpp"
 #include "view/context_menu.hpp"
 #include "view/custom_button.hpp"
@@ -28,7 +29,6 @@
 #include "activity/server_list.hpp"
 #include "activity/hint_activity.hpp"
 #include "activity/loading_activity.hpp"
-#include "tab/server_add.hpp"
 #include "tab/home_tab.hpp"
 #include "tab/search_tab.hpp"
 #include "tab/remote_tab.hpp"
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
         } else if (std::strcmp(argv[i], "-t") == 0) {
             MPVCore::DEBUG = true;
         } else if (std::strcmp(argv[i], "-o") == 0) {
-            const char* path = (i + 1 < argc) ? argv[++i] : "plenx.log";
+            const char* path = (i + 1 < argc) ? argv[++i] : "gmca.log";
             FILE* logFile = std::fopen(path, "w+");
             // line-buffered: without this the last ~16 KB of logs (including
             // the line preceding a crash) stay in the buffer and die with
@@ -122,6 +122,16 @@ int main(int argc, char* argv[]) {
     }
 
     conf.initThemes();
+
+    // Scroll indicator (scrollbar) visibility — global, driven by config
+    // ("scrollbar", default true). Off = clean captures / a quieter chrome.
+    brls::ScrollingFrame::setScrollingIndicatorVisibleGlobal(conf.getItem(AppConfig::SCROLLBAR, true));
+
+    // Screenshot/automation harness (GMCA_NAV_PIPE input hook): keep the render
+    // + input loop at full speed even while unfocused, so background navigation
+    // and captures stay in sync (the default 5 FPS idle throttle desyncs them).
+    if (std::getenv("GMCA_NAV_PIPE")) brls::Application::setDeactivatedFPS(60);
+
     ImageCache::init();
     DownloadManager::instance().init();
     OfflineLibrary::instance().init();
@@ -136,6 +146,7 @@ int main(int argc, char* argv[]) {
 
     // Register custom views (including tabs, which are views)
     brls::Application::registerXMLView("SVGImage", SVGImage::create);
+    brls::Application::registerXMLView("DisclosureCell", DisclosureCell::create);
     brls::Application::registerXMLView("IconButton", IconButton::create);
     brls::Application::registerXMLView("MenuItem", MenuItem::create);
     brls::Application::registerXMLView("CustomButton", CustomButton::create);

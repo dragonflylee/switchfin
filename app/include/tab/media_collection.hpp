@@ -14,8 +14,11 @@ public:
     /// @param itemId section key OR collection ratingKey
     /// @param itemType Plex type: "movie" | "show" | "photo" | "collection"
     /// @param genresId Plex genre key (genre= filter)
-    explicit MediaCollection(
-        const std::string& itemId, const std::string& itemType = "", const std::string& genresId = "");
+    /// @param title library display name (library mode only): replaces the
+    ///        first tab's "Accueil" label with the library's own name; empty
+    ///        keeps "Accueil"
+    explicit MediaCollection(const std::string& itemId, const std::string& itemType = "",
+        const std::string& genresId = "", const std::string& title = "");
 
     brls::View* getDefaultFocus() override;
 
@@ -51,4 +54,20 @@ private:
     size_t startIndex;
 
     static std::map<std::string, std::string> customPrefs;
+};
+
+/// Stremio library section (Films / Séries): the type's catalogs become the
+/// sub-tabs (Populaires / Nouveautés / À la une / Public Domain…), plus a Genres
+/// tab. Used instead of MediaCollection when the backend exposes sectionTabs().
+/// Kept separate so the Plex/Jellyfin MediaCollection path is untouched.
+class StremioCatalogs : public AttachedView {
+public:
+    StremioCatalogs(const std::string& sectionKey, const std::string& sectionType);
+
+    brls::View* getDefaultFocus() override;
+
+private:
+    BRLS_BIND(AutoTabFrame, tabFrame, "stremio/tabFrame");
+    std::string sectionKey;
+    std::string sectionType;
 };

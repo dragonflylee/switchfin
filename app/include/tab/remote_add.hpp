@@ -1,5 +1,5 @@
 /*
-    pleNx — add/edit form for a remote file server
+    GMCA — add/edit form for a remote file server
     (WebDAV / FTP / SFTP / HTTP index). Side panel pushed as an activity
     (same pattern as PlayerSetting). Saving is gated on a successful
     connection test: listing of the start path through the matching

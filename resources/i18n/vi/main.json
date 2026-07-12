@@ -1,11 +1,23 @@
 {
+  "rename": {
+    "title": "pleNx nay là GMCA",
+    "intro": "Vẫn là ứng dụng đó, nhưng đã lớn hơn. pleNx đã trở thành GMCA — Gamepad Media Center Aggregator — và giờ đây làm được nhiều hơn rất nhiều.",
+    "whats_new": "CÓ GÌ MỚI",
+    "feature_backends": "Một ứng dụng, mọi máy chủ — Plex, Jellyfin, Emby và Stremio",
+    "feature_music": "Thư viện nhạc của bạn, ngay bên cạnh phim và chương trình",
+    "feature_offline": "Tải xuống ngoại tuyến để xem ở mọi nơi, không cần kết nối",
+    "feature_updates": "Cập nhật thường xuyên, gửi thẳng vào ứng dụng",
+    "reassure": "Đăng nhập, cài đặt và các mục đã tải của bạn được chuyển sang tự động — không cần thiết lập lại. Chúc bạn xem vui vẻ!",
+    "continue": "Bắt đầu"
+  },
   "tabs": {
     "home": "Nhà",
     "genres": "Thể Loại",
     "suggest": "Đề Xuất",
     "search": "Tìm",
     "downloads": "Tải xuống",
-    "setting": "Cài đặt"
+    "setting": "Cài đặt",
+    "remote": "Máy chủ"
   },
   "home": {
     "resume": "Tiếp tục xem",
@@ -20,7 +32,7 @@
   },
   "about": {
     "header": "Về chúng tôi",
-    "brief": "Một ứng dụng Plex dành cho bên thứ ba",
+    "brief": "Một ứng dụng đa phương tiện dành cho bên thứ ba",
     "repo_header": "Kho lưu trữ"
   },
   "player": {
@@ -73,7 +85,8 @@
     "seasons_title": "Mùa",
     "go_series": "Đến phim bộ",
     "go_season": "Đến mùa",
-    "director": "Đạo diễn"
+    "director": "Đạo diễn",
+    "open": "Mở"
   },
   "search": {
     "hint": "Hỗ trợ từ khóa và chữ cái đầu của chúng",
@@ -106,6 +119,18 @@
     "title": "Danh sách phát",
     "item": "mục",
     "items": "mục"
+  },
+  "music": {
+    "album": "album",
+    "albums": "album",
+    "track": "bài hát",
+    "tracks": "bài hát",
+    "play_album": "Phát album",
+    "play_artist": "Phát ngẫu nhiên",
+    "shuffle": "Ngẫu nhiên",
+    "repeat": "Lặp lại",
+    "queue": "Hàng đợi",
+    "now_playing": "Đang phát"
   },
   "watchlist": {
     "title": "Danh sách xem",
@@ -186,7 +211,8 @@
     "section_done": "Đã tải xuống",
     "remove_all": "Xóa tất cả",
     "confirm_remove_all": "Xóa tất cả các mục đã tải?",
-    "empty_sub": "Phim và tập đã tải sẽ xuất hiện ở đây để xem ngoại tuyến."
+    "empty_sub": "Phim và tập đã tải sẽ xuất hiện ở đây để xem ngoại tuyến.",
+    "eta": "Còn {}"
   },
   "setting": {
     "quit_hint": "Bạn cần thoát khỏi ứng dụng và mở lại ứng dụng để các cài đặt mới hoạt động",
@@ -201,7 +227,7 @@
       "header": "Máy chủ",
       "detail": "Chi tiết máy chủ",
       "connect_new": "Máy chủ mới",
-      "connect_to": "Kết nối với máy chủ Plex",
+      "connect_to": "Kết nối với máy chủ phương tiện",
       "invalid": "URL phải bắt đầu bằng http:// hoặc https://",
       "connect": "Kết nối",
       "delete": "Xác nhận xoá?",
@@ -287,9 +313,19 @@
       "font_q1": "Cách thiết lập phông chữ tùy chỉnh hoặc biểu tượng bản đồ phím",
       "font_a1": "1. Tải xuống phông chữ hoặc phông chữ biểu tượng mà bạn muốn\n2. Đổi tên phông chữ thành: font.ttf; Đổi tên biểu tượng thành: icon.ttf\n3. Đặt các tệp phông chữ vào thư mục cấu hình\n4. Khởi động lại ứng dụng",
       "font_q2": "Câu hỏi thường gặp",
-      "font_a2": "1. pleNx ưu tiên hiển thị phông chữ tùy chỉnh, với phông chữ tích hợp sẵn làm phương án dự phòng\n2. Mục \"Cài đặt - Hướng dẫn\" cung cấp một mục menu để mở nhanh thư mục cấu hình\n3. Trên Linux, pleNx sử dụng xdg-open để mở thư mục. Nếu không thể mở đúng thư mục cấu hình, bạn có thể cân nhắc cài đặt công cụ này",
+      "font_a2": "1. GMCA ưu tiên hiển thị phông chữ tùy chỉnh, với phông chữ tích hợp sẵn làm phương án dự phòng\n2. Mục \"Cài đặt - Hướng dẫn\" cung cấp một mục menu để mở nhanh thư mục cấu hình\n3. Trên Linux, GMCA sử dụng xdg-open để mở thư mục. Nếu không thể mở đúng thư mục cấu hình, bạn có thể cân nhắc cài đặt công cụ này",
       "font_q3": "Phụ đề không hiển thị",
       "font_a3": "Đặt bất kỳ tệp ttf nào vào {}/subfont.ttf"
+    },
+    "libraries": {
+      "header": "Thư viện",
+      "description": "Sắp xếp lại và ẩn các thẻ ở thanh bên (thư viện, danh sách phát, danh sách theo dõi). Cài đặt này được lưu riêng cho từng máy chủ.",
+      "grab": "Di chuyển",
+      "drop": "Thả",
+      "toggle": "Hiện / Ẩn",
+      "visible": "Hiển thị",
+      "hidden": "Đã ẩn",
+      "empty": "Không có thẻ nào để sắp xếp"
     },
     "others": {
       "header": "Khác",
@@ -323,19 +359,20 @@
       "downloading": "Đang tải xuống {}… {}%",
       "installing": "Đang cài đặt bản cập nhật…",
       "updated": "Đã cài đặt bản cập nhật. Ứng dụng sẽ đóng ngay bây giờ: hãy mở lại để sử dụng phiên bản mới",
-      "release": "Kiểm tra cập nhật"
+      "release": "Kiểm tra cập nhật",
+      "changelog": "Changelog"
     }
   },
   "hints": {
-    "title": "Khởi chạy pleNx như một ứng dụng đầy đủ",
-    "text_applet": "pleNx đang chạy ở chế độ applet: bộ nhớ khả dụng không đủ để phát video. Hãy khởi chạy nó như một ứng dụng đầy đủ bằng một trong các tùy chọn bên dưới.",
-    "text_app": "pleNx đang chạy như một ứng dụng đầy đủ. Hãy cài biểu tượng trên menu HOME để khởi chạy theo cách này trực tiếp.",
+    "title": "Khởi chạy GMCA như một ứng dụng đầy đủ",
+    "text_applet": "GMCA đang chạy ở chế độ applet: bộ nhớ khả dụng không đủ để phát video. Hãy khởi chạy nó như một ứng dụng đầy đủ bằng một trong các tùy chọn bên dưới.",
+    "text_app": "GMCA đang chạy như một ứng dụng đầy đủ. Hãy cài biểu tượng trên menu HOME để khởi chạy theo cách này trực tiếp.",
     "install_title": "Biểu tượng menu HOME (khuyến nghị)",
-    "install_text": "Cài NSP forwarder được tích hợp sẵn: biểu tượng sẽ khởi chạy pleNx như một ứng dụng đầy đủ ngay từ menu HOME.",
+    "install_text": "Cài NSP forwarder được tích hợp sẵn: biểu tượng sẽ khởi chạy GMCA như một ứng dụng đầy đủ ngay từ menu HOME.",
     "install_button": "Cài biểu tượng",
     "takeover_title": "Giải pháp khác: chiếm quyền tựa game",
-    "takeover_text": "Giữ R khi khởi chạy bất kỳ trò chơi đã cài nào để mở menu homebrew như một ứng dụng đầy đủ, sau đó khởi chạy pleNx từ đó.",
-    "prompt": "Cài biểu tượng pleNx trên menu HOME?\nBiểu tượng khởi chạy ứng dụng như một ứng dụng đầy đủ (cần thiết để phát video).",
+    "takeover_text": "Giữ R khi khởi chạy bất kỳ trò chơi đã cài nào để mở menu homebrew như một ứng dụng đầy đủ, sau đó khởi chạy GMCA từ đó.",
+    "prompt": "Cài biểu tượng GMCA trên menu HOME?\nBiểu tượng khởi chạy ứng dụng như một ứng dụng đầy đủ (cần thiết để phát video).",
     "hint_confirm": "Cài đặt NSP forwarder có thể bị ban\nVui lòng xác nhận lại"
   },
   "plex": {
@@ -354,10 +391,86 @@
     "wrong_pin": "PIN không đúng",
     "no_server": "Không tìm thấy máy chủ nào trên tài khoản này",
     "connecting": "Đang kết nối đến máy chủ…",
-    "unreachable": "Không thể kết nối đến máy chủ"
+    "unreachable": "Không thể kết nối đến máy chủ",
+    "connecting_slow": "Việc này mất nhiều thời gian hơn bình thường — vẫn đang cố kết nối tới máy chủ của bạn. Đợi thêm một chút nhé…"
   },
   "empty": {
     "title": "Không có gì để hiển thị",
     "error": "Không thể tải"
+  },
+  "changelog": {
+    "header": "Changelog",
+    "empty": "Changelog không khả dụng"
+  },
+  "favorites": {
+    "title": "Yêu thích",
+    "add": "Thêm vào Yêu thích",
+    "remove": "Xóa khỏi Yêu thích",
+    "added": "Đã thêm vào Yêu thích",
+    "removed": "Đã xóa khỏi Yêu thích",
+    "empty_title": "Chưa có mục yêu thích",
+    "empty_sub": "Đánh dấu phim và chương trình là yêu thích để tìm lại chúng ở đây."
+  },
+  "server": {
+    "choose_type": "Chọn loại kết nối",
+    "switch_title": "Kết nối",
+    "add": "Thêm",
+    "jellyfin": {
+      "title_jellyfin": "Đăng nhập vào Jellyfin",
+      "title_emby": "Đăng nhập vào Emby",
+      "url": "Địa chỉ máy chủ",
+      "username": "Tên người dùng",
+      "password": "Mật khẩu",
+      "connect": "Kết nối"
+    },
+    "stremio": {
+      "title": "Đăng nhập vào Stremio",
+      "email": "Email",
+      "password": "Mật khẩu",
+      "connect": "Kết nối",
+      "invalid": "Nhập email và mật khẩu của bạn"
+    }
+  },
+  "stremio": {
+    "movies": "Phim",
+    "series": "Phim bộ",
+    "popular": "Phổ biến",
+    "new": "Mới",
+    "featured": "Nổi bật",
+    "genre": {
+      "action": "Hành động",
+      "adventure": "Phiêu lưu",
+      "animation": "Hoạt hình",
+      "biography": "Tiểu sử",
+      "comedy": "Hài kịch",
+      "crime": "Tội phạm",
+      "documentary": "Phim tài liệu",
+      "drama": "Chính kịch",
+      "family": "Gia đình",
+      "fantasy": "Giả tưởng",
+      "history": "Lịch sử",
+      "horror": "Kinh dị",
+      "mystery": "Bí ẩn",
+      "romance": "Lãng mạn",
+      "scifi": "Khoa học viễn tưởng",
+      "sport": "Thể thao",
+      "thriller": "Giật gân",
+      "war": "Chiến tranh",
+      "western": "Viễn Tây"
+    },
+    "source": {
+      "unavailable": "Không có nguồn phát được",
+      "none": "Không có luồng cho nội dung này. Hãy cài một addon luồng (kèm dịch vụ debrid) trong tài khoản Stremio của bạn để phát ở đây.",
+      "cached": "Có sẵn",
+      "uncached": "Tải xuống",
+      "direct": "Trực tiếp",
+      "torrent_badge": "Torrent",
+      "link_badge": "Liên kết",
+      "torrents": "{} nguồn torrent — cần dịch vụ debrid",
+      "links": "{} liên kết bên ngoài — không phát được ở đây",
+      "more": "+{} nguồn khác phát được",
+      "torrents_help": "Những nguồn này là torrent thô. Nền tảng này không có ứng dụng torrent: hãy cài một addon hỗ trợ debrid (Torrentio + Real-Debrid, Comet, MediaFusion…) trong tài khoản Stremio của bạn để có các liên kết phát được.",
+      "links_help": "Những nguồn này là liên kết bên ngoài (trình duyệt hoặc dịch vụ của bên thứ ba) không thể phát trực tiếp trong ứng dụng trên nền tảng này."
+    }
   }
 }

@@ -28,6 +28,7 @@ public:
     void doRequest() override;
 
 private:
+    BRLS_BIND(brls::ScrollingFrame, scroll, "series/scroll");
     BRLS_BIND(brls::Box, bannerBox, "series/banner");
     BRLS_BIND(brls::Box, contentRow, "series/content/row");
     BRLS_BIND(brls::Box, contentInfo, "series/content/info");
@@ -50,13 +51,14 @@ private:
     BRLS_BIND(brls::Header, labelSeasons, "series/label/seasons");
     BRLS_BIND(HRecyclerFrame, seasons, "series/seasons");
     BRLS_BIND(brls::Header, labelSpecial, "series/label/special");
+    BRLS_BIND(brls::Header, labelPeople, "series/label/people");
     BRLS_BIND(HRecyclerFrame, people, "series/people");
     BRLS_BIND(HRecyclerFrame, special, "series/special");
     BRLS_BIND(brls::Box, boxRelated, "series/related/box");
 
     void doSeries();
     /// renders the show fiche from an Item — shared by server and local paths
-    void applySeries(const plex::Item& item);
+    void applySeries(const media::Item& item);
     void doSeason();
     void doRelated();
     void doNextup();
@@ -66,13 +68,13 @@ private:
     void doPlay();
     /// downloads the whole show (filtered allLeaves, confirmation dialog)
     void doDownloadSeries();
-    /// reveals the Watchlist button once the provider state is known (plex:// guid)
-    void initWatchlist(const std::string& guid);
+    /// reveals the personal-list button (watchlist/favorite) once its state is known
+    void initWatchlist(const media::Item& item);
     void toggleWatchlist();
     void updateWatchlistButton();
 
     std::string seriesId;  // ratingKey of the show
-    std::string seriesGuid;
+    media::Item listItem;  // item backing the personal-list (watchlist/favorite) button
     bool localContext = false;  // opened from the offline downloads area
     bool watchlisted = false;
     /// ratingKey of the season to open on top of the page once seasons are
@@ -82,6 +84,9 @@ private:
     std::string seriesSummary;
     /// next episode to play (OnDeck); empty ratingKey = no OnDeck
     plex::Item onDeck;
+    /// next episode has a playable source (Stremio); false -> Play is muted and
+    /// explains on click instead of launching a player that would fail.
+    bool nextPlayable = true;
     /// fully watched show: onDeck = first episode (allLeaves) and the
     /// "Play" button becomes "Replay" (forced playback from 0)
     bool replay = false;
