@@ -20,13 +20,13 @@
     <brls:Image
         width="64"
         height="64"
-        marginBottom="12"
+        marginBottom="18"
         scalingType="fit"
         image="@res/icon/logo-ghost.png" />
 
     <brls:Label
         fontSize="26"
-        marginBottom="8"
+        marginBottom="14"
         horizontalAlign="center"
         text="@i18n/main/rename/title" />
 
@@ -40,7 +40,8 @@
 
     <brls:ScrollingFrame
         width="auto"
-        height="300"
+        alignSelf="stretch"
+        height="288"
         scrollingBehavior="natural">
         <brls:Box
             axis="column"
