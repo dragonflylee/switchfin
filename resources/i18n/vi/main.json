@@ -130,6 +130,7 @@
     "shuffle": "Ngẫu nhiên",
     "repeat": "Lặp lại",
     "queue": "Hàng đợi",
+    "move": "Di chuyển",
     "now_playing": "Đang phát"
   },
   "watchlist": {
@@ -373,7 +374,8 @@
     "takeover_title": "Giải pháp khác: chiếm quyền tựa game",
     "takeover_text": "Giữ R khi khởi chạy bất kỳ trò chơi đã cài nào để mở menu homebrew như một ứng dụng đầy đủ, sau đó khởi chạy GMCA từ đó.",
     "prompt": "Cài biểu tượng GMCA trên menu HOME?\nBiểu tượng khởi chạy ứng dụng như một ứng dụng đầy đủ (cần thiết để phát video).",
-    "hint_confirm": "Cài đặt NSP forwarder có thể bị ban\nVui lòng xác nhận lại"
+    "hint_confirm": "Cài đặt NSP forwarder có thể bị ban\nVui lòng xác nhận lại",
+    "remove_old": "GMCA đã ở trên menu HOME. Nếu ô pleNx cũ vẫn còn, hãy xóa nó trong Cài đặt hệ thống > Quản lý dữ liệu > Xóa phần mềm."
   },
   "plex": {
     "title": "Đăng nhập vào tài khoản Plex của bạn",

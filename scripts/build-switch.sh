@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds pleNx.nro for Nintendo Switch via Docker (devkitPro image),
+# Builds GMCA.nro for Nintendo Switch via Docker (devkitPro image),
 # replicating the `build-nx` job of .github/workflows/build.yaml.
 #
 # Usage:
@@ -46,7 +46,7 @@ docker run --rm --platform linux/amd64 \
     fi
     dkp-pacman --noconfirm -U $BASE_URL/hacBrewPack-3.05-1-x86_64.pkg.tar.zst
     for pkg in switch-mbedtls-3.6.5-1-any switch-libssh2-1.11.1-1-any switch-dav1d-1.5.3-1-any \
-               switch-curl-8.16.0-2-any switch-ffmpeg-7.1.4-5-any switch-nspmini-main-1-any; do
+               switch-curl-8.16.0-2-any switch-ffmpeg-7.1.5-5-any switch-nspmini-main-1-any; do
         dkp-pacman --noconfirm -U $BASE_URL/\${pkg}.pkg.tar.zst
     done
     dkp-pacman --noconfirm -U $BASE_URL/$LIBMPV_PKG
@@ -59,8 +59,8 @@ docker run --rm --platform linux/amd64 \
         -DPLATFORM_SWITCH=ON \
         -DUSE_LIBUSBHSFS=ON \
         -DBUILTIN_NSP=ON
-    make -C $BUILD_DIR pleNx.nro -j\$(nproc)
+    make -C $BUILD_DIR GMCA.nro -j\$(nproc)
 "
 
 echo ''
-echo ">> OK : $BUILD_DIR/pleNx.nro"
+echo ">> OK : $BUILD_DIR/GMCA.nro"

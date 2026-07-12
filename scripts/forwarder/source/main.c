@@ -12,6 +12,20 @@
 #define LEGACY_NRO "sdmc:/switch/pleNx.nro"
 #define LEGACY_APP_STORE_NRO "sdmc:/switch/pleNx/pleNx.nro"
 
+// A candidate NRO is usable only if it exists AND looks like a real NRO (magic
+// "NRO0" at offset 0x10). Guards against a 0-byte / truncated file — e.g. a
+// broken GMCA.nro left by an older build's in-app copy — so we fall through to
+// the next path instead of loading a corrupt image and crashing.
+static int nro_ok(const char* path) {
+    int fd = open(path, O_RDONLY);
+    if (fd < 0) return 0;
+    unsigned char hdr[0x14];
+    ssize_t n = read(fd, hdr, sizeof hdr);
+    close(fd);
+    return n == (ssize_t)sizeof hdr && hdr[0x10] == 'N' && hdr[0x11] == 'R' && hdr[0x12] == 'O' &&
+           hdr[0x13] == '0';
+}
+
 const char g_noticeText[] =
     "nx-hbloader " VERSION
     "\0"
@@ -322,16 +336,16 @@ void loadNro(void) {
     if (R_FAILED(rc)) diagAbortWithResult(MAKERESULT(Module_HomebrewLoader, 404));
 
     if (g_nextNroPath[0] == '\0') {
-        if (access(DEFAULT_NRO, F_OK) != -1) {
+        if (nro_ok(DEFAULT_NRO)) {
             memcpy(g_nextNroPath, DEFAULT_NRO, sizeof(DEFAULT_NRO));
             memcpy(g_nextArgv, DEFAULT_NRO, sizeof(DEFAULT_NRO));
-        } else if (access(APP_STORE_NRO, F_OK) != -1) {
+        } else if (nro_ok(APP_STORE_NRO)) {
             memcpy(g_nextNroPath, APP_STORE_NRO, sizeof(APP_STORE_NRO));
             memcpy(g_nextArgv, APP_STORE_NRO, sizeof(APP_STORE_NRO));
-        } else if (access(LEGACY_NRO, F_OK) != -1) {
+        } else if (nro_ok(LEGACY_NRO)) {
             memcpy(g_nextNroPath, LEGACY_NRO, sizeof(LEGACY_NRO));
             memcpy(g_nextArgv, LEGACY_NRO, sizeof(LEGACY_NRO));
-        } else if (access(LEGACY_APP_STORE_NRO, F_OK) != -1) {
+        } else if (nro_ok(LEGACY_APP_STORE_NRO)) {
             memcpy(g_nextNroPath, LEGACY_APP_STORE_NRO, sizeof(LEGACY_APP_STORE_NRO));
             memcpy(g_nextArgv, LEGACY_APP_STORE_NRO, sizeof(LEGACY_APP_STORE_NRO));
         } else {
