@@ -111,6 +111,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {SIDEBAR_LAYOUT, {"sidebar_layout"}},
 
     {HINT_FORWARDER, {"hint_forwarder"}},
+    {HINT_FORWARDER_GMCA, {"hint_forwarder_gmca"}},
     {RENAME_NOTICE_SHOWN, {"rename_notice_shown"}},
 
     {KEY_REFRESH, {"key_refresh"}},

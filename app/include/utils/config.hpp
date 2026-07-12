@@ -145,6 +145,12 @@ public:
         /// launch in application mode (Switch).
         HINT_FORWARDER,
 
+        /// GMCA-era HOME-tile re-nudge, gated separately from HINT_FORWARDER on
+        /// purpose: pleNx users who self-updated to GMCA are past the pleNx-era
+        /// HINT_FORWARDER gate but have no GMCA tile (fresh title id), so re-offer
+        /// it exactly once so they get a tile that resolves the migrated NRO.
+        HINT_FORWARDER_GMCA,
+
         /// One-time "pleNx is now GMCA" welcome notice already shown. Set the
         /// first time the notice is displayed (only to users migrated from a
         /// legacy pleNx/Switchlex data dir — see AppConfig::migratedFromLegacy).
