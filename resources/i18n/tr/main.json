@@ -1,4 +1,15 @@
 {
+  "rename": {
+    "title": "pleNx artık GMCA",
+    "intro": "Aynı uygulama, ama büyüdü. pleNx artık GMCA oldu — Gamepad Media Center Aggregator — ve çok daha fazlasını yapıyor.",
+    "whats_new": "YENİLİKLER",
+    "feature_backends": "Tek uygulama, tüm sunucular — Plex, Jellyfin, Emby ve Stremio",
+    "feature_music": "Filmlerin ve dizilerin yanında müzik kitaplığın",
+    "feature_offline": "Bağlantı olmadan her yerde izlemek için çevrimdışı indirmeler",
+    "feature_updates": "Doğrudan uygulamaya gelen düzenli güncellemeler",
+    "reassure": "Girişlerin, ayarların ve indirmelerin otomatik olarak taşındı — yeniden ayarlamana gerek yok. İyi seyirler!",
+    "continue": "Hadi başlayalım"
+  },
   "tabs": {
     "home": "Ana Sayfa",
     "genres": "Türler",

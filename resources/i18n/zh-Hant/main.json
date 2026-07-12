@@ -1,4 +1,15 @@
 {
+  "rename": {
+    "title": "pleNx 現已成為 GMCA",
+    "intro": "還是那個應用，只是更強大了。pleNx 已升級為 GMCA（Gamepad Media Center Aggregator），如今能做的事情多得多。",
+    "whats_new": "全新功能",
+    "feature_backends": "一個應用，連接所有伺服器 — Plex、Jellyfin、Emby 和 Stremio",
+    "feature_music": "在電影和劇集之外，還有你的音樂庫",
+    "feature_offline": "離線下載，無需連網隨時隨地觀看",
+    "feature_updates": "定期更新，直接推送到應用內",
+    "reassure": "你的登入、設定和下載都已自動遷移 — 無需重新設定。祝觀影愉快！",
+    "continue": "開始"
+  },
   "tabs": {
     "home": "首頁",
     "genres": "類型",

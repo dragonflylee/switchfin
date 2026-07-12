@@ -111,6 +111,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {SIDEBAR_LAYOUT, {"sidebar_layout"}},
 
     {HINT_FORWARDER, {"hint_forwarder"}},
+    {RENAME_NOTICE_SHOWN, {"rename_notice_shown"}},
 
     {KEY_REFRESH, {"key_refresh"}},
     {KEY_LAST, {"key_last"}},
@@ -231,9 +232,11 @@ static std::string dataDir(const std::string& name) {
 
 /// Silent migration of the config folder inherited from a previous name
 /// (Switchlex -> pleNx -> GMCA): Plex/Jellyfin session, settings and
-/// downloads must survive each rename.
-static void migrateLegacyConfigDir(const std::string& legacy, const std::string& current) {
-    if (legacy == current) return;  // e.g. Android: path independent of the name
+/// downloads must survive each rename. Returns true when a legacy dir was
+/// actually relocated (the caller uses this to gate the one-time rebrand
+/// welcome notice).
+static bool migrateLegacyConfigDir(const std::string& legacy, const std::string& current) {
+    if (legacy == current) return false;  // e.g. Android: path independent of the name
 #if !defined(USE_BOOST_FILESYSTEM) || defined(_WIN32)
     const fs::path from = fs::u8path(legacy), to = fs::u8path(current);
 #else
@@ -243,10 +246,12 @@ static void migrateLegacyConfigDir(const std::string& legacy, const std::string&
         if (fs::exists(from) && !fs::exists(to)) {
             fs::rename(from, to);
             brls::Logger::info("AppConfig: migrated config dir {} -> {}", legacy, current);
+            return true;
         }
     } catch (const std::exception& ex) {
         brls::Logger::warning("AppConfig: config dir migration {} -> {} failed: {}", legacy, current, ex.what());
     }
+    return false;
 }
 
 bool AppConfig::init() {
@@ -254,8 +259,10 @@ bool AppConfig::init() {
     // applicable source migrates. pleNx 0.2.0 already targets the GMCA folder
     // (BUILD_PACKAGE_NAME), so existing pleNx data is relocated here, and the
     // renamed GMCA build then reads it in place.
-    migrateLegacyConfigDir(dataDir("pleNx"), this->configDir());
-    migrateLegacyConfigDir(dataDir("Switchlex"), this->configDir());
+    // Only one source can migrate (the !exists(to) guard), so at most one of
+    // these is true — enough to flag "this user just came from a legacy build".
+    this->migratedFromLegacy = migrateLegacyConfigDir(dataDir("pleNx"), this->configDir());
+    this->migratedFromLegacy |= migrateLegacyConfigDir(dataDir("Switchlex"), this->configDir());
     const std::string path = this->configDir() + "/config.json";
 #if !defined(USE_BOOST_FILESYSTEM) || defined(_WIN32)
     std::ifstream f(fs::u8path(path));

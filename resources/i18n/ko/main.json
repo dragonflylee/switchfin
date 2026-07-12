@@ -1,4 +1,15 @@
 {
+  "rename": {
+    "title": "이제 pleNx는 GMCA입니다",
+    "intro": "같은 앱이 더 크게 성장했습니다. pleNx는 GMCA(Gamepad Media Center Aggregator)로 새로워졌고, 훨씬 더 많은 것을 할 수 있습니다.",
+    "whats_new": "새로운 기능",
+    "feature_backends": "하나의 앱으로 모든 서버를 — Plex, Jellyfin, Emby, Stremio",
+    "feature_music": "영화와 시리즈와 함께 즐기는 음악 라이브러리",
+    "feature_offline": "오프라인 다운로드로 연결 없이 어디서나 감상",
+    "feature_updates": "앱으로 바로 전달되는 정기 업데이트",
+    "reassure": "로그인, 설정, 다운로드가 자동으로 옮겨졌습니다 — 다시 설정할 필요가 없습니다. 즐겁게 감상하세요!",
+    "continue": "시작하기"
+  },
   "tabs": {
     "home": "홈",
     "genres": "장르",

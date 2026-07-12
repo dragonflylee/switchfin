@@ -1,4 +1,15 @@
 {
+  "rename": {
+    "title": "pleNx is now GMCA",
+    "intro": "Same app, all grown up. pleNx has become GMCA — the Gamepad Media Center Aggregator — and it does a whole lot more.",
+    "whats_new": "WHAT'S NEW",
+    "feature_backends": "One app, every server — Plex, Jellyfin, Emby and Stremio",
+    "feature_music": "Your music library, right next to movies and shows",
+    "feature_offline": "Offline downloads to watch anywhere, no connection needed",
+    "feature_updates": "Regular updates, delivered straight to the app",
+    "reassure": "Your logins, settings and downloads came across automatically — nothing to set up again. Enjoy!",
+    "continue": "Let's go"
+  },
   "tabs": {
     "home": "Home",
     "genres": "Genres",
