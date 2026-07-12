@@ -130,6 +130,7 @@
     "shuffle": "シャッフル",
     "repeat": "リピート",
     "queue": "再生キュー",
+    "move": "移動",
     "now_playing": "再生中"
   },
   "watchlist": {

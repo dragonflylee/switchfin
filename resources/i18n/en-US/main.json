@@ -134,6 +134,7 @@
     "shuffle": "Shuffle",
     "repeat": "Repeat",
     "queue": "Queue",
+    "move": "Move",
     "now_playing": "Now Playing"
   },
   "favorites": {

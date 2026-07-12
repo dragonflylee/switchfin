@@ -130,6 +130,7 @@
     "shuffle": "Aleatorio",
     "repeat": "Repetir",
     "queue": "Cola",
+    "move": "Mover",
     "now_playing": "Reproduciendo"
   },
   "watchlist": {

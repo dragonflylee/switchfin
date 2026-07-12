@@ -130,6 +130,7 @@
     "shuffle": "Zufall",
     "repeat": "Wiederholen",
     "queue": "Warteschlange",
+    "move": "Verschieben",
     "now_playing": "Aktuelle Wiedergabe"
   },
   "watchlist": {

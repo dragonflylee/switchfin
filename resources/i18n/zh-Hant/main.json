@@ -130,6 +130,7 @@
     "shuffle": "隨機",
     "repeat": "重複",
     "queue": "播放佇列",
+    "move": "移動",
     "now_playing": "正在播放"
   },
   "watchlist": {

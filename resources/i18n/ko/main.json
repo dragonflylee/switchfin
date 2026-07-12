@@ -130,6 +130,7 @@
     "shuffle": "셔플",
     "repeat": "반복",
     "queue": "재생 대기열",
+    "move": "이동",
     "now_playing": "재생 중"
   },
   "watchlist": {
