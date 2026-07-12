@@ -9,6 +9,27 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [1.0.4] - 2026-07-13
+
+### Fixed
+
+- **PS Vita: the VPK failed to install, erroring at 99% with `0x8010113D`
+  ("incorrect LiveArea asset image formats").** The rebrand re-exported the
+  LiveArea PNGs at 16-bit per channel (`pic0`/`bg`/`startup`, 64-bit RGBA) and
+  `icon0` at 24-bit RGB; the Vita only accepts **8-bit** images. Re-encoded all
+  four as 8-bit indexed (palette) — the format the borealis defaults and the
+  old pleNx VPKs already shipped, so the fix is visually identical. A
+  configure-time guard now reads each asset's PNG header and fails the build if
+  a LiveArea image is ever re-exported at more than 8-bit (or, for `icon0`/`bg`,
+  with an alpha channel), so a broken VPK can't ship unnoticed again. The Switch,
+  PS4, Android and Linux icons were unaffected (already 8-bit).
+- **Now Playing queue: a grab could outlive its pane (#11 review).** Pressing
+  LEFT while a row was grabbed moved focus out to the transport with the grab
+  still active, so the next `A` was eaten as a "drop" instead of playing the
+  track; a shuffle reached from the transport could also leave the grab anchored
+  to a stale row. LEFT/RIGHT are now swallowed while grabbed, and rebuilding the
+  queue clears any grab first.
+
 ## [1.0.3] - 2026-07-12
 
 ### Added
