@@ -1,9 +1,6 @@
 <div align="center">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="site/assets/img/gmca-logo-dark.webp">
-  <img src="site/assets/img/gmca-logo.webp" alt="GMCA" width="132">
-</picture>
+<img src="site/assets/img/gmca-logo.webp" alt="GMCA" width="132">
 
 # GMCA — Gamepad Media Center Aggregator
 
