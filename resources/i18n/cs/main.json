@@ -375,7 +375,7 @@
     "takeover_text": "Při spouštění jakékoli nainstalované hry podržte R, čímž otevřete homebrew menu jako plnou aplikaci, a poté odtud spusťte GMCA.",
     "prompt": "Nainstalovat dlaždici GMCA do nabídky HOME?\nDlaždice spustí aplikaci jako plnou aplikaci (nutné pro přehrávání videa).",
     "hint_confirm": "Instalace NSP forwarderu může vést k banu\nProsím potvrďte znovu",
-    "remove_old": "GMCA je nyní v nabídce HOME. Odstranit starou dlaždici pleNx, kterou nahrazuje?"
+    "remove_old": "GMCA je ve vaší nabídce HOME. Pokud tam ještě je stará dlaždice pleNx, odstraňte ji v Nastavení systému > Správa dat > Odstranit software."
   },
   "plex": {
     "title": "Přihlaste se ke svému účtu Plex",

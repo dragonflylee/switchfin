@@ -375,7 +375,7 @@
     "takeover_text": "Mantenha R premido ao iniciar qualquer jogo instalado para abrir o menu de homebrew como aplicação completa e, depois, inicie o GMCA a partir daí.",
     "prompt": "Instalar o ícone do GMCA no menu HOME?\nO ícone inicia a aplicação como aplicação completa (necessário para a reprodução de vídeo).",
     "hint_confirm": "A instalação do encaminhador NSP pode resultar num banimento\nConfirme novamente",
-    "remove_old": "O GMCA já está no seu menu HOME. Remover o antigo ícone pleNx que ele substitui?"
+    "remove_old": "O GMCA está no seu menu HOME. Se ainda houver um ícone antigo do pleNx, remova-o em Config. do sistema > Gestão de dados > Apagar software."
   },
   "plex": {
     "title": "Inicie sessão na sua conta Plex",

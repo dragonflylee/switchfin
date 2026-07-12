@@ -21,14 +21,17 @@ hand. For the history of the upstream project this fork is based on, see the
   the forwarder now falls back to the self-updated `pleNx.nro` on its own — and
   hardened the forwarder to **skip any candidate that isn't a valid NRO** (magic
   check), so a leftover 0-byte `GMCA.nro` is ignored instead of crashing.
+- **The Switch boot screen still showed the old "pleNx" logo (top-left).** The
+  forwarder's boot logo (`NintendoLogo`) was never rebranded during the
+  pleNx → GMCA move; it's now blank (only the standard Nintendo Switch startup
+  logo remains).
 
 ### Changed
 
-- **Smoother pleNx → GMCA HOME-tile migration.** Installing the GMCA tile now
-  detects the old pleNx forwarder tile it replaces and offers to remove it, so
-  you don't end up with both. Only the exact pleNx forwarder title IDs are
-  matched (`0104201312000000`, `010ff000ffff1003`) — a Switchfin install is
-  never touched.
+- **Guided pleNx → GMCA HOME-tile migration.** Migrated users are prompted once
+  on the first GMCA launch to install the GMCA HOME tile; after installing it, a
+  message points them to remove the leftover "pleNx" tile from System Settings ›
+  Data Management (an installed tile can't be rebranded or deleted for you).
 
 ## [1.0.2] - 2026-07-12
 
