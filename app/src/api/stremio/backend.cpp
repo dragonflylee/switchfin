@@ -471,7 +471,7 @@ void StremioBackend::getHubPage(
     // hubKey = "base\ttype\tcatId" (set on home/section hubs). Page via skip.
     std::string key = hubKey;
     size_t startCopy = start;
-    brls::async([this, key, startCopy, then, error]() {
+    brls::async([key, startCopy, then, error]() {
         try {
             std::string base, ctype, catId;
             if (!splitCatalogKey(key, base, ctype, catId)) throw std::runtime_error("stremio: bad hub key");

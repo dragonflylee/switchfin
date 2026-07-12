@@ -63,7 +63,7 @@ PlayerView::PlayerView(const plex::Item& item, const int64_t seekMs, int version
 
     playSubscribeID = view->getPlayEvent()->subscribe([this](int index) { this->playIndex(index); });
 
-    settingSubscribeID = view->getSettingEvent()->subscribe([this]() {
+    settingSubscribeID = view->getSettingEvent()->subscribe([]() {
         brls::View* setting = new PlayerSetting();
         brls::Application::pushActivity(new brls::Activity(setting));
     });
@@ -277,23 +277,6 @@ void PlayerView::playMedia(const int64_t seekMs) {
         });
 }
 
-/// Extracts the Plex universal-transcoder session id embedded in a resolved
-/// transcode URL (`.../transcode/universal/...&session=<hex>&...`) so the
-/// player can free it server-side (stopTranscode). Returns "" for direct play
-/// or for backends whose URLs carry no such param (Jellyfin/Stremio), leaving
-/// stopTranscode a safe no-op. Bridge until PlaybackSource exposes the session
-/// directly (backend-side follow-up — see MULTI_BACKEND.md).
-static std::string transcodeSessionFromUrl(const media::PlaybackSource& src) {
-    if (src.playMethod != "transcode") return "";
-    if (src.url.find("/transcode/universal/") == std::string::npos) return "";  // Plex only
-    static const std::string key = "session=";  // NB: distinct from "X-Plex-Session-Identifier="
-    size_t p = src.url.find(key);
-    if (p == std::string::npos) return "";
-    p += key.size();
-    size_t end = src.url.find('&', p);
-    return src.url.substr(p, end == std::string::npos ? std::string::npos : end - p);
-}
-
 void PlayerView::startPlayback(const int64_t seekMs, bool forceDirect) {
     media::PlaybackOptions opts;
     opts.seekMs = seekMs;
@@ -332,10 +315,11 @@ void PlayerView::startPlayback(const int64_t seekMs, bool forceDirect) {
                     return;
                 }
                 this->playMethod = src.playMethod;
-                // Remember the Plex transcode session (embedded in the URL) so we
-                // can tear it down server-side on reload/exit — the dev Vita fix.
-                // Empty for direct play or non-Plex backends (stopTranscode no-ops).
-                this->transcodeSession = transcodeSessionFromUrl(src);
+                // Remember the backend transcode session so we can tear it down
+                // server-side on reload/exit — the dev Vita fix. Set by the backend
+                // (Plex); empty for direct play or backends without a server
+                // transcode session, leaving stopTranscode a safe no-op.
+                this->transcodeSession = src.transcodeSession;
                 MPVCore::instance().setUrl(src.url, src.mpvExtra);
             });
         } catch (const std::exception& ex) {

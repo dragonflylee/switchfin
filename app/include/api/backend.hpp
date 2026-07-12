@@ -74,6 +74,8 @@ struct PlaybackSource {
     std::string mpvExtra;     // extra mpv options string (network-timeout, start=, http-proxy…)
     bool isTranscode = false;
     std::string playMethod;   // "directplay" | "transcode"
+    std::string transcodeSession;  // server-side transcode session token, to tear it down on reload/exit;
+                                   // empty for direct play or backends without a server transcode session
 };
 
 /// Per-backend capability descriptor — pilots the UI (tabs, menus, controls).

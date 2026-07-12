@@ -299,8 +299,16 @@ struct Item {
     std::string grandparentTitle;
     std::string grandparentThumb;
     std::string grandparentArt;
-    std::string librarySectionID;     // numeric id of the owning library (as string) — offline cache (SPEC §4.1)
-    std::string librarySectionTitle;  // display name of the owning library — offline cache (SPEC §4.1)
+    // Owning-library grouping for the offline cache (SPEC §4.1). Neutral in
+    // meaning (the library/collection an item belongs to) but Plex-named on
+    // purpose: these strings are persisted as JSON keys in the on-disk offline
+    // cache, so renaming them would orphan caches already written by shipped
+    // clients (offline landed in v0.1.11+). Backends that don't populate them
+    // (Jellyfin/Stremio today) leave them empty and the catalog falls back to a
+    // synthetic bucket — expected, non-breaking degradation. Populate per backend
+    // to get real library buckets there (tracked as a feature follow-up).
+    std::string librarySectionID;     // numeric id of the owning library (as string)
+    std::string librarySectionTitle;  // display name of the owning library
     std::vector<std::string> genres;
     std::vector<Role> roles;
     std::vector<Role> directors;  // Director: same shape as Role (id/tag/thumb)

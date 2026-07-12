@@ -459,21 +459,22 @@ bool AppConfig::init() {
         }
 #endif
 
-        // Init keyboard shortcut
+        // Init keyboard shortcut (F11 fullscreen toggle — non-Apple platforms only;
+        // on macOS the handler had no live case, so it's not registered there)
+#ifndef __APPLE__
         brls::Application::getPlatform()->getInputManager()->getKeyboardKeyStateChanged()->subscribe(
             [this](brls::KeyState state) {
                 if (!state.pressed) return;
                 switch (state.key) {
-#ifndef __APPLE__
                 case brls::BRLS_KBD_KEY_F11:
                     VideoContext::FULLSCREEN = !this->getItem(AppConfig::FULLSCREEN, VideoContext::FULLSCREEN);
                     this->setItem(AppConfig::FULLSCREEN, VideoContext::FULLSCREEN);
                     brls::Application::getPlatform()->getVideoContext()->fullScreen(VideoContext::FULLSCREEN);
                     break;
-#endif
                 default:;
                 }
             });
+#endif
     });
 
 #ifdef __SWITCH__
