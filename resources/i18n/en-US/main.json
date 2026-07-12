@@ -386,7 +386,8 @@
     "takeover_title": "Alternative: title takeover",
     "takeover_text": "Hold R while launching any installed game to open the homebrew menu as a full application, then launch GMCA from there.",
     "prompt": "Install the GMCA tile on the HOME menu?\nThe tile launches the app as a full application (required for video playback).",
-    "hint_confirm": "Installing NSP forwarder may result in a ban\nPlease confirm again"
+    "hint_confirm": "Installing NSP forwarder may result in a ban\nPlease confirm again",
+    "remove_old": "GMCA is on your HOME menu. If an old pleNx tile is still there, remove it from System Settings > Data Management > Delete Software."
   },
   "plex": {
     "title": "Sign in to your Plex account",

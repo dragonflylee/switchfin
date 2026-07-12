@@ -386,7 +386,8 @@
     "takeover_title": "Alternative : title takeover",
     "takeover_text": "Maintenez R en lançant n'importe quel jeu installé pour ouvrir le menu homebrew en application complète, puis lancez-y GMCA.",
     "prompt": "Installer la tuile GMCA sur le menu HOME ?\nLa tuile lance l'application en session complète (indispensable pour la lecture vidéo).",
-    "hint_confirm": "L'installation du forwarder NSP peut entraîner un bannissement de la console. Veuillez confirmer à nouveau"
+    "hint_confirm": "L'installation du forwarder NSP peut entraîner un bannissement de la console. Veuillez confirmer à nouveau",
+    "remove_old": "GMCA est sur ton menu HOME. Si une ancienne tuile pleNx y figure encore, supprime-la depuis Réglages système > Gestion des données > Supprimer un logiciel."
   },
   "plex": {
     "title": "Connectez-vous à votre compte Plex",

@@ -374,7 +374,8 @@
     "takeover_title": "备选方案：标题接管",
     "takeover_text": "启动任意已安装游戏时按住 R，以完整应用模式打开自制软件菜单，再从中启动 GMCA。",
     "prompt": "在 HOME 菜单上安装 GMCA 图标？\n该图标会以完整应用模式启动应用（播放视频所需）。",
-    "hint_confirm": "安装桌面图标可能导致ban机\n请再次确认"
+    "hint_confirm": "安装桌面图标可能导致ban机\n请再次确认",
+    "remove_old": "GMCA 已在 HOME 菜单中。如果旧的 pleNx 磁贴仍然存在，请在 系统设置 > 数据管理 > 删除软件 中删除它。"
   },
   "plex": {
     "title": "登录你的 Plex 账户",

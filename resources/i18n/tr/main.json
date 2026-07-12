@@ -374,7 +374,8 @@
     "takeover_title": "Alternatif: oyun üzerinden başlatma",
     "takeover_text": "Yüklü herhangi bir oyunu başlatırken R tuşunu basılı tutarak homebrew menüsünü tam uygulama olarak açın, ardından GMCA'i oradan başlatın.",
     "prompt": "GMCA kutucuğu HOME menüsüne yüklensin mi?\nKutucuk, uygulamayı tam uygulama olarak başlatır (video oynatma için gereklidir).",
-    "hint_confirm": "NSP yönlendiricisini kurmak konsolunuzun çevrim içi özelliklerden yasaklanmasına neden olabilir\n\nLütfen tekrar onaylayın"
+    "hint_confirm": "NSP yönlendiricisini kurmak konsolunuzun çevrim içi özelliklerden yasaklanmasına neden olabilir\n\nLütfen tekrar onaylayın",
+    "remove_old": "GMCA, HOME menünüzde. Eski bir pleNx kutucuğu hâlâ varsa Sistem Ayarları > Veri Yönetimi > Yazılım Sil'den kaldırın."
   },
   "plex": {
     "title": "Plex hesabınıza giriş yapın",

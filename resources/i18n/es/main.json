@@ -374,7 +374,8 @@
     "takeover_title": "Alternativa: apropiación de título",
     "takeover_text": "Mantén pulsado R al iniciar cualquier juego instalado para abrir el menú homebrew como aplicación completa, y luego inicia GMCA desde ahí.",
     "prompt": "¿Instalar el icono de GMCA en el menú HOME?\nEl icono inicia la aplicación como aplicación completa (necesario para la reproducción de vídeo).",
-    "hint_confirm": "Instalar el NSP forwarder puede resultar en un baneo\nPor favor confirma de nuevo"
+    "hint_confirm": "Instalar el NSP forwarder puede resultar en un baneo\nPor favor confirma de nuevo",
+    "remove_old": "GMCA está en tu menú HOME. Si aún hay un icono antiguo de pleNx, elimínalo en Configuración del sistema > Gestión de datos > Eliminar software."
   },
   "plex": {
     "title": "Inicia sesión en tu cuenta de Plex",

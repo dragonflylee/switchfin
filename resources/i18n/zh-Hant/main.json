@@ -374,7 +374,8 @@
     "takeover_title": "替代方案：標題接管",
     "takeover_text": "啟動任一已安裝的遊戲時按住 R，即可以完整應用程式開啟自製軟體選單，再從中啟動 GMCA。",
     "prompt": "是否在 HOME 選單安裝 GMCA 圖示？\n此圖示會以完整應用程式啟動本程式（播放影片所需）。",
-    "hint_confirm": "安裝 NSP forwarder 可能導致主機被 ban\n請再次確認"
+    "hint_confirm": "安裝 NSP forwarder 可能導致主機被 ban\n請再次確認",
+    "remove_old": "GMCA 已在 HOME 選單中。如果舊的 pleNx 磁貼仍然存在，請在 系統設定 > 資料管理 > 刪除軟體 中刪除它。"
   },
   "plex": {
     "title": "登入你的 Plex 帳號",
