@@ -11,6 +11,12 @@ hand. For the history of the upstream project this fork is based on, see the
 
 ## [1.0.3] - 2026-07-12
 
+### Added
+
+- **Now Playing — gamepad seek and a visible, reorderable queue (#11).** Scrub
+  through the current track with the controller, and see the up-next queue right
+  on the Now Playing screen — reorder it in place with the gamepad.
+
 ### Fixed
 
 - **Switch HOME tile crashed on launch ("an error occurred") after installing
