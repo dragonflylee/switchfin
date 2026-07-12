@@ -85,6 +85,10 @@ public:
 
     bool isGrabbed(int index) const { return this->grabbedIndex == index; }
 
+    /// Clear any active grab without reloading (the caller refreshes). Called on
+    /// a queue rebuild so a grab can never anchor to a now-stale index.
+    void resetGrab() { this->grabbedIndex = -1; }
+
     void toggleGrab(int index) {
         this->grabbedIndex = (this->grabbedIndex == index) ? -1 : index;
         this->refocus(index);
@@ -147,6 +151,15 @@ QueueCell::QueueCell() {
             return false;
         },
         true, true);
+    // While grabbed, swallow LEFT/RIGHT so focus can't leave the pane mid-move.
+    // Otherwise the grab outlives the pane: returning later and pressing A eats
+    // the first press as a drop, and a shuffle reached from the transport would
+    // strand the grab on a stale index. Not grabbed -> normal navigation.
+    brls::ActionListener swallowIfGrabbed = [this](brls::View*) {
+        return this->ds && this->ds->isGrabbed((int)this->getIndex());
+    };
+    this->registerAction("", brls::BUTTON_NAV_LEFT, swallowIfGrabbed, true, true);
+    this->registerAction("", brls::BUTTON_NAV_RIGHT, swallowIfGrabbed, true, true);
 }
 
 }  // namespace
@@ -319,6 +332,8 @@ void MusicNowPlaying::refreshRepeat() {
 }
 
 void MusicNowPlaying::rebuildQueue() {
+    // the order changed (new queue / shuffle): any grab is now meaningless
+    if (auto* ds = dynamic_cast<QueueDataSource*>(this->queueList->getDataSource())) ds->resetGrab();
     // land on the now-playing track when navigating into the pane
     this->queueList->setDefaultCellFocus((size_t)std::max(0, AudioPlayer::instance().queuePos()));
     this->queueList->reloadData();  // no-op before first layout; onLayout reloads
