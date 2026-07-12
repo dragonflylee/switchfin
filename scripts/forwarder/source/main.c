@@ -6,6 +6,11 @@
 #define HBMENU_NRO "sdmc:/hbmenu.nro"
 #define DEFAULT_NRO "sdmc:/switch/GMCA.nro"
 #define APP_STORE_NRO "sdmc:/switch/GMCA/GMCA.nro"
+// Legacy pleNx paths: users who self-updated pleNx -> GMCA in place still have
+// the (now-GMCA) binary at the old name. Resolve it so this tile launches the
+// app instead of falling through to hbmenu, until they re-stage GMCA.nro.
+#define LEGACY_NRO "sdmc:/switch/pleNx.nro"
+#define LEGACY_APP_STORE_NRO "sdmc:/switch/pleNx/pleNx.nro"
 
 const char g_noticeText[] =
     "nx-hbloader " VERSION
@@ -323,6 +328,12 @@ void loadNro(void) {
         } else if (access(APP_STORE_NRO, F_OK) != -1) {
             memcpy(g_nextNroPath, APP_STORE_NRO, sizeof(APP_STORE_NRO));
             memcpy(g_nextArgv, APP_STORE_NRO, sizeof(APP_STORE_NRO));
+        } else if (access(LEGACY_NRO, F_OK) != -1) {
+            memcpy(g_nextNroPath, LEGACY_NRO, sizeof(LEGACY_NRO));
+            memcpy(g_nextArgv, LEGACY_NRO, sizeof(LEGACY_NRO));
+        } else if (access(LEGACY_APP_STORE_NRO, F_OK) != -1) {
+            memcpy(g_nextNroPath, LEGACY_APP_STORE_NRO, sizeof(LEGACY_APP_STORE_NRO));
+            memcpy(g_nextArgv, LEGACY_APP_STORE_NRO, sizeof(LEGACY_APP_STORE_NRO));
         } else {
             memcpy(g_nextNroPath, HBMENU_NRO, sizeof(HBMENU_NRO));
             memcpy(g_nextArgv, HBMENU_NRO, sizeof(HBMENU_NRO));

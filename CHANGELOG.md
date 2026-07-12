@@ -9,6 +9,24 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [1.0.1] - 2026-07-12
+
+Fixes the HOME-tile experience for Switch users who self-updated from pleNx to
+GMCA 1.0.0.
+
+### Fixed
+
+- **Switch HOME tile after a pleNx → GMCA self-update.** The in-app updater
+  replaces the NRO in place, so migrated users kept a binary named `pleNx.nro`
+  and an old "pleNx" forwarder tile, while the new GMCA forwarder only looked
+  for `GMCA.nro` — installing the GMCA tile would fall through to hbmenu.
+  - The GMCA forwarder now also resolves the legacy `sdmc:/switch/pleNx.nro`
+    (and `pleNx/pleNx.nro`) so an installed tile launches the app regardless.
+  - Installing the HOME tile now stages the running NRO to the canonical
+    `sdmc:/switch/GMCA.nro` first.
+  - Migrated users, who were past the one-time pleNx-era install prompt, are
+    re-offered the GMCA tile once (a GMCA-era prompt, gated separately).
+
 ## [1.0.0] - 2026-07-12
 
 First release under the new name **GMCA — Gamepad Media Center Aggregator**

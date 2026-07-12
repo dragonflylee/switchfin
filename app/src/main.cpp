@@ -68,10 +68,15 @@ static bool isForwarderInstalled() {
 /// First launch in application mode: offers to install the HOME tile
 /// (launched from the tile itself or tile already there -> ns sees it -> nothing).
 static void proposeForwarderInstall() {
+    if (isForwarderInstalled()) return;  // a GMCA HOME tile is already present
+
     auto& conf = AppConfig::instance();
-    if (conf.getItem(AppConfig::HINT_FORWARDER, false)) return;
+    // One-time GMCA-era nudge, keyed separately from HINT_FORWARDER on purpose:
+    // pleNx users who self-updated to GMCA are past the pleNx-era HINT_FORWARDER
+    // gate yet have no GMCA tile (fresh title id), so re-offer it exactly once.
+    if (conf.getItem(AppConfig::HINT_FORWARDER_GMCA, false)) return;
+    conf.setItem(AppConfig::HINT_FORWARDER_GMCA, true);
     conf.setItem(AppConfig::HINT_FORWARDER, true);
-    if (isForwarderInstalled()) return;
 
     auto dialog = new brls::Dialog("main/hints/prompt"_i18n);
     dialog->addButton("hints/cancel"_i18n, []() {});
