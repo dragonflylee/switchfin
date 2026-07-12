@@ -49,6 +49,7 @@ void AudioPlayer::play(const std::vector<media::Item>& tracks, size_t index, boo
     this->rebuildOrder((int)std::min(index, tracks.size() - 1));
     this->owns = true;
     this->subscribe();
+    this->queueChanged.fire();
     this->playCurrent();
 }
 
@@ -159,6 +160,20 @@ void AudioPlayer::seekPercent(float percent) {
     MPVCore::instance().seek((int64_t)(percent * 100), "absolute-percent");
 }
 
+void AudioPlayer::seekStep(bool forward) {
+    auto& mpv = MPVCore::instance();
+    if (!this->active() || mpv.duration <= 0) return;
+    // step scales with track length so long tracks (mixes/sets/chapters) stay
+    // seekable without hundreds of presses
+    int step = mpv.duration > 600 ? (int)(mpv.duration / 60) : 10;
+    double target = mpv.playback_time + (forward ? step : -step);
+    if (target < 0)
+        target = 0;
+    else if (target > (double)mpv.duration - 1)
+        target = (double)mpv.duration - 1;  // stay short of EOF -> no auto-advance
+    mpv.seek((int64_t)target, "absolute");
+}
+
 void AudioPlayer::setShuffle(bool on) {
     if (this->isShuffle == on) return;
     this->isShuffle = on;
@@ -166,6 +181,39 @@ void AudioPlayer::setShuffle(bool on) {
     // (still valid) order before rebuilding
     int curQueueIdx = (this->pos >= 0 && this->pos < (int)this->order.size()) ? (int)this->order[this->pos] : 0;
     this->rebuildOrder(curQueueIdx);
+    this->queueChanged.fire();
+}
+
+const media::Item& AudioPlayer::queueItemAt(size_t orderIndex) const {
+    static const media::Item empty{};
+    if (orderIndex >= this->order.size()) return empty;
+    return this->queue[this->order[orderIndex]];
+}
+
+void AudioPlayer::playAt(size_t orderIndex) {
+    if (orderIndex >= this->order.size()) return;
+    this->pos = (int)orderIndex;
+    this->playCurrent();
+}
+
+void AudioPlayer::moveInQueue(size_t from, size_t to) {
+    if (from >= this->order.size() || to >= this->order.size() || from == to) return;
+    // remember the currently playing track's queue index so `pos` can follow it
+    // wherever it lands after the reorder (playback itself is untouched)
+    size_t curQueueIdx = (this->pos >= 0 && this->pos < (int)this->order.size())
+                             ? this->order[this->pos]
+                             : (size_t)-1;
+    size_t moved = this->order[from];
+    this->order.erase(this->order.begin() + (long)from);
+    this->order.insert(this->order.begin() + (long)to, moved);
+    if (curQueueIdx != (size_t)-1) {
+        auto it = std::find(this->order.begin(), this->order.end(), curQueueIdx);
+        if (it != this->order.end()) this->pos = (int)(it - this->order.begin());
+    }
+    // no queueChanged here: the only caller (the Now Playing queue pane grab)
+    // owns the grid and refreshes it itself — firing would double-reload with a
+    // stale grabbed index mid-way. queueChanged is for external swaps (new queue,
+    // shuffle) the pane can't see coming.
 }
 
 AudioPlayer::Repeat AudioPlayer::cycleRepeat() {

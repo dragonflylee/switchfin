@@ -1,0 +1,47 @@
+<!-- Queue row (Now Playing queue pane): [cover] [title / artist] [now-playing
+     glyph] [duration]. Plain focusable cell; A jumps to the track, Y grabs it
+     for reordering (music_now_playing.cpp). -->
+<brls:Box
+    padding="6"
+    axis="row"
+    alignItems="center">
+
+    <brls:Box
+        width="44"
+        height="44"
+        cornerRadius="8"
+        alignItems="center"
+        justifyContent="center"
+        backgroundColor="@theme/color/grey_1">
+        <SVGImage width="20" height="20" svg="@res/icon/ico-audio.svg" />
+        <brls:Image
+            id="queue/row/cover"
+            positionType="absolute"
+            positionTop="0"
+            positionLeft="0"
+            width="100%"
+            height="100%"
+            cornerRadius="8"
+            scalingType="fill" />
+    </brls:Box>
+
+    <brls:Box
+        axis="column"
+        grow="1"
+        marginLeft="12"
+        justifyContent="center">
+        <brls:Label id="queue/row/title" singleLine="true" fontSize="16" />
+        <brls:Label id="queue/row/artist" singleLine="true" fontSize="13" textColor="@theme/font/grey" />
+    </brls:Box>
+
+    <SVGImage
+        id="queue/row/status"
+        width="18"
+        height="18"
+        marginLeft="8"
+        visibility="gone"
+        svg="@res/icon/ico-play.svg" />
+
+    <brls:Label id="queue/row/dur" singleLine="true" shrink="0" marginLeft="10" fontSize="13" textColor="@theme/font/grey" />
+
+</brls:Box>

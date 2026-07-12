@@ -29,6 +29,9 @@ public:
     void next();
     void prev();
     void seekPercent(float percent);
+    /// Seek one step (scaled to track length) forward or backward, clamped
+    /// inside the track. Drives the Now Playing D-pad seek.
+    void seekStep(bool forward);
 
     void setShuffle(bool on);
     bool shuffled() const { return this->isShuffle; }
@@ -39,6 +42,22 @@ public:
     bool active() const { return this->owns && !this->queue.empty(); }
     /// Current track (empty Item when inactive).
     const media::Item& current() const;
+
+    // --- Queue inspection / edition (Now Playing queue pane) ------------------
+    /// Number of tracks in the queue (playback order).
+    size_t queueCount() const { return this->order.size(); }
+    /// Index of the currently playing track within the playback order (-1 none).
+    int queuePos() const { return this->pos; }
+    /// Track at a playback-order position (empty Item when out of range).
+    const media::Item& queueItemAt(size_t orderIndex) const;
+    /// Jump to a playback-order position and start it.
+    void playAt(size_t orderIndex);
+    /// Move a queue entry from one playback-order position to another; the
+    /// currently playing track stays current and playback is not interrupted.
+    void moveInQueue(size_t from, size_t to);
+    /// Fires when the queue contents/order change (load, shuffle, move) — the
+    /// queue pane rebuilds. Track-only changes go through trackEvent() instead.
+    brls::VoidEvent* queueEvent() { return &this->queueChanged; }
 
     /// Hand MPVCore back to another player (e.g. a video PlayerView starting):
     /// stop owning, unsubscribe, keep no queue. Called before video playback.
@@ -72,4 +91,5 @@ private:
     MPVEvent::Subscription eventSubscribeID;
     bool subscribed = false;
     brls::VoidEvent trackChanged;
+    brls::VoidEvent queueChanged;
 };

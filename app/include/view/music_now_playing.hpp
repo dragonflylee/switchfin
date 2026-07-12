@@ -13,6 +13,7 @@
 
 class VideoProgressSlider;
 class SVGImage;
+class RecyclingGrid;
 
 class MusicNowPlaying : public brls::Box {
 public:
@@ -28,9 +29,11 @@ public:
     static void open();
 
 private:
-    void refreshTrack();      // cover + title/artist from the controller
-    void refreshShuffle();    // shuffle button border state
-    void refreshRepeat();     // repeat icon
+    void refreshTrack();          // cover + title/artist from the controller
+    void refreshShuffle();        // shuffle button border state
+    void refreshRepeat();         // repeat icon
+    void rebuildQueue();          // (re)load the queue pane from the controller
+    void refreshQueueHighlight();  // move the now-playing marker without a reload
 
     BRLS_BIND(brls::Image, cover, "musicnp/cover");
     BRLS_BIND(brls::Label, labelTitle, "musicnp/title");
@@ -45,7 +48,9 @@ private:
     BRLS_BIND(brls::Box, btnRepeat, "musicnp/repeat");
     BRLS_BIND(SVGImage, toggleIcon, "musicnp/toggle/icon");
     BRLS_BIND(SVGImage, repeatIcon, "musicnp/repeat/icon");
+    BRLS_BIND(RecyclingGrid, queueList, "musicnp/queue");
 
     MPVEvent::Subscription eventSubscribeID;
     brls::VoidEvent::Subscription trackSubscribeID;
+    brls::VoidEvent::Subscription queueSubscribeID;
 };
