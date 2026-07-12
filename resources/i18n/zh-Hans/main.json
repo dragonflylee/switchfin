@@ -130,6 +130,7 @@
     "shuffle": "随机",
     "repeat": "重复",
     "queue": "播放队列",
+    "move": "移动",
     "now_playing": "正在播放"
   },
   "watchlist": {
@@ -373,7 +374,8 @@
     "takeover_title": "备选方案：标题接管",
     "takeover_text": "启动任意已安装游戏时按住 R，以完整应用模式打开自制软件菜单，再从中启动 GMCA。",
     "prompt": "在 HOME 菜单上安装 GMCA 图标？\n该图标会以完整应用模式启动应用（播放视频所需）。",
-    "hint_confirm": "安装桌面图标可能导致ban机\n请再次确认"
+    "hint_confirm": "安装桌面图标可能导致ban机\n请再次确认",
+    "remove_old": "GMCA 已添加到 HOME 菜单。删除它所替代的旧 pleNx 磁贴吗？"
   },
   "plex": {
     "title": "登录你的 Plex 账户",

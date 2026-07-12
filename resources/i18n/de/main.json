@@ -130,6 +130,7 @@
     "shuffle": "Zufall",
     "repeat": "Wiederholen",
     "queue": "Warteschlange",
+    "move": "Verschieben",
     "now_playing": "Aktuelle Wiedergabe"
   },
   "watchlist": {
@@ -373,7 +374,8 @@
     "takeover_title": "Alternative: Title-Takeover",
     "takeover_text": "Halte R gedrückt, während du ein installiertes Spiel startest, um das Homebrew-Menü als vollwertige Anwendung zu öffnen, und starte GMCA von dort.",
     "prompt": "Die GMCA-Kachel im HOME-Menü installieren?\nDie Kachel startet die App als vollwertige Anwendung (für die Videowiedergabe erforderlich).",
-    "hint_confirm": "Die Installation des NSP-Forwarders kann zu einer Sperre führen\nBitte erneut bestätigen"
+    "hint_confirm": "Die Installation des NSP-Forwarders kann zu einer Sperre führen\nBitte erneut bestätigen",
+    "remove_old": "GMCA ist jetzt in deinem HOME-Menü. Die alte pleNx-Kachel entfernen, die es ersetzt?"
   },
   "plex": {
     "title": "Bei deinem Plex-Konto anmelden",

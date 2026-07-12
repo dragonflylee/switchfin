@@ -22,6 +22,14 @@ hand. For the history of the upstream project this fork is based on, see the
   hardened the forwarder to **skip any candidate that isn't a valid NRO** (magic
   check), so a leftover 0-byte `GMCA.nro` is ignored instead of crashing.
 
+### Changed
+
+- **Smoother pleNx → GMCA HOME-tile migration.** Installing the GMCA tile now
+  detects the old pleNx forwarder tile it replaces and offers to remove it, so
+  you don't end up with both. Only the exact pleNx forwarder title IDs are
+  matched (`0104201312000000`, `010ff000ffff1003`) — a Switchfin install is
+  never touched.
+
 ## [1.0.2] - 2026-07-12
 
 ### Fixed
