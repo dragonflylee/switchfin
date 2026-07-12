@@ -305,6 +305,30 @@ elseif (PLATFORM_SWITCH)
     )
 elseif (PLATFORM_PSV)
     set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d ATTRIBUTE2=12") # max heap size mode
+    # LiveArea assets must be 8-bit PNGs or the Vita rejects the VPK at 99% of
+    # the install with error 0x8010113D. icon0/bg additionally forbid an alpha
+    # channel; startup may keep one. We ship them 8-bit indexed (palette) — the
+    # format every reference uses (borealis defaults, hammerill/livearea-specs).
+    # Regenerate with:  magick in.png -alpha off -colors 256 PNG8:out.png
+    # This configure-time guard reads each PNG's IHDR (bit depth @ byte 24,
+    # colour type @ byte 25) so a 16-bit re-export fails the build here instead
+    # of shipping a VPK that only fails once it reaches a real console.
+    function(_psv_assert_livearea_png path alpha_allowed)
+        file(READ "${path}" _ihdr HEX LIMIT 26)
+        string(SUBSTRING "${_ihdr}" 48 2 _depth)  # IHDR bit-depth byte
+        string(SUBSTRING "${_ihdr}" 50 2 _ctype)  # IHDR colour-type byte
+        if (NOT _depth STREQUAL "08")
+            math(EXPR _bits "0x${_depth}")
+            message(FATAL_ERROR "LiveArea PNG ${path} is ${_bits}-bit per channel; the PS Vita only accepts 8-bit (install error 0x8010113D). Re-encode: magick in.png -alpha off -colors 256 PNG8:out.png")
+        endif ()
+        if (NOT alpha_allowed AND _ctype STREQUAL "06")
+            message(FATAL_ERROR "LiveArea PNG ${path} carries an alpha channel; icon0/bg forbid transparency (install error 0x8010113D). Flatten: magick in.png -alpha off -colors 256 PNG8:out.png")
+        endif ()
+    endfunction()
+    _psv_assert_livearea_png(${CMAKE_SOURCE_DIR}/app/platform/vita/sce_sys/icon0.png   FALSE)
+    _psv_assert_livearea_png(${CMAKE_SOURCE_DIR}/app/platform/vita/sce_sys/pic0.png    FALSE)
+    _psv_assert_livearea_png(${CMAKE_SOURCE_DIR}/app/platform/vita/sce_sys/bg.png      FALSE)
+    _psv_assert_livearea_png(${CMAKE_SOURCE_DIR}/app/platform/vita/sce_sys/startup.png TRUE)
     set(PSV_ASSETS_FILES
         FILE ${CMAKE_SOURCE_DIR}/app/platform/vita/sce_sys/icon0.png sce_sys/icon0.png
         FILE ${CMAKE_SOURCE_DIR}/app/platform/vita/sce_sys/pic0.png sce_sys/pic0.png
