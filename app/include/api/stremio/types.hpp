@@ -538,6 +538,20 @@ inline int qualityRank(const std::string& label) {
     return 1;  // CAM
 }
 
+/// PS Vita sort rank. The hardware H.264 decoder tops out at 1080p and 4K
+/// hard-crashes the GPU (blue light), while 1080p remux bitrates stutter on the
+/// Vita's limited CPU/IO. So every <=720p source outranks 1080p, which stays
+/// only as a last-resort fallback (4K is filtered out before the sort, but is
+/// ranked lowest here as a safety net). Field-tested guidance from Vita users:
+/// keep Stremio playback at <=720p. (default pick = highest-ranked = index 0.)
+inline int qualityRankVita(const std::string& label) {
+    if (label == "720p") return 5;
+    if (label == "480p" || label == "SD") return 4;
+    if (label == "1080p") return 3;  // decodable but heavy -> fallback only
+    if (label == "4K") return 1;     // exceeds the decoder; excluded upstream
+    return 2;                        // CAM
+}
+
 /// First "<number> <GB|MB|TB>" found, normalized ("8.4 GB"). Empty if none.
 inline std::string parseSizeLabel(const std::string& text) {
     static const char* units[] = {"GB", "MB", "TB", "GiB", "MiB"};

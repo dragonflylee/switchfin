@@ -219,9 +219,24 @@ std::vector<media::Media> resolveAllStreams(
         }
         for (auto& s : streams) all.push_back(streamToMedia(s, a.manifest.name));
     }
+#if defined(__PSV__)
+    // PS Vita: 4K exceeds the hardware H.264 decoder (1080p max) and hard-crashes
+    // the GPU on play (the "blue light of death" users report). Drop every 4K
+    // source outright — better an "unsupported" message than a device freeze.
+    // 1080p is kept but demoted below every <=720p option by qualityRankVita, so
+    // the default pick (index 0) stays smooth while the heavier source remains a
+    // manual fallback. See bug #216 (crash on Vita playback).
+    all.erase(std::remove_if(all.begin(), all.end(),
+                  [](const media::Media& m) { return m.videoResolution == "4K"; }),
+        all.end());
+#endif
     std::stable_sort(all.begin(), all.end(), [](const media::Media& x, const media::Media& y) {
         if (x.playable() != y.playable()) return x.playable();  // playable first
+#if defined(__PSV__)
+        int qx = qualityRankVita(x.videoResolution), qy = qualityRankVita(y.videoResolution);
+#else
         int qx = qualityRank(x.videoResolution), qy = qualityRank(y.videoResolution);
+#endif
         if (qx != qy) return qx > qy;                           // then best quality
         if (x.playable() && x.cached != y.cached) return x.cached;  // then cached debrid first
         return false;

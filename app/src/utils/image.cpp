@@ -99,6 +99,30 @@ static void dxt_compress_ext(
 static void dxt_compress(uint8_t* dst, uint8_t* src, uint32_t w, uint32_t h, bool isdxt5) {
     dxt_compress_ext(dst, src, w, h, w, 64, isdxt5);
 }
+
+// 2x box-average downscale of an RGBA8 image into a fresh (w+1)/2 x (h+1)/2
+// buffer. Each destination pixel averages its 2x2 source block; an odd last
+// row/column clamps to the edge so the shrunk image keeps a clean border. Used
+// to cap artwork size before it becomes a GXM texture (see doRequest).
+static uint8_t* halve_rgba(const uint8_t* src, int w, int h, int* outW, int* outH) {
+    int dw = (w + 1) / 2, dh = (h + 1) / 2;
+    auto* dst = (uint8_t*)malloc((size_t)dw * dh * 4);
+    if (!dst) return nullptr;
+    for (int y = 0; y < dh; y++) {
+        int sy0 = y * 2, sy1 = MIN(sy0 + 1, h - 1);
+        const uint8_t* r0 = src + (size_t)sy0 * w * 4;
+        const uint8_t* r1 = src + (size_t)sy1 * w * 4;
+        uint8_t* d = dst + (size_t)y * dw * 4;
+        for (int x = 0; x < dw; x++) {
+            int sx0 = (x * 2) * 4, sx1 = MIN(x * 2 + 1, w - 1) * 4;
+            for (int c = 0; c < 4; c++)
+                d[x * 4 + c] = (uint8_t)((r0[sx0 + c] + r0[sx1 + c] + r1[sx0 + c] + r1[sx1 + c] + 2) / 4);
+        }
+    }
+    *outW = dw;
+    *outH = dh;
+    return dst;
+}
 #endif
 
 Image::Image() : image(nullptr) {
@@ -176,6 +200,33 @@ void Image::doRequest(HTTP& s) {
         bool hasAlpha = isWebp;
 #ifdef BOREALIS_USE_GXM
         if (imageData) {
+            // Cap artwork at 1024px per side before it becomes a GXM texture.
+            // GXM rounds texture dimensions up to the next power of two, so an
+            // unresized backdrop (Stremio serves full-res Cinemeta art — its
+            // imageUrl can't resize an absolute CDN url the way Plex/Jellyfin do)
+            // at 1920x1080 turns into a 2048x2048 texture (~4 MB in DXT5). A few
+            // of those exhaust the Vita's GPU memory; the allocator then returns
+            // null mid-render and GXM faults — the "GPU crash / blue light" users
+            // hit while browsing and when leaving a media overview. The screen is
+            // 960x544, so 1024 is lossless even full-screen and quarters the
+            // texture. 2x box-averaging keeps the downscale cheap on the CPU.
+            while (imageW > 1024 || imageH > 1024) {
+                int nw, nh;
+                uint8_t* half = halve_rgba(imageData, imageW, imageH, &nw, &nh);
+                if (!half) break;
+#ifdef USE_WEBP
+                if (isWebp)
+                    WebPFree(imageData);
+                else
+#endif
+                    stbi_image_free(imageData);
+                // The shrunk buffer is a plain malloc now, so route later frees
+                // through stbi_image_free (STBI_FREE == free), not WebPFree.
+                isWebp = false;
+                imageData = half;
+                imageW = nw;
+                imageH = nh;
+            }
             // DXT1 drops the alpha channel entirely: transparent PNGs (clear
             // logos...) would expose the RGB garbage hidden under their
             // alpha-0 areas as opaque blocks. Scan the decoded pixels and
