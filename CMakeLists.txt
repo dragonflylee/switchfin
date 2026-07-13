@@ -54,7 +54,7 @@ include(${BOREALIS_LIBRARY}/cmake/toolchain.cmake)
 project(GMCA)  # short token for files/binaries/IDs; display name = "Gamepad Media Center Aggregator"
 set(VERSION_MAJOR "1")
 set(VERSION_MINOR "0")
-set(VERSION_ALTER "4")
+set(VERSION_ALTER "5")
 # Homebrew forwarder title ID for GMCA, in the community forwarder range (05...),
 # which is outside Nintendo's commercial 01... space — so it cannot collide with
 # an official title, and no title-ID registry check is needed. The "GMCA" vanity
@@ -70,7 +70,7 @@ set(PSN_TITLE_ID "GMCA00000")
 # main version). Bumped every Vita release so the package version never
 # regresses; 00.23 shipped with the broken v1.0.3 VPK, 00.24 is the first that
 # actually installs.
-set(VITA_VERSION "00.24")
+set(VITA_VERSION "00.25")
 set(PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon.jpg)
 set(PROJECT_RESOURCES ${CMAKE_CURRENT_SOURCE_DIR}/resources)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")

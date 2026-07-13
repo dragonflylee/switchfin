@@ -9,6 +9,31 @@ prepared with [git-cliff](https://git-cliff.org/) from conventional commits
 hand. For the history of the upstream project this fork is based on, see the
 [Switchfin changelog](https://github.com/dragonflylee/switchfin/blob/dev/CHANGELOG.md).
 
+## [1.0.5] - 2026-07-13
+
+### Fixed
+
+- **PS Vita: Stremio crashed the GPU ("blue light of death") both while
+  browsing and on playback.** Two independent causes, both down to the Vita's
+  tiny GPU memory and its 1080p-capped hardware decoder:
+  - *Artwork textures were unbounded.* Unlike Plex/Jellyfin, Stremio serves
+    absolute Cinemeta poster/backdrop URLs that can't be resized server-side, so
+    a full-res 1920×1080 backdrop became a 2048×2048 GXM texture (~4 MB in DXT5);
+    a handful exhausted GPU memory and the allocator then returned null
+    mid-render, faulting the GPU. This is the crash reported "everywhere" and
+    specifically when pressing ○ to leave a movie/show overview. Artwork is now
+    downscaled to ≤1024 px per side before upload (the screen is 960×544, so this
+    is lossless even full-screen), capping every texture and quartering the
+    largest ones. As a client-side guard it also protects the other backends if
+    a server ever hands back an oversized image.
+  - *Playback had no resolution cap.* Stremio is direct-play only and sorted 4K
+    first, so the default source fed a 4K stream to a decoder that tops out at
+    1080p — an instant GPU crash. On Vita, 4K sources are now dropped and the
+    source list prefers ≤720p (the field-tested comfort zone for the Vita's
+    limited CPU), keeping 1080p only as a manual fallback. An item left with no
+    compatible source shows the existing "no sources" notice instead of crashing.
+    (#216)
+
 ## [1.0.4] - 2026-07-13
 
 ### Fixed
