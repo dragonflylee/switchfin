@@ -80,8 +80,8 @@ modules:
               - --disable-blacklist
             sources:
               - type: archive
-                url: https://github.com/vcrhonek/hwdata/archive/v0.408.tar.gz
-                sha256: ac7c34efc5941d5cbf739a8f7f6c84b1c2edea493fd3fca10906ef64d7afd690
+                url: https://github.com/vcrhonek/hwdata/archive/v0.409.tar.gz
+                sha256: 23006accc0f931dd5187d0307a57d0744e2b8feb85e73c37bc0f5229fb31eadd
 
       - name: libplacebo
         buildsystem: meson
@@ -211,7 +211,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/dragonflylee/glfw.git
-        commit: 444785324f6896da0acbef85614ecf5999831f2e
+        commit: 2d163fc9f1eb9611367c9a23ea24508e806a3e0d
 
   - name: switchfin
     buildsystem: cmake-ninja
