@@ -165,20 +165,20 @@ void ServerList::onContentAvailable() {
 }
 
 void ServerList::willAppear(bool resetState) {
-    auto list = AppConfig::instance().getServers();
+    auto& list = AppConfig::instance().getServers();
     ServerCell* item = nullptr;
     std::string url = AppConfig::instance().getUrl();
     this->sidebarServers->clearViews();
 
     for (auto& s : list) {
         item = new ServerCell(s);
-        item->getFocusEvent()->subscribe([this, s](brls::View* view) {
+        item->getFocusEvent()->subscribe([&](brls::View* view) {
             this->setActive(view);
             this->onServer(s);
         });
 
-        auto deleteAction = [this, s](brls::View* item) {
-            Dialog::cancelable("main/setting/server/delete"_i18n, [this, item, s]() {
+        auto deleteAction = [&](brls::View* item) {
+            Dialog::cancelable("main/setting/server/delete"_i18n, [&]() {
                 if (AppConfig::instance().removeServer(s.id)) {
                     brls::View* view = new ServerAdd();
                     this->tabFrame->setTabAttachedView(view);
@@ -210,25 +210,24 @@ void ServerList::willAppear(bool resetState) {
 
 void ServerList::onServer(const AppServer& s) {
     this->inputUrl->setDetailText(s.urls.front());
-    this->inputUrl->registerAction("hints/preset"_i18n, brls::BUTTON_X, [this, s](...) {
-        return brls::Application::getImeManager()->openForText(
-            [this, s](const std::string& text) {
+    this->inputUrl->registerClickAction([&](...) {
+        brls::Dropdown* dropdown = new brls::Dropdown("main/setting/url"_i18n, s.urls, [&](int selected) {
+            const std::string& url = s.urls[selected];
+            auto updateAction = [&](const std::string& text) {
                 AppServer server;
                 server.id = s.id;
                 server.urls.push_back(text);
                 AppConfig::instance().addServer(server);
                 this->inputUrl->setDetailText(text);
-            },
-            "main/setting/url"_i18n, "", 255, this->inputUrl->detail->getFullText());
-    });
-    this->inputUrl->registerClickAction([this, s](...) {
-        brls::Dropdown* dropdown = new brls::Dropdown("main/setting/url"_i18n, s.urls, [this, s](int selected) {
-            AppServer server;
-            const std::string& url = s.urls[selected];
-            server.id = s.id;
-            server.urls.push_back(url);
-            AppConfig::instance().addServer(server);
-            this->inputUrl->setDetailText(url);
+            };
+            if (selected > 0) {
+                updateAction(url);
+            } else {
+                brls::sync([url, updateAction]() {
+                    brls::Application::getImeManager()->openForText(
+                        updateAction, "main/setting/url"_i18n, "", 255, url);
+                });
+            }
         });
         brls::Application::pushActivity(new brls::Activity(dropdown));
         return true;

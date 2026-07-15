@@ -49,10 +49,12 @@ bool ServerAdd::onConnect() {
             };
             brls::sync([ASYNC_TOKEN, s]() {
                 ASYNC_RELEASE
-                brls::View* view = new ServerLogin(s.name, s.urls.front());
-                AppConfig::instance().addServer(s);
                 brls::Application::unblockInputs();
-                this->present(view);
+                if (AppConfig::instance().addServer(s)) {
+                    brls::Application::popActivity(brls::TransitionAnimation::NONE);
+                } else {
+                    this->present(new ServerLogin(s.name, s.urls.front()));
+                }
             });
         } catch (const std::exception& ex) {
             std::string msg = ex.what();
