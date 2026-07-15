@@ -47,44 +47,87 @@ Switchfin is third-party PC player for Jellyfin that provides a native user inte
 </table>
 
 ## Features
-- Completely native interface
-- Supported media items: movies, series, seasons, episodes 
-  - Direct play and transcoding
-- Remote browser for Webdav/Apache/Nginx/FTP server
-- Base on MPV Player
-  - Container formats: mkv, mov, mp4, avi
+
+### Media Playback
+- Browse and play **movies, series, seasons, episodes, music albums, and playlists**
+- Live TV with channel guide and program recommendations
+- Direct play and server-side **transcoding**, with auto-detection
+- Full audio track, subtitle track, and chapter selection
+- Based on **MPV Player**
+  - Container formats: MKV, MOV, MP4, AVI
   - Video codecs: H.264, H.265, VP8, VP9, AV1
   - Audio codecs: Opus, FLAC, MP3, AAC, AC-3, E-AC-3, TrueHD, DTS, DTS-HD
   - Subtitle codecs: SRT, VTT, SSA/ASS, DVDSUB
-  - Optionally force software decoding when hardware decoding has issues.
-- External drive support using [libusbhsfs](https://github.com/DarkMatterCore/libusbhsfs)
+  - Hardware-accelerated decoding; fallback to software decoding when needed
 
-## Input mapping during playback
+### Remote File Browser
+- Browse and play media from external sources:
+  - **WebDAV** · **HTTP(S)** · **SFTP** · **FTP** · **local filesystem**
+- Manage multiple remote sources with add/edit/remove
 
-gamepad | keyboard | describe
----|-------|---------
- A | space | Play/Pause
- B | esc | Stop during
- Y | o | Toggle OSD
- X | f4 | Show Menu 
- R/L | [/] | Seek +/-
- \+ | f1 | Show video profile
- R | f2 | Stick Button Toggle Video Quality
- L | f3 | Stick Button Toggle Speed Select
+### Additional Features
+- **Danmaku (弹幕)** — integration with [jellyfin-plugin-danmu](https://github.com/cxfksword/jellyfin-plugin-danmu)
+- **Download** — save media for offline viewing, with series batch download
+- **MirrorPlay** — remote playback control via WebSocket (browse on phone, play on big screen)
+- **Dashboard** — monitor server sessions, activities, and device status; restart and rescan libraries
+- **Search** — full-text search with suggestions across all media types
+- **Personalized recommendations** — because-you-watched, similar content, genre browsing
+- **Cast & crew view** — browse actors and directors with filmography
+- **Multiple servers & users** — quick switch between Jellyfin servers and user profiles
+- **14 languages** — English, 简体中文, 繁體中文, 日本語, 한국어, Deutsch, Français, Español, Português, Русский, Čeština, Türkçe, Українська, Tiếng Việt
+- External drive support on Nintendo Switch via [libusbhsfs](https://github.com/DarkMatterCore/libusbhsfs)
+
+## Input Mapping (Playback)
+
+| Gamepad | Keyboard | Description |
+|---------|----------|-------------|
+| A       | Space    | Play / Pause |
+| B       | Esc      | Stop |
+| Y       | O        | Toggle OSD |
+| X       | F4       | Show Menu |
+| R / L   | [ / ]    | Seek forward / backward |
+| +       | F1       | Show video profile |
+| R stick | F2       | Toggle video quality |
+| L stick | F3       | Toggle playback speed |
+
+Keyboard bindings can be customized in Settings.
+
+```json
+{
+  "setting": {
+    "key_last": "pgup",
+    "key_next": "pgdn",
+    "key_volume_up": "0",
+    "key_volume_down": "9",
+    "key_danmaku": "d",
+    "key_video_profile": "f1",
+    "key_video_quality": "f2",
+    "key_video_speed": "f3",
+    "key_setting": "f4",
+    "key_refresh": "f5",
+    "key_forward": "]",
+    "key_rewind": "[",
+    "key_video_osd": "o",
+    "key_video_pause": "space"
+  }
+}
+```
 
 ## System Requirements
 
-* Windows 7 or later with DirectX 11.1 support
-* Intel or Apple Silicon Mac models 10.15 or later
-* Linux flatpak x86_64/arm64v8 with OpenGL3 support
+| Platform | Requirement |
+|----------|-------------|
+| Windows  | Windows 7 or later with DirectX 11.1 support |
+| macOS    | Intel or Apple Silicon, macOS 10.15 or later |
+| Linux    | x86\_64 / arm64v8 with OpenGL 3.0+, Flatpak recommended |
 
 ## FAQ
 
-1. Q: Subtitles didn't display?
-   A: Put any ttf file at `/switch/Switchfin/subfont.ttf`
+**Q: Subtitles don't display on Nintendo Switch?**
+A: Place a `.ttf` font file at `/switch/Switchfin/subfont.ttf`.
 
-2. Q: How to play media files on webdav server?
-   A: Edit config file `config.json`
+**Q: How do I play media from a WebDAV / SFTP / HTTP server?**
+A: Edit `config.json` and add entries under `remotes`:
 
 ```json
 {
@@ -111,42 +154,47 @@ gamepad | keyboard | describe
 }
 ```
 
-* example for using [rClone](https://rclone.org/downloads/) setup HTTP server
+*Example: using [rclone](https://rclone.org/downloads/) to serve files over HTTP:*
 
 ```bash
 rclone serve http --addr :8000 --read-only /media/downloads
 ```
 
-3. Q: Can't open app under macOS ?
-   A: Please run this command in your terminal: `sudo xattr -rd com.apple.quarantine /Applications/Switchfin.app`
+**Q: The app won't open on macOS?**
+A: Run the following in Terminal to remove the quarantine attribute:
 
-## TODO list
+```bash
+sudo xattr -rd com.apple.quarantine /Applications/Switchfin.app
+```
 
-- [x] Movie view
-- [x] Series detail
-- [x] Search page
-- [x] Websocket connection (MirrorPlay)
-- [x] [danmu plugin](https://github.com/cxfksword/jellyfin-plugin-danmu) integration
-
-## Develop
+## Development
 
 ```shell
 git clone https://github.com/dragonflylee/switchfin.git --recurse-submodules --shallow-submodules
 ```
 
-### Building for Switch
+### Nintendo Switch
 
-To build for Switch, a standard development environment must first be set up. In order to do so, [refer to the Getting Started guide](https://devkitpro.org/wiki/Getting_Started).
+Set up the [devkitPro environment](https://devkitpro.org/wiki/Getting_Started), then:
 
 ```bash
 sudo dkp-pacman -S switch-dev switch-glfw switch-libwebp switch-curl switch-libmpv
 cmake -B build_switch -DPLATFORM_SWITCH=ON
 make -C build_switch Switchfin.nro -j$(nproc)
-# for debug
-nxlink -a <YOUR IP> -p Switchfin/Switchfin.nro -s Switchfin.nro --args -d -v
+# Debug with nxlink
+nxlink -a <YOUR_IP> -p Switchfin/Switchfin.nro -s Switchfin.nro --args -d -v
 ```
 
-### Building for MinGW64
+### Linux / macOS / Windows (Desktop)
+
+Ensure `mpv`, `libcurl`, `libwebp`, and their development headers are installed, then:
+
+```bash
+cmake -B build -DPLATFORM_DESKTOP=ON
+cmake --build build
+```
+
+### Windows (MinGW64)
 
 ```bash
 pacman -S ${MINGW_PACKAGE_PREFIX}-cc ${MINGW_PACKAGE_PREFIX}-ninja ${MINGW_PACKAGE_PREFIX}-cmake
@@ -154,11 +202,11 @@ cmake -B build_mingw -G Ninja -DPLATFORM_DESKTOP=ON
 cmake --build build_mingw
 ```
 
-## Thanks to
+## Acknowledgements
 
-- **@xfangfang for [wiliwili](https://github.com/xfangfang/wiliwili)**
+- **@xfangfang** for [wiliwili](https://github.com/xfangfang/wiliwili)
 - @devkitpro and switchbrew for [libnx](https://github.com/switchbrew/libnx)
 - @natinusala and XITRIX for [borealis](https://github.com/natinusala/borealis)
 - @proconsule for [nxmp](https://github.com/proconsule/nxmp)
-- @averne for great work of [FFmpeg](https://github.com/averne/FFmpeg) hwaccel backend
-- @averne deko3d backend of [mpv](https://github.com/averne/mpv)
+- @averne for [FFmpeg](https://github.com/averne/FFmpeg) hwaccel backend
+- @averne for [mpv](https://github.com/averne/mpv) deko3d backend
