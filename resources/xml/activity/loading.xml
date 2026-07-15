@@ -1,0 +1,31 @@
+<brls:AppletFrame
+    iconInterpolation="linear"
+    backgroundColor="@theme/brls/background"
+    headerHidden="true"
+    footerHidden="true">
+    <brls:Box
+        width="100%"
+        height="100%"
+        axis="column"
+        alignItems="center"
+        justifyContent="center">
+
+        <brls:Image
+            width="194"
+            height="194"
+            marginBottom="40"
+            scalingType="fit"
+            image="@res/icon/icon.png" />
+
+        <brls:ProgressSpinner
+            width="60"
+            height="60"
+            marginBottom="18" />
+
+        <brls:Label
+            fontSize="16"
+            textColor="@theme/font/grey"
+            text="@i18n/main/setting/server/connect_to" />
+
+    </brls:Box>
+</brls:AppletFrame>
