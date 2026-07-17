@@ -2,7 +2,7 @@
 # Maintainer: WinterMute <davem@devkitpro.org>
 pkgname=switch-curl
 pkgver=8.16.0
-pkgrel=2
+pkgrel=3
 pkgdesc='An URL retrieval utility and library'
 arch=('any')
 url="https://curl.se/"
@@ -25,7 +25,7 @@ build() {
 
   ./configure --prefix=$PORTLIBS_PREFIX --host=aarch64-none-elf \
     --disable-shared --enable-static --disable-ipv6 --disable-unix-sockets \
-    --disable-manual --disable-threaded-resolver --disable-progress-meter \
+    --disable-manual --enable-threaded-resolver --disable-progress-meter \
     --without-zstd --without-brotli --without-libpsl --enable-websockets \
     --with-mbedtls --with-default-ssl-backend=mbedtls
   sed -i '/HAVE_SOCKETPAIR/d' lib/curl_config.h

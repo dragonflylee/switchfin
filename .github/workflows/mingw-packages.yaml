@@ -49,7 +49,7 @@ jobs:
       run: |
         cd scripts/mingw64
 
-        for pkg in mbedtls libssh2 freetype harfbuzz libass dav1d ffmpeg spirv-headers spirv-tools glslang spirv-cross shaderc libplacebo; do
+        for pkg in uchardet mbedtls libssh2 freetype harfbuzz libass dav1d ffmpeg spirv-headers spirv-tools glslang spirv-cross shaderc libplacebo; do
           echo building $pkg
           pushd $pkg; makepkg-mingw -sciCf --noconfirm; popd
         done
