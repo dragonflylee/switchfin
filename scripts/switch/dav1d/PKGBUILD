@@ -2,7 +2,7 @@
 
 pkgbasename=dav1d
 pkgname=switch-$pkgbasename
-pkgver=1.5.3
+pkgver=1.5.4
 pkgrel=1
 pkgdesc="dav1d is an AV1 cross-platform decoder, open-source, and focused on speed and correctness."
 arch=("any")
@@ -10,7 +10,7 @@ url="https://code.videolan.org/videolan/${pkgbasename}"
 license=("BSD")
 options=(!strip libtool staticlibs)
 source=("https://downloads.videolan.org/pub/videolan/dav1d/${pkgver}/dav1d-${pkgver}.tar.xz" "dav1d.patch")
-sha256sums=('732010aa5ef461fa93355ed2c6c5fedb48ddc4b74e697eaabe8907eaeb943011' 'SKIP')
+sha256sums=('686616b7c69eb88d44459391ab25cac13b6647a3b288835c5784e71c1514a5c5' 'SKIP')
 makedepends=("dkp-toolchain-vars" "dkp-meson-scripts")
 groups=("switch-portlibs")
 

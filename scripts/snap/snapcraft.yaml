@@ -133,7 +133,7 @@ parts:
 
   dav1d:
     plugin: meson
-    source: https://downloads.videolan.org/pub/videolan/dav1d/1.5.3/dav1d-1.5.3.tar.xz
+    source: https://downloads.videolan.org/pub/videolan/dav1d/1.5.4/dav1d-1.5.4.tar.xz
     source-type: tar
     meson-parameters:
       - --prefix=/usr
