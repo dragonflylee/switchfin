@@ -127,12 +127,7 @@ int main(int argc, char* argv[]) {
         });
     }
 
-    GA("open_app",
-        {
-            {"version", AppVersion::getVersion()},
-            {"language", brls::Application::getLocale()},
-            {"resolution", fmt::format("{}x{}", brls::Application::windowWidth, brls::Application::windowHeight)},
-        })
+    GA("open_app")
 
     AppVersion::checkUpdate();
 

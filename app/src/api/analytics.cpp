@@ -2,6 +2,7 @@
 #include "api/http.hpp"
 #include "utils/config.hpp"
 #include "utils/thread.hpp"
+#include <borealis/core/application.hpp>
 
 namespace analytics {
 
@@ -9,26 +10,22 @@ const std::string GA_ID = "G-SWGSLD5YEC";
 const std::string GA_KEY = "ZpMDGqiKR0C2VV_ufgmEiQ";
 const std::string GA_URL = "https://www.google-analytics.com/mp/collect";
 
-class Property {
-public:
-    std::string value;
-};
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Property, value);
 
 class Package {
 public:
     std::string client_id, user_id;
     int64_t timestamp_micros;
-    std::unordered_map<std::string, Property> user_properties;
+    std::unordered_map<std::string, std::string> device;
     std::vector<Event> events;
 
     Package() {
-        user_properties = {
-            {"platform", {AppVersion::getPlatform()}},
-        };
+        device["language"] = brls::Application::getLocale();
+        device["screen_resolution"] = fmt::format("{}x{}", brls::Application::windowWidth, brls::Application::windowHeight);
+        device["operating_system"] = AppVersion::getPlatform();
+        device["model"] = AppVersion::getDeviceName();
     }
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Package, client_id, user_id, user_properties, events, timestamp_micros);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Package, client_id, user_id, device, events, timestamp_micros);
 
 Analytics::Analytics() {
     this->client_id = fmt::format("GA1.3.{}", AppConfig::instance().getDeviceId());
@@ -46,7 +43,7 @@ void Analytics::report(const std::string& event, nlohmann::json params) {
     params["engagement_time_msec"] = 100;
     params["session_id"] = this->client_id;
     params["git"] = AppVersion::getCommit();
-    params["os"] = AppVersion::getPlatform();
+    params["version"] = AppVersion::getVersion();
 
     events_mutex.lock();
     events.push_back(Event{.name = event, .params = params});
