@@ -3,6 +3,7 @@
 #include "view/mpv_core.hpp"
 #include "view/video_card.hpp"
 #include "api/jellyfin.hpp"
+#include "utils/dialog.hpp"
 #include "utils/download.hpp"
 
 using namespace brls::literals;
@@ -22,20 +23,12 @@ const std::string menuItemXML = R"xml(
             id="menu_item/icon"
             width="20"
             height="20"
-            marginRight="14" />
+            marginRight="16" />
 
         <brls:Label
             id="menu_item/title"
             fontSize="16"
             grow="1.0" />
-
-        <SVGImage
-            id="menu_item/check"
-            width="18"
-            height="18"
-            visibility="invisible"
-            svg="@res/icon/ico-checkmark.svg" />
-
     </brls:Box>
 )xml";
 
@@ -54,11 +47,6 @@ void MenuItem::setIcon(const std::string& res) {
 }
 
 void MenuItem::setTitle(const std::string& text) { this->title->setText(text); }
-
-void MenuItem::setSelected(bool selected) {
-    this->selected = selected;
-    this->check->setVisibility(selected ? brls::Visibility::VISIBLE : brls::Visibility::INVISIBLE);
-}
 
 brls::View* MenuItem::create() { return new MenuItem(); }
 
@@ -79,59 +67,67 @@ ContextMenu::ContextMenu(const jellyfin::Item& item, BaseCardCell* view) : itemI
     this->labelTitle->setText(item.Name);
 
     this->btnFavorite->registerClickAction([this](brls::View* view) {
-        if (this->btnFavorite->getSelected())
+        if (this->isFavorite)
             return this->unFavorite();
         else
             return this->doFavorite();
     });
     this->btnFavorite->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnFavorite));
-    this->btnFavorite->setSelected(item.UserData.IsFavorite);
+    this->updateFavoriteButton(item.UserData.IsFavorite);
 
     this->btnMarkPlay->registerClickAction([this](brls::View* view) {
-        if (this->btnMarkPlay->getSelected())
+        if (this->isPlayed)
             return this->unPlayed();
         else
             return this->doPlayed();
     });
     this->btnMarkPlay->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnMarkPlay));
-    this->btnMarkPlay->setSelected(item.UserData.Played);
+    this->updatePlayedButton(item.UserData.Played);
 
     if (item.Type == jellyfin::mediaTypeMovie || item.Type == jellyfin::mediaTypeEpisode ||
         item.Type == jellyfin::mediaTypeVideo) {
         auto& dm = DownloadManager::instance();
-        switch (dm.findItem(this->itemId)) {
-        case DownloadStatus::Completed:
-            this->btnDownload->title->setText("main/download/completed"_i18n);
-            this->btnDownload->setSelected(true);
-            break;
-        case DownloadStatus::Queued:
-        case DownloadStatus::Downloading:
-            this->btnDownload->title->setText("main/download/downloading"_i18n);
-            this->btnDownload->setSelected(true);
-            break;
-        default:;
-        }
+        this->updateDownloadButton();
         this->btnDownload->registerClickAction([this](brls::View* view) {
             auto& dm = DownloadManager::instance();
             switch (dm.findItem(this->itemId)) {
-            case DownloadStatus::Completed:
-                brls::Application::notify("main/download/completed"_i18n);
-                break;
             case DownloadStatus::Queued:
             case DownloadStatus::Downloading:
-                brls::Application::notify("main/download/downloading"_i18n);
+                Dialog::cancelable("main/download/confirm_cancel"_i18n, [this]() {
+                    DownloadManager::instance().cancelDownload(this->itemId);
+                    this->updateDownloadButton();
+                });
+                break;
+            case DownloadStatus::Completed:
+                brls::Application::notify("main/download/completed"_i18n);
                 break;
             default:
                 int qi = AppConfig::instance().getValueIndex(AppConfig::DOWNLOAD_QUALITY);
                 dm.addDownload(this->itemId, static_cast<DownloadQuality>(qi));
-                brls::Application::notify("main/download/queued"_i18n);
-                this->btnDownload->setSelected(true);
+                this->updateDownloadButton();
             }
             return true;
         });
         this->btnDownload->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnDownload));
+        this->statusSub = dm.getStatusEvent()->subscribe([this](const std::string& id, DownloadStatus status) {
+            if (id == this->itemId) this->updateDownloadButton();
+        });
+        this->progressSub =
+            dm.getProgressEvent()->subscribe([this](const std::string& id, int64_t downloaded, int64_t total) {
+                if (id != this->itemId || total <= 0) return;
+                this->btnDownload->setTitle(
+                    fmt::format("{} ({:.0f}%)", "main/download/downloading"_i18n, downloaded * 100.0 / total));
+            });
     } else {
         this->btnDownload->setVisibility(brls::Visibility::GONE);
+    }
+}
+
+ContextMenu::~ContextMenu() {
+    if (this->btnDownload->getVisibility() == brls::Visibility::VISIBLE) {
+        auto& dm = DownloadManager::instance();
+        dm.getProgressEvent()->unsubscribe(this->progressSub);
+        dm.getStatusEvent()->unsubscribe(this->statusSub);
     }
 }
 
@@ -140,11 +136,11 @@ bool ContextMenu::doPlayed() {
     jellyfin::postJSON(
         {
             {"itemId", this->itemId},
-            {"played", this->btnMarkPlay->getSelected()},
+            {"played", this->isPlayed},
         },
         [ASYNC_TOKEN](const jellyfin::UserDataResult& r) {
             ASYNC_RELEASE
-            this->btnMarkPlay->setSelected(r.Played);
+            this->updatePlayedButton(r.Played);
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
@@ -161,11 +157,11 @@ bool ContextMenu::doFavorite() {
     jellyfin::postJSON(
         {
             {"itemId", this->itemId},
-            {"isFavorite", this->btnFavorite->getSelected()},
+            {"isFavorite", this->isFavorite},
         },
         [ASYNC_TOKEN](const jellyfin::UserDataResult& r) {
             ASYNC_RELEASE
-            this->btnFavorite->setSelected(r.IsFavorite);
+            this->updateFavoriteButton(r.IsFavorite);
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
@@ -181,7 +177,7 @@ bool ContextMenu::unPlayed() {
     jellyfin::deleteJSON<jellyfin::UserDataResult>(
         [ASYNC_TOKEN](const jellyfin::UserDataResult& r) {
             ASYNC_RELEASE
-            this->btnMarkPlay->setSelected(r.IsFavorite);
+            this->updatePlayedButton(r.Played);
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
@@ -198,7 +194,7 @@ bool ContextMenu::unFavorite() {
     jellyfin::deleteJSON<jellyfin::UserDataResult>(
         [ASYNC_TOKEN](const jellyfin::UserDataResult& r) {
             ASYNC_RELEASE
-            this->btnFavorite->setSelected(r.IsFavorite);
+            this->updateFavoriteButton(r.IsFavorite);
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
@@ -207,4 +203,41 @@ bool ContextMenu::unFavorite() {
         jellyfin::apiFavoriteItems, AppConfig::instance().getUserId(), this->itemId);
 
     return true;
+}
+
+void ContextMenu::updatePlayedButton(bool played) {
+    this->isPlayed = played;
+    if (played) {
+        this->btnMarkPlay->setIcon("icon/ico-checkmark.svg");
+        this->btnMarkPlay->setTitle("main/media/mark_unplayed"_i18n);
+    } else {
+        this->btnMarkPlay->setIcon("icon/ico-unchecked.svg");
+        this->btnMarkPlay->setTitle("main/media/mark_played"_i18n);
+    }
+}
+
+void ContextMenu::updateFavoriteButton(bool favorite) {
+    this->isFavorite = favorite;
+    if (favorite) {
+        this->btnFavorite->setIcon("icon/ico-heart.svg");
+        this->btnFavorite->setTitle("main/media/del_favorite"_i18n);
+    } else {
+        this->btnFavorite->setIcon("icon/ico-heart-gray.svg");
+        this->btnFavorite->setTitle("main/media/add_favorite"_i18n);
+    }
+}
+
+void ContextMenu::updateDownloadButton() {
+    auto& dm = DownloadManager::instance();
+    switch (dm.findItem(this->itemId)) {
+    case DownloadStatus::Completed:
+        this->btnDownload->setTitle("main/download/completed"_i18n);
+        break;
+    case DownloadStatus::Queued:
+    case DownloadStatus::Downloading:
+        this->btnDownload->setTitle("main/download/downloading"_i18n);
+        break;
+    default:
+        this->btnDownload->setTitle("main/download/start"_i18n);
+    }
 }

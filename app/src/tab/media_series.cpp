@@ -60,6 +60,15 @@ MediaSeries::MediaSeries(const jellyfin::Episode& item) {
     this->statusSub = dm.getStatusEvent()->subscribe(
         [this](const std::string& id, DownloadStatus status) { this->updateDownloadButton(); });
 
+    this->updateFavoriteButton(item.UserData.IsFavorite);
+    this->btnFavorite->registerClickAction([this](...) {
+        if (this->isFavorite)
+            this->unFavorite();
+        else
+            this->doFavorite();
+        return true;
+    });
+
     this->doSeason();
     this->doSeries();
     this->doSimilar();
@@ -113,6 +122,7 @@ void MediaSeries::doSeries() {
             } else {
                 this->people->setVisibility(brls::Visibility::GONE);
             }
+            this->updateFavoriteButton(r.UserData.IsFavorite);
 
             auto poster = r.ImageTags.find(jellyfin::imageTypePrimary);
             if (poster != r.ImageTags.end()) {
@@ -289,5 +299,51 @@ void MediaSeries::updateDownloadButton() {
         this->btnDownload->setText("main/download/completed"_i18n);
     } else {
         this->btnDownload->setText(fmt::format("{} {}/{}", "main/download/downloading"_i18n, it.second, it.first));
+    }
+}
+
+bool MediaSeries::doFavorite() {
+    ASYNC_RETAIN
+    jellyfin::postJSON(
+        {
+            {"itemId", this->seriesId},
+        },
+        [ASYNC_TOKEN](const jellyfin::UserDataResult& r) {
+            ASYNC_RELEASE
+            this->updateFavoriteButton(r.IsFavorite);
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
+        },
+        jellyfin::apiFavoriteItems, AppConfig::instance().getUserId(), this->seriesId);
+
+    return true;
+}
+
+bool MediaSeries::unFavorite() {
+    ASYNC_RETAIN
+    jellyfin::deleteJSON<jellyfin::UserDataResult>(
+        [ASYNC_TOKEN](const jellyfin::UserDataResult& r) {
+            ASYNC_RELEASE
+            this->updateFavoriteButton(r.IsFavorite);
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
+        },
+        jellyfin::apiFavoriteItems, AppConfig::instance().getUserId(), this->seriesId);
+
+    return true;
+}
+
+void MediaSeries::updateFavoriteButton(bool favorite) {
+    this->isFavorite = favorite;
+    if (favorite) {
+        this->btnFavorite->setIcon("icon/ico-heart.svg");
+        this->btnFavorite->setText("main/media/del_favorite"_i18n);
+    } else {
+        this->btnFavorite->setIcon("icon/ico-heart-gray.svg");
+        this->btnFavorite->setText("main/media/add_favorite"_i18n);
     }
 }

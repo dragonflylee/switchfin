@@ -36,6 +36,7 @@ private:
     BRLS_BIND(brls::SelectorCell, btnSource, "movie/source");
     BRLS_BIND(IconButton, btnPlay, "movie/play");
     BRLS_BIND(IconButton, btnDownload, "movie/download");
+    BRLS_BIND(IconButton, btnFavorite, "movie/favorite");
     BRLS_BIND(HRecyclerFrame, people, "movie/people");
     BRLS_BIND(HRecyclerFrame, similar, "movie/similar");
 
@@ -44,9 +45,14 @@ private:
     void doSimilar();
     void updateDownloadButton();
 
+    bool doFavorite();
+    bool unFavorite();
+    void updateFavoriteButton(bool favorite);
+
     int64_t playTicks = 0;
     std::string itemId;
     std::string sourceId;
+    bool isFavorite = false;
 
     DownloadManager::ProgressEvent::Subscription progressSub;
     DownloadManager::StatusEvent::Subscription statusSub;

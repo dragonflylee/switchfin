@@ -94,6 +94,7 @@
     "name": "Name",
     "seasons": "Seasons",
     "add_favorite": "Add to favorites",
+    "del_favorite": "Remove favorites",
     "mark_played": "Mark played",
     "mark_unplayed": "Mark unplayed",
     "play": "Play",

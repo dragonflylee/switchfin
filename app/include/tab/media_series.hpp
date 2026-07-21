@@ -36,7 +36,7 @@ private:
     BRLS_BIND(brls::Label, labelGenres, "series/label/genres");
     BRLS_BIND(IconButton, btnPlay, "series/play");
     BRLS_BIND(IconButton, btnDownload, "series/download");
-    BRLS_BIND(IconButton, btnWatchlist, "series/watchlist");
+    BRLS_BIND(IconButton, btnFavorite, "series/favorite");
     BRLS_BIND(brls::Header, labelSeasons, "series/label/seasons");
     BRLS_BIND(HRecyclerFrame, seasons, "series/seasons");
     BRLS_BIND(brls::Header, labelSimilar, "series/label/similar");
@@ -56,6 +56,11 @@ private:
     void doDownloadSeries();
     void updateDownloadButton();
 
+    bool doFavorite();
+    bool unFavorite();
+    void updateFavoriteButton(bool favorite);
+
     std::string seriesId;
+    bool isFavorite = false;
     DownloadManager::StatusEvent::Subscription statusSub;
 };

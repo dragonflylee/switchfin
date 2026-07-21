@@ -94,6 +94,7 @@
     "name": "名称",
     "seasons": "季",
     "add_favorite": "加入收藏",
+    "del_favorite": "取消收藏",
     "mark_played": "标为已播放",
     "mark_unplayed": "标为未播放",
     "play": "播放",

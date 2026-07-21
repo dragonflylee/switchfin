@@ -74,6 +74,15 @@ MediaMovie::MediaMovie(const jellyfin::Item& item) : itemId(item.Id) {
         return true;
     });
 
+    this->updateFavoriteButton(item.UserData.IsFavorite);
+    this->btnFavorite->registerClickAction([this](...) {
+        if (this->isFavorite)
+            this->unFavorite();
+        else
+            this->doFavorite();
+        return true;
+    });
+
     this->doMovie();
     this->doSimilar();
 }
@@ -141,6 +150,7 @@ void MediaMovie::doMovie() {
             } else {
                 this->people->setVisibility(brls::Visibility::GONE);
             }
+            this->updateFavoriteButton(r.UserData.IsFavorite);
 
             auto poster = r.ImageTags.find(jellyfin::imageTypePrimary);
             if (poster != r.ImageTags.end()) {
@@ -219,4 +229,50 @@ void MediaMovie::doSimilar() {
             brls::Application::notify(ex);
         },
         jellyfin::apiSimilar, this->itemId, query);
+}
+
+bool MediaMovie::doFavorite() {
+    ASYNC_RETAIN
+    jellyfin::postJSON(
+        {
+            {"itemId", this->itemId},
+        },
+        [ASYNC_TOKEN](const jellyfin::UserDataResult& r) {
+            ASYNC_RELEASE
+            this->updateFavoriteButton(r.IsFavorite);
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
+        },
+        jellyfin::apiFavoriteItems, AppConfig::instance().getUserId(), this->itemId);
+
+    return true;
+}
+
+bool MediaMovie::unFavorite() {
+    ASYNC_RETAIN
+    jellyfin::deleteJSON<jellyfin::UserDataResult>(
+        [ASYNC_TOKEN](const jellyfin::UserDataResult& r) {
+            ASYNC_RELEASE
+            this->updateFavoriteButton(r.IsFavorite);
+        },
+        [ASYNC_TOKEN](const std::string& ex) {
+            ASYNC_RELEASE
+            brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
+        },
+        jellyfin::apiFavoriteItems, AppConfig::instance().getUserId(), this->itemId);
+
+    return true;
+}
+
+void MediaMovie::updateFavoriteButton(bool favorite) {
+    this->isFavorite = favorite;
+    if (favorite) {
+        this->btnFavorite->setIcon("icon/ico-heart.svg");
+        this->btnFavorite->setText("main/media/del_favorite"_i18n);
+    } else {
+        this->btnFavorite->setIcon("icon/ico-heart-gray.svg");
+        this->btnFavorite->setText("main/media/add_favorite"_i18n);
+    }
 }

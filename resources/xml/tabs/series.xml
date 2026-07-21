@@ -169,6 +169,13 @@
                             text="@i18n/main/download/start"
                             buttonStyle="bordered"
                             marginLeft="12" />
+
+                        <IconButton
+                            id="series/favorite"
+                            icon="@res/icon/ico-heart-gray.svg"
+                            text="@i18n/main/media/add_favorite"
+                            buttonStyle="bordered"
+                            marginLeft="12" />
                     </brls:Box>
 
                     <TextBox

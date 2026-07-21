@@ -2,6 +2,7 @@
 
 #include <borealis.hpp>
 #include <api/jellyfin/media.hpp>
+#include <utils/download.hpp>
 
 class SVGImage;
 class BaseCardCell;
@@ -13,8 +14,6 @@ public:
 
     void setIcon(const std::string& res);
     void setTitle(const std::string& text);
-    void setSelected(bool selected);
-    bool getSelected() const { return this->selected; }
 
     static brls::View* create();
 
@@ -22,14 +21,13 @@ public:
 
 private:
     BRLS_BIND(SVGImage, icon, "menu_item/icon");
-    BRLS_BIND(SVGImage, check, "menu_item/check");
-
     bool selected = false;
 };
 
 class ContextMenu : public brls::Box {
 public:
     ContextMenu(const jellyfin::Item& item, BaseCardCell* view = nullptr);
+    ~ContextMenu() override;
 
     bool isTranslucent() override { return true; }
 
@@ -45,10 +43,19 @@ private:
     BRLS_BIND(MenuItem, btnDownload, "menu/download");
 
     bool doPlayed();
-    bool doFavorite();
     bool unPlayed();
+    void updatePlayedButton(bool played);
+
+    bool doFavorite();
     bool unFavorite();
+    void updateFavoriteButton(bool favorite);
+
+    void updateDownloadButton();
 
     std::string itemId;
+    bool isPlayed = false;
+    bool isFavorite = false;
     BaseCardCell* cell = nullptr;
+    DownloadManager::ProgressEvent::Subscription progressSub;
+    DownloadManager::StatusEvent::Subscription statusSub;
 };
