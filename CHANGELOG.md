@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.9.2]
+
+### Fixed
+
+* improve server addition logic and handle connection errors
+* Vita: resolve server hostnames without stalling on DNS
+* Vita/PSV: update mount path for Memory Stock
+* prevent sleep and dim screen idle during downloads
+
+### Add
+
+* add favorite functionality for movies and series
+* add full-screen loading activity and XML layout
+
 ## [0.9.1]
 
 ### Fixed

@@ -1,3 +1,11 @@
+switchfin (0.9.2-1) unstable; urgency=medium
+
+  * improvements media tab layout with new UI elements
+  * add series download support
+  * support remote server manage with add/edit
+ 
+ -- dragonflylee <dragonflylee@outlook.com>  Wed, 22 Jul 2026 00:36:00 +0800
+
 switchfin (0.9.1-1) unstable; urgency=medium
 
   * improvements media tab layout with new UI elements

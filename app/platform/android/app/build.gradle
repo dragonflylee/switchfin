@@ -9,7 +9,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 34
         versionCode project.findProperty('versionCode')?.toInteger() ?: 1
-        versionName "0.9.1"
+        versionName "0.9.2"
         ndkVersion "27.3.13750724"
         externalNativeBuild {
             cmake {
