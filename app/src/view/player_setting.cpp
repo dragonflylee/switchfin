@@ -6,38 +6,6 @@
 
 using namespace brls::literals;
 
-/// Map ISO 639-1 (2-letter) and ISO 639-2 (3-letter) language codes to English names.
-static std::string langCodeToName(const std::string& code) {
-    static const std::unordered_map<std::string, std::string> langMap = {
-        // ISO 639-1
-        {"ar", "Arabic"},   {"zh", "Chinese"},  {"cs", "Czech"},
-        {"da", "Danish"},   {"nl", "Dutch"},     {"en", "English"},
-        {"fi", "Finnish"},  {"fr", "French"},    {"de", "German"},
-        {"el", "Greek"},    {"he", "Hebrew"},    {"hi", "Hindi"},
-        {"hu", "Hungarian"},{"id", "Indonesian"},{"it", "Italian"},
-        {"ja", "Japanese"}, {"ko", "Korean"},    {"no", "Norwegian"},
-        {"pl", "Polish"},   {"pt", "Portuguese"},{"ro", "Romanian"},
-        {"ru", "Russian"},  {"es", "Spanish"},   {"sv", "Swedish"},
-        {"th", "Thai"},     {"tr", "Turkish"},   {"uk", "Ukrainian"},
-        {"vi", "Vietnamese"},{"und", "Undetermined"},
-        // ISO 639-2
-        {"ara", "Arabic"},  {"zho", "Chinese"},  {"chi", "Chinese"},
-        {"ces", "Czech"},   {"cze", "Czech"},    {"dan", "Danish"},
-        {"nld", "Dutch"},   {"dut", "Dutch"},    {"eng", "English"},
-        {"fin", "Finnish"}, {"fra", "French"},   {"fre", "French"},
-        {"deu", "German"},  {"ger", "German"},   {"ell", "Greek"},
-        {"gre", "Greek"},   {"heb", "Hebrew"},   {"hin", "Hindi"},
-        {"hun", "Hungarian"},{"ind", "Indonesian"},{"ita", "Italian"},
-        {"jpn", "Japanese"},{"kor", "Korean"},   {"nor", "Norwegian"},
-        {"pol", "Polish"},  {"por", "Portuguese"},{"ron", "Romanian"},
-        {"rum", "Romanian"},{"rus", "Russian"},  {"spa", "Spanish"},
-        {"swe", "Swedish"}, {"tha", "Thai"},     {"tur", "Turkish"},
-        {"ukr", "Ukrainian"},{"vie", "Vietnamese"},
-    };
-    auto it = langMap.find(code);
-    return it != langMap.end() ? it->second : code;
-}
-
 PlayerSetting::PlayerSetting(const jellyfin::Source* src) {
     this->inflateFromXMLRes("xml/view/player_setting.xml");
     brls::Logger::debug("PlayerSetting: create");
@@ -68,15 +36,11 @@ PlayerSetting::PlayerSetting(const jellyfin::Source* src) {
         std::string type  = mpv.getString(fmt::format("track-list/{}/type", n));
         std::string title = mpv.getString(fmt::format("track-list/{}/title", n));
         std::string lang  = mpv.getString(fmt::format("track-list/{}/lang", n));
-        std::string langName = langCodeToName(lang);
-
-        if (!title.empty() && !langName.empty())
-            title = fmt::format("{} - {}", title, langName);  // e.g. "CR - English"
-        else if (title.empty() && !langName.empty())
-            title = langName;
+        if (!title.empty() && !lang.empty())
+            title = fmt::format("{} - {}", title, lang);
         else if (title.empty())
-            title = fmt::format("{} track {}", type, n);
-
+            title = lang;
+        if (title.empty()) title = fmt::format("{} track {}", type, n);
         if (type == "sub")
             subTrack.push_back(title);
         else if (type == "audio")
