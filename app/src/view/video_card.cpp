@@ -31,3 +31,12 @@ void BaseCardCell::setWatched(bool played) {
     // watched clears any resume bar; un-watched also hides it (offset reset)
     this->rectProgress->getParent()->setVisibility(brls::Visibility::GONE);
 }
+
+void BaseCardCell::setFavorite(bool favorite) {
+    if (favorite) {
+        this->badgeFavorite->setImageFromSVGRes("icon/ico-heart.svg");
+        this->badgeFavorite->setVisibility(brls::Visibility::VISIBLE);
+    } else {
+        this->badgeFavorite->setVisibility(brls::Visibility::GONE);
+    }
+}

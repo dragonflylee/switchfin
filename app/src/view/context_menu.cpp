@@ -148,7 +148,6 @@ bool ContextMenu::doPlayed() {
         },
         jellyfin::apiPlayedItems, AppConfig::instance().getUserId(), this->itemId);
 
-    this->cell->setWatched(true);
     return true;
 }
 
@@ -185,7 +184,6 @@ bool ContextMenu::unPlayed() {
         },
         jellyfin::apiPlayedItems, AppConfig::instance().getUserId(), this->itemId);
 
-    this->cell->setWatched(false);
     return true;
 }
 
@@ -206,6 +204,7 @@ bool ContextMenu::unFavorite() {
 }
 
 void ContextMenu::updatePlayedButton(bool played) {
+    this->cell->setWatched(played);
     this->isPlayed = played;
     if (played) {
         this->btnMarkPlay->setIcon("icon/ico-checkmark.svg");
@@ -217,6 +216,7 @@ void ContextMenu::updatePlayedButton(bool played) {
 }
 
 void ContextMenu::updateFavoriteButton(bool favorite) {
+    this->cell->setFavorite(favorite);
     this->isFavorite = favorite;
     if (favorite) {
         this->btnFavorite->setIcon("icon/ico-heart.svg");

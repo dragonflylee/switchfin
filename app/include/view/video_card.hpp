@@ -16,7 +16,10 @@ public:
 
     void setWatched(bool played);
 
+    void setFavorite(bool favorite);
+
     BRLS_BIND(SVGImage, badgeTopRight, "video/card/badge/top");
+    BRLS_BIND(SVGImage, badgeFavorite, "video/card/badge/favorite");
     BRLS_BIND(brls::Rectangle, rectProgress, "video/card/progress");
     BRLS_BIND(brls::Image, picture, "video/card/picture");
     BRLS_BIND(brls::Label, labelTitle, "video/card/label/title");
@@ -36,6 +39,5 @@ public:
 
     static VideoCardCell* create() { return new VideoCardCell(); }
 
-    BRLS_BIND(SVGImage, badgeFavorite, "video/card/badge/favorite");
     BRLS_BIND(brls::Label, labelRating, "video/card/label/rating");
 };

@@ -22,7 +22,6 @@ public:
 
     BRLS_BIND(brls::Label, labelName, "episode/card/name");
     BRLS_BIND(brls::Label, labelOverview, "episode/card/overview");
-    BRLS_BIND(SVGImage, badgeFavorite, "video/card/badge/favorite");
 };
 
 class EpisodeDataSource : public RecyclingGridDataSource {
