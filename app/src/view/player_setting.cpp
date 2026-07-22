@@ -35,7 +35,11 @@ PlayerSetting::PlayerSetting(const jellyfin::Source* src) {
     for (int64_t n = 0; n < count; n++) {
         std::string type = mpv.getString(fmt::format("track-list/{}/type", n));
         std::string title = mpv.getString(fmt::format("track-list/{}/title", n));
-        if (title.empty()) title = mpv.getString(fmt::format("track-list/{}/lang", n));
+        std::string lang  = mpv.getString(fmt::format("track-list/{}/lang", n));
+        if (!title.empty() && !lang.empty())
+            title = fmt::format("{} ({})", title, lang);
+        else if (title.empty())
+            title = lang;
         if (title.empty()) title = fmt::format("{} track {}", type, n);
         if (type == "sub")
             subTrack.push_back(title);
