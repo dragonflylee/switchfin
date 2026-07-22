@@ -55,6 +55,35 @@
     "episode": "Epizoda",
     "speed_up": "Aktuální rychlost {}"
   },
+  "danmaku": {
+    "header": "Nastavení Danmaku",
+    "performance": {
+      "header": "Výkon",
+      "render": "Kvalita vykreslování"
+    },
+    "style": {
+      "header": "Styl Danmaku",
+      "font": "Styl obrysu",
+      "font_stroke": "Obrys",
+      "font_incline": "Sklon",
+      "font_shadow": "Stín",
+      "font_pure": "Čistý",
+      "area": "Oblast zobrazení",
+      "area_1_4": "1/4 obrazovky",
+      "area_2_4": "1/2 obrazovky",
+      "area_3_4": "3/4 obrazovky",
+      "area_4_4": "Celá obrazovka",
+      "alpha": "Průhlednost",
+      "fontsize": "Velikost písma",
+      "line_height": "Výška řádku",
+      "speed": "Rychlost",
+      "speed_slow_plus": "Extrémně pomalá",
+      "speed_slow": "Pomalá",
+      "speed_fast_plus": "Extrémně rychlá",
+      "speed_fast": "Rychlá",
+      "speed_moderate": "Střední"
+    }
+  },
   "media": {
     "sort": "Řadit",
     "sort_by": "Řadit podle",
@@ -65,6 +94,7 @@
     "name": "Jména",
     "seasons": "řady",
     "add_favorite": "Přidat do oblíbených",
+    "del_favorite": "Odstranit z oblíbených",
     "mark_played": "Označit přehrané",
     "mark_unplayed": "Označit nepřehrané",
     "play": "Přehrát",
@@ -115,6 +145,8 @@
     "required": "Zadejte alespoň název a hostitele."
   },
   "download": {
+    "quality": "Kvalita stahování",
+    "original": "Originál",
     "start": "Stáhnout",
     "cancel": "Zrušit stahování",
     "remove": "Odstranit stažené",
@@ -122,6 +154,7 @@
     "completed": "Staženo",
     "failed": "Stahování selhalo",
     "queued": "Ve frontě",
+    "items": "položek",
     "no_downloads": "Žádná stahování",
     "confirm_remove": "Odstranit toto stažení?",
     "confirm_cancel": "Zrušit toto stahování?",
@@ -161,6 +194,8 @@
       "bottom_bar": "Zobrazit spodní indikátor průběhu",
       "low_quality": "Nízká kvalita dekódování (s menším využitím CPU)",
       "in_memory_cache": "Ve vyrovnávací paměti",
+      "subs_fallback": "Automatické načítání titulků",
+      "vo": "Video výstup",
       "hwdec": "Hardwarové dekódování",
       "force_directplay": "Vynutit přímé přehrávání",
       "osd_on_toggle": "Zobrazit OSD při pozastavení",
@@ -250,6 +285,7 @@
       "single": "Jediná instance",
       "overclock": "Přetaktování CPU",
       "debug": "Zobrazení ladění",
+      "sync": "Zachovat nastavení pořadí",
       "theme": {
         "header": "Motiv (vyžaduje restart)",
         "1": "Automaticky",

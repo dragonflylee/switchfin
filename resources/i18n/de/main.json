@@ -55,6 +55,35 @@
     "episode": "Episoden",
     "speed_up": "Aktuelle Geschwindigkeit {}"
   },
+  "danmaku": {
+    "header": "Danmaku-Einstellungen",
+    "performance": {
+      "header": "Leistung",
+      "render": "Renderqualität"
+    },
+    "style": {
+      "header": "Danmaku-Stil",
+      "font": "Konturstil",
+      "font_stroke": "Kontur",
+      "font_incline": "Neigung",
+      "font_shadow": "Schatten",
+      "font_pure": "Rein",
+      "area": "Anzeigebereich",
+      "area_1_4": "1/4 Bildschirm",
+      "area_2_4": "1/2 Bildschirm",
+      "area_3_4": "3/4 Bildschirm",
+      "area_4_4": "Vollbild",
+      "alpha": "Deckkraft",
+      "fontsize": "Schriftgröße",
+      "line_height": "Zeilenhöhe",
+      "speed": "Geschwindigkeit",
+      "speed_slow_plus": "Extrem langsam",
+      "speed_slow": "Langsam",
+      "speed_fast_plus": "Extrem schnell",
+      "speed_fast": "Schnell",
+      "speed_moderate": "Mäßig"
+    }
+  },
   "media": {
     "sort": "Sortieren",
     "sort_by": "Sortieren nach",
@@ -65,6 +94,7 @@
     "name": "Name",
     "seasons": "Staffeln",
     "add_favorite": "Zu Favoriten hinzufügen",
+    "del_favorite": "Aus Favoriten entfernen",
     "mark_played": "Als gesehen markieren",
     "mark_unplayed": "Als ungesehen markieren",
     "play": "Abspielen",
@@ -115,6 +145,8 @@
     "required": "Gib mindestens einen Namen und einen Host an."
   },
   "download": {
+    "quality": "Download-Qualität",
+    "original": "Original",
     "start": "Herunterladen",
     "cancel": "Download abbrechen",
     "remove": "Download entfernen",
@@ -122,7 +154,7 @@
     "completed": "Heruntergeladen",
     "failed": "Download fehlgeschlagen",
     "queued": "In Warteschlange",
-    "items": "items",
+    "items": "Elemente",
     "no_downloads": "Keine Downloads",
     "confirm_remove": "Diesen Download entfernen?", 
     "confirm_cancel": "Diesen Download abbrechen?",

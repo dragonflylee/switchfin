@@ -7,6 +7,7 @@
     "artists": "Artistas",
     "songs": "Músicas",
     "search": "Pesquisar",
+    "downloads": "Transferências",
     "dashboard": "Dashboard",
     "setting": "Configurações"
   },
@@ -93,6 +94,7 @@
     "name": "Título",
     "seasons": "temporadas",
     "add_favorite": "Adicionar aos Favoritos",
+    "del_favorite": "Remover dos favoritos",
     "mark_played": "Marcar como reproduzido",
     "mark_unplayed": "Desmarcar como reproduzido",
     "play": "Reproduzir",
@@ -143,6 +145,8 @@
     "required": "Indique pelo menos um nome e um anfitrião."
   },
   "download": {
+    "quality": "Qualidade de transferência",
+    "original": "Original",
     "start": "Transferir",
     "cancel": "Cancelar transferência",
     "remove": "Remover transferência",
@@ -150,6 +154,7 @@
     "completed": "Transferido",
     "failed": "Transferência falhada",
     "queued": "Em fila",
+    "items": "itens",
     "no_downloads": "Sem transferências",
     "confirm_remove": "Remover esta transferência?",
     "confirm_cancel": "Cancelar esta transferência?",

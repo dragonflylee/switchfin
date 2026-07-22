@@ -27,6 +27,18 @@
     "brief": "Một ứng dụng jellyfin dành cho bên thứ ba",
     "repo_header": "Kho lưu trữ"
   },
+  "dashboard": {
+    "session": "Phiên",
+    "device": "Thiết bị",
+    "activity": "Hoạt động",
+    "path": "Đường dẫn",
+    "restart": "Khởi động lại",
+    "confirm_restart": "Bạn có chắc muốn khởi động lại Jellyfin?",
+    "scan_all": "Quét tất cả thư viện",
+    "within_minute": "Trong vòng 1 phút",
+    "minute_ago": "{} phút trước",
+    "hour_ago": "{} giờ trước"
+  },
   "player": {
     "subtitle": "Phụ đề",
     "none": "Không",
@@ -81,6 +93,8 @@
     "descending": "Giảm dần",
     "name": "Tên",
     "seasons": "mùa",
+    "add_favorite": "Thêm vào yêu thích",
+    "del_favorite": "Xóa khỏi yêu thích",
     "mark_played": "Đánh dấu đã xem",
     "mark_unplayed": "Đánh dấu chưa xem",
     "play": "Phát",
@@ -109,6 +123,7 @@
     "no_results": "Không có kết quả",
     "genres": {
       "movie": "Phim",
+      "music": "Nhạc",
       "series": "Phim Bộ",
       "episode": "Tập"
     }
@@ -130,6 +145,8 @@
     "required": "Nhập ít nhất tên và máy chủ."
   },
   "download": {
+    "quality": "Chất lượng tải xuống",
+    "original": "Nguyên gốc",
     "start": "Tải xuống",
     "cancel": "Hủy tải xuống",
     "remove": "Xóa bản tải",
@@ -137,6 +154,7 @@
     "completed": "Đã tải xuống",
     "failed": "Tải xuống thất bại",
     "queued": "Trong hàng đợi",
+    "items": "mục",
     "no_downloads": "Không có bản tải",
     "confirm_remove": "Xóa bản tải này?",
     "confirm_cancel": "Hủy tải xuống này?",

@@ -94,6 +94,7 @@
     "name": "名前",
     "seasons": "シーズン",
     "add_favorite": "お気に入りに追加",
+    "del_favorite": "お気に入りから削除",
     "mark_played": "再生済みにする",
     "mark_unplayed": "未再生にする",
     "play": "再生",

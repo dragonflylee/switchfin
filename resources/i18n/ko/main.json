@@ -94,6 +94,7 @@
     "name": "이름",
     "seasons": "시즌",
     "add_favorite": "즐겨찾기에 추가",
+    "del_favorite": "즐겨찾기에서 제거",
     "mark_played": "재생한 것으로 표시",
     "mark_unplayed": "재생하지 않은 것으로 표시",
     "play": "재생",
@@ -144,6 +145,8 @@
     "required": "이름과 호스트를 입력하세요."
   },
   "download": {
+    "quality": "다운로드 화질",
+    "original": "원본",
     "start": "다운로드",
     "cancel": "다운로드 취소",
     "remove": "다운로드 삭제",
@@ -151,6 +154,7 @@
     "completed": "다운로드 완료",
     "failed": "다운로드 실패",
     "queued": "대기 중",
+    "items": "항목",
     "no_downloads": "다운로드 없음",
     "confirm_remove": "이 다운로드를 삭제할까요?",
     "confirm_cancel": "이 다운로드를 취소할까요?",
