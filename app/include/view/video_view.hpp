@@ -6,6 +6,7 @@
 
 #include <borealis.hpp>
 #include <utils/event.hpp>
+#include <api/jellyfin/media.hpp>
 
 class VideoProgressSlider;
 class SVGImage;
@@ -47,7 +48,7 @@ public:
 
     void setDanmakuEnable(brls::Visibility v);
 
-    void setClipPoint(const std::vector<float>& clips);
+    void setChapters(const std::vector<jellyfin::MediaChapter>& chaps, uint64_t duration);
 
     void playNext(int offset);
 
@@ -77,6 +78,7 @@ private:
     BRLS_BIND(brls::Box, btnCast, "video/osd/cast");
     BRLS_BIND(brls::Box, btnToggle, "video/osd/toggle");
     BRLS_BIND(brls::Box, btnVideoQuality, "video/quality/box");
+    BRLS_BIND(brls::Box, btnVideoChapter, "video/chapter/box");
     BRLS_BIND(brls::Box, btnVideoSpeed, "video/speed/box");
     BRLS_BIND(brls::Box, btnEpisode, "show/episode/box");
     BRLS_BIND(brls::Box, btnVolume, "video/osd/volume");

@@ -378,6 +378,27 @@
                             highlightCornerRadius="8" />
                     </brls:Box>
                     <brls:Box
+                        id="video/chapter/box"
+                        hideClickAnimation="true"
+                        marginLeft="10"
+                        marginRight="10"
+                        visibility="gone"
+                        alignItems="center"
+                        justifyContent="center"
+                        height="60">
+                        <brls:Label
+                            id="video/chapter/label"
+                            textColor="@theme/color/white"
+                            text="@i18n/main/player/chapter"
+                            focusable="true"
+                            focusUp="video/osd/lock/box"
+                            focusDown="video/chapter"
+                            visibility="gone"
+                            horizontalAlign="center"
+                            hideHighlightBackground="true"
+                            highlightCornerRadius="8" />
+                    </brls:Box>
+                    <brls:Box
                         id="video/quality/box"
                         hideClickAnimation="true"
                         marginLeft="10"
