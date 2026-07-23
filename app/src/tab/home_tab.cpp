@@ -26,12 +26,17 @@ HomeTab::HomeTab() {
     });
 
     this->showNextup->onQuery([](size_t start, size_t pageSize) {
+        char cutoff[21] = {};
+        const int maxNextup = AppConfig::instance().getItem(AppConfig::MAXDAY_NEXTUP, 365);
+        const time_t tt = std::time(nullptr) - maxNextup * 24 * 3600;
+        std::strftime(cutoff, sizeof(cutoff), "%Y-%m-%dT%H:%M:%SZ", std::gmtime(&tt));
         std::string query = HTTP::encode_form({
             {"userId", AppConfig::instance().getUserId()},
             {"fields", "BasicSyncInfo,Chapters"},
             {"enableImageTypes", "Primary,Backdrop,Thumb"},
             {"enableResumable", "false"},
             {"enableRewatching", "false"},
+            {"nextUpDateCutoff", cutoff},
             {"limit", std::to_string(pageSize)},
             {"startIndex", std::to_string(start)},
         });

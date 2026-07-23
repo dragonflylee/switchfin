@@ -72,6 +72,7 @@ public:
         WINDOW_STATE,
         TRANSCODEC,
         FORCE_DIRECTPLAY,
+        MAXDAY_NEXTUP,
         OSD_ON_TOGGLE,
         TOUCH_GESTURE,
         CLIP_POINT,
