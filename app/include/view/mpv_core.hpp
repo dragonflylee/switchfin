@@ -72,7 +72,7 @@ public:
 
     void stop();
 
-    void seek(int64_t value, const std::string &flags = "absolute");
+    void seek(double value, const std::string &flags = "absolute");
 
     void setSpeed(double value);
 

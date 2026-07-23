@@ -705,7 +705,7 @@ void MPVCore::togglePlay() { this->command("cycle", "pause"); }
 
 void MPVCore::stop() { this->command("stop"); }
 
-void MPVCore::seek(int64_t value, const std::string &flags) {
+void MPVCore::seek(double value, const std::string &flags) {
     std::string pos = std::to_string(value);
     this->command("seek", pos.c_str(), flags.c_str());
 }
