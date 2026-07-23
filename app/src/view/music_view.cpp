@@ -81,11 +81,11 @@ void MusicView::registerMpvEvent() {
         case MpvEventEnum::UPDATE_DURATION:
             this->leftStatusLabel->setText(misc::sec2Time(0));
             this->rightStatusLabel->setText(misc::sec2Time(mpv.duration));
-            this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
+            this->osdSlider->setProgress((float)mpv.playback_time / mpv.duration);
             break;
         case MpvEventEnum::UPDATE_PROGRESS:
             this->leftStatusLabel->setText(misc::sec2Time(mpv.video_progress));
-            this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
+            this->osdSlider->setProgress((float)mpv.playback_time / mpv.duration);
             break;
         case MpvEventEnum::END_OF_FILE:
             this->reset();

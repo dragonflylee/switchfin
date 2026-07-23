@@ -613,13 +613,13 @@ void VideoView::registerMpvEvent() {
         case MpvEventEnum::UPDATE_DURATION:
             if (this->seekingRange == 0) {
                 this->rightStatusLabel->setText(misc::sec2Time(mpv.duration));
-                this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
+                this->osdSlider->setProgress((float)mpv.playback_time / mpv.duration);
             }
             break;
         case MpvEventEnum::UPDATE_PROGRESS:
             if (this->seekingRange == 0) {
                 this->leftStatusLabel->setText(misc::sec2Time(mpv.video_progress));
-                this->osdSlider->setProgress(mpv.playback_time / mpv.duration);
+                this->osdSlider->setProgress((float)mpv.playback_time / mpv.duration);
             }
             break;
         case MpvEventEnum::VIDEO_SPEED_CHANGE:

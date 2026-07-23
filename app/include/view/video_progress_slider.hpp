@@ -54,6 +54,9 @@ private:
     std::vector<float> clipPointList;
 
     float progress = 1;
+    // while pointer is selected, the last progress value set by setProgress()
+    // is stored here to be restored when canceling the selection
+    float lastProgress = 1;
 
     void updateUI();
 };

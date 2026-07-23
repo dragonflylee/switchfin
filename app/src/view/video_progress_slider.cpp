@@ -5,10 +5,8 @@
 #include "view/video_progress_slider.hpp"
 #include "view/svg_image.hpp"
 
-using namespace brls;
-
 VideoProgressSlider::VideoProgressSlider() {
-    input = Application::getPlatform()->getInputManager();
+    input = brls::Application::getPlatform()->getInputManager();
 
     line = new brls::Rectangle();
     lineEmpty = new brls::Rectangle();
@@ -18,6 +16,8 @@ VideoProgressSlider::VideoProgressSlider() {
     line->detach();
     lineEmpty->detach();
     pointer->detach();
+
+    setHeight(40);
 
     line->setHeight(7);
     line->setCornerRadius(3.5f);
@@ -38,38 +38,33 @@ VideoProgressSlider::VideoProgressSlider() {
     pointer->addView(pointerIcon);
 
     this->registerFloatXMLAttribute("pointer", [this](float value) { pointer->setDimensions(value, value); });
-    this->registerFloatXMLAttribute("icon", [this](float value) { pointerIcon->setDimensions(value, value); });
-    this->registerFloatXMLAttribute("line", [this](float value) {
-        line->setHeight(value);
-        lineEmpty->setHeight(value);
-    });
 
     addView(pointer);
     addView(line);
     addView(lineEmpty);
 
-    Theme theme = Application::getTheme();
+    brls::Theme theme = brls::Application::getTheme();
 
     line->setColor(theme["brls/slider/line_filled"]);
     lineEmpty->setColor(theme["brls/slider/line_empty"]);
 
-    pointer->addGestureRecognizer(new PanGestureRecognizer(
-        [this](PanGestureStatus status, Sound* soundToPlay) {
-            Application::giveFocus(pointer);
+    pointer->addGestureRecognizer(new brls::PanGestureRecognizer(
+        [this](brls::PanGestureStatus status, brls::Sound* soundToPlay) {
+            brls::Application::giveFocus(pointer);
 
-            static float lastProgress = progress;
+            lastProgress = progress;
 
-            if (status.state == GestureState::UNSURE) {
-                *soundToPlay = SOUND_FOCUS_CHANGE;
+            if (status.state == brls::GestureState::UNSURE) {
+                *soundToPlay = brls::SOUND_FOCUS_CHANGE;
                 return;
             }
 
-            else if (status.state == GestureState::INTERRUPTED || status.state == GestureState::FAILED) {
-                *soundToPlay = SOUND_TOUCH_UNFOCUS;
+            else if (status.state == brls::GestureState::INTERRUPTED || status.state == brls::GestureState::FAILED) {
+                *soundToPlay = brls::SOUND_TOUCH_UNFOCUS;
                 return;
             }
 
-            else if (status.state == GestureState::START) {
+            else if (status.state == brls::GestureState::START) {
                 lastProgress = progress;
             }
 
@@ -79,25 +74,26 @@ VideoProgressSlider::VideoProgressSlider() {
             setProgress(lastProgress + delta / paddingWidth);
             progressEvent.fire(this->progress);
 
-            if (status.state == GestureState::END) {
-                Application::getPlatform()->getAudioPlayer()->play(SOUND_SLIDER_RELEASE);
+            if (status.state == brls::GestureState::END) {
+                brls::Application::getPlatform()->getAudioPlayer()->play(brls::SOUND_SLIDER_RELEASE);
                 progressSetEvent.fire(this->progress);
-                Application::giveFocus(this->getParentActivity()->getContentView());
+                brls::Application::giveFocus(this->getParentActivity()->getContentView());
             }
         },
-        PanAxis::HORIZONTAL));
+        brls::PanAxis::HORIZONTAL));
 
     this->addGestureRecognizer(
-        new TapGestureRecognizer([this](brls::TapGestureStatus status, brls::Sound* soundToPlay) {
-            if (status.state != GestureState::END) return;
+        new brls::TapGestureRecognizer([this](brls::TapGestureStatus status, brls::Sound* soundToPlay) {
+            if (status.state != brls::GestureState::END) return;
             float paddingWidth = getWidth() - pointer->getWidth();
-            float delta = status.position.x - pointer->getWidth() / 2 - pointer->getX();
+            float delta = status.position.x - pointer->getWidth() / 2.0f - pointer->getX();
             setProgress(progress + delta / paddingWidth);
             progressSetEvent.fire(this->progress);
-            Application::giveFocus(this->getParentActivity()->getContentView());
+            brls::Application::giveFocus(this->getParentActivity()->getContentView());
         }));
 
     progress = 0;
+    lastProgress = 0;
 }
 
 brls::View* VideoProgressSlider::create() { return new VideoProgressSlider(); }
@@ -107,22 +103,14 @@ void VideoProgressSlider::onLayout() {
     updateUI();
 }
 
-View* VideoProgressSlider::getDefaultFocus() { return pointer; }
+brls::View* VideoProgressSlider::getDefaultFocus() { return pointer; }
 
 void VideoProgressSlider::setProgress(float progress) {
-    static int lastProgressTicker = this->progress * 10;
+    this->lastProgress = progress;
 
     this->progress = progress;
-
     if (this->progress < 0) this->progress = 0;
-
     if (this->progress > 1) this->progress = 1;
-
-    if (lastProgressTicker != (int)(this->progress * 10)) {
-        lastProgressTicker = this->progress * 10;
-        Application::getAudioPlayer()->play(SOUND_SLIDER_TICK);
-    }
-
     updateUI();
 }
 
@@ -137,7 +125,7 @@ void VideoProgressSlider::updateUI() {
     line->setDetachedPosition(lineStart, lineYPos);
     line->setWidth(lineStartWidth);
 
-    lineEmpty->setDetachedPosition(lineEnd, lineYPos);
+    lineEmpty->setDetachedPosition(round(lineEnd), lineYPos);
     lineEmpty->setWidth(lineEndWidth);
 
     pointer->setDetachedPosition(lineEnd - pointer->getWidth() / 2, getHeight() / 2 - pointer->getHeight() / 2);
@@ -150,14 +138,15 @@ void VideoProgressSlider::clearClipPoint() { clipPointList.clear(); }
 void VideoProgressSlider::setClipPoint(const std::vector<float>& data) { clipPointList = data; }
 
 void VideoProgressSlider::draw(
-    NVGcontext* vg, float x, float y, float width, float height, Style style, FrameContext* ctx) {
+    NVGcontext* vg, float x, float y, float width, float height, brls::Style style, brls::FrameContext* ctx) {
     for (View* child : this->getChildren()) {
         if (child == this->pointer) {
+            float wp = pointer->getWidth();
             // draw clip point before pointer
             nvgBeginPath(vg);
             nvgFillColor(vg, a(nvgRGBf(1.0f, 1.0f, 1.0f)));
             for (auto& i : clipPointList) {
-                nvgCircle(vg, x + 32 + i * (width - 64), y + height / 2, 3);
+                nvgCircle(vg, x + wp / 2.0f + i * (width - wp), y + height / 2, 3);
             }
             nvgFill(vg);
         }
