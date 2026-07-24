@@ -52,8 +52,6 @@ VideoProgressSlider::VideoProgressSlider() {
         [this](brls::PanGestureStatus status, brls::Sound* soundToPlay) {
             brls::Application::giveFocus(pointer);
 
-            lastProgress = progress;
-
             if (status.state == brls::GestureState::UNSURE) {
                 *soundToPlay = brls::SOUND_FOCUS_CHANGE;
                 return;
