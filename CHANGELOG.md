@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.9.3]
+
+### Added
+
+* add chapter select on player view
+* add config for max nextup
+* add soft keyboard support for trimui
+
+### Fixed
+
+* show 'Title - Language' in subtitle/audio track selector, matching Jellyfin style (#236)
+* change seek parameter type from int64_t to double for improved precision
+* remove unused lastProgress assignment in VideoProgressSlider constructor
+* i18n: sync missing translation keys across all languages
+
 ## [0.9.2]
 
 ### Fixed

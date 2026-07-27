@@ -71,9 +71,6 @@ Switchfin is third-party PC player for Jellyfin that provides a native user inte
 - **MirrorPlay** — remote playback control via WebSocket (browse on phone, play on big screen)
 - **Dashboard** — monitor server sessions, activities, and device status; restart and rescan libraries
 - **Search** — full-text search with suggestions across all media types
-- **Personalized recommendations** — because-you-watched, similar content, genre browsing
-- **Cast & crew view** — browse actors and directors with filmography
-- **Multiple servers & users** — quick switch between Jellyfin servers and user profiles
 - **14 languages** — English, 简体中文, 繁體中文, 日本語, 한국어, Deutsch, Français, Español, Português, Русский, Čeština, Türkçe, Українська, Tiếng Việt
 - External drive support on Nintendo Switch via [libusbhsfs](https://github.com/DarkMatterCore/libusbhsfs)
 

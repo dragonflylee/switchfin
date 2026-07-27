@@ -1,3 +1,11 @@
+switchfin (0.9.3-1) unstable; urgency=medium
+
+  * add chapter select on player view
+  * i18n: sync missing translation keys across all languages
+  * change seek parameter type from int64_t to double for improved precision
+ 
+ -- dragonflylee <dragonflylee@outlook.com>  Wed, 27 Jul 2026 10:53:00 +0800
+
 switchfin (0.9.2-1) unstable; urgency=medium
 
   * improvements media tab layout with new UI elements
