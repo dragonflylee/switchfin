@@ -1,0 +1,34 @@
+# Maintainer: cpasjuste <cpasjuste@gmail.com>
+
+pkgname=ps4-openorbis-harfbuzz
+pkgver=8.5.0
+pkgrel=1
+pkgdesc='OpenType text shaping engine'
+arch=('any')
+url="https://github.com/harfbuzz/harfbuzz"
+license=('custom: ISC')
+options=(!strip !debug staticlibs)
+depends=('ps4-openorbis-freetype')
+makedepends=('ps4-openorbis-pkg-config' 'ps4-openorbis-vars')
+source=("https://github.com/harfbuzz/harfbuzz/releases/download/$pkgver/harfbuzz-$pkgver.tar.xz")
+sha256sums=('77e4f7f98f3d86bf8788b53e6832fb96279956e1c3961988ea3d4b7ca41ddc27')
+groups=(
+  'pacbrew' 'pacbrew-ps4' 'pacbrew-ps4-portlibs'
+  'ps4-openorbis-portlibs' # for backward compatibility
+)
+
+build() {
+  cd harfbuzz-$pkgver
+
+  source /opt/pacbrew/ps4/openorbis/ps4vars.sh
+
+  ./configure --prefix="${OPENORBIS}/usr" --host=x86_64-freebsd12 \
+    --disable-shared --enable-static --disable-gtk-doc-html
+
+  make -j$(nproc)
+}
+
+package() {
+  cd harfbuzz-$pkgver
+  make DESTDIR="$pkgdir" install
+}

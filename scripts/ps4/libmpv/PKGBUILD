@@ -2,7 +2,7 @@
 
 pkgname=ps4-openorbis-libmpv
 pkgver=0.36.0
-pkgrel=2
+pkgrel=3
 pkgdesc='Command line video player (library only)'
 arch=('any')
 url='https://mpv.io/'

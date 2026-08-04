@@ -1,0 +1,46 @@
+# Maintainer: cpasjuste <cpasjuste@gmail.com>
+
+pkgname=ps4-openorbis-libfribidi
+pkgver=1.0.16
+pkgrel=1
+pkgdesc='Free Implementation of the Unicode Bidirectional Algorithm'
+arch=('any')
+url="https://github.com/fribidi/fribidi"
+license=('LGPL2.1')
+options=(!strip !debug staticlibs)
+makedepends=('ps4-openorbis-pkg-config' 'ps4-openorbis-vars')
+source=("https://github.com/fribidi/fribidi/releases/download/v$pkgver/fribidi-$pkgver.tar.xz")
+sha256sums=('1b1cde5b235d40479e91be2f0e88a309e3214c8ab470ec8a2744d82a5a9ea05c')
+groups=(
+  'pacbrew' 'pacbrew-ps4' 'pacbrew-ps4-portlibs'
+  'ps4-openorbis-portlibs' # for backward compatibility
+)
+
+prepare() {
+  cd fribidi-$pkgver
+  # patch out binaries, as they are not needed
+  sed '/^SUBDIRS/ s/bin //' -i Makefile.am
+  ./autogen.sh
+}
+
+build() {
+  cd fribidi-$pkgver
+
+  source /opt/pacbrew/ps4/openorbis/ps4vars.sh
+
+  ./configure --prefix="${OPENORBIS}/usr" --host=x86_64-freebsd12 \
+    --disable-shared --enable-static
+
+  make
+}
+
+package() {
+  cd fribidi-$pkgver
+
+  source /opt/pacbrew/ps4/openorbis/ps4vars.sh
+
+  make DESTDIR="$pkgdir" install
+
+  # remove documentation
+  rm -fr "$pkgdir"${OPENORBIS}/usr/share
+}

@@ -30,7 +30,7 @@ jobs:
         echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder
 
         chown -R builder:builder scripts/ps4
-        for pkg in musl dav1d mbedtls SDL2 ffmpeg libmpv libcurl; do
+        for pkg in musl harfbuzz libfribidi libass mbedtls SDL2 dav1d ffmpeg libmpv libcurl; do
           echo building $pkg
           su - builder -c "cd $pkg && makepkg -siCf --noconfirm"
         done
