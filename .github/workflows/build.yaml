@@ -423,7 +423,7 @@ jobs:
           build/README.md
 
   build-android:
-    if: ${{ inputs.platform == 'android' || startsWith(github.ref, 'refs/tags/') }}
+    if: ${{ inputs.platform == 'android' || (github.event_name != 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6

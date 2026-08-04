@@ -277,7 +277,7 @@ void DownloadManager::doDownload(DownloadItem& item) {
 
     brls::sync([this, itemId]() { this->statusEvent.fire(itemId, DownloadStatus::Downloading); });
 
-    ThreadPool::instance().submit([this, itemId, imagePrimaryTag, quality, url, itemDir, cancel](HTTP& s) {
+    ThreadPool::instance().submit([this, itemId, imagePrimaryTag, quality, url, itemDir, cancel](HTTP&) {
         auto resetQueue = [this, itemId](const std::string& error) {
             brls::sync([this, itemId, error]() {
                 {

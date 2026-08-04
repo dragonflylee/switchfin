@@ -1,4 +1,5 @@
 #include "tab/remote_view.hpp"
+#include "activity/gallery_activity.hpp"
 #include "view/recycling_grid.hpp"
 #include "view/svg_image.hpp"
 #include "view/video_view.hpp"
@@ -7,6 +8,7 @@
 #include "view/music_view.hpp"
 #include "view/player_setting.hpp"
 #include "client/local.hpp"
+#include "utils/thread.hpp"
 #include "utils/misc.hpp"
 #include "utils/config.hpp"
 
@@ -187,6 +189,9 @@ public:
         case remote::EntryType::IMAGE:
             this->icon->setImageFromSVGRes("icon/ico-file-image.svg");
             break;
+        case remote::EntryType::BOOK:
+            this->icon->setImageFromSVGRes("icon/ico-file-book.svg");
+            break;
         case remote::EntryType::PLAYLIST:
             this->icon->setImageFromSVGRes("icon/ico-list.svg");
             break;
@@ -205,6 +210,7 @@ static std::set<std::string> videoExt = {
     ".mp4", ".mkv", ".avi", ".flv", ".mov", ".wmv", ".webm", ".rm", ".rmvb", ".mpg"};
 static std::set<std::string> audioExt = {".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma", ".ape"};
 static std::set<std::string> imageExt = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"};
+static std::set<std::string> booktExt = {".pdf", ".epub", ".mobi", ".azw3"};
 static std::set<std::string> playlistExt = {".m3u", ".m3u8"};
 static std::set<std::string> subtitleExt = {".srt", ".ass", ".ssa", ".sub", ".smi"};
 
@@ -224,6 +230,8 @@ public:
                 it.type = remote::EntryType::AUDIO;
             } else if (imageExt.count(ext)) {
                 it.type = remote::EntryType::IMAGE;
+            } else if (booktExt.count(ext)) {
+                it.type = remote::EntryType::BOOK;
             } else if (subtitleExt.count(ext)) {
                 it.type = remote::EntryType::SUBTITLE;
             } else if (playlistExt.count(ext)) {
@@ -275,13 +283,14 @@ public:
         }
 
         if (item.type == remote::EntryType::IMAGE) {
+            brls::Application::pushActivity(new GalleryActivity(item.url()));
             return;
         }
 
         if (item.type == remote::EntryType::PLAYLIST) {
             RemotePlayer* view = new RemotePlayer(item);
             MPVCore::instance().setUrl(item.url(), client->extraOption());
-            brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
+            brls::Application::pushActivity(new brls::Activity(view));
         }
     }
 
@@ -335,7 +344,7 @@ void RemoteView::push(const std::string& path) {
     this->setContent(view);
 
     ASYNC_RETAIN
-    brls::async([ASYNC_TOKEN, &path]() {
+    ThreadPool::instance().submit([ASYNC_TOKEN, &path](HTTP&) {
         try {
             auto r = client->list(path);
             brls::sync([ASYNC_TOKEN, r]() {

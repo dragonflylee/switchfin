@@ -20,6 +20,7 @@ enum class EntryType {
     VIDEO,
     AUDIO,
     IMAGE,
+    BOOK,
     PLAYLIST,
     SUBTITLE,
     TEXT,

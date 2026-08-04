@@ -27,8 +27,12 @@ class NetImageGalleryItem : public GalleryItem {
 public:
     explicit NetImageGalleryItem(const std::string& url) {
         this->inflateFromXMLString(ImageGalleryItemXML);
-        this->image->setImageFromRes("img/video-card-bg.png");
-        Image::with(this->image, url);
+        if (url.find("://") == std::string::npos) {
+            this->image->setImageFromFile(url);
+        } else {
+            this->image->setImageFromRes("img/video-card-bg.png");
+            Image::with(this->image, url);
+        }
     }
 
     ~NetImageGalleryItem() override { Image::cancel(this->image); }
