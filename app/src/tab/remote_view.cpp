@@ -283,7 +283,7 @@ public:
         }
 
         if (item.type == remote::EntryType::IMAGE) {
-            brls::Application::pushActivity(new GalleryActivity(item.url()));
+            brls::Application::pushActivity(new GalleryActivity(item.url(), client->getHeaders()));
             return;
         }
 

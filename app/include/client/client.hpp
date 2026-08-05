@@ -43,8 +43,10 @@ public:
     virtual std::vector<DirEntry> list(const std::string& path) = 0;
     virtual void auth(const std::string& user, const std::string& passwd) {}
     const std::string& extraOption() { return this->extra; }
+    const HTTP::Header& getHeaders() const { return this->headers; }
 
 protected:
+    HTTP::Header headers;
     std::string extra;
 
     void init(const AppRemote& conf, HTTP& cilent);

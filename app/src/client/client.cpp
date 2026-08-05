@@ -34,10 +34,12 @@ void Client::init(const AppRemote& conf, HTTP& cilent) {
         std::string auth = base64::encode(fmt::format("{}:{}", conf.user, conf.passwd));
         ssextra << fmt::format(",http-header-fields=\"Authorization: Basic {}\"", auth);
         cilent.set_basic_auth(conf.user, conf.passwd);
+        this->headers.emplace_back("Authorization: Basic " + auth);
     }
     if (conf.user_agent.size() > 0) {
         ssextra << fmt::format(",user_agent=\"{}\"", conf.user_agent);
         cilent.set_user_agent(conf.user_agent);
+        this->headers.emplace_back("User-Agent: " + conf.user_agent);
     }
     this->extra = ssextra.str();
 }

@@ -109,6 +109,10 @@ Image::Image() : image(nullptr) {
 Image::~Image() { brls::Logger::verbose("delete Image {}", fmt::ptr(this)); }
 
 void Image::with(brls::Image* view, const std::string& url) {
+    Image::with(view, url, {});
+}
+
+void Image::with(brls::Image* view, const std::string& url, const HTTP::Header& headers) {
     int tex = brls::TextureCache::instance().getCache(url);
     if (tex > 0) {
         view->innerSetImage(tex);
@@ -133,6 +137,7 @@ void Image::with(brls::Image* view, const std::string& url) {
 
     item->image = view;
     item->url = url;
+    item->headers = headers;
     item->isCancel->store(false);
     view->ptrLock();
     // 设置图片组件不处理纹理的销毁，由缓存统一管理纹理销毁
@@ -156,6 +161,7 @@ void Image::doRequest(HTTP& s) {
     try {
         std::ostringstream body;
         HTTP::set_option(s, this->isCancel, HTTP::Timeout{});
+        if (!this->headers.empty()) HTTP::set_option(s, this->headers);
         s._get(this->url, &body);
         std::string data = body.str();
         uint8_t* imageData = nullptr;

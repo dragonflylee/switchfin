@@ -25,13 +25,13 @@ const std::string ImageGalleryItemXML = R"xml(
 
 class NetImageGalleryItem : public GalleryItem {
 public:
-    explicit NetImageGalleryItem(const std::string& url) {
+    explicit NetImageGalleryItem(const std::string& url, const HTTP::Header& headers = {}) {
         this->inflateFromXMLString(ImageGalleryItemXML);
         if (url.find("://") == std::string::npos) {
             this->image->setImageFromFile(url);
         } else {
             this->image->setImageFromRes("img/video-card-bg.png");
-            Image::with(this->image, url);
+            Image::with(this->image, url, headers);
         }
     }
 
@@ -40,10 +40,10 @@ public:
     BRLS_BIND(brls::Image, image, "gallery/image");
 };
 
-GalleryActivity::GalleryActivity(const std::string& url) {
+GalleryActivity::GalleryActivity(const std::string& url, const HTTP::Header& headers) {
     brls::Logger::debug("GalleryActivity: create");
 
-    this->view = new NetImageGalleryItem(url);
+    this->view = new NetImageGalleryItem(url, headers);
 }
 
 void GalleryActivity::onContentAvailable() {
