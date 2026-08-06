@@ -252,7 +252,7 @@ void GalleryItem::startScrolling(float newScroll) {
 
     this->contentOffsetX.stop();
     this->contentOffsetX.reset();
-    this->contentOffsetX.addStep(newScroll, 500, brls::EasingFunction::quadraticOut);
+    this->contentOffsetX.addStep(newScroll, 500, tweeny::easing::quadraticOut);
     this->contentOffsetX.setTickCallback([this] { this->setTranslationX(this->contentOffsetX); });
     this->contentOffsetX.start();
     this->invalidate();

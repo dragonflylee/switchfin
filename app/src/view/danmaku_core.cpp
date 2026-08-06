@@ -332,8 +332,9 @@ void DanmakuCore::draw(NVGcontext* vg, float x, float y, float width, float heig
                 if (ani->path.size() < 2) continue;
 
                 // 是否使用线形动画
-                brls::EasingFunction easing =
-                    ani->linear ? brls::EasingFunction::linear : brls::EasingFunction::cubicIn;
+                brls::EasingFunction easing;
+                if (ani->linear) easing = tweeny::easing::linear;
+                else easing = tweeny::easing::cubicIn;
 
                 // 是否使用相对坐标
                 float relativeSizeX = 1.0f, relativeSizeY = 1.0f;
