@@ -18,11 +18,10 @@ makedepends=(
 depends=(
   "${MINGW_PACKAGE_PREFIX}-fribidi"
   "${MINGW_PACKAGE_PREFIX}-freetype"
-  "${MINGW_PACKAGE_PREFIX}-libunibreak"
   "${MINGW_PACKAGE_PREFIX}-harfbuzz"
 )
 options=('staticlibs' '!strip')
-source=(https://github.com/libass/${_realname}/releases/download/${pkgver}/${_realname}-${pkgver}.tar.xz)
+source=("${url}/releases/download/${pkgver}/${_realname}-${pkgver}.tar.xz")
 sha256sums=('2dca25c0e0c837ddf00b52011b3f82cac1e4ddd3ad018227806b0c2288864acc')
 
 build() {

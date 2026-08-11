@@ -1,8 +1,24 @@
+From 0d6c906527150f2a7927eafc9cae3a84bb19b019 Mon Sep 17 00:00:00 2001
+From: dragonflylee <dragonflylee@outlook.com>
+Date: Fri, 29 Aug 2025 17:40:46 +0800
+Subject: [PATCH] addition protocols support
+
+---
+ configure               |   4 +
+ ffbuild/library.mak     |   2 +
+ libavformat/Makefile    |   1 +
+ libavformat/avformat.h  |   4 +-
+ libavformat/avio.h      |  16 +-
+ libavformat/libssh2.c   | 328 ++++++++++++++++++++++++++++++++++++++++
+ libavformat/protocols.c |   1 +
+ 7 files changed, 349 insertions(+), 7 deletions(-)
+ create mode 100644 libavformat/libssh2.c
+
 diff --git a/configure b/configure
-index 1759694274..7028797b45 100755
+index 374bd5c151294..54a8bdf135eca 100755
 --- a/configure
 +++ b/configure
-@@ -281,6 +281,7 @@ External library support:
+@@ -280,6 +280,7 @@ External library support:
    --enable-libspeex        enable Speex de/encoding via libspeex [no]
    --enable-libsrt          enable Haivision SRT protocol via libsrt [no]
    --enable-libssh          enable SFTP protocol via libssh [no]
@@ -10,7 +26,7 @@ index 1759694274..7028797b45 100755
    --enable-libsvtav1       enable AV1 encoding via SVT [no]
    --enable-libsvtjpegxs    enable JPEGXS encoding/decoding via SVT [no]
    --enable-libtensorflow   enable TensorFlow as a DNN module backend
-@@ -2088,6 +2089,7 @@ EXTERNAL_LIBRARY_LIST="
+@@ -2127,6 +2128,7 @@ EXTERNAL_LIBRARY_LIST="
      libspeex
      libsrt
      libssh
@@ -18,7 +34,7 @@ index 1759694274..7028797b45 100755
      libsvtav1
      libsvtjpegxs
      libtensorflow
-@@ -4076,6 +4078,7 @@ libsmbclient_protocol_deps="libsmbclient gplv3"
+@@ -4135,6 +4137,7 @@ libsmbclient_protocol_deps="libsmbclient gplv3"
  libsrt_protocol_deps="libsrt"
  libsrt_protocol_select="network"
  libssh_protocol_deps="libssh"
@@ -26,7 +42,7 @@ index 1759694274..7028797b45 100755
  libtls_conflict="openssl gnutls mbedtls"
  libzmq_protocol_deps="libzmq"
  libzmq_protocol_select="network"
-@@ -7372,6 +7375,7 @@ enabled libsmbclient      && { check_pkg_config libsmbclient smbclient libsmbcli
+@@ -7438,6 +7441,7 @@ enabled libsmbclient      && { check_pkg_config libsmbclient smbclient libsmbcli
  enabled libsnappy         && require libsnappy snappy-c.h snappy_compress -lsnappy -lstdc++
  enabled libsoxr           && require libsoxr soxr.h soxr_create -lsoxr
  enabled libssh            && require_pkg_config libssh "libssh >= 0.6.0" libssh/sftp.h sftp_init
@@ -34,20 +50,24 @@ index 1759694274..7028797b45 100755
  enabled libspeex          && require_pkg_config libspeex speex speex/speex.h speex_decoder_init
  enabled libsrt            && require_pkg_config libsrt "srt >= 1.3.0" srt/srt.h srt_socket
  enabled libsvtav1         && require_pkg_config libsvtav1 "SvtAv1Enc >= 0.9.0" EbSvtAv1Enc.h svt_av1_enc_init_handle
-@@ -7802,7 +7806,7 @@ if enabled x86; then
-     esac
- elif enabled_any aarch64 ppc64 && ! enabled bigendian; then
-     case $target_os in
--        linux)
-+        linux|mingw32*|mingw64*|win32|win64)
-             ;;
-         *)
-             disable ffnvcodec cuvid nvdec nvenc
+diff --git a/ffbuild/library.mak b/ffbuild/library.mak
+index 2759a73a5c358..268cd36357497 100644
+--- a/ffbuild/library.mak
++++ b/ffbuild/library.mak
+@@ -66,6 +66,8 @@ define RULES
+ $(TOOLS):     THISLIB = $(FULLNAME:%=$(LD_LIB))
+ $(TESTPROGS): THISLIB = $(SUBDIR)$(LIBNAME)
+ 
++$(LIBOBJS): CPPFLAGS += -DBUILDING_$(NAME)
++
+ $(NAME)LINK_EXE_ARGS = $(LDFLAGS) $(LDEXEFLAGS)
+ $(NAME)LINK_SO_ARGS = $(SHFLAGS) $(LDFLAGS) $(LDSOFLAGS)
+ $(NAME)LINK_EXTRA = $(FFEXTRALIBS)
 diff --git a/libavformat/Makefile b/libavformat/Makefile
-index 4786a9345a..2789a8de37 100644
+index 0d2e757b27e5d..9cc42a4ed4f04 100644
 --- a/libavformat/Makefile
 +++ b/libavformat/Makefile
-@@ -737,6 +737,7 @@ OBJS-$(CONFIG_LIBRTMPTE_PROTOCOL)        += librtmp.o
+@@ -743,6 +743,7 @@ OBJS-$(CONFIG_LIBRTMPTE_PROTOCOL)        += librtmp.o
  OBJS-$(CONFIG_LIBSMBCLIENT_PROTOCOL)     += libsmbclient.o
  OBJS-$(CONFIG_LIBSRT_PROTOCOL)           += libsrt.o
  OBJS-$(CONFIG_LIBSSH_PROTOCOL)           += libssh.o
@@ -56,10 +76,10 @@ index 4786a9345a..2789a8de37 100644
  
  # Objects duplicated from other libraries for shared builds
 diff --git a/libavformat/avformat.h b/libavformat/avformat.h
-index ee0ddddf8d..c66a568ca9 100644
+index ef2b08c4f3fc2..95749b3f6f3ae 100644
 --- a/libavformat/avformat.h
 +++ b/libavformat/avformat.h
-@@ -1907,12 +1907,12 @@ unsigned avformat_version(void);
+@@ -1963,12 +1963,12 @@ unsigned avformat_version(void);
  /**
   * Return the libavformat build-time configuration.
   */
@@ -75,7 +95,7 @@ index ee0ddddf8d..c66a568ca9 100644
  /**
   * Do global initialization of network libraries. This is optional,
 diff --git a/libavformat/avio.h b/libavformat/avio.h
-index fbcb7dbfc3..9b3e505e56 100644
+index fbcb7dbfc3061..9b3e505e568af 100644
 --- a/libavformat/avio.h
 +++ b/libavformat/avio.h
 @@ -35,6 +35,12 @@
@@ -137,7 +157,7 @@ index fbcb7dbfc3..9b3e505e56 100644
   * Allocate and initialize an AVIOContext for buffered I/O. It must be later
 diff --git a/libavformat/libssh2.c b/libavformat/libssh2.c
 new file mode 100644
-index 0000000000..531429c203
+index 0000000000000..531429c203983
 --- /dev/null
 +++ b/libavformat/libssh2.c
 @@ -0,0 +1,328 @@
@@ -470,10 +490,10 @@ index 0000000000..531429c203
 +    .flags = URL_PROTOCOL_FLAG_NETWORK,
 +};
 diff --git a/libavformat/protocols.c b/libavformat/protocols.c
-index 207b6bf8d9..81dafe889a 100644
+index 257b41970afcb..acd8332743718 100644
 --- a/libavformat/protocols.c
 +++ b/libavformat/protocols.c
-@@ -74,6 +74,7 @@ extern const URLProtocol ff_librtmpt_protocol;
+@@ -75,6 +75,7 @@ extern const URLProtocol ff_librtmpt_protocol;
  extern const URLProtocol ff_librtmpte_protocol;
  extern const URLProtocol ff_libsrt_protocol;
  extern const URLProtocol ff_libssh_protocol;

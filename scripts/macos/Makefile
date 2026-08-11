@@ -13,7 +13,7 @@ endif
 
 all: download build
 
-build: mpv curl libwebp glfw
+build: mpv curl glfw
 
 clean:
 	@rm -rf build
@@ -24,11 +24,11 @@ download:
 	curl --retry 5 -sSL https://github.com/webmproject/libwebp/archive/v1.6.0.tar.gz | tar zxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/dragonflylee/glfw/archive/switchfin.tar.gz | tar zxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://downloads.sourceforge.net/project/freetype/freetype2/2.14.3/freetype-2.14.3.tar.xz | tar Jxf - -C $(TMPDIR)
-	curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/14.2.1/harfbuzz-14.2.1.tar.xz | tar Jxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/14.3.0/harfbuzz-14.3.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/libass/libass/releases/download/0.17.5/libass-0.17.5.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://downloads.videolan.org/pub/videolan/dav1d/1.5.4/dav1d-1.5.4.tar.xz | tar Jxf - -C $(TMPDIR)
-	curl --retry 5 -sSL https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz | tar Jxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://ffmpeg.org/releases/ffmpeg-9.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/mpv-player/mpv/archive/v0.41.0.tar.gz | tar zxf - -C $(TMPDIR)
 	git clone https://github.com/haasn/libplacebo.git -b v7.360.1 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
 	patch -d $(TMPDIR)/mpv-0.41.0 -Nbp1 -i $(CURDIR)/mpv.patch
@@ -84,7 +84,7 @@ freetype:
 	meson install -C build/freetype
 
 harfbuzz: freetype
-	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-14.2.1 \
+	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-14.3.0 \
 		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX) \
 		-Dtests=disabled -Ddocs=disabled -Dicu=disabled -Dcairo=disabled \
 		-Dglib=disabled -Dgobject=disabled -Dbenchmark=disabled -Dutilities=disabled
@@ -111,9 +111,9 @@ dav1d:
 	meson compile -C build/dav1d
 	meson install -C build/dav1d
 
-ffmpeg: mbedtls libass dav1d
+ffmpeg: mbedtls libass dav1d libwebp
 	mkdir -p build/ffmpeg && cd build/ffmpeg && \
-	$(TMPDIR)/ffmpeg-8.1.2/configure --enable-shared --disable-static --prefix=$(PREFIX) \
+	$(TMPDIR)/ffmpeg-9.0/configure --enable-shared --disable-static --prefix=$(PREFIX) \
 		--enable-pthreads --enable-runtime-cpudetect --pkg-config-flags=--static \
 		--cc=clang --enable-cross-compile --target-os=darwin --arch=$(OSX_ARCH) \
 		--extra-cflags="-arch $(OSX_ARCH) -mmacosx-version-min=$(OSX_TARGET)" \

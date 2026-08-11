@@ -1,0 +1,27 @@
+# Maintainer: ImperatorS79 <fevrier.simon@gmail.com>
+
+_realname=ffnvcodec-headers
+pkgbase=mingw-w64-${_realname}
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+pkgver=13.1.15.0
+pkgrel=1
+pkgdesc='FFmpeg version of headers required to interface with Nvidias codec APIs (mingw-w64)'
+arch=('any')
+mingw_arch=('mingw32' 'mingw64' 'clangarm64')
+url=https://git.videolan.org/?p=ffmpeg/nv-codec-headers.git
+license=('spdx:MIT')
+source=("https://github.com/FFmpeg/nv-codec-headers/archive/n${pkgver}.tar.gz")
+sha256sums=('2255bc74d038b95aa4be30f5f66322c2176acbdb90ada1851db6993536fbeaf7')
+
+build() {
+  make PREFIX=${MINGW_PREFIX} -C "nv-codec-headers-n${pkgver}"
+}
+
+package() {
+  make PREFIX=${MINGW_PREFIX} DESTDIR="${pkgdir}" -C "nv-codec-headers-n${pkgver}" install
+
+  local PREFIX_WIN=$(cygpath -wm ${MINGW_PREFIX})
+  for pcfile in "${pkgdir}${MINGW_PREFIX}"/lib/pkgconfig/*.pc; do
+    sed -s "s|${PREFIX_WIN}|${MINGW_PREFIX}|g" -i "${pcfile}"
+  done
+}
