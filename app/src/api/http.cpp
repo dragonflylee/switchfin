@@ -80,8 +80,8 @@ private:
     std::string m;
 };
 
-static std::string user_agent =
-    fmt::format("{}/{} ({})", AppVersion::getPackageName(), AppVersion::getVersion(), AppVersion::getPlatform());
+const std::string HTTP::USER_AGENT = fmt::format(
+    "Mozilla/5.0 {}/{} ({})", AppVersion::getPackageName(), AppVersion::getVersion(), AppVersion::getPlatform());
 
 /// @brief curl context
 
@@ -112,7 +112,7 @@ HTTP::HTTP() : chunk(nullptr) {
     this->easy = curl_easy_init();
     global.init_lock.unlock();
 
-    curl_easy_setopt(this->easy, CURLOPT_USERAGENT, user_agent.c_str());
+    curl_easy_setopt(this->easy, CURLOPT_USERAGENT, USER_AGENT.c_str());
     curl_easy_setopt(this->easy, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(this->easy, CURLOPT_SHARE, global.share);
     // enable all supported built-in compressions

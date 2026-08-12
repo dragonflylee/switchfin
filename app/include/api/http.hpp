@@ -23,6 +23,7 @@ public:
     using Cancel = std::shared_ptr<std::atomic_bool>;
     using Progress = brls::Event<curl_off_t, curl_off_t>;
 
+    const static std::string USER_AGENT;
     inline static bool PROXY_STATUS = false;
     inline static std::string PROXY;
 

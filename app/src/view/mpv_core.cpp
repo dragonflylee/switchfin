@@ -3,6 +3,7 @@
 //
 
 #include "view/mpv_core.hpp"
+#include "api/http.hpp"
 #include "utils/config.hpp"
 #include "utils/misc.hpp"
 #include <fmt/ranges.h>
@@ -133,6 +134,7 @@ void MPVCore::init() {
     mpv_set_option_string(mpv, "gpu-shader-cache-dir", fmt::format("{}/cache", confDir).c_str());
     mpv_set_option_string(mpv, "ytdl", "no");
     mpv_set_option_string(mpv, "referrer", conf.getUrl().c_str());
+    mpv_set_option_string(mpv, "user-agent", HTTP::USER_AGENT.c_str());
     mpv_set_option_string(mpv, "osd-level", "0");
     mpv_set_option_string(mpv, "video-timing-offset", "0");  // 60fps
     mpv_set_option_string(mpv, "reset-on-next-file", "speed,pause");
