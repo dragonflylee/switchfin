@@ -1,18 +1,13 @@
 #pragma once
 
 #include "client.hpp"
-#include <api/http.hpp>
 
 namespace remote {
 
-class Webdav : public Client {
+class Webdav : public HttpClient {
 public:
     Webdav(const std::string& url, const AppRemote &conf);
     std::vector<DirEntry> list(const std::string &path) override;
-
-private:
-    HTTP c;
-    std::string host;
 };
 
 }  // namespace remote

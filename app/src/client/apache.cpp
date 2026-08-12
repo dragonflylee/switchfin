@@ -5,7 +5,7 @@ namespace remote {
 
 Apache::Apache(const AppRemote &conf) {
     HTTP::set_option(this->c, HTTP::Timeout{});
-    this->init(conf, this->c);
+    this->setup(conf);
 
     std::string url = conf.url;
     if (url.back() != '/') url.push_back('/');

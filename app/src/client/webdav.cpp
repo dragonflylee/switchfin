@@ -8,7 +8,7 @@ namespace remote {
 Webdav::Webdav(const std::string& url, const AppRemote& conf) {
     HTTP::Header h{"Accept-Charset: utf-8", "Depth: 1"};
     HTTP::set_option(this->c, HTTP::Timeout{}, h);
-    this->init(conf, this->c);
+    this->setup(conf);
     this->host = url.substr(0, url.find("/", url.find("://") + 3));
     brls::Logger::debug("remote::Webdav host {}", url);
 }
@@ -53,7 +53,6 @@ std::vector<DirEntry> Webdav::list(const std::string& path) {
 
     while (respElem) {
         DirEntry item;
-        item.fileSize = 0;
 
         tinyxml2::XMLElement* hrefElem = respElem->FirstChildElement((nsPrefix + "href").c_str());
         if (hrefElem) {
