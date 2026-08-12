@@ -106,7 +106,7 @@ index 8a52823..689c8f2 100644
  static pthread_once_t timer_init_once = PTHREAD_ONCE_INIT;
  
 diff --git a/video/out/opengl/ra_gl.c b/video/out/opengl/ra_gl.c
-index f535f1f..5646b7e 100644
+index f535f1f..325daa6 100644
 --- a/video/out/opengl/ra_gl.c
 +++ b/video/out/opengl/ra_gl.c
 @@ -6,6 +6,10 @@
@@ -120,7 +120,7 @@ index f535f1f..5646b7e 100644
  // For ra.priv
  struct ra_gl {
      GL *gl;
-@@ -749,13 +753,45 @@ static void compile_attach_shader(struct ra *ra, GLuint program,
+@@ -749,13 +753,46 @@ static void compile_attach_shader(struct ra *ra, GLuint program,
      GL *gl = ra_gl_get(ra);
  
      GLuint shader = gl->CreateShader(type);
@@ -138,7 +138,8 @@ index f535f1f..5646b7e 100644
 +            MP_VERBOSE(ra, "compile_attach_shader: precompiled shader found, using it\n");
 +            glShaderBinary(1, &shader, 0, (const void *) shader_bin->src, shader_bin->size);
 +        } else {
-+            MP_VERBOSE(ra, "compile_attach_shader: precompiled shader not found\n");
++            MP_VERBOSE(ra, "compile_attach_shader: precompiled shader not found, falling back to source compilation\n");
++            gl->ShaderSource(shader, 1, &source, NULL);
 +        }
 +    } else {
 +        gl->ShaderSource(shader, 1, &source, NULL);
@@ -169,7 +170,7 @@ index f535f1f..5646b7e 100644
      if (mp_msg_test(ra->log, pri)) {
 diff --git a/video/out/opengl/ra_ps4.c b/video/out/opengl/ra_ps4.c
 new file mode 100644
-index 0000000..18ce664
+index 0000000..91e0479
 --- /dev/null
 +++ b/video/out/opengl/ra_ps4.c
 @@ -0,0 +1,1535 @@
@@ -183,8 +184,8 @@ index 0000000..18ce664
 +int ps4_mpv_use_precompiled_shaders = 0;
 +int ps4_mpv_dump_shaders = 0;
 +
-+int ps4_shaders_list_size = 5;
-+ps4_shader ps4_shaders_list[5] = {
++int ps4_shaders_list_size = 6;
++ps4_shader ps4_shaders_list[6] = {
 +    {ps4_vert_default_sha, ps4_vert_default, 1295},
 +    {ps4_frag_default_sha, ps4_frag_default, 2358},
 +    {ps4_frag_default_gamma_sha, ps4_frag_default_gamma, 2598},
@@ -222,7 +223,7 @@ index 0000000..18ce664
 +void ps4_mpv_dump_shader(GLuint id, const char *path, const char *name) {
 +    GLenum format = 0;
 +    int size, need_comma = 0;
-+    char *buf = (char *) av_malloc(0x5000);
++    char *buf = (char *)av_malloc(0x5000);
 +    char dump_path[256];
 +
 +    // dump shader
