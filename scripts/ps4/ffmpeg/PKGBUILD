@@ -9,7 +9,7 @@ url='https://ffmpeg.org/'
 license=('LGPL' 'GPL')
 options=(!strip !debug staticlibs)
 makedepends=('ps4-openorbis-pkg-config' 'ps4-openorbis-vars' 'ps4-openorbis-mbedtls')
-depends=('ps4-openorbis-zlib' 'ps4-openorbis-bzip2' 'ps4-openorbis-libass' 'ps4-openorbis-libfribidi' 'ps4-openorbis-freetype')
+depends=('ps4-openorbis-zlib' 'ps4-openorbis-bzip2' 'ps4-openorbis-libfribidi' 'ps4-openorbis-freetype')
 source=("https://ffmpeg.org/releases/ffmpeg-$pkgver.tar.xz")
 sha256sums=('de668509caf9e35e3cd162473441fdb29538c6d96ed080292b3cf9e6fc5d558f')
 groups=('ps4-openorbis-portlibs')
@@ -27,7 +27,7 @@ build() {
     --disable-programs --disable-debug --disable-doc \
     --disable-avdevice --disable-hwaccels --disable-encoders --disable-muxers \
     --enable-swscale --enable-swresample --enable-network --enable-version3 \
-    --enable-zlib --enable-bzlib --enable-libass --enable-libdav1d --enable-mbedtls \
+    --enable-zlib --enable-bzlib --enable-libdav1d --enable-mbedtls \
     --disable-filters --enable-filter=hflip,vflip,transpose \
     --cc=$CC --cxx=$CXX --nm=$NM --strip=$STRIP --ar=$AR --ranlib=$RANLIB
 

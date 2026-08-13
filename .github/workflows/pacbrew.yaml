@@ -26,7 +26,7 @@ jobs:
           autoconf automake libtool nasm makepkg meson
     - name: Build portlibs
       run: |
-        adduser --gecos '' --home ${GITHUB_WORKSPACE}/scripts/ps4 --disabled-password builder
+        useradd -d ${GITHUB_WORKSPACE}/scripts/ps4 -s /bin/bash builder
         echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder
 
         chown -R builder:builder scripts/ps4

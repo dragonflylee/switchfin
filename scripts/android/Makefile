@@ -40,11 +40,13 @@ download:
 	wget -qO- https://curl.se/download/curl-8.16.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/webmproject/libwebp/archive/v1.6.0.tar.gz | tar zxf - -C $(TMPDIR)
 	wget -qO- https://downloads.sourceforge.net/project/freetype/freetype2/2.14.3/freetype-2.14.3.tar.xz | tar Jxf - -C $(TMPDIR)
+	wget -qO- https://github.com/GNOME/libxml2/archive/v2.15.3.tar.gz | tar zxf - -C $(TMPDIR)
+	wget -qO- https://github.com/fontconfig/fontconfig/archive/2.18.3.tar.gz | tar zxf - -C $(TMPDIR)
 	wget -qO- https://github.com/harfbuzz/harfbuzz/releases/download/14.3.0/harfbuzz-14.3.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/libass/libass/releases/download/0.17.5/libass-0.17.5.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.5.4/dav1d-1.5.4.tar.xz | tar Jxf - -C $(TMPDIR)
-	wget -qO- https://ffmpeg.org/releases/ffmpeg-9.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	wget -qO- https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/mpv-player/mpv/archive/v0.41.0.tar.gz | tar zxf - -C $(TMPDIR)
 	git clone https://github.com/haasn/libplacebo.git -b v7.360.1 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
 	patch -d $(TMPDIR)/libwebp-1.6.0 -Nbp1 -i $(PWD)/scripts/mingw64/libwebp/0001-mingw-cmake-output.patch
@@ -94,6 +96,19 @@ freetype:
 	meson compile -C build/freetype
 	meson install -C build/freetype --destdir $(PREFIX)
 
+libxm2:
+	meson setup build/libxm2 $(TMPDIR)/libxml2-2.15.3 --cross-file "$(CURDIR)/$(ABI).meson" \
+		-Dminimum=true -Dpush=enabled -Dreader=enabled -Dsax1=enabled -Diso8859x=enabled \
+		-Dpattern=enabled -Ddocs=disabled
+	meson compile -C build/libxm2
+	meson install -C build/libxm2 --destdir $(PREFIX)
+
+fontconfig: libxm2
+	meson setup build/fontconfig $(TMPDIR)/fontconfig-2.18.3 --cross-file "$(CURDIR)/$(ABI).meson" \
+		-Dxml-backend=libxml2 -Ddoc=disabled -Dtests=disabled -Dtools=disabled -Dnls=disabled
+	meson compile -C build/fontconfig
+	meson install -C build/fontconfig --destdir $(PREFIX)
+
 harfbuzz: freetype
 	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-14.3.0 --cross-file "$(CURDIR)/$(ABI).meson" \
 		-Dfreetype=enabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled \
@@ -108,9 +123,8 @@ fribidi:
 	meson compile -C build/fribidi
 	meson install -C build/fribidi --destdir $(PREFIX)
 
-libass: harfbuzz fribidi
-	meson setup build/libass $(TMPDIR)/libass-0.17.5 --cross-file "$(CURDIR)/$(ABI).meson" \
-		-Drequire-system-font-provider=false
+libass: harfbuzz fribidi fontconfig
+	meson setup build/libass $(TMPDIR)/libass-0.17.5 --cross-file "$(CURDIR)/$(ABI).meson"
 	meson compile -C build/libass
 	meson install -C build/libass --destdir $(PREFIX)
 
@@ -123,7 +137,7 @@ dav1d:
 
 ffmpeg: mbedtls libass dav1d libwebp
 	mkdir -p build/ffmpeg && cd build/ffmpeg && \
-	$(TMPDIR)/ffmpeg-9.0/configure --enable-shared --disable-static --pkg-config=pkg-config \
+	$(TMPDIR)/ffmpeg-9.0.1/configure --enable-shared --disable-static --pkg-config=pkg-config \
 		--target-os=android --arch=$(firstword $(subst -, ,$(CC))) --cpu=$(CPU) --cc=$(CC) \
 		--enable-cross-compile --cross-prefix=llvm- --sysroot=$(TOOLCHAIN)/sysroot \
 		--extra-cflags="-I$(PREFIX)/include $(CPUFLAGS)" --extra-ldflags="-L$(PREFIX)/lib" \
@@ -142,7 +156,7 @@ libplacebo:
 	meson compile -C build/libplacebo
 	meson install -C build/libplacebo --destdir $(PREFIX)
 
-mpv: SDL2 ffmpeg libplacebo
+mpv: ffmpeg libplacebo SDL2
 	meson setup build/mpv $(TMPDIR)/mpv-0.41.0 \
 		--cross-file "$(CURDIR)/$(ABI).meson" --default-library=shared \
 		-Dlibmpv=true -Dcplayer=false -Dtests=false -Diconv=disabled \

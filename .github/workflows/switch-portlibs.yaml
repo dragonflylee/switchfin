@@ -25,7 +25,7 @@ jobs:
         apt-get install -y fakeroot zstd bison flex libtool python3-mako meson manpages-
     - name: Build portlibs
       run: |
-        adduser --gecos '' --home ${GITHUB_WORKSPACE}/scripts/switch --disabled-password builder
+        useradd -d ${GITHUB_WORKSPACE}/scripts/switch -s /bin/bash builder
         echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder
 
         chown -R builder:builder scripts/switch

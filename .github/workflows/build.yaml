@@ -179,7 +179,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ inputs.platform == 'psvita' || github.event_name != 'workflow_dispatch' }}
     container:
-      image: vitasdk/vitasdk:latest
+      image: vitasdk/vitasdk:2026.08
     steps:
     - uses: actions/checkout@v6
       with:
@@ -189,10 +189,8 @@ jobs:
         BASE_URL: https://github.com/dragonflylee/switchfin/releases/download/vita-packages
       run: |
         for pkg in mbedtls-3.6.7-1 curl-8.16.0-3 ffmpeg-n6.0-3 mpv-0.36.0-3; do
-          wget $BASE_URL/${pkg}-arm.tar.xz
+          vdpm pacman --noconfirm -U $BASE_URL/${pkg}-vita.pkg.tar.xz
         done
-        apk add ninja
-        vdpm $PWD/*-arm.tar.xz
         git config --system --add safe.directory $GITHUB_WORKSPACE
     - name: Build
       run: |
@@ -437,7 +435,7 @@ jobs:
     - name: Install dependency
       run: |
         sudo apt-get update
-        sudo apt-get install -y ninja-build pkg-config meson nasm
+        sudo apt-get install -y ninja-build pkg-config nasm gperf
     - name: Cache depends
       id: cache-deps
       uses: actions/cache@v5
@@ -447,6 +445,7 @@ jobs:
     - name: Build packages
       if: steps.cache-deps.outputs.cache-hit != 'true'
       run: |
+        sudo pip install meson --break-system-packages
         make -C scripts/android TMPDIR=${{ runner.temp }} download
         make -C scripts/android TMPDIR=${{ runner.temp }} ABI=armeabi-v7a \
           ANDROID_NDK=${{ steps.setup-ndk.outputs.ndk-path }} build

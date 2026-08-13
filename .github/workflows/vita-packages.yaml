@@ -12,37 +12,34 @@ jobs:
   build-packages:
     runs-on: ubuntu-latest
     container:
-      image: vitasdk/vitasdk:latest
+      image: vitasdk/vitasdk:2026.08
     steps:
     - uses: actions/checkout@v6
       with:
         sparse-checkout: scripts/vita
     - name: Install dependency
       run: |
-        apk add ninja meson tar patch
+        apt-get update
+        apt-get install -y meson
     - name: Build packages
       run: |
-        adduser --gecos '' --home ${GITHUB_WORKSPACE}/scripts/vita --disabled-password builder
-        echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder
-        chown -R builder:builder scripts/vita
+        chown -R vitasdk:vitasdk scripts/vita
+        su -p vitasdk -s /bin/bash <<'EOF'
+          export PATH=$VITASDK/bin:$PATH
+          cd $GITHUB_WORKSPACE/scripts/vita
 
-        su - builder -c "cd mbedtls && vita-makepkg"
-        vdpm $PWD/scripts/vita/mbedtls/*-arm.tar.xz
-        touch /tmp/vdpm_install_mbedtls
-
-        su - builder -c "cd ffmpeg && vita-makepkg"
-        vdpm $PWD/scripts/vita/ffmpeg/*-arm.tar.xz
-        touch /tmp/vdpm_install_ffmpeg
-
-        su - builder -c "cd mpv && vita-makepkg"
-        su - builder -c "cd curl && vita-makepkg"
-
+          for pkg in mbedtls ffmpeg mpv curl; do
+            pushd ${pkg}
+            vita-makepkg -siCf --noconfirm
+            popd
+          done
+        EOF
     - name: Upload packages
       uses: softprops/action-gh-release@v3
       with:
         name: vita-packages
         tag_name: vita-packages
         prerelease: true
-        files: scripts/vita/*/*-arm.tar.xz
+        files: scripts/vita/*/*.pkg.tar.xz
         body: |
           ![download](https://img.shields.io/github/downloads/${{ github.repository }}/vita-packages/total?label=Downloads)

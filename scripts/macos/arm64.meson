@@ -15,8 +15,7 @@ pkg-config = ['pkg-config']
 
 [built-in options]
 buildtype = 'release'
-default_library = 'shared'
-wrap_mode = 'nodownload'
+default_library = 'static'
 c_args = ['-arch', 'arm64', '-mmacosx-version-min=11.0']
 cpp_args = ['-arch', 'arm64', '-mmacosx-version-min=11.0']
 objc_args = ['-arch', 'arm64', '-mmacosx-version-min=11.0']
