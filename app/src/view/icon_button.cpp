@@ -71,6 +71,11 @@ void IconButton::applyStyle() {
         this->setBackgroundColor(theme.getColor("color/app"));
         this->setBorderThickness(0);
         this->label->setTextColor(theme.getColor("brls/button/primary_enabled_text"));
+    } else if (this->styleName == "disabled") {
+        this->setBackgroundColor(theme.getColor("brls/button/default_disabled_background"));
+        this->setBorderColor(theme.getColor("color/grey_3"));
+        this->setBorderThickness(2);
+        this->label->setTextColor(theme.getColor("brls/button/default_disabled_text"));
     } else {
         this->setBackgroundColor(nvgRGBA(0, 0, 0, 0));
         this->setBorderColor(theme.getColor("color/grey_3"));

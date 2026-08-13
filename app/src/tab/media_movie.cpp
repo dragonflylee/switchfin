@@ -152,6 +152,12 @@ void MediaMovie::doMovie() {
             }
             this->updateFavoriteButton(r.UserData.IsFavorite);
 
+            if (r.UserData.Played) {
+                this->btnPlay->setIcon("icon/ico-checkmark.svg");
+                this->btnPlay->setText("main/media/played"_i18n);
+                this->btnPlay->setButtonStyle("disabled");
+            }
+
             auto poster = r.ImageTags.find(jellyfin::imageTypePrimary);
             if (poster != r.ImageTags.end()) {
                 Image::load(this->imagePoster, jellyfin::apiPrimaryImage, r.Id,
