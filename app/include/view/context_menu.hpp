@@ -21,7 +21,6 @@ public:
 
 private:
     BRLS_BIND(SVGImage, icon, "menu_item/icon");
-    bool selected = false;
 };
 
 class ContextMenu : public brls::Box {

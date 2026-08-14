@@ -889,7 +889,7 @@ void VideoView::setChapters(const std::vector<jellyfin::MediaChapter>& chaps, ui
 
         brls::Dropdown* dropdown = new brls::Dropdown(
             "main/player/chapter"_i18n, values,
-            [this, chaps](int selected) {
+            [chaps](int selected) {
                 int64_t offset = chaps[selected].StartPositionTicks;
                 MPVCore::instance().seek(offset / jellyfin::PLAYTICKS);
             },
