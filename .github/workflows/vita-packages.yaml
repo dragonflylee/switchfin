@@ -28,7 +28,7 @@ jobs:
           export PATH=$VITASDK/bin:$PATH
           cd $GITHUB_WORKSPACE/scripts/vita
 
-          for pkg in mbedtls ffmpeg mpv curl; do
+          for pkg in mbedtls ffmpeg mpv mupdf curl; do
             pushd ${pkg}
             vita-makepkg -siCf --noconfirm
             popd

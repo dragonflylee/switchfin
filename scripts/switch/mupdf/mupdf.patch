@@ -1,0 +1,39 @@
+diff --git a/Makerules b/Makerules
+index f582dc0614..687c3b4160 100644
+--- a/Makerules
++++ b/Makerules
+@@ -379,3 +379,18 @@ ifeq "$(OS)" "ios"
+   LD = xcrun ld
+   RANLIB = xcrun ranlib
+ endif
++
++ifeq "$(OS)" "switch"
++  CC = $(TOOL_PREFIX)gcc
++  CXX = $(TOOL_PREFIX)g++
++  AR = $(TOOL_PREFIX)ar
++  LD = $(TOOL_PREFIX)ld
++  RANLIB = $(TOOL_PREFIX)ranlib
++  XCFLAGS = $(CPPFLAGS) '-Dtimegm(x)=-1'
++  USE_SYSTEM_FREETYPE = yes
++  USE_SYSTEM_HARFBUZZ = yes
++  SYS_HARFBUZZ_CFLAGS = $(shell aarch64-none-elf-pkg-config --cflags harfbuzz)
++  SYS_HARFBUZZ_LIBS = $(shell aarch64-none-elf-pkg-config --libs harfbuzz)
++  USE_SYSTEM_LIBJPEG = yes
++  USE_SYSTEM_ZLIB = yes
++endif
+diff --git a/source/fitz/string.c b/source/fitz/string.c
+index 4a0de4fc48..aeaf8cabf6 100644
+--- a/source/fitz/string.c
++++ b/source/fitz/string.c
+@@ -235,7 +235,11 @@ char *fz_realpath(const char *path, char *buf)
+ 
+ char *fz_realpath(const char *path, char *buf)
+ {
++#ifdef __SWITCH__
++	return NULL;
++#else
+ 	return realpath(path, buf);
++#endif
+ }
+ 
+ #endif

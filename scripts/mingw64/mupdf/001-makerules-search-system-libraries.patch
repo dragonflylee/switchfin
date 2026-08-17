@@ -1,0 +1,536 @@
+diff --git a/Makefile b/Makefile
+index 25642e3b58..3319a62859 100644
+--- a/Makefile
++++ b/Makefile
+@@ -95,7 +95,7 @@ endif
+ 
+ # --- Rules ---
+ 
+-$(OUT)/%.a :
++$(OUT)/libmupdf-%.a :
+ 	$(AR_CMD)
+ 	$(RANLIB_CMD)
+ 
+@@ -113,7 +113,7 @@ endif
+ $(OUT)/%.def: $(OUT)/%.$(SO)$(SO_VERSION)
+ 	$(GENDEF_CMD)
+ 
+-$(OUT)/%_$(SO)$(SO_VERSION).a: $(OUT)/%.def
++$(OUT)/%.$(SO)$(SO_VERSION).a: $(OUT)/%.def
+ 	$(DLLTOOL_CMD)
+ 
+ $(OUT)/source/helpers/mu-threads/%.o : source/helpers/mu-threads/%.c
+@@ -304,7 +304,7 @@ generate: source/html/css-properties.h
+ ifeq ($(shared),yes)
+ MUPDF_LIB = $(OUT)/libmupdf.$(SO)$(SO_VERSION)
+ ifeq ($(SO),dll)
+-MUPDF_LIB_IMPORT = $(OUT)/libmupdf_$(SO).a
++MUPDF_LIB_IMPORT = $(OUT)/libmupdf.$(SO).a
+ LIBS_TO_INSTALL_IN_BIN = $(MUPDF_LIB)
+ LIBS_TO_INSTALL_IN_LIB = $(MUPDF_LIB_IMPORT)
+ else
+diff --git a/Makerules b/Makerules
+index f582dc0614..da6819beee 100644
+--- a/Makerules
++++ b/Makerules
+@@ -88,6 +88,10 @@ ifeq ($(shared),yes)
+   LIB_CFLAGS = -fPIC
+   ifeq ($(OS),MACOS)
+     LIB_LDFLAGS = -dynamiclib
++  else ifeq ($(OS),MINGW)
++    LIB_CFLAGS += -DFZ_DLL
++    LIB_LDFLAGS = -shared -static-libgcc -static
++    USE_SONAME := no
+   else ifeq ($(OS),wasm)
+     LIB_LDFLAGS = -shared -sSIDE_MODULE
+     EXE_LDFLAGS = -sMAIN_MODULE
+@@ -188,6 +192,27 @@ ifeq ($(OS),MINGW)
+   WINDRES := windres
+   HAVE_WIN32 := yes
+ 
++  USE_SYSTEM_FREETYPE := $(shell pkg-config --exists freetype2 && echo yes)
++  ifeq ($(USE_SYSTEM_FREETYPE),yes)
++	SYS_FREETYPE_CFLAGS := $(shell pkg-config --cflags freetype2)
++	SYS_FREETYPE_LIBS := $(shell pkg-config --libs freetype2)
++  endif
++  USE_SYSTEM_HARFBUZZ := $(shell pkg-config --exists harfbuzz && echo yes)
++  ifeq ($(USE_SYSTEM_HARFBUZZ),yes)
++	SYS_HARFBUZZ_CFLAGS := $(shell pkg-config --cflags harfbuzz)
++	SYS_HARFBUZZ_LIBS := $(shell pkg-config --libs harfbuzz)
++  endif
++  USE_SYSTEM_LIBJPEG := $(shell pkg-config --exists libjpeg && echo yes)
++  ifeq ($(USE_SYSTEM_LIBJPEG),yes)
++	SYS_LIBJPEG_CFLAGS := $(shell pkg-config --cflags libjpeg)
++	SYS_LIBJPEG_LIBS := $(shell pkg-config --libs libjpeg)
++  endif
++  USE_SYSTEM_ZLIB := $(shell pkg-config --exists zlib && echo yes)
++  ifeq ($(USE_SYSTEM_ZLIB),yes)
++	SYS_ZLIB_CFLAGS := $(shell pkg-config --cflags zlib)
++	SYS_ZLIB_LIBS := $(shell pkg-config --libs zlib)
++  endif
++
+ else ifeq ($(OS),MACOS)
+   HAVE_GLUT := yes
+   SYS_GLUT_CFLAGS := -Wno-deprecated-declarations
+diff --git a/include/mupdf/fitz/buffer.h b/include/mupdf/fitz/buffer.h
+index 5ac949cf40..a14fe54ef1 100644
+--- a/include/mupdf/fitz/buffer.h
++++ b/include/mupdf/fitz/buffer.h
+@@ -60,7 +60,7 @@ fz_buffer *fz_keep_buffer(fz_context *ctx, fz_buffer *buf);
+ 
+ 	Never throws exceptions.
+ */
+-void fz_drop_buffer(fz_context *ctx, fz_buffer *buf);
++FZ_FUNCTION void fz_drop_buffer(fz_context *ctx, fz_buffer *buf);
+ 
+ /**
+ 	Retrieve internal memory of buffer.
+@@ -92,17 +92,17 @@ fz_buffer *fz_new_buffer(fz_context *ctx, size_t capacity);
+ 	Returns pointer to new buffer. Throws exception on allocation
+ 	failure.
+ */
+-fz_buffer *fz_new_buffer_from_data(fz_context *ctx, unsigned char *data, size_t size);
++FZ_FUNCTION fz_buffer *fz_new_buffer_from_data(fz_context *ctx, unsigned char *data, size_t size);
+ 
+ /**
+ 	Like fz_new_buffer, but does not take ownership.
+ */
+-fz_buffer *fz_new_buffer_from_shared_data(fz_context *ctx, const unsigned char *data, size_t size);
++FZ_FUNCTION fz_buffer *fz_new_buffer_from_shared_data(fz_context *ctx, const unsigned char *data, size_t size);
+ 
+ /**
+ 	Create a new buffer containing a copy of the passed data.
+ */
+-fz_buffer *fz_new_buffer_from_copied_data(fz_context *ctx, const unsigned char *data, size_t size);
++FZ_FUNCTION fz_buffer *fz_new_buffer_from_copied_data(fz_context *ctx, const unsigned char *data, size_t size);
+ 
+ /**
+ 	Make a new buffer, containing a copy of the data used in
+diff --git a/include/mupdf/fitz/color.h b/include/mupdf/fitz/color.h
+index 0a7e985c90..29081edc27 100644
+--- a/include/mupdf/fitz/color.h
++++ b/include/mupdf/fitz/color.h
+@@ -272,11 +272,11 @@ fz_colorspace *fz_base_colorspace(fz_context *ctx, fz_colorspace *cs);
+ 	These return borrowed references that should not be dropped,
+ 	unless they are kept first.
+ */
+-fz_colorspace *fz_device_gray(fz_context *ctx);
+-fz_colorspace *fz_device_rgb(fz_context *ctx);
+-fz_colorspace *fz_device_bgr(fz_context *ctx);
+-fz_colorspace *fz_device_cmyk(fz_context *ctx);
+-fz_colorspace *fz_device_lab(fz_context *ctx);
++FZ_FUNCTION fz_colorspace *fz_device_gray(fz_context *ctx);
++FZ_FUNCTION fz_colorspace *fz_device_rgb(fz_context *ctx);
++FZ_FUNCTION fz_colorspace *fz_device_bgr(fz_context *ctx);
++FZ_FUNCTION fz_colorspace *fz_device_cmyk(fz_context *ctx);
++FZ_FUNCTION fz_colorspace *fz_device_lab(fz_context *ctx);
+ 
+ /**
+ 	Assign a name for a given colorant in a colorspace.
+diff --git a/include/mupdf/fitz/context.h b/include/mupdf/fitz/context.h
+index 8277c51f31..5b28f8aab3 100644
+--- a/include/mupdf/fitz/context.h
++++ b/include/mupdf/fitz/context.h
+@@ -204,13 +204,13 @@ int fz_do_catchFL(fz_context *ctx, const char *file, int line);
+ #endif
+ 
+ /* Report an error to the registered error callback. */
+-void fz_report_error(fz_context *ctx);
++FZ_FUNCTION void fz_report_error(fz_context *ctx);
+ 
+ /*
+  * Swallow an error and ignore it completely.
+  * This should only be called to signal that you've handled a TRYLATER or ABORT error,
+  */
+-void fz_ignore_error(fz_context *ctx);
++FZ_FUNCTION void fz_ignore_error(fz_context *ctx);
+ 
+ /* Convert an error into another runtime exception.
+  * For use when converting an exception from Fitz to a language binding exception.
+@@ -361,7 +361,7 @@ enum {
+ 
+ 	May return NULL.
+ */
+-fz_context *fz_clone_context(fz_context *ctx);
++FZ_FUNCTION fz_context *fz_clone_context(fz_context *ctx);
+ 
+ /**
+ 	Free a context and its global state.
+@@ -373,7 +373,7 @@ fz_context *fz_clone_context(fz_context *ctx);
+ 	Must not be called for a context that is being used in an active
+ 	fz_try(), fz_always() or fz_catch() block.
+ */
+-void fz_drop_context(fz_context *ctx);
++FZ_FUNCTION void fz_drop_context(fz_context *ctx);
+ 
+ /**
+ 	Set the user field in the context.
+@@ -664,7 +664,7 @@ void fz_disable_icc(fz_context *ctx);
+ 
+ 	Throws exception in the event of failure to allocate.
+ */
+-void *fz_malloc(fz_context *ctx, size_t size);
++FZ_FUNCTION void *fz_malloc(fz_context *ctx, size_t size);
+ 
+ /**
+ 	Allocate array of memory of count entries of size bytes.
+@@ -672,7 +672,7 @@ void *fz_malloc(fz_context *ctx, size_t size);
+ 
+ 	Throws exception in the event of failure to allocate.
+ */
+-void *fz_calloc(fz_context *ctx, size_t count, size_t size);
++FZ_FUNCTION void *fz_calloc(fz_context *ctx, size_t count, size_t size);
+ 
+ /**
+ 	Reallocates a block of memory to given size. Existing contents
+@@ -685,7 +685,7 @@ void *fz_calloc(fz_context *ctx, size_t count, size_t size);
+ 
+ 	Throws exception in the event of failure to allocate.
+ */
+-void *fz_realloc(fz_context *ctx, void *p, size_t size);
++FZ_FUNCTION void *fz_realloc(fz_context *ctx, void *p, size_t size);
+ 
+ /**
+ 	Free a previously allocated block of memory.
+@@ -694,7 +694,7 @@ void *fz_realloc(fz_context *ctx, void *p, size_t size);
+ 
+ 	Never throws exceptions.
+ */
+-void fz_free(fz_context *ctx, void *p);
++FZ_FUNCTION void fz_free(fz_context *ctx, void *p);
+ 
+ /**
+ 	fz_malloc equivalent that returns NULL rather than throwing
+@@ -757,11 +757,11 @@ void fz_drop_string(fz_context *ctx, fz_string *str);
+ 
+ /* Implementations exposed for speed, but considered private. */
+ 
+-void fz_var_imp(void *);
+-fz_jmp_buf *fz_push_try(fz_context *ctx);
+-int fz_do_try(fz_context *ctx);
+-int fz_do_always(fz_context *ctx);
+-int (fz_do_catch)(fz_context *ctx);
++FZ_FUNCTION void fz_var_imp(void *);
++FZ_FUNCTION fz_jmp_buf *fz_push_try(fz_context *ctx);
++FZ_FUNCTION int fz_do_try(fz_context *ctx);
++FZ_FUNCTION int fz_do_always(fz_context *ctx);
++FZ_FUNCTION int (fz_do_catch)(fz_context *ctx);
+ 
+ #ifndef FZ_JMPBUF_ALIGN
+ #define FZ_JMPBUF_ALIGN 32
+@@ -835,7 +835,7 @@ struct fz_context
+ 	fz_glyph_cache *glyph_cache;
+ };
+ 
+-fz_context *fz_new_context_imp(const fz_alloc_context *alloc, const fz_locks_context *locks, size_t max_store, const char *version);
++FZ_FUNCTION fz_context *fz_new_context_imp(const fz_alloc_context *alloc, const fz_locks_context *locks, size_t max_store, const char *version);
+ 
+ /**
+ 	Lock one of the user supplied mutexes.
+diff --git a/include/mupdf/fitz/document.h b/include/mupdf/fitz/document.h
+index eca2a70905..9152983143 100644
+--- a/include/mupdf/fitz/document.h
++++ b/include/mupdf/fitz/document.h
+@@ -422,7 +422,7 @@ void fz_register_document_handler(fz_context *ctx, const fz_document_handler *ha
+ 	Register handlers for all the standard document types supported in
+ 	this build.
+ */
+-void fz_register_document_handlers(fz_context *ctx);
++FZ_FUNCTION void fz_register_document_handlers(fz_context *ctx);
+ 
+ /**
+ 	Given a magic find a document handler that can handle a
+@@ -479,7 +479,7 @@ const fz_document_handler *fz_recognize_document_stream_and_dir_content(fz_conte
+ 
+ 	filename: a path to a file as it would be given to open(2).
+ */
+-fz_document *fz_open_document(fz_context *ctx, const char *filename);
++FZ_FUNCTION fz_document *fz_open_document(fz_context *ctx, const char *filename);
+ 
+ /**
+ 	Open a document file and read its basic structure so pages and
+@@ -505,7 +505,7 @@ fz_document *fz_open_accelerated_document(fz_context *ctx, const char *filename,
+ 	NOTE: The caller retains ownership of 'stream' - the document will take its
+ 	own reference if required.
+ */
+-fz_document *fz_open_document_with_stream(fz_context *ctx, const char *magic, fz_stream *stream);
++FZ_FUNCTION fz_document *fz_open_document_with_stream(fz_context *ctx, const char *magic, fz_stream *stream);
+ 
+ /**
+ 	Open a document using the specified stream object rather than
+@@ -595,7 +595,7 @@ void *fz_new_document_of_size(fz_context *ctx, int size);
+ 
+ 	Never throws exceptions.
+ */
+-fz_document *fz_keep_document(fz_context *ctx, fz_document *doc);
++FZ_FUNCTION fz_document *fz_keep_document(fz_context *ctx, fz_document *doc);
+ 
+ /**
+ 	Decrement the document reference count. When the reference
+@@ -604,13 +604,13 @@ fz_document *fz_keep_document(fz_context *ctx, fz_document *doc);
+ 
+ 	Never throws exceptions.
+ */
+-void fz_drop_document(fz_context *ctx, fz_document *doc);
++FZ_FUNCTION void fz_drop_document(fz_context *ctx, fz_document *doc);
+ 
+ /**
+ 	Check if a document is encrypted with a
+ 	non-blank password.
+ */
+-int fz_needs_password(fz_context *ctx, fz_document *doc);
++FZ_FUNCTION int fz_needs_password(fz_context *ctx, fz_document *doc);
+ 
+ /**
+ 	Test if the given password can decrypt the document.
+@@ -628,14 +628,14 @@ int fz_needs_password(fz_context *ctx, fz_document *doc);
+ 		Bit 1 => User password authenticated
+ 		Bit 2 => Owner password authenticated
+ */
+-int fz_authenticate_password(fz_context *ctx, fz_document *doc, const char *password);
++FZ_FUNCTION int fz_authenticate_password(fz_context *ctx, fz_document *doc, const char *password);
+ 
+ /**
+ 	Load the hierarchical document outline.
+ 
+ 	Should be freed by fz_drop_outline.
+ */
+-fz_outline *fz_load_outline(fz_context *ctx, fz_document *doc);
++FZ_FUNCTION fz_outline *fz_load_outline(fz_context *ctx, fz_document *doc);
+ 
+ /**
+ 	Get an iterator for the document outline.
+@@ -676,7 +676,7 @@ fz_location fz_lookup_bookmark(fz_context *ctx, fz_document *doc, fz_bookmark ma
+ 
+ 	May return 0 for documents with no pages.
+ */
+-int fz_count_pages(fz_context *ctx, fz_document *doc);
++FZ_FUNCTION int fz_count_pages(fz_context *ctx, fz_document *doc);
+ 
+ /**
+ 	Resolve an internal link to a page number, location, and possible viewing parameters.
+@@ -700,7 +700,7 @@ char *fz_format_link_uri(fz_context *ctx, fz_document *doc, fz_link_dest dest);
+ 
+ 	Returns (-1,-1) if the URI cannot be resolved.
+ */
+-fz_location fz_resolve_link(fz_context *ctx, fz_document *doc, const char *uri, float *xp, float *yp);
++FZ_FUNCTION fz_location fz_resolve_link(fz_context *ctx, fz_document *doc, const char *uri, float *xp, float *yp);
+ 
+ /**
+ 	Run the document structure through a device.
+@@ -758,20 +758,20 @@ fz_location fz_location_from_page_number(fz_context *ctx, fz_document *doc, int
+ 	chapters to be laid out in order to calculate the number of
+ 	pages within those chapters.
+ */
+-int fz_page_number_from_location(fz_context *ctx, fz_document *doc, fz_location loc);
++FZ_FUNCTION int fz_page_number_from_location(fz_context *ctx, fz_document *doc, fz_location loc);
+ 
+ /**
+ 	Load a given page number from a document. This may be much less
+ 	efficient than loading by location (chapter+page) for some
+ 	document types.
+ */
+-fz_page *fz_load_page(fz_context *ctx, fz_document *doc, int number);
++FZ_FUNCTION fz_page *fz_load_page(fz_context *ctx, fz_document *doc, int number);
+ 
+ /**
+ 	Return the number of chapters in the document.
+ 	At least 1.
+ */
+-int fz_count_chapters(fz_context *ctx, fz_document *doc);
++FZ_FUNCTION int fz_count_chapters(fz_context *ctx, fz_document *doc);
+ 
+ /**
+ 	Return the number of pages in a chapter.
+@@ -815,8 +815,8 @@ fz_page *fz_new_page_of_size(fz_context *ctx, int size, fz_document *doc);
+ /**
+ 	Determine the size of a page at 72 dpi.
+ */
+-fz_rect fz_bound_page(fz_context *ctx, fz_page *page);
+-fz_rect fz_bound_page_box(fz_context *ctx, fz_page *page, fz_box_type box);
++FZ_FUNCTION fz_rect fz_bound_page(fz_context *ctx, fz_page *page);
++FZ_FUNCTION fz_rect fz_bound_page_box(fz_context *ctx, fz_page *page, fz_box_type box);
+ 
+ /**
+ 	Run a page through a device.
+@@ -877,7 +877,7 @@ void fz_run_page_widgets(fz_context *ctx, fz_page *page, fz_device *dev, fz_matr
+ 
+ 	Never throws exceptions.
+ */
+-fz_page *fz_keep_page(fz_context *ctx, fz_page *page);
++FZ_FUNCTION fz_page *fz_keep_page(fz_context *ctx, fz_page *page);
+ 
+ /**
+ 	Increment the reference count for the page. Returns the same
+@@ -893,7 +893,7 @@ fz_page *fz_keep_page_locked(fz_context *ctx, fz_page *page);
+ 
+ 	Never throws exceptions.
+ */
+-void fz_drop_page(fz_context *ctx, fz_page *page);
++FZ_FUNCTION void fz_drop_page(fz_context *ctx, fz_page *page);
+ 
+ /**
+ 	Get the presentation details for a given page.
+diff --git a/include/mupdf/fitz/geometry.h b/include/mupdf/fitz/geometry.h
+index 57ca0e8823..288c49ab16 100644
+--- a/include/mupdf/fitz/geometry.h
++++ b/include/mupdf/fitz/geometry.h
+@@ -409,7 +409,7 @@ fz_matrix fz_concat(fz_matrix left, fz_matrix right);
+ 
+ 	Returns m.
+ */
+-fz_matrix fz_scale(float sx, float sy);
++FZ_FUNCTION fz_matrix fz_scale(float sx, float sy);
+ 
+ /**
+ 	Scale a matrix by premultiplication.
+diff --git a/include/mupdf/fitz/outline.h b/include/mupdf/fitz/outline.h
+index 6f5810c559..e9202697cf 100644
+--- a/include/mupdf/fitz/outline.h
++++ b/include/mupdf/fitz/outline.h
+@@ -143,7 +143,7 @@ fz_outline *fz_keep_outline(fz_context *ctx, fz_outline *outline);
+ 
+ 	Never throws exceptions.
+ */
+-void fz_drop_outline(fz_context *ctx, fz_outline *outline);
++FZ_FUNCTION void fz_drop_outline(fz_context *ctx, fz_outline *outline);
+ 
+ /**
+ 	Routine to implement the old Structure based API from an iterator.
+diff --git a/include/mupdf/fitz/pixmap.h b/include/mupdf/fitz/pixmap.h
+index e1c1fab3ae..da6fdf1d02 100644
+--- a/include/mupdf/fitz/pixmap.h
++++ b/include/mupdf/fitz/pixmap.h
+@@ -188,7 +188,7 @@ fz_pixmap *fz_clone_pixmap(fz_context *ctx, const fz_pixmap *old);
+ 
+ 	Never throws exceptions.
+ */
+-fz_pixmap *fz_keep_pixmap(fz_context *ctx, fz_pixmap *pix);
++FZ_FUNCTION fz_pixmap *fz_keep_pixmap(fz_context *ctx, fz_pixmap *pix);
+ 
+ /**
+ 	Decrement the reference count for the pixmap. When the
+@@ -196,7 +196,7 @@ fz_pixmap *fz_keep_pixmap(fz_context *ctx, fz_pixmap *pix);
+ 
+ 	Never throws exceptions.
+ */
+-void fz_drop_pixmap(fz_context *ctx, fz_pixmap *pix);
++FZ_FUNCTION void fz_drop_pixmap(fz_context *ctx, fz_pixmap *pix);
+ 
+ /**
+ 	Return the colorspace of a pixmap
+diff --git a/include/mupdf/fitz/stream.h b/include/mupdf/fitz/stream.h
+index 13d1c7793b..093f026e58 100644
+--- a/include/mupdf/fitz/stream.h
++++ b/include/mupdf/fitz/stream.h
+@@ -53,7 +53,7 @@ typedef struct fz_stream fz_stream;
+ 	as standard anyway (and in most cases, particularly for MacOS
+ 	and Linux, the encoding they use is UTF-8 anyway).
+ */
+-fz_stream *fz_open_file(fz_context *ctx, const char *filename);
++FZ_FUNCTION fz_stream *fz_open_file(fz_context *ctx, const char *filename);
+ 
+ /**
+ 	Do the same as fz_open_file, but delete the file upon close.
+@@ -100,7 +100,7 @@ const char *fz_stream_filename(fz_context *ctx, fz_stream *stm);
+ 	Returns pointer to newly created stream. May throw exceptions on
+ 	failure to allocate.
+ */
+-fz_stream *fz_open_memory(fz_context *ctx, const unsigned char *data, size_t len);
++FZ_FUNCTION fz_stream *fz_open_memory(fz_context *ctx, const unsigned char *data, size_t len);
+ 
+ /**
+ 	Open a buffer as a stream.
+@@ -111,7 +111,7 @@ fz_stream *fz_open_memory(fz_context *ctx, const unsigned char *data, size_t len
+ 	Returns pointer to newly created stream. May throw exceptions on
+ 	failure to allocate.
+ */
+-fz_stream *fz_open_buffer(fz_context *ctx, fz_buffer *buf);
++FZ_FUNCTION fz_stream *fz_open_buffer(fz_context *ctx, fz_buffer *buf);
+ 
+ /**
+ 	Attach a filter to a stream that will store any
+@@ -133,7 +133,7 @@ fz_stream *fz_open_leecher(fz_context *ctx, fz_stream *chain, fz_buffer *buf);
+ 
+ 	Never throws exceptions.
+ */
+-fz_stream *fz_keep_stream(fz_context *ctx, fz_stream *stm);
++FZ_FUNCTION fz_stream *fz_keep_stream(fz_context *ctx, fz_stream *stm);
+ 
+ /**
+ 	Decrements the reference count for a stream.
+@@ -143,7 +143,7 @@ fz_stream *fz_keep_stream(fz_context *ctx, fz_stream *stm);
+ 	releases the underlying resources that the stream is based upon
+ 	(depends on the method used to open the stream initially).
+ */
+-void fz_drop_stream(fz_context *ctx, fz_stream *stm);
++FZ_FUNCTION void fz_drop_stream(fz_context *ctx, fz_stream *stm);
+ 
+ /**
+ 	return the current reading position within a stream
+@@ -339,7 +339,7 @@ struct fz_stream
+ 	drop: Should clean up and free the internal state. May not
+ 	throw exceptions.
+ */
+-fz_stream *fz_new_stream(fz_context *ctx, void *state, fz_stream_next_fn *next, fz_stream_drop_fn *drop);
++FZ_FUNCTION fz_stream *fz_new_stream(fz_context *ctx, void *state, fz_stream_next_fn *next, fz_stream_drop_fn *drop);
+ 
+ /**
+ 	Attempt to read a stream into a buffer. If truncated
+diff --git a/include/mupdf/fitz/util.h b/include/mupdf/fitz/util.h
+index 00485082b1..ea8c5e3573 100644
+--- a/include/mupdf/fitz/util.h
++++ b/include/mupdf/fitz/util.h
+@@ -54,9 +54,9 @@ fz_display_list *fz_new_display_list_from_page_contents(fz_context *ctx, fz_page
+ 
+ 	Ownership of the pixmap is returned to the caller.
+ */
+-fz_pixmap *fz_new_pixmap_from_display_list(fz_context *ctx, fz_display_list *list, fz_matrix ctm, fz_colorspace *cs, int alpha);
+-fz_pixmap *fz_new_pixmap_from_page(fz_context *ctx, fz_page *page, fz_matrix ctm, fz_colorspace *cs, int alpha);
+-fz_pixmap *fz_new_pixmap_from_page_number(fz_context *ctx, fz_document *doc, int number, fz_matrix ctm, fz_colorspace *cs, int alpha);
++FZ_FUNCTION fz_pixmap *fz_new_pixmap_from_display_list(fz_context *ctx, fz_display_list *list, fz_matrix ctm, fz_colorspace *cs, int alpha);
++FZ_FUNCTION fz_pixmap *fz_new_pixmap_from_page(fz_context *ctx, fz_page *page, fz_matrix ctm, fz_colorspace *cs, int alpha);
++FZ_FUNCTION fz_pixmap *fz_new_pixmap_from_page_number(fz_context *ctx, fz_document *doc, int number, fz_matrix ctm, fz_colorspace *cs, int alpha);
+ 
+ /**
+ 	Render the page contents without annotations.
+diff --git a/source/fitz/directory.c b/source/fitz/directory.c
+index 9088edd483..d723dec463 100644
+--- a/source/fitz/directory.c
++++ b/source/fitz/directory.c
+@@ -26,7 +26,7 @@
+ #include <errno.h>
+ #include <sys/stat.h>
+ 
+-#ifdef _MSC_VER
++#ifdef _WIN32
+ #include <windows.h>
+ #include <errno.h>
+ #define stat _stat
+@@ -133,7 +133,7 @@ fz_archive *
+ fz_open_directory(fz_context *ctx, const char *path)
+ {
+ 	fz_directory *dir;
+-#ifdef _MSC_VER
++#ifdef _WIN32
+ 	WCHAR *wpath = NULL;
+ 	size_t z = 3;
+ 	HANDLE h = NULL;
+@@ -162,7 +162,7 @@ fz_open_directory(fz_context *ctx, const char *path)
+ 
+ 	fz_try(ctx)
+ 	{
+-#ifdef _MSC_VER
++#ifdef _WIN32
+ 		char const *p = path;
+ 		WCHAR *w;
+ 		while (*p)
+@@ -248,7 +248,7 @@ fz_open_directory(fz_context *ctx, const char *path)
+ 	}
+ 	fz_always(ctx)
+ 	{
+-#ifdef _MSC_VER
++#ifdef _WIN32
+ 		fz_free(ctx, wpath);
+ 		if (h)
+ 			(void)FindClose(h);

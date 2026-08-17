@@ -3,6 +3,7 @@ PREFIX ?= $(CURDIR)/dylib/$(OSX_ARCH)
 TMPDIR ?= $(CURDIR)/src
 
 export CMAKE_PREFIX_PATH=$(PREFIX)
+export DYLD_LIBRARY_PATH=$(PREFIX)/lib
 export PKG_CONFIG_LIBDIR=$(PREFIX)/lib/pkgconfig
 
 ifeq ($(OSX_ARCH),arm64)
@@ -13,7 +14,7 @@ endif
 
 all: download build
 
-build: mpv curl glfw
+build: mpv curl mupdf glfw
 
 clean:
 	@rm -rf build
@@ -23,6 +24,7 @@ download:
 	curl --retry 5 -sSL https://curl.se/download/curl-8.16.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/webmproject/libwebp/archive/v1.6.0.tar.gz | tar zxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/dragonflylee/glfw/archive/switchfin.tar.gz | tar zxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://casper.mupdf.com/downloads/archive/mupdf-1.24.11-source.tar.lz | tar --lzip -xf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://downloads.sourceforge.net/project/freetype/freetype2/2.14.3/freetype-2.14.3.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/14.3.0/harfbuzz-14.3.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz | tar Jxf - -C $(TMPDIR)
@@ -143,3 +145,15 @@ mpv: ffmpeg libplacebo
 		-Dlibarchive=disabled -Dlcms2=disabled -Dmanpage-build=disabled -Dhtml-build=disabled
 	meson compile -C build/mpv
 	meson install -C build/mpv
+
+mupdf:
+	make -C $(TMPDIR)/mupdf-1.24.11-source install-libs \
+		build=release shared=yes prefix=$(PREFIX) OS=MACOS \
+		XCFLAGS="-arch $(OSX_ARCH) -mmacosx-version-min=$(OSX_TARGET)" \
+		XLDFLAGS="-arch $(OSX_ARCH) -mmacosx-version-min=$(OSX_TARGET)" \
+		XLIB_LDFLAGS="-install_name $(PREFIX)/lib/libmupdf.dylib" \
+		USE_SYSTEM_ZLIB=yes USE_SYSTEM_FREETYPE=yes USE_SYSTEM_HARFBUZZ=yes \
+		SYS_FREETYPE_CFLAGS="-I$(PREFIX)/include/freetype2" \
+		SYS_FREETYPE_LIBS="-L$(PREFIX)/lib -lfreetype" \
+		SYS_HARFBUZZ_CFLAGS="-I$(PREFIX)/include/harfbuzz" \
+		-j $(shell sysctl -n hw.ncpu)

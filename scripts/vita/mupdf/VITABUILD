@@ -1,0 +1,20 @@
+pkgname=mupdf
+pkgver=1.24.11
+pkgrel=1
+url='https://mupdf.com/'
+source=("https://casper.mupdf.com/downloads/archive/mupdf-$pkgver-source.tar.lz" "mupdf.patch")
+sha256sums=('ac159293040934e250e4495782f8cd04c8cbbaf992fbd9faf32dab2ec657117b' 'SKIP')
+depends=('freetype' 'harfbuzz' 'libjpeg-turbo')
+
+build() {
+  cd mupdf-${pkgver}-source
+  patch -Np1 -i "$srcdir/mupdf.patch"
+  make build=release OS=psvita libs -j$(nproc)
+}
+
+package () {
+  cd mupdf-${pkgver}-source
+  make build=release \
+    prefix="$prefix" DESTDIR="$pkgdir" \
+    OS=psvita install-libs
+}

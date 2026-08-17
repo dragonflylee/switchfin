@@ -27,13 +27,14 @@ jobs:
       run: |
         useradd -d ${GITHUB_WORKSPACE}/scripts/switch -s /bin/bash builder
         echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder
+        dkp-pacman -R switch-mupdf switch-libmpv --noconfirm
 
         chown -R builder:builder scripts/switch
         for pkg in mbedtls libssh2 dav1d ffmpeg libuam; do
           echo building $pkg
           su - builder -c "cd $pkg && dkp-makepkg -siCf --noconfirm"
         done
-        for pkg in mpv curl nspmini hacbrewpack; do
+        for pkg in mpv curl mupdf nspmini hacbrewpack; do
           echo building $pkg
           su - builder -c "cd $pkg && dkp-makepkg -sCf --noconfirm"
         done

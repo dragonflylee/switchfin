@@ -1,0 +1,47 @@
+# Maintainer: MVZ Labor Ludwigsburg <edv@mvz-labor-lb.de>
+
+_realname=mupdf
+pkgbase=mingw-w64-${_realname}
+pkgname="${MINGW_PACKAGE_PREFIX}-libmupdf"
+pkgver=1.24.11
+pkgrel=1
+pkgdesc='Library for Lightweight PDF and XPS viewer'
+arch=('any')
+mingw_arch=('mingw64' 'mingw32' 'clangarm64')
+url='https://mupdf.com/'
+license=('spdx:AGPL-3.0-or-later')
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-freetype"
+  "${MINGW_PACKAGE_PREFIX}-harfbuzz"
+  "${MINGW_PACKAGE_PREFIX}-libjpeg-turbo"
+  "${MINGW_PACKAGE_PREFIX}-tools-git"
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "${MINGW_PACKAGE_PREFIX}-pkgconf"
+  "unzip" "lzip"
+)
+source=(
+  "https://casper.mupdf.com/downloads/archive/mupdf-$pkgver-source.tar.lz"
+  "001-makerules-search-system-libraries.patch"
+)
+noextract=("${_realname}-${pkgver}-source.tar.lz")
+sha256sums=('ac159293040934e250e4495782f8cd04c8cbbaf992fbd9faf32dab2ec657117b' 'SKIP')
+
+prepare() {
+  tar -xf "${_realname}-${pkgver}-source.tar.lz" || true
+
+  cd "${_realname}-${pkgver}-source"
+  patch -p1 -i "${srcdir}/001-makerules-search-system-libraries.patch"
+}
+
+build() {
+  cd "${_realname}-${pkgver}-source"
+  make prefix=${MINGW_PREFIX} build=release \
+    shared=yes OS=MINGW libs -j4
+}
+
+package() {
+  cd "${_realname}-${pkgver}-source"
+  make prefix=${MINGW_PREFIX} DESTDIR="${pkgdir}" \
+    OS=MINGW build=release shared=yes \
+    TOOL_APPS= VIEW_APPS= install
+}

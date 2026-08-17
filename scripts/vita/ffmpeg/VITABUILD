@@ -13,7 +13,7 @@ prepare() {
 
 build() {
   cd FFmpeg-${pkgver}
-  ./configure --prefix=$VITASDK/arm-vita-eabi \
+  ./configure --prefix=$prefix \
         --enable-vita \
         --target-os=vita \
         --enable-cross-compile \

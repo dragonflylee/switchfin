@@ -1,0 +1,33 @@
+# Maintainer:  Dave Murphy <davem@devkitpro.org>
+# Contributor: Julian Uy <uyjulian@gmail.com>
+
+pkgname=switch-mupdf
+pkgver=1.24.11
+pkgrel=1
+pkgdesc='MuPDF is a lightweight PDF, XPS, and E-book viewer.'
+arch=('any')
+url='https://mupdf.com/'
+license=('AGPL')
+options=(!strip libtool staticlibs)
+depends=("switch-freetype" "switch-harfbuzz" "switch-libjpeg-turbo" "switch-zlib")
+makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
+source=("https://casper.mupdf.com/downloads/archive/mupdf-$pkgver-source.tar.lz" "mupdf.patch")
+groups=('switch-portlibs')
+sha256sums=('ac159293040934e250e4495782f8cd04c8cbbaf992fbd9faf32dab2ec657117b' 'SKIP')
+
+build() {
+  cd mupdf-$pkgver-source
+
+  patch -Np1 -i "$srcdir/mupdf.patch"
+
+  source ${DEVKITPRO}/switchvars.sh
+
+  make build=release OS=switch libs -j$(nproc)
+}
+
+package() {
+  cd mupdf-$pkgver-source
+  make build=release \
+    prefix="${PORTLIBS_PREFIX}" DESTDIR="$pkgdir" \
+    OS=switch install-libs
+}
