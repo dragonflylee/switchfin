@@ -29,6 +29,15 @@ cleanup:
   - /share/gtk-doc
 
 modules:
+  - name: mupdf
+    buildsystem: simple
+    build-commands:
+      - make -j ${FLATPAK_BUILDER_N_JOBS} prefix=${FLATPAK_DEST} build=release OS=Linux USE_SYSTEM_LIBS=yes USE_SYSTEM_GUMBO=no USE_SYSTEM_JBIG2DEC=no TOOL_APPS= VIEW_APPS= install-shared-c
+    sources:
+      - type: archive
+        url: https://casper.mupdf.com/downloads/archive/mupdf-1.24.11-source.tar.lz
+        sha256: ac159293040934e250e4495782f8cd04c8cbbaf992fbd9faf32dab2ec657117b
+
   - name: libmpv
     buildsystem: meson
     config-opts:
@@ -222,6 +231,7 @@ modules:
       - -DUSE_SYSTEM_GLFW=ON
       - -DUSE_GLES2=OFF
       - -DUSE_EGL=ON
+      - -DUSE_MUPDF=ON
       - -DCMAKE_INSTALL=ON
     builddir: true
     sources:

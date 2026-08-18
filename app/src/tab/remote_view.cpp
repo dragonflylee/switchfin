@@ -2,6 +2,7 @@
 #include "activity/gallery_activity.hpp"
 #include "view/recycling_grid.hpp"
 #include "view/svg_image.hpp"
+#include "view/ebook_view.hpp"
 #include "view/video_view.hpp"
 #include "view/video_profile.hpp"
 #include "view/mpv_core.hpp"
@@ -210,7 +211,7 @@ static std::set<std::string> videoExt = {
     ".mp4", ".mkv", ".avi", ".flv", ".mov", ".wmv", ".webm", ".rm", ".rmvb", ".mpg"};
 static std::set<std::string> audioExt = {".mp3", ".flac", ".wav", ".ogg", ".m4a", ".aac", ".wma", ".ape"};
 static std::set<std::string> imageExt = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"};
-static std::set<std::string> booktExt = {".pdf", ".epub", ".mobi", ".azw3"};
+static std::set<std::string> booktExt = {".pdf", ".epub", ".mobi", ".azw3", ".txt"};
 static std::set<std::string> playlistExt = {".m3u", ".m3u8"};
 static std::set<std::string> subtitleExt = {".srt", ".ass", ".ssa", ".sub", ".smi"};
 
@@ -286,7 +287,14 @@ public:
             brls::Application::pushActivity(new GalleryActivity(item.url(), client->getHeaders()));
             return;
         }
-
+#ifdef USE_MUPDF
+        if (item.type == remote::EntryType::BOOK) {
+            EBookView *view = new EBookView();
+            view->open(item.url(), 0, client->getHeaders());
+            brls::Application::pushActivity(new brls::Activity(view));
+            return;
+        }
+#endif
         if (item.type == remote::EntryType::PLAYLIST) {
             RemotePlayer* view = new RemotePlayer(item);
             MPVCore::instance().setUrl(item.url(), client->extraOption());

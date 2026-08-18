@@ -75,6 +75,8 @@
                 "C:/MinGW64/x86_64-w64-mingw32/include/**"
             ],
             "defines": [
+                "USE_WEBP",
+                "USE_MUPDF",
                 "BOREALIS_USE_OPENGL",
                 "YG_ENABLE_EVENTS",
                 "BRLS_RESOURCES=\"resources\""

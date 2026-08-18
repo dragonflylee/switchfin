@@ -55,6 +55,15 @@
     "episode": "Sélections",
     "speed_up": "Lecture en vitesse accélérée"
   },
+  "ebook": {
+    "zoom": "Zoom",
+    "zoom_in": "Agrandir",
+    "zoom_out": "Réduire",
+    "single_page": "Page unique",
+    "double_page": "Double page",
+    "outline": "Outline",
+    "no_outline": "No outline"
+  },
   "danmaku": {
     "header": "Paramètres des sous-titres interactifs",
     "performance": {
@@ -164,7 +173,9 @@
     "section_done": "Téléchargés",
     "remove_all": "Tout supprimer",
     "confirm_remove_all": "Supprimer tous les téléchargements ?",
-    "empty_sub": "Les films et épisodes téléchargés se retrouvent ici, pour les regarder hors ligne."
+    "empty_sub": "Les films et épisodes téléchargés se retrouvent ici, pour les regarder hors ligne.",
+    "quality": "Download Quality",
+    "original": "Original"
   },
   "setting": {
     "quit_hint": "L'application va bientôt se fermer, les paramètres prendront effet lors du prochain démarrage",

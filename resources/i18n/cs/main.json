@@ -55,6 +55,15 @@
     "episode": "Epizoda",
     "speed_up": "Aktuální rychlost {}"
   },
+  "ebook": {
+    "zoom": "Přiblížení",
+    "zoom_in": "Přiblížit",
+    "zoom_out": "Oddálit",
+    "single_page": "Jedna stránka",
+    "double_page": "Dvě stránky",
+    "outline": "Outline",
+    "no_outline": "No outline"
+  },
   "danmaku": {
     "header": "Nastavení Danmaku",
     "performance": {
@@ -216,7 +225,8 @@
     "filter": {
       "mirror": "Překlopení videa",
       "hflip": "Vodorovně převrátit",
-      "vflip": "Vertikálně převrátit"
+      "vflip": "Vertikálně převrátit",
+      "rotation": "Rotation"
     },
     "aspect": {
       "header": "Aspekt videa",
@@ -312,10 +322,10 @@
   },
   "hints": {
     "hint1": "Vyberte hru z domovské obrazovky",
-    "hint2": "Podržte klávesu \uE0E5 a kliknutím na \uE0E0 přejděte do nabídky homebrew",
+    "hint2": "Podržte klávesu  a kliknutím na  přejděte do nabídky homebrew",
     "hint3": "V nabídce homebrew vyberte Switchfin",
     "hint4": "Volitelné: Odeslat Switchfin NSP na domovskou obrazovku",
-    "hint_nsp": "Kliknutím na \uE0E0 odešlete Switchfin NSP na domovskou obrazovku",
+    "hint_nsp": "Kliknutím na  odešlete Switchfin NSP na domovskou obrazovku",
     "hint_confirm": "Pokud odešlete NSP na domovskou obrazovku může to vést k banu\nProsím potvrďte znovu",
     "hint_right": "Obrázky jsou z internetu a autorská práva patří společnosti Nintendo Co., Ltd"
   }

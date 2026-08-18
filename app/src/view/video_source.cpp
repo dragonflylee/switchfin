@@ -12,6 +12,7 @@
 #include "view/video_card.hpp"
 #include "view/video_source.hpp"
 #include "view/context_menu.hpp"
+#include "view/ebook_view.hpp"
 #include "api/jellyfin.hpp"
 
 using namespace brls::literals;  // for _i18n
@@ -260,6 +261,15 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
         std::string query = HTTP::encode_form({{"api_key", conf.getToken()}});
         std::string url = conf.getUrl() + fmt::format(fmt::runtime(jellyfin::apiDownload), item.Id, query);
         brls::Application::pushActivity(new GalleryActivity(url));
+#ifdef USE_MUPDF
+    } else if (item.Type == jellyfin::mediaTypeBook) {
+        auto view = new EBookView();
+        auto& conf = AppConfig::instance();
+        std::string query = HTTP::encode_form({{"api_key", conf.getToken()}});
+        std::string url = conf.getUrl() + fmt::format(fmt::runtime(jellyfin::apiDownload), item.Id, query);
+        view->open(url, item.UserData.PlayedPercentage);
+        brls::Application::pushActivity(new brls::Activity(view));
+#endif
     } else {
         auto dialog = new brls::Dialog(fmt::format("Unsupported media type: {}", item.Type));
         dialog->addButton("hints/cancel"_i18n, []() {});

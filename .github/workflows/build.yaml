@@ -35,7 +35,10 @@ on:
         - aur
         - deb
       disable_builtin_nsp:
-        description: disable builtin NSP
+        description: Disable builtin NSP
+        type: boolean
+      enable_mupdf:
+        description: Enable MuPDF
         type: boolean
 
 jobs:
@@ -113,7 +116,7 @@ jobs:
     - name: Update dependencies
       run: |
         dkp-pacman --noconfirm -U $BASE_URL/hacBrewPack-3.05-1-x86_64.pkg.tar.zst
-        for pkg in mbedtls-3.6.7-1 libssh2-1.11.1-1 dav1d-1.5.4-1 curl-8.16.0-3 ffmpeg-7.1.5-5 libmpv${{ matrix.shuffix }}-0.36.0-5 nspmini-main-1; do
+        for pkg in mbedtls-3.6.7-1 libssh2-1.11.1-1 dav1d-1.5.4-1 curl-8.16.0-3 ffmpeg-7.1.5-5 mupdf-1.24.11-1 libmpv${{ matrix.shuffix }}-0.36.0-5 nspmini-main-1; do
           dkp-pacman --noconfirm -U $BASE_URL/switch-${pkg}-any.pkg.tar.zst
         done
         git config --system --add safe.directory $GITHUB_WORKSPACE
@@ -127,6 +130,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release \
           -DPLATFORM_SWITCH=ON \
           -DUSE_LIBUSBHSFS=ON \
+          -DUSE_MUPDF=${{ github.event.inputs.enable_mupdf && 'OFF' || 'ON' }} \
           -DBUILTIN_NSP=${{ github.event.inputs.disable_builtin_nsp && 'OFF' || 'ON' }} \
           -DVERSION_BUILD=${{ github.run_number }}
         make -C build Switchfin.nro -j$(nproc)
@@ -188,13 +192,14 @@ jobs:
       env:
         BASE_URL: https://github.com/dragonflylee/switchfin/releases/download/vita-packages
       run: |
-        for pkg in mbedtls-3.6.7-1 curl-8.16.0-3 ffmpeg-n6.0-3 mpv-0.36.0-3; do
+        for pkg in mbedtls-3.6.7-1 curl-8.16.0-3 mupdf-1.24.11-1 ffmpeg-n6.0-3 mpv-0.36.0-3; do
           vdpm pacman --noconfirm -U $BASE_URL/${pkg}-vita.pkg.tar.xz
         done
         git config --system --add safe.directory $GITHUB_WORKSPACE
     - name: Build
       run: |
         cmake -B build -G Ninja -DPLATFORM_PSV=ON -DUSE_GXM=ON \
+          -DUSE_MUPDF=${{ github.event.inputs.enable_mupdf && 'OFF' || 'ON' }} \
           -DUSE_VITA_SHARK=OFF -DVERSION_BUILD=${{ github.run_number }}
         cmake --build build
     - name: Upload vpk
@@ -271,7 +276,7 @@ jobs:
         apt-get update
         apt-get install -y --no-install-recommends debhelper cmake build-essential \
           ninja-build git wget ca-certificates xorg-dev libdbus-1-dev libssl-dev \
-          libwayland-dev libxkbcommon-dev libwebp-dev libmpv-dev
+          libwayland-dev libxkbcommon-dev libwebp-dev libmpv-dev libmupdf-dev
     - uses: actions/checkout@v6
       with:
         submodules: recursive
@@ -329,6 +334,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release \
           -DPLATFORM_DESKTOP=ON \
           -DUSE_SYSTEM_GLFW=ON \
+          -DUSE_MUPDF=ON \
           -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
           -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.target }} \
           -DVERSION_BUILD=${{ github.run_number }}
@@ -380,7 +386,7 @@ jobs:
         submodules: recursive
     - name: Install dependency
       run: |
-        for pkg in glfw-3.5.0-1 curl-8.16.0-1 mpv-0.41.0-1 libwebp-1.6.0-1; do
+        for pkg in glfw-3.5.0-1 curl-8.16.0-1 mpv-0.41.0-1 libmupdf-1.24.11-1 libwebp-1.6.0-1; do
           curl -sLO https://github.com/dragonflylee/switchfin/releases/download/mingw-packages/${MINGW_PACKAGE_PREFIX}-${pkg}-any.pkg.tar.zst
         done
         pacman -U --noconfirm *.pkg.tar.zst
@@ -406,10 +412,11 @@ jobs:
           -DUSE_SYSTEM_GLFW=ON \
           -DUSE_D3D11=ON \
           -DUSE_LIBROMFS=ON \
+          -DUSE_MUPDF=ON \
           -DVERSION_BUILD=${{ github.run_number }}
         cmake --build build
         cv2pdb64 build/Switchfin.exe
-        cp -a README.md ${MINGW_PREFIX}/bin/libmpv-2.dll build
+        cp -a README.md ${MINGW_PREFIX}/bin/{libmpv-2.dll,libmupdf.dll} build
     - name: Upload Assets
       uses: actions/upload-artifact@v6
       with:
@@ -418,6 +425,7 @@ jobs:
           build/Switchfin.exe
           build/Switchfin.pdb
           build/libmpv-2.dll
+          build/libmupdf.dll
           build/README.md
 
   build-android:

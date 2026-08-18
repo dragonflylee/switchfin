@@ -55,6 +55,15 @@
     "episode": "选集",
     "speed_up": "{} 倍速播放中"
   },
+  "ebook": {
+    "zoom": "缩放",
+    "zoom_in": "放大",
+    "zoom_out": "缩小",
+    "single_page": "单页",
+    "double_page": "双页",
+    "outline": "目录",
+    "no_outline": "无目录"
+  },
   "danmaku": {
     "header": "弹幕设置",
     "performance": {

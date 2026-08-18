@@ -55,6 +55,15 @@
     "episode": "Эпизод",
     "speed_up": "Текущая скорость {}"
   },
+  "ebook": {
+    "zoom": "Масштаб",
+    "zoom_in": "Увеличить",
+    "zoom_out": "Уменьшить",
+    "single_page": "Одна страница",
+    "double_page": "Две страницы",
+    "outline": "Outline",
+    "no_outline": "No outline"
+  },
   "danmaku": {
     "header": "Настройки Danmaku",
     "performance": {
@@ -162,7 +171,10 @@
     "section_active": "В процессе",
     "section_done": "Загружено",
     "remove_all": "Удалить всё",
-    "confirm_remove_all": "Удалить все загрузки?"
+    "confirm_remove_all": "Удалить все загрузки?",
+    "quality": "Download Quality",
+    "original": "Original",
+    "items": "items"
   },
   "setting": {
     "quit_hint": "Приложение закроется. Изменения вступят в силу при следующем запуске",

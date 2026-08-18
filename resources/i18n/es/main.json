@@ -55,6 +55,15 @@
     "episode": "Episodio",
     "speed_up": "Velocidad actual {}"
   },
+  "ebook": {
+    "zoom": "Zoom",
+    "zoom_in": "Acercar",
+    "zoom_out": "Alejar",
+    "single_page": "Página única",
+    "double_page": "Doble página",
+    "outline": "Outline",
+    "no_outline": "No outline"
+  },
   "danmaku": {
     "header": "Configuración de comentarios",
     "performance": {
@@ -108,7 +117,8 @@
     "rating": "Calificación",
     "random": "Aleatorio",
     "played": "Reproducido",
-    "unplayed": "No reproducido"
+    "unplayed": "No reproducido",
+    "del_favorite": "Remove favorites"
   },
   "search": {
     "hint": "Admitir palabras clave y sus letras iniciales",
@@ -161,7 +171,10 @@
     "section_active": "En curso",
     "section_done": "Descargado",
     "remove_all": "Eliminar todo",
-    "confirm_remove_all": "¿Eliminar todas las descargas?"
+    "confirm_remove_all": "¿Eliminar todas las descargas?",
+    "quality": "Download Quality",
+    "original": "Original",
+    "items": "items"
   },
   "setting": {
     "quit_hint": "Vas a salir de la aplicación. La configuración tendrá efecto tras el próximo arranque",

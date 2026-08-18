@@ -55,6 +55,15 @@
     "episode": "Episódio",
     "speed_up": "Velocidade atual {}"
   },
+  "ebook": {
+    "zoom": "Zoom",
+    "zoom_in": "Ampliar",
+    "zoom_out": "Reduzir",
+    "single_page": "Página única",
+    "double_page": "Página dupla",
+    "outline": "Outline",
+    "no_outline": "No outline"
+  },
   "danmaku": {
     "header": "Configurações de Danmaku",
     "performance": {

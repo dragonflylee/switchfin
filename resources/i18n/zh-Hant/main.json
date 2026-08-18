@@ -55,6 +55,15 @@
     "episode": "選集",
     "speed_up": "{} 倍速播放中"
   },
+  "ebook": {
+    "zoom": "縮放",
+    "zoom_in": "放大",
+    "zoom_out": "縮小",
+    "single_page": "單頁",
+    "double_page": "雙頁",
+    "outline": "目錄",
+    "no_outline": "無目錄"
+  },
   "danmaku": {
     "header": "彈幕設定",
     "performance": {
@@ -133,7 +142,7 @@
     "folder": "資料夾",
     "up": "上一級",
     "add": "新增伺服器",
-     "type": "類型",
+    "type": "類型",
     "name": "名稱",
     "host": "主機",
     "port": "連接埠",

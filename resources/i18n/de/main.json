@@ -55,6 +55,15 @@
     "episode": "Episoden",
     "speed_up": "Aktuelle Geschwindigkeit {}"
   },
+  "ebook": {
+    "zoom": "Zoom",
+    "zoom_in": "Vergrößern",
+    "zoom_out": "Verkleinern",
+    "single_page": "Einzelne Seite",
+    "double_page": "Doppelseite",
+    "outline": "Outline",
+    "no_outline": "No outline"
+  },
   "danmaku": {
     "header": "Danmaku-Einstellungen",
     "performance": {
@@ -156,7 +165,7 @@
     "queued": "In Warteschlange",
     "items": "Elemente",
     "no_downloads": "Keine Downloads",
-    "confirm_remove": "Diesen Download entfernen?", 
+    "confirm_remove": "Diesen Download entfernen?",
     "confirm_cancel": "Diesen Download abbrechen?",
     "confirm_season": "{} Episoden herunterladen?",
     "play_offline": "Offline abspielen",
@@ -313,10 +322,10 @@
   },
   "hints": {
     "hint1": "Selektiere ein Spiel vom Homescreen",
-    "hint2": "Halte die \uE0E5-Taste drücke die \uE0E0-Taste um hbmenu zu öffnen",
+    "hint2": "Halte die -Taste drücke die -Taste um hbmenu zu öffnen",
     "hint3": "Wähle Switchfin in hbmenu",
     "hint4": "Optional: Verwende den bereitgestellten Switchfin NSP forwarder",
-    "hint_nsp": "Drücke \uE0E0 um den NSP forwarder zu installieren",
+    "hint_nsp": "Drücke  um den NSP forwarder zu installieren",
     "hint_confirm": "NSP forwarder zu installieren kann zu einem Ban von Nintendo führen\nBitte erneut bestätigen",
     "hint_right": "Die Bilder sind vom Internet und gehören Nintendo Co., Ltd"
   }

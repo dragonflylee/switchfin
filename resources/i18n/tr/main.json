@@ -55,6 +55,15 @@
     "episode": "Bölümler",
     "speed_up": "Mevcut hız {}"
   },
+  "ebook": {
+    "zoom": "Yakınlaştırma",
+    "zoom_in": "Yakınlaştır",
+    "zoom_out": "Uzaklaştır",
+    "single_page": "Tek sayfa",
+    "double_page": "Çift sayfa",
+    "outline": "Outline",
+    "no_outline": "No outline"
+  },
   "danmaku": {
     "header": "Danmaku yorum ayarları",
     "performance": {
@@ -108,7 +117,8 @@
     "rating": "Topluluk Puanı",
     "random": "Rastgele",
     "played": "Oynatıldı",
-    "unplayed": "Oynatılmadı"
+    "unplayed": "Oynatılmadı",
+    "del_favorite": "Remove favorites"
   },
   "search": {
     "hint": "Anahtar kelimeleri ve baş harflerini destekler",
@@ -163,7 +173,8 @@
     "section_active": "Devam ediyor",
     "section_done": "İndirildi",
     "remove_all": "Tümünü kaldır",
-    "confirm_remove_all": "Tüm indirmeler kaldırılsın mı?"
+    "confirm_remove_all": "Tüm indirmeler kaldırılsın mı?",
+    "items": "items"
   },
   "setting": {
     "quit_hint": "Uygulamadan çıkış yapmak üzeresiniz. Değiştirilen ayarlar bir sonraki başlangıçtan sonra uygulanacak",

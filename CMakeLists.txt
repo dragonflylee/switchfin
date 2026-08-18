@@ -9,6 +9,7 @@ set(BOREALIS_LIBRARY ${BOREALIS_DIR}/library)
 include(${BOREALIS_LIBRARY}/cmake/commonOption.cmake)
 
 option(USE_SYSTEM_CURL "use system installed libcurl" ON)
+option(USE_MUPDF "use mupdf for ebook" OFF)
 
 # Linux
 # Using CMAKE_INSTALL_PREFIX specifies the location where the application is installed.
@@ -143,6 +144,12 @@ if (USE_BOOST_FILESYSTEM)
         list(APPEND APP_PLATFORM_LIB Boost::filesystem)
         list(APPEND APP_PLATFORM_OPTION -DUSE_BOOST_FILESYSTEM -DBOOST_FILESYSTEM_VERSION=4)
     endif()
+endif ()
+
+if (USE_MUPDF)
+    find_package(MuPDF REQUIRED)
+    list(APPEND APP_PLATFORM_OPTION -DUSE_MUPDF)
+    list(APPEND APP_PLATFORM_LIB ${MuPDF_LIBRARY})
 endif ()
 
 if (PLATFORM_DESKTOP)

@@ -55,6 +55,15 @@
     "episode": "Tập",
     "speed_up": "Tốc độ hệ tại {}"
   },
+  "ebook": {
+    "zoom": "Thu phóng",
+    "zoom_in": "Phóng to",
+    "zoom_out": "Thu nhỏ",
+    "single_page": "Một trang",
+    "double_page": "Hai trang",
+    "outline": "Outline",
+    "no_outline": "No outline"
+  },
   "danmaku": {
     "header": "Cài đặt Danmaku",
     "performance": {
@@ -203,7 +212,8 @@
       "transcodec": "Chuyển mã",
       "audio_channels": "Kênh âm thanh",
       "video_quality": "Chất lượng video",
-      "subsync": "Đồng bộ phụ đề"
+      "subsync": "Đồng bộ phụ đề",
+      "vo": "Video output"
     },
     "transcode": {
       "header": "Chuyển mã"
@@ -312,10 +322,10 @@
   },
   "hints": {
     "hint1": "Chọn một game từ màn hình chính",
-    "hint2": "Giữ \uE0E5 và \uE0E0 để vào hbmenu",
+    "hint2": "Giữ  và  để vào hbmenu",
     "hint3": "Trong hbmenu, chọn Switchfin",
     "hint4": "Tuỳ chọn: Cài đặt Switchfin ra màn hình chính bằng NSP forwarder",
-    "hint_nsp": "Bấm \uE0E0 để cài đặt ra màn hình chính",
+    "hint_nsp": "Bấm  để cài đặt ra màn hình chính",
     "hint_confirm": "Cài đặt NSP forwarder có thể bị ban\nVui lòng xác nhận",
     "hint_right": "Những hình ảnh này được lấy từ Internet, và bản quyền thuộc về Nintendo Co., Ltd."
   }

@@ -55,6 +55,15 @@
     "episode": "エピソード",
     "speed_up": "現在の速度 {}"
   },
+  "ebook": {
+    "zoom": "ズーム",
+    "zoom_in": "拡大",
+    "zoom_out": "縮小",
+    "single_page": "単ページ",
+    "double_page": "見開き",
+    "outline": "Outline",
+    "no_outline": "No outline"
+  },
   "danmaku": {
     "header": "字幕の設定",
     "performance": {
@@ -163,7 +172,9 @@
     "section_active": "ダウンロード中",
     "section_done": "ダウンロード済み",
     "remove_all": "すべて削除",
-    "confirm_remove_all": "すべてのダウンロードを削除しますか？"
+    "confirm_remove_all": "すべてのダウンロードを削除しますか？",
+    "quality": "Download Quality",
+    "original": "Original"
   },
   "setting": {
     "quit_hint": "アプリケーションを終了しようとしています。設定は次回起動時から有効になります。",
@@ -311,10 +322,10 @@
   },
   "hints": {
     "hint1": "ホーム画面からゲームを選択",
-    "hint2": " \uE0E5 ボタンを押し続けて \uE0E0 をクリックするとhbmenuが起動",
+    "hint2": "  ボタンを押し続けて  をクリックするとhbmenuが起動",
     "hint3": "hbmenuでSwitchfinを選択する",
     "hint4": "オプション: Switchfin NSPフォワーダーを使用する",
-    "hint_nsp": " \uE0E0 をクリックしてNSPフォーワーダーをインストールする",
+    "hint_nsp": "  をクリックしてNSPフォーワーダーをインストールする",
     "hint_confirm": "NSPフォワーダのインストールはBANされる可能性があります\n再度ご確認ください",
     "hint_right": "写真はインターネット上のもので、著作権は任天堂株式会社に帰属します"
   }

@@ -55,6 +55,15 @@
     "episode": "에피소드",
     "speed_up": "{} 배속 재생 중"
   },
+  "ebook": {
+    "zoom": "확대/축소",
+    "zoom_in": "확대",
+    "zoom_out": "축소",
+    "single_page": "단일 페이지",
+    "double_page": "두 페이지",
+    "outline": "Outline",
+    "no_outline": "No outline"
+  },
   "danmaku": {
     "header": "탄막 자막 설정",
     "performance": {
@@ -202,7 +211,7 @@
       "touch_gesture": "재생 진행 손가락 제스처 활성화",
       "clip_point": "챕터 위치 표시",
       "transcodec": "트랜스코딩 포맷",
-      "audio_channels": "오디오 채널",  
+      "audio_channels": "오디오 채널",
       "video_quality": "비디오 품질",
       "subsync": "자막 동기화"
     },

@@ -38,6 +38,7 @@ override_dh_auto_configure: curl glfw
 		-DPLATFORM_DESKTOP=ON \
 		-DCMAKE_INSTALL=ON \
 		-DUSE_SYSTEM_GLFW=ON \
-		-DUSE_SYSTEM_CURL=ON $(CMAKE_FLAGS)
+		-DUSE_SYSTEM_CURL=ON \
+		-DUSE_MUPDF=ON $(CMAKE_FLAGS)
 
 override_dh_auto_test:
