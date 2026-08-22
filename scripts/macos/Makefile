@@ -25,8 +25,9 @@ download:
 	curl --retry 5 -sSL https://github.com/webmproject/libwebp/archive/v1.6.0.tar.gz | tar zxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/dragonflylee/glfw/archive/switchfin.tar.gz | tar zxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://casper.mupdf.com/downloads/archive/mupdf-1.24.11-source.tar.lz | tar --lzip -xf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://www.freedesktop.org/software/uchardet/releases/uchardet-0.0.8.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://downloads.sourceforge.net/project/freetype/freetype2/2.14.3/freetype-2.14.3.tar.xz | tar Jxf - -C $(TMPDIR)
-	curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/14.3.0/harfbuzz-14.3.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/14.3.1/harfbuzz-14.3.1.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/libass/libass/releases/download/0.17.5/libass-0.17.5.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://downloads.videolan.org/pub/videolan/dav1d/1.5.4/dav1d-1.5.4.tar.xz | tar Jxf - -C $(TMPDIR)
@@ -59,6 +60,14 @@ glfw:
 	cmake --build build/glfw
 	cmake --install build/glfw
 
+uchardet:
+	cmake -B build/uchardet -S $(TMPDIR)/uchardet-0.0.8 -G Ninja -DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_OSX_ARCHITECTURES=$(OSX_ARCH) -DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_TARGET) \
+		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+		-DBUILD_SHARED_LIBS=OFF -DBUILD_BINARY=OFF
+	cmake --build build/uchardet
+	cmake --install build/uchardet
+
 mbedtls:
 	cmake -B build/mbedtls -S $(TMPDIR)/mbedtls-3.6.7 -G Ninja -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_OSX_ARCHITECTURES=$(OSX_ARCH) -DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_TARGET) \
@@ -86,7 +95,7 @@ freetype:
 	meson install -C build/freetype
 
 harfbuzz: freetype
-	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-14.3.0 \
+	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-14.3.1 \
 		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX) \
 		-Dtests=disabled -Ddocs=disabled -Dicu=disabled -Dcairo=disabled \
 		-Dglib=disabled -Dgobject=disabled -Dbenchmark=disabled -Dutilities=disabled
@@ -137,7 +146,7 @@ libplacebo:
 	meson compile -C build/libplacebo
 	meson install -C build/libplacebo
 
-mpv: ffmpeg libplacebo
+mpv: uchardet ffmpeg libplacebo
 	meson setup build/mpv $(TMPDIR)/mpv-0.41.0 --default-library=shared \
 		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX) -Dtests=false \
 		-Dlibmpv=true -Dcplayer=false -Dswift-build=disabled -Dlua=disabled \

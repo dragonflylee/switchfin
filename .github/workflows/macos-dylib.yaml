@@ -32,7 +32,7 @@ jobs:
       run: make -C scripts/macos OSX_ARCH=${{ matrix.arch }} TMPDIR=${{ runner.temp }} PREFIX=${{ runner.temp }}
     - name: Build packages
       run: |
-        tar zcf dylib-ffmpeg8-mpv41-${{ matrix.tag }}.tar.gz --exclude=lib/*.a \
+        tar zcf dylib-mpv41-${{ matrix.tag }}.tar.gz --exclude=lib/*.a \
           -C ${{ runner.temp }} include lib
     - name: Archive Build Logs
       if: ${{ failure() }}

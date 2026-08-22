@@ -15,8 +15,6 @@ url="https://ffmpeg.org/"
 license=('spdx:GPL-3.0-or-later')
 depends=(
   "${MINGW_PACKAGE_PREFIX}-bzip2"
-  "${MINGW_PACKAGE_PREFIX}-fribidi"
-  "${MINGW_PACKAGE_PREFIX}-freetype"
   "${MINGW_PACKAGE_PREFIX}-dav1d"
   "${MINGW_PACKAGE_PREFIX}-libass"
   "${MINGW_PACKAGE_PREFIX}-libssh2-mbedtls"

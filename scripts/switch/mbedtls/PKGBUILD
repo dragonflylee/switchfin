@@ -1,5 +1,4 @@
-_realname=mbedtls
-pkgname=switch-${_realname}
+pkgname=switch-mbedtls
 pkgver=3.6.7
 pkgrel=1
 pkgdesc='An open source, portable, easy to use, readable and flexible SSL library'
@@ -14,10 +13,13 @@ source=( "https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-${pkgver
 groups=('switch-portlibs')
 sha256sums=('a7e8bcbec0e6f761b4af24f25677626b35f762f68eef79c08677a363212d11f6' 'SKIP')
 
+prepare() {
+  cd mbedtls-$pkgver
+  patch -Np1 -i $srcdir/mbedtls-${pkgver}.patch
+}
+
 build() {
   cd mbedtls-$pkgver
-
-  patch -Np1 -i $srcdir/mbedtls-${pkgver}.patch
 
   source ${DEVKITPRO}/switchvars.sh
 
