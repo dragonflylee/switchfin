@@ -1,3 +1,10 @@
+switchfin (0.9.4-1) unstable; urgency=medium
+
+  * add local file gallery viewing
+  * add unplayed item count badge to media cards
+
+ -- dragonflylee <dragonflylee@outlook.com>  Wed, 25 Aug 2026 10:53:00 +0800
+
 switchfin (0.9.3-1) unstable; urgency=medium
 
   * add chapter select on player view

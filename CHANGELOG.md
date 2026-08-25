@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.9.4]
+
+### Added
+
+* add eBook viewer with MuPDF support
+* add local file gallery viewing
+* add unplayed item count badge to media cards
+
+### Fixed
+
+* improve websocket receive loop to handle stop condition correctly
+* PS4: improve shader handling of libmpv
+
 ## [0.9.3]
 
 ### Added
