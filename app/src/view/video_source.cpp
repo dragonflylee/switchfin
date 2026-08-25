@@ -17,6 +17,13 @@
 
 using namespace brls::literals;  // for _i18n
 
+const std::string badgeXML = R"xml(
+    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="38" height="32" viewBox="0 0 38 32">
+        <rect width="38" height="32" rx="12" fill="#028087" />
+        <text x="18" y="23" font-family="Arial" font-size="22" fill="white" text-anchor="middle">{}</text>
+    </svg>
+)xml";
+
 class EpisodeCardCell : public BaseCardCell {
 public:
     EpisodeCardCell() { this->inflateFromXMLRes("xml/view/episode_card.xml"); }
@@ -223,6 +230,10 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
         cell->rectProgress->setWidthPercentage(item.UserData.PlayedPercentage);
         cell->rectProgress->getParent()->setVisibility(brls::Visibility::VISIBLE);
         cell->badgeTopRight->setVisibility(brls::Visibility::GONE);
+    } else if (item.UserData.UnplayedItemCount > 0) {
+        cell->labelRating->setVisibility(brls::Visibility::INVISIBLE);
+        cell->badgeTopRight->setImageFromSVGString(fmt::format(badgeXML, item.UserData.UnplayedItemCount));
+        cell->badgeTopRight->setVisibility(brls::Visibility::VISIBLE);
     } else {
         cell->labelRating->setVisibility(brls::Visibility::INVISIBLE);
         cell->rectProgress->getParent()->setVisibility(brls::Visibility::GONE);

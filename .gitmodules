@@ -4,4 +4,4 @@
 	branch = wiliwili
 [submodule "library/lunasvg"]
 	path = library/lunasvg
-	url = https://github.com/sammycage/lunasvg
+	url = https://github.com/dragonflylee/lunasvg

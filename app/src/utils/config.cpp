@@ -49,6 +49,7 @@ constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
 #include "view/mpv_core.hpp"
 #include "view/danmaku_core.hpp"
 #include "view/video_view.hpp"
+#include <lunasvg.h>
 
 std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {APP_THEME, {"app_theme", {"auto", "light", "dark"}}},
@@ -455,6 +456,12 @@ bool AppConfig::init() {
     if (getItem(AppConfig::OVERCLOCK, false)) {
         SwitchSys::setClock(true);
     };
+    PlFontData font;
+    if (R_SUCCEEDED(plGetSharedFontByType(&font, PlSharedFontType_Standard))) {
+        lunasvg_add_font_face_from_data("", false, false, font.address, font.size, nullptr, nullptr);
+    }
+#elif !defined(USE_LIBROMFS)
+    lunasvg_add_font_face_from_file("", false, false, BRLS_ASSET("font/switch_font.ttf"));
 #endif
     Ums::instance().init();
 

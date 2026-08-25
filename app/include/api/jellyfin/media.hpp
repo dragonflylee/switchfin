@@ -84,12 +84,13 @@ const uint64_t PLAYTICKS = 10000000;
 struct UserDataResult {
     bool IsFavorite = false;
     int PlayCount = 0;
+    int UnplayedItemCount = 0;
     int64_t PlaybackPositionTicks = 0;
     float PlayedPercentage = 0;
     bool Played = false;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
-    UserDataResult, IsFavorite, PlayCount, PlaybackPositionTicks, PlayedPercentage, Played);
+    UserDataResult, IsFavorite, PlayCount, UnplayedItemCount, PlaybackPositionTicks, PlayedPercentage, Played);
 
 struct MediaChapter {
     std::string Name;
