@@ -52,11 +52,12 @@ websocket::~websocket() {
 
 void* websocket::wsRecv(void* ptr) {
     websocket* p = reinterpret_cast<websocket*>(ptr);
-    for (uint64_t t = 500; !p->isStop.load(); t *= 2) {
+    for (uint64_t t = 500;; t *= 2) {
         CURLcode res = curl_easy_perform(p->easy);
         if (res == CURLE_OK) break;
         p->hb.stop();
         brls::Logger::warning("ws perform failed: {}", curl_easy_strerror(res));
+        if (p->isStop.load()) break;
         retro_sleep(t);
     }
     brls::Logger::info("ws recv exit");
