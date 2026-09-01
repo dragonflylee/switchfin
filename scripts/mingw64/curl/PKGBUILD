@@ -3,7 +3,7 @@
 _realname=curl
 pkgbase=mingw-w64-${_realname}
 pkgname=${MINGW_PACKAGE_PREFIX}-${_realname}
-pkgver=8.16.0
+pkgver=8.21.0
 pkgrel=1
 pkgdesc="library for transferring data with URLs (mingw-w64)"
 arch=('any')
@@ -19,7 +19,7 @@ depends=(
   "${MINGW_PACKAGE_PREFIX}-zlib"
 )
 source=("https://curl.haxx.se/download/${_realname}-${pkgver}.tar.xz" "static-libs.patch")
-sha256sums=('40c8cddbcb6cc6251c03dea423a472a6cea4037be654ba5cf5dec6eb2d22ff1d' 'SKIP')
+sha256sums=('aa1b66a70eace83dc624508745646c08ae561de512ab403adffb93ac87fc72e6' 'SKIP')
 
 prepare() {
   cd "${srcdir}/${_realname}-${pkgver}"
@@ -40,9 +40,9 @@ build() {
       -DBUILD_MISC_DOCS=OFF \
       -DENABLE_CURL_MANUAL=OFF \
       -DBUILD_EXAMPLES=OFF \
-      -DHTTP_ONLY=ON \
       -DCURL_USE_SCHANNEL=ON \
       -DCURL_DISABLE_PROGRESS_METER=ON \
+      -DCURL_DISABLE_LDAP=ON \
       -DUSE_NGHTTP2=OFF \
       -DUSE_LIBIDN2=OFF \
       -DUSE_WIN32_IDN=ON \

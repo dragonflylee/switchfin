@@ -37,12 +37,12 @@ prefix:
 download:
 	wget -qO- https://github.com/libsdl-org/SDL/releases/download/release-2.32.10/SDL2-2.32.10.tar.gz | tar zxf - -C $(TMPDIR)
 	wget -qO- https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.7/mbedtls-3.6.7.tar.bz2 | tar jxf - -C $(TMPDIR)
-	wget -qO- https://curl.se/download/curl-8.16.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	wget -qO- https://curl.se/download/curl-8.21.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/webmproject/libwebp/archive/v1.6.0.tar.gz | tar zxf - -C $(TMPDIR)
 	wget -qO- https://downloads.sourceforge.net/project/freetype/freetype2/2.14.3/freetype-2.14.3.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/GNOME/libxml2/archive/v2.15.3.tar.gz | tar zxf - -C $(TMPDIR)
 	wget -qO- https://github.com/fontconfig/fontconfig/archive/2.18.3.tar.gz | tar zxf - -C $(TMPDIR)
-	wget -qO- https://github.com/harfbuzz/harfbuzz/releases/download/14.3.1/harfbuzz-14.3.1.tar.xz | tar Jxf - -C $(TMPDIR)
+	wget -qO- https://github.com/harfbuzz/harfbuzz/releases/download/14.4.0/harfbuzz-14.4.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/libass/libass/releases/download/0.17.5/libass-0.17.5.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.5.4/dav1d-1.5.4.tar.xz | tar Jxf - -C $(TMPDIR)
@@ -69,14 +69,14 @@ mbedtls:
 	DESTDIR=$(PREFIX) cmake --install build/mbedtls
 
 curl:
-	cmake -B build/curl -S $(TMPDIR)/curl-8.16.0 -G Ninja -DCMAKE_BUILD_TYPE=Release \
+	cmake -B build/curl -S $(TMPDIR)/curl-8.21.0 -G Ninja -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_TOOLCHAIN_FILE="$(ANDROID_NDK)/build/cmake/android.toolchain.cmake" \
 		-DANDROID_ABI=$(ABI) -DANDROID_PLATFORM=android-$(apilvl) -DCMAKE_WARN_DEPRECATED=FALSE \
-		-DBUILD_SHARED_LIBS=ON -DBUILD_CURL_EXE=OFF -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF \
+		-DBUILD_SHARED_LIBS=ON -DCURL_DISABLE_PROGRESS_METER=ON -DCURL_USE_MBEDTLS=ON \
+		-DBUILD_CURL_EXE=OFF -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF -DCURL_USE_PKGCONFIG=ON \
 		-DBUILD_LIBCURL_DOCS=OFF -DBUILD_MISC_DOCS=OFF -DENABLE_CURL_MANUAL=OFF \
 		-DUSE_LIBIDN2=OFF -DUSE_NGHTTP2=OFF -DCURL_BROTLI=OFF -DCURL_ZSTD=OFF \
-		-DCURL_USE_LIBSSH2=OFF -DCURL_USE_LIBPSL=OFF -DCURL_USE_MBEDTLS=ON -DCURL_USE_PKGCONFIG=ON \
-		-DHTTP_ONLY=ON -DCURL_DISABLE_PROGRESS_METER=ON -DBUILD_SHARED_LIBS=ON
+		-DCURL_DISABLE_LDAP=ON -DCURL_USE_LIBSSH2=OFF -DCURL_USE_LIBPSL=OFF \
 	cmake --build build/curl
 	DESTDIR=$(PREFIX) cmake --install build/curl
 
@@ -110,7 +110,7 @@ fontconfig: libxm2
 	meson install -C build/fontconfig --destdir $(PREFIX)
 
 harfbuzz: freetype
-	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-14.3.1 --cross-file "$(CURDIR)/$(ABI).meson" \
+	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-14.4.0 --cross-file "$(CURDIR)/$(ABI).meson" \
 		-Dfreetype=enabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled \
 		-Dchafa=disabled -Dtests=disabled -Dintrospection=disabled \
 		-Ddocs=disabled -Ddoc_tests=false -Dutilities=disabled

@@ -878,7 +878,7 @@ void VideoView::setChapters(const std::vector<jellyfin::MediaChapter>& chaps, ui
         this->osdSlider->setClipPoint(clips);
     }
     /// 章节信息
-    this->btnVideoChapter->registerClickAction([this, chaps](brls::View* view) {
+    this->btnVideoChapter->registerClickAction([chaps](brls::View* view) {
         int selectedChapter = -1;
         uint64_t ticks = MPVCore::instance().video_progress * jellyfin::PLAYTICKS;
         std::vector<std::string> values;

@@ -3,7 +3,6 @@
         {
             "name": "Switch",
             "includePath": [
-                "${workspaceFolder}/build_switch/library/lunasvg/include",
                 "${workspaceFolder}/app/include",
                 "${workspaceFolder}/library/**",
                 "${env:DEVKITPRO}/libnx/include",
@@ -68,7 +67,6 @@
         {
             "name": "MinGW64",
             "includePath": [
-                "${workspaceFolder}/build/library/lunasvg/include",
                 "${workspaceFolder}/app/include",
                 "${workspaceFolder}/library/**",
                 "C:/MinGW64/include",

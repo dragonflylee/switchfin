@@ -1,11 +1,11 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index c4ba74d9fb..03cc9ea0e3 100644
+index e459b3d076..c67bfe7c8a 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -246,11 +246,7 @@ else()
+@@ -366,11 +366,7 @@ else()
  endif()
  
- # Lib flavour selected for example and test programs.
+ # Lib flavor selected for example and test programs.
 -if(BUILD_SHARED_LIBS)
 -  set(LIB_SELECTED ${LIB_SHARED})
 -else()
@@ -13,5 +13,5 @@ index c4ba74d9fb..03cc9ea0e3 100644
 -endif()
 +set(LIB_SELECTED ${LIB_STATIC})
  
- # Override to force-disable or force-enable the use of pkg-config.
- if(UNIX OR VCPKG_TOOLCHAIN OR (MINGW AND NOT CMAKE_CROSSCOMPILING))  # Keep in sync with CMake/curl-config.cmake.in
+ if(WIN32)
+   option(CURL_STATIC_CRT "Build libcurl with static CRT with MSVC (/MT)" OFF)

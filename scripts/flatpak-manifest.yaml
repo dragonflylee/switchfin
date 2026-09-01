@@ -79,8 +79,8 @@ modules:
         buildsystem: meson
         sources:
           - type: archive
-            url: https://gitlab.freedesktop.org/emersion/libdisplay-info/-/releases/0.3.0/downloads/libdisplay-info-0.3.0.tar.xz
-            sha256: 6ae77cd937f9cf7d1321d35c116062c4911e8447010a6a713ac4286f7a9d5987
+            url: https://gitlab.freedesktop.org/emersion/libdisplay-info/-/releases/0.4.0/downloads/libdisplay-info-0.4.0.tar.xz
+            sha256: 43b180baa143e2035654759d84e2b2f5ee77d5fe817c423838c7fe59c0d68459
         modules:
           - name: hwdata
             cleanup:
@@ -89,8 +89,8 @@ modules:
               - --disable-blacklist
             sources:
               - type: archive
-                url: https://github.com/vcrhonek/hwdata/archive/v0.409.tar.gz
-                sha256: 23006accc0f931dd5187d0307a57d0744e2b8feb85e73c37bc0f5229fb31eadd
+                url: https://github.com/vcrhonek/hwdata/archive/v0.410.tar.gz
+                sha256: 2864b061b179b8ad8cb6a7339ca07678240a183d9cedce8677a4950acaf798e0
 
       - name: libplacebo
         buildsystem: meson

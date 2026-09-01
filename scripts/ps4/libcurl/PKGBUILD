@@ -4,18 +4,25 @@
 # You can also use musl with custom DNS support to do similar things (Recommended)
 
 pkgname=ps4-openorbis-libcurl
-pkgver=7.80.0
-pkgrel=5
+pkgver=8.4.0
+pkgrel=1
 pkgdesc='An URL retrieval utility and library'
 arch=('any')
 url='https://curl.haxx.se/'
 license=('curl')
 source=("https://curl.haxx.se/download/curl-${pkgver}.tar.xz")
-sha256sums=('SKIP')
+sha256sums=('16c62a9c4af0f703d28bda6d7bbf37ba47055ad3414d70dec63e2e6336f2a82d')
 options=(!strip !debug libtool staticlibs)
 depends=('ps4-openorbis-zlib' 'ps4-openorbis-mbedtls')
 makedepends=('ps4-openorbis-pkg-config' 'ps4-openorbis-vars')
 groups=('ps4-openorbis-portlibs')
+
+prepare() {
+  cd curl-$pkgver
+
+  # TODO: fix this (use proper patch)...
+  sed -i 's|#include <osreldate.h>|//#include <osreldate.h>|g' include/curl/curl.h
+}
 
 build() {
   cd curl-$pkgver
@@ -25,18 +32,11 @@ build() {
   autoreconf -fi
 
   CFLAGS="${CFLAGS} -DSOL_IP=0" LIBS="${LIBS} -lSceNet" \
-  ./configure --prefix="${OPENORBIS}/usr" --host=x86_64 \
-    --disable-shared --enable-static --disable-unix-sockets \
+  ./configure --prefix="${OPENORBIS}/usr" --host=x86_64-freebsd12 \
+    --disable-shared --enable-static --enable-websockets \
     --with-mbedtls --disable-manual --with-ca-bundle="/system/common/cert/CA_LIST.cer"
 
-  # TODO: fix this (use proper patch)...
-  sed -i 's|#include <osreldate.h>|//#include <osreldate.h>|g' include/curl/curl.h
-
-  # Seems that ps4 doesn't have TCP_KEEPINTVL
-  sed -i 's|#ifdef TCP_KEEPINTVL|#ifndef TCP_KEEPINTVL|g' lib/connect.c
-
   make -j$(nproc) -C lib
-
 }
 
 package() {
