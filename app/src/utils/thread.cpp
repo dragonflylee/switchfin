@@ -62,7 +62,7 @@ void *ThreadPool::task_loop(void *ptr) {
         }
     }
 
-    brls::Logger::verbose("thread: exit {}", fmt::ptr(p));
+    brls::Logger::verbose("pool thread: exit {}", fmt::ptr(ptr));
     return nullptr;
 }
 
