@@ -363,6 +363,53 @@ void DownloadManager::doDownload(DownloadItem& item) {
             }
         }
 
+        if (!cancel->load()) {
+            try {
+                auto resp = HTTP::get(
+                    conf.getUrl() + fmt::format(fmt::runtime(jellyfin::apiUserItem), conf.getUserId(), itemId),
+                    header, HTTP::Timeout{});
+                if (!resp.empty()) {
+                    auto detail = nlohmann::json::parse(resp).get<jellyfin::Detail>();
+                    for (const auto& src : detail.MediaSources) {
+                        for (const auto& stream : src.MediaStreams) {
+                            if (stream.Type == jellyfin::streamTypeSubtitle) {
+                                std::string subUrl;
+                                if (!stream.DeliveryUrl.empty()) {
+                                    subUrl = conf.getUrl() + stream.DeliveryUrl;
+                                } else if (stream.IsExternal || !stream.Codec.empty()) {
+                                    std::string ext = "srt";
+                                    if (!stream.Codec.empty() && stream.Codec != "subrip") {
+                                        ext = stream.Codec;
+                                        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+                                    }
+                                    subUrl = fmt::format("{}/Videos/{}/{}/Subtitles/{}/0/Stream.{}",
+                                                         conf.getUrl(), itemId, src.Id, stream.Index, ext);
+                                } else {
+                                    continue;
+                                }
+
+                                std::string subExt = "srt";
+                                if (!stream.Codec.empty()) {
+                                    subExt = stream.Codec;
+                                    std::transform(subExt.begin(), subExt.end(), subExt.begin(), ::tolower);
+                                    if (subExt == "subrip") subExt = "srt";
+                                }
+                                std::string subFileName = fmt::format("sub_{}.{}", stream.Index, subExt);
+                                try {
+                                    HTTP::download(subUrl, itemDir + "/" + subFileName, HTTP::Timeout{});
+                                    brls::Logger::info("Downloaded subtitle: {}", subFileName);
+                                } catch (const std::exception& e) {
+                                    brls::Logger::warning("Failed to download subtitle stream {}: {}", stream.Index, e.what());
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (const std::exception& e) {
+                brls::Logger::warning("Failed to fetch item subtitles for download: {}", e.what());
+            }
+        }
+
         auto lastProgress = std::make_shared<std::chrono::steady_clock::time_point>();
         HTTP::Progress::Callback progressCb = [this, itemId, lastProgress](curl_off_t total, curl_off_t now) {
             auto tp = std::chrono::steady_clock::now();

@@ -12,12 +12,13 @@
 #include "utils/thread.hpp"
 #include "utils/misc.hpp"
 #include "utils/config.hpp"
+#include "api/jellyfin.hpp"
 
 using namespace brls::literals;
 
 class RemotePlayer : public brls::Box {
 public:
-    RemotePlayer(const remote::DirEntry& item) {
+    RemotePlayer(const remote::DirEntry& item, const std::string& itemId = "") : itemId(itemId) {
         float width = brls::Application::contentWidth;
         float height = brls::Application::contentHeight;
         view->setDimensions(width, height);
@@ -45,6 +46,55 @@ public:
                 const char* flag = MPVCore::SUBS_FALLBACK ? "select" : "auto";
                 for (auto& it : this->subtitles) {
                     mpv.command("sub-add", it.second.c_str(), flag, it.first.c_str());
+                }
+
+                // Load all subtitle files (.srt, .vtt, .ass, .sub) found in the item's local folder
+                std::string itemDir = this->url;
+                auto pos = itemDir.find_last_of("/\\");
+                if (pos != std::string::npos) {
+                    itemDir = itemDir.substr(0, pos);
+                    if (fs::exists(itemDir) && fs::is_directory(itemDir)) {
+                        for (const auto& entry : fs::directory_iterator(itemDir)) {
+                            std::string ext = entry.path().extension().string();
+                            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+                            if (ext == ".srt" || ext == ".vtt" || ext == ".ass" || ext == ".sub") {
+                                std::string filename = entry.path().filename().string();
+                                mpv.command("sub-add", entry.path().string().c_str(), flag, filename.c_str());
+                            }
+                        }
+                    }
+                }
+
+                // If item has a Jellyfin item ID and user is logged in, attach remote server subtitles
+                if (!this->itemId.empty() && AppConfig::instance().checkLogin()) {
+                    std::string itemId = this->itemId;
+                    jellyfin::getJSON<jellyfin::Detail>(
+                        [flag, itemId](const jellyfin::Detail& detail) {
+                            auto& mpv = MPVCore::instance();
+                            auto& svr = AppConfig::instance().getUrl();
+                            for (const auto& src : detail.MediaSources) {
+                                for (const auto& s : src.MediaStreams) {
+                                    if (s.Type == jellyfin::streamTypeSubtitle) {
+                                        std::string subUrl;
+                                        if (!s.DeliveryUrl.empty()) {
+                                            subUrl = svr + s.DeliveryUrl;
+                                        } else if (s.IsExternal || !s.Codec.empty()) {
+                                            std::string ext = "srt";
+                                            if (!s.Codec.empty() && s.Codec != "subrip") {
+                                                ext = s.Codec;
+                                                std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+                                            }
+                                            subUrl = fmt::format("{}/Videos/{}/{}/Subtitles/{}/0/Stream.{}",
+                                                                 svr, itemId, src.Id, s.Index, ext);
+                                        } else {
+                                            continue;
+                                        }
+                                        mpv.command("sub-add", subUrl.c_str(), flag, s.DisplayTitle.c_str());
+                                    }
+                                }
+                            }
+                        },
+                        nullptr, jellyfin::apiUserItem, AppConfig::instance().getUserId(), itemId);
                 }
                 break;
             }
@@ -148,6 +198,7 @@ public:
     }
 
 private:
+    std::string itemId;
     VideoView* view = new VideoView();
     std::string url;
     std::vector<std::string> titles;
@@ -411,8 +462,8 @@ RecyclingGrid* RemoteView::newRecycler() {
     return view;
 }
 
-void RemoteView::play(const std::string& path, const std::string& name) {
-    RemotePlayer* view = new RemotePlayer({remote::EntryType::VIDEO, name, path});
+void RemoteView::play(const std::string& path, const std::string& name, const std::string& itemId) {
+    RemotePlayer* view = new RemotePlayer({remote::EntryType::VIDEO, name, path}, itemId);
     brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
     view->setUrl(path);
 }

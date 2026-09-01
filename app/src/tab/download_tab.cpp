@@ -244,7 +244,7 @@ public:
             } else {
                 detail = item.name;
             }
-            RemoteView::play(path, detail);
+            RemoteView::play(path, detail, item.itemId);
         } else if (item.status == DownloadStatus::Downloading) {
             std::string id = item.itemId;
             Dialog::cancelable(
