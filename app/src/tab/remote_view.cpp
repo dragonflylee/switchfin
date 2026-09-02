@@ -12,12 +12,13 @@
 #include "utils/thread.hpp"
 #include "utils/misc.hpp"
 #include "utils/config.hpp"
+#include "api/jellyfin.hpp"
 
 using namespace brls::literals;
 
 class RemotePlayer : public brls::Box {
 public:
-    RemotePlayer(const remote::DirEntry& item) {
+    RemotePlayer(const remote::DirEntry& item, const std::string& itemId = "") : itemId(itemId) {
         float width = brls::Application::contentWidth;
         float height = brls::Application::contentHeight;
         view->setDimensions(width, height);
@@ -45,6 +46,28 @@ public:
                 const char* flag = MPVCore::SUBS_FALLBACK ? "select" : "auto";
                 for (auto& it : this->subtitles) {
                     mpv.command("sub-add", it.second.c_str(), flag, it.first.c_str());
+                }
+
+                // If item has a Jellyfin item ID and user is logged in, attach remote server subtitles
+                if (!this->itemId.empty()) {
+                    ASYNC_RETAIN
+                    jellyfin::getJSON<jellyfin::Detail>(
+                        [ASYNC_TOKEN, flag](const jellyfin::Detail& detail) {
+                            ASYNC_RELEASE
+                            auto& svr = AppConfig::instance().getUrl();
+                            for (const auto& src : detail.MediaSources) {
+                                for (const auto& s : src.MediaStreams) {
+                                    if (s.Type != jellyfin::streamTypeSubtitle) continue;
+                                    std::string subUrl = misc::buildSubtitleUrl(
+                                        svr, this->itemId, src.Id, s.Index, s.Codec, s.IsExternal, s.DeliveryUrl);
+                                    if (!subUrl.empty()) {
+                                        auto& mpv = MPVCore::instance();
+                                        mpv.command("sub-add", subUrl.c_str(), flag, s.DisplayTitle.c_str());
+                                    }
+                                }
+                            }
+                        },
+                        nullptr, jellyfin::apiUserItem, AppConfig::instance().getUserId(), this->itemId);
                 }
                 break;
             }
@@ -148,6 +171,7 @@ public:
     }
 
 private:
+    std::string itemId;
     VideoView* view = new VideoView();
     std::string url;
     std::vector<std::string> titles;
@@ -213,7 +237,7 @@ static std::set<std::string> audioExt = {".mp3", ".flac", ".wav", ".ogg", ".m4a"
 static std::set<std::string> imageExt = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"};
 static std::set<std::string> booktExt = {".pdf", ".epub", ".mobi", ".azw3", ".txt"};
 static std::set<std::string> playlistExt = {".m3u", ".m3u8"};
-static std::set<std::string> subtitleExt = {".srt", ".ass", ".ssa", ".sub", ".smi"};
+static std::set<std::string> subtitleExt = {".srt", ".ass", ".ssa", ".sub", ".smi", ".vtt"};
 
 class FileDataSource : public RecyclingGridDataSource {
 public:
@@ -289,7 +313,7 @@ public:
         }
 #ifdef USE_MUPDF
         if (item.type == remote::EntryType::BOOK) {
-            EBookView *view = new EBookView();
+            EBookView* view = new EBookView();
             view->open(item.url(), 0, client->getHeaders());
             brls::Application::pushActivity(new brls::Activity(view));
             return;
@@ -411,8 +435,8 @@ RecyclingGrid* RemoteView::newRecycler() {
     return view;
 }
 
-void RemoteView::play(const std::string& path, const std::string& name) {
-    RemotePlayer* view = new RemotePlayer({remote::EntryType::VIDEO, name, path});
+void RemoteView::play(const std::string& path, const std::string& name, const std::string& itemId) {
+    RemotePlayer* view = new RemotePlayer({remote::EntryType::VIDEO, name, path}, itemId);
     brls::Application::pushActivity(new brls::Activity(view), brls::TransitionAnimation::NONE);
     view->setUrl(path);
 }

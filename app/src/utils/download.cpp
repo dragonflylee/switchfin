@@ -363,6 +363,31 @@ void DownloadManager::doDownload(DownloadItem& item) {
             }
         }
 
+        if (!cancel->load()) {
+            try {
+                std::string subUrl = fmt::format(fmt::runtime(jellyfin::apiUserItem), conf.getUserId(), itemId);
+                auto resp = HTTP::get(conf.getUrl() + subUrl, header, HTTP::Timeout{});
+                auto detail = nlohmann::json::parse(resp).get<jellyfin::Detail>();
+                for (const auto& src : detail.MediaSources) {
+                    for (const auto& stream : src.MediaStreams) {
+                        if (stream.Type != jellyfin::streamTypeSubtitle) continue;
+                        std::string subUrl = misc::buildSubtitleUrl(conf.getUrl(), itemId, src.Id, stream.Index,
+                            stream.Codec, stream.IsExternal, stream.DeliveryUrl);
+                        if (subUrl.empty()) continue;
+                        std::string subFileName = fmt::format("sub_{}.{}", stream.Index, misc::codec2Ext(stream.Codec));
+                        try {
+                            HTTP::download(subUrl, itemDir + "/" + subFileName, HTTP::Timeout{});
+                            brls::Logger::info("Downloaded subtitle: {}", subFileName);
+                        } catch (const std::exception& e) {
+                            brls::Logger::warning("Failed to download subtitle stream {}: {}", stream.Index, e.what());
+                        }
+                    }
+                }
+            } catch (const std::exception& e) {
+                brls::Logger::warning("Failed to fetch item subtitles for download: {}", e.what());
+            }
+        }
+
         auto lastProgress = std::make_shared<std::chrono::steady_clock::time_point>();
         HTTP::Progress::Callback progressCb = [this, itemId, lastProgress](curl_off_t total, curl_off_t now) {
             auto tp = std::chrono::steady_clock::now();
