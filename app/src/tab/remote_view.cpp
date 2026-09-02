@@ -74,21 +74,10 @@ public:
                             auto& svr = AppConfig::instance().getUrl();
                             for (const auto& src : detail.MediaSources) {
                                 for (const auto& s : src.MediaStreams) {
-                                    if (s.Type == jellyfin::streamTypeSubtitle) {
-                                        std::string subUrl;
-                                        if (!s.DeliveryUrl.empty()) {
-                                            subUrl = svr + s.DeliveryUrl;
-                                        } else if (s.IsExternal || !s.Codec.empty()) {
-                                            std::string ext = "srt";
-                                            if (!s.Codec.empty() && s.Codec != "subrip") {
-                                                ext = s.Codec;
-                                                std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-                                            }
-                                            subUrl = fmt::format("{}/Videos/{}/{}/Subtitles/{}/0/Stream.{}",
-                                                                 svr, itemId, src.Id, s.Index, ext);
-                                        } else {
-                                            continue;
-                                        }
+                                    if (s.Type != jellyfin::streamTypeSubtitle) continue;
+                                    std::string subUrl = misc::buildSubtitleUrl(
+                                        svr, itemId, src.Id, s.Index, s.Codec, s.IsExternal, s.DeliveryUrl);
+                                    if (!subUrl.empty()) {
                                         mpv.command("sub-add", subUrl.c_str(), flag, s.DisplayTitle.c_str());
                                     }
                                 }

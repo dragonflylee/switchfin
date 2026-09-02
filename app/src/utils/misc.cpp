@@ -2,6 +2,7 @@
 #include <borealis/core/logger.hpp>
 #include <borealis/core/i18n.hpp>
 #include <fmt/chrono.h>
+#include <algorithm>
 #include <random>
 #include <sstream>
 #include <iomanip>
@@ -204,6 +205,22 @@ void misc::split(const std::string& data, std::vector<std::string>& result, char
     std::string s;
     std::stringstream ss(data);
     while (std::getline(ss, s, seq)) result.push_back(s);
+}
+
+std::string misc::codec2Ext(const std::string& codec) {
+    if (codec.empty() || codec == "subrip") return "srt";
+    std::string ext = codec;
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+    return ext;
+}
+
+std::string misc::buildSubtitleUrl(const std::string& serverUrl, const std::string& itemId,
+    const std::string& sourceId, long index, const std::string& codec, bool isExternal,
+    const std::string& deliveryUrl) {
+    if (!deliveryUrl.empty()) return serverUrl + deliveryUrl;
+    if (!isExternal && codec.empty()) return {};
+    return fmt::format("{}/Videos/{}/{}/Subtitles/{}/0/Stream.{}", serverUrl, itemId, sourceId, index,
+        codec2Ext(codec));
 }
 
 bool misc::sendIPC(const std::string& sock, const std::string& payload) {

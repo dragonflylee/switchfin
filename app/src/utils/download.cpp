@@ -365,43 +365,21 @@ void DownloadManager::doDownload(DownloadItem& item) {
 
         if (!cancel->load()) {
             try {
-                auto resp = HTTP::get(
-                    conf.getUrl() + fmt::format(fmt::runtime(jellyfin::apiUserItem), conf.getUserId(), itemId),
-                    header, HTTP::Timeout{});
-                if (!resp.empty()) {
-                    auto detail = nlohmann::json::parse(resp).get<jellyfin::Detail>();
-                    for (const auto& src : detail.MediaSources) {
-                        for (const auto& stream : src.MediaStreams) {
-                            if (stream.Type == jellyfin::streamTypeSubtitle) {
-                                std::string subUrl;
-                                if (!stream.DeliveryUrl.empty()) {
-                                    subUrl = conf.getUrl() + stream.DeliveryUrl;
-                                } else if (stream.IsExternal || !stream.Codec.empty()) {
-                                    std::string ext = "srt";
-                                    if (!stream.Codec.empty() && stream.Codec != "subrip") {
-                                        ext = stream.Codec;
-                                        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-                                    }
-                                    subUrl = fmt::format("{}/Videos/{}/{}/Subtitles/{}/0/Stream.{}",
-                                                         conf.getUrl(), itemId, src.Id, stream.Index, ext);
-                                } else {
-                                    continue;
-                                }
-
-                                std::string subExt = "srt";
-                                if (!stream.Codec.empty()) {
-                                    subExt = stream.Codec;
-                                    std::transform(subExt.begin(), subExt.end(), subExt.begin(), ::tolower);
-                                    if (subExt == "subrip") subExt = "srt";
-                                }
-                                std::string subFileName = fmt::format("sub_{}.{}", stream.Index, subExt);
-                                try {
-                                    HTTP::download(subUrl, itemDir + "/" + subFileName, HTTP::Timeout{});
-                                    brls::Logger::info("Downloaded subtitle: {}", subFileName);
-                                } catch (const std::exception& e) {
-                                    brls::Logger::warning("Failed to download subtitle stream {}: {}", stream.Index, e.what());
-                                }
-                            }
+                std::string subUrl = fmt::format(fmt::runtime(jellyfin::apiUserItem), conf.getUserId(), itemId);
+                auto resp = HTTP::get(conf.getUrl() + subUrl, header, HTTP::Timeout{});
+                auto detail = nlohmann::json::parse(resp).get<jellyfin::Detail>();
+                for (const auto& src : detail.MediaSources) {
+                    for (const auto& stream : src.MediaStreams) {
+                        if (stream.Type != jellyfin::streamTypeSubtitle) continue;
+                        std::string subUrl = misc::buildSubtitleUrl(conf.getUrl(), itemId, src.Id, stream.Index,
+                            stream.Codec, stream.IsExternal, stream.DeliveryUrl);
+                        if (subUrl.empty()) continue;
+                        std::string subFileName = fmt::format("sub_{}.{}", stream.Index, misc::codec2Ext(stream.Codec));
+                        try {
+                            HTTP::download(subUrl, itemDir + "/" + subFileName, HTTP::Timeout{});
+                            brls::Logger::info("Downloaded subtitle: {}", subFileName);
+                        } catch (const std::exception& e) {
+                            brls::Logger::warning("Failed to download subtitle stream {}: {}", stream.Index, e.what());
                         }
                     }
                 }
