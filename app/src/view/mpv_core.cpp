@@ -542,17 +542,19 @@ void MPVCore::eventMainLoop() {
         case MPV_EVENT_NONE:
             return;
         case MPV_EVENT_LOG_MESSAGE: {
-            auto log = (mpv_event_log_message *)event->data;
+            auto log = reinterpret_cast<mpv_event_log_message*>(event->data);
+            std::string text = log->text;
+            while (!text.empty() && text.back() == '\n') text.pop_back();
             if (log->log_level <= MPV_LOG_LEVEL_ERROR) {
-                brls::Logger::error("{}: {}", log->prefix, log->text);
+                brls::Logger::error("{}: {}", log->prefix, text);
             } else if (log->log_level <= MPV_LOG_LEVEL_WARN) {
-                brls::Logger::warning("{}: {}", log->prefix, log->text);
+                brls::Logger::warning("{}: {}", log->prefix, text);
             } else if (log->log_level <= MPV_LOG_LEVEL_INFO) {
-                brls::Logger::info("{}: {}", log->prefix, log->text);
+                brls::Logger::info("{}: {}", log->prefix, text);
             } else if (log->log_level <= MPV_LOG_LEVEL_V) {
-                brls::Logger::debug("{}: {}", log->prefix, log->text);
+                brls::Logger::debug("{}: {}", log->prefix, text);
             } else {
-                brls::Logger::verbose("{}: {}", log->prefix, log->text);
+                brls::Logger::verbose("{}: {}", log->prefix, text);
             }
             break;
         }
