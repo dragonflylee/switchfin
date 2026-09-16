@@ -75,7 +75,7 @@
             "defines": [
                 "USE_WEBP",
                 "USE_MUPDF",
-                "BOREALIS_USE_OPENGL",
+                "BOREALIS_USE_D3D11",
                 "YG_ENABLE_EVENTS",
                 "BRLS_RESOURCES=\"resources\""
             ],

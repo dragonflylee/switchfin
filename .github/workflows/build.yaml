@@ -386,7 +386,7 @@ jobs:
         submodules: recursive
     - name: Install dependency
       run: |
-        for pkg in glfw-3.5.0-1 curl-8.21.0-1 mpv-0.41.0-1 libmupdf-1.24.11-1 libwebp-1.6.0-1; do
+        for pkg in glfw-3.5.0-1 curl-8.21.0-1 mpv-0.41.0-2 libmupdf-1.24.11-1 libwebp-1.6.0-1; do
           curl -sLO https://github.com/dragonflylee/switchfin/releases/download/mingw-packages/${MINGW_PACKAGE_PREFIX}-${pkg}-any.pkg.tar.zst
         done
         pacman -U --noconfirm *.pkg.tar.zst

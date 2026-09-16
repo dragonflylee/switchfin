@@ -5,7 +5,7 @@ _realname=mpv
 pkgbase="mingw-w64-${_realname}"
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
 pkgver=0.41.0
-pkgrel=1
+pkgrel=2
 pkgdesc="Video player based on MPlayer/mplayer2 (mingw-w64)"
 url="https://mpv.io/"
 arch=('any')
@@ -22,7 +22,6 @@ makedepends=(
   "${MINGW_PACKAGE_PREFIX}-shaderc"
   "${MINGW_PACKAGE_PREFIX}-spirv-cross"
   "${MINGW_PACKAGE_PREFIX}-libplacebo"
-  $([[ ${MINGW_PACKAGE_PREFIX} == *-i686* ]] || echo "${MINGW_PACKAGE_PREFIX}-angleproject")
 )
 options=('strip')
 source=(
@@ -52,6 +51,7 @@ build() {
       -Dlibmpv=true \
       -Dcplayer=false \
       -Dtests=false \
+      -Degl-angle-lib=disabled \
       -Dd3d11=enabled \
       -Dvulkan=disabled \
       -Dlibarchive=disabled \
