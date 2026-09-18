@@ -1,6 +1,5 @@
 #include "view/context_menu.hpp"
 #include "view/svg_image.hpp"
-#include "view/mpv_core.hpp"
 #include "view/video_card.hpp"
 #include "api/jellyfin.hpp"
 #include "utils/dialog.hpp"

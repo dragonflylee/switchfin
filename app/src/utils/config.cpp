@@ -48,7 +48,6 @@ constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
 #include "utils/thread.hpp"
 #include "view/mpv_core.hpp"
 #include "view/danmaku_core.hpp"
-#include "view/video_view.hpp"
 #include <lunasvg.h>
 
 std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {

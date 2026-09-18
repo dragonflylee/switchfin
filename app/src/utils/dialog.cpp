@@ -4,7 +4,6 @@
 
 #include <borealis/views/dialog.hpp>
 #include "utils/dialog.hpp"
-#include "utils/config.hpp"
 
 using namespace brls::literals;
 

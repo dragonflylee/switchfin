@@ -8,7 +8,6 @@
 #include "view/video_source.hpp"
 #include "view/media_filter.hpp"
 #include "view/auto_tab_frame.hpp"
-#include "view/h_recycling.hpp"
 #include "tab/suggest_show.hpp"
 #include "tab/suggest_movie.hpp"
 #include "tab/song_list.hpp"

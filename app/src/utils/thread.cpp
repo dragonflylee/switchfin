@@ -1,7 +1,6 @@
 #include <borealis/core/logger.hpp>
 #include <fmt/format.h>
 #include "utils/thread.hpp"
-#include "utils/config.hpp"
 #include "api/http.hpp"
 
 constexpr std::chrono::milliseconds max_idle_time{60000};

@@ -1,5 +1,4 @@
 #include "view/media_filter.hpp"
-#include "api/jellyfin.hpp"
 
 using namespace brls::literals;
 

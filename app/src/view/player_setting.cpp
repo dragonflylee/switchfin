@@ -1,5 +1,4 @@
 #include "utils/config.hpp"
-#include "utils/event.hpp"
 #include "view/button_close.hpp"
 #include "view/mpv_core.hpp"
 #include "view/player_setting.hpp"

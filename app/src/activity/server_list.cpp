@@ -11,7 +11,6 @@
 #include "tab/media_collection.hpp"
 #include "utils/image.hpp"
 #include "utils/dialog.hpp"
-#include "utils/keybind.hpp"
 #include "api/jellyfin.hpp"
 
 using namespace brls::literals;  // for _i18n

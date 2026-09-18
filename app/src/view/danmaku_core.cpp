@@ -4,11 +4,9 @@
 
 #include <borealis/core/logger.hpp>
 #include <borealis/core/application.hpp>
-#include <borealis/core/thread.hpp>
 
 #include <cstdlib>
 #include <utility>
-#include <lunasvg.h>
 
 #include "view/danmaku_core.hpp"
 #include "utils/misc.hpp"
