@@ -131,7 +131,10 @@ void Image::with(brls::Image* view, const std::string& url, const HTTP::Header& 
 
     auto it = requests.insert(std::make_pair(view, item));
     if (!it.second) {
+        // 该 view 已有进行中的请求：归还从池中取出的 item，避免池泄漏
         brls::Logger::warning("insert Image {} failed", fmt::ptr(view));
+        item->image = nullptr;
+        pool.push_back(item);
         return;
     }
 

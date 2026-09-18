@@ -376,7 +376,8 @@ void RemoteView::push(const std::string& path) {
     this->setContent(view);
 
     ASYNC_RETAIN
-    ThreadPool::instance().submit([ASYNC_TOKEN, &path](HTTP&) {
+    // path 按值捕获：submit 异步执行，引用捕获会在本函数返回后悬垂
+    ThreadPool::instance().submit([ASYNC_TOKEN, path](HTTP&) {
         try {
             auto r = client->list(path);
             brls::sync([ASYNC_TOKEN, r]() {

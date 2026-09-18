@@ -12,6 +12,7 @@
 #include <pthread.h>
 #endif
 #include <borealis/core/singleton.hpp>
+#include <borealis/core/logger.hpp>
 #include "api/http.hpp"
 
 class ThreadPool : public brls::Singleton<ThreadPool> {
@@ -24,7 +25,12 @@ public:
     void submit(Task fn) {
         {
             std::lock_guard<std::mutex> locker(this->taskMutex);
-            this->tasks.push_back(fn);
+            // 线程池已停止则直接丢弃任务，避免任务永久滞留、调用方资源无法释放
+            if (this->isStop.load()) {
+                brls::Logger::warning("ThreadPool: submit rejected after stop");
+                return;
+            }
+            this->tasks.push_back(std::move(fn));
         }
         this->taskCond.notify_one();
     }

@@ -23,6 +23,10 @@ websocket::websocket(const std::string& url) {
 
     hb.setCallback([this]() {
         brls::async([this]() {
+            // 析构已开始则不再使用 easy，避免与 cleanup 竞态
+            if (this->isStop.load()) return;
+            std::lock_guard<std::mutex> lock(this->easyMutex);
+            if (this->isStop.load() || this->easy == nullptr) return;
             size_t slen = msgKeepAlive.size();
             curl_ws_send(this->easy, msgKeepAlive.data(), slen, &slen, 0, CURLWS_TEXT);
         });
@@ -38,21 +42,39 @@ websocket::websocket(const std::string& url) {
 
 websocket::~websocket() {
 #if LIBCURL_VERSION_NUM >= 0x080000 && !defined(__PS4__)
-    size_t sent;
-    curl_ws_send(this->easy, "", 0, &sent, 0, CURLWS_CLOSE);
+    // 1) 先置停止标志，让心跳回调与接收循环尽快退出，不再发起新的 easy 操作
     this->isStop.store(true);
+    // 2) 停止心跳定时器
+    this->hb.stop();
+    // 3) 发送关闭帧唤醒接收线程的 curl_easy_perform（send 在锁内，避免与心跳并发）
+    {
+        std::lock_guard<std::mutex> lock(this->easyMutex);
+        if (this->easy != nullptr) {
+            size_t sent;
+            curl_ws_send(this->easy, "", 0, &sent, 0, CURLWS_CLOSE);
+        }
+    }
+    // 4) 等待接收线程结束，此后不再有人使用 easy
 #ifdef BOREALIS_USE_STD_THREAD
     this->th->join();
 #else
     pthread_join(this->th, nullptr);
 #endif
-    curl_easy_cleanup(this->easy);
+    // 5) 最后清理
+    {
+        std::lock_guard<std::mutex> lock(this->easyMutex);
+        if (this->easy != nullptr) {
+            curl_easy_cleanup(this->easy);
+            this->easy = nullptr;
+        }
+    }
 #endif
 }
 
 void* websocket::wsRecv(void* ptr) {
     websocket* p = reinterpret_cast<websocket*>(ptr);
-    for (uint64_t t = 500;; t *= 2) {
+    // 指数退避，上限 60s，避免长期断网时 t 溢出/睡眠过久
+    for (uint64_t t = 500;; t = std::min<uint64_t>(t * 2, 60000)) {
         CURLcode res = curl_easy_perform(p->easy);
         if (res == CURLE_OK) break;
         p->hb.stop();
@@ -108,7 +130,11 @@ size_t websocket::onMsg(char* b, size_t size, size_t nitems, void* ptr) {
         } else if (m.MessageType == "Play") {
             MsgPlay cmd = m.Data.get<MsgPlay>();
             if (cmd.PlayCommand == "PlayNow") {
-                websocket::onPlayNow(cmd.ItemIds.front(), cmd.StartPositionTicks);
+                if (cmd.ItemIds.empty()) {
+                    brls::Logger::warning("ws PlayNow without ItemIds: {}", resp);
+                } else {
+                    websocket::onPlayNow(cmd.ItemIds.front(), cmd.StartPositionTicks);
+                }
             } else {
                 brls::Logger::info("play command: {}", resp);
             }

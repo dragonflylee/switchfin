@@ -17,9 +17,11 @@ ThreadPool::ThreadPool() {
     this->start(max_thread_num > 0 ? max_thread_num : 1);
 }
 
-ThreadPool::~ThreadPool() {}
+ThreadPool::~ThreadPool() { this->stop(); }
 
 void ThreadPool::start(size_t num) {
+    // 已停止则不再创建新线程
+    if (this->isStop.load()) return;
     while (this->threads.size() < num) {
 #ifdef BOREALIS_USE_STD_THREAD
         Thread th = std::make_shared<std::thread>(task_loop, this);
@@ -66,7 +68,9 @@ void *ThreadPool::task_loop(void *ptr) {
 }
 
 void ThreadPool::stop() {
-    this->isStop.store(true);
+    // 幂等：重复调用（显式 stop + 析构）时直接返回，避免对已 join 的线程再次 join
+    if (this->isStop.exchange(true)) return;
+
     this->taskCond.notify_all();
 
     for (auto &th : this->threads) {
