@@ -150,6 +150,8 @@ void Image::with(brls::Image* view, const std::string& url, const HTTP::Header& 
 }
 
 void Image::cancel(brls::Image* view) {
+    if (view == nullptr) return;
+
     brls::TextureCache::instance().removeCache(view->getTexture());
     view->clear();
 
@@ -240,10 +242,15 @@ void Image::doRequest(HTTP& s) {
 }
 
 void Image::clear(brls::Image* view) {
+    if (view == nullptr) return;
+
     std::lock_guard<std::mutex> lock(requestMutex);
 
     auto it = requests.find(view);
     if (it == requests.end()) return;
+
+    // 归属校验：防止已被 cancel/复用的旧任务回调误清空新请求
+    if (it->second->image != view) return;
 
     it->second->image->ptrUnlock();
     it->second->image = nullptr;
