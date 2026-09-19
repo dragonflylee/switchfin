@@ -1,0 +1,10 @@
+# Asset attribution
+
+`icon0.png` and `pic1.png` are rendered from the official Jellyfin brand assets
+(`branding/SVG/icon-solid-black.svg` and `branding/SVG/splash.svg`) in
+[jellyfin/jellyfin-ux](https://github.com/jellyfin/jellyfin-ux), copyright the
+Jellyfin contributors and licensed under
+[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+
+Switchfin is an independent, third-party client and is not affiliated with or
+endorsed by the Jellyfin project.

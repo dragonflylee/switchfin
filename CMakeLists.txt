@@ -8,6 +8,17 @@ set(BOREALIS_LIBRARY ${BOREALIS_DIR}/library)
 # example: cmake -B build -DPLATFORM_DESKTOP=ON
 include(${BOREALIS_LIBRARY}/cmake/commonOption.cmake)
 
+option(PS5_NATIVE_GPU "Build the PS5 native player" ${PLATFORM_PS5})
+option(PS5_NATIVE_HDR "Use PS5 HDR presentation" ${PLATFORM_PS5})
+if (PLATFORM_PS5)
+    if (NOT PS5_NATIVE_GPU OR NOT PS5_NATIVE_HDR)
+        message(FATAL_ERROR "The PS5 port requires native rendering and HDR presentation")
+    endif ()
+    include(${CMAKE_CURRENT_SOURCE_DIR}/scripts/ps5/native-player/platform.cmake)
+elseif (PS5_NATIVE_GPU OR PS5_NATIVE_HDR)
+    message(FATAL_ERROR "PS5 native rendering requires PLATFORM_PS5")
+endif ()
+
 option(USE_SYSTEM_CURL "use system installed libcurl" ON)
 option(USE_MUPDF "use mupdf for ebook" OFF)
 
@@ -22,6 +33,9 @@ cmake_dependent_option(USE_LIBUSBHSFS "Use libusbhsfs for ums access" OFF "PLATF
 # mpv related
 # If your system does not support OpenGL(ES), you can use software rendering, but it will affect performance.
 option(MPV_SW_RENDER "Using CPU to draw videos" OFF)
+if (PLATFORM_PS5 AND (MPV_SW_RENDER OR NOT USE_SYSTEM_CURL))
+    message(FATAL_ERROR "PS5 requires the native media prefix and libmpv OpenGL rendering")
+endif ()
 if (MPV_SW_RENDER)
     list(APPEND APP_PLATFORM_OPTION -DMPV_SW_RENDER)
 endif ()
@@ -98,8 +112,21 @@ endif ()
 
 # build borealis and other third party libraries
 add_subdirectory(library)
+if (PLATFORM_PS5)
+    target_include_directories(borealis PRIVATE "${CMAKE_BINARY_DIR}/native-i18n")
+endif ()
 
-if (USE_SYSTEM_CURL)
+if (PLATFORM_PS5)
+    # Static curl needs its private dependency closure on the native target.
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(PS5_CURL REQUIRED libcurl)
+    add_library(ps5_curl INTERFACE)
+    target_include_directories(ps5_curl INTERFACE ${PS5_CURL_INCLUDE_DIRS})
+    target_compile_options(ps5_curl INTERFACE ${PS5_CURL_STATIC_CFLAGS_OTHER})
+    target_link_directories(ps5_curl INTERFACE ${PS5_CURL_STATIC_LIBRARY_DIRS})
+    target_link_libraries(ps5_curl INTERFACE ${PS5_CURL_STATIC_LIBRARIES})
+    target_link_options(ps5_curl INTERFACE ${PS5_CURL_STATIC_LDFLAGS_OTHER})
+elseif (USE_SYSTEM_CURL)
     find_package(CURL REQUIRED)
 else ()
     include(FetchContent)
@@ -133,7 +160,11 @@ else ()
     set(CURL_DISABLE_PROGRESS_METER ON)
     FetchContent_MakeAvailable(curl)
 endif ()
-list(APPEND APP_PLATFORM_LIB CURL::libcurl)
+if (PLATFORM_PS5)
+    list(APPEND APP_PLATFORM_LIB ps5_curl)
+else ()
+    list(APPEND APP_PLATFORM_LIB CURL::libcurl)
+endif ()
 
 find_package(Threads REQUIRED)
 list(APPEND APP_PLATFORM_LIB ${CMAKE_THREAD_LIBS_INIT})
@@ -206,7 +237,20 @@ if (USE_LIBUSBHSFS)
 endif ()
 
 # building target
-program_target(${PROJECT_NAME} "${MAIN_SRC}")
+if (PLATFORM_PS5)
+    # The native linker supplies the CRT and system imports after archive creation.
+    add_library(${PROJECT_NAME} STATIC ${MAIN_SRC})
+    target_sources(${PROJECT_NAME} PRIVATE
+        scripts/ps5/native-player/posix/native_mkstemp.cpp
+        scripts/ps5/native-player/posix/native_isatty.c
+        scripts/ps5/native-player/posix/native_fnmatch.c
+        scripts/ps5/native-player/posix/native_getcwd.c
+        scripts/ps5/native-player/posix/native_libkernel_sys.c)
+    set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME switchfin-native-app)
+    ps5_native_export_archives(${PROJECT_NAME})
+else ()
+    program_target(${PROJECT_NAME} "${MAIN_SRC}")
+endif ()
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17)
 target_include_directories(${PROJECT_NAME} PRIVATE app/include ${APP_PLATFORM_INCLUDE})
 target_compile_options(${PROJECT_NAME} PRIVATE -ffunction-sections -fdata-sections -Wunused-variable ${APP_PLATFORM_OPTION})

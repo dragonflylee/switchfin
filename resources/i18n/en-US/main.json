@@ -155,6 +155,7 @@
   },
   "download": {
     "quality": "Download Quality",
+    "location": "Download Location",
     "original": "Original",
     "start": "Download",
     "cancel": "Cancel Download",
@@ -171,6 +172,9 @@
     "play_offline": "Play Offline",
     "storage": "Storage",
     "storage_free": "{} free of {}",
+    "storage_data": "Downloading to {}",
+    "storage_sandbox": "Sandbox: {} of {} used",
+    "storage_sandbox_only": "Sandboxed storage · limited space",
     "section_active": "In Progress",
     "section_done": "Downloaded",
     "remove_all": "Remove All",
@@ -202,6 +206,7 @@
       "header": "Playback",
       "bottom_bar": "Show bottom progress bar",
       "low_quality": "Low quality decoding (with less CPU usage)",
+      "render_height": "Render resolution",
       "in_memory_cache": "Inmemory cache",
       "subs_fallback": "Autoload subtitles",
       "vo": "Video output",
@@ -214,6 +219,17 @@
       "audio_channels": "Audio Channels",
       "video_quality": "Video Quality",
       "subsync": "Subtitle Sync"
+    },
+    "subtitle": {
+      "size": "Subtitle size",
+      "position": "Subtitle position",
+      "default": "Default",
+      "bottom": "Bottom",
+      "raised_small": "Slightly raised",
+      "raised": "Raised",
+      "high": "High",
+      "higher": "Higher",
+      "hint": "Saved for text subtitles. Styled subtitles follow your existing settings. Default restores your configured appearance."
     },
     "transcode": {
       "header": "Transcode"

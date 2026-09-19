@@ -19,6 +19,11 @@
 #include "activity/server_list.hpp"
 #include "activity/hint_activity.hpp"
 #include "utils/config.hpp"
+#ifdef PS5_NATIVE_GPU
+#include "utils/ps5_storage_home.hpp"
+#include <sys/stat.h>
+#include <vector>
+#endif
 #include "utils/thread.hpp"
 #include <curl/curl.h>
 #include "view/mpv_core.hpp"
@@ -32,8 +37,49 @@
 #ifdef __linux__
 #include <borealis/platforms/desktop/steam_deck.hpp>
 #endif
+#ifdef PS5_NATIVE_GPU
+#include <borealis/platforms/ps5/ps5_platform.hpp>
+#include <borealis/views/dropdown.hpp>
+#include "utils/ps5_audio_policy.hpp"
+#include "ps5_native_audio_config.hpp"
+#endif
 
 using namespace brls::literals;  // for _i18n
+#ifdef PS5_NATIVE_GPU
+
+namespace {
+void initNativeRestartSetting(brls::SelectorCell* cell, std::string title, std::vector<std::string> labels,
+    AppConfig::Item item, int defaultIndex = 0, bool numericValues = false) {
+    auto selection = [item, defaultIndex, numericValues] {
+        auto& config = AppConfig::instance();
+        return numericValues ? config.getValueIndex(item, defaultIndex) : config.getOptionIndex(item, defaultIndex);
+    };
+    cell->init(title, labels, selection(), [item, selection, numericValues](int selected) {
+        auto& config = AppConfig::instance();
+        if (selection() == selected) return;
+        if (numericValues) config.setItem(item, config.getOptions(item).values[selected]);
+        else config.setItem(item, config.getOptions(item).options[selected]);
+    });
+
+    // The XML selector's quitApp dismissal returns from native main, which
+    // crashes this launch context. Replace its click action for these settings
+    // while retaining the rendered event loop for manual home-screen closure.
+    cell->registerClickAction([cell, title, labels, selection](brls::View*) {
+        const int previous = selection();
+        auto dropdown = new brls::Dropdown(title, labels,
+            [cell](int selected) { cell->setSelection(selected, false); }, previous,
+            [previous](int selected) {
+                if (selected == previous) return;
+                // setItem has no save result; do not claim persistence success.
+                Dialog::show("This change takes effect after you close Switchfin from the PS5 home screen "
+                             "and launch it again.");
+            });
+        brls::Application::pushActivity(new brls::Activity(dropdown));
+        return true;
+    });
+}
+}  // namespace
+#endif
 
 class SettingAbout : public brls::Box {
 public:
@@ -92,7 +138,11 @@ private:
 
 SettingTab::SettingTab() {
     // Inflate the tab from the XML file
+#ifdef PS5_NATIVE_GPU
+    this->inflateFromXMLRes("xml/ps5/settings.xml");
+#else
     this->inflateFromXMLRes("xml/tabs/settings.xml");
+#endif
     GA("open_setting");
 
     this->registerBoolXMLAttribute("hideStatus", [this](bool value) {
@@ -117,16 +167,36 @@ void SettingTab::onCreate() {
         btnUser->setDetailText(conf.getUserName());
         btnUser->registerClickAction([](...) {
             Dialog::cancelable("main/setting/others/logout"_i18n, []() {
+#ifdef PS5_NATIVE_GPU
+                auto& config = AppConfig::instance();
+                const auto user = config.getUserId();
+                const auto server = config.getUrl();
+                const HTTP::Header headers = {config.getAuth(config.getToken())};
+                config.invalidateRequests();
+                brls::async([user, server, headers]() {
+#else
                 brls::async([]() {
                     auto& c = AppConfig::instance();
                     HTTP::Header header = {c.getAuth(c.getToken())};
+#endif
                     try {
+#ifdef PS5_NATIVE_GPU
+                        HTTP::post(server + jellyfin::apiLogout, "", headers, HTTP::Timeout{});
+#else
                         HTTP::post(c.getUrl() + jellyfin::apiLogout, "", header, HTTP::Timeout{});
                         c.removeUser(c.getUserId());
+#endif
                     } catch (const std::exception& ex) {
                         brls::Logger::warning("Logout failed: {}", ex.what());
                     }
+#ifdef PS5_NATIVE_GPU
+                    brls::sync([user]() {
+                        AppConfig::instance().removeUser(user);
+                        brls::Application::quit();
+                    });
+#else
                     brls::sync([]() { brls::Application::quit(); });
+#endif
                 });
             });
             return true;
@@ -154,6 +224,9 @@ void SettingTab::onCreate() {
 #endif
 
 /// Hardware decode
+#ifdef PS5_NATIVE_GPU
+    btnHWDEC->setVisibility(brls::Visibility::GONE);
+#else
 #ifdef PS4
     btnHWDEC->setVisibility(brls::Visibility::GONE);
 #else
@@ -163,6 +236,7 @@ void SettingTab::onCreate() {
         MPVCore::instance().restart();
         conf.setItem(AppConfig::PLAYER_HWDEC, value);
     });
+#endif
 #endif
 
 #if defined(ANDROID)
@@ -203,13 +277,35 @@ void SettingTab::onCreate() {
     selectorCodec->setVisibility(brls::Visibility::GONE);
 #else
     auto& codecOption = conf.getOptions(AppConfig::TRANSCODEC);
+#ifdef PS5_NATIVE_GPU
+    selectorCodec->init("main/setting/playback/transcodec"_i18n, {"AVC/H264", "HEVC/H265"
+        },
+#else
     selectorCodec->init("main/setting/playback/transcodec"_i18n, {"AVC/H264", "HEVC/H265", "AV1"},
+#endif
         conf.getOptionIndex(AppConfig::TRANSCODEC), [&codecOption](int selected) {
             MPVCore::VIDEO_CODEC = codecOption.options[selected];
             AppConfig::instance().setItem(AppConfig::TRANSCODEC, MPVCore::VIDEO_CODEC);
         });
 #endif
 
+#ifdef PS5_NATIVE_GPU
+    // Native audio selector exists only for the receipt-bound optional backend.
+    if constexpr (PS5_NATIVE_AUDIO_51_AVAILABLE != 0) {
+        selectorAudioChannels->init("main/setting/playback/audio_channels"_i18n, {"Stereo", "5.1"},
+            ps5_audio_policy::surround(true, MPVCore::AUDIO_CHANNELS) ? 1 : 0,
+            [cell = static_cast<brls::SelectorCell*>(selectorAudioChannels)](int selected) {
+                if (selected < 0 || selected > 1) return;
+                if (!MPVCore::instance().setNativeAudioChannels(selected == 1 ? "5.1" : "stereo")) {
+                    cell->setSelection(ps5_audio_policy::surround(true, MPVCore::AUDIO_CHANNELS) ? 1 : 0, true);
+                    return;
+                }
+                AppConfig::instance().setItem(AppConfig::AUDIO_CHANNELS, MPVCore::AUDIO_CHANNELS);
+            });
+    } else {
+        selectorAudioChannels->setVisibility(brls::Visibility::GONE);
+    }
+#else
 #if defined(__PS4__) || defined(__PSV__) || defined(TRIMUI)
     selectorAudioChannels->setVisibility(brls::Visibility::GONE);
 #else
@@ -221,12 +317,22 @@ void SettingTab::onCreate() {
             MPVCore::instance().restart();
         });
 #endif
+#endif
 
+#ifdef PS5_NATIVE_GPU
+    const std::vector<int> cacheValues{0, 8, 10, 16};
+    const auto current = std::find(cacheValues.begin(), cacheValues.end(), MPVCore::INMEMORY_CACHE);
+    selectorInmemory->init("main/setting/playback/in_memory_cache"_i18n, {"0MB", "8MB", "10MB", "16MB"},
+        current == cacheValues.end() ? 3 : static_cast<int>(current - cacheValues.begin()), [cacheValues](int selected) {
+            if (selected < 0 || static_cast<size_t>(selected) >= cacheValues.size()) return;
+            MPVCore::INMEMORY_CACHE = cacheValues[selected];
+#else
     auto& inmemoryOption = conf.getOptions(AppConfig::PLAYER_INMEMORY_CACHE);
     selectorInmemory->init("main/setting/playback/in_memory_cache"_i18n, inmemoryOption.options,
         conf.getValueIndex(AppConfig::PLAYER_INMEMORY_CACHE, 1), [&inmemoryOption](int selected) {
             if (MPVCore::INMEMORY_CACHE == inmemoryOption.values[selected]) return;
             MPVCore::INMEMORY_CACHE = inmemoryOption.values[selected];
+#endif
             AppConfig::instance().setItem(AppConfig::PLAYER_INMEMORY_CACHE, MPVCore::INMEMORY_CACHE);
             MPVCore::instance().restart();
         });
@@ -241,27 +347,44 @@ void SettingTab::onCreate() {
         conf.setItem(AppConfig::SHOW_FPS, value);
     });
 
+#ifdef PS5_NATIVE_GPU
+    initNativeRestartSetting(selectorScale, "main/setting/ui/scale/header"_i18n,
+#else
     int scaleIndex = conf.getOptionIndex(AppConfig::APP_UI_SCALE, 1);
     selectorScale->init("main/setting/ui/scale/header"_i18n,
+#endif
         {
             "main/setting/ui/scale/544p"_i18n,
             "main/setting/ui/scale/720p"_i18n,
             "main/setting/ui/scale/900p"_i18n,
             "main/setting/ui/scale/1080p"_i18n,
         },
+#ifdef PS5_NATIVE_GPU
+        AppConfig::APP_UI_SCALE, 1);
+#else
         scaleIndex, [scaleIndex](int selected) {
             if (scaleIndex == selected) return;
             auto& conf = AppConfig::instance();
             auto& scaleOption = conf.getOptions(AppConfig::APP_UI_SCALE);
             conf.setItem(AppConfig::APP_UI_SCALE, scaleOption.options[selected]);
         });
+#endif
 
+#ifdef PS5_NATIVE_GPU
+    // The native presentation contract always uses swap interval 1.
+    selectorVSync->init("main/setting/ui/vsync"_i18n, {"hints/on"_i18n}, 0, [](int) {});
+    selectorVSync->registerClickAction([](brls::View*) {
+        Dialog::show("VSync is always enabled on PS5.");
+        return true;
+    });
+#else
     selectorVSync->init("main/setting/ui/vsync"_i18n, {"hints/off"_i18n, "hints/on"_i18n, "1/2", "1/3", "1/4"},
         VideoContext::swapInterval, [&conf](int selected) {
             if (selected == VideoContext::swapInterval) return;
             brls::Application::setSwapInterval(selected);
             conf.setItem(AppConfig::SWAP_INTERVAL, selected);
         });
+#endif
 
     btnOSDOnToggle->init("main/setting/playback/osd_on_toggle"_i18n, MPVCore::OSD_ON_TOGGLE, [&conf](bool value) {
         MPVCore::OSD_ON_TOGGLE = value;
@@ -308,6 +431,12 @@ void SettingTab::onCreate() {
 
     btnOpenConfig->registerClickAction([](...) -> bool {
         const std::string confDir = AppConfig::instance().configDir();
+#ifdef PS5_NATIVE_GPU
+// PS5 has no file manager and no browser this can hand a path to -- it fell
+// through to the desktop branch and called openBrowser, which on SDL is
+// SDL_OpenURL and does nothing here. Show the path, as the other consoles do.
+        Dialog::show("main/setting/others/config_dir"_i18n + ":\n" + confDir);
+#else
 #if defined(__SWITCH__) || defined(__PSV__) || defined(__PS4__) || defined(ANDROID)
         Dialog::show("main/setting/others/config_dir"_i18n + ":\n" + confDir);
 #else
@@ -317,6 +446,7 @@ void SettingTab::onCreate() {
         {
             brls::Application::getPlatform()->openBrowser(confDir);
         }
+#endif
 #endif
         return true;
     });
@@ -365,8 +495,12 @@ void SettingTab::onCreate() {
 #endif
 
     // App language
+#ifdef PS5_NATIVE_GPU
+    initNativeRestartSetting(selectorLang, "main/setting/others/language/header"_i18n,
+#else
     int langIndex = conf.getOptionIndex(AppConfig::APP_LANG);
     selectorLang->init("main/setting/others/language/header"_i18n,
+#endif
         {
             "main/setting/others/language/auto"_i18n,
             "English",
@@ -384,37 +518,56 @@ void SettingTab::onCreate() {
             "Türkçe",
             "Tiếng việt",
         },
+#ifdef PS5_NATIVE_GPU
+        AppConfig::APP_LANG);
+#else
         langIndex, [langIndex](int selected) {
             if (langIndex == selected) return;
             auto& conf = AppConfig::instance();
             auto& langOptions = conf.getOptions(AppConfig::APP_LANG);
             conf.setItem(AppConfig::APP_LANG, langOptions.options[selected]);
         });
+#endif
 
     // App theme
+#ifdef PS5_NATIVE_GPU
+    initNativeRestartSetting(selectorTheme, "main/setting/others/theme/header"_i18n,
+#else
     int themeIndex = conf.getOptionIndex(AppConfig::APP_THEME);
     selectorTheme->init("main/setting/others/theme/header"_i18n,
+#endif
         {
             "main/setting/others/theme/1"_i18n,
             "main/setting/others/theme/2"_i18n,
             "main/setting/others/theme/3"_i18n,
         },
+#ifdef PS5_NATIVE_GPU
+        AppConfig::APP_THEME);
+#else
         themeIndex, [themeIndex](int selected) {
             if (themeIndex == selected) return;
             auto& conf = AppConfig::instance();
             auto& themeOptions = conf.getOptions(AppConfig::APP_THEME);
             conf.setItem(AppConfig::APP_THEME, themeOptions.options[selected]);
         });
+#endif
 
     auto& threadOpt = conf.getOptions(AppConfig::REQUEST_THREADS);
     auto thIt = std::find(threadOpt.values.begin(), threadOpt.values.end(), ThreadPool::max_thread_num);
     size_t thIndex = thIt != threadOpt.values.end() ? thIt - threadOpt.values.begin() : 0;
+#ifdef PS5_NATIVE_GPU
+    // start() can grow the shared pool but cannot lower its live worker count.
+    // Apply either direction at startup so labels do not imply a live resize.
+    initNativeRestartSetting(inputThreads, "main/setting/network/threads"_i18n + " (next launch)",
+        threadOpt.options, AppConfig::REQUEST_THREADS, thIndex, true);
+#else
     inputThreads->init("main/setting/network/threads"_i18n, threadOpt.options,
         conf.getValueIndex(AppConfig::REQUEST_THREADS, thIndex), [&threadOpt](int selected) {
             long threads = threadOpt.values[selected];
             ThreadPool::instance().start(threads);
             AppConfig::instance().setItem(AppConfig::REQUEST_THREADS, threads);
         });
+#endif
 
     auto& timeoutOption = conf.getOptions(AppConfig::REQUEST_TIMEOUT);
     selectorTimeout->init("main/setting/network/timeout"_i18n, timeoutOption.options,
@@ -443,6 +596,45 @@ void SettingTab::onCreate() {
             AppConfig::instance().setItem(AppConfig::DOWNLOAD_QUALITY, dlQualityOpt.values[selected]);
         });
 
+#ifdef PS5_NATIVE_GPU
+    {
+        // Download location: internal /data (default) + /user/data + any mounted
+        // writable external drive. Large downloads slow past ~1.5 GB on internal
+        // /data (its FS driver); an external drive (e.g. the USB SSD) stays fast
+        // and flat, so this lets the user send downloads there.
+        auto locPaths = std::make_shared<std::vector<std::string>>();
+        std::vector<std::string> labels;
+        locPaths->push_back("");            labels.push_back("Internal (/data)");
+        auto mountedWritable = [](const std::string& m) {
+            struct stat st{}, par{};
+            if (::stat(m.c_str(), &st) != 0 || !S_ISDIR(st.st_mode)) return false;
+            const std::string p = m.substr(0, m.find_last_of('/'));
+            return ::stat(p.c_str(), &par) == 0 && st.st_dev != par.st_dev;
+        };
+        for (int i = 0; i < 8; i++) {
+            std::string m = fmt::format("/mnt/usb{}", i);
+            if (mountedWritable(m)) { locPaths->push_back(m); labels.push_back(fmt::format("USB {}", i)); }
+        }
+        for (int i = 0; i < 2; i++) {
+            std::string m = fmt::format("/mnt/ext{}", i);
+            if (mountedWritable(m)) { locPaths->push_back(m); labels.push_back(fmt::format("Expansion {}", i)); }
+        }
+        const std::string cur = conf.getItem(AppConfig::DOWNLOAD_LOCATION, std::string(""));
+        int curIdx = 0;
+        for (size_t i = 0; i < locPaths->size(); i++)
+            if ((*locPaths)[i] == cur) { curIdx = static_cast<int>(i); break; }
+        selectorDownloadLocation->init("main/download/location"_i18n, labels, curIdx, [locPaths](int selected) {
+            const std::string& path = (*locPaths)[static_cast<size_t>(selected)];
+            AppConfig::instance().setItem(AppConfig::DOWNLOAD_LOCATION, path);
+            ps5::storage::downloadOverrideRoot() = path;
+            if (!path.empty()) { // ensure the tree exists for an immediate download
+                ::mkdir((path + "/switchfin").c_str(), 0755);
+                ::mkdir((path + "/switchfin/downloads").c_str(), 0755);
+            }
+        });
+    }
+
+#endif
     btnSync->init("main/setting/others/sync"_i18n, AppConfig::SYNC, [](bool value) {
         AppConfig::SYNC = value;
         AppConfig::instance().setItem(AppConfig::SYNC_SETTING, value);

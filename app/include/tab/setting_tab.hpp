@@ -65,6 +65,9 @@ private:
     BRLS_BIND(brls::InputCell, inputProxy, "setting/network/proxy");
 
     BRLS_BIND(brls::SelectorCell, selectorDownloadQuality, "setting/download/quality");
+#ifdef PS5_NATIVE_GPU
+    BRLS_BIND(brls::SelectorCell, selectorDownloadLocation, "setting/download/location");
+#endif
 
     BRLS_BIND(SelectorCell, selectorKeymap, "setting/keymap");
     BRLS_BIND(SelectorCell, selectorLang, "setting/language");

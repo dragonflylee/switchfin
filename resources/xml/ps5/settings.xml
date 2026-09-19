@@ -1,0 +1,229 @@
+<brls:Box
+    width="auto"
+    height="auto">
+
+    <brls:ScrollingFrame
+        width="auto"
+        height="auto"
+        marginTop="10"
+        grow="1.0">
+
+        <brls:Box
+            width="auto"
+            height="auto"
+            axis="column"
+            alignItems="stretch"
+            paddingLeft="@style/main/content_padding_sides"
+            paddingRight="@style/main/content_padding_sides"
+            paddingTop="@style/main/content_padding_top_bottom"
+            paddingBottom="@style/main/content_padding_top_bottom">
+
+            <brls:Box
+                width="100%"
+                height="auto"
+                axis="column"
+                marginBottom="30px"
+                id="setting/status">
+                <brls:DetailCell
+                    title="@i18n/main/setting/user"
+                    id="setting/user" />
+                <brls:DetailCell
+                    title="@i18n/main/setting/server/header"
+                    id="setting/server" />
+                <brls:DetailCell
+                    title="@i18n/main/tabs/dashboard"
+                    id="setting/dashboard" />
+            </brls:Box>
+
+            <brls:Header
+                width="auto"
+                height="auto"
+                title="@i18n/main/setting/playback/header"
+                marginBottom="0px" />
+            <brls:Box
+                width="100%"
+                height="auto"
+                axis="column"
+                marginBottom="30px">
+                <brls:BooleanCell
+                    id="setting/video/hwdec" />
+                <brls:SelectorCell
+                    id="setting/mpv/vo" />
+                <brls:BooleanCell
+                    id="setting/video/low_quality" />
+                <brls:SelectorCell
+                    id="setting/video/inmemory" />
+                <brls:SelectorCell
+                    id="setting/playback/audio_channels" />
+                <brls:BooleanCell
+                    id="setting/video/subs_fallback" />
+            </brls:Box>
+
+            <brls:Header
+                width="auto"
+                height="auto"
+                title="@i18n/main/setting/control/header"
+                marginBottom="0px" />
+            <brls:Box
+                width="100%"
+                height="auto"
+                axis="column"
+                marginBottom="30px">
+                <brls:BooleanCell
+                    id="setting/player/osd_on_toggle" />
+                <brls:BooleanCell
+                    id="setting/player/touch_gesture" />
+                <brls:BooleanCell
+                    id="setting/player/tv_model" />
+            </brls:Box>
+
+            <brls:Header
+                width="auto"
+                height="auto"
+                title="@i18n/main/setting/transcode/header"
+                marginBottom="0px" />
+            <brls:Box
+                width="100%"
+                height="auto"
+                axis="column"
+                marginBottom="30px">
+                <brls:BooleanCell
+                    id="setting/video/directplay" />
+                <brls:SelectorCell
+                    id="setting/transcode/codec" />
+            </brls:Box>
+
+            <brls:Header
+                width="auto"
+                height="auto"
+                title="@i18n/main/setting/network/header"
+                marginBottom="0px" />
+            <brls:Box
+                width="100%"
+                height="auto"
+                axis="column"
+                marginBottom="30px">
+                <brls:SelectorCell
+                    id="setting/network/threads" />
+                <brls:SelectorCell
+                    id="setting/network/timeout" />
+                <brls:BooleanCell
+                    id="setting/network/proxy_status" />
+                <brls:InputCell
+                    id="setting/network/proxy"
+                    visibility="gone" />
+                <brls:InputCell
+                    id="setting/network/proxy_user"
+                    visibility="gone" />
+                <brls:InputCell
+                    id="setting/network/proxy_passwd"
+                    type="password"
+                    visibility="gone" />
+            </brls:Box>
+
+            <brls:Header
+                width="auto"
+                height="auto"
+                title="@i18n/main/tabs/downloads"
+                marginBottom="0px" />
+            <brls:Box
+                width="100%"
+                height="auto"
+                axis="column"
+                marginBottom="30px">
+                <brls:SelectorCell
+                    id="setting/download/quality" />
+                <brls:SelectorCell
+                    id="setting/download/location" />
+            </brls:Box>
+
+            <brls:Header
+                width="auto"
+                height="auto"
+                title="@i18n/main/setting/ui/header"
+                marginBottom="0px" />
+            <brls:Box
+                width="100%"
+                height="auto"
+                axis="column"
+                marginBottom="30px">
+                <brls:BooleanCell
+                    id="setting/player/clip_point" />
+                <brls:BooleanCell
+                    id="setting/ui/bottom_bar" />
+                <brls:BooleanCell
+                    id="setting/ui/show_fps" />
+                <SelectorCell
+                    id="setting/ui/vsync" />
+                <SelectorCell
+                    id="setting/ui/scale"
+                    quitApp="true" />
+                <SelectorCell
+                    id="setting/keymap"
+                    quitApp="true" />
+                <SelectorCell
+                    id="setting/ui/theme"
+                    quitApp="true" />
+            </brls:Box>
+
+            <brls:Header
+                width="auto"
+                height="auto"
+                title="@i18n/main/setting/tutorial/header"
+                marginBottom="0px" />
+            <brls:Box
+                width="100%"
+                height="auto"
+                axis="column"
+                marginBottom="30px">
+                <brls:RadioCell
+                    id="tools/tutorial_open"
+                    title="@i18n/main/setting/tutorial/open" />
+                <brls:RadioCell
+                    id="tools/tutorial_error"
+                    title="@i18n/main/setting/tutorial/error" />
+                <brls:RadioCell
+                    id="tools/tutorial_font"
+                    title="@i18n/main/setting/tutorial/font" />
+                <brls:RadioCell
+                    id="tools/config_dir"
+                    title="@i18n/main/setting/others/config_dir" />
+            </brls:Box>
+
+            <brls:Header
+                width="auto"
+                height="auto"
+                title="@i18n/main/setting/others/header"
+                marginBottom="0px" />
+            <brls:Box
+                width="100%"
+                height="auto"
+                axis="column"
+                marginBottom="30px">
+                <brls:BooleanCell
+                    id="setting/fullscreen" />
+                <brls:BooleanCell
+                    id="setting/always_on_top" />
+                <brls:BooleanCell
+                    id="setting/single" />
+                <brls:BooleanCell
+                    id="setting/overclock" />
+                <brls:BooleanCell
+                    id="setting/sync" />
+                <SelectorCell
+                    id="setting/language"
+                    quitApp="true" />
+                <brls:BooleanCell
+                    id="setting/debug" />
+                <brls:RadioCell
+                    id="setting/release_checker" />
+                <brls:DetailCell
+                    title="@i18n/main/about/header"
+                    id="setting/about" />
+            </brls:Box>
+
+        </brls:Box>
+
+    </brls:ScrollingFrame>
+
+</brls:Box>

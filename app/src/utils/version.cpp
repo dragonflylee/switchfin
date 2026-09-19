@@ -32,6 +32,17 @@ std::string AppVersion::getPackageName() { return STR(BUILD_PACKAGE_NAME); }
 std::string AppVersion::getCommit() { return STR(BUILD_TAG_SHORT); }
 
 std::string AppVersion::getPlatform() {
+#ifdef PS5_NATIVE_GPU
+#ifdef __SWITCH__
+    return "NX";
+#elif defined(__PSV__)
+    return "PSVita";
+#elif defined(__PS4__)
+    return "PS4";
+#else
+    return "PS5";
+#endif
+#else
 #ifdef __SWITCH__
     return "NX";
 #elif defined(__PSV__)
@@ -53,6 +64,7 @@ std::string AppVersion::getPlatform() {
 #endif
 #else
 #error "Unsupport platform"
+#endif
 #endif
 }
 
