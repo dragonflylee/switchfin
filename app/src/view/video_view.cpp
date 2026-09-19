@@ -10,6 +10,10 @@
 #include "view/svg_image.hpp"
 #include "view/video_profile.hpp"
 #include "view/video_progress_slider.hpp"
+#ifdef PS5_NATIVE_GPU
+
+#include <borealis/platforms/ps5/ps5_platform.hpp>
+#endif
 
 const int VIDEO_SEEK_NODELAY = 0;
 
@@ -37,6 +41,10 @@ static int getSeekRange(int current) {
 
 VideoView::VideoView() {
     this->inflateFromXMLRes("xml/view/video_view.xml");
+#ifdef PS5_NATIVE_GPU
+    this->getView("video/close/label")->setHideHighlightBackground(true);
+    this->getView("video/close/label")->setHighlightCornerRadius(10);
+#endif
     brls::Logger::debug("VideoView: created");
     this->setHideHighlightBorder(true);
     this->setHideHighlightBackground(true);
@@ -333,6 +341,11 @@ VideoView::~VideoView() {
     brls::Logger::debug("trying delete VideoView...");
     this->unRegisterMpvEvent();
     disableDimming(false);
+#ifdef PS5_NATIVE_GPU
+    // The one place that unambiguously means "playback is over". END_OF_FILE
+    // fires between episodes and buffering fires constantly; neither should move
+    // the render target.
+#endif
 
     MPVCore::instance().stop();
 }
@@ -650,6 +663,9 @@ void VideoView::registerMpvEvent() {
             this->volumeIcon->setImageFromSVGRes("icon/ico-volume.svg");
             break;
         case MpvEventEnum::MPV_FILE_ERROR: {
+#ifdef PS5_NATIVE_GPU
+            if (playbackFailure && playbackFailure()) break;
+#endif
             auto dialog = new brls::Dialog("main/player/error"_i18n);
             dialog->addButton("hints/back"_i18n, []() { VideoView::close(true); });
             dialog->open();
@@ -829,6 +845,9 @@ void VideoView::disableDimming(bool disable) {
     brls::Application::setAutomaticDeactivation(!disable);
 }
 
+#ifdef PS5_NATIVE_GPU
+
+#endif
 void VideoView::setDanmakuEnable(brls::Visibility v) {
     this->enableDanmaku = (v == brls::Visibility::VISIBLE);
     btnDanmakuToggle->setVisibility(v);
@@ -866,6 +885,10 @@ void VideoView::refreshDanmakuIcon() {
 }
 
 void VideoView::setChapters(const std::vector<jellyfin::MediaChapter>& chaps, uint64_t duration) {
+#ifdef PS5_NATIVE_GPU
+    brls::Logger::debug("player: {} chapter(s), chapter button {}", chaps.size(),
+        chaps.empty() ? "hidden" : "shown");
+#endif
     if (chaps.empty()) {
         this->osdSlider->clearClipPoint();
         return;
@@ -891,6 +914,10 @@ void VideoView::setChapters(const std::vector<jellyfin::MediaChapter>& chaps, ui
             "main/player/chapter"_i18n, values,
             [chaps](int selected) {
                 int64_t offset = chaps[selected].StartPositionTicks;
+#ifdef PS5_NATIVE_GPU
+                brls::Logger::debug("player: chapter {} \"{}\" -> seek {}s", selected,
+                    chaps[selected].Name, offset / jellyfin::PLAYTICKS);
+#endif
                 MPVCore::instance().seek(offset / jellyfin::PLAYTICKS);
             },
             selectedChapter);
@@ -921,4 +948,9 @@ void VideoView::registerActions(const std::string& hintText, const brls::Control
     const brls::BrlsKeyCombination key, const brls::ActionListener& actionListener, bool hidden, bool allowRepeating) {
     this->registerAction(hintText, button, actionListener, hidden, allowRepeating);
     this->registerAction(key, actionListener, allowRepeating);
+#ifdef PS5_NATIVE_GPU
 }
+
+#else
+}
+#endif
