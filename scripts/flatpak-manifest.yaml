@@ -11,11 +11,6 @@ finish-args:
   - --device=all
   - --share=network
   - --socket=pulseaudio
-  # inhibiting screen saver
-  - --talk-name=org.freedesktop.ScreenSaver
-  - --talk-name=org.freedesktop.PowerManagement
-  - --talk-name=org.gnome.SessionManager
-  - --talk-name=org.mate.SessionManager
   # control steam client
   - --filesystem=~/.steam
 cleanup:
@@ -29,15 +24,6 @@ cleanup:
   - /share/gtk-doc
 
 modules:
-  - name: mupdf
-    buildsystem: simple
-    build-commands:
-      - make -j ${FLATPAK_BUILDER_N_JOBS} prefix=${FLATPAK_DEST} build=release OS=Linux USE_SYSTEM_LIBS=yes USE_SYSTEM_GUMBO=no USE_SYSTEM_JBIG2DEC=no TOOL_APPS= VIEW_APPS= install-shared-c
-    sources:
-      - type: archive
-        url: https://casper.mupdf.com/downloads/archive/mupdf-1.28.6-source.tar.lz
-        sha256: f675f2456916d720cc3108c4a6a9de6467ee0665dbca440cd62a382a75be917e
-
   - name: libmpv
     buildsystem: meson
     config-opts:
@@ -149,84 +135,15 @@ modules:
               stable-only: true
               url-template: https://www.freedesktop.org/software/uchardet/releases/uchardet-$version.tar.xz
 
-      - name: ffmpeg
-        cleanup:
-          - /share/ffmpeg/examples
-        config-opts:
-          - --enable-shared
-          - --disable-static
-          - --enable-gnutls
-          - --enable-gpl
-          - --disable-autodetect
-          - --disable-doc
-          - --disable-programs
-          - --disable-encoders
-          - --disable-muxers
-          - --disable-filters
-          - --enable-filter=hflip,vflip,transpose
-          - --enable-libdrm
-          - --enable-vaapi
-          - --enable-vdpau
-          - --enable-nvdec
-          - --enable-ffnvcodec
-          - --enable-v4l2_m2m
-          - --enable-libudev
-          - --enable-v4l2-request
-          - --enable-libdav1d
-          - --enable-zlib
-          - --enable-bzlib
-          - --enable-libass
-        sources:
-          - type: archive
-            url: https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz
-            sha256: 8c3850283eb25fa026482078a04051e0be17347b09ef81a0849bec15a96e002e
-            x-checker-data:
-              type: anitya
-              project-id: 5405
-              url-template: https://ffmpeg.org/releases/ffmpeg-$version.tar.xz
-          - type: patch
-            path: patches/ffmpeg-v4l2request.patch
-        modules:
-          - name: nv-codec-headers
-            cleanup:
-              - "*"
-            no-autogen: true
-            make-install-args:
-              - PREFIX=/app
-            sources:
-              - type: archive
-                url: https://github.com/FFmpeg/nv-codec-headers/archive/n13.1.15.0.tar.gz
-                sha256: 2255bc74d038b95aa4be30f5f66322c2176acbdb90ada1851db6993536fbeaf7
-                x-checker-data:
-                  type: anitya
-                  project-id: 223796
-                  stable-only: true
-                  url-template: https://github.com/FFmpeg/nv-codec-headers/archive/n$version.tar.gz
-
-  - name: glfw
-    buildsystem: cmake-ninja
-    config-opts:
-      - -DCMAKE_BUILD_TYPE=Release
-      - -DGLFW_BUILD_EXAMPLES=OFF
-      - -DGLFW_BUILD_TESTS=OFF
-      - -DGLFW_BUILD_DOCS=OFF
-      - -DBUILD_SHARED_LIBS=ON
-      - -DGLFW_BUILD_WAYLAND=ON
-      - -DGLFW_BUILD_X11=ON
-    sources:
-      - type: git
-        url: https://github.com/dragonflylee/glfw.git
-        commit: 0a5289af91aae518b4dbf1413f563fd254b471af
-
   - name: switchfin
     buildsystem: cmake-ninja
     config-opts:
       - -DCMAKE_BUILD_TYPE=Release
       - -DPLATFORM_DESKTOP=ON
-      - -DUSE_SYSTEM_GLFW=ON
+      - -DUSE_SYSTEM_SDL2=ON
       - -DUSE_GLES2=OFF
       - -DUSE_EGL=ON
-      - -DUSE_MUPDF=ON
+      - -DUSE_SDL2=ON
       - -DCMAKE_INSTALL=ON
     builddir: true
     sources:
