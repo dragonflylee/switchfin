@@ -33,6 +33,8 @@ def package_resources(folder, runtime, media, sdl, graphics):
     shutil.copy2(ROOT / 'app/platform/ps5/param.json', folder / 'sce_sys/param.json')
     for name in ('icon0.png', 'pic1.png'):
         shutil.copy2(ROOT / 'app/platform/ps5/sce_sys' / name, folder / 'sce_sys' / name)
+    for name in ('pic0.dds', 'pic1.dds'):
+        shutil.copy2(ROOT / 'app/platform/ps5/sce_sys/jellyfin-background.dds', folder / 'sce_sys' / name)
     module = runtime / 'runtime/libc.prx'
     if digest(module) != 'e6ff45d16adf687855cc3b33b0c8a4132b6504360b221e0a34c7e99fb3ba0036':
         raise ValueError('Native runtime module does not match the pinned template')

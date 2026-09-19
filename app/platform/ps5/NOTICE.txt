@@ -8,3 +8,9 @@ Jellyfin contributors and licensed under
 
 Switchfin is an independent, third-party client and is not affiliated with or
 endorsed by the Jellyfin project.
+
+`jellyfin-background.dds`, packaged as `pic0.dds` and `pic1.dds`, derives from
+`pic1.png` (SHA-256 98ae73ae6d75211d48e4a56f9a25cc624b21a5858889442c6103a167b92d0109).
+The 1920x1080 source was resized to 3840x2160 and encoded as BC7_UNORM DX10 DDS
+using Microsoft DirectXTex 868198cb4bcbc4e359372e7ba38d7a6dda3a6afa.
+These adapted backgrounds retain the original CC BY-SA 4.0 license.
