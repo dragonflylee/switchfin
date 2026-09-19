@@ -9,7 +9,10 @@ namespace analytics {
 const std::string GA_ID = "G-SWGSLD5YEC";
 const std::string GA_KEY = "ZpMDGqiKR0C2VV_ufgmEiQ";
 const std::string GA_URL = "https://www.google-analytics.com/mp/collect";
+#ifdef PS5_NATIVE_GPU
+#else
 
+#endif
 
 class Package {
 public:
@@ -77,10 +80,22 @@ void Analytics::send() {
                 "Content-Type: application/json",
                 "Referer: " + AppConfig::instance().getUrl(),
             });
+#ifdef PS5_NATIVE_GPU
+        brls::Logger::debug("report event batch: {}", pkg.events.size());
+#else
         brls::Logger::debug("report event: {}", content);
+#endif
     } catch (const std::exception& ex) {
+#ifdef PS5_NATIVE_GPU
+        brls::Logger::warning("report failed");
+#else
         brls::Logger::warning("report failed: {}", ex.what());
+#endif
     }
 }
 
+#ifdef PS5_NATIVE_GPU
 }  // namespace analytics
+#else
+}  // namespace analytics
+#endif
