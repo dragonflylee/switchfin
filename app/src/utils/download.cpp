@@ -598,6 +598,10 @@ void DownloadManager::processQueue() {
 
 #ifdef PS5_NATIVE_GPU
 bool DownloadManager::retirePS5Download(const std::string& itemId) {
+    if (!ps5::downloads::isItemComponent(itemId)) {
+        errno = EINVAL;
+        return false;
+    }
     std::string retired;
     std::string root = this->indexDir();   // empty storageRoot = legacy sandbox item
     for (const auto& item : this->items)
