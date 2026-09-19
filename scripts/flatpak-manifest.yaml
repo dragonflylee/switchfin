@@ -11,11 +11,6 @@ finish-args:
   - --device=all
   - --share=network
   - --socket=pulseaudio
-  # inhibiting screen saver
-  - --talk-name=org.freedesktop.ScreenSaver
-  - --talk-name=org.freedesktop.PowerManagement
-  - --talk-name=org.gnome.SessionManager
-  - --talk-name=org.mate.SessionManager
   # control steam client
   - --filesystem=~/.steam
 cleanup:
@@ -29,15 +24,6 @@ cleanup:
   - /share/gtk-doc
 
 modules:
-  - name: mupdf
-    buildsystem: simple
-    build-commands:
-      - make -j ${FLATPAK_BUILDER_N_JOBS} prefix=${FLATPAK_DEST} build=release OS=Linux USE_SYSTEM_LIBS=yes USE_SYSTEM_GUMBO=no USE_SYSTEM_JBIG2DEC=no TOOL_APPS= VIEW_APPS= install-shared-c
-    sources:
-      - type: archive
-        url: https://casper.mupdf.com/downloads/archive/mupdf-1.24.11-source.tar.lz
-        sha256: ac159293040934e250e4495782f8cd04c8cbbaf992fbd9faf32dab2ec657117b
-
   - name: libmpv
     buildsystem: meson
     config-opts:
@@ -139,99 +125,15 @@ modules:
               stable-only: true
               url-template: https://www.freedesktop.org/software/uchardet/releases/uchardet-$version.tar.xz
 
-      - name: ffmpeg
-        cleanup:
-          - /share/ffmpeg/examples
-        config-opts:
-          - --enable-shared
-          - --disable-static
-          - --enable-gnutls
-          - --enable-gpl
-          - --disable-autodetect
-          - --disable-doc
-          - --disable-programs
-          - --disable-encoders
-          - --disable-muxers
-          - --disable-filters
-          - --enable-filter=hflip,vflip,transpose
-          - --enable-libssh2
-          - --enable-libdrm
-          - --enable-vaapi
-          - --enable-vdpau
-          - --enable-nvdec
-          - --enable-ffnvcodec
-          - --enable-v4l2_m2m
-          - --enable-libudev
-          - --enable-v4l2-request
-          - --enable-libdav1d
-          - --enable-zlib
-          - --enable-bzlib
-          - --enable-libass
-        sources:
-          - type: archive
-            url: https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz
-            sha256: cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635
-            x-checker-data:
-              type: anitya
-              project-id: 5405
-              url-template: https://ffmpeg.org/releases/ffmpeg-$version.tar.xz
-          - type: patch
-            path: patches/ffmpeg-v4l2request.patch
-          - type: patch
-            path: mingw64/ffmpeg/avio.patch
-        modules:
-          - name: nv-codec-headers
-            cleanup:
-              - "*"
-            no-autogen: true
-            make-install-args:
-              - PREFIX=/app
-            sources:
-              - type: archive
-                url: https://github.com/FFmpeg/nv-codec-headers/archive/n13.1.15.0.tar.gz
-                sha256: 2255bc74d038b95aa4be30f5f66322c2176acbdb90ada1851db6993536fbeaf7
-                x-checker-data:
-                  type: anitya
-                  project-id: 223796
-                  stable-only: true
-                  url-template: https://github.com/FFmpeg/nv-codec-headers/archive/n$version.tar.gz
-          - name: libssh2
-            buildsystem: cmake-ninja
-            config-opts:
-              - -DCMAKE_BUILD_TYPE=Release
-              - -DBUILD_SHARED_LIBS=ON
-              - -DBUILD_STATIC_LIBS=OFF
-              - -DBUILD_EXAMPLES=ON
-              - -DBUILD_TESTING=OFF
-            sources:
-              - type: archive
-                url: https://libssh2.org/download/libssh2-1.11.1.tar.xz
-                sha256: 9954cb54c4f548198a7cbebad248bdc87dd64bd26185708a294b2b50771e3769
-
-  - name: glfw
-    buildsystem: cmake-ninja
-    config-opts:
-      - -DCMAKE_BUILD_TYPE=Release
-      - -DGLFW_BUILD_EXAMPLES=OFF
-      - -DGLFW_BUILD_TESTS=OFF
-      - -DGLFW_BUILD_DOCS=OFF
-      - -DBUILD_SHARED_LIBS=ON
-      - -DGLFW_BUILD_WAYLAND=ON
-      - -DGLFW_BUILD_X11=ON
-    sources:
-      - type: git
-        url: https://github.com/dragonflylee/glfw.git
-        commit: 0a5289af91aae518b4dbf1413f563fd254b471af
-
   - name: switchfin
     buildsystem: cmake-ninja
     config-opts:
       - -DCMAKE_BUILD_TYPE=Release
       - -DPLATFORM_DESKTOP=ON
-      - -DUSE_SYSTEM_GLFW=ON
+      - -DUSE_SYSTEM_SDL2=ON
       - -DUSE_GLES2=OFF
       - -DUSE_EGL=ON
-      - -DUSE_MUPDF=ON
+      - -DUSE_SDL2=ON
       - -DCMAKE_INSTALL=ON
     builddir: true
     sources:
