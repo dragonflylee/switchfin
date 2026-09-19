@@ -1,0 +1,55 @@
+{
+  "curl": {
+    "version": "8.18.0",
+    "url": "https://curl.se/download/curl-8.18.0.tar.xz",
+    "sha256": "40df79166e74aa20149365e11ee4c798a46ad57c34e4f68fd13100e2c9a91946"
+  },
+  "openssl": {
+    "version": "3.5.2",
+    "url": "https://github.com/openssl/openssl/releases/download/openssl-3.5.2/openssl-3.5.2.tar.gz",
+    "sha256": "c53a47e5e441c930c3928cf7bf6fb00e5d129b630e0aa873b08258656e7345ec"
+  },
+  "fontconfig": {
+    "version": "2.15.0",
+    "url": "https://www.freedesktop.org/software/fontconfig/release/fontconfig-2.15.0.tar.xz",
+    "sha256": "63a0658d0e06e0fa886106452b58ef04f21f58202ea02a94c39de0d3335d7c0e"
+  },
+  "gperf": {
+    "version": "3.1",
+    "url": "https://ftp.gnu.org/pub/gnu/gperf/gperf-3.1.tar.gz",
+    "sha256": "588546b945bba4b70b6a3a616e80b4ab466e3f33024a352fc2198112cdbb3ae2"
+  },
+  "mpv": {
+    "version": "0.36.0",
+    "url": "https://github.com/mpv-player/mpv/archive/v0.36.0.tar.gz",
+    "sha256": "29abc44f8ebee013bb2f9fe14d80b30db19b534c679056e4851ceadf5a5e8bf6"
+  },
+  "waf": {
+    "version": "2.0.25",
+    "url": "https://waf.io/waf-2.0.25",
+    "sha256": "21199cd220ccf60434133e1fd2ab8c8e5217c3799199c82722543970dc8e38d5"
+  },
+  "payload_sdk": {
+    "version": "v0.40.2",
+    "url": "https://github.com/ps5-payload-dev/pacbrew-repo/releases/download/v0.40.2/ps5-payload-dev.tar.gz",
+    "sha256": "a85f65de418a8e6a898c6c3e3c870d50fff7618a200e4dd59ea9692af6ecec4d"
+  },
+  "meson": {
+    "version": "1.8.3",
+    "url": "https://files.pythonhosted.org/packages/9f/6d/4a56b546aa2bbaadba90a017afc5ba43c7fa61831db64f20a953747ea145/meson-1.8.3.tar.gz",
+    "sha256": "f118aa910fc0a137cc2dd0122232dbf82153d9a12fb5b0f5bb64896f6a157abf"
+  },
+  "pyyaml": {
+    "version": "6.0.2",
+    "url": "https://files.pythonhosted.org/packages/54/ed/79a089b6be93607fa5cdaedf301d7dfb23af5f25c398d5ead2525b063e17/pyyaml-6.0.2.tar.gz",
+    "sha256": "d584d9ec91ad65861cc08d42e834324ef890a082e591037abe114850ff7bbc3e"
+  },
+  "graphics": {
+    "url": "https://github.com/blackbearreloaded/ps5-opengl.git",
+    "revision": "7f9bfabdddb187a11e4401058eba8c9e55194d0a"
+  },
+  "sdl": {
+    "url": "https://github.com/ps5-payload-dev/SDL.git",
+    "revision": "8c56053f13ca13a0c050de613706ff69eb615836"
+  }
+}
