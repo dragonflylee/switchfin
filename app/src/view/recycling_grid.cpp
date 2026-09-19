@@ -123,7 +123,10 @@ void RecyclingView::removeCell(brls::View* view) {
     this->contentBox->invalidate();
 }
 
+#ifdef PS5_NATIVE_GPU
+#else
 
+#endif
 RecyclingGridDataSource* RecyclingView::getDataSource() const { return this->dataSource; }
 
 void RecyclingView::showSkeleton(unsigned int num) { this->setDataSource(new DataSourceSkeleton(num)); }
@@ -199,6 +202,28 @@ RecyclingGrid::~RecyclingGrid() {
                 delete item;
         }
         delete it.second;
+#ifdef PS5_NATIVE_GPU
+    }
+}
+
+void RecyclingGridItem::bindArtworkRetry(brls::Image* image) {
+    image->setArtworkRetryHandler([](brls::Image*, void* owner) {
+        auto* cell = static_cast<RecyclingGridItem*>(owner);
+        auto* content = cell->getParent();
+        auto* recycler = content ? dynamic_cast<RecyclingView*>(content->getParent()) : nullptr;
+        if (recycler) recycler->retryArtwork(cell);
+    }, this);
+}
+
+void RecyclingView::retryArtwork(RecyclingGridItem* cell) {
+    if (!cell || !contentBox || !dataSource || cell->getParent() != contentBox) return;
+    // Parent pointers alone are insufficient while cells are recycled.
+    for (auto* child : contentBox->getChildren()) {
+        if (child != cell) continue;
+        const auto index = cell->getIndex();
+        if (index < dataSource->getItemCount()) dataSource->retryArtwork(cell, index);
+        return;
+#endif
     }
 }
 

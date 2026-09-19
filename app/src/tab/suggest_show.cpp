@@ -18,11 +18,17 @@ SuggestShow::SuggestShow(const std::string& id) : itemId(id) {
         return fmt::format(fmt::runtime(jellyfin::apiUserResume), AppConfig::instance().getUserId(), query);
     });
 
+#ifdef PS5_NATIVE_GPU
+    this->latest->setLatestSeries(true);
+#endif
     this->latest->onQuery([this](size_t start, size_t pageSize) {
         std::string query = HTTP::encode_form({
             {"enableImageTypes", "Primary"},
             {"parentId", this->itemId},
             {"includeItemTypes", jellyfin::mediaTypeEpisode},
+#ifdef PS5_NATIVE_GPU
+            {"groupItems", "true"},
+#endif
             {"fields", "BasicSyncInfo,Chapters"},
             {"limit", std::to_string(pageSize)},
         });
@@ -56,4 +62,8 @@ void SuggestShow::doRequest() {
     this->nextUp->reset();
     this->resume->doRequest();
     this->nextUp->doRequest();
+#ifdef PS5_NATIVE_GPU
 }
+#else
+}
+#endif

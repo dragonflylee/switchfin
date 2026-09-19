@@ -28,8 +28,18 @@ public:
     static View* create();
 
 private:
+#ifdef PS5_NATIVE_GPU
+    std::string bitmapCacheKey(const std::string& source);
+    bool nativeRasterSize(std::uint32_t& width, std::uint32_t& height);
+    bool useNativeCache(std::string& nextPath, const std::string& key);
+    bool renderNativeDocument(const lunasvg::Document& nextDocument, const std::string* key);
+#endif
     std::unique_ptr<lunasvg::Document> document = nullptr;
     brls::VoidEvent::Subscription subscription;
     std::string filePath;
     float angle = 0;
+#ifdef PS5_NATIVE_GPU
 };
+#else
+};
+#endif

@@ -6,6 +6,245 @@
 #include <webp/decode.h>
 #endif
 #include <stb_image.h>
+#ifdef PS5_NATIVE_GPU
+#include "utils/ps5_native_artwork_flights.hpp"
+#include "utils/ps5_native_artwork_body.hpp"
+#include "utils/ps5_native_artwork_pixels.hpp"
+#include "utils/ps5_native_artwork_scheduler.hpp"
+#include <climits>
+
+namespace {
+using NativeArtworkBody = ps5::artwork::EncodedBody<>;
+struct NativeArtworkPixels {
+    std::string sourceUrl;
+    HTTP::Header headers;
+    std::shared_ptr<unsigned char> data;
+    std::shared_ptr<NativeArtworkBody> encoded;
+    size_t pixelBytes = 0;
+    bool webp = false;
+    bool pixelPressure = false;
+    int width = 0;
+    int height = 0;
+};
+using NativeArtworkRequests = ps5::artwork::Flights<brls::Image, NativeArtworkPixels>;
+using NativeArtworkScheduler = ps5::artwork::Scheduler<NativeArtworkRequests::Ref>;
+void pumpNativeArtwork(bool allowDelivery,
+    std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now());
+void retireNativeArtwork(const NativeArtworkRequests::Ref& request) noexcept;
+
+NativeArtworkScheduler& nativeArtworkScheduler() {
+    static NativeArtworkScheduler scheduler;
+    return scheduler;
+}
+
+NativeArtworkRequests& nativeArtworkRequests() {
+    static NativeArtworkRequests requests;
+    return requests;
+}
+
+ps5::artwork::EncodedBudget& nativeArtworkEncodedBudget() {
+    static ps5::artwork::EncodedBudget budget;
+    return budget;
+}
+
+ps5::artwork::EncodedBudget& nativeArtworkPixelBudget() {
+    static ps5::artwork::EncodedBudget budget(ps5::artwork::pixelResidentLimit);
+    return budget;
+}
+
+void reportNativeArtworkFailure() noexcept {
+    // UI thread only, fixed message and bounded reporting even under OOM.
+    static unsigned reported = 0;
+    if (reported == 16) return;
+    ++reported;
+    try { brls::Logger::warning("Native artwork request failed"); } catch (...) {}
+}
+
+void prepareNativeArtwork() {
+    static const bool registered = [] {
+        // Register both handlers as one UI-owned transaction. A failed pump
+        // subscription must not accumulate exit handlers on later retries.
+        auto* exit = brls::Application::getExitEvent();
+        const auto subscription = exit->subscribe([] {
+            nativeArtworkRequests().close();
+            nativeArtworkScheduler().close(retireNativeArtwork);
+        });
+        try {
+            brls::Application::getRunLoopEvent()->subscribe([] { pumpNativeArtwork(true); });
+        } catch (...) {
+            exit->unsubscribe(subscription);
+            throw;
+        }
+        return true;
+    }();
+    (void)registered;
+}
+
+// Credentials affect response identity. Keep this in-memory key out of logs;
+// lengths distinguish header boundaries and preserve ordered/repeated headers.
+std::string nativeArtworkKey(const std::string& url, const HTTP::Header& headers) {
+    constexpr size_t limit = ps5::artwork::DemandLimits::keyBytes;
+    if (url.empty() || url.size() > limit || headers.size() > ps5::artwork::DemandLimits::headers) return {};
+    if (headers.empty()) return url;
+    if (url.size() == limit) return {};
+    size_t length = url.size() + 1;
+    for (const auto& header : headers) {
+        size_t digits = 1;
+        for (size_t value = header.size(); value >= 10; value /= 10) ++digits;
+        if (header.size() > limit - length || digits + 1 > limit - length - header.size()) return {};
+        length += header.size() + digits + 1;
+    }
+    std::string key;
+    key.reserve(length);
+    key += url;
+    key.push_back('\0');
+    for (const auto& header : headers) {
+        key += std::to_string(header.size()) + ":" + header;
+    }
+    return key;
+}
+
+void downloadNativeArtwork(const NativeArtworkRequests::Ref& request, HTTP& http) {
+    if (request->cancelled->load()) return;
+    auto& payload = request->payload;
+    payload.pixelPressure = false;
+    struct ReleaseBody {
+        NativeArtworkPixels& payload;
+        ~ReleaseBody() { if (!payload.pixelPressure) payload.encoded.reset(); }
+    } releaseBody{payload};
+    if (!payload.encoded) {
+        auto data = std::make_shared<NativeArtworkBody>(nativeArtworkEncodedBudget());
+        std::ostream body(data.get());
+        HTTP::set_option(http, request->cancelled, HTTP::Timeout{});
+        const auto& url = payload.sourceUrl.empty() ? request->url : payload.sourceUrl;
+        HTTP::set_option(http, payload.headers);
+        http._get(url, &body);
+        if (!body.good() || request->cancelled->load() || data->empty() || data->size() > INT_MAX) return;
+        int width = 0, height = 0;
+        bool webp = false, sixteenBit = false;
+#ifdef USE_WEBP
+        char* contentType = nullptr;
+        if (url.find("Webp") != std::string::npos ||
+            (http.getinfo(&contentType) && contentType && strcmp(contentType, "image/webp") == 0)) {
+            webp = true;
+            if (!WebPGetInfo(reinterpret_cast<const uint8_t*>(data->data()), data->size(), &width, &height)) return;
+        } else
+#endif
+        {
+            int channels = 0;
+            if (!stbi_info_from_memory(reinterpret_cast<const unsigned char*>(data->data()),
+                    static_cast<int>(data->size()), &width, &height, &channels)) return;
+            sixteenBit = stbi_is_16_bit_from_memory(reinterpret_cast<const unsigned char*>(data->data()),
+                static_cast<int>(data->size())) != 0;
+        }
+        const auto bytes = ps5::artwork::admittedPixelBytes(width, height, sixteenBit);
+        if (!bytes) return;
+        payload.encoded = std::move(data);
+        payload.width = width;
+        payload.height = height;
+        payload.pixelBytes = bytes;
+        payload.webp = webp;
+    }
+    // Only an explicit resident-pixel reservation refusal retries. The same
+    // already-budgeted body survives backoff; HTTP and malformed/decode failures
+    // are terminal, and no worker blocks waiting for another image's pixels.
+    auto reservation = std::make_shared<ps5::artwork::PixelReservation>(nativeArtworkPixelBudget(), payload.pixelBytes);
+    if (!*reservation) { payload.pixelPressure = true; return; }
+    if (request->cancelled->load()) return;
+    int width = payload.width, height = payload.height;
+    const bool webp = payload.webp;
+    unsigned char* pixels = nullptr;
+#ifdef USE_WEBP
+    if (webp) {
+        pixels = WebPDecodeRGBA(reinterpret_cast<const uint8_t*>(payload.encoded->data()),
+            payload.encoded->size(), &width, &height);
+    } else
+#endif
+    {
+        int channels = 0;
+        pixels = stbi_load_from_memory(reinterpret_cast<const unsigned char*>(payload.encoded->data()),
+            static_cast<int>(payload.encoded->size()), &width, &height, &channels, 4);
+    }
+    payload.data = std::shared_ptr<unsigned char>(pixels, [webp, reservation](unsigned char* value) {
+        if (!value) return;
+#ifdef USE_WEBP
+        if (webp) { WebPFree(value); return; }
+#else
+        (void)webp;
+#endif
+        stbi_image_free(value);
+    });
+    payload.encoded.reset();
+    if (width != payload.width || height != payload.height || request->cancelled->load()) payload.data.reset();
+}
+
+ps5::artwork::Delivery completeNativeArtwork(const NativeArtworkRequests::Ref& request) {
+
+    auto& requests = nativeArtworkRequests();
+    if (brls::TextureCache::instance().isClosing()) {
+        requests.finish(request);
+        return ps5::artwork::Delivery::Complete;
+    }
+    // Retry before sealing the flight: current subscribers retain their exact
+    // membership/pin, and new subscribers may still join the same request.
+    if (request->payload.pixelPressure) return ps5::artwork::Delivery::Retry;
+    // Limit both failed upload bursts and cached fan-out. Deferred members keep
+    // their pins and decoded payload until a later run-loop pass or cancellation.
+    bool uploadAttempted = false;
+    const auto result = requests.completeSome(request, 16, [&](brls::Image* view, const NativeArtworkPixels& pixels) {
+        auto& cache = brls::TextureCache::instance();
+        if (cache.isClosing()) return true;
+        int texture;
+        {
+            texture = cache.getCache(request->url);
+        }
+        if (texture == 0 && pixels.data && pixels.width > 0 && pixels.height > 0) {
+            if (uploadAttempted) return false;
+            uploadAttempted = true; // Count failures/exceptions as attempts too.
+            auto* vg = brls::Application::getNVGContext();
+            {
+                texture = nvgCreateImageRGBA(vg, pixels.width, pixels.height, 0, pixels.data.get());
+            }
+            if (texture > 0) {
+                if (!cache.tryAddCache(request->url, texture)) {
+                    nvgDeleteImage(vg, texture);
+                    texture = 0;
+                }
+            }
+        }
+        if (texture > 0) {
+            view->setImageFromCache(texture);
+        }
+        return true;
+    });
+    if (result.failures) reportNativeArtworkFailure();
+    return result.finished ? ps5::artwork::Delivery::Complete : ps5::artwork::Delivery::Defer;
+}
+
+void retireNativeArtwork(const NativeArtworkRequests::Ref& request) noexcept {
+
+    request->payload = {};
+    nativeArtworkRequests().finish(request);
+}
+
+void pumpNativeArtwork(bool allowDelivery, std::chrono::steady_clock::time_point now) {
+    auto& scheduler = nativeArtworkScheduler();
+    const auto before = scheduler.snapshot();
+    scheduler.pump(allowDelivery,
+        [](auto task) { ThreadPool::instance().submit(std::move(task)); },
+        [](const NativeArtworkRequests::Ref& request, HTTP& http) { downloadNativeArtwork(request, http); },
+        [](const NativeArtworkRequests::Ref& request) noexcept { return request->cancelled->load(); },
+        completeNativeArtwork, retireNativeArtwork, now);
+    const auto after = scheduler.snapshot();
+    if (after.submissionFailures != before.submissionFailures || after.workerFailures != before.workerFailures ||
+        after.deliveryFailures != before.deliveryFailures) {
+        // A failure logger must not escape the owned completion phase.
+        reportNativeArtworkFailure();
+    }
+}
+
+} // namespace
+#endif
 
 #ifdef BOREALIS_USE_GXM
 #ifndef MAX
@@ -113,11 +352,63 @@ void Image::with(brls::Image* view, const std::string& url) {
 }
 
 void Image::with(brls::Image* view, const std::string& url, const HTTP::Header& headers) {
+#ifdef PS5_NATIVE_GPU
+    if (!view) return;
+    auto& admission = view->artworkAdmission();
+    const auto generation = admission.begin(AppConfig::instance().requestCancellation());
+    using Result = brls::ArtworkRetry::Result;
+    try {
+        prepareNativeArtwork();
+        auto& requests = nativeArtworkRequests();
+        requests.cancel(view);
+        auto& cache = brls::TextureCache::instance();
+        if (requests.isClosing() || cache.isClosing()) return;
+        pumpNativeArtwork(false);
+        const auto key = nativeArtworkKey(url, headers);
+        if (key.empty()) return;
+        const int texture = cache.getCache(key);
+        if (texture > 0) {
+            view->setImageFromCache(texture);
+            return;
+        }
+        bool start = false;
+        const auto request = requests.begin(view, key, &start);
+        if (!request) {
+            admission.complete(generation, Result::Temporary);
+            return;
+        }
+        if (!start) {
+            admission.complete(generation, Result::Accepted);
+            return;
+        }
+        try {
+            if (!headers.empty()) {
+                request->payload.sourceUrl = url;
+                request->payload.headers = headers;
+            }
+            if (!nativeArtworkScheduler().enqueue(request)) {
+                requests.finish(request);
+                admission.complete(generation, Result::Temporary);
+                return;
+            }
+            admission.complete(generation, Result::Accepted);
+            pumpNativeArtwork(false);
+        } catch (...) {
+            requests.finish(request);
+            reportNativeArtworkFailure();
+        }
+    } catch (...) {
+        // Registration/key/registry allocations precede worker ownership too.
+        // Flights rolls back registration before propagating allocation failure.
+        reportNativeArtworkFailure();
+#else
     int tex = brls::TextureCache::instance().getCache(url);
     if (tex > 0) {
         view->innerSetImage(tex);
         return;
+#endif
     }
+#ifndef PS5_NATIVE_GPU
 
     Ref item;
     std::lock_guard<std::mutex> lock(requestMutex);
@@ -147,17 +438,27 @@ void Image::with(brls::Image* view, const std::string& url, const HTTP::Header& 
     view->setFreeTexture(false);
 
     ThreadPool::instance().submit([item](HTTP& s) { item->doRequest(s); });
+#endif
 }
 
 void Image::cancel(brls::Image* view) {
     if (view == nullptr) return;
 
+#ifdef PS5_NATIVE_GPU
+    nativeArtworkRequests().cancel(view);
+#else
     brls::TextureCache::instance().removeCache(view->getTexture());
+#endif
     view->clear();
+#ifdef PS5_NATIVE_GPU
+    pumpNativeArtwork(false);
+#else
 
     clear(view);
+#endif
 }
 
+#ifndef PS5_NATIVE_GPU
 void Image::doRequest(HTTP& s) {
     if (this->isCancel->load()) {
         Image::clear(this->image);
@@ -258,3 +559,4 @@ void Image::clear(brls::Image* view) {
     pool.push_back(it->second);
     requests.erase(it);
 }
+#endif

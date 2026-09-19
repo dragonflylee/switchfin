@@ -8,6 +8,9 @@
 #include <api/jellyfin/media.hpp>
 #include <view/presenter.hpp>
 #include <utils/download.hpp>
+#ifdef PS5_NATIVE_GPU
+#include <utils/detail_artwork.hpp>
+#endif
 
 class HRecyclerFrame;
 class TextBox;
@@ -21,6 +24,10 @@ public:
     void doRequest() override;
 
 private:
+#ifdef PS5_NATIVE_GPU
+    DetailArtwork artwork;
+    void retryArtwork(brls::Image* image);
+#endif
     BRLS_BIND(brls::Box, bannerBox, "series/banner");
     BRLS_BIND(brls::Box, contentRow, "series/content/row");
     BRLS_BIND(brls::Box, contentInfo, "series/content/info");

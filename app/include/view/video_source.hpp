@@ -14,7 +14,15 @@ public:
 
     size_t getItemCount() override;
 
+#ifdef PS5_NATIVE_GPU
+    std::string getItemKey(size_t index) override;
+
+#endif
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override;
+#ifdef PS5_NATIVE_GPU
+
+    void retryArtwork(RecyclingGridItem* cell, size_t index) override;
+#endif
 
     void onItemSelected(brls::Box* recycler, size_t index) override;
 
@@ -25,6 +33,9 @@ public:
     void appendData(const MediaList& data);
 
 protected:
+#ifdef PS5_NATIVE_GPU
+    static void loadArtwork(VideoCardCell* cell, const jellyfin::Episode& item);
+#endif
     MediaList list;
     std::string parentId;
 };

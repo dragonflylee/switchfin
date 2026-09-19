@@ -12,7 +12,18 @@ class PlaylistCell : public RecyclingGridItem {
 public:
     PlaylistCell() { this->inflateFromXMLRes("xml/view/playlist_item.xml"); }
 
+#ifdef PS5_NATIVE_GPU
+    ~PlaylistCell() override {
+        this->picture->setArtworkRetryHandler(nullptr, nullptr);
+        Image::cancel(this->picture);
+    }
+
+#endif
     void prepareForReuse() override {
+#ifdef PS5_NATIVE_GPU
+        this->bindArtworkRetry(this->picture);
+
+#endif
         this->picture->setImageFromRes("img/video-card-bg.png");
         this->rating->getParent()->setVisibility(brls::Visibility::GONE);
     }
@@ -47,6 +58,9 @@ public:
         PlaylistCell* cell = dynamic_cast<PlaylistCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
         cell->setId(item.Id);
+#ifdef PS5_NATIVE_GPU
+        loadArtwork(cell, item);
+#endif
 
         if (item.Type == jellyfin::mediaTypeEpisode) {
             cell->name->setText(fmt::format("S{}E{} {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
@@ -55,18 +69,24 @@ public:
         }
 
         if (item.Type == jellyfin::mediaTypeAudio) {
+#ifdef PS5_NATIVE_GPU
+#else
             if (!item.AlbumPrimaryImageTag.empty()) {
                 Image::load(cell->picture, jellyfin::apiPrimaryImage, item.AlbumId,
                     HTTP::encode_form({{"tag", item.AlbumPrimaryImageTag}, {"maxWidth", "50"}}));
             }
 
+#endif
             cell->misc->setText(fmt::format("{}", fmt::join(item.Artists, " ")));
         } else {
+#ifdef PS5_NATIVE_GPU
+#else
             auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
             if (it != item.ImageTags.end()) {
                 Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
                     HTTP::encode_form({{"tag", it->second}, {"maxWidth", "50"}}));
             }
+#endif
 
             if (item.CommunityRating > 0) {
                 cell->rating->setText(fmt::format("{:.1f}", item.CommunityRating));
@@ -87,6 +107,31 @@ public:
             item.UserData.IsFavorite ? brls::Visibility::VISIBLE : brls::Visibility::INVISIBLE);
         cell->setSelected(MusicView::instance().currentId());
         return cell;
+#ifdef PS5_NATIVE_GPU
+    }
+
+    static void loadArtwork(PlaylistCell* cell, const MediaList::value_type& item) {
+        if (item.Type == jellyfin::mediaTypeAudio) {
+            if (!item.AlbumPrimaryImageTag.empty()) {
+                Image::load(cell->picture, jellyfin::apiPrimaryImage, item.AlbumId,
+                    HTTP::encode_form({{"tag", item.AlbumPrimaryImageTag}, {"maxWidth", "50"}}));
+            }
+
+        } else {
+            auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
+            if (it != item.ImageTags.end()) {
+                Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
+                    HTTP::encode_form({{"tag", it->second}, {"maxWidth", "50"}}));
+            }
+
+        }
+    }
+
+    void retryArtwork(RecyclingGridItem* existing, size_t index) override {
+        auto* cell = dynamic_cast<PlaylistCell*>(existing);
+        if (cell && index < list.size() && cell->matchesArtworkId(list[index].Id))
+            loadArtwork(cell, list[index]);
+#endif
     }
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
@@ -184,4 +229,8 @@ void Playlist::doList() {
             this->list->setError(ex);
         },
         jellyfin::apiUserList, this->itemId, query);
+#ifdef PS5_NATIVE_GPU
 }
+#else
+}
+#endif

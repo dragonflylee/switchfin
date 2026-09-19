@@ -330,18 +330,45 @@ AutoTabFrame::~AutoTabFrame() {
 }
 
 void AutoTabFrame::setTabAttachedView(brls::View* newContent) {
+#ifdef PS5_NATIVE_GPU
+    if (newContent == this->activeTab) return;
+    // A replaced page remains owned by its sidebar item. Its controls must no
+    // longer receive input or be restored as focus when a modal is dismissed.
+    bool replaceFocus = false;
+    for (auto* focus = brls::Application::getCurrentFocus(); focus; focus = focus->getParent()) {
+        if (focus == this->activeTab) {
+            replaceFocus = true;
+            break;
+        }
+    }
+#endif
     // Remove the existing tab if it exists
     if (this->activeTab) {
+#ifdef PS5_NATIVE_GPU
+        if (this->getLastFocusedView() == this->activeTab) this->setLastFocusedView(nullptr);
+#endif
         // will call willDisappear but not delete
         this->removeView(this->activeTab, false);
+#ifdef PS5_NATIVE_GPU
+        this->activeTab->setParent(nullptr);
+#endif
         this->activeTab = nullptr;
     }
     if (!newContent) {
+#ifdef PS5_NATIVE_GPU
+        if (replaceFocus) brls::Application::giveFocus(this->sidebar);
+#endif
         return;
     }
     newContent->setGrow(1.0f);
     this->addView(newContent);  // addView calls willAppear
     this->activeTab = newContent;
+#ifdef PS5_NATIVE_GPU
+    if (replaceFocus) {
+        auto* focus = newContent->getDefaultFocus();
+        brls::Application::giveFocus(focus ? focus : this->sidebar);
+    }
+#endif
 }
 
 void AutoTabFrame::setDefaultTabIndex(size_t index) { this->sidebar->setDefaultFocusedIndex(index); }
@@ -981,4 +1008,8 @@ void AttachedView::registerTabAction(std::string hintText, enum brls::Controller
 
 AttachedView::AttachedView() { this->setGrow(1); }
 
+#ifdef PS5_NATIVE_GPU
 AttachedView::~AttachedView() { brls::Logger::debug("delete AttachedView"); }
+#else
+AttachedView::~AttachedView() { brls::Logger::debug("delete AttachedView"); }
+#endif

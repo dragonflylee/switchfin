@@ -39,6 +39,13 @@ public:
      */
     virtual void cacheForReuse() {}
 
+#ifdef PS5_NATIVE_GPU
+    // The image remains owned by this cell. Retries resolve the live recycler
+    // and model when drawn, rather than retaining a data-source pointer.
+    void bindArtworkRetry(brls::Image* image);
+    bool matchesArtworkId(const std::string& value) const { return id == value; }
+
+#endif
 private:
     size_t index;
 };
@@ -52,10 +59,19 @@ public:
      */
     virtual size_t getItemCount() { return 0; }
 
+#ifdef PS5_NATIVE_GPU
+    // Stable identity across replacements; an empty key falls back to position.
+    virtual std::string getItemKey(size_t index) { return {}; }
+
+#endif
     /*
      * Asks the data source for a cell to insert in a particular location of the recycler frame.
      */
     virtual RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) { return nullptr; }
+#ifdef PS5_NATIVE_GPU
+
+    virtual void retryArtwork(RecyclingGridItem*, size_t) {}
+#endif
 
     /*
      * Asks the data source for the height to use for a row in a specified location.
@@ -86,6 +102,10 @@ public:
     RecyclingGridItem* dequeueReusableCell(std::string identifier);
 
     RecyclingGridDataSource* getDataSource() const;
+#ifdef PS5_NATIVE_GPU
+
+    void retryArtwork(RecyclingGridItem* cell);
+#endif
 
     void showSkeleton(unsigned int num = 12);
 protected:
@@ -238,4 +258,8 @@ public:
 
 private:
     NVGcolor background = brls::Application::getTheme()["color/grey_3"];
+#ifdef PS5_NATIVE_GPU
 };
+#else
+};
+#endif

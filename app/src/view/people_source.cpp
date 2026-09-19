@@ -101,6 +101,21 @@ PeopleDataSource::PeopleDataSource(const MediaList& r) : list(std::move(r)) {}
 
 size_t PeopleDataSource::getItemCount() { return this->list.size(); }
 
+#ifdef PS5_NATIVE_GPU
+static void loadPeopleArtwork(MediaCardCell* cell, const jellyfin::MediaPeople& item) {
+    if (!item.PrimaryImageTag.empty()) {
+        Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
+            HTTP::encode_form({{"tag", item.PrimaryImageTag}, {"maxWidth", "350"}}));
+    }
+}
+
+void PeopleDataSource::retryArtwork(RecyclingGridItem* existing, size_t index) {
+    auto* cell = dynamic_cast<MediaCardCell*>(existing);
+    if (cell && index < list.size() && cell->matchesArtworkId(list[index].Id))
+        loadPeopleArtwork(cell, list[index]);
+}
+
+#endif
 RecyclingGridItem* PeopleDataSource::cellForRow(RecyclingView* recycler, size_t index) {
     MediaCardCell* cell = dynamic_cast<MediaCardCell*>(recycler->dequeueReusableCell("Cell"));
     auto& item = this->list.at(index);
@@ -109,10 +124,14 @@ RecyclingGridItem* PeopleDataSource::cellForRow(RecyclingView* recycler, size_t 
     cell->labelTitle->setText(item.Name);
     cell->labelExt->setText(item.Role);
 
+#ifdef PS5_NATIVE_GPU
+    loadPeopleArtwork(cell, item);
+#else
     if (!item.PrimaryImageTag.empty()) {
         Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
             HTTP::encode_form({{"tag", item.PrimaryImageTag}, {"maxWidth", "350"}}));
     }
+#endif
     return cell;
 }
 

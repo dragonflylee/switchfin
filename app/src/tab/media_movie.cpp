@@ -14,10 +14,20 @@
 
 using namespace brls::literals;  // for _i18n
 
+#ifdef PS5_NATIVE_GPU
+MediaMovie::MediaMovie(const jellyfin::Item& item) : itemId(item.Id), playItem(item) {
+#else
 MediaMovie::MediaMovie(const jellyfin::Item& item) : itemId(item.Id) {
+#endif
     brls::Logger::debug("Tab MediaMovie: create");
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/movie.xml");
+#ifdef PS5_NATIVE_GPU
+    for (auto* image : std::initializer_list<brls::Image*>{imagePoster, imageLogo, imageBackdrop})
+        image->setArtworkRetryHandler([](brls::Image* image, void* owner) {
+            static_cast<MediaMovie*>(owner)->retryArtwork(image);
+        }, this);
+#endif
 
     this->labelTitle->setText(item.Name);
     this->people->registerCell("Cell", MediaCardCell::create);
@@ -33,9 +43,19 @@ MediaMovie::MediaMovie(const jellyfin::Item& item) : itemId(item.Id) {
     this->btnPlay->setCustomNavigationRoute(brls::FocusDirection::DOWN, "movie/people");
     this->btnDownload->setCustomNavigationRoute(brls::FocusDirection::DOWN, "movie/people");
 
+#ifdef PS5_NATIVE_GPU
+    this->btnPlay->registerClickAction([this](...) {
+        // playItem, not the list item this tab was constructed from: doMovie()
+        // replaces it with the full detail, which is the only response that
+        // carries chapters.
+        const auto& it = this->playItem;
+        PlayerView* view = new PlayerView(it, this->playTicks, this->sourceId);
+        view->setTitie(it.ProductionYear ? fmt::format("{} ({})", it.Name, it.ProductionYear) : it.Name);
+#else
     this->btnPlay->registerClickAction([this, item](...) {
         PlayerView* view = new PlayerView(item, this->playTicks, this->sourceId);
         view->setTitie(item.ProductionYear ? fmt::format("{} ({})", item.Name, item.ProductionYear) : item.Name);
+#endif
         return true;
     });
 
@@ -88,6 +108,10 @@ MediaMovie::MediaMovie(const jellyfin::Item& item) : itemId(item.Id) {
 }
 
 MediaMovie::~MediaMovie() {
+#ifdef PS5_NATIVE_GPU
+    for (auto* image : std::initializer_list<brls::Image*>{imagePoster, imageLogo, imageBackdrop})
+        image->setArtworkRetryHandler(nullptr, nullptr);
+#endif
     brls::Logger::debug("Tab MediaMovie: delete");
     auto& dm = DownloadManager::instance();
     dm.getProgressEvent()->unsubscribe(this->progressSub);
@@ -123,6 +147,12 @@ void MediaMovie::doMovie() {
     jellyfin::getJSON<jellyfin::Detail>(
         [ASYNC_TOKEN](const jellyfin::Detail& r) {
             ASYNC_RELEASE
+#ifdef PS5_NATIVE_GPU
+            // Slices Detail down to Item, which is what PlayerView wants, and
+            // carries the chapters the list response never had.
+            this->playItem = r;
+            brls::Logger::debug("movie detail: {} chapter(s), runtime {} ticks", r.Chapters.size(), r.RunTimeTicks);
+#endif
             this->labelTitle->setText(r.Name);
             this->labelYear->setText(std::to_string(r.ProductionYear));
             if (r.OfficialRating.empty()) {
@@ -158,6 +188,11 @@ void MediaMovie::doMovie() {
                 this->btnPlay->setButtonStyle("disabled");
             }
 
+#ifdef PS5_NATIVE_GPU
+            // getJSON rejects a cancelled account before this UI callback;
+            // this detail request is issued once by the owning constructor.
+            this->artwork.assign(r);
+#endif
             auto poster = r.ImageTags.find(jellyfin::imageTypePrimary);
             if (poster != r.ImageTags.end()) {
                 Image::load(this->imagePoster, jellyfin::apiPrimaryImage, r.Id,
@@ -177,8 +212,15 @@ void MediaMovie::doMovie() {
             }
 
             if (r.BackdropImageTags.size() > 0) {
+#ifdef PS5_NATIVE_GPU
+                // Bound backdrop transfer and decode memory to the UI image budget.
+#endif
                 Image::load(this->imageBackdrop, jellyfin::apiBackdropImage, r.Id, 0,
+#ifdef PS5_NATIVE_GPU
+                    HTTP::encode_form({{"tag", r.BackdropImageTags.at(0)}, {"maxWidth", "1920"}}));
+#else
                     HTTP::encode_form({{"tag", r.BackdropImageTags.at(0)}}));
+#endif
             } else {
                 this->bannerBox->setVisibility(brls::Visibility::GONE);
                 this->contentRow->setMarginTop(0);
@@ -239,7 +281,11 @@ void MediaMovie::doSimilar() {
 
 bool MediaMovie::doFavorite() {
     ASYNC_RETAIN
+#ifdef PS5_NATIVE_GPU
+    jellyfin::postJSON<jellyfin::UserDataResult>(
+#else
     jellyfin::postJSON(
+#endif
         {
             {"itemId", this->itemId},
         },
@@ -281,4 +327,15 @@ void MediaMovie::updateFavoriteButton(bool favorite) {
         this->btnFavorite->setIcon("icon/ico-heart-gray.svg");
         this->btnFavorite->setText("main/media/add_favorite"_i18n);
     }
+#ifdef PS5_NATIVE_GPU
 }
+
+void MediaMovie::retryArtwork(brls::Image* image) {
+    if (image == imagePoster) artwork.retry(image, DetailArtwork::Slot::Poster);
+    else if (image == imageLogo) artwork.retry(image, DetailArtwork::Slot::Logo);
+    else if (image == imageBackdrop) artwork.retry(image, DetailArtwork::Slot::Backdrop);
+}
+
+#else
+}
+#endif

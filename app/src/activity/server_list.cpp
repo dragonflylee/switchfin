@@ -57,9 +57,23 @@ private:
 class UserCell : public RecyclingGridItem {
 public:
     UserCell() { this->inflateFromXMLRes("xml/view/user_item.xml"); }
+#ifdef PS5_NATIVE_GPU
+    ~UserCell() {
+        this->picture->setArtworkRetryHandler(nullptr, nullptr);
+        Image::cancel(this->picture);
+    }
+#else
     ~UserCell() { Image::cancel(this->picture); }
+#endif
 
+#ifdef PS5_NATIVE_GPU
+    void prepareForReuse() override {
+        this->bindArtworkRetry(this->picture);
+        this->picture->setImageFromRes("img/video-card-bg.png");
+    }
+#else
     void prepareForReuse() override { this->picture->setImageFromRes("img/video-card-bg.png"); }
+#endif
 
     void cacheForReuse() override { Image::cancel(this->picture); }
 
@@ -69,13 +83,23 @@ public:
 
 class ServerUserDataSource : public RecyclingGridDataSource {
 public:
+#ifdef PS5_NATIVE_GPU
+    ServerUserDataSource(const std::vector<AppUser>& users, ServerList* server) : list(users), parent(server) {
+        const auto url = parent->getUrl();
+        if (url.size() <= 8 * 1024) artworkServer = url;
+    }
+#else
     ServerUserDataSource(const std::vector<AppUser>& users, ServerList* server) : list(users), parent(server) {}
+#endif
 
     size_t getItemCount() override { return this->list.size(); }
 
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         UserCell* cell = dynamic_cast<UserCell*>(recycler->dequeueReusableCell("Cell"));
         auto& u = this->list.at(index);
+#ifdef PS5_NATIVE_GPU
+        cell->setId(u.id);
+#endif
         auto deleteAction = [this, u](brls::View* view) {
             Dialog::cancelable("main/setting/server/delete"_i18n, [this, u]() {
                 AppConfig::instance().removeUser(u.id);
@@ -91,6 +115,16 @@ public:
         std::string url = fmt::format(fmt::runtime(jellyfin::apiUserImage), u.id, "");
         Image::with(cell->picture, this->parent->getUrl() + url);
         return cell;
+#ifdef PS5_NATIVE_GPU
+    }
+
+    void retryArtwork(RecyclingGridItem* existing, size_t index) override {
+        auto* cell = dynamic_cast<UserCell*>(existing);
+        if (!cell || index >= list.size() || !cell->matchesArtworkId(list[index].id)
+            || artworkServer.empty() || parent->getUrl() != artworkServer) return;
+        const auto path = fmt::format(fmt::runtime(jellyfin::apiUserImage), list[index].id, "");
+        Image::with(cell->picture, artworkServer + path);
+#endif
     }
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
@@ -126,6 +160,9 @@ public:
     void clearData() override { this->list.clear(); }
 
 private:
+#ifdef PS5_NATIVE_GPU
+    std::string artworkServer; // One bounded origin tied to this current model.
+#endif
     std::vector<AppUser> list;
     ServerList* parent;
 };
@@ -158,6 +195,12 @@ void ServerList::onContentAvailable() {
     this->recyclerUsers->registerCell("Cell", []() { return new UserCell(); });
 
     this->btnSignin->registerClickAction([this](brls::View* view) {
+#ifdef PS5_NATIVE_GPU
+        if (this->getUrl().empty()) {
+            view->present(new ServerAdd());
+            return true;
+        }
+#endif
         view->present(new ServerLogin("", this->getUrl()));
         return true;
     });
@@ -252,4 +295,8 @@ void ServerList::setActive(brls::View* active) {
         ServerCell* cell = dynamic_cast<ServerCell*>(item);
         if (cell) cell->setActive(item == active);
     }
+#ifdef PS5_NATIVE_GPU
 }
+#else
+}
+#endif

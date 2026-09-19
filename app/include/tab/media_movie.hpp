@@ -8,6 +8,9 @@
 #include <view/presenter.hpp>
 #include <api/jellyfin/media.hpp>
 #include <utils/download.hpp>
+#ifdef PS5_NATIVE_GPU
+#include <utils/detail_artwork.hpp>
+#endif
 
 class HRecyclerFrame;
 class TextBox;
@@ -19,6 +22,10 @@ public:
     ~MediaMovie() override;
 
 private:
+#ifdef PS5_NATIVE_GPU
+    DetailArtwork artwork;
+    void retryArtwork(brls::Image* image);
+#endif
     BRLS_BIND(brls::Box, bannerBox, "movie/banner");
     BRLS_BIND(brls::Box, contentRow, "movie/content/row");
     BRLS_BIND(brls::Box, contentInfo, "movie/content/info");
@@ -53,6 +60,12 @@ private:
     std::string itemId;
     std::string sourceId;
     bool isFavorite = false;
+#ifdef PS5_NATIVE_GPU
+    // Seeded from the list item this tab was opened with, then replaced by the
+    // full detail once it arrives. The list request does not carry chapters, so
+    // playing the list item directly meant a movie never had any.
+    jellyfin::Item playItem;
+#endif
 
     DownloadManager::ProgressEvent::Subscription progressSub;
     DownloadManager::StatusEvent::Subscription statusSub;

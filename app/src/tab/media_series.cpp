@@ -21,6 +21,12 @@ MediaSeries::MediaSeries(const jellyfin::Episode& item) {
     brls::Logger::debug("Tab MediaSeries: create");
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/series.xml");
+#ifdef PS5_NATIVE_GPU
+    for (auto* image : std::initializer_list<brls::Image*>{imagePoster, imageLogo, imageBackdrop})
+        image->setArtworkRetryHandler([](brls::Image* image, void* owner) {
+            static_cast<MediaSeries*>(owner)->retryArtwork(image);
+        }, this);
+#endif
 
     if (item.Type == jellyfin::mediaTypeSeries) {
         this->seriesId = item.Id;
@@ -72,6 +78,10 @@ MediaSeries::MediaSeries(const jellyfin::Episode& item) {
 }
 
 MediaSeries::~MediaSeries() {
+#ifdef PS5_NATIVE_GPU
+    for (auto* image : std::initializer_list<brls::Image*>{imagePoster, imageLogo, imageBackdrop})
+        image->setArtworkRetryHandler(nullptr, nullptr);
+#endif
     brls::Logger::debug("Tab MediaSeries: delete");
     auto& dm = DownloadManager::instance();
     dm.getStatusEvent()->unsubscribe(this->statusSub);
@@ -126,6 +136,11 @@ void MediaSeries::doSeries() {
                 this->btnPlay->setButtonStyle("disabled");
             }
 
+#ifdef PS5_NATIVE_GPU
+            // getJSON rejects a cancelled account before this UI callback;
+            // this detail request is issued once by the owning constructor.
+            this->artwork.assign(r);
+#endif
             auto poster = r.ImageTags.find(jellyfin::imageTypePrimary);
             if (poster != r.ImageTags.end()) {
                 Image::load(this->imagePoster, jellyfin::apiPrimaryImage, r.Id,
@@ -145,8 +160,17 @@ void MediaSeries::doSeries() {
             }
 
             if (r.BackdropImageTags.size() > 0) {
+#ifdef PS5_NATIVE_GPU
+                // Sized for the same reason as the movie tab's backdrop: it is
+                // drawn into a banner no wider than the render target, and an
+                // unsized request fetches whatever the library holds.
+#endif
                 Image::load(this->imageBackdrop, jellyfin::apiBackdropImage, r.Id, 0,
+#ifdef PS5_NATIVE_GPU
+                    HTTP::encode_form({{"tag", r.BackdropImageTags.at(0)}, {"maxWidth", "1920"}}));
+#else
                     HTTP::encode_form({{"tag", r.BackdropImageTags.at(0)}}));
+#endif
             } else {
                 this->bannerBox->setVisibility(brls::Visibility::GONE);
                 this->contentRow->setMarginTop(0);
@@ -306,7 +330,11 @@ void MediaSeries::updateDownloadButton() {
 
 bool MediaSeries::doFavorite() {
     ASYNC_RETAIN
+#ifdef PS5_NATIVE_GPU
+    jellyfin::postJSON<jellyfin::UserDataResult>(
+#else
     jellyfin::postJSON(
+#endif
         {
             {"itemId", this->seriesId},
         },
@@ -349,3 +377,11 @@ void MediaSeries::updateFavoriteButton(bool favorite) {
         this->btnFavorite->setText("main/media/add_favorite"_i18n);
     }
 }
+#ifdef PS5_NATIVE_GPU
+
+void MediaSeries::retryArtwork(brls::Image* image) {
+    if (image == imagePoster) artwork.retry(image, DetailArtwork::Slot::Poster);
+    else if (image == imageLogo) artwork.retry(image, DetailArtwork::Slot::Logo);
+    else if (image == imageBackdrop) artwork.retry(image, DetailArtwork::Slot::Backdrop);
+}
+#endif
