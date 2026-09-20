@@ -44,28 +44,11 @@ permissions:
   contents: read
 
 jobs:
-  upload-release:
+  package-release:
     needs: [ build-mingw, build-nx, build-macos, build-flatpak, build-aur, build-ps4, build-vita, build-android, build-deb, build-ps5, test-ps5 ]
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    if: startsWith(github.ref, 'refs/tags/')
+    if: ${{ inputs.platform == 'all' || github.event_name != 'workflow_dispatch' }}
     steps:
-    - uses: actions/checkout@v6
-      with:
-        sparse-checkout: CHANGELOG.md
-    - name: Extract Release Notes from CHANGELOG.md
-      run: |
-        awk -v ver="${GITHUB_REF_NAME#v}" '
-          $0 ~ "^## \\[" ver "\\]" { found = 1; next }
-          found && /^## \[/ { exit }
-          found { print }
-        ' CHANGELOG.md > RELEASE_NOTES.md
-        if ! [ -s RELEASE_NOTES.md ]; then
-          printf "Built from commit %s.\n" "$GITHUB_SHA" > RELEASE_NOTES.md
-        fi
-        printf '\n![download](https://img.shields.io/github/downloads/%s/%s/total?label=Downloads)\n' \
-          "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME" >> RELEASE_NOTES.md
     - name: Download Assets
       uses: actions/download-artifact@v8
       with:
@@ -86,6 +69,40 @@ jobs:
         done
         test -n "$(ls -A release-assets)"
         (cd release-assets && sha256sum * > SHA256SUMS)
+    - name: Upload release assets
+      uses: actions/upload-artifact@v6
+      with:
+        name: release-assets
+        path: release-assets/*
+        if-no-files-found: error
+
+  upload-release:
+    needs: package-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        sparse-checkout: CHANGELOG.md
+    - name: Extract Release Notes from CHANGELOG.md
+      run: |
+        awk -v ver="${GITHUB_REF_NAME#v}" '
+          $0 ~ "^## \\[" ver "\\]" { found = 1; next }
+          found && /^## \[/ { exit }
+          found { print }
+        ' CHANGELOG.md > RELEASE_NOTES.md
+        if ! [ -s RELEASE_NOTES.md ]; then
+          printf "Built from commit %s.\n" "$GITHUB_SHA" > RELEASE_NOTES.md
+        fi
+        printf '\n![download](https://img.shields.io/github/downloads/%s/%s/total?label=Downloads)\n' \
+          "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME" >> RELEASE_NOTES.md
+    - name: Download release assets
+      uses: actions/download-artifact@v8
+      with:
+        name: release-assets
+        path: release-assets
     - name: Release and Upload Assets
       uses: softprops/action-gh-release@v3
       with:
@@ -367,7 +384,9 @@ jobs:
         apt-get update
         apt-get install -y --no-install-recommends debhelper cmake build-essential \
           ninja-build git wget ca-certificates xorg-dev libdbus-1-dev libssl-dev \
-          libwayland-dev libxkbcommon-dev libwebp-dev libmpv-dev libmupdf-dev
+          libwayland-dev libxkbcommon-dev libwebp-dev libmpv-dev libmupdf-dev \
+          pkg-config libfreetype-dev libharfbuzz-dev libmujs-dev libgumbo-dev \
+          libopenjp2-7-dev libjbig2dec0-dev libjpeg-dev
     - uses: actions/checkout@v6
       with:
         submodules: recursive
