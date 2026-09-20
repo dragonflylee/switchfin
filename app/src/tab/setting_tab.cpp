@@ -598,39 +598,42 @@ void SettingTab::onCreate() {
 
 #ifdef PS5_NATIVE_GPU
     {
-        // Download location: internal /data (default) + /user/data + any mounted
-        // writable external drive. Large downloads slow past ~1.5 GB on internal
-        // /data (its FS driver); an external drive (e.g. the USB SSD) stays fast
-        // and flat, so this lets the user send downloads there.
-        auto locPaths = std::make_shared<std::vector<std::string>>();
-        std::vector<std::string> labels;
-        locPaths->push_back("");            labels.push_back("Internal (/data)");
-        auto mountedWritable = [](const std::string& m) {
-            struct stat st{}, par{};
-            if (::stat(m.c_str(), &st) != 0 || !S_ISDIR(st.st_mode)) return false;
-            const std::string p = m.substr(0, m.find_last_of('/'));
-            return ::stat(p.c_str(), &par) == 0 && st.st_dev != par.st_dev;
-        };
-        for (int i = 0; i < 8; i++) {
-            std::string m = fmt::format("/mnt/usb{}", i);
-            if (mountedWritable(m)) { locPaths->push_back(m); labels.push_back(fmt::format("USB {}", i)); }
-        }
-        for (int i = 0; i < 2; i++) {
-            std::string m = fmt::format("/mnt/ext{}", i);
-            if (mountedWritable(m)) { locPaths->push_back(m); labels.push_back(fmt::format("Expansion {}", i)); }
-        }
-        const std::string cur = conf.getItem(AppConfig::DOWNLOAD_LOCATION, std::string(""));
-        int curIdx = 0;
-        for (size_t i = 0; i < locPaths->size(); i++)
-            if ((*locPaths)[i] == cur) { curIdx = static_cast<int>(i); break; }
-        selectorDownloadLocation->init("main/download/location"_i18n, labels, curIdx, [locPaths](int selected) {
-            const std::string& path = (*locPaths)[static_cast<size_t>(selected)];
-            AppConfig::instance().setItem(AppConfig::DOWNLOAD_LOCATION, path);
-            ps5::storage::downloadOverrideRoot() = path;
-            if (!path.empty()) { // ensure the tree exists for an immediate download
-                ::mkdir((path + "/switchfin").c_str(), 0755);
-                ::mkdir((path + "/switchfin/downloads").c_str(), 0755);
+        brls::SelectorCell* cell = selectorDownloadLocation;
+        const auto title = "main/download/location"_i18n;
+        cell->init(title, {ps5::storage::downloadLocationLabel()}, 0, [](int) {});
+        // Discover again when opening the list so newly attached drives appear.
+        cell->registerClickAction([cell, title](brls::View*) {
+            const auto sandbox = AppConfig::instance().configDir() + "/downloads";
+            ps5::storage::refreshDownloadLocations(sandbox);
+            cell->detail->setText(ps5::storage::downloadLocationLabel());
+            const auto locations = ps5::storage::downloadLocations();
+            if (locations.empty()) {
+                brls::Application::notify("No writable download location is available.");
+                return true;
             }
+            std::vector<std::string> labels;
+            for (const auto& location : locations) labels.push_back(location.label);
+            const int current = ps5::storage::downloadLocationIndex(
+                locations, ps5::storage::downloadLocationPreference());
+            auto* dropdown = new brls::Dropdown(title, labels,
+                [cell, locations, sandbox](int selected) {
+                    if (selected < 0 || static_cast<size_t>(selected) >= locations.size()) return;
+                    const auto& location = locations[selected];
+                    // A drive can be unplugged while the dropdown is open.
+                    ps5::storage::refreshDownloadLocations(sandbox);
+                    const auto available = ps5::storage::downloadLocations();
+                    const auto match = std::find_if(available.begin(), available.end(),
+                        [&location](const auto& entry) { return entry.root == location.root; });
+                    if (match == available.end()) {
+                        brls::Application::notify("This download location is no longer writable.");
+                    } else {
+                        AppConfig::instance().setItem(AppConfig::DOWNLOAD_LOCATION, location.root);
+                        ps5::storage::setDownloadLocation(location.root);
+                    }
+                    cell->detail->setText(ps5::storage::downloadLocationLabel());
+                }, current < 0 ? 0 : current);
+            brls::Application::pushActivity(new brls::Activity(dropdown));
+            return true;
         });
     }
 

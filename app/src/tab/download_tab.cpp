@@ -527,18 +527,13 @@ void DownloadView::updateStorage() {
     // Storage mode: /data is unmetered when promoted+writable; otherwise
     // downloads are bounded by the sandbox image (downloadDataSize). Real free
     // space is unavailable (statfs faults), so show the mode and the known cap.
-    if (ps5::storage::state().elevated) {
+    if (dir != AppConfig::instance().configDir() + "/downloads") {
         // Real /data free/total is unobtainable: statvfs() faults on this
         // firmware (it wraps the never-loaded libkernel_sys statfs -> SIGSEGV,
         // observed on this runtime), and statfs is the same crash class. Switchfin's own
         // /data usage is already shown on the line above (summed item sizes);
         // show the mode text here and no capacity bar.
-        // show the real download home, not a fixed /data. Mirrors
-        // ps5::storage::downloadHome(): an in-use override drive (USB0) wins;
-        // otherwise /data. So the label tracks the Download Location setting.
-        const std::string& ov = ps5::storage::downloadOverrideRoot();
-        const std::string loc = ps5::storage::overrideUsable(ov) ? (ov + "/switchfin")
-                                                                  : std::string("/data/switchfin");
+        const std::string loc = dir.substr(0, dir.find_last_of('/'));
         this->storageFree->setText(fmt::format(fmt::runtime("main/download/storage_data"_i18n), loc));
         this->storageBar->setSegments({});
     } else {

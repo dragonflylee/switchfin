@@ -415,9 +415,8 @@ bool AppConfig::init() {
     MPVCore::FORCE_DIRECTPLAY = this->getItem(FORCE_DIRECTPLAY, false);
     MPVCore::VIDEO_CODEC = this->getItem(TRANSCODEC, MPVCore::VIDEO_CODEC);
 #ifdef PS5_NATIVE_GPU
-    // Chosen download root ("" = default /data). Honoured by storage::downloadHome
-    // only when promoted and the root is a live writable mount; else falls back.
-    ps5::storage::downloadOverrideRoot() = this->getItem(DOWNLOAD_LOCATION, std::string(""));
+    ps5::storage::setDownloadLocation(this->getItem(DOWNLOAD_LOCATION, std::string("sandbox")));
+    ps5::storage::refreshDownloadLocations(this->configDir() + "/downloads");
     // AV1 is delisted on the native build for now (unproven, software-decoded);
     // clamp a previously-saved "av1" to the first offered codec so the transcode
     // request matches what the Codec selector can show.

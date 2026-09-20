@@ -17,6 +17,9 @@
 #include <cstdio>
 #include <cstring>
 #include <string>
+#include <atomic>
+#include <mutex>
+#include <vector>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -124,36 +127,142 @@ inline const Report& resolve() {
     return report;
 }
 
-// User-chosen download-location root (e.g. "/mnt/usb0"), empty = the default
-// /data. Set from the DOWNLOAD_LOCATION config after resolve(). Only honoured
-// when promoted+elevated and the root is still a mounted, writable directory
-// (a removed drive falls back to /data so downloads never break).
-inline std::string& downloadOverrideRoot() {
-    static std::string root;
-    return root;
-}
-inline bool overrideUsable(const std::string& root) {
-    if (root.empty()) return false;
-    struct ::stat st{};
-    if (::stat(root.c_str(), &st) != 0 || !S_ISDIR(st.st_mode)) return false;
-    // A removable mount that is gone shares its parent's device id; a live mount
-    // differs. /data (and /user/data) are always usable when elevated.
-    if (root.rfind("/mnt/", 0) == 0) {
-        struct ::stat parent{};
-        const std::string par = root.substr(0, root.find_last_of('/'));
-        if (::stat(par.c_str(), &parent) == 0 && st.st_dev == parent.st_dev) return false;
+struct DownloadLocation {
+    std::string root;
+    std::string label;
+    std::string directory;
+};
+
+struct LocationSystem {
+    static bool mounted(const std::string& root) {
+        struct stat mount{}, parent{};
+        const auto parentPath = root.substr(0, root.find_last_of('/'));
+        return ::stat(root.c_str(), &mount) == 0 && S_ISDIR(mount.st_mode) &&
+            ::stat(parentPath.c_str(), &parent) == 0 && mount.st_dev != parent.st_dev;
     }
-    return true;
+
+    static bool writable(const std::string& directory) {
+        // Downloads require new item directories, not just access to an already
+        // open file. Promoted sandbox credentials can deny mkdir despite chmod.
+        const auto parent = directory.substr(0, directory.find_last_of('/'));
+        for (const auto& path : {parent, directory}) {
+            if (::mkdir(path.c_str(), 0755) != 0 && errno != EEXIST) return false;
+        }
+        static std::atomic<unsigned> sequence{0};
+        std::string probe;
+        bool created = false;
+        for (int retry = 0; retry < 8; ++retry) {
+            probe = directory + "/.switchfin-location-" + std::to_string(::getpid()) + "-" +
+                std::to_string(sequence.fetch_add(1));
+            if (::mkdir(probe.c_str(), 0700) == 0) { created = true; break; }
+            if (errno != EEXIST) return false;
+        }
+        if (!created) return false;
+        const auto file = probe + "/write";
+        const int fd = ::open(file.c_str(), O_WRONLY | O_CREAT | O_EXCL, 0600);
+        bool ok = false;
+        if (fd >= 0) {
+            ssize_t written;
+            do { written = ::write(fd, "x", 1); } while (written < 0 && errno == EINTR);
+            ok = written == 1;
+            if (::close(fd) != 0) ok = false;
+            if (::unlink(file.c_str()) != 0) ok = false;
+        }
+        if (::rmdir(probe.c_str()) != 0) ok = false;
+        return ok;
+    }
+};
+
+template <class Ops = LocationSystem>
+inline std::vector<DownloadLocation> discoverDownloadLocations(const std::string& sandbox) {
+    std::vector<DownloadLocation> locations;
+    if (Ops::writable(sandbox)) locations.push_back({"sandbox", "Internal (sandbox)", sandbox});
+    const auto& report = state();
+    if (!report.resolved || report.sandboxRoot.empty()) return locations;
+    if (report.elevated && Ops::writable(elevatedDownloads))
+        locations.push_back({"/data", "Internal (/data)", elevatedDownloads});
+    for (const auto& type : {std::string("usb"), std::string("ext")}) {
+        const int count = type == "usb" ? 8 : 2;
+        for (int i = 0; i < count; ++i) {
+            const auto name = type + std::to_string(i);
+            const auto root = "/mnt/" + name;
+            const auto directory = root + "/switchfin/downloads";
+            if (Ops::mounted(root) && Ops::writable(directory))
+                locations.push_back({root, "External (" + name + ")", directory});
+        }
+    }
+    return locations;
 }
 
-// The download directory to use. Before resolve(), or whenever /data was not
-// chosen, this is the sandbox path the caller passed.
+// A saved empty value meant /data in older releases. New installs prefer the
+// sandbox. Falling back never replaces the saved preference or moves media.
+inline int downloadLocationIndex(const std::vector<DownloadLocation>& locations, const std::string& preference) {
+    const std::string root = preference.empty() ? "/data" : preference;
+    for (size_t i = 0; i < locations.size(); ++i)
+        if (locations[i].root == root) return static_cast<int>(i);
+    // Only internal storage is an automatic fallback; never choose a different
+    // external drive merely because the saved one is disconnected.
+    for (size_t i = 0; i < locations.size(); ++i)
+        if (locations[i].root == "sandbox" || locations[i].root == "/data") return static_cast<int>(i);
+    return -1;
+}
+
+struct DownloadSelection {
+    std::mutex mutex;
+    std::string preference = "sandbox";
+    std::vector<DownloadLocation> locations;
+};
+
+inline DownloadSelection& downloadSelection() {
+    static DownloadSelection selection;
+    return selection;
+}
+
+inline void setDownloadLocation(const std::string& root) {
+    auto& selection = downloadSelection();
+    std::lock_guard<std::mutex> lock(selection.mutex);
+    selection.preference = root;
+}
+
+inline std::string downloadLocationPreference() {
+    auto& selection = downloadSelection();
+    std::lock_guard<std::mutex> lock(selection.mutex);
+    return selection.preference;
+}
+
+inline void refreshDownloadLocations(const std::string& sandbox) {
+    auto locations = discoverDownloadLocations(sandbox);
+    auto& selection = downloadSelection();
+    std::lock_guard<std::mutex> lock(selection.mutex);
+    selection.locations = std::move(locations);
+}
+
+inline std::vector<DownloadLocation> downloadLocations() {
+    auto& selection = downloadSelection();
+    std::lock_guard<std::mutex> lock(selection.mutex);
+    std::vector<DownloadLocation> locations;
+    for (const auto& location : selection.locations) {
+        if (location.root.rfind("/mnt/", 0) == 0 && !LocationSystem::mounted(location.root)) continue;
+        locations.push_back(location);
+    }
+    return locations;
+}
+
+inline std::string downloadLocationLabel() {
+    const auto locations = downloadLocations();
+    const auto preference = downloadLocationPreference();
+    const int index = downloadLocationIndex(locations, preference);
+    if (index < 0) return "No writable download location";
+    const auto& location = locations[index];
+    return location.label + (location.root == (preference.empty() ? "/data" : preference) ? "" : " (fallback)");
+}
+
+// Probes run at startup and when opening the selector, not on progress updates.
+// Recheck removable mounts here so unplugging a drive cannot target /mnt itself.
 inline std::string downloadHome(const std::string& sandbox) {
-    const Report& report = state();
-    if (!(report.resolved && report.elevated)) return sandbox;
-    const std::string& ov = downloadOverrideRoot();
-    if (overrideUsable(ov)) return ov + "/switchfin/downloads";
-    return std::string(elevatedDownloads);
+    const auto locations = downloadLocations();
+    const int index = downloadLocationIndex(locations, downloadLocationPreference());
+    return index < 0 ? sandbox : locations[index].directory;
 }
 
 // Empty while jailed; the real sandbox root prefix once promoted out of it. Set
