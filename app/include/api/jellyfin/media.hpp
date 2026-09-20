@@ -226,7 +226,10 @@ inline void from_json(const nlohmann::json& json, Stream& value) {
     value.RefFrames = mediaPositiveNumber<int64_t>(json, "RefFrames");
     value.AverageFrameRate = mediaPositiveNumber<double>(json, "AverageFrameRate");
     value.RealFrameRate = mediaPositiveNumber<double>(json, "RealFrameRate");
-    value.Level = mediaPositiveNumber<double>(json, "Level");
+    // Jellyfin can pass through FFmpeg's -99 sentinel for an unknown codec level.
+    const auto level = json.find("Level");
+    value.Level = level != json.end() && level->is_number() && *level == -99
+        ? std::nullopt : mediaPositiveNumber<double>(json, "Level");
     value.Profile = mediaValue<std::string>(json, "Profile");
     value.VideoRangeType = mediaValue<std::string>(json, "VideoRangeType");
     value.ColorTransfer = mediaValue<std::string>(json, "ColorTransfer");
