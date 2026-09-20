@@ -146,7 +146,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y clang-18 llvm-18-dev lld-18 lld gcc-13 g++-13 \
-          cmake ninja-build make pkg-config autoconf automake libtool bison flex \
+          cmake ninja-build meson make pkg-config autoconf automake libtool bison flex \
           python3-mako python3-yaml python3-ply python3-setuptools python3-packaging \
           curl wget unzip xz-utils zstd libzstd-dev zlib1g-dev libxml2-dev \
           libdrm-dev libexpat1-dev nasm gperf
