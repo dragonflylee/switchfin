@@ -59,6 +59,7 @@
 #include "utils/ps5_native_requests.hpp"
 #include "utils/ps5_native_heap_failure.hpp"
 #include "utils/ps5_storage_home.hpp"
+#include "utils/ps5_config_file.hpp"
 #include <borealis/platforms/ps5/native_display.hpp>
 #include <borealis/platforms/ps5/native_i18n.hpp>
 
@@ -76,6 +77,59 @@ static int runApplication(int argc, char* argv[]) {
     // This native sandbox's settings are separate from every payload install.
     NATIVE_STARTUP_STAGE("settings-directory");
     mkdir("/download0/switchfin-native", 0700);
+    // Restore directory search/listing bits while the sandbox uid still owns it.
+    chmod("/download0/switchfin-native", 0755);
+    if (!ps5::configuration::settingsFile().prepare("/download0/switchfin-native/config.json"))
+        ps5_native_startup::detail::line("CONFIG prepare failed errno=%d\n", errno);
+    mkdir("/download0/switchfin-native/downloads", 0700);
+    chmod("/download0/switchfin-native/downloads", 0755);
+    if (!ps5::configuration::downloadIndexFile().prepare("/download0/switchfin-native/downloads/index.json"))
+        ps5_native_startup::detail::line("CONFIG index prepare failed errno=%d\n", errno);
+    NATIVE_STARTUP_STAGE("application-log");
+    // Open logs with sandbox credentials; their handles survive promotion.
+    const std::string nativeLogDir = "/download0/switchfin-native";
+    const std::string appLogPath = nativeLogDir + "/application.log";
+    const std::string driverLogPath = nativeLogDir + "/driver.log";
+    const auto nativeLogBudget = brls::Ps5LogOutput::remainingForFile(appLogPath.c_str(), 8 * 1024 * 1024);
+    if (nativeLogBudget) {
+        if (FILE* out = std::fopen(appLogPath.c_str(), "a")) {
+            std::setvbuf(out, nullptr, _IOLBF, 0);
+            brls::Logger::setLogOutput(out);
+            brls::Logger::setLogOutputLimit(nativeLogBudget);
+        }
+    }
+    NATIVE_STARTUP_STAGE("driver-log");
+    if (brls::Ps5LogOutput::remainingForFile(driverLogPath.c_str(), 2 * 1024 * 1024)) {
+        const int fd = open(driverLogPath.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
+        if (fd >= 0) {
+            if (dup2(fd, STDOUT_FILENO) >= 0) std::setvbuf(stdout, nullptr, _IONBF, 0);
+            if (dup2(fd, STDERR_FILENO) >= 0) std::setvbuf(stderr, nullptr, _IONBF, 0);
+            if (fd != STDOUT_FILENO && fd != STDERR_FILENO) close(fd);
+        }
+    }
+    // libass reads <config-dir>/subfont.ttf when no system font provider exists.
+    // Seed it before promotion, preserving an existing user-supplied font.
+    {
+        const std::string subfont = "/download0/switchfin-native/subfont.ttf";
+        struct stat st {};
+        if (::stat(subfont.c_str(), &st) != 0 || st.st_size == 0) {
+            const std::string source = "/app0/resources/font/switch_font.ttf";
+            FILE* in = std::fopen(source.c_str(), "rb");
+            FILE* out = in ? std::fopen(subfont.c_str(), "wb") : nullptr;
+            bool ok = false;
+            if (in && out) {
+                char buffer[64 * 1024];
+                size_t n;
+                ok = true;
+                while ((n = std::fread(buffer, 1, sizeof(buffer), in)) > 0)
+                    if (std::fwrite(buffer, 1, n, out) != n) { ok = false; break; }
+                if (ok && std::ferror(in)) ok = false;
+            }
+            if (out) { if (std::fflush(out) != 0) ok = false; std::fclose(out); }
+            if (in) std::fclose(in);
+            ps5_native_startup::detail::line("SUBFONT prepare result=%d\n", int(ok));
+        }
+    }
     // the unjail daemon un-chroots the whole process, so promotion is read
     // from the filesystem (the real sandbox root becomes visible) rather than
     // from the daemon's advisory reply. When promoted, every sandbox-absolute
@@ -149,30 +203,6 @@ int main(int argc, char* argv[]) {
     }
 
 #ifdef PS5_NATIVE_GPU
-    NATIVE_STARTUP_STAGE("application-log");
-    // Once promoted, /download0 is dead; write logs under the real sandbox root
-    // so application/driver output (including runtime errors like a failed
-    // removal) is captured on a promoted run. Empty prefix = unchanged sandbox.
-    const std::string nativeLogDir = ps5::storage::sandboxRoot() + "/download0/switchfin-native";
-    const std::string appLogPath = nativeLogDir + "/application.log";
-    const std::string driverLogPath = nativeLogDir + "/driver.log";
-    const auto nativeLogBudget = brls::Ps5LogOutput::remainingForFile(appLogPath.c_str(), 8 * 1024 * 1024);
-    if (nativeLogBudget) {
-        if (FILE* out = std::fopen(appLogPath.c_str(), "a")) {
-            std::setvbuf(out, nullptr, _IOLBF, 0);
-            brls::Logger::setLogOutput(out);
-            brls::Logger::setLogOutputLimit(nativeLogBudget);
-        }
-    }
-    NATIVE_STARTUP_STAGE("driver-log");
-    if (brls::Ps5LogOutput::remainingForFile(driverLogPath.c_str(), 2 * 1024 * 1024)) {
-        const int fd = open(driverLogPath.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
-        if (fd >= 0) {
-            if (dup2(fd, STDOUT_FILENO) >= 0) std::setvbuf(stdout, nullptr, _IONBF, 0);
-            if (dup2(fd, STDERR_FILENO) >= 0) std::setvbuf(stderr, nullptr, _IONBF, 0);
-            if (fd != STDOUT_FILENO && fd != STDERR_FILENO) close(fd);
-        }
-    }
     setenv("MPV_CLIENT_LOG_LEVEL", "info", 1);
     NATIVE_STARTUP_STAGE("first-logger-message");
     brls::Logger::info("Switchfin: configured {}x{} nominal {}Hz HDR output, software video decoding",

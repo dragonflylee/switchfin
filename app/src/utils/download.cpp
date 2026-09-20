@@ -21,6 +21,7 @@
     (f).offset, (f).requested, (f).written)
 #include "utils/ps5_download_index_scan.hpp"
 #define PS5_DOWNLOAD_INDEX_SCAN(dir) this->recordIndexScan(dir)
+#include "utils/ps5_config_file.hpp"
 #include "utils/ps5_storage_home.hpp"
 #include <sys/stat.h>
 // Record whether the writable download root was promoted.
@@ -265,13 +266,11 @@ void DownloadManager::reconcileOrphans() {
 void DownloadManager::loadIndex() {
 #ifdef PS5_NATIVE_GPU
     std::string path = this->indexDir() + "/index.json";
-    // std::ifstream reads the sandbox index back empty once promoted (via the
-    // /mnt path); read with raw stdio, which binds on this image like the logs.
     std::string data;
-    if (FILE* fp = std::fopen(path.c_str(), "rb")) {
-        char buf[8192];
-        for (size_t n; (n = std::fread(buf, 1, sizeof buf, fp)) > 0;) data.append(buf, n);
-        std::fclose(fp);
+    auto& index = ps5::configuration::downloadIndexFile();
+    if (!index.prepare(path) || !index.read(data)) {
+        brls::Logger::error("Failed to read download index: errno={}", errno);
+        return;
     }
     if (data.empty()) return;
 #else
@@ -293,23 +292,14 @@ void DownloadManager::loadIndex() {
 }
 
 void DownloadManager::saveIndex() {
-#ifdef PS5_NATIVE_GPU
-    std::string path = this->indexDir() + "/index.json";
-#else
+#ifndef PS5_NATIVE_GPU
     std::string path = this->downloadDir() + "/index.json";
 #endif
     try {
         nlohmann::json j = this->items;
 #ifdef PS5_NATIVE_GPU
-        // The atomic temp+rename cannot create a sibling in the sandbox downloads
-        // dir once promoted (mkstemp -> EACCES), so write index.json in place with
-        // raw stdio (rebuildable via reconcileOrphans, so non-atomic is acceptable).
-        const std::string dump = j.dump(2);
-        FILE* fp = std::fopen(path.c_str(), "wb");
-        if (!fp) throw std::runtime_error("open index for write failed");
-        const size_t wrote = std::fwrite(dump.data(), 1, dump.size(), fp);
-        std::fclose(fp);
-        if (wrote != dump.size()) throw std::runtime_error("short index write");
+        if (!ps5::configuration::downloadIndexFile().save(j.dump(2)))
+            throw std::runtime_error("write index failed: errno=" + std::to_string(errno));
 #else
         std::ofstream f(path);
         f << j.dump(2);

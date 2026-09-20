@@ -78,6 +78,8 @@ constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
 #include "utils/misc.hpp"
 #ifdef PS5_NATIVE_GPU
 #include "utils/ps5_storage_home.hpp"
+#include "utils/ps5_config_file.hpp"
+#include "utils/ps5_native_startup.hpp"
 #endif
 #include "utils/ums.hpp"
 #include "utils/thread.hpp"
@@ -274,6 +276,27 @@ static std::string generateDeviceId() {
 
 bool AppConfig::init() {
     const std::string path = this->configDir() + "/config.json";
+#ifdef PS5_NATIVE_GPU
+    auto& settingsFile = ps5::configuration::settingsFile();
+    if (!settingsFile.prepare(path)) {
+        ps5_native_startup::detail::line("CONFIG prepare failed errno=%d\n", errno);
+        return false;
+    }
+    std::string contents;
+    if (!settingsFile.read(contents)) {
+        ps5_native_startup::detail::line("CONFIG read failed errno=%d\n", errno);
+        return false;
+    }
+    if (!contents.empty()) {
+        try {
+            nlohmann::json::parse(contents).get_to(*this);
+            brls::Logger::info("Load config from: {}", path);
+        } catch (const std::exception& ex) {
+            brls::Logger::error("AppConfig::load: {}", ex.what());
+            return false;
+        }
+    }
+#else
 #if !defined(USE_BOOST_FILESYSTEM) || defined(_WIN32)
     std::ifstream f(fs::u8path(path));
 #else
@@ -288,6 +311,7 @@ bool AppConfig::init() {
             return false;
         }
     }
+#endif
 
 #if defined(_WIN32) && !defined(_WINRT_)
     misc::initCrashDump();
@@ -591,6 +615,15 @@ bool AppConfig::init() {
 
 void AppConfig::save() {
     try {
+#ifdef PS5_NATIVE_GPU
+        const std::string contents = nlohmann::json(*this).dump(2);
+        if (!ps5::configuration::settingsFile().save(contents)) {
+            const int error = errno;
+            ps5_native_startup::detail::line("CONFIG save failed errno=%d\n", error);
+            brls::Logger::warning("Could not save settings: errno={}", error);
+            brls::Application::notify("Could not save settings");
+        }
+#else
         std::string dir = this->configDir();
         fs::create_directories(dir);
 #if !defined(USE_BOOST_FILESYSTEM) || defined(_WIN32)
@@ -603,6 +636,7 @@ void AppConfig::save() {
             f << j.dump(2);
             f.close();
         }
+#endif
     } catch (const std::exception& ex) {
         brls::Logger::warning("AppConfig save: {}", ex.what());
     }

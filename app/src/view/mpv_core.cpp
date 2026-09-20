@@ -284,46 +284,8 @@ void MPVCore::init() {
     mpv_set_option_string(mpv, "config", "yes");
     mpv_set_option_string(mpv, "config-dir", confDir.c_str());
 #ifdef PS5_NATIVE_GPU
-    // Subtitles rendered as nothing here, and pointing sub-fonts-dir at the
-    // bundle's fonts was not enough on its own.
-    //
-    // mpv hands libass two things: a fonts directory to scan, and a *default
-    // font file* which it looks up as "<config-dir>/subfont.ttf" (see
-    // mp_ass_configure_fonts in sub/ass_mp.c). With sub-font-provider=none --
-    // which this target needs, because fontconfig does not exist -- that default
-    // file is what libass falls back to when family matching finds nothing, and
-    // it is the only thing guaranteed to render. Nothing ships one, so seed it
-    // from a font the bundle already carries.
-    {
-        // Raw IO, because std::filesystem::copy_file reported success through an
-        // error_code that was swallowed while embedded ASS subtitles still
-        // rendered as tofu -- the fallback file libass falls back to was never
-        // actually written. opendir/stat/fopen bind on this image; the
-        // std::filesystem wrapper did not do what it claimed.
-        const std::string subfont = confDir + "/subfont.ttf";
-        struct stat st {};
-        if (::stat(subfont.c_str(), &st) != 0 || st.st_size == 0) {
-            ::mkdir(confDir.c_str(), 0700);
-            const std::string source = BRLS_ASSET("font/switch_font.ttf");
-            FILE* in = std::fopen(source.c_str(), "rb");
-            FILE* out = in ? std::fopen(subfont.c_str(), "wb") : nullptr;
-            bool ok = false;
-            if (in && out) {
-                char buffer[64 * 1024];
-                size_t n;
-                ok = true;
-                while ((n = std::fread(buffer, 1, sizeof(buffer), in)) > 0)
-                    if (std::fwrite(buffer, 1, n, out) != n) { ok = false; break; }
-                if (ok && std::ferror(in)) ok = false;
-            }
-            if (out) { if (std::fflush(out) != 0) ok = false; std::fclose(out); }
-            if (in) std::fclose(in);
-            brls::Logger::info("mpv: seeding libass default font at {}: {}", subfont, ok ? "ok" : "failed");
-        }
-    }
-    // Still useful: this is what family names resolve against, so a subtitle
-    // asking for a specific face can find one instead of using the default.
-    // Native assets are absolute /app0 paths; the payload anchors its cwd.
+    // The sandbox subfont.ttf is prepared before promotion. With no system
+    // font provider, libass needs that fallback as well as this font directory.
     mpv_set_option_string(mpv, "sub-fonts-dir", BRLS_ASSET("font").c_str());
 #else
     mpv_set_option_string(mpv, "sub-fonts-dir", confDir.c_str());
