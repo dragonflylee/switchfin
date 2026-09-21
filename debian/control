@@ -9,6 +9,14 @@ Build-Depends: debhelper (>= 10),
                libdbus-1-dev,
                libwebp-dev,
                libmupdf-dev,
+               pkg-config,
+               libfreetype-dev,
+               libharfbuzz-dev,
+               libmujs-dev,
+               libgumbo-dev,
+               libopenjp2-7-dev,
+               libjbig2dec0-dev,
+               libjpeg-dev,
                libmpv-dev
 Vcs-Git: https://github.com/dragonflylee/switchfin.git
 

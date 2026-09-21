@@ -7,6 +7,11 @@
 #include <view/auto_tab_frame.hpp>
 #include <client/client.hpp>
 #include <utils/ums.hpp>
+#ifdef PS5_NATIVE_GPU
+#include <atomic>
+#include <mutex>
+#include <unordered_map>
+#endif
 
 class RecyclingGrid;
 
@@ -32,8 +37,18 @@ protected:
     RecyclingGrid* newRecycler();
 
     std::vector<RecyclingGrid*> stack;
+#ifdef PS5_NATIVE_GPU
+    RecyclingGrid* recycler = nullptr;
+#else
     RecyclingGrid* recycler;
+#endif
     Client client;
+#ifdef PS5_NATIVE_GPU
+    std::unordered_map<RecyclingGrid*, std::shared_ptr<std::atomic_bool>> listingCancellation;
+    // Each RemoteView owns a client session whose transport may be mutable.
+    // Workers retain this lock and the client independently of the view.
+    std::shared_ptr<std::mutex> listingMutex = std::make_shared<std::mutex>();
+#endif
 };
 
 class UmsView : public RemoteView {
@@ -43,4 +58,8 @@ public:
 
 private:
     Ums::DeviceEvent::Subscription deviceSubscribeID;
+#ifdef PS5_NATIVE_GPU
 };
+#else
+};
+#endif

@@ -1,0 +1,986 @@
+--- a/include/SDL_hints.h
++++ b/include/SDL_hints.h
+@@ -1876,6 +1876,11 @@
+  *  By default SDL will generate mouse events for all touch devices
+  */
+ #define SDL_HINT_VITA_TOUCH_MOUSE_DEVICE    "SDL_HINT_VITA_TOUCH_MOUSE_DEVICE"
++
++/* Switchfin native PS5 modal IME. Set before SDL_StartTextInput. */
++#define SDL_HINT_PS5_IME_INITIAL_TEXT "SDL_PS5_IME_INITIAL_TEXT"
++#define SDL_HINT_PS5_IME_PASSWORD "SDL_PS5_IME_PASSWORD"
++#define SDL_HINT_PS5_IME_MAX_TEXT_LENGTH "SDL_PS5_IME_MAX_TEXT_LENGTH"
+ 
+ /**
+  *  \brief  A variable controlling whether the Android / tvOS remotes
+--- a/src/audio/ps5/SDL_ps5audio.c
++++ b/src/audio/ps5/SDL_ps5audio.c
+@@ -23,8 +23,19 @@
+ #ifdef SDL_AUDIO_DRIVER_PS5
+ 
+ #include "SDL_audio.h"
++#include "SDL_hints.h"
++#include "SDL_atomic.h"
++
++/* Switchfin alteration: optional six-channel PCM through eight AudioOut slots. */
+ #include "SDL_ps5audio.h"
+ 
++
++/* 0: available, 1: opening/open/closing, 2: failed close quarantined.
++ * CAS serializes even concurrent SDL open attempts; the closing thread retains
++ * state 1 until its output thread has joined and the port/buffers are retired.
++ * State 2 is terminal for this process: no uncertain storage is reused/freed. */
++static SDL_atomic_t PS5AUDIO_port_state = { 0 };
++static struct SDL_PrivateAudioData *PS5AUDIO_quarantined;
+ 
+ inline static Uint16 PS5AUDIO_SampleSize(Uint16 size)
+ {
+@@ -42,11 +53,19 @@
+ {
+     SDL_AudioFormat test_format;
+     Uint8 fmt;
++    const int surround = this->spec.channels == 6 &&
++        SDL_GetHintBoolean("SWITCHFIN_PS5_AUDIO_51", SDL_FALSE);
++
++    if (!SDL_AtomicCAS(&PS5AUDIO_port_state, 0, 1))
++        return SDL_SetError("PS5 audio port is busy or awaiting process teardown");
+ 
+     this->hidden = (struct SDL_PrivateAudioData *) SDL_calloc(1, sizeof(*this->hidden));
+     if (this->hidden == NULL) {
++        SDL_AtomicSet(&PS5AUDIO_port_state, 0);
+         return SDL_OutOfMemory();
+     }
++
++    this->hidden->handle = -1;
+ 
+     for (test_format = SDL_FirstAudioFormat(this->spec.format); test_format; test_format = SDL_NextAudioFormat()) {
+         if (test_format == AUDIO_S16LSB) {
+@@ -65,10 +84,16 @@
+         return SDL_SetError("%s: Unsupported audio format", "ps5");
+     }
+ 
++    /* Only S16 eight-slot output is grounded in the ProsperoLight reference.
++     * SDL/mpv negotiates conversion when the caller originally requested F32. */
++    if (surround) {
++        test_format = AUDIO_S16LSB;
++        fmt = PROSPERO_AUDIO_OUT_PARAM_FORMAT_S16_8CH;
++    }
+     this->spec.format = test_format;
+     this->spec.samples = PS5AUDIO_SampleSize(this->spec.samples);
+     this->spec.freq = 48000;
+-    this->spec.channels = this->spec.channels == 1 ? 1 : 2;
++    this->spec.channels = surround ? 6 : (this->spec.channels == 1 ? 1 : 2);
+ 
+     /* Update the fragment size as size in bytes. */
+     SDL_CalculateAudioSpec(&this->spec);
+@@ -76,19 +101,60 @@
+     this->hidden->handle = sceAudioOutOpen(PROSPERO_USER_SERVICE_USER_ID_SYSTEM,
+ 					   PROSPERO_AUDIO_OUT_PORT_TYPE_MAIN,
+ 					   0, this->spec.samples, 48000, fmt);
++    if (this->hidden->handle < 1 && surround) {
++        /* An open succeeds or fails independently of HDMI/headphone routing.
++         * Report stereo to SDL so its caller downmixes; never truncate PCM. */
++        this->spec.channels = 2;
++        SDL_CalculateAudioSpec(&this->spec);
++        this->hidden->handle = sceAudioOutOpen(PROSPERO_USER_SERVICE_USER_ID_SYSTEM,
++            PROSPERO_AUDIO_OUT_PORT_TYPE_MAIN, 0, this->spec.samples, 48000,
++            PROSPERO_AUDIO_OUT_PARAM_FORMAT_S16_STEREO);
++    }
+     if (this->hidden->handle < 1) {
+-        return SDL_SetError("sceAudioOutOpen: %s", strerror(this->hidden->handle));
++        return SDL_SetError("sceAudioOutOpen: 0x%08x", (unsigned)this->hidden->handle);
+     }
+ 
+     this->hidden->mixlen = this->spec.size;
+     this->hidden->mixbuf = (Uint8 *)SDL_calloc(1, this->hidden->mixlen);
+ 
++    if (!this->hidden->mixbuf) {
++        return SDL_OutOfMemory(); /* SDL closes partial devices on failure. */
++    }
++
++    if (this->spec.channels == 6) {
++        /* Grain is clamped to 256..2048 frames: at most 32768 extra bytes. */
++        this->hidden->outputbuf = (Uint8 *)SDL_calloc(this->spec.samples, 8 * sizeof(int16_t));
++        if (!this->hidden->outputbuf) {
++            return SDL_OutOfMemory();
++        }
++    }
+     return 0;
+ }
+ 
+ static void PS5AUDIO_PlayDevice(_THIS)
+ {
+-    sceAudioOutOutput(this->hidden->handle, this->hidden->mixbuf);
++    const void *output;
++    if (!this->hidden || this->hidden->handle < 1 || this->hidden->failed)
++        return;
++    output = this->hidden->mixbuf;
++    if (this->spec.channels == 6) {
++        Uint16 frame;
++        const int16_t *input = (const int16_t *)this->hidden->mixbuf;
++        int16_t *slots = (int16_t *)this->hidden->outputbuf;
++        /* SDL six-channel FL FR FC LFE surround-L surround-R maps to the
++         * reference AudioOut FL FR FC LFE BL BR SL SR; final slots stay silent.
++         * Six-channel SDL permits side/back surrounds. Do not apply this map
++         * to SDL eight-channel data (its back/side distinction is explicit). */
++        for (frame = 0; frame < this->spec.samples; ++frame) {
++            SDL_memcpy(slots + frame * 8, input + frame * 6, 6 * sizeof(int16_t));
++            slots[frame * 8 + 6] = slots[frame * 8 + 7] = 0;
++        }
++        output = this->hidden->outputbuf;
++    }
++    if (sceAudioOutOutput(this->hidden->handle, output) < 0) {
++        this->hidden->failed = 1;
++        SDL_OpenedAudioDeviceDisconnected(this);
++    }
+ }
+ 
+ static void PS5AUDIO_WaitDevice(_THIS)
+@@ -104,18 +170,32 @@
+ static void PS5AUDIO_CloseDevice(_THIS)
+ {
+     int res;
++    if (!this->hidden)
++        return;
+     if (this->hidden->handle > 0) {
+         res = sceAudioOutClose(this->hidden->handle);
+         if (res != 0) {
+-            SDL_SetError("sceAudioOutClose: %s", strerror(res));
++            SDL_SetError("sceAudioOutClose: 0x%08x", (unsigned)res);
++            /* Blocking output does not prove retirement after a close error.
++             * Pin at most one device (56 KiB PCM + metadata) until process exit. */
++            PS5AUDIO_quarantined = this->hidden;
++            this->hidden = NULL;
++            SDL_AtomicSet(&PS5AUDIO_port_state, 2);
++            return;
+         }
+         this->hidden->handle = -1;
+     }
+ 
+     if (this->hidden->mixbuf) {
+-        free(this->hidden->mixbuf);
++        SDL_free(this->hidden->mixbuf);
+         this->hidden->mixbuf = 0;
+     }
++    SDL_free(this->hidden->outputbuf);
++    this->hidden->outputbuf = NULL;
++    /* SDL's generic close path calls us, but does not free driver data. */
++    SDL_free(this->hidden);
++    this->hidden = NULL;
++    SDL_AtomicSet(&PS5AUDIO_port_state, 0);
+ }
+ 
+ static void PS5AUDIO_ThreadInit(_THIS)
+--- a/src/audio/ps5/SDL_ps5audio.h
++++ b/src/audio/ps5/SDL_ps5audio.h
+@@ -23,6 +23,7 @@
+ 
+ #ifndef _SDL_PS5AUDIO_H_
+ #define _SDL_PS5AUDIO_H_
++#define SWITCHFIN_PS5_AUDIO_SURROUND 1
+ 
+ #include "../SDL_sysaudio.h"
+ 
+@@ -33,12 +34,16 @@
+     int32_t handle;
+     Uint8 *mixbuf;
+     int mixlen;
++    Uint8 *outputbuf;
++    int failed;
+ };
+ 
+ #define PROSPERO_AUDIO_OUT_PORT_TYPE_MAIN 0
+ 
+ #define PROSPERO_AUDIO_OUT_PARAM_FORMAT_S16_MONO     0
+ #define PROSPERO_AUDIO_OUT_PARAM_FORMAT_S16_STEREO   1
++/* ProsperoLight native AudioOut reference; no floating-point 8ch inference. */
++#define PROSPERO_AUDIO_OUT_PARAM_FORMAT_S16_8CH      2
+ #define PROSPERO_AUDIO_OUT_PARAM_FORMAT_FLOAT_MONO   3
+ #define PROSPERO_AUDIO_OUT_PARAM_FORMAT_FLOAT_STEREO 4
+ 
+--- a/src/dynapi/SDL_dynapi.h
++++ b/src/dynapi/SDL_dynapi.h
+@@ -63,6 +63,8 @@
+ #define SDL_DYNAMIC_API 0 /* Turn off for static analysis, so reports are more clear. */
+ #elif defined(__VITA__)
+ #define SDL_DYNAMIC_API 0 /* vitasdk doesn't support dynamic linking */
++#elif defined(__PROSPERO__)
++#define SDL_DYNAMIC_API 0 /* Altered for this statically linked PS5 SDL2 build. */
+ #elif defined(__NGAGE__)
+ #define SDL_DYNAMIC_API 0 /* The N-Gage doesn't support dynamic linking either */
+ #elif defined(__3DS__)
+--- a/src/joystick/ps5/SDL_ps5joystick.c
++++ b/src/joystick/ps5/SDL_ps5joystick.c
+@@ -18,6 +18,7 @@
+      misrepresented as being the original software.
+   3. This notice may not be removed or altered from any source distribution.
+ */
++/* Altered to enumerate connected pads; the driver owns user handles. */
+ #include "../../SDL_internal.h"
+ 
+ #ifdef SDL_JOYSTICK_PS5
+@@ -103,13 +104,19 @@
+     PS5_PAD_BUTTON_R2         // righttrigger:b16
+ };
+ 
++/* SDL indices are dense, while logged-in users and native handles are not. */
++static PS5_PadContext *PS5_PadAtIndex(int device_index)
++{
++    for (int i = 0; i < PS5_MAX_USERS; ++i) {
++        if (pad_ctx[i].instance_id >= 0 && device_index-- == 0) return &pad_ctx[i];
++    }
++    return NULL;
++}
++
+ static SDL_JoystickID PS5_JoystickGetDeviceInstanceID(int device_index)
+ {
+-    if (device_index < 0 || device_index >= SDL_arraysize(pad_ctx)) {
+-        return -1;
+-    }
+-
+-    return pad_ctx[device_index].instance_id;
++    PS5_PadContext *ctx = PS5_PadAtIndex(device_index);
++    return ctx ? ctx->instance_id : -1;
+ }
+ 
+ static PS5_PadContext* PS5_JoystickGetPadContext(SDL_Joystick *joystick) {
+@@ -126,11 +133,8 @@
+ 
+ static const char *PS5_JoystickGetDeviceName(int device_index)
+ {
+-    if (device_index < 0 || device_index >= SDL_arraysize(pad_ctx)) {
+-        return NULL;
+-    }
+-
+-    return pad_ctx[device_index].user_name;
++    PS5_PadContext *ctx = PS5_PadAtIndex(device_index);
++    return ctx ? ctx->user_name : NULL;
+ }
+ 
+ static SDL_bool PS5_JoystickGetGamepadMapping(int device_index, SDL_GamepadMapping *out)
+@@ -200,31 +204,16 @@
+         return;
+     }
+ 
+-    // Axes
+-    if (ctx->pad.leftStick.x != pad.leftStick.x) {
+-        SDL_PrivateJoystickAxis(joystick, PS5_PAD_AXIS_LX,
+-                                analog_map[pad.leftStick.x]);
+-    }
+-    if (ctx->pad.leftStick.y != pad.leftStick.y) {
+-        SDL_PrivateJoystickAxis(joystick, PS5_PAD_AXIS_LY,
+-                                analog_map[pad.leftStick.y]);
+-    }
+-    if (ctx->pad.rightStick.x != pad.rightStick.x) {
+-        SDL_PrivateJoystickAxis(joystick, PS5_PAD_AXIS_RX,
+-                                analog_map[pad.rightStick.x]);
+-    }
+-    if (ctx->pad.rightStick.y != pad.rightStick.y) {
+-        SDL_PrivateJoystickAxis(joystick, PS5_PAD_AXIS_RY,
+-                                analog_map[pad.rightStick.y]);
+-    }
+-    if (ctx->pad.analogButtons.l2 != pad.analogButtons.l2) {
+-        SDL_PrivateJoystickAxis(joystick, PS5_PAD_AXIS_L2,
+-                                analog_map[pad.analogButtons.l2]);
+-    }
+-    if (ctx->pad.analogButtons.r2 != pad.analogButtons.r2) {
+-        SDL_PrivateJoystickAxis(joystick, PS5_PAD_AXIS_R2,
+-                                analog_map[pad.analogButtons.r2]);
+-    }
++    /* Detection owns removal; never publish disconnected sample contents. */
++    if (!pad.connected) return;
++
++    /* SDL deduplicates values; publish initial axes on every open, too. */
++    SDL_PrivateJoystickAxis(joystick, PS5_PAD_AXIS_LX, analog_map[pad.leftStick.x]);
++    SDL_PrivateJoystickAxis(joystick, PS5_PAD_AXIS_LY, analog_map[pad.leftStick.y]);
++    SDL_PrivateJoystickAxis(joystick, PS5_PAD_AXIS_RX, analog_map[pad.rightStick.x]);
++    SDL_PrivateJoystickAxis(joystick, PS5_PAD_AXIS_RY, analog_map[pad.rightStick.y]);
++    SDL_PrivateJoystickAxis(joystick, PS5_PAD_AXIS_L2, analog_map[pad.analogButtons.l2]);
++    SDL_PrivateJoystickAxis(joystick, PS5_PAD_AXIS_R2, analog_map[pad.analogButtons.r2]);
+ 
+     // Buttons
+     btn_change = ctx->pad.buttons ^ pad.buttons;
+@@ -261,105 +250,118 @@
+ 
+ static SDL_JoystickGUID PS5_JoystickGetDeviceGUID(int device_index)
+ {
+-    SDL_JoystickGUID guid = { 0 };
+-
+-    if (device_index < 0 || device_index >= SDL_arraysize(pad_ctx)) {
+-        return guid;
+-    }
+-
+-    return pad_ctx[device_index].global_id;
++    PS5_PadContext *ctx = PS5_PadAtIndex(device_index);
++    SDL_JoystickGUID empty = {0};
++    return ctx ? ctx->global_id : empty;
++}
++
++static void PS5_RemovePad(PS5_PadContext *ctx)
++{
++    SDL_JoystickID id = ctx->instance_id;
++    ctx->instance_id = -1;
++    if (id >= 0) SDL_PrivateJoystickRemoved(id);
++}
++
++static void PS5_ClosePad(PS5_PadContext *ctx)
++{
++    if (ctx->handle >= 0) {
++        int err = scePadClose(ctx->handle);
++        if (err) SDL_SetError("scePadClose: 0x%08x", err);
++        ctx->handle = -1;
++    }
+ }
+ 
+ static void PS5_JoystickDetect(void)
+ {
+-    static int instance_counter = 0;
+     int user_ids[PS5_MAX_USERS];
+-
+     if (sceUserServiceGetLoginUserIdList(user_ids) != 0) {
+-        SDL_SetError("sceUserServiceGetLoginUserIdList: %s", strerror(errno));
+-        return;
+-    }
+-
+-    for (int i = 0; i < PS5_MAX_USERS; i++) {
+-        if (user_ids[i] == pad_ctx[i].user_id) {
+-            continue;
++        SDL_SetError("sceUserServiceGetLoginUserIdList failed");
++        return; /* A failed read is not a physical disconnect. */
++    }
++    /* Match user identity, not list position; list reorder must not reconnect. */
++    for (int i = 0; i < PS5_MAX_USERS; ++i) {
++        PS5_PadContext *ctx = &pad_ctx[i];
++        int found = 0;
++        for (int j = 0; j < PS5_MAX_USERS; ++j) found |= user_ids[j] == ctx->user_id;
++        if (ctx->user_id != -1 && !found) {
++            PS5_RemovePad(ctx);
++            PS5_ClosePad(ctx);
++            ctx->user_id = -1;
+         }
+-
+-        if (user_ids[i] != -1) {
+-            pad_ctx[i].instance_id = instance_counter++;
+-            pad_ctx[i].user_id = user_ids[i];
+-            SDL_zero(pad_ctx[i].pad);
+-            if (sceUserServiceGetUserName(user_ids[i], pad_ctx[i].user_name,
+-                                          sizeof(pad_ctx[i].user_name))) {
+-                sprintf(pad_ctx[i].user_name, "%08x", pad_ctx[i].user_id);
++    }
++    for (int i = 0; i < PS5_MAX_USERS; ++i) {
++        PS5_PadContext *ctx = NULL;
++        PS5_PadData sample;
++        int err;
++        if (user_ids[i] == -1) continue;
++        for (int j = 0; j < PS5_MAX_USERS; ++j)
++            if (pad_ctx[j].user_id == user_ids[i]) ctx = &pad_ctx[j];
++        if (!ctx) {
++            for (int j = 0; j < PS5_MAX_USERS; ++j)
++                if (pad_ctx[j].user_id == -1) { ctx = &pad_ctx[j]; break; }
++            if (!ctx) continue;
++            ctx->user_id = user_ids[i];
++            if (sceUserServiceGetUserName(ctx->user_id, ctx->user_name, sizeof(ctx->user_name)))
++                SDL_snprintf(ctx->user_name, sizeof(ctx->user_name), "%08x", ctx->user_id);
++        }
++        /* Keep the user handle while unplugged so reconnection can be observed
++         * even after the consumer closes the detached SDL_Joystick. */
++        if (ctx->handle < 0) {
++            ctx->handle = scePadOpen(ctx->user_id, 0, 0, NULL);
++            if (ctx->handle < 0) {
++                SDL_SetError("scePadOpen: 0x%08x", ctx->handle); continue;
+             }
+-            SDL_PrivateJoystickAdded(pad_ctx[i].instance_id);
+-        } else {
+-            SDL_PrivateJoystickRemoved(pad_ctx[i].instance_id);
+-            scePadClose(pad_ctx[i].handle);
+-            pad_ctx[i].instance_id = -1;
+-            pad_ctx[i].handle = -1;
+-            pad_ctx[i].user_id = user_ids[i];
+-            pad_ctx[i].user_name[0] = 0;
++            err = scePadSetVibrationMode(ctx->handle, 2);
++            if (err) {
++                PS5_ClosePad(ctx);
++                SDL_SetError("scePadSetVibrationMode: 0x%08x", err); continue;
++            }
+         }
++        SDL_zero(sample);
++        err = scePadReadState(ctx->handle, &sample);
++        if (err) { SDL_SetError("scePadReadState: 0x%08x", err); continue; }
++        if (!sample.connected) {
++            PS5_RemovePad(ctx);
++        } else if (ctx->instance_id < 0) {
++            ctx->instance_id = SDL_GetNextJoystickInstanceID();
++            SDL_zero(ctx->pad);
++            SDL_PrivateJoystickAdded(ctx->instance_id);
++        }
+     }
+ }
+ 
+ static int PS5_JoystickGetCount(void)
+ {
+     int n = 0;
+-
+-    for (int i = 0; i < SDL_arraysize(pad_ctx); i++) {
+-        n += (pad_ctx[i].user_id != -1);
+-    }
+-
++    for (int i = 0; i < PS5_MAX_USERS; ++i) n += pad_ctx[i].instance_id >= 0;
+     return n;
+ }
+ 
+ static int PS5_JoystickOpen(SDL_Joystick *joystick, int device_index)
+ {
+-    int err;
+-
+-    if (device_index < 0 || device_index >= SDL_arraysize(pad_ctx)) {
+-        return SDL_SetError("PS5_JoystickOpen: Invalid device index");
+-    }
+-
+-    pad_ctx[device_index].handle = scePadOpen(pad_ctx[device_index].user_id,
+-                                              0, 0, NULL);
+-    if (pad_ctx[device_index].handle < 0) {
+-        return SDL_SetError("scePadOpen: 0x%08x", pad_ctx[device_index].handle);
+-    }
+-
+-    err = scePadSetVibrationMode(pad_ctx[device_index].handle, 2);
+-    if(err) {
+-        scePadClose(pad_ctx[device_index].handle);
+-        pad_ctx[device_index].handle = -1;
+-        return SDL_SetError("scePadSetVibration: 0x%08x", err);
+-    }
+-
++    PS5_PadContext *ctx = PS5_PadAtIndex(device_index);
++    if (!ctx) return SDL_SetError("PS5_JoystickOpen: Invalid device index");
++    SDL_zero(ctx->pad);
+     joystick->nbuttons = SDL_arraysize(btn_map);
+     joystick->naxes = 6;
+     joystick->nhats = 1;
+-    joystick->instance_id = pad_ctx[device_index].instance_id;
+-
++    joystick->instance_id = ctx->instance_id;
+     return 0;
+ }
+ 
+ static void PS5_JoystickClose(SDL_Joystick *joystick)
+ {
+-    PS5_PadContext *ctx = PS5_JoystickGetPadContext(joystick);
+-    int err;
+-
+-    if (!ctx) {
+-        return;
+-    }
+-
+-    err = scePadClose(ctx->handle);
+-    if (err != 0) {
+-        SDL_SetError("scePadClose: 0x%08x", err);
+-    }
+-
+-    ctx->handle = -1;
++    /* Native handles belong to detection, not a possibly detached SDL object. */
++    (void)joystick;
++}
++
++static void PS5_JoystickQuit(void)
++{
++    for (int i = 0; i < PS5_MAX_USERS; ++i) {
++        PS5_ClosePad(&pad_ctx[i]);
++        pad_ctx[i].instance_id = -1;
++        pad_ctx[i].user_id = -1;
++    }
+ }
+ 
+ static int PS5_JoystickInit(void)
+@@ -384,14 +386,11 @@
+         return SDL_SetError("scePadInit: 0x%08x", err);
+     }
+ 
++    SDL_ClearError();
+     PS5_JoystickDetect();
++    if (*SDL_GetError()) { PS5_JoystickQuit(); return -1; }
+ 
+     return 0;
+-}
+-
+-static void PS5_JoystickQuit(void)
+-{
+-    // NOP
+ }
+ 
+ static Uint32 PS5_JoystickGetCapabilities(SDL_Joystick *joystick)
+--- a/src/video/ps5/SDL_ps5keyboard.c
++++ b/src/video/ps5/SDL_ps5keyboard.c
+@@ -25,6 +25,7 @@
+ 
+ #include "SDL_error.h"
+ #include "SDL_events.h"
++#include "SDL_hints.h"
+ #include "SDL_stdinc.h"
+ 
+ #include "../../events/SDL_keyboard_c.h"
+@@ -48,7 +49,7 @@
+     SCE_IME_DIALOG_STATUS_FINISHED
+ } SceImeDialogStatus;
+ 
+-typedef int (*SceImeTextFilter)(wchar_t*, uint32_t*, const wchar_t*, uint32_t);
++typedef int (*SceImeTextFilter)(uint16_t*, uint32_t*, const uint16_t*, uint32_t);
+ 
+ typedef struct SceImeDialogParam
+ {
+@@ -73,7 +74,7 @@
+     SceImeTextFilter filter;
+     uint32_t option;
+     uint32_t maxTextLength;
+-    wchar_t *inputTextBuffer;
++    uint16_t *inputTextBuffer;
+     float posx;
+     float posy;
+     enum {
+@@ -86,8 +87,8 @@
+     SCE_IME_VALIGN_CENTER,
+     SCE_IME_VALIGN_BOTTOM
+     } valign;
+-    const wchar_t *placeholder;
+-    const wchar_t *title;
++    const uint16_t *placeholder;
++    const uint16_t *title;
+     int8_t reserved[16];
+ } SceImeDialogParam;
+ 
+@@ -113,123 +114,205 @@
+ int sceImeDialogInit(const SceImeDialogParam*, void*);
+ int sceImeDialogGetResult(SceImeDialogResult*);
+ int sceImeDialogTerm(void);
++int sceImeDialogAbort(void);
++int sceCommonDialogInitialize(void);
++int sceSysmoduleLoadModule(uint16_t);
++
++/* Imported application entry points can be unavailable on a native launch.
++ * A volatile typed snapshot keeps the null check at optimization levels where
++ * an ordinary function-address test can be folded away. Call that same value;
++ * this changes no symbol declaration, import policy, or service ABI. */
++#define PS5_INPUT_ENTRY(name, local) \
++    __typeof__(&name) volatile local##_source = &name; \
++    __typeof__(&name) local = local##_source
+ 
+ SceImeDialogStatus sceImeDialogGetStatus(void);
+-
++static SDL_bool g_user_ready = SDL_FALSE;
++static SDL_bool g_ime_provider_failed = SDL_FALSE;
++
++static int PS5_InputUserInit(void)
++{
++    int rc;
++    PS5_INPUT_ENTRY(sceUserServiceInitialize, initialize);
++    if (g_user_ready) return 0;
++    if (!initialize) return SDL_SetError("UserService initialize entry unavailable");
++    rc = initialize(NULL);
++    if (rc != 0 && (uint32_t)rc != UINT32_C(0x80960003))
++        return SDL_SetError("sceUserServiceInitialize: 0x%08x", rc);
++    g_user_ready = SDL_TRUE;
++    return 0;
++}
++
++static SDL_bool PS5_PhysicalEntries(void)
++{
++    PS5_INPUT_ENTRY(sceKeyboardInit, initialize);
++    PS5_INPUT_ENTRY(sceKeyboardOpen, open);
++    PS5_INPUT_ENTRY(sceKeyboardReadState, read);
++    PS5_INPUT_ENTRY(sceKeyboardClose, close);
++    PS5_INPUT_ENTRY(sceUserServiceGetForegroundUser, foreground);
++    return initialize && open && read && close && foreground ? SDL_TRUE : SDL_FALSE;
++}
++
++/* Altered for Switchfin native SDL: use ordinary application service APIs.
++ * The module reference is process-lifetime; other services may also use it. */
++static SDL_bool g_common_ready = SDL_FALSE;
++static SDL_bool g_ime_owned = SDL_FALSE;
++/* A pure availability query does not start a module or dialog. Lazy provider
++ * initialization is still checked by Show; physical keyboard readiness is
++ * deliberately independent from these on-screen keyboard entry points. */
++static SDL_bool PS5_ImeEntries(void)
++{
++    PS5_INPUT_ENTRY(sceUserServiceInitialize, user_initialize);
++    PS5_INPUT_ENTRY(sceUserServiceGetForegroundUser, foreground);
++    PS5_INPUT_ENTRY(sceImeDialogInit, initialize);
++    PS5_INPUT_ENTRY(sceImeDialogGetStatus, status);
++    PS5_INPUT_ENTRY(sceImeDialogGetResult, result);
++    PS5_INPUT_ENTRY(sceImeDialogAbort, abort);
++    PS5_INPUT_ENTRY(sceImeDialogTerm, terminate);
++    PS5_INPUT_ENTRY(sceCommonDialogInitialize, common_initialize);
++    PS5_INPUT_ENTRY(sceSysmoduleLoadModule, module);
++    return (g_user_ready || user_initialize) && foreground && initialize && status && result &&
++        abort && terminate && (g_common_ready || (common_initialize && module)) ? SDL_TRUE : SDL_FALSE;
++}
++
++static int PS5_ImeServices(void)
++{
++    int rc;
++    PS5_INPUT_ENTRY(sceCommonDialogInitialize, initialize);
++    PS5_INPUT_ENTRY(sceSysmoduleLoadModule, load_ime);
++    if (g_common_ready) return 0;
++    /* ProsperoLight's native application imports CommonDialog normally and
++     * initializes it before loading IME. The link-only stub never executes. */
++    if (!initialize) return SDL_SetError("CommonDialog provider entry unavailable");
++    if (!load_ime) return SDL_SetError("IME provider entry unavailable");
++    rc = initialize();
++    if (rc < 0 && (uint32_t)rc != UINT32_C(0x80B80002))
++        return SDL_SetError("CommonDialog initialize failed: 0x%08x", rc);
++    rc = load_ime(0x0096);
++    if (rc < 0) return SDL_SetError("ImeDialog module load failed: 0x%08x", rc);
++    g_common_ready = SDL_TRUE;
++    return 0;
++}
+ 
+ static int g_keyboard_handle = -1;
+ static keyboard_state_t g_prev_keyboard_state = {0};
+ 
+ static SceImeDialogStatus g_ime_dialog_status = SCE_IME_DIALOG_STATUS_NONE;
+-static wchar_t g_ime_dialog_title[0x80] = {0};
+-static wchar_t g_ime_dialog_text[0x800] = {0};
++static uint16_t g_ime_dialog_title[0x80] = {0};
++static uint16_t g_ime_dialog_text[0x800] = {0};
+ 
+ static SceImeDialogParam g_ime_dialog_param =
+ {
+     .title = g_ime_dialog_title,
+     .inputTextBuffer = g_ime_dialog_text,
+-    .maxTextLength = sizeof(g_ime_dialog_text) / sizeof(g_ime_dialog_text[0])
++    .maxTextLength = SDL_arraysize(g_ime_dialog_text) - 1
+ };
+ 
+ int PS5_Keyboard_Open(void)
+ {
+-    int user_id;
++    int user_id, err, handle;
+     long junk;
++    PS5_INPUT_ENTRY(sceUserServiceGetForegroundUser, foreground);
++    PS5_INPUT_ENTRY(sceKeyboardOpen, open);
++    if (g_keyboard_handle > 0) return 0;
++    if (!PS5_PhysicalEntries()) return SDL_SetError("Physical keyboard entries unavailable");
++    if (PS5_InputUserInit() < 0) return -1;
++    if (!foreground || !open) return SDL_SetError("Keyboard open entry unavailable");
++    err = foreground(&user_id);
++    if (err != 0) return SDL_SetError("sceUserServiceGetForegroundUser: 0x%08x", err);
++    handle = open(user_id, 0, 0, &junk);
++    if (handle <= 0) return SDL_SetError("sceKeyboardOpen: 0x%08x", handle);
++    g_keyboard_handle = handle;
++    return 0;
++}
++
++static int PS5_ImeDialog_Close(void)
++{
++    SceImeDialogStatus status;
++    PS5_INPUT_ENTRY(sceImeDialogGetStatus, get_status);
++    PS5_INPUT_ENTRY(sceImeDialogAbort, abort);
++    PS5_INPUT_ENTRY(sceImeDialogTerm, terminate);
++    if (!g_ime_owned) return 0;
++    if (!get_status || !terminate)
++        return SDL_SetError("IME cleanup entry unavailable; ownership retained");
++    status = get_status();
++    if (status == SCE_IME_DIALOG_STATUS_RUNNING) {
++        if (!abort) return SDL_SetError("IME abort entry unavailable; ownership retained");
++        if (abort() < 0) return SDL_SetError("ImeDialog abort failed; ownership retained");
++    }
++    if (terminate() < 0) return SDL_SetError("ImeDialog term failed; ownership retained");
++    g_ime_owned = SDL_FALSE;
++    g_ime_dialog_status = SCE_IME_DIALOG_STATUS_NONE;
++    SDL_zero(g_ime_dialog_text);
++    return 0;
++}
++
++int PS5_Keyboard_Close(void)
++{
+     int err;
+-
+-    err = sceUserServiceGetForegroundUser(&user_id);
+-    if (err != 0) {
+-        return SDL_SetError("sceUserServiceGetForegroundUser: 0x%08x", err);
+-    }
+-
+-    g_ime_dialog_param.userId = user_id;
+-    g_keyboard_handle = sceKeyboardOpen(user_id, 0, 0, &junk);
+-    if (g_keyboard_handle <= 0) {
+-        return SDL_SetError("sceKeyboardOpen: 0x%08x", g_keyboard_handle);
+-    }
+-
+-    return 0;
+-}
+-
+-int PS5_Keyboard_Close(void)
+-{
++    PS5_INPUT_ENTRY(sceKeyboardClose, close);
++    if (PS5_ImeDialog_Close() < 0) return -1;
++    if (g_keyboard_handle <= 0) return 0;
++    if (!close) return SDL_SetError("Keyboard close entry unavailable; ownership retained");
++    err = close(g_keyboard_handle);
++    if (err != 0) return SDL_SetError("sceKeyboardClose: 0x%08x", err);
++    g_keyboard_handle = -1;
++    SDL_zero(g_prev_keyboard_state);
++    return 0;
++}
++
++int PS5_Keyboard_Init(void)
++{
++    static SDL_bool initialized = SDL_FALSE;
+     int err;
+-
+-    if (g_keyboard_handle <= 0) {
+-        return 0;
+-    }
+-
+-    err = sceKeyboardClose(g_keyboard_handle);
+-    if (err != 0) {
+-        return SDL_SetError("sceKeyboardClose: 0x%08x", err);
+-    }
+-
+-    return 0;
+-}
+-
+-int PS5_Keyboard_Init(void)
+-{
+-    int err;
+-
+-    err = sceUserServiceInitialize(0);
+-    if (err != 0 && err != 0x80960003) {
+-        return SDL_SetError("sceUserServiceInitialize: 0x%08x", err);
+-    }
+-
+-    err = sceKeyboardInit();
+-    if (err != 0) {
+-        return SDL_SetError("sceKeyboardInit: 0x%08x", err);
+-    }
+-
++    PS5_INPUT_ENTRY(sceKeyboardInit, initialize);
++    if (!PS5_PhysicalEntries()) return SDL_SetError("Physical keyboard entries unavailable");
++    if (initialized) return 0;
++    if (PS5_InputUserInit() < 0) return -1;
++    if (!initialize) return SDL_SetError("Keyboard initialize entry unavailable");
++    err = initialize();
++    if (err != 0) return SDL_SetError("sceKeyboardInit: 0x%08x", err);
++    initialized = SDL_TRUE;
+     return 0;
+ }
+ 
+ static int PS5_ImeDialog_PumpEvents(void)
+ {
+-    SceImeDialogStatus status = sceImeDialogGetStatus();
+     SceImeDialogResult result = {0};
+-    char text[0x800];
+-
+-    if (g_ime_dialog_status == status) {
+-        return 0;
+-    }
+-    g_ime_dialog_status = status;
+-
+-    switch (status) {
+-    case SCE_IME_DIALOG_STATUS_NONE:
+-        return 0;
+-
+-    case SCE_IME_DIALOG_STATUS_RUNNING:
+-        return 0;
+-
+-    case SCE_IME_DIALOG_STATUS_FINISHED:
+-        break;
+-
+-    default:
+-        return -1;
+-    }
+-
+-    if (sceImeDialogGetResult(&result)) {
+-        return -1;
+-    }
+-
+-    switch (result.outcome) {
+-    case SCE_IME_DIALOG_END_STATUS_OK:
+-        if (wcstombs(text, g_ime_dialog_text, sizeof(text)) >= 0) {
+-            SDL_SendKeyboardText(text);
+-        }
++    char *text = NULL;
++    size_t units = 0;
++    int rc;
++    PS5_INPUT_ENTRY(sceImeDialogGetStatus, get_status);
++    PS5_INPUT_ENTRY(sceImeDialogGetResult, get_result);
++    PS5_INPUT_ENTRY(sceImeDialogTerm, terminate);
++    if (!g_ime_owned) return 0;
++    if (!get_status) return SDL_SetError("IME status entry unavailable; ownership retained");
++    g_ime_dialog_status = get_status();
++    if (g_ime_dialog_status != SCE_IME_DIALOG_STATUS_FINISHED) return 0;
++    if (!get_result || !terminate)
++        return SDL_SetError("IME result/cleanup entry unavailable; ownership retained");
++    rc = get_result(&result);
++    if (rc == 0 && result.outcome == SCE_IME_DIALOG_END_STATUS_OK) {
++        while (units < SDL_arraysize(g_ime_dialog_text) && g_ime_dialog_text[units]) ++units;
++        if (units < SDL_arraysize(g_ime_dialog_text))
++            text = SDL_iconv_string("UTF-8", "UTF-16LE", (const char *)g_ime_dialog_text, (units + 1) * 2);
++    }
++    if (terminate() < 0) {
++        SDL_free(text);
++        return SDL_SetError("ImeDialog term failed; ownership retained");
++    }
++    g_ime_owned = SDL_FALSE;
++    g_ime_dialog_status = SCE_IME_DIALOG_STATUS_NONE;
++    SDL_zero(g_ime_dialog_text);
++    if (text) {
++        SDL_SendKeyboardText(text); /* SDL splits complete UTF-8 codepoints into events. */
++        SDL_free(text);
+         SDL_SendKeyboardKeyAutoRelease(SDL_SCANCODE_RETURN);
+-        break;
+-
+-    case SCE_IME_DIALOG_END_STATUS_USER_CANCELED:
+-    case SCE_IME_DIALOG_END_STATUS_ABORTED:
+-        break;
+-    default:
+-        return -1;
+-    }
+-
+-    sceImeDialogTerm();
+-
++    } else {
++        SDL_SendKeyboardKeyAutoRelease(SDL_SCANCODE_ESCAPE);
++        if (rc != 0 || result.outcome == SCE_IME_DIALOG_END_STATUS_OK)
++            return SDL_SetError("ImeDialog result/conversion failed: 0x%08x", rc);
++    }
+     return 0;
+ }
+ 
+@@ -239,19 +322,18 @@
+     uint32_t diff;
+     int err;
+ 
+-    PS5_ImeDialog_PumpEvents();
+-
+-    if (g_keyboard_handle <= 0) {
+-        return 0;
+-    }
+-
+-    err = sceKeyboardReadState(g_keyboard_handle, &curr);
++    PS5_INPUT_ENTRY(sceKeyboardReadState, read);
++    const int ime_error = PS5_ImeDialog_PumpEvents();
++    if (g_keyboard_handle <= 0) return ime_error;
++    if (!read) return SDL_SetError("Keyboard read entry unavailable; ownership retained");
++    err = read(g_keyboard_handle, &curr);
+     if (err != 0) {
+         return SDL_SetError("sceKeyboardReadState: 0x%08x", err);
+     }
+ 
+     if (!curr.available) {
+-        return 0;
++        /* Release held keys on physical keyboard disconnection. */
++        SDL_zero(curr);
+     }
+ 
+     diff = g_prev_keyboard_state.modifiers ^ curr.modifiers;
+@@ -319,43 +401,98 @@
+             continue;
+         }
+ 
+-        if (g_prev_keyboard_state.scankey[i] == 0) {
++        if (g_prev_keyboard_state.scankey[i])
++            SDL_SendKeyboardKey(SDL_RELEASED, g_prev_keyboard_state.scankey[i]);
++        if (curr.scankey[i])
+             SDL_SendKeyboardKey(SDL_PRESSED, curr.scankey[i]);
+-        } else {
+-            SDL_SendKeyboardKey(SDL_RELEASED, g_prev_keyboard_state.scankey[i]);
+-        }
+     }
+ 
+     memcpy(&g_prev_keyboard_state, &curr, sizeof(curr));
+ 
+-    return 0;
++    return ime_error;
+ }
+ 
+ SDL_bool PS5_HasScreenKeyboardSupport(_THIS)
+ {
+-    return SDL_TRUE;
++    (void)_this;
++    return !g_ime_provider_failed && PS5_ImeEntries() ? SDL_TRUE : SDL_FALSE;
+ }
+ 
+ void PS5_ShowScreenKeyboard(_THIS, SDL_Window *window)
+ {
+-    memset(g_ime_dialog_text, 0, sizeof(g_ime_dialog_text));
+-    sceImeDialogInit(&g_ime_dialog_param, NULL);
++    const char *initial = SDL_GetHint(SDL_HINT_PS5_IME_INITIAL_TEXT);
++    const char *maximum = SDL_GetHint(SDL_HINT_PS5_IME_MAX_TEXT_LENGTH);
++    size_t limit = SDL_arraysize(g_ime_dialog_text) - 1;
++    int user_id, rc;
++    (void)_this; (void)window;
++    if (g_ime_owned) { SDL_SetError("ImeDialog already owned"); return; }
++    /* Keep existing lazy initialization before checking the dialog lifecycle;
++     * entry availability afterward must still be verified. */
++    if (PS5_InputUserInit() < 0 || PS5_ImeServices() < 0) { g_ime_provider_failed = SDL_TRUE; goto failed; }
++    PS5_INPUT_ENTRY(sceUserServiceGetForegroundUser, foreground);
++    PS5_INPUT_ENTRY(sceImeDialogInit, initialize);
++    if (!PS5_ImeEntries() || !foreground || !initialize) {
++        g_ime_provider_failed = SDL_TRUE;
++        SDL_SetError("On-screen keyboard entries unavailable");
++        goto failed;
++    }
++    g_ime_provider_failed = SDL_FALSE;
++    rc = foreground(&user_id);
++    if (rc != 0) { SDL_SetError("ImeDialog foreground user unavailable: 0x%08x", rc); goto failed; }
++    if (maximum && *maximum) {
++        char *end = NULL;
++        long count = SDL_strtol(maximum, &end, 10);
++        if (end && !*end && count > 0 && (size_t)count < limit) limit = (size_t)count;
++    }
++    SDL_zero(g_ime_dialog_text);
++    if (initial && *initial) {
++        uint16_t *converted = (uint16_t *)SDL_iconv_string("UTF-16LE", "UTF-8", initial, SDL_strlen(initial) + 1);
++        size_t n = 0;
++        if (!converted) { SDL_SetError("ImeDialog initial UTF-8 conversion failed"); goto failed; }
++        while (n < limit && converted[n]) { g_ime_dialog_text[n] = converted[n]; ++n; }
++        /* Do not expose a dangling high surrogate when a hint truncates text. */
++        if (n && g_ime_dialog_text[n - 1] >= 0xd800 && g_ime_dialog_text[n - 1] <= 0xdbff)
++            g_ime_dialog_text[n - 1] = 0;
++        SDL_free(converted);
++    }
++    g_ime_dialog_param.userId = user_id;
++    g_ime_dialog_param.maxTextLength = (uint32_t)limit;
++    /* Password masking requires a compatible keyboard layout. Keep all
++     * privacy flags and the requested limit; never fall back to visible text.
++     * Set both fields on every request so a password session cannot change
++     * the next ordinary text keyboard. PS5 acceptance still needs a run. */
++    const SDL_bool password = SDL_GetHintBoolean(SDL_HINT_PS5_IME_PASSWORD, SDL_FALSE);
++    g_ime_dialog_param.type = password ? SCE_IME_TYPE_BASIC_LATIN : SCE_IME_TYPE_DEFAULT;
++    /* Public native IME options: password, no learning/copy, no auto-capitalize. */
++    g_ime_dialog_param.option = password ? 0x000000a6 : 0;
++    rc = initialize(&g_ime_dialog_param, NULL);
++    if (rc != 0) { g_ime_provider_failed = SDL_TRUE; SDL_SetError("sceImeDialogInit failed: 0x%08x", rc); goto failed; }
++    g_ime_provider_failed = SDL_FALSE;
++    g_ime_owned = SDL_TRUE;
++    g_ime_dialog_status = SCE_IME_DIALOG_STATUS_RUNNING;
++    return;
++failed:
++    SDL_zero(g_ime_dialog_text);
++    SDL_LogWarn(SDL_LOG_CATEGORY_INPUT, "%s", SDL_GetError());
++    SDL_SendKeyboardKeyAutoRelease(SDL_SCANCODE_ESCAPE);
+ }
+ 
+ void PS5_HideScreenKeyboard(_THIS, SDL_Window *window)
+ {
+-    if (g_ime_dialog_status == SCE_IME_DIALOG_STATUS_FINISHED) {
+-        sceImeDialogTerm();
+-    }
++    (void)_this; (void)window;
++    PS5_ImeDialog_Close();
+ }
+ 
+ SDL_bool PS5_IsScreenKeyboardShown(_THIS, SDL_Window *window)
+ {
+-    if (g_ime_dialog_status == SCE_IME_DIALOG_STATUS_RUNNING) {
+-        return SDL_TRUE;
+-    }
+-
+-    return SDL_FALSE;
++    PS5_INPUT_ENTRY(sceImeDialogGetStatus, get_status);
++    (void)_this; (void)window;
++    if (!g_ime_owned) return SDL_FALSE;
++    if (!get_status) {
++        SDL_SetError("IME status entry unavailable; ownership retained");
++        return SDL_FALSE;
++    }
++    return get_status() == SCE_IME_DIALOG_STATUS_RUNNING ? SDL_TRUE : SDL_FALSE;
+ }
+ 
+ #endif /* SDL_VIDEO_DRIVER_PS5 */

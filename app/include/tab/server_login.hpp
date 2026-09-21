@@ -5,6 +5,9 @@
 #pragma once
 
 #include <borealis.hpp>
+#ifdef PS5_NATIVE_GPU
+#include "utils/ps5_native_requests.hpp"
+#endif
 
 class ServerLogin : public brls::Box {
 public:
@@ -22,7 +25,14 @@ private:
     BRLS_BIND(brls::Label, labelDisclaimer, "login/disclaimer");
 
     std::string url;
+#ifdef PS5_NATIVE_GPU
+    ps5_native_requests::Scope requests;
+#endif
 
     void Disclaimer();
     void doQuickLogin();
+#ifdef PS5_NATIVE_GPU
 };
+#else
+};
+#endif

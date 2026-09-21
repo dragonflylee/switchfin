@@ -1,4 +1,7 @@
 #include "tab/download_tab.hpp"
+#ifdef PS5_NATIVE_GPU
+#include "utils/ps5_storage_home.hpp"
+#endif
 #include "tab/remote_view.hpp"
 #include "view/recycling_grid.hpp"
 #include "api/jellyfin.hpp"
@@ -8,6 +11,9 @@
 #include "utils/misc.hpp"
 
 #include <algorithm>
+#ifdef PS5_NATIVE_GPU
+#include <chrono>
+#endif
 
 using namespace brls::literals;
 
@@ -77,13 +83,29 @@ public:
         this->progressTrack->addView(this->progressBar);
     }
 
+#ifdef PS5_NATIVE_GPU
+    void prepareForReuse() override {
+        this->bindArtworkRetry(this->thumb);
+        this->thumb->setImageFromRes("img/video-card-bg.png");
+    }
+
+    ~DownloadCard() override {
+        this->thumb->setArtworkRetryHandler(nullptr, nullptr);
+        Image::cancel(this->thumb);
+    }
+#else
     void prepareForReuse() override { this->thumb->setImageFromRes("img/video-card-bg.png"); }
+#endif
 
     void cacheForReuse() override { Image::cancel(this->thumb); }
 
+#ifdef PS5_NATIVE_GPU
+    void loadArtwork(const DownloadItem& item, const std::string& downloadDir) {
+#else
     void setItem(const DownloadItem& item, const std::string& downloadDir) {
         auto theme = brls::Application::getTheme();
 
+#endif
         std::string thumbPath = downloadDir + "/" + item.itemId + "/thumb.png";
         if (fs::exists(thumbPath)) {
             this->thumb->setImageFromFile(thumbPath);
@@ -91,6 +113,18 @@ public:
             Image::load(this->thumb, jellyfin::apiPrimaryImage, item.itemId,
                 HTTP::encode_form({{"tag", item.imagePrimaryTag}, {"maxWidth", "300"}}));
         }
+#ifdef PS5_NATIVE_GPU
+
+    }
+
+    void setItem(const DownloadItem& item, const std::string& downloadDir) {
+        auto theme = brls::Application::getTheme();
+        // Recycled cell: forget the previous item's speed baseline.
+        this->speedLastBytes = -1;
+        this->speedText.clear();
+
+        loadArtwork(item, downloadDir);
+#endif
 
         // title = episode or movie name; subtitle = "Show · SxEy" or year,
         // completed with the duration
@@ -146,7 +180,29 @@ public:
             this->progressBar->setSegments({{frac, brls::Application::getTheme().getColor("color/app")}});
             this->percent->setText(fmt::format("{}%", (int)(frac * 100)));
             this->percent->setVisibility(brls::Visibility::VISIBLE);
+#ifdef PS5_NATIVE_GPU
+            // Append a smoothed download speed (bytes since the last update).
+            const auto tpNow = std::chrono::steady_clock::now();
+            if (this->speedLastBytes >= 0 && downloaded > this->speedLastBytes) {
+                const double dt = std::chrono::duration<double>(tpNow - this->speedLastTp).count();
+                if (dt > 0.2) {
+                    const double bps = (double)(downloaded - this->speedLastBytes) / dt;
+                    this->speedText = misc::formatSize((uint64_t)bps) + "/s";
+                    this->speedLastBytes = downloaded;
+                    this->speedLastTp = tpNow;
+                }
+            } else {
+                this->speedLastBytes = downloaded;
+                this->speedLastTp = tpNow;
+            }
+            if (!this->speedText.empty())
+                this->progressInfo->setText(fmt::format("{} / {} · {}", misc::formatSize(downloaded),
+                    misc::formatSize(total), this->speedText));
+            else
+                this->progressInfo->setText(fmt::format("{} / {}", misc::formatSize(downloaded), misc::formatSize(total)));
+#else
             this->progressInfo->setText(fmt::format("{} / {}", misc::formatSize(downloaded), misc::formatSize(total)));
+#endif
         } else {
             // original file without Content-Length: indeterminate progress
             this->progressBar->setSegments({});
@@ -170,6 +226,14 @@ private:
     BRLS_BIND(brls::Label, size, "download/size");
 
     SegmentedBar* progressBar = nullptr;
+#ifdef PS5_NATIVE_GPU
+public:
+    // Download speed, computed from the byte delta between progress updates
+    // (the event fires ~1x/s). Reset when the cell is (re)bound to an item.
+    int64_t speedLastBytes = -1;
+    std::chrono::steady_clock::time_point speedLastTp{};
+    std::string speedText;
+#endif
 };
 
 /// Sectioned list: "In progress" (Downloading + Queued, queue order)
@@ -189,13 +253,28 @@ public:
         DownloadItem item;
     };
 
+#ifdef PS5_NATIVE_GPU
+    static std::string rootOf(const DownloadItem& item, const std::string& fallback) {
+        std::string root = item.storageRoot.empty() ? fallback : item.storageRoot;
+        // A legacy /download0 root (from a pre-rebase download) is dead once
+        // promoted; map it onto the real sandbox root so the item resolves.
+        if (!ps5::storage::sandboxRoot().empty() && root.rfind("/download0", 0) == 0)
+            root = ps5::storage::sandboxRoot() + root;
+        return root;
+    }
+
+#endif
     explicit DownloadDataSource(std::vector<DownloadItem> all) : dlDir(DownloadManager::instance().downloadDir()) {
         std::vector<DownloadItem> active, done;
         for (auto& it : all) {
             if (it.status == DownloadStatus::Completed && it.totalBytes <= 0 && !it.filePath.empty()) {
                 // inherited index without Content-Length: real file size
                 try {
+#ifdef PS5_NATIVE_GPU
+                    it.totalBytes = (int64_t)fs::file_size(rootOf(it, this->dlDir) + "/" + it.itemId + "/" + it.filePath);
+#else
                     it.totalBytes = (int64_t)fs::file_size(this->dlDir + "/" + it.itemId + "/" + it.filePath);
+#endif
                 } catch (const std::exception&) {
                 }
             }
@@ -218,8 +297,22 @@ public:
             return cell;
         }
         auto* cell = dynamic_cast<DownloadCard*>(recycler->dequeueReusableCell("Cell"));
+#ifdef PS5_NATIVE_GPU
+        cell->setId(row.item.itemId);
+        cell->setItem(row.item, rootOf(row.item, this->dlDir));
+#else
         cell->setItem(row.item, this->dlDir);
+#endif
         return cell;
+#ifdef PS5_NATIVE_GPU
+    }
+
+    void retryArtwork(RecyclingGridItem* existing, size_t index) override {
+        auto* cell = dynamic_cast<DownloadCard*>(existing);
+        if (!cell || index >= rows.size() || rows[index].kind != Row::Kind::Item
+            || !cell->matchesArtworkId(rows[index].item.itemId)) return;
+        cell->loadArtwork(rows[index].item, rootOf(rows[index].item, dlDir));
+#endif
     }
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
@@ -395,6 +488,9 @@ void DownloadView::loadItems() {
     }
 }
 
+#ifdef PS5_NATIVE_GPU
+#include "utils/ps5_storage_home.hpp"
+#endif
 void DownloadView::updateStorage() {
     auto& dm = DownloadManager::instance();
     const std::string dir = dm.downloadDir();
@@ -409,7 +505,12 @@ void DownloadView::updateStorage() {
                 appBytes += it.totalBytes;
             } else if (!it.filePath.empty()) {
                 try {
+#ifdef PS5_NATIVE_GPU
+                    appBytes += (int64_t)fs::file_size(
+                        DownloadManager::instance().itemDir(it) + "/" + it.filePath);
+#else
                     appBytes += (int64_t)fs::file_size(dir + "/" + it.itemId + "/" + it.filePath);
+#endif
                 } catch (const std::exception&) {
                 }
             }
@@ -422,15 +523,52 @@ void DownloadView::updateStorage() {
     this->storageApp->setText(fmt::format("{}: {} · {} {}", AppVersion::getPackageName(),
         appBytes > 0 ? misc::formatSize(appBytes) : "0GB", count, "main/download/items"_i18n));
 
+#ifdef PS5_NATIVE_GPU
+    // Storage mode: /data is unmetered when promoted+writable; otherwise
+    // downloads are bounded by the sandbox image (downloadDataSize). Real free
+    // space is unavailable (statfs faults), so show the mode and the known cap.
+    if (dir != AppConfig::instance().configDir() + "/downloads") {
+        // Real /data free/total is unobtainable: statvfs() faults on this
+        // firmware (it wraps the never-loaded libkernel_sys statfs -> SIGSEGV,
+        // observed on this runtime), and statfs is the same crash class. Switchfin's own
+        // /data usage is already shown on the line above (summed item sizes);
+        // show the mode text here and no capacity bar.
+        const std::string loc = dir.substr(0, dir.find_last_of('/'));
+        this->storageFree->setText(fmt::format(fmt::runtime("main/download/storage_data"_i18n), loc));
+        this->storageBar->setSegments({});
+    } else {
+#if defined(PS5_NATIVE_DOWNLOAD_DATA_SIZE_MIB) && PS5_NATIVE_DOWNLOAD_DATA_SIZE_MIB > 0
+        const uint64_t capBytes = (uint64_t)PS5_NATIVE_DOWNLOAD_DATA_SIZE_MIB * 1024ull * 1024ull;
+        float appFrac = (float)((double)appBytes / (double)capBytes);
+        if (appFrac > 1.0f) appFrac = 1.0f;
+        if (appBytes > 0 && appFrac < 0.006f) appFrac = 0.006f;
+        auto theme = brls::Application::getTheme();
+        this->storageBar->setSegments({{appFrac, theme.getColor("color/app")}});
+        this->storageFree->setText(fmt::format(fmt::runtime("main/download/storage_sandbox"_i18n),
+            misc::formatSize((uint64_t)appBytes), misc::formatSize(capBytes)));
+#else
+        this->storageFree->setText("main/download/storage_sandbox_only"_i18n);
+        this->storageBar->setSegments({});
+#endif
+    }
+    return;
+
+#endif
     // capacity/available: std::filesystem::space and boost::filesystem::space
     // expose the same fields (macOS/Linux/Windows/Switch)
     bool spaceOk = false;
     fs::space_info space{};
+#ifdef PS5_NATIVE_GPU
+    // Native capacity reporting awaits a supported filesystem adapter. The
+    // current statvfs entry faults before it can return an error; keep the
+    // item/known-byte summary and use the existing unknown-capacity display.
+#else
     try {
         space = fs::space(dir);
         spaceOk = space.capacity > 0 && space.capacity != (uintmax_t)-1;
     } catch (const std::exception&) {
     }
+#endif
 
     if (!spaceOk) {
         this->storageFree->setText("");

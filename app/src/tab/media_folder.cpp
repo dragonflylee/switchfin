@@ -27,11 +27,25 @@ public:
         this->addView(labelTitle);
     }
 
+#ifdef PS5_NATIVE_GPU
+    ~MediaFolderCell() override {
+        this->picture->setArtworkRetryHandler(nullptr, nullptr);
+        Image::cancel(this->picture);
+    }
+#else
     ~MediaFolderCell() override { Image::cancel(this->picture); }
+#endif
 
     static RecyclingGridItem* create() { return new MediaFolderCell(); }
 
+#ifdef PS5_NATIVE_GPU
+    void prepareForReuse() override {
+        this->bindArtworkRetry(this->picture);
+        this->picture->setImageFromRes("img/video-card-bg.png");
+    }
+#else
     void prepareForReuse() override { this->picture->setImageFromRes("img/video-card-bg.png"); }
+#endif
 
     void cacheForReuse() override { Image::cancel(this->picture); }
 
@@ -52,9 +66,16 @@ public:
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         MediaFolderCell* cell = dynamic_cast<MediaFolderCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
+#ifdef PS5_NATIVE_GPU
+        cell->setId(item.Id);
+#endif
         auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
         if (it != item.ImageTags.end()) {
+#ifdef PS5_NATIVE_GPU
+            loadArtwork(cell, item);
+#else
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id, HTTP::encode_form({{"tag", it->second}}));
+#endif
             cell->labelTitle->setVisibility(brls::Visibility::GONE);
             cell->picture->setVisibility(brls::Visibility::VISIBLE);
 
@@ -64,6 +85,24 @@ public:
             cell->picture->setVisibility(brls::Visibility::GONE);
         }
         return cell;
+#ifdef PS5_NATIVE_GPU
+    }
+
+    static void loadArtwork(MediaFolderCell* cell, const MediaList::value_type& item) {
+        auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
+        if (it != item.ImageTags.end()) {
+            // 300 to match the other grid of the same cell size, in
+            // media_collection.cpp -- this one asked for the original.
+            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
+                HTTP::encode_form({{"tag", it->second}, {"maxWidth", "300"}}));
+        }
+    }
+
+    void retryArtwork(RecyclingGridItem* existing, size_t index) override {
+        auto* cell = dynamic_cast<MediaFolderCell*>(existing);
+        if (cell && index < list.size() && cell->matchesArtworkId(list[index].Id))
+            loadArtwork(cell, list[index]);
+#endif
     }
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
@@ -146,4 +185,8 @@ void MediaFolders::doRequest() {
             dialog->open();
         },
         jellyfin::apiUserViews, AppConfig::instance().getUserId());
+#ifdef PS5_NATIVE_GPU
 }
+#else
+}
+#endif

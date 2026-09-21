@@ -1,0 +1,58 @@
+--- a/tooling/native/sce_module_writer.cpp
++++ b/tooling/native/sce_module_writer.cpp
+@@ -327,7 +327,7 @@
+         if (counts[i] != 0)
+             write_u64(result.data, result.offsets[i] + 8, counts[i]);
+     }
+-    write_u64(result.data, result.heap_size, std::numeric_limits<std::uint64_t>::max());
++    write_u64(result.data, result.heap_size, 0x10000000ULL);
+     write_u32(result.data, result.heap_extended, 1);
+     return result;
+ }
+@@ -838,7 +838,18 @@
+             continue;
+         copy_bytes(output, input.file_offset, input.data);
+     }
+-    const std::uint64_t relro_file = got.file_offset;
++    require(got.address >= relro_start &&
++                got.file_offset >= got.address - relro_start,
++            "invalid GOT displacement in RELRO region");
++    const std::uint64_t relro_file = got.file_offset - (got.address - relro_start);
++    require(relro_file % kPage == relro_start % kPage,
++            "RELRO file and virtual offsets are not page congruent");
++    for (const Section &input : image.sections)
++    {
++        if (input.allocated() && !input.no_bits() && relro_section(input.name))
++            require(input.file_offset == relro_file + input.address - relro_start,
++                    "inconsistent RELRO section mapping");
++    }
+     copy_bytes(output, relro_file + process_address - relro_start, process_parameters);
+     copy_bytes(output, relro_file + blocks_address - relro_start, blocks.data);
+     copy_bytes(output, dynamic_file_at(string_address), dynamic_strings);
+--- a/tooling/native/ps5-pie.ld
++++ b/tooling/native/ps5-pie.ld
+@@ -76,3 +76,8 @@
+         *(COMMON)
+     } : data
+ }
++
++PROVIDE(__eh_frame_start = ADDR(.eh_frame));
++PROVIDE(__eh_frame_end = ADDR(.eh_frame) + SIZEOF(.eh_frame));
++PROVIDE(__eh_frame_hdr_start = ADDR(.eh_frame_hdr));
++PROVIDE(__eh_frame_hdr_end = ADDR(.eh_frame_hdr) + SIZEOF(.eh_frame_hdr));
+--- a/tooling/native/app-symbols.map
++++ b/tooling/native/app-symbols.map
+@@ -3,11 +3,7 @@
+  * Copyright (C) 2026 BlackBearReloaded
+  * SPDX-License-Identifier: GPL-3.0-or-later
+  *
+- * Keeps replacement C++ allocation operators internal to the executable.
++ * Keeps the application and its C++ runtime internal to the executable.
+  */
+ 
+-{
+-    local:
+-        _Zn*;
+-        _Zd*;
+-};
++{ local: *; };

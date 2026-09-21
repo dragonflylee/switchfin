@@ -23,7 +23,11 @@ brls::View* HRecyclerFrame::getNextCellFocus(brls::FocusDirection direction, brl
     size_t currentFocusIndex = *((size_t*)parentUserData) + offset;
     View* currentFocus = nullptr;
 
+#ifdef PS5_NATIVE_GPU
+    while (!currentFocus && currentFocusIndex < this->dataSource->getItemCount()) {
+#else
     while (!currentFocus && currentFocusIndex >= 0 && currentFocusIndex < this->dataSource->getItemCount()) {
+#endif
         for (auto it : this->contentBox->getChildren()) {
             if (*((size_t*)it->getParentUserData()) == currentFocusIndex) {
                 currentFocus = it->getDefaultFocus();
@@ -78,12 +82,52 @@ brls::View* HRecyclerFrame::getDefaultFocus() {
 }
 
 void HRecyclerFrame::setDataSource(RecyclingGridDataSource* source) {
+#ifdef PS5_NATIVE_GPU
+    // Read selection when the response is applied, after any intervening D-pad input.
+    size_t selected = selectedIndex();
+    const auto key = dataSource && selected < dataSource->getItemCount()
+        ? dataSource->getItemKey(selected) : std::string();
+    if (source && !key.empty()) {
+        for (size_t i = 0; i < source->getItemCount(); ++i) {
+            if (source->getItemKey(i) == key) {
+                selected = i;
+                break;
+            }
+        }
+    }
+#endif
     if (this->dataSource) delete this->dataSource;
 
     // 允许自动加载下一页
     this->requestNextPage = false;
     this->dataSource = source;
+#ifdef PS5_NATIVE_GPU
+    if (layouted) reloadData(selected);
+}
+
+brls::View* HRecyclerFrame::focusedCell() const {
+    for (auto* view = brls::Application::getCurrentFocus(); view; view = view->getParent()) {
+        if (view->getParent() == contentBox) {
+            for (auto* child : contentBox->getChildren())
+                if (child == view) return child;
+            break;
+        }
+    }
+    return nullptr;
+}
+
+size_t HRecyclerFrame::selectedIndex() const {
+    auto* selected = focusedCell();
+    if (!selected) selected = contentBox->getLastFocusedView();
+    // Recycled cells can remain in Borealis' focus history. Only trust live children.
+    for (auto* child : contentBox->getChildren()) {
+        if (child == selected && child->getParentUserData())
+            return *static_cast<size_t*>(child->getParentUserData());
+    }
+    return defaultCellFocus;
+#else
     if (layouted) reloadData();
+#endif
 }
 
 void HRecyclerFrame::clearData() {
@@ -94,7 +138,19 @@ void HRecyclerFrame::clearData() {
 }
 
 void HRecyclerFrame::reloadData() {
+#ifdef PS5_NATIVE_GPU
+    reloadData(selectedIndex());
+}
+
+void HRecyclerFrame::reloadData(size_t selected) {
+#endif
     if (!layouted) return;
+#ifdef PS5_NATIVE_GPU
+
+    const bool restoreFocus = focusedCell() != nullptr;
+    reloading = true;
+    contentBox->setLastFocusedView(nullptr);
+#endif
 
     auto children = this->contentBox->getChildren();
     for (auto const& child : children) {
@@ -110,16 +166,49 @@ void HRecyclerFrame::reloadData() {
 
     setContentOffsetX(0, false);
 
+#ifdef PS5_NATIVE_GPU
+    const size_t count = dataSource ? dataSource->getItemCount() : 0;
+    defaultCellFocus = count ? std::min(selected, count - 1) : 0;
+    if (count) {
+#else
     if (this->dataSource) {
+#endif
         contentBox->setWidth(
             (estimatedRowWidth + estimatedRowSpace) * dataSource->getItemCount() + paddingLeft + paddingRight);
+#ifdef PS5_NATIVE_GPU
+        // Seed at the selected item; fill only the new visible window.
+        renderedFrame.origin.x = getWidthByCellIndex(defaultCellFocus);
+        addCellAt(defaultCellFocus, true);
+        this->selectRowAt(this->defaultCellFocus, false);
+    } else {
+        contentBox->setWidth(0);
+    }
+    reloading = false;
+
+    if (restoreFocus) {
+        if (count) {
+            brls::Application::giveFocus(contentBox);
+        } else {
+            // giveFocus(nullptr) does not clear Borealis' current focus. Find a
+            // surviving row or sidebar before leaving the old cell in the pool.
+            for (auto* parent = getParent(); parent; parent = parent->getParent()) {
+                if (auto* next = parent->getDefaultFocus()) {
+                    brls::Application::giveFocus(next);
+                    break;
+                }
+            }
+#else
         // 填充足够多的cell到屏幕上
         brls::Rect frame = getLocalFrame();
         for (size_t row = 0; row < dataSource->getItemCount(); row++) {
             addCellAt(row, true);
             if (renderedFrame.getMaxX() > frame.getMaxX()) break;
+#endif
         }
+#ifdef PS5_NATIVE_GPU
+#else
         this->selectRowAt(this->defaultCellFocus, false);
+#endif
     }
 }
 
@@ -130,11 +219,21 @@ void HRecyclerFrame::notifyDataChanged() {
     if (this->dataSource) {
         this->contentBox->setWidth(
             (estimatedRowWidth + estimatedRowSpace) * dataSource->getItemCount() + paddingLeft + paddingRight);
+#ifdef PS5_NATIVE_GPU
+        // Appending a page does not change the position of existing cards.
+        // Keep the viewport still, including when this row is not focused.
+#else
         this->setContentOffsetX(this->getContentOffsetX() + estimatedRowSpace, true);
+#endif
     }
 }
 
 void HRecyclerFrame::selectRowAt(size_t index, bool animated) {
+#ifdef PS5_NATIVE_GPU
+    if (!dataSource || !dataSource->getItemCount()) return;
+    index = std::min(index, dataSource->getItemCount() - 1);
+    defaultCellFocus = index;
+#endif
     this->setContentOffsetX(getWidthByCellIndex(index), animated);
     this->cellsRecyclingLoop();
 
@@ -195,13 +294,25 @@ void HRecyclerFrame::cellsRecyclingLoop() {
 
     // 左侧元素自动添加
     while (visibleMin - 1 < dataSource->getItemCount()) {
+#ifdef PS5_NATIVE_GPU
+        // Test the candidate at the same position/boundary used by removal.
+        // Otherwise a stationary row can remove and re-add it every frame.
+        const float candidateX = (visibleMin - 1) * cellWidth + paddingLeft;
+        if (candidateX + cellWidth < visibleFrame.getMinX()) break;
+#else
         if (renderedFrame.getMinX() + cellWidth < visibleFrame.getMinX() - paddingLeft) break;
+#endif
         addCellAt(visibleMin - 1, false);
     }
 
     // 右侧元素自动添加
     while (visibleMax + 1 < dataSource->getItemCount()) {
+#ifdef PS5_NATIVE_GPU
+        const float candidateX = (visibleMax + 1) * cellWidth + paddingLeft;
+        if (candidateX - cellWidth > visibleFrame.getMaxX()) {
+#else
         if (renderedFrame.getMaxX() - cellWidth > visibleFrame.getMaxX() - paddingRight) {
+#endif
             requestNextPage = false;  // 允许加载下一页
             break;
         }
@@ -211,7 +322,11 @@ void HRecyclerFrame::cellsRecyclingLoop() {
 
     if (this->visibleMax + 1 >= dataSource->getItemCount() && dataSource->getItemCount() > 0) {
         // 只有当 requestNextPage 为false时，才可以请求下一页，避免多次重复请求
+#ifdef PS5_NATIVE_GPU
+        if (!reloading && !this->requestNextPage && this->nextPageCallback) {
+#else
         if (!this->requestNextPage && this->nextPageCallback) {
+#endif
             brls::Logger::debug("HRecyclerFrame request next page");
             requestNextPage = true;
             this->nextPageCallback();

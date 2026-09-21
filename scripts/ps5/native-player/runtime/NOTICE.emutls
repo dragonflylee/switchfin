@@ -1,0 +1,12 @@
+emutls.c is part of the LLVM Project and is distributed under the Apache
+License 2.0 with LLVM Exceptions. Its original license header is retained;
+the full license and exception are in LICENSE.emutls.
+
+The vendored file is based on ps5-payload-dev/sdk libc/emutls.c:
+https://github.com/ps5-payload-dev/sdk/blob/13ccc2d5bf2ac396cdf5007c2b72493cb3d5c8bb/libc/emutls.c
+Original SHA-256: 86813748aa5668112a0a5891601f5ae36660294a749a013fef7c3bbbd805737c
+
+Switchfin changes EMUTLS_SKIP_DESTRUCTOR_ROUNDS from zero to one for the
+non-Bionic path. This retains emulated thread-local storage during libc++abi's
+pthread-key fallback for C++ thread-local destructors. The original SDK support
+object is not linked alongside the replacement.

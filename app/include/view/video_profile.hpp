@@ -42,5 +42,12 @@ private:
     void onRequest();
 
     bool inited = false;
+#ifdef PS5_NATIVE_GPU
+    std::string playMethod;
+#endif
     brls::RepeatingTimer ticker;
+#ifdef PS5_NATIVE_GPU
 };
+#else
+};
+#endif

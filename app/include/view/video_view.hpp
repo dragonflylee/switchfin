@@ -61,6 +61,9 @@ public:
     void hideVideoProgressSlider();
     void hideVideoQuality();
     void registerVideoQuality(brls::ActionListener action);
+#ifdef PS5_NATIVE_GPU
+    void registerPlaybackFailure(std::function<bool()> action) { playbackFailure = std::move(action); }
+#endif
     void registerActions(const std::string& hintText, const brls::ControllerButton button,
         const brls::BrlsKeyCombination key, const brls::ActionListener& actionListener, bool hidden = false,
         bool allowRepeating = false);
@@ -70,6 +73,9 @@ public:
     static bool close(bool quit = false);
 
 private:
+#ifdef PS5_NATIVE_GPU
+    std::function<bool()> playbackFailure;
+#endif
     /// OSD
     BRLS_BIND(brls::Label, titleLabel, "video/osd/title");
     BRLS_BIND(brls::Box, btnForward, "video/osd/forward");
@@ -142,6 +148,9 @@ private:
     /// @brief notify videoview closed
     static void disableDimming(bool disable);
 
+#ifdef PS5_NATIVE_GPU
+
+#endif
     int playIndex = -1;
     bool enableDanmaku = true;
     brls::Event<int> playIndexEvent;
@@ -171,3 +180,6 @@ private:
     int volumeInit = 0;
     float brightnessInit = 0;
 };
+#ifdef PS5_NATIVE_GPU
+
+#endif

@@ -1,0 +1,10 @@
+prefix=${pcfiledir}/../..
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: sdl2
+Description: Switchfin native PS5 SDL2 with native EGL and real audio/IME services
+Version: 2.30.12
+Requires: ps5-opengl-core33
+Libs: -L${libdir} -lSDL2 -lScePad -lSceUserService -lSceSystemService -lSceAudioOut -lSceKeyboard -lSceImeDialog -lSceCommonDialog -lSceSysmodule -lkernel_web
+Cflags: -I${includedir} -I${includedir}/SDL2 -DSDL_MAIN_HANDLED=1

@@ -4,10 +4,22 @@
 
 #pragma once
 
+#ifdef PS5_NATIVE_GPU
+#include <atomic>
+#include <mutex>
+#include <string_view>
+#endif
 #include <borealis.hpp>
 #include <borealis/core/singleton.hpp>
 #include <mpv/client.h>
 #include <utils/event.hpp>
+#ifdef PS5_NATIVE_GPU
+#include <utils/callback_gate.hpp>
+#include <utils/ps5_native_mpv_notifications.hpp>
+#include <utils/ps5_native_cache_budget.hpp>
+#include <utils/observed_properties.hpp>
+#include <utils/subtitle_appearance.hpp>
+#endif
 #ifdef MPV_SW_RENDER
 #include <mpv/render.h>
 #elif defined(BOREALIS_USE_D3D11)
@@ -41,22 +53,59 @@ public:
 
     void clean();
 
+#ifdef PS5_NATIVE_GPU
+    // UI-thread-only; does not construct the singleton when no player exists.
+    static void drainNativeCallbacks() noexcept;
+    // Reconfigure audio output while preserving the player and its playlist.
+    bool setNativeAudioChannels(const std::string& preference);
+
+#endif
     template <typename... Args>
     void command(Args &&...args) {
         const char *cmd[] = {args..., nullptr};
+#ifdef PS5_NATIVE_GPU
+        if (!mpv || !cmd[0]) return;
+        const std::string_view operation(cmd[0]);
+        const bool mutatesPlaylist = operation == "stop" || operation == "loadfile" || operation == "loadlist" ||
+            operation.rfind("playlist-", 0) == 0 ||
+            (operation == "set" && cmd[1] && std::string_view(cmd[1]).rfind("playlist-pos", 0) == 0);
+        std::unique_lock<std::mutex> playlistLock(playlistCommandMutex, std::defer_lock);
+        if (mutatesPlaylist) {
+            playlistLock.lock();
+            ++playlistMutationGeneration;
+        }
+        mpv_command_async(mpv, 0, cmd);
+#else
         if (mpv) mpv_command_async(mpv, 0, cmd);
+#endif
     }
 
     bool isStopped() const;
 
     bool isPaused();
+#ifdef PS5_NATIVE_GPU
+    bool canSeek() const { return profileProperties.integer("seekable") != 0; }
+#endif
 
     double getSpeed() const;
 
     std::string getCacheSpeed() const;
 
+#ifdef PS5_NATIVE_GPU
+    // Source dimensions choose the per-file decoder thread count (0 = unknown).
+    int setUrl(const std::string &url, const std::string &extra = "", const std::string &method = "replace",
+        uint64_t userdata = 0, int64_t sourceWidth = 0, int64_t sourceHeight = 0);
+
+    // After append replies, select an index synchronously without loading I/O.
+    int playPlaylistIndex(size_t index, int64_t expectedEntry, uint64_t expectedGeneration);
+    uint64_t playlistGeneration() {
+        std::lock_guard<std::mutex> lock(playlistCommandMutex);
+        return playlistMutationGeneration;
+    }
+#else
     void setUrl(const std::string &url, const std::string &extra = "", const std::string &method = "replace",
         uint64_t userdata = 0);
+#endif
 
     std::string getString(const std::string &key);
 
@@ -66,7 +115,14 @@ public:
     int64_t getInt(const std::string &key, int64_t default_value = 0);
     void setInt(const std::string &key, int64_t value);
 
+#ifdef PS5_NATIVE_GPU
+    void applySubtitlePreferences();
+
+    // UI-only snapshot; never waits for mpv or exposes mpv-owned node storage.
+    const ObservedProperties& getProfileProperties() const { return profileProperties; }
+#else
     std::unordered_map<std::string, mpv_node> getNodeMap(const std::string &key);
+#endif
 
     void togglePlay();
 
@@ -94,6 +150,20 @@ public:
     /// @brief 播放器内部事件
     /// @return
     MPVEvent *getEvent() { return &this->mpvCoreEvent; }
+#ifdef PS5_NATIVE_GPU
+
+    struct PlaybackEvent {
+        int64_t entry = -1;
+        bool started = false;
+        bool restarted = false;
+    };
+    // Valid only in the current event dispatch. Reentrant clean/init invalidates
+    // the old dispatch owner instead of exposing the replacement player's state.
+    PlaybackEvent playbackEvent() const {
+        return callbacks && callbacks->gate.get() == playbackDispatchOwner && callbacks->gate->isActive()
+            ? playbackDispatchState : PlaybackEvent{};
+    }
+#endif
 
     /// @brief 可以用于共享自定义事件
     /// @return
@@ -133,6 +203,16 @@ public:
 
     // 硬件解码
     inline static bool HARDWARE_DEC = false;
+#ifdef PS5_NATIVE_GPU
+#if defined(__SWITCH__) || defined(BOREALIS_USE_GXM) || defined(ANDROID)
+    inline static std::string PLAYER_HWDEC_METHOD = "auto";
+#elif defined(__PSV__)
+    inline static std::string PLAYER_HWDEC_METHOD = "vita-copy";
+#else
+    // This FFmpeg/mpv build has no integrated PlayStation hardware decoder.
+    inline static std::string PLAYER_HWDEC_METHOD = "no";
+#endif
+#else
 #if defined(__SWITCH__) || defined(BOREALIS_USE_GXM) || defined(ANDROID)
     inline static std::string PLAYER_HWDEC_METHOD = "auto";
 #elif defined(__PSV__)
@@ -141,6 +221,7 @@ public:
     inline static std::string PLAYER_HWDEC_METHOD = "no";
 #else
     inline static std::string PLAYER_HWDEC_METHOD = "auto-safe";
+#endif
 #endif
 #if defined(ANDROID)
     inline static std::string VO = "gpu";
@@ -164,6 +245,26 @@ public:
     inline static std::string AUDIO_CHANNELS = "auto-safe";
 
 private:
+#ifdef PS5_NATIVE_GPU
+    std::mutex playlistCommandMutex;
+    uint64_t playlistMutationGeneration = 0;
+    PlaybackEvent playbackState, playbackDispatchState;
+    const CallbackGate* playbackDispatchOwner = nullptr;
+    subtitle_appearance::Preferences subtitlePreferences;
+    struct CallbackContext {
+        MPVCore* owner;
+        std::shared_ptr<CallbackGate> gate = std::make_shared<CallbackGate>();
+        Ps5NativeMpvNotifications notifications;
+    };
+    inline static MPVCore* nativeCallbackOwner = nullptr; // UI-thread-only singleton registration
+    std::unique_ptr<CallbackContext> callbacks;
+    bool subscriptionsActive = false;
+    bool presentationPending = false;
+    ObservedProperties profileProperties;
+    uint64_t profileObservationId = 0;
+    void observeProfileProperties();
+    void clearProfileProperties();
+#endif
     mpv_handle *mpv = nullptr;
     mpv_render_context *mpv_context = nullptr;
     brls::Rect rect = {0, 0, 1920, 1080};
@@ -181,6 +282,13 @@ private:
     };
     size_t pitch = PIXCEL_SIZE * sw_size[0];
     void *pixels = nullptr;
+#ifdef PS5_NATIVE_GPU
+    // Set when mpv has actually rendered a new frame into `pixels`, cleared once
+    // draw() has uploaded it. Without this the UI re-uploads the whole surface
+    // every iteration -- 8.3 MB of glTexSubImage2D at 1080p -- even while paused
+    // or when the UI is simply running faster than the video's frame rate.
+    std::atomic<bool> sw_dirty{true};
+#endif
     mpv_render_param mpv_params[5] = {
         {MPV_RENDER_PARAM_SW_SIZE, &sw_size[0]},
         {MPV_RENDER_PARAM_SW_FORMAT, (void *)sw_format},
@@ -227,7 +335,11 @@ private:
     };
 #else
     GLint default_framebuffer = 0;
+#ifdef PS5_NATIVE_GPU
+    mpv_opengl_fbo mpv_fbo{};
+#else
     mpv_opengl_fbo mpv_fbo;
+#endif
     int flip_y{1};
     mpv_render_param mpv_params[3] = {
         {MPV_RENDER_PARAM_OPENGL_FBO, &mpv_fbo},
@@ -253,6 +365,14 @@ private:
     /// Will be called in main thread to get events from mpv core
     void eventMainLoop();
 
+#ifdef PS5_NATIVE_GPU
+    int64_t nativeDecoderThreads = 2;
+    ps5_native_cache_budget::Limits nativeCacheLimits;
+
+    static void on_update(void *self) noexcept;
+    static void on_wakeup(void *self) noexcept;
+#else
     static void on_update(void *self);
     static void on_wakeup(void *self);
+#endif
 };

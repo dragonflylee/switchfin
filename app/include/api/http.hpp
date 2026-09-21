@@ -12,6 +12,12 @@
 #include <fstream>
 #include <sstream>
 #include <curl/system.h>
+#ifdef PS5_NATIVE_GPU
+#include "utils/ps5_native_http_diagnostics.hpp"
+#include "utils/ps5_native_socket_mode.hpp"
+#include "utils/ps5_native_socket_io.hpp"
+#include "utils/ps5_download_file.hpp"
+#endif
 
 #include <borealis/core/event.hpp>
 
@@ -77,9 +83,18 @@ public:
     template <typename... Ts>
     static void download(const std::string& url, const std::string& path, Ts&&... ts) {
         HTTP s;
+#ifdef PS5_NATIVE_GPU
+        ps5::downloads::File<> file(path);
+#else
         std::ofstream of(path, std::ios_base::binary);
+#endif
         set_option(s, std::forward<Ts>(ts)...);
+#ifdef PS5_NATIVE_GPU
+        s._get(url, &file.stream());
+        if (!file.commit(s.is_cancel.get())) throw ps5::downloads::Error(ps5::downloads::Failure::Cancelled);
+#else
         s._get(url, &of);
+#endif
     }
 
     // Post methods
@@ -98,6 +113,21 @@ public:
     }
 
     inline static long TIMEOUT = 3000L;
+#ifdef PS5_NATIVE_GPU
+
+    /**
+     * Drop the per-request state a previous caller left on this handle.
+     *
+     * Only matters for a shared handle: ThreadPool gives each worker one
+     * long-lived HTTP and hands it to every task, so without this a cancel flag
+     * or a progress subscriber from one request stays installed for all the
+     * later, unrelated ones on the same worker.
+     */
+    void reset();
+
+    /** Status of the most recent response on this handle, 0 if there was none. */
+    long last_status() const;
+#endif
 
 private:
     static size_t easy_write_cb(char* ptr, size_t size, size_t nmemb, void* userdata);
@@ -125,6 +155,12 @@ private:
     }
 
     void* easy;
+#ifdef PS5_NATIVE_GPU
+    ps5_native_http::ErrorBuffer native_error_buffer;
+    // Read by the socket callback, which runs before connect. The default is
+    // the same value every request would otherwise be given.
+    long connect_deadline_ms = TIMEOUT;
+#endif
     struct curl_slist* chunk;
     Cancel is_cancel;
     Progress event;

@@ -5,6 +5,10 @@
 #pragma once
 
 #include <borealis.hpp>
+#ifdef PS5_NATIVE_GPU
+#include <atomic>
+#include <memory>
+#endif
 
 class HRecyclerFrame;
 
@@ -20,7 +24,17 @@ public:
 private:
     BRLS_BIND(brls::Header, title, "recycler/title");
     BRLS_BIND(HRecyclerFrame, recycler, "recycler/videos");
+#ifdef PS5_NATIVE_GPU
+
+#else
     
+#endif
     std::string itemType;
     size_t pageSize = 10;
+#ifdef PS5_NATIVE_GPU
+    size_t requestGeneration = 0;
+    std::shared_ptr<std::atomic_bool> requestCancelled;
 };
+#else
+};
+#endif

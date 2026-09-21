@@ -58,8 +58,11 @@ inline void from_json(const nlohmann::json& nlohmann_json_j, AppRemote& nlohmann
 }
 
 class AppConfig : public brls::Singleton<AppConfig> {
+#ifdef PS5_NATIVE_GPU
+#else
     using UserIter = std::vector<AppUser>::iterator;
 
+#endif
 public:
     enum Item {
         FULLSCREEN,
@@ -87,6 +90,10 @@ public:
         PLAYER_HWDEC_CUSTOM,
         PLAYER_ASPECT,
         PLAYER_SUBS_FALLBACK,
+#ifdef PS5_NATIVE_GPU
+        PS5_SUBTITLE_SIZE,
+        PS5_SUBTITLE_MARGIN,
+#endif
         PLAYER_TV_MODE,
         DANMAKU,
         DANMAKU_ON,
@@ -109,6 +116,9 @@ public:
         HTTP_PROXY,
 
         DOWNLOAD_QUALITY,
+#ifdef PS5_NATIVE_GPU
+        DOWNLOAD_LOCATION,  // chosen download-root path ("" = default /data)
+#endif
 
         KEY_REFRESH,        // 刷新快捷键
         KEY_LAST,           // 上一个Tab快捷键
@@ -175,11 +185,36 @@ public:
     const std::string& getDeviceId() { return this->device; }
     std::string getAuth(const std::string& token = "");
     const std::string& getUserId() const { return this->user_id; }
+#ifdef PS5_NATIVE_GPU
+    const std::string& getUserName() const { return currentUser().name; }
+    const std::string& getToken() const { return currentUser().access_token; }
+#else
     const std::string& getUserName() const { return this->user->name; }
     const std::string& getToken() const { return this->user->access_token; }
+#endif
     const std::string& getUrl() const { return this->server_url; }
+#ifdef PS5_NATIVE_GPU
+    // Captured on the UI thread; workers only read the atomic cancellation flag.
+    std::shared_ptr<std::atomic_bool> requestCancellation() const { return requestCancelled; }
+    void invalidateRequests() {
+        auto next = std::make_shared<std::atomic_bool>(false);
+        requestCancelled->store(true);
+        requestCancelled = std::move(next);
+    }
+    // Completion guards must not dereference user: erasing a saved account
+    // can invalidate that iterator while an earlier HTTP request is pending.
+    bool matchesPlaybackSession(const std::string& url, const std::string& id, const std::string& token) const {
+        if (url != server_url || id != user_id || id.empty()) return false;
+        for (const auto& saved : users)
+            if (saved.id == id) return saved.access_token == token;
+        return false;
+    }
+    bool isAdmin() const { return currentUser().is_admin; }
+    const jellyfin::UserConfig& userConfig() const { return currentUser().config; }
+#else
     bool isAdmin() const { return this->user->is_admin; }
     const jellyfin::UserConfig& userConfig() const { return this->user->config; }
+#endif
     void addRemote(const AppRemote& r);
     void updateRemote(size_t index, const AppRemote& r);
     void removeRemote(size_t index);
@@ -194,7 +229,19 @@ public:
 private:
     static std::unordered_map<Item, Option> settingMap;
 
+#ifdef PS5_NATIVE_GPU
+    // Saved accounts can be erased or reallocated while views finish closing.
+    // Never keep an iterator into that vector across a configuration change.
+    const AppUser& currentUser() const {
+        for (const auto& saved : users)
+            if (!user_id.empty() && saved.id == user_id) return saved;
+        static const AppUser empty{};
+        return empty;
+    }
+    std::shared_ptr<std::atomic_bool> requestCancelled = std::make_shared<std::atomic_bool>(false);
+#else
     UserIter user;
+#endif
     std::string user_id;
     std::string server_url;
     std::string device;
@@ -205,4 +252,9 @@ private:
     nlohmann::json setting = {};
 
     void addColor(const brls::ThemeVariant tv, const std::string& name, NVGcolor defaultColor);
+#ifdef PS5_NATIVE_GPU
 };
+
+#else
+};
+#endif

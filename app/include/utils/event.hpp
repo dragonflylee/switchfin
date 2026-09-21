@@ -22,6 +22,9 @@ typedef enum MpvEventEnum {
     VIDEO_UNMUTE,
     MPV_FILE_ERROR,
     RESET,
+#ifdef PS5_NATIVE_GPU
+    MPV_IDLE,
+#endif
 } MpvEventEnum;
 
 typedef brls::Event<MpvEventEnum> MPVEvent;

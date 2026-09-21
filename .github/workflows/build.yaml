@@ -9,22 +9,21 @@ on:
     - mingw-packages
     - macos-dylib
     paths-ignore:
-    - scripts/**
-    - debian/*
     - images/*
     - CHANGELOG.md
     - README.md
-    branches: [ dev ]
+    branches: [ main, dev ]
   pull_request:
-    paths-ignore:
-    - scripts/**
-    branches: [ dev ]
+    branches: [ main, dev ]
   workflow_dispatch:
     inputs:
       platform:
         description: which platform to build
         type: choice
+        default: all
         options:
+        - all
+        - ps5
         - mingw64
         - macos
         - nx
@@ -41,9 +40,44 @@ on:
         description: Disable MuPDF
         type: boolean
 
+permissions:
+  contents: read
+
 jobs:
+  package-release:
+    needs: [ build-mingw, build-nx, build-macos, build-flatpak, build-aur, build-ps4, build-vita, build-android, build-deb, build-ps5, test-ps5 ]
+    runs-on: ubuntu-latest
+    if: ${{ inputs.platform == 'all' || github.event_name != 'workflow_dispatch' }}
+    steps:
+    - name: Download Assets
+      uses: actions/download-artifact@v8
+      with:
+        pattern: Switchfin-*
+    - name: Package Assets
+      run: |
+        mkdir release-assets
+        for folder in Switchfin-*; do
+          [[ -d "$folder" ]] || continue
+          if [[ "$folder" == Switchfin-windows-* ]]; then
+            7z a -tzip -mx9 "release-assets/$folder.zip" "./$folder/"*
+          else
+            for file in "$folder"/*; do
+              [[ -f "$file" ]] || continue
+              cp "$file" "release-assets/$folder-$(basename "$file")"
+            done
+          fi
+        done
+        test -n "$(ls -A release-assets)"
+        (cd release-assets && sha256sum * > SHA256SUMS)
+    - name: Upload release assets
+      uses: actions/upload-artifact@v6
+      with:
+        name: release-assets
+        path: release-assets/*
+        if-no-files-found: error
+
   upload-release:
-    needs: [ build-mingw, build-nx, build-macos, build-flatpak, build-aur, build-ps4, build-vita, build-android ]
+    needs: package-release
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -60,19 +94,15 @@ jobs:
           found { print }
         ' CHANGELOG.md > RELEASE_NOTES.md
         if ! [ -s RELEASE_NOTES.md ]; then
-          echo "::error::No section for ${GITHUB_REF_NAME#v} in CHANGELOG.md (run: git cliff --unreleased --tag ${GITHUB_REF_NAME} --prepend CHANGELOG.md)"
-          exit 1
+          printf "Built from commit %s.\n" "$GITHUB_SHA" > RELEASE_NOTES.md
         fi
         printf '\n![download](https://img.shields.io/github/downloads/%s/%s/total?label=Downloads)\n' \
           "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME" >> RELEASE_NOTES.md
-    - name: Download Assets
+    - name: Download release assets
       uses: actions/download-artifact@v8
-    - name: Package Assets
-      run: |
-        for p in Switchfin-windows-*; do
-          [[ -d $p ]] && 7z a -tzip -mx9 $p.zip ./$p/* && rm -rf $p
-        done
-        tree
+      with:
+        name: release-assets
+        path: release-assets
     - name: Release and Upload Assets
       uses: softprops/action-gh-release@v3
       with:
@@ -80,19 +110,94 @@ jobs:
         tag_name: ${{ github.ref_name }}
         body_path: RELEASE_NOTES.md
         draft: true
-        files: |
-          Switchfin-windows-*.zip
-          Switchfin-macOS-*/*.dmg
-          Switchfin-NintendoSwitch-deko3d-*/*.nro
-          Switchfin-PS4-*/*.pkg
-          Switchfin-Vita-*/*.vpk
-          Switchfin-Flatpak-*/*.flatpak
-          Switchfin-Archlinux-*/*.pkg.tar.*
-          Switchfin-android-*/*.apk
+        generate_release_notes: true
+        fail_on_unmatched_files: true
+        files: release-assets/*
+
+  test-ps5:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        submodules: recursive
+    - name: Install test dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang libcurl4-openssl-dev zlib1g-dev unifdef
+    - name: Run regression tests
+      run: python3 -B -m unittest discover -s tests/ps5
+
+  build-ps5:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'ps5' || github.event_name != 'workflow_dispatch' }}
+    env:
+      BUILD_JOBS: 4
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        submodules: recursive
+        fetch-depth: 0
+    - name: Set build paths
+      run: |
+        echo "PS5_DEPS=$RUNNER_TEMP/ps5-dependencies" >> "$GITHUB_ENV"
+        echo "PS5_PACKAGE=$RUNNER_TEMP/ps5-package" >> "$GITHUB_ENV"
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang-18 llvm-18-dev lld-18 lld gcc-13 g++-13 \
+          cmake ninja-build meson make pkg-config autoconf automake libtool bison flex \
+          python3-mako python3-yaml python3-ply python3-setuptools python3-packaging \
+          curl wget unzip xz-utils zstd libzstd-dev zlib1g-dev libxml2-dev \
+          libdrm-dev libexpat1-dev nasm gperf
+    - name: Cache native dependencies
+      id: native-deps
+      uses: actions/cache@v5
+      with:
+        path: |
+          ${{ env.PS5_DEPS }}/runtime
+          ${{ env.PS5_DEPS }}/graphics
+          ${{ env.PS5_DEPS }}/sdl
+          ${{ env.PS5_DEPS }}/media
+        key: ps5-native-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/ps5/native-player/deps/**', 'scripts/ps5/native-player/runtime/**') }}
+    - name: Build native dependencies
+      if: steps.native-deps.outputs.cache-hit != 'true'
+      run: |
+        python3 -B scripts/ps5/native-player/runtime/prepare.py --out "$PS5_DEPS/runtime"
+        python3 -B scripts/ps5/native-player/deps/graphics.py \
+          --runtime "$PS5_DEPS/runtime" --prefix "$PS5_DEPS/graphics" \
+          --work "$PS5_DEPS/graphics-work" --cache "$PS5_DEPS/cache" --jobs "$BUILD_JOBS"
+        python3 -B scripts/ps5/native-player/deps/sdl.py \
+          --runtime "$PS5_DEPS/runtime" --graphics "$PS5_DEPS/graphics" \
+          --prefix "$PS5_DEPS/sdl" --work "$PS5_DEPS/sdl-work" --jobs "$BUILD_JOBS"
+        python3 -B scripts/ps5/native-player/deps/media.py \
+          --runtime "$PS5_DEPS/runtime" --graphics "$PS5_DEPS/graphics" --sdl "$PS5_DEPS/sdl" \
+          --prefix "$PS5_DEPS/media" --work "$PS5_DEPS/media-work" \
+          --cache "$PS5_DEPS/cache" --jobs "$BUILD_JOBS"
+    - name: Build and verify PS5 package
+      run: |
+        python3 -B scripts/ps5/native-player/build.py --out "$PS5_PACKAGE" \
+          --runtime "$PS5_DEPS/runtime" --graphics "$PS5_DEPS/graphics" \
+          --sdl "$PS5_DEPS/sdl" --media "$PS5_DEPS/media" --jobs "$BUILD_JOBS"
+    - name: Upload PS5 package
+      uses: actions/upload-artifact@v6
+      with:
+        name: Switchfin-PS5-${{ github.run_number }}
+        path: ${{ env.PS5_PACKAGE }}/Switchfin.zip
+        if-no-files-found: error
+    - name: Upload dependency build logs
+      if: failure()
+      uses: actions/upload-artifact@v6
+      with:
+        name: ps5-build-logs-${{ github.run_number }}
+        path: |
+          ${{ env.PS5_DEPS }}/graphics-work/*.log
+          ${{ env.PS5_DEPS }}/media-work/*.log
+          ${{ env.PS5_PACKAGE }}/cmake/CMakeFiles/CMakeConfigureLog.yaml
 
   build-nx:
     runs-on: ubuntu-latest
-    if: ${{ inputs.platform == 'nx' || github.event_name != 'workflow_dispatch' }}
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'nx' || github.event_name != 'workflow_dispatch' }}
     strategy:
       fail-fast: false
       matrix:
@@ -138,6 +243,7 @@ jobs:
       uses: actions/upload-artifact@v6
       with:
         name: Switchfin-NintendoSwitch${{ matrix.shuffix }}-${{ github.run_number }}
+        if-no-files-found: error
         path: build/Switchfin.nro
     - name: Upload elf
       uses: actions/upload-artifact@v6
@@ -147,7 +253,7 @@ jobs:
 
   build-ps4:
     runs-on: ubuntu-latest
-    if: ${{ inputs.platform == 'ps4' || github.event_name != 'workflow_dispatch' }}
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'ps4' || github.event_name != 'workflow_dispatch' }}
     container:
       image: xfangfang/pacbrew:250221
     env:
@@ -172,6 +278,7 @@ jobs:
       uses: actions/upload-artifact@v6
       with:
         name: Switchfin-PS4-${{ github.run_number }}
+        if-no-files-found: error
         path: build/*.pkg
     - name: Upload oelf
       uses: actions/upload-artifact@v6
@@ -181,7 +288,7 @@ jobs:
 
   build-vita:
     runs-on: ubuntu-latest
-    if: ${{ inputs.platform == 'psvita' || github.event_name != 'workflow_dispatch' }}
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'psvita' || github.event_name != 'workflow_dispatch' }}
     container:
       image: vitasdk/vitasdk:2026.08
     steps:
@@ -206,6 +313,7 @@ jobs:
       uses: actions/upload-artifact@v6
       with:
         name: Switchfin-Vita-${{ github.run_number }}
+        if-no-files-found: error
         path: build/Switchfin.vpk
     - name: Upload velf
       uses: actions/upload-artifact@v6
@@ -228,7 +336,7 @@ jobs:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
       options: --privileged
     runs-on: ${{ matrix.runner }}
-    if: ${{ inputs.platform == 'flatpak' || github.event_name != 'workflow_dispatch' }}
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'flatpak' || github.event_name != 'workflow_dispatch' }}
     steps:
     - uses: actions/checkout@v6
       with:
@@ -267,7 +375,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
     container:
       image: ${{ matrix.img }}:${{ matrix.tag }}
-    if: ${{ inputs.platform == 'deb' }}
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'deb' || github.event_name != 'workflow_dispatch' }}
     steps:
     - name: Install dependency
       env:
@@ -276,7 +384,9 @@ jobs:
         apt-get update
         apt-get install -y --no-install-recommends debhelper cmake build-essential \
           ninja-build git wget ca-certificates xorg-dev libdbus-1-dev libssl-dev \
-          libwayland-dev libxkbcommon-dev libwebp-dev libmpv-dev libmupdf-dev
+          libwayland-dev libxkbcommon-dev libwebp-dev libmpv-dev libmupdf-dev \
+          pkg-config libfreetype-dev libharfbuzz-dev libmujs-dev libgumbo-dev \
+          libopenjp2-7-dev libjbig2dec0-dev libjpeg-dev
     - uses: actions/checkout@v6
       with:
         submodules: recursive
@@ -291,11 +401,12 @@ jobs:
       uses: actions/upload-artifact@v6
       with:
         name: Switchfin-${{ matrix.img }}-${{ matrix.tag }}-${{ matrix.arch }}-${{ github.run_number }}
+        if-no-files-found: error
         path: switchfin_*.deb
 
   build-aur:
     runs-on: ubuntu-latest
-    if: ${{ inputs.platform == 'aur' || github.event_name != 'workflow_dispatch' }}
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'aur' || github.event_name != 'workflow_dispatch' }}
     steps:
     - uses: actions/checkout@v6
       with:
@@ -306,11 +417,12 @@ jobs:
       uses: actions/upload-artifact@v6
       with:
         name: Switchfin-Archlinux-${{ github.run_number }}
+        if-no-files-found: error
         path: scripts/aur/*.pkg.tar.*
 
   build-macos:
     runs-on: macos-latest
-    if: ${{ inputs.platform == 'macos' || github.event_name != 'workflow_dispatch' }}
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'macos' || github.event_name != 'workflow_dispatch' }}
     strategy:
       fail-fast: false
       matrix:
@@ -354,10 +466,11 @@ jobs:
       uses: actions/upload-artifact@v6
       with:
         name: Switchfin-macOS-${{ matrix.tag }}-${{ github.run_number }}
+        if-no-files-found: error
         path: Switchfin-*.dmg
 
   build-mingw:
-    if: ${{ inputs.platform == 'mingw64' || github.event_name != 'workflow_dispatch'}}
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'mingw64' || github.event_name != 'workflow_dispatch'}}
     strategy:
       fail-fast: false
       matrix:
@@ -428,7 +541,7 @@ jobs:
           build/*.dll
 
   build-android:
-    if: ${{ inputs.platform == 'android' || (github.event_name != 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')) }}
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'android' || github.event_name != 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6
@@ -466,4 +579,5 @@ jobs:
       uses: actions/upload-artifact@v6
       with:
         name: Switchfin-android-${{ github.run_number }}
+        if-no-files-found: error
         path: app/platform/android/app/build/outputs/apk/release/*.apk

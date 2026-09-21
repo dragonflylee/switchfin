@@ -25,6 +25,14 @@ foreach(l ${_MuPDF_LIBRARY_NAMES})
     list(APPEND MuPDF_LIBRARY ${MuPDF_LIBRARY_${l}})
 endforeach ()
 
+if (PLATFORM_DESKTOP AND CMAKE_SYSTEM_NAME STREQUAL "Linux" AND MuPDF_LIBRARY_mupdf MATCHES "\\.a$")
+    # Distribution archives require private dependencies; Debian's mupdf.pc
+    # also omits HarfBuzz, which the archive uses for text shaping.
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(MuPDF_PC REQUIRED mupdf harfbuzz)
+    set(MuPDF_LIBRARY ${MuPDF_PC_STATIC_LDFLAGS})
+endif ()
+
 get_filename_component(_MuPDF_LIBRARY_DIR ${MuPDF_LIBRARY_mupdf} PATH)
 
 set(MuPDF_LIBRARY_DIRS _MuPDF_LIBRARY_DIR)

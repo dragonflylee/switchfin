@@ -11,7 +11,18 @@ class SongCell : public RecyclingGridItem {
 public:
     SongCell() { this->inflateFromXMLRes("xml/view/playlist_item.xml"); }
 
+#ifdef PS5_NATIVE_GPU
+    ~SongCell() override {
+        this->picture->setArtworkRetryHandler(nullptr, nullptr);
+        Image::cancel(this->picture);
+    }
+
+#endif
     void prepareForReuse() override {
+#ifdef PS5_NATIVE_GPU
+        this->bindArtworkRetry(this->picture);
+
+#endif
         this->picture->setImageFromRes("img/video-card-bg.png");
         this->rating->getParent()->setVisibility(brls::Visibility::GONE);
     }
@@ -46,12 +57,18 @@ public:
         SongCell* cell = dynamic_cast<SongCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
 
+#ifdef PS5_NATIVE_GPU
+#else
         if (!item.AlbumPrimaryImageTag.empty()) {
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.AlbumId,
                 HTTP::encode_form({{"tag", item.AlbumPrimaryImageTag}, {"maxWidth", "50"}}));
         }
 
+#endif
         cell->setId(item.Id);
+#ifdef PS5_NATIVE_GPU
+        loadArtwork(cell, item);
+#endif
         cell->name->setText(item.Name);
         cell->misc->setText(fmt::format("{}", fmt::join(item.Artists, " ")));
         cell->duration->setText(misc::sec2Time(item.RunTimeTicks / jellyfin::PLAYTICKS));
@@ -59,6 +76,21 @@ public:
             item.UserData.IsFavorite ? brls::Visibility::VISIBLE : brls::Visibility::INVISIBLE);
         cell->setSelected(MusicView::instance().currentId());
         return cell;
+#ifdef PS5_NATIVE_GPU
+    }
+
+    static void loadArtwork(SongCell* cell, const MediaList::value_type& item) {
+        if (!item.AlbumPrimaryImageTag.empty()) {
+            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.AlbumId,
+                HTTP::encode_form({{"tag", item.AlbumPrimaryImageTag}, {"maxWidth", "50"}}));
+        }
+    }
+
+    void retryArtwork(RecyclingGridItem* existing, size_t index) override {
+        auto* cell = dynamic_cast<SongCell*>(existing);
+        if (cell && index < list.size() && cell->matchesArtworkId(list[index].Id))
+            loadArtwork(cell, list[index]);
+#endif
     }
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
@@ -157,4 +189,8 @@ void SongList::doList() {
             this->list->setError(ex);
         },
         jellyfin::apiUserLibrary, AppConfig::instance().getUserId(), query);
+#ifdef PS5_NATIVE_GPU
 }
+#else
+}
+#endif

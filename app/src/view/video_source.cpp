@@ -47,6 +47,9 @@ public:
         auto& item = this->list.at(index);
         cell->setId(item.Id);
 
+#ifdef PS5_NATIVE_GPU
+        loadArtwork(cell, item);
+#else
         auto epimage = item.ImageTags.find(jellyfin::imageTypePrimary);
         if (epimage != item.ImageTags.end()) {
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
@@ -55,6 +58,7 @@ public:
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId.get<std::string>(),
                 HTTP::encode_form({{"tag", item.SeriesPrimaryImageTag}, {"fillWidth", "300"}}));
         }
+#endif
 
         if (item.IndexNumber > 0) {
             cell->labelName->setText(fmt::format("{}. {}", item.IndexNumber, item.Name));
@@ -82,6 +86,25 @@ public:
         }
 
         return cell;
+#ifdef PS5_NATIVE_GPU
+    }
+
+    static void loadArtwork(EpisodeCardCell* cell, const jellyfin::Episode& item) {
+        auto epimage = item.ImageTags.find(jellyfin::imageTypePrimary);
+        if (epimage != item.ImageTags.end()) {
+            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
+                HTTP::encode_form({{"tag", epimage->second}, {"fillWidth", "300"}}));
+        } else if (item.SeriesId.is_string()) {
+            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId.get<std::string>(),
+                HTTP::encode_form({{"tag", item.SeriesPrimaryImageTag}, {"fillWidth", "300"}}));
+        }
+    }
+
+    void retryArtwork(RecyclingGridItem* existing, size_t index) override {
+        auto* cell = dynamic_cast<EpisodeCardCell*>(existing);
+        if (cell && index < list.size() && cell->matchesArtworkId(list[index].Id))
+            loadArtwork(cell, list[index]);
+#endif
     }
 
     void onItemSelected(brls::Box* recycler, size_t index) override {
@@ -164,6 +187,10 @@ VideoDataSource::VideoDataSource(const MediaList& r, const std::string& parentId
 
 size_t VideoDataSource::getItemCount() { return this->list.size(); }
 
+#ifdef PS5_NATIVE_GPU
+std::string VideoDataSource::getItemKey(size_t index) { return this->list.at(index).Id; }
+
+#endif
 RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t index) {
     VideoCardCell* cell = dynamic_cast<VideoCardCell*>(recycler->dequeueReusableCell("Cell"));
     auto& item = this->list.at(index);
@@ -175,6 +202,8 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
             cell->labelTitle->setText(item.SeriesName);
         }
         cell->labelExt->setText(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
+#ifdef PS5_NATIVE_GPU
+#else
 
         auto it = item.ImageTags.find(jellyfin::imageTypeThumb);
         if (it != item.ImageTags.end()) {
@@ -190,6 +219,7 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId.get<std::string>(),
                 HTTP::encode_form({{"tag", item.SeriesPrimaryImageTag}, {"maxWidth", "325"}}));
         }
+#endif
     } else {
         cell->labelTitle->setText(item.Name);
 
@@ -200,13 +230,20 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
         } else if (item.ProductionYear > 0) {
             cell->labelExt->setText(std::to_string(item.ProductionYear));
         }
+#ifdef PS5_NATIVE_GPU
+    }
+#endif
 
+#ifdef PS5_NATIVE_GPU
+    loadArtwork(cell, item);
+#else
         auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
         if (it != item.ImageTags.end()) {
             Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
                 HTTP::encode_form({{"tag", it->second}, {"maxWidth", "325"}}));
         }
     }
+#endif
 
     if (item.UserData.IsFavorite) {
         cell->badgeFavorite->setVisibility(brls::Visibility::VISIBLE);
@@ -240,6 +277,39 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
         cell->badgeTopRight->setVisibility(brls::Visibility::GONE);
     }
     return cell;
+#ifdef PS5_NATIVE_GPU
+}
+
+void VideoDataSource::loadArtwork(VideoCardCell* cell, const jellyfin::Episode& item) {
+    if (item.Type == jellyfin::mediaTypeEpisode) {
+        auto it = item.ImageTags.find(jellyfin::imageTypeThumb);
+        if (it != item.ImageTags.end()) {
+            Image::load(cell->picture, jellyfin::apiThumbImage, item.Id,
+                HTTP::encode_form({{"tag", it->second}, {"maxWidth", "325"}}));
+        } else if (item.ParentThumbImageTag.size() > 0) {
+            Image::load(cell->picture, jellyfin::apiThumbImage, item.ParentThumbItemId,
+                HTTP::encode_form({{"tag", item.ParentThumbImageTag}, {"maxWidth", "325"}}));
+        } else if (item.ParentBackdropImageTags.size() > 0) {
+            Image::load(cell->picture, jellyfin::apiBackdropImage, item.ParentBackdropItemId, 0,
+                HTTP::encode_form({{"tag", item.ParentBackdropImageTags.at(0)}, {"maxWidth", "325"}}));
+        } else if (item.SeriesId.is_string()) {
+            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId.get<std::string>(),
+                HTTP::encode_form({{"tag", item.SeriesPrimaryImageTag}, {"maxWidth", "325"}}));
+        }
+    } else {
+        auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
+        if (it != item.ImageTags.end()) {
+            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
+                HTTP::encode_form({{"tag", it->second}, {"maxWidth", "325"}}));
+        }
+    }
+}
+
+void VideoDataSource::retryArtwork(RecyclingGridItem* existing, size_t index) {
+    auto* cell = dynamic_cast<VideoCardCell*>(existing);
+    if (cell && index < list.size() && cell->matchesArtworkId(list[index].Id))
+        loadArtwork(cell, list[index]);
+#endif
 }
 
 void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {

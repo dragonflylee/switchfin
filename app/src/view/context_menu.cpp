@@ -132,7 +132,11 @@ ContextMenu::~ContextMenu() {
 
 bool ContextMenu::doPlayed() {
     ASYNC_RETAIN
+#ifdef PS5_NATIVE_GPU
+    jellyfin::postJSON<jellyfin::UserDataResult>(
+#else
     jellyfin::postJSON(
+#endif
         {
             {"itemId", this->itemId},
             {"played", this->isPlayed},
@@ -152,7 +156,11 @@ bool ContextMenu::doPlayed() {
 
 bool ContextMenu::doFavorite() {
     ASYNC_RETAIN
+#ifdef PS5_NATIVE_GPU
+    jellyfin::postJSON<jellyfin::UserDataResult>(
+#else
     jellyfin::postJSON(
+#endif
         {
             {"itemId", this->itemId},
             {"isFavorite", this->isFavorite},
@@ -239,4 +247,8 @@ void ContextMenu::updateDownloadButton() {
     default:
         this->btnDownload->setTitle("main/download/start"_i18n);
     }
+#ifdef PS5_NATIVE_GPU
 }
+#else
+}
+#endif

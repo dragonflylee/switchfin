@@ -1,3 +1,34 @@
+#ifdef PS5_NATIVE_GPU
+#ifdef __SWITCH__
+#include <switch.h>
+#include "utils/overclock.hpp"
+#elif defined(__PSV__)
+#include <psp2/kernel/cpu.h>
+#include <psp2/kernel/threadmgr/thread.h>
+#include <psp2/appmgr.h>
+#include <psp2/vshbridge.h>
+#include <borealis/platforms/desktop/desktop_platform.hpp>
+
+extern "C" {
+unsigned int _newlib_heap_size_user = 220 * 1024 * 1024;
+unsigned int _pthread_stack_default_user = 2 * 1024 * 1024;
+}
+#elif defined(__PS4__)
+#include <orbis/SystemService.h>
+#include <orbis/Sysmodule.h>
+#include <arpa/inet.h>
+
+extern "C" {
+extern int ps4_mpv_use_precompiled_shaders;
+extern int ps4_mpv_dump_shaders;
+extern in_addr_t primary_dns;
+extern in_addr_t secondary_dns;
+}
+#else
+#include <unistd.h>
+#include <borealis/platforms/desktop/desktop_platform.hpp>
+#endif
+#else
 #ifdef __SWITCH__
 #include <switch.h>
 #include "utils/overclock.hpp"
@@ -36,6 +67,7 @@ extern in_addr_t secondary_dns;
 constexpr uint32_t MINIMUM_WINDOW_WIDTH = 640;
 constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
 #endif
+#endif
 
 #include <borealis.hpp>
 #include <borealis/core/cache_helper.hpp>
@@ -44,6 +76,11 @@ constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
 #include "utils/config.hpp"
 #include "utils/keybind.hpp"
 #include "utils/misc.hpp"
+#ifdef PS5_NATIVE_GPU
+#include "utils/ps5_storage_home.hpp"
+#include "utils/ps5_config_file.hpp"
+#include "utils/ps5_native_startup.hpp"
+#endif
 #include "utils/ums.hpp"
 #include "utils/thread.hpp"
 #include "view/mpv_core.hpp"
@@ -59,7 +96,12 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {AUDIO_CHANNELS, {"audio-channels", {"auto-safe", "stereo", "mono"}}},
     {KEYMAP, {"keymap", {"xbox", "ps", "keyboard"}}},
     {WINDOW_STATE, {"window_state"}},
+#ifdef PS5_NATIVE_GPU
+    {TRANSCODEC, {"transcodec", {"h264", "hevc"
+    }}},
+#else
     {TRANSCODEC, {"transcodec", {"h264", "hevc", "av1"}}},
+#endif
     {FORCE_DIRECTPLAY, {"force_directplay"}},
     {MAXDAY_NEXTUP, {"maxday_nextup"}},
     {FULLSCREEN, {"fullscreen"}},
@@ -73,6 +115,10 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {PLAYER_BOTTOM_BAR, {"player_bottom_bar"}},
     {PLAYER_LOW_QUALITY, {"player_low_quality"}},
     {PLAYER_SUBS_FALLBACK, {"player_subs_fallback"}},
+#ifdef PS5_NATIVE_GPU
+    {PS5_SUBTITLE_SIZE, {"ps5_subtitle_size"}},
+    {PS5_SUBTITLE_MARGIN, {"ps5_subtitle_margin"}},
+#endif
     {PLAYER_INMEMORY_CACHE,
         {
             "player_inmemory_cache",
@@ -132,6 +178,9 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {HTTP_PROXY, {"http_proxy"}},
 
     {DOWNLOAD_QUALITY, {"download_quality", {"Original", "1080p", "720p", "480p"}, {0, 1, 2, 3}}},
+#ifdef PS5_NATIVE_GPU
+    {DOWNLOAD_LOCATION, {"download_location"}},
+#endif
 
     {KEY_REFRESH, {"key_refresh"}},
     {KEY_LAST, {"key_last"}},
@@ -227,6 +276,27 @@ static std::string generateDeviceId() {
 
 bool AppConfig::init() {
     const std::string path = this->configDir() + "/config.json";
+#ifdef PS5_NATIVE_GPU
+    auto& settingsFile = ps5::configuration::settingsFile();
+    if (!settingsFile.prepare(path)) {
+        ps5_native_startup::detail::line("CONFIG prepare failed errno=%d\n", errno);
+        return false;
+    }
+    std::string contents;
+    if (!settingsFile.read(contents)) {
+        ps5_native_startup::detail::line("CONFIG read failed errno=%d\n", errno);
+        return false;
+    }
+    if (!contents.empty()) {
+        try {
+            nlohmann::json::parse(contents).get_to(*this);
+            brls::Logger::info("Load config from: {}", path);
+        } catch (const std::exception& ex) {
+            brls::Logger::error("AppConfig::load: {}", ex.what());
+            return false;
+        }
+    }
+#else
 #if !defined(USE_BOOST_FILESYSTEM) || defined(_WIN32)
     std::ifstream f(fs::u8path(path));
 #else
@@ -241,6 +311,7 @@ bool AppConfig::init() {
             return false;
         }
     }
+#endif
 
 #if defined(_WIN32) && !defined(_WINRT_)
     misc::initCrashDump();
@@ -327,6 +398,9 @@ bool AppConfig::init() {
     MPVCore::CLIP_POINT = this->getItem(CLIP_POINT, true);
     // 初始化内存缓存大小
     MPVCore::INMEMORY_CACHE = this->getItem(PLAYER_INMEMORY_CACHE, 10);
+#ifdef PS5_NATIVE_GPU
+    MPVCore::INMEMORY_CACHE = std::clamp(MPVCore::INMEMORY_CACHE, 0, 16);
+#endif
     // 是否使用低质量解码
 #if defined(__PSV__) || defined(__PS4__) || defined(__SWITCH__)
     MPVCore::LOW_QUALITY = this->getItem(PLAYER_LOW_QUALITY, true);
@@ -340,9 +414,33 @@ bool AppConfig::init() {
     MPVCore::HARDWARE_DEC = this->getItem(PLAYER_HWDEC, true);
     MPVCore::FORCE_DIRECTPLAY = this->getItem(FORCE_DIRECTPLAY, false);
     MPVCore::VIDEO_CODEC = this->getItem(TRANSCODEC, MPVCore::VIDEO_CODEC);
+#ifdef PS5_NATIVE_GPU
+    ps5::storage::setDownloadLocation(this->getItem(DOWNLOAD_LOCATION, std::string("sandbox")));
+    ps5::storage::refreshDownloadLocations(this->configDir() + "/downloads");
+    // AV1 is delisted on the native build for now (unproven, software-decoded);
+    // clamp a previously-saved "av1" to the first offered codec so the transcode
+    // request matches what the Codec selector can show.
+    {
+        const auto& codecOpts = settingMap.at(TRANSCODEC).options;
+        bool offered = false;
+        for (const auto& c : codecOpts)
+            if (c == MPVCore::VIDEO_CODEC) { offered = true; break; }
+        if (!offered && !codecOpts.empty()) MPVCore::VIDEO_CODEC = codecOpts.front();
+    }
+#endif
     MPVCore::AUDIO_CHANNELS = this->getItem(AUDIO_CHANNELS, MPVCore::AUDIO_CHANNELS);
     // 初始化自定义的硬件加速方案
     MPVCore::PLAYER_HWDEC_METHOD = this->getItem(PLAYER_HWDEC_CUSTOM, MPVCore::PLAYER_HWDEC_METHOD);
+#ifdef PS5_NATIVE_GPU
+    // The application owns the GL context and presentation. A saved backend
+    // from another platform must not replace the embedded renderer.
+    MPVCore::VO = "libmpv";
+    // The shipped FFmpeg/mpv stack has no PS5 hardware decoder integration.
+    // A saved toggle or custom method must not imply one exists. Keep stored
+    // preferences intact for a future backend, but use the supported path now.
+    MPVCore::HARDWARE_DEC = false;
+    MPVCore::PLAYER_HWDEC_METHOD = "no";
+#endif
     // 初始化默认的倍速设定
     MPVCore::VIDEO_SPEED = this->getItem(PLAYER_SPEED, MPVCore::VIDEO_SPEED);
     // 初始化视频比例
@@ -420,10 +518,16 @@ bool AppConfig::init() {
         }
 
         // 初始化纹理缓存数量
+#ifdef PS5_NATIVE_GPU
+        const int textures = std::clamp(getItem(TEXTURE_CACHE_NUM, 32), 1, 32);
+        brls::TextureCache::instance().cache.setCapacity(textures);
+        brls::Logger::info("ps5 native: artwork retention target {} entries; live images may exceed it", textures);
+#else
 #if defined(__PSV__) || defined(__PS4__)
         brls::TextureCache::instance().cache.setCapacity(1);
 #else
         brls::TextureCache::instance().cache.setCapacity(getItem(TEXTURE_CACHE_NUM, 200));
+#endif
 #endif
 
 #if (defined(__APPLE__) || defined(__linux__) || defined(_WIN32)) && !defined(ANDROID)
@@ -461,7 +565,11 @@ bool AppConfig::init() {
         lunasvg_add_font_face_from_data("", false, false, font.address, font.size, nullptr, nullptr);
     }
 #elif !defined(USE_LIBROMFS)
+#ifdef PS5_NATIVE_GPU
+    lunasvg_add_font_face_from_file("", false, false, BRLS_ASSET("font/switch_font.ttf").c_str());
+#else
     lunasvg_add_font_face_from_file("", false, false, BRLS_ASSET("font/switch_font.ttf"));
+#endif
 #else
     auto& font = romfs::get("font/switch_font.ttf");
     if (font.valid()) lunasvg_add_font_face_from_data("", false, false, font.data(), font.size(), nullptr, nullptr);
@@ -473,6 +581,9 @@ bool AppConfig::init() {
     brls::FontLoader::USER_ICON_PATH = configDir() + "/icon.ttf";
     if (access(brls::FontLoader::USER_ICON_PATH.c_str(), F_OK) == -1) {
         // 自定义字体不存在，使用内置字体
+#ifdef PS5_NATIVE_GPU
+        brls::FontLoader::USER_ICON_PATH = BRLS_ASSET("font/keymap_ps.ttf");
+#else
 #if defined(__PSV__) || defined(__PS4__)
         brls::FontLoader::USER_ICON_PATH = BRLS_ASSET("font/keymap_ps.ttf");
 #else
@@ -486,6 +597,7 @@ bool AppConfig::init() {
         } else {
             brls::FontLoader::USER_ICON_PATH = BRLS_ASSET("font/keymap_keyboard.ttf");
         }
+#endif
 #endif
     }
 
@@ -502,6 +614,15 @@ bool AppConfig::init() {
 
 void AppConfig::save() {
     try {
+#ifdef PS5_NATIVE_GPU
+        const std::string contents = nlohmann::json(*this).dump(2);
+        if (!ps5::configuration::settingsFile().save(contents)) {
+            const int error = errno;
+            ps5_native_startup::detail::line("CONFIG save failed errno=%d\n", error);
+            brls::Logger::warning("Could not save settings: errno={}", error);
+            brls::Application::notify("Could not save settings");
+        }
+#else
         std::string dir = this->configDir();
         fs::create_directories(dir);
 #if !defined(USE_BOOST_FILESYSTEM) || defined(_WIN32)
@@ -514,12 +635,16 @@ void AppConfig::save() {
             f << j.dump(2);
             f.close();
         }
+#endif
     } catch (const std::exception& ex) {
         brls::Logger::warning("AppConfig save: {}", ex.what());
     }
 }
 
 bool AppConfig::checkLogin() {
+#ifdef PS5_NATIVE_GPU
+    this->invalidateRequests();
+#endif
     for (auto& s : this->servers) {
         if (s.id.empty() && s.urls.size() > 0) {
             try {
@@ -529,31 +654,61 @@ bool AppConfig::checkLogin() {
                 s.id = info.Id;
                 s.name = info.ServerName;
             } catch (const std::exception& ex) {
+#ifdef PS5_NATIVE_GPU
+                brls::Logger::warning("AppConfig checkServer failed");
+#else
                 brls::Logger::warning("AppConfig {} checkServer: {}", s.urls.front(), ex.what());
+#endif
                 return false;
             }
         }
     }
 
     auto is_user = [this](const AppUser& u) { return u.id == this->user_id; };
+#ifdef PS5_NATIVE_GPU
+    auto user = std::find_if(this->users.begin(), this->users.end(), is_user);
+    if (user == this->users.end()) return false;
+#else
     this->user = std::find_if(this->users.begin(), this->users.end(), is_user);
     if (this->user == this->users.end()) return false;
+#endif
 
+#ifdef PS5_NATIVE_GPU
+    auto is_server = [&user](const AppServer& s) { return s.id == user->server_id; };
+#else
     auto is_server = [this](const AppServer& s) { return s.id == this->user->server_id; };
+#endif
     auto it = std::find_if(this->servers.begin(), this->servers.end(), is_server);
+#ifdef PS5_NATIVE_GPU
+    if (it == this->servers.end() || it->urls.empty()) return false;
+#else
     if (it == this->servers.end()) return false;
+#endif
 
     this->server_url = it->urls.front();
+#ifdef PS5_NATIVE_GPU
+    HTTP::Header header = {this->getAuth(user->access_token)};
+#else
     HTTP::Header header = {this->getAuth(this->user->access_token)};
+#endif
     std::string uri = fmt::format("{}/Users/{}", this->server_url, this->user_id);
     try {
         std::string resp = HTTP::get(uri, header, HTTP::Timeout{});
         jellyfin::UserInfo info = nlohmann::json::parse(resp);
+#ifdef PS5_NATIVE_GPU
+        user->is_admin = info.Policy.IsAdministrator;
+        user->config = std::move(info.Configuration);
+#else
         this->user->is_admin = info.Policy.IsAdministrator;
         this->user->config = std::move(info.Configuration);
+#endif
         return true;
     } catch (const std::exception& ex) {
+#ifdef PS5_NATIVE_GPU
+        brls::Logger::warning("AppConfig checkLogin failed");
+#else
         brls::Logger::warning("AppConfig {} checkLogin: {}", this->server_url, ex.what());
+#endif
         return false;
     }
 }
@@ -581,7 +736,23 @@ bool AppConfig::checkDanmuku() {
     return false;
 }
 
+#ifdef PS5_NATIVE_GPU
+#include "utils/ps5_storage_home.hpp"
+#endif
 std::string AppConfig::configDir() {
+#ifdef PS5_NATIVE_GPU
+#if __SWITCH__
+    return fmt::format("sdmc:/switch/{}", AppVersion::getPackageName());
+#elif defined(__PS4__)
+    return fmt::format("/data/{}", AppVersion::getPackageName());
+#else
+    // Promoted out of the sandbox: config, index and fonts live under the real
+    // sandbox root. The plain sandbox path while jailed.
+    return ps5::storage::sandboxRoot().empty()
+               ? std::string("/download0/switchfin-native")
+               : ps5::storage::sandboxRoot() + "/download0/switchfin-native";
+#endif
+#else
 #if __SWITCH__
     return fmt::format("sdmc:/switch/{}", AppVersion::getPackageName());
 #elif defined(__PS4__)
@@ -603,6 +774,7 @@ std::string AppConfig::configDir() {
 #elif __APPLE__
     return fmt::format("{}/Library/Application Support/{}", getenv("HOME"), AppVersion::getPackageName());
 #endif
+#endif
 }
 
 std::string AppConfig::ipcSocket() {
@@ -614,6 +786,13 @@ std::string AppConfig::ipcSocket() {
 }
 
 void AppConfig::checkRestart(char* argv[]) {
+#ifdef PS5_NATIVE_GPU
+    // Native settings persist, and normal main return uses the native CRT's
+    // public process exit. A subsequent dashboard launch applies the changes.
+    if (brls::DesktopPlatform::RESTART_APP)
+        brls::Logger::info("ps5: settings saved; relaunch Switchfin from the home screen");
+    (void)argv;
+#else
 #if !defined(__PS4__) && !defined(__SWITCH__) && !defined(ANDROID)
     if (brls::DesktopPlatform::RESTART_APP) {
         brls::Logger::info("Restart app {}", argv[0]);
@@ -624,6 +803,7 @@ void AppConfig::checkRestart(char* argv[]) {
         execv(argv[0], argv);
 #endif
     }
+#endif
 #endif
 }
 
@@ -656,6 +836,9 @@ int AppConfig::getValueIndex(const Item item, int default_index) const {
 }
 
 bool AppConfig::addServer(const AppServer& s) {
+#ifdef PS5_NATIVE_GPU
+    this->invalidateRequests();
+#endif
     if (s.urls.size() > 0) {
         this->server_url = s.urls.front();
     }
@@ -681,6 +864,9 @@ bool AppConfig::addServer(const AppServer& s) {
 }
 
 void AppConfig::addUser(const AppUser& u, const std::string& url) {
+#ifdef PS5_NATIVE_GPU
+    this->invalidateRequests();
+#endif
     auto is_user = [u](const AppUser& o) { return o.id == u.id; };
     auto it = std::find_if(this->users.begin(), this->users.end(), is_user);
     if (it != this->users.end()) {
@@ -694,13 +880,19 @@ void AppConfig::addUser(const AppUser& u, const std::string& url) {
     }
     this->server_url = url;
     this->user_id = u.id;
+#ifdef PS5_NATIVE_GPU
+#else
     this->user = it;
+#endif
     this->save();
 }
 
 bool AppConfig::removeServer(const std::string& id) {
     for (auto it = this->servers.begin(); it != this->servers.end(); ++it) {
         if (it->id == id) {
+#ifdef PS5_NATIVE_GPU
+            this->invalidateRequests();
+#endif
             this->servers.erase(it);
             this->save();
             return this->servers.empty();
@@ -712,7 +904,13 @@ bool AppConfig::removeServer(const std::string& id) {
 bool AppConfig::removeUser(const std::string& id) {
     for (auto it = this->users.begin(); it != this->users.end(); ++it) {
         if (it->id == id) {
+#ifdef PS5_NATIVE_GPU
+            this->invalidateRequests();
+#endif
             this->users.erase(it);
+#ifdef PS5_NATIVE_GPU
+            if (this->user_id == id) this->user_id.clear();
+#endif
             this->save();
             return true;
         }
@@ -873,4 +1071,9 @@ void AppConfig::initThemes() {
         brls::getStyle().addMetric("main/content_padding_sides", 25);
         brls::getStyle().addMetric("main/content_padding_top_bottom", 30);
     }
+#ifdef PS5_NATIVE_GPU
 }
+
+#else
+}
+#endif

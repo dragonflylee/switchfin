@@ -1,0 +1,38 @@
+{
+  "ageLevel": {
+    "default": 0
+  },
+  "applicationCategoryType": 0,
+  "applicationDrmType": "free",
+  "attribute": 536870912,
+  "attribute2": 0,
+  "attribute3": 0,
+  "conceptId": "99015",
+  "contentBadgeType": 1,
+  "contentId": "UP9000-PPSA99015_00-SWITCHFINNATIVE01",
+  "contentVersion": "01.000.000",
+  "downloadDataSize": 4096,
+  "gameIntent": {
+    "permittedIntents": [
+      {
+        "intentType": "launchActivity"
+      }
+    ]
+  },
+  "localizedParameters": {
+    "defaultLanguage": "en-US",
+    "en-US": {
+      "titleName": "Switchfin"
+    }
+  },
+  "masterVersion": "01.00",
+  "pubtools": {
+    "creationDate": "2026-08-22 00:00:00",
+    "loudnessSnd0": "-28.00",
+    "toolVersion": "2.00"
+  },
+  "requiredSystemSoftwareVersion": "0x0000000000000000",
+  "sdkVersion": "0x0000000000000000",
+  "titleId": "PPSA99015",
+  "versionFileUri": ""
+}

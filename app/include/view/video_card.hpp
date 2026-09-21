@@ -8,9 +8,20 @@ class SVGImage;
 
 class BaseCardCell : public RecyclingGridItem {
 public:
+#ifdef PS5_NATIVE_GPU
+    ~BaseCardCell() {
+        this->picture->setArtworkRetryHandler(nullptr, nullptr);
+        Image::cancel(this->picture);
+    }
+#else
     ~BaseCardCell() { Image::cancel(this->picture); }
+#endif
 
+#ifdef PS5_NATIVE_GPU
+    void prepareForReuse() override;
+#else
     void prepareForReuse() override { this->picture->setImageFromRes("img/video-card-bg.png"); }
+#endif
 
     void cacheForReuse() override { Image::cancel(this->picture); }
 
@@ -40,4 +51,8 @@ public:
     static VideoCardCell* create() { return new VideoCardCell(); }
 
     BRLS_BIND(brls::Label, labelRating, "video/card/label/rating");
+#ifdef PS5_NATIVE_GPU
 };
+#else
+};
+#endif

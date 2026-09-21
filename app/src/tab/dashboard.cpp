@@ -97,7 +97,19 @@ public:
         Image::load(this->avatar, jellyfin::apiUserImage, userId, "tag=" + tag);
     }
 
+#ifdef PS5_NATIVE_GPU
+    void prepareForReuse() override {
+        this->bindArtworkRetry(this->avatar);
+        this->avatar->setImageFromRes("img/account.png");
+    }
+
+    ~DeviceCell() override {
+        this->avatar->setArtworkRetryHandler(nullptr, nullptr);
+        Image::cancel(this->avatar);
+    }
+#else
     void prepareForReuse() override { this->avatar->setImageFromRes("img/account.png"); }
+#endif
 
     void cacheForReuse() override { Image::cancel(this->avatar); }
 
@@ -124,11 +136,23 @@ public:
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         DeviceCell* cell = dynamic_cast<DeviceCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
+#ifdef PS5_NATIVE_GPU
+        cell->setId(item.Id);
+#endif
         cell->setCell(item);
 
         auto it = this->userTags.find(item.LastUserId);
         if (it != this->userTags.end()) cell->setImage(it->first, it->second);
         return cell;
+#ifdef PS5_NATIVE_GPU
+    }
+
+    void retryArtwork(RecyclingGridItem* existing, size_t index) override {
+        auto* cell = dynamic_cast<DeviceCell*>(existing);
+        if (!cell || index >= list.size() || !cell->matchesArtworkId(list[index].Id)) return;
+        auto it = userTags.find(list[index].LastUserId);
+        if (it != userTags.end()) cell->setImage(it->first, it->second);
+#endif
     }
 
     void clearData() override { this->list.clear(); }
@@ -305,7 +329,19 @@ class SessionCell : public RecyclingGridItem {
 public:
     SessionCell() { this->inflateFromXMLRes("xml/view/session.xml"); }
 
+#ifdef PS5_NATIVE_GPU
+    void prepareForReuse() override {
+        this->bindArtworkRetry(this->avatar);
+        this->avatar->setImageFromRes("img/account.png");
+    }
+
+    ~SessionCell() override {
+        this->avatar->setArtworkRetryHandler(nullptr, nullptr);
+        Image::cancel(this->avatar);
+    }
+#else
     void prepareForReuse() override { this->avatar->setImageFromRes("img/account.png"); }
+#endif
 
     void cacheForReuse() override { Image::cancel(this->avatar); }
 
@@ -313,9 +349,13 @@ public:
         this->name->setText(item.DeviceName);
         this->app->setText(fmt::format("{} {}", item.Client, item.ApplicationVersion));
         this->user->setText(item.UserName);
+#ifdef PS5_NATIVE_GPU
+        loadArtwork(item);
+#else
         if (item.UserPrimaryImageTag.size() > 0) {
             Image::load(this->avatar, jellyfin::apiUserImage, item.UserId, "tag=" + item.UserPrimaryImageTag);
         }
+#endif
         if (item.NowPlayingItem.Id.size() > 0) {
             if (item.NowPlayingItem.Type == jellyfin::mediaTypeEpisode) {
                 this->playing->setText(fmt::format("S{}E{} - {}", item.NowPlayingItem.ParentIndexNumber,
@@ -325,6 +365,14 @@ public:
             }
         } else {
             this->playing->setText(misc::formatTime(item.LastActivityDate));
+#ifdef PS5_NATIVE_GPU
+        }
+    }
+
+    void loadArtwork(const jellyfin::Session& item) {
+        if (item.UserPrimaryImageTag.size() > 0) {
+            Image::load(this->avatar, jellyfin::apiUserImage, item.UserId, "tag=" + item.UserPrimaryImageTag);
+#endif
         }
     }
 
@@ -349,11 +397,22 @@ public:
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         SessionCell* cell = dynamic_cast<SessionCell*>(recycler->dequeueReusableCell("Cell"));
         auto& item = this->list.at(index);
+#ifdef PS5_NATIVE_GPU
+        cell->setId(item.Id);
+#endif
         cell->setCell(item);
         return cell;
     }
 
     void onItemSelected(brls::Box* recycler, size_t index) override {}
+#ifdef PS5_NATIVE_GPU
+
+    void retryArtwork(RecyclingGridItem* existing, size_t index) override {
+        auto* cell = dynamic_cast<SessionCell*>(existing);
+        if (!cell || index >= list.size() || !cell->matchesArtworkId(list[index].Id)) return;
+        cell->loadArtwork(list[index]);
+    }
+#endif
 
     void clearData() override { this->list.clear(); }
 
@@ -592,4 +651,8 @@ void Dashboard::doStorage() {
             this->storage->setVisibility(brls::Visibility::GONE);
         },
         jellyfin::apiStorage);
+#ifdef PS5_NATIVE_GPU
 }
+#else
+}
+#endif

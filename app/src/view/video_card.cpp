@@ -4,6 +4,20 @@
 #include "utils/keybind.hpp"
 
 using namespace brls::literals;
+#ifdef PS5_NATIVE_GPU
+
+void BaseCardCell::prepareForReuse() {
+    this->bindArtworkRetry(this->picture);
+    this->picture->setImageFromRes("img/video-card-bg.png");
+    this->labelTitle->setText("");
+    this->labelTitle->setVisibility(brls::Visibility::VISIBLE);
+    this->labelExt->setText("");
+    this->labelExt->setVisibility(brls::Visibility::VISIBLE);
+    this->badgeTopRight->setVisibility(brls::Visibility::GONE);
+    this->badgeFavorite->setVisibility(brls::Visibility::GONE);
+    this->rectProgress->getParent()->setVisibility(brls::Visibility::GONE);
+}
+#endif
 
 VideoCardCell::VideoCardCell() {
     this->inflateFromXMLRes("xml/view/video_card.xml");
@@ -39,4 +53,8 @@ void BaseCardCell::setFavorite(bool favorite) {
     } else {
         this->badgeFavorite->setVisibility(brls::Visibility::GONE);
     }
+#ifdef PS5_NATIVE_GPU
 }
+#else
+}
+#endif

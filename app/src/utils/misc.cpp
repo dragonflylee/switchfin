@@ -3,7 +3,11 @@
 #include <borealis/core/i18n.hpp>
 #include <fmt/chrono.h>
 #include <algorithm>
+#ifdef PS5_NATIVE_GPU
+#include "utils/ps5_native_random.hpp"
+#else
 #include <random>
+#endif
 #include <sstream>
 #include <iomanip>
 
@@ -182,6 +186,9 @@ std::string misc::formatTime(const std::string& str) {
 }
 
 std::string misc::randHex(const int len) {
+#ifdef PS5_NATIVE_GPU
+    return ps5_native_random::hex(len);
+#else
     std::stringstream ss;
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -191,6 +198,7 @@ std::string misc::randHex(const int len) {
         ss << std::hex << std::setw(2) << std::setfill('0') << dis(gen);
     }
     return ss.str();
+#endif
 }
 
 std::string misc::hexEncode(const unsigned char* data, size_t len) {
@@ -302,4 +310,8 @@ std::string encode(const std::string& input) {
     return encoded;
 }
 
+#ifdef PS5_NATIVE_GPU
 }  // namespace base64
+#else
+}  // namespace base64
+#endif

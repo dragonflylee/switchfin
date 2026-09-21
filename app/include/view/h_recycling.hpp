@@ -54,6 +54,9 @@ private:
     float paddingLeft = 0;
 
     bool requestNextPage = false;
+#ifdef PS5_NATIVE_GPU
+    bool reloading = false;
+#endif
     std::function<void()> nextPageCallback = nullptr;
 
     brls::Rect renderedFrame;
@@ -62,4 +65,11 @@ private:
     void cellsRecyclingLoop();
     void addCellAt(size_t index, int downSide);
     bool checkHeight();
+#ifdef PS5_NATIVE_GPU
+    brls::View* focusedCell() const;
+    size_t selectedIndex() const;
+    void reloadData(size_t selected);
 };
+#else
+};
+#endif

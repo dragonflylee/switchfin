@@ -13,6 +13,10 @@ public:
 
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override;
 
+#ifdef PS5_NATIVE_GPU
+    void retryArtwork(RecyclingGridItem* cell, size_t index) override;
+
+#endif
     void onItemSelected(brls::Box* recycler, size_t index) override;
 
     void clearData() override;
