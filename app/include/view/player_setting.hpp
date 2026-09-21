@@ -18,8 +18,8 @@ public:
 
     View* getDefaultFocus() override { return this->settings->getDefaultFocus(); }
 
-    inline static int selectedSubtitle = 0;
-    inline static int selectedAudio = 0;
+    inline static int selectedSubtitle = -1;
+    inline static int selectedAudio = -1;
 
     enum class Equalizer {
         BRIGHTNESS,

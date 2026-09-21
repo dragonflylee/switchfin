@@ -295,21 +295,22 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
         },
     };
 
-    brls::Logger::debug("PlaybackInfo Audio:{} Sub:{}", PlayerSetting::selectedAudio, PlayerSetting::selectedSubtitle);
+    nlohmann::json param = {
+        {"UserId", AppConfig::instance().getUserId()},
+        {"MediaSourceId", this->sourceId},
+#if defined(__PSV__)
+        {"AlwaysBurnInSubtitleWhenTranscoding", PlayerSetting::selectedSubtitle > 0},
+#endif
+        {"AllowAudioStreamCopy", true},
+        {"DeviceProfile", profile},
+    };
+
+    if (PlayerSetting::selectedAudio > 0) param.push_back({"AudioStreamIndex", PlayerSetting::selectedAudio});
+    if (PlayerSetting::selectedSubtitle > 0) param.push_back({"SubtitleStreamIndex", PlayerSetting::selectedSubtitle});
 
     ASYNC_RETAIN
     jellyfin::postJSON(
-        {
-            {"UserId", AppConfig::instance().getUserId()},
-            {"MediaSourceId", this->sourceId},
-            {"AudioStreamIndex", PlayerSetting::selectedAudio},
-            {"SubtitleStreamIndex", PlayerSetting::selectedSubtitle},
-#if defined(__PSV__)
-            {"AlwaysBurnInSubtitleWhenTranscoding", PlayerSetting::selectedSubtitle > 0},
-#endif
-            {"AllowAudioStreamCopy", true},
-            {"DeviceProfile", profile},
-        },
+        param,
         [ASYNC_TOKEN, seekTicks](const jellyfin::PlaybackResult& r) {
             ASYNC_RELEASE
 
