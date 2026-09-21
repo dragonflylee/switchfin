@@ -38,8 +38,8 @@ public:
         const std::vector<track_selection::MpvTrack>& tracks, const track_selection::SourceIdentity& source,
         bool subtitleBurnedIn, uint64_t expectedGeneration = trackLoadGeneration);
 #else
-    inline static int selectedSubtitle = 0;
-    inline static int selectedAudio = 0;
+    inline static int selectedSubtitle = -1;
+    inline static int selectedAudio = -1;
 #endif
 
     enum class Equalizer {
