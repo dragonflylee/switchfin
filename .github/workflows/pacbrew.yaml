@@ -16,7 +16,7 @@ jobs:
     steps:
     - name: Disable autocrlf
       run: git config --global core.autocrlf false
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         sparse-checkout: scripts/ps4
     - name: Install dependency
