@@ -42,7 +42,7 @@ jobs:
           mingw-w64-${{ matrix.env }}-meson
           mingw-w64-${{ matrix.env }}-cmake
           mingw-w64-${{ matrix.env }}-cc
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         sparse-checkout: scripts/mingw64
     - name: Build packages

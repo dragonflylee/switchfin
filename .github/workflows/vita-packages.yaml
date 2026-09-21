@@ -14,7 +14,7 @@ jobs:
     container:
       image: vitasdk/vitasdk:2026.08
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         sparse-checkout: scripts/vita
     - name: Install dependency

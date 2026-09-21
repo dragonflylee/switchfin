@@ -42,11 +42,11 @@ download:
 	wget -qO- https://downloads.sourceforge.net/project/freetype/freetype2/2.14.3/freetype-2.14.3.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/GNOME/libxml2/archive/v2.15.3.tar.gz | tar zxf - -C $(TMPDIR)
 	wget -qO- https://github.com/fontconfig/fontconfig/archive/2.18.3.tar.gz | tar zxf - -C $(TMPDIR)
-	wget -qO- https://github.com/harfbuzz/harfbuzz/releases/download/14.4.0/harfbuzz-14.4.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	wget -qO- https://github.com/harfbuzz/harfbuzz/releases/download/14.5.0/harfbuzz-14.5.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/fribidi/fribidi/releases/download/v1.0.16/fribidi-1.0.16.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/libass/libass/releases/download/0.17.5/libass-0.17.5.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.5.4/dav1d-1.5.4.tar.xz | tar Jxf - -C $(TMPDIR)
-	wget -qO- https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz | tar Jxf - -C $(TMPDIR)
+	wget -qO- https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/mpv-player/mpv/archive/v0.41.0.tar.gz | tar zxf - -C $(TMPDIR)
 	git clone https://github.com/haasn/libplacebo.git -b v7.360.1 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
 	patch -d $(TMPDIR)/libwebp-1.6.0 -Nbp1 -i $(PWD)/scripts/mingw64/libwebp/0001-mingw-cmake-output.patch
@@ -110,7 +110,7 @@ fontconfig: libxm2
 	meson install -C build/fontconfig --destdir $(PREFIX)
 
 harfbuzz: freetype
-	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-14.4.0 --cross-file "$(CURDIR)/$(ABI).meson" \
+	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-14.5.0 --cross-file "$(CURDIR)/$(ABI).meson" \
 		-Dfreetype=enabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled \
 		-Dchafa=disabled -Dtests=disabled -Dintrospection=disabled \
 		-Ddocs=disabled -Ddoc_tests=false -Dutilities=disabled
@@ -137,7 +137,7 @@ dav1d:
 
 ffmpeg: mbedtls libass dav1d libwebp
 	mkdir -p build/ffmpeg && cd build/ffmpeg && \
-	$(TMPDIR)/ffmpeg-9.0.1/configure --enable-shared --disable-static --pkg-config=pkg-config \
+	$(TMPDIR)/ffmpeg-9.0.2/configure --enable-shared --disable-static --pkg-config=pkg-config \
 		--target-os=android --arch=$(firstword $(subst -, ,$(CC))) --cpu=$(CPU) --cc=$(CC) \
 		--enable-cross-compile --cross-prefix=llvm- --sysroot=$(TOOLCHAIN)/sysroot \
 		--extra-cflags="-I$(PREFIX)/include $(CPUFLAGS)" --extra-ldflags="-L$(PREFIX)/lib" \
