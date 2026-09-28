@@ -5,16 +5,37 @@
 #include "api/jellyfin.hpp"
 #include "view/mpv_core.hpp"
 
-std::string DownloadManager::downloadDir() const { return AppConfig::instance().downloadDir(); }
+namespace {
+
+void removeDirAsync(const std::string& dir) {
+    brls::async([dir]() {
+        try {
+            if (fs::exists(dir)) fs::remove_all(dir);
+        } catch (const std::exception& e) {
+            brls::Logger::error("Failed to remove download dir: {}", e.what());
+        }
+    });
+}
+
+std::string extensionOf(const std::string& path, const std::string& fallback) {
+    auto dot = path.find_last_of('.');
+    if (dot == std::string::npos || dot + 1 >= path.size()) return fallback;
+    std::string ext = path.substr(dot + 1);
+    std::transform(
+        ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return static_cast<char>(::tolower(c)); });
+    return ext;
+}
+
+}  // namespace
+
+std::string DownloadManager::downloadDir() const { return AppConfig::instance().configDir() + "/downloads"; }
 
 void DownloadManager::init() {
     this->loadIndex();
 
     std::lock_guard<std::mutex> lock(this->mutex);
     for (auto& item : this->items) {
-        if (item.status == DownloadStatus::Downloading) {
-            item.status = DownloadStatus::Queued;
-        }
+        if (item.status == DownloadStatus::Downloading) item.status = DownloadStatus::Queued;
     }
     this->saveIndex();
 }
@@ -44,38 +65,52 @@ void DownloadManager::saveIndex() {
 }
 
 void DownloadManager::addDownload(const std::string& itemId, DownloadQuality quality) {
-    std::lock_guard<std::mutex> lock(this->mutex);
-
-    for (auto& existing : this->items) {
-        if (existing.itemId == itemId) {
-            brls::Logger::info("Already exists: {}", itemId);
-            return;
+    {
+        std::lock_guard<std::mutex> lock(this->mutex);
+        for (auto& existing : this->items) {
+            if (existing.itemId == itemId && existing.status != DownloadStatus::Failed &&
+                existing.status != DownloadStatus::Cancelled) {
+                brls::Logger::info("Download already queued: {}", itemId);
+                return;
+            }
         }
     }
 
     jellyfin::getJSON<jellyfin::Episode>(
         [this, quality](const jellyfin::Episode& item) {
-            std::lock_guard<std::mutex> lock(this->mutex);
+            {
+                std::lock_guard<std::mutex> lock(this->mutex);
 
-            DownloadItem dl;
-            dl.itemId = item.Id;
-            dl.name = item.Name;
-            dl.type = item.Type;
-            dl.seriesName = item.SeriesName;
-            dl.seasonIndex = item.ParentIndexNumber;
-            dl.episodeIndex = item.IndexNumber;
-            dl.productionYear = item.ProductionYear;
-            dl.runTimeTicks = item.RunTimeTicks;
-            dl.quality = quality;
-            dl.status = DownloadStatus::Queued;
-            if (item.SeriesId.is_string()) dl.seriesId = item.SeriesId.get<std::string>();
-            for (auto& src : item.MediaSources) dl.filePath = src.Name;
+                auto dl = std::find_if(this->items.begin(), this->items.end(),
+                    [&item](const DownloadItem& existing) { return existing.itemId == item.Id; });
+                if (dl == this->items.end()) {
+                    this->items.emplace_back();
+                    dl = std::prev(this->items.end());
+                }
 
-            auto primaryTag = item.ImageTags.find(jellyfin::imageTypePrimary);
-            if (primaryTag != item.ImageTags.end()) dl.imagePrimaryTag = primaryTag->second;
+                dl->itemId = item.Id;
+                dl->name = item.Name;
+                dl->type = item.Type;
+                dl->seriesName = item.SeriesName;
+                dl->seasonIndex = item.ParentIndexNumber;
+                dl->episodeIndex = item.IndexNumber;
+                dl->productionYear = item.ProductionYear;
+                dl->runTimeTicks = item.RunTimeTicks;
+                dl->quality = quality;
+                dl->status = DownloadStatus::Queued;
+                dl->errorMessage.clear();
+                dl->filePath.clear();
+                dl->downloadedBytes = 0;
+                dl->totalBytes = 0;
+                dl->pendingRemove = false;
+                if (item.SeriesId.is_string()) dl->seriesId = item.SeriesId.get<std::string>();
+                if (!item.MediaSources.empty()) dl->mediaSourceId = item.MediaSources.front().Id;
 
-            this->items.push_back(dl);
-            this->saveIndex();
+                auto primaryTag = item.ImageTags.find(jellyfin::imageTypePrimary);
+                if (primaryTag != item.ImageTags.end()) dl->imagePrimaryTag = primaryTag->second;
+
+                this->saveIndex();
+            }
             brls::Logger::info("Download queued: {}", item.Name);
             this->processQueue();
         },
@@ -83,78 +118,63 @@ void DownloadManager::addDownload(const std::string& itemId, DownloadQuality qua
         AppConfig::instance().getUserId(), itemId);
 }
 
-void DownloadManager::resumeQueue() {
-    std::lock_guard<std::mutex> lock(this->mutex);
-    this->processQueue();
-}
+void DownloadManager::resumeQueue() { this->processQueue(); }
 
 void DownloadManager::cancelDownload(const std::string& itemId) {
-    bool erased = false;
+    DownloadStatus result = DownloadStatus::NotFound;
+    bool active = false;
     {
         std::lock_guard<std::mutex> lock(this->mutex);
 
-        for (auto& item : this->items) {
-            if (item.itemId == itemId && item.status == DownloadStatus::Downloading && this->currentCancel) {
-                this->currentCancel->store(true);
-                return;
-            }
+        auto it = this->cancels.find(itemId);
+        if (it != this->cancels.end()) {
+            it->second->store(true);
+            active = true;
         }
 
-        for (auto it = this->items.begin(); it != this->items.end(); ++it) {
-            if (it->itemId == itemId && it->status == DownloadStatus::Queued) {
-                this->items.erase(it);
+        for (auto d = this->items.begin(); d != this->items.end(); ++d) {
+            if (d->itemId == itemId && d->status == DownloadStatus::Queued) {
+                d = this->items.erase(d);
                 this->saveIndex();
-                erased = true;
+                result = DownloadStatus::Cancelled;
                 break;
             }
         }
     }
 
-    if (erased) {
-        brls::sync([this, itemId]() { this->statusEvent.fire(itemId, DownloadStatus::Failed); });
-    }
+    // Fire outside the lock: subscribers re-enter findItem(), which locks it.
+    if (!active) this->statusEvent.fire(itemId, result);
 }
 
 void DownloadManager::removeDownload(const std::string& itemId) {
-    bool wasActive = false;
-    bool erased = false;
+    bool removed = false;
     {
         std::lock_guard<std::mutex> lock(this->mutex);
 
-        for (auto& item : this->items) {
-            if (item.itemId == itemId && item.status == DownloadStatus::Downloading && this->currentCancel) {
-                this->currentCancel->store(true);
-                item.errorMessage = "removed";
-                wasActive = true;
-                break;
-            }
-        }
-
-        if (!wasActive) {
-            for (auto it = this->items.begin(); it != this->items.end(); ++it) {
-                if (it->itemId == itemId) {
-                    this->items.erase(it);
-                    erased = true;
+        auto it = this->cancels.find(itemId);
+        if (it != this->cancels.end()) {
+            for (auto& item : this->items) {
+                if (item.itemId == itemId) {
+                    item.pendingRemove = true;
                     break;
                 }
             }
-            this->saveIndex();
+            it->second->store(true);
+        } else {
+            for (auto d = this->items.begin(); d != this->items.end(); ++d) {
+                if (d->itemId == itemId) {
+                    this->items.erase(d);
+                    this->saveIndex();
+                    removed = true;
+                    break;
+                }
+            }
         }
     }
 
-    if (!wasActive) {
-        std::string dir = this->downloadDir() + "/" + itemId;
-        brls::async([dir]() {
-            try {
-                if (fs::exists(dir)) fs::remove_all(dir);
-            } catch (const std::exception& e) {
-                brls::Logger::error("Failed to remove download dir: {}", e.what());
-            }
-        });
-    }
-
-    if (erased) {
-        brls::sync([this, itemId]() { this->statusEvent.fire(itemId, DownloadStatus::Failed); });
+    if (removed) {
+        removeDirAsync(this->downloadDir() + "/" + itemId);
+        this->statusEvent.fire(itemId, DownloadStatus::NotFound);
     }
 }
 
@@ -195,148 +215,155 @@ std::vector<DownloadItem> DownloadManager::getItems() const {
 
 std::string DownloadManager::buildDownloadUrl(const DownloadItem& item) const {
     auto& conf = AppConfig::instance();
-    std::string server = conf.getUrl();
-    std::string token = conf.getToken();
+    const std::string& server = conf.getUrl();
+    const std::string& token = conf.getToken();
 
-    switch (item.quality) {
-    case DownloadQuality::Original:
-        return server +
-               fmt::format(fmt::runtime(jellyfin::apiDownload), item.itemId, HTTP::encode_form({{"api_key", token}}));
-    case DownloadQuality::Q1080p:
-        return server + fmt::format(fmt::runtime(jellyfin::apiStream), item.itemId,
-                            HTTP::encode_form({
-                                {"static", "false"},
-                                {"mediaSourceId", item.itemId},
-                                {"videoCodec", MPVCore::VIDEO_CODEC},
-                                {"audioCodec", "aac"},
-                                {"maxStreamingBitrate", "4000000"},
-                                {"maxHeight", "1080"},
-                                {"api_key", token},
-                            }));
-    case DownloadQuality::Q720p:
-        return server + fmt::format(fmt::runtime(jellyfin::apiStream), item.itemId,
-                            HTTP::encode_form({
-                                {"static", "false"},
-                                {"mediaSourceId", item.itemId},
-                                {"videoCodec", MPVCore::VIDEO_CODEC},
-                                {"audioCodec", "aac"},
-                                {"maxStreamingBitrate", "2000000"},
-                                {"maxHeight", "720"},
-                                {"api_key", token},
-                            }));
-    case DownloadQuality::Q480p:
-        return server + fmt::format(fmt::runtime(jellyfin::apiStream), item.itemId,
-                            HTTP::encode_form({
-                                {"static", "false"},
-                                {"mediaSourceId", item.itemId},
-                                {"videoCodec", MPVCore::VIDEO_CODEC},
-                                {"audioCodec", "aac"},
-                                {"maxStreamingBitrate", "1000000"},
-                                {"maxHeight", "480"},
-                                {"api_key", token},
-                            }));
+    if (item.quality == DownloadQuality::Original) {
+        std::string query = HTTP::encode_form({{"api_key", token}});
+        return server + fmt::format(fmt::runtime(jellyfin::apiDownload), item.itemId, query);
+    }
+
+    struct Preset {
+        DownloadQuality quality;
+        const char* bitrate;
+        const char* height;
+    };
+    static const Preset presets[] = {
+        {DownloadQuality::Q1080p, "4000000", "1080"},
+        {DownloadQuality::Q720p, "2000000", "720"},
+        {DownloadQuality::Q480p, "1000000", "480"},
+    };
+
+    for (const auto& p : presets) {
+        if (p.quality == item.quality) {
+            std::string query = HTTP::encode_form({
+                {"static", "false"},
+                {"mediaSourceId", item.mediaSourceId.empty() ? item.itemId : item.mediaSourceId},
+                {"videoCodec", MPVCore::VIDEO_CODEC},
+                {"audioCodec", "aac"},
+                {"maxStreamingBitrate", p.bitrate},
+                {"maxHeight", p.height},
+                {"api_key", token},
+            });
+            return server + fmt::format(fmt::runtime(jellyfin::apiStream), item.itemId, query);
+        }
     }
     return "";
 }
 
-// Must be called with mutex held
+// The event bus and the screen-dim API must run outside `mutex`: subscribers
+// re-enter findItem() and would otherwise self-deadlock the caller's thread.
 void DownloadManager::processQueue() {
-    if (this->downloading) return;
+    std::string itemId;
+    {
+        std::lock_guard<std::mutex> lock(this->mutex);
+        if (!this->cancels.empty()) return;
 
-    for (auto& item : this->items) {
-        if (item.status == DownloadStatus::Queued) {
-            this->downloading = true;
-            brls::Application::getPlatform()->disableScreenDimming(true, "Downloading");
-            this->doDownload(item);
-            return;
+        for (auto& item : this->items) {
+            if (item.status != DownloadStatus::Queued) continue;
+
+            item.status = DownloadStatus::Downloading;
+            this->cancels[item.itemId] = std::make_shared<std::atomic_bool>(false);
+            itemId = item.itemId;
+            this->saveIndex();
+            break;
         }
     }
 
-    auto& mpv = MPVCore::instance();
-    if (mpv.isStopped()) brls::Application::getPlatform()->disableScreenDimming(false, "Downloading");
+    if (itemId.empty()) {
+        if (MPVCore::instance().isStopped()) {
+            brls::Application::getPlatform()->disableScreenDimming(false, "Downloading");
+        }
+        return;
+    }
+
+    brls::Application::getPlatform()->disableScreenDimming(true, "Downloading");
+    this->statusEvent.fire(itemId, DownloadStatus::Downloading);
+    this->doDownload(itemId);
 }
 
-// Must be called with mutex held. Copies what it needs, then releases via async.
-void DownloadManager::doDownload(DownloadItem& item) {
-    item.status = DownloadStatus::Downloading;
+void DownloadManager::doDownload(const std::string& itemId) {
+    std::string imagePrimaryTag;
+    DownloadQuality quality = DownloadQuality::Original;
+    std::string url;
+    HTTP::Cancel cancel;
+    {
+        std::lock_guard<std::mutex> lock(this->mutex);
+        auto it = std::find_if(this->items.begin(), this->items.end(),
+            [&itemId](const DownloadItem& item) { return item.itemId == itemId; });
+        if (it == this->items.end()) return;
 
-    std::string itemId = item.itemId;
-    std::string imagePrimaryTag = item.imagePrimaryTag;
-    DownloadQuality quality = item.quality;
-    std::string url = this->buildDownloadUrl(item);
+        imagePrimaryTag = it->imagePrimaryTag;
+        quality = it->quality;
+        url = this->buildDownloadUrl(*it);
+
+        auto c = this->cancels.find(itemId);
+        cancel = c == this->cancels.end() ? std::make_shared<std::atomic_bool>(false) : c->second;
+    }
     std::string itemDir = this->downloadDir() + "/" + itemId;
 
-    this->saveIndex();
-
-    auto cancel = std::make_shared<std::atomic_bool>(false);
-    this->currentCancel = cancel;
-
-    brls::sync([this, itemId]() { this->statusEvent.fire(itemId, DownloadStatus::Downloading); });
-
     ThreadPool::instance().submit([this, itemId, imagePrimaryTag, quality, url, itemDir, cancel](HTTP&) {
-        auto resetQueue = [this, itemId](const std::string& error) {
-            brls::sync([this, itemId, error]() {
+        auto& conf = AppConfig::instance();
+        std::string server = conf.getUrl();
+        std::string detailUrl = server + fmt::format(fmt::runtime(jellyfin::apiUserItem), conf.getUserId(), itemId);
+        auto finish = [this, itemId, itemDir](DownloadStatus status, const std::string& error) {
+            brls::sync([this, itemId, itemDir, status, error]() {
+                bool removed = false;
                 {
                     std::lock_guard<std::mutex> lock(this->mutex);
-                    for (auto& item : this->items) {
-                        if (item.itemId == itemId) {
-                            item.status = DownloadStatus::Failed;
-                            item.errorMessage = error;
+
+                    for (auto it = this->items.begin(); it != this->items.end(); ++it) {
+                        if (it->itemId == itemId) {
+                            if (it->pendingRemove) {
+                                removed = true;
+                                this->items.erase(it);
+                            } else {
+                                it->status = status;
+                                it->errorMessage = error;
+                            }
                             break;
                         }
                     }
-                    this->downloading = false;
-                    this->currentCancel.reset();
+                    this->cancels.erase(itemId);
                     this->saveIndex();
                 }
-                this->statusEvent.fire(itemId, DownloadStatus::Failed);
-                {
-                    std::lock_guard<std::mutex> lock(this->mutex);
-                    this->processQueue();
-                }
+
+                // Fire outside the lock: subscribers re-enter findItem().
+                this->statusEvent.fire(itemId, removed ? DownloadStatus::NotFound : status);
+                if (removed) removeDirAsync(itemDir);
+
+                this->processQueue();
             });
         };
 
-        try {
-            if (!fs::exists(itemDir)) fs::create_directories(itemDir);
-        } catch (const std::exception& e) {
-            brls::Logger::error("Failed to create download dir: {}", e.what());
-            resetQueue(e.what());
-            return;
-        }
-
-        auto& conf = AppConfig::instance();
-        HTTP::Header header = {conf.getAuth(conf.getToken())};
-
-        std::string ext = "mp4";
-        if (cancel->load()) {
-            resetQueue("Cancelled");
-            return;
-        }
-        if (quality == DownloadQuality::Original) {
+        if (!cancel->load()) {
             try {
-                auto resp = HTTP::get(
-                    conf.getUrl() + fmt::format(fmt::runtime(jellyfin::apiUserItem), conf.getUserId(), itemId), header,
-                    HTTP::Timeout{});
-                if (!resp.empty()) {
-                    auto detail = nlohmann::json::parse(resp).get<jellyfin::Detail>();
-                    if (!detail.MediaSources.empty()) {
-                        auto& path = detail.MediaSources[0].Path;
-                        auto dot = path.find_last_of('.');
-                        if (dot != std::string::npos) {
-                            ext = path.substr(dot + 1);
-                            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-                        }
-                    }
-                }
+                if (!fs::exists(itemDir)) fs::create_directories(itemDir);
             } catch (const std::exception& e) {
-                brls::Logger::warning("Failed to fetch item detail for extension: {}", e.what());
+                brls::Logger::error("Failed to create download dir: {}", e.what());
+                finish(DownloadStatus::Failed, e.what());
+                return;
             }
         }
 
-        std::string fileName = "video." + ext;
-        std::string filePath = itemDir + "/" + fileName;
+        HTTP::Header header = {AppConfig::instance().getAuth(AppConfig::instance().getToken())};
 
+        jellyfin::Detail detail;
+        if (!cancel->load()) {
+            try {
+                auto resp = HTTP::get(detailUrl, header, HTTP::Timeout{});
+                if (!resp.empty()) detail = nlohmann::json::parse(resp).get<jellyfin::Detail>();
+            } catch (const std::exception& e) {
+                brls::Logger::warning("Failed to fetch item detail for {}: {}", itemId, e.what());
+            }
+        }
+
+        std::string ext = "mp4";
+        if (quality == DownloadQuality::Original && !detail.MediaSources.empty()) {
+            ext = extensionOf(detail.MediaSources.front().Path, "mp4");
+        }
+
+        std::string fileName = "video." + ext;
         {
             std::lock_guard<std::mutex> lock(this->mutex);
             for (auto& it : this->items) {
@@ -350,37 +377,33 @@ void DownloadManager::doDownload(DownloadItem& item) {
 
         if (!imagePrimaryTag.empty() && !cancel->load()) {
             try {
-                std::string thumbUrl = fmt::format("{}/Items/{}/Images/Primary?format=Png&{}", conf.getUrl(), itemId,
+                std::string thumbUrl = fmt::format("{}/Items/{}/Images/Primary?format=Png&{}", server, itemId,
                     HTTP::encode_form({{"tag", imagePrimaryTag}, {"maxWidth", "300"}}));
-                HTTP::download(thumbUrl, itemDir + "/thumb.png", HTTP::Timeout{});
+                HTTP::download(thumbUrl, itemDir + "/thumb.png", HTTP::Timeout{}, cancel);
             } catch (const std::exception& e) {
-                fs::remove(itemDir + "/thumb.png");
+                std::error_code ec;
+                fs::remove(itemDir + "/thumb.png", ec);
                 brls::Logger::warning("Failed to download thumbnail: {}", e.what());
             }
         }
 
         if (!cancel->load()) {
-            try {
-                std::string subUrl = fmt::format(fmt::runtime(jellyfin::apiUserItem), conf.getUserId(), itemId);
-                auto resp = HTTP::get(conf.getUrl() + subUrl, header, HTTP::Timeout{});
-                auto detail = nlohmann::json::parse(resp).get<jellyfin::Detail>();
-                for (const auto& src : detail.MediaSources) {
-                    for (const auto& stream : src.MediaStreams) {
-                        if (stream.Type != jellyfin::streamTypeSubtitle) continue;
-                        std::string subUrl = misc::buildSubtitleUrl(conf.getUrl(), itemId, src.Id, stream.Index,
-                            stream.Codec, stream.IsExternal, stream.DeliveryUrl);
-                        if (subUrl.empty()) continue;
-                        std::string subFileName = fmt::format("sub_{}.{}", stream.Index, misc::codec2Ext(stream.Codec));
-                        try {
-                            HTTP::download(subUrl, itemDir + "/" + subFileName, HTTP::Timeout{});
-                            brls::Logger::info("Downloaded subtitle: {}", subFileName);
-                        } catch (const std::exception& e) {
-                            brls::Logger::warning("Failed to download subtitle stream {}: {}", stream.Index, e.what());
-                        }
+            for (const auto& src : detail.MediaSources) {
+                if (cancel->load()) break;
+                for (const auto& stream : src.MediaStreams) {
+                    if (stream.Type != jellyfin::streamTypeSubtitle) continue;
+                    std::string subUrl = misc::buildSubtitleUrl(
+                        server, itemId, src.Id, stream.Index, stream.Codec, stream.IsExternal, stream.DeliveryUrl);
+                    if (subUrl.empty()) continue;
+
+                    std::string subFileName = fmt::format("sub_{}.{}", stream.Index, misc::codec2Ext(stream.Codec));
+                    try {
+                        HTTP::download(subUrl, itemDir + "/" + subFileName, HTTP::Timeout{}, cancel);
+                        brls::Logger::info("Downloaded subtitle: {}", subFileName);
+                    } catch (const std::exception& e) {
+                        brls::Logger::warning("Failed to download subtitle stream {}: {}", stream.Index, e.what());
                     }
                 }
-            } catch (const std::exception& e) {
-                brls::Logger::warning("Failed to fetch item subtitles for download: {}", e.what());
             }
         }
 
@@ -405,96 +428,32 @@ void DownloadManager::doDownload(DownloadItem& item) {
             });
         };
 
-        bool cancelled = false;
-        bool success = false;
         std::string error;
+        {
+            try {
+                std::ofstream of(itemDir + "/" + fileName, std::ios::binary);
+                if (!of) throw std::runtime_error("Failed to open file for writing");
 
-        try {
-            std::ofstream of(filePath, std::ios::binary);
-            if (!of) throw std::runtime_error("Failed to open file for writing");
-
-            HTTP s;
-            HTTP::set_option(s, header, cancel, progressCb);
-            s._get(url, &of);
-            of.close();
-
-            cancelled = cancel->load();
-            if (!cancelled) success = true;
-        } catch (const std::exception& ex) {
-            error = ex.what();
-            brls::Logger::error("Download failed: {} - {}", itemId, error);
+                HTTP s;
+                HTTP::set_option(s, header, cancel, progressCb);
+                s._get(url, &of);
+                of.close();
+            } catch (const std::exception& ex) {
+                error = ex.what();
+                brls::Logger::error("Download failed: {} - {}", itemId, error);
+            }
         }
 
-        brls::sync([this, itemId, fileName, cancelled, success, error]() {
-            DownloadStatus finalStatus = DownloadStatus::Failed;
+        if (cancel->load()) {
+            finish(DownloadStatus::Cancelled, "");
+            return;
+        }
+        if (!error.empty()) {
+            finish(DownloadStatus::Failed, error);
+            return;
+        }
 
-            {
-                std::lock_guard<std::mutex> lock(this->mutex);
-
-                if (cancelled) {
-                    bool removed = false;
-                    for (auto it = this->items.begin(); it != this->items.end(); ++it) {
-                        if (it->itemId == itemId) {
-                            if (it->errorMessage == "removed") {
-                                this->items.erase(it);
-                                removed = true;
-                            } else {
-                                it->status = DownloadStatus::Failed;
-                                it->errorMessage = "Cancelled";
-                            }
-                            break;
-                        }
-                    }
-                    this->saveIndex();
-                    if (removed) {
-                        std::string dir = this->downloadDir() + "/" + itemId;
-                        brls::async([dir]() {
-                            try {
-                                if (fs::exists(dir)) fs::remove_all(dir);
-                            } catch (const std::exception& e) {
-                                brls::Logger::error("Failed to remove download dir: {}", e.what());
-                            }
-                        });
-                    }
-                } else if (success) {
-                    finalStatus = DownloadStatus::Completed;
-                    for (auto& item : this->items) {
-                        if (item.itemId == itemId) {
-                            item.status = DownloadStatus::Completed;
-                            item.filePath = fileName;
-
-                            std::string metaPath = this->downloadDir() + "/" + itemId + "/metadata.json";
-                            try {
-                                nlohmann::json j = item;
-                                std::ofstream f(metaPath);
-                                f << j.dump(2);
-                            } catch (...) {
-                            }
-                            break;
-                        }
-                    }
-                    this->saveIndex();
-                    brls::Logger::info("Download completed: {}", itemId);
-                } else {
-                    for (auto& item : this->items) {
-                        if (item.itemId == itemId) {
-                            item.status = DownloadStatus::Failed;
-                            item.errorMessage = error;
-                            break;
-                        }
-                    }
-                    this->saveIndex();
-                }
-
-                this->downloading = false;
-                this->currentCancel.reset();
-            }
-
-            this->statusEvent.fire(itemId, finalStatus);
-            {
-                std::lock_guard<std::mutex> lock(this->mutex);
-                this->processQueue();
-            }
-        });
+        brls::Logger::info("Download completed: {}", itemId);
+        finish(DownloadStatus::Completed, "");
     });
 }

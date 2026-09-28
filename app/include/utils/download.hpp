@@ -1,13 +1,13 @@
 #pragma once
 
 #include <borealis/core/singleton.hpp>
-#include <borealis/core/event.hpp>
 #include <nlohmann/json.hpp>
-#include <atomic>
+#include <map>
 #include <mutex>
-#include <vector>
 
-enum class DownloadStatus { Queued, Downloading, Completed, Failed, NotFound };
+#include "api/http.hpp"
+
+enum class DownloadStatus { Queued, Downloading, Completed, Failed, Cancelled, NotFound };
 enum class DownloadQuality { Original, Q1080p, Q720p, Q480p };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(DownloadStatus, {
@@ -35,15 +35,17 @@ struct DownloadItem {
     long productionYear = 0;
     uint64_t runTimeTicks = 0;
     std::string imagePrimaryTag;
+    std::string mediaSourceId;
     DownloadQuality quality = DownloadQuality::Original;
     DownloadStatus status = DownloadStatus::Queued;
     std::string filePath;
-    int64_t totalBytes = 0;
-    int64_t downloadedBytes = 0;
+    uint64_t totalBytes = 0;
+    uint64_t downloadedBytes = 0;
     std::string errorMessage;
+    bool pendingRemove = false;  // transient, not persisted
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(DownloadItem, itemId, name, type, seriesId, seriesName,
-    seasonIndex, episodeIndex, productionYear, runTimeTicks, imagePrimaryTag, quality, status,
+    seasonIndex, episodeIndex, productionYear, runTimeTicks, imagePrimaryTag, mediaSourceId, quality, status,
     filePath, totalBytes, downloadedBytes, errorMessage);
 
 class DownloadManager : public brls::Singleton<DownloadManager> {
@@ -72,13 +74,12 @@ private:
     void saveIndex();
     void loadIndex();
     void processQueue();
-    void doDownload(DownloadItem& item);
+    void doDownload(const std::string& itemId);
     std::string buildDownloadUrl(const DownloadItem& item) const;
 
     mutable std::mutex mutex;
     std::vector<DownloadItem> items;
-    std::shared_ptr<std::atomic_bool> currentCancel;
-    bool downloading = false;
+    std::map<std::string, HTTP::Cancel> cancels;  // one token per in-flight item
 
     ProgressEvent progressEvent;
     StatusEvent statusEvent;

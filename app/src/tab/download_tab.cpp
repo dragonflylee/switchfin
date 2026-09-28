@@ -135,6 +135,10 @@ public:
             this->status->setText("main/download/failed"_i18n);
             this->status->setTextColor(theme.getColor("color/danger"));
             break;
+        case DownloadStatus::Cancelled:
+            this->status->setText("hints/cancel"_i18n);
+            this->status->setTextColor(theme.getColor("font/grey"));
+            break;
         default:;
         }
     }
@@ -195,8 +199,9 @@ public:
             if (it.status == DownloadStatus::Completed && it.totalBytes <= 0 && !it.filePath.empty()) {
                 // inherited index without Content-Length: real file size
                 try {
-                    it.totalBytes = (int64_t)fs::file_size(this->dlDir + "/" + it.itemId + "/" + it.filePath);
-                } catch (const std::exception&) {
+                    it.totalBytes = fs::file_size(fmt::format("{}/{}/{}", this->dlDir, it.itemId, it.filePath));
+                } catch (const std::exception& ex) {
+                    brls::Logger::warning("file_size {}: {}", it.filePath, ex.what());
                 }
             }
             bool isActive = it.status == DownloadStatus::Downloading || it.status == DownloadStatus::Queued;
@@ -247,7 +252,7 @@ public:
                 "main/download/confirm_cancel"_i18n, [id]() { DownloadManager::instance().cancelDownload(id); });
         } else if (item.status == DownloadStatus::Queued) {
             DownloadManager::instance().resumeQueue();
-        } else if (item.status == DownloadStatus::Failed) {
+        } else if (item.status == DownloadStatus::Failed || item.status == DownloadStatus::Cancelled) {
             std::string id = item.itemId;
             Dialog::cancelable(
                 "main/download/confirm_remove"_i18n, [id]() { DownloadManager::instance().removeDownload(id); });
