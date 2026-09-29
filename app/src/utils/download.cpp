@@ -5,13 +5,9 @@
 #include "api/jellyfin.hpp"
 #include "view/mpv_core.hpp"
 
-std::string DownloadManager::downloadDir() const { return AppConfig::instance().configDir() + "/downloads"; }
+std::string DownloadManager::downloadDir() const { return AppConfig::instance().downloadDir(); }
 
 void DownloadManager::init() {
-    auto dir = this->downloadDir();
-    if (!fs::exists(dir)) {
-        fs::create_directories(dir);
-    }
     this->loadIndex();
 
     std::lock_guard<std::mutex> lock(this->mutex);

@@ -109,6 +109,7 @@ public:
         HTTP_PROXY,
 
         DOWNLOAD_QUALITY,
+        DOWNLOAD_PATH,
 
         KEY_REFRESH,        // 刷新快捷键
         KEY_LAST,           // 上一个Tab快捷键
@@ -135,18 +136,20 @@ public:
     /// @brief 检查是否安装Danmuku插件
     bool checkDanmuku();
 
-    std::string configDir();
-    std::string ipcSocket();
+    std::string configDir() const;
+    std::string downloadDir() const;
+    std::string ipcSocket() const;
     void checkRestart(char* argv[]);
 
     template <typename T>
-    T getItem(const Item item, T defaultValue) {
-        auto& o = settingMap[item];
+    T getItem(const Item item, T defaultValue) const {
+        auto it = settingMap.find(item);
+        if (it == settingMap.end()) return defaultValue;
         try {
-            if (!setting.contains(o.key)) return defaultValue;
-            return this->setting.at(o.key).get<T>();
+            if (!setting.contains(it->second.key)) return defaultValue;
+            return this->setting.at(it->second.key).get<T>();
         } catch (const std::exception& e) {
-            brls::Logger::error("Damaged config found: {}/{}", o.key, e.what());
+            brls::Logger::error("Damaged config found: {}/{}", it->second.key, e.what());
             return defaultValue;
         }
     }

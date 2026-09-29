@@ -132,6 +132,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {HTTP_PROXY, {"http_proxy"}},
 
     {DOWNLOAD_QUALITY, {"download_quality", {"Original", "1080p", "720p", "480p"}, {0, 1, 2, 3}}},
+    {DOWNLOAD_PATH, {"download_path"}},
 
     {KEY_REFRESH, {"key_refresh"}},
     {KEY_LAST, {"key_last"}},
@@ -581,7 +582,7 @@ bool AppConfig::checkDanmuku() {
     return false;
 }
 
-std::string AppConfig::configDir() {
+std::string AppConfig::configDir() const {
 #if __SWITCH__
     return fmt::format("sdmc:/switch/{}", AppVersion::getPackageName());
 #elif defined(__PS4__)
@@ -605,7 +606,22 @@ std::string AppConfig::configDir() {
 #endif
 }
 
-std::string AppConfig::ipcSocket() {
+std::string AppConfig::downloadDir() const {
+    const std::string fallback = this->configDir() + "/downloads";
+    std::string dir = this->getItem<std::string>(AppConfig::DOWNLOAD_PATH, fallback);
+    if (dir.empty()) dir = fallback;
+
+    try {
+        auto path = fs::u8path(dir);
+        if (!fs::exists(path)) fs::create_directories(path);
+        return dir;
+    } catch (const std::exception& e) {
+        brls::Logger::warning("Invalid download dir '{}': {}", dir, e.what());
+        return fallback;
+    }
+}
+
+std::string AppConfig::ipcSocket() const {
 #ifdef _WIN32
     return "\\\\.\\pipe\\" + AppVersion::getPackageName();
 #else

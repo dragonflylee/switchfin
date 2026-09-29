@@ -5,7 +5,6 @@
 #include <nlohmann/json.hpp>
 #include <atomic>
 #include <mutex>
-#include <string>
 #include <vector>
 
 enum class DownloadStatus { Queued, Downloading, Completed, Failed, NotFound };
