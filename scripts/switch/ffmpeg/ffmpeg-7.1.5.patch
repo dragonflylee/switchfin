@@ -544,7 +544,7 @@ new file mode 100644
 index 0000000000..1978fcf644
 --- /dev/null
 +++ b/libavcodec/nvtegra_decode.c
-@@ -0,0 +1,517 @@
+@@ -0,0 +1,522 @@
 +/*
 + * Copyright (c) 2024 averne <averne381@gmail.com>
 + *
@@ -691,25 +691,24 @@ index 0000000000..1978fcf644
 +}
 +
 +static void nvtegra_fdd_priv_free(void *priv) {
-+    FFNVTegraDecodeFrame    *tf = priv;
-+    FFNVTegraDecodeContext *ctx = tf->ctx;
++    FFNVTegraDecodeFrame *tf = priv;
 +
 +    if (!tf)
 +        return;
 +
 +    if (tf->in_flight)
-+        av_nvtegra_syncpt_wait(ctx->channel, tf->fence, -1);
++        av_nvtegra_syncpt_wait(tf->channel, tf->fence, -1);
 +
 +    av_buffer_unref(&tf->input_map_ref);
++    av_buffer_unref(&tf->hw_device_ref);
 +    av_freep(&tf);
 +}
 +
 +int ff_nvtegra_wait_decode(void *logctx, AVFrame *frame) {
 +    FrameDecodeData             *fdd = (FrameDecodeData *)frame->private_ref->data;
 +    FFNVTegraDecodeFrame         *tf = fdd->hwaccel_priv;
-+    FFNVTegraDecodeContext      *ctx = tf->ctx;
 +    AVNVTegraMap          *input_map = (AVNVTegraMap *)tf->input_map_ref->data;
-+    AVHWDeviceContext *hw_device_ctx = (AVHWDeviceContext *)ctx->hw_device_ref->data;
++    AVHWDeviceContext *hw_device_ctx = (AVHWDeviceContext *)tf->hw_device_ref->data;
 +
 +    nvdec_status_s *nvdec_status;
 +    nvjpg_dec_status *nvjpg_status;
@@ -722,28 +721,28 @@ index 0000000000..1978fcf644
 +
 +    mem = av_nvtegra_map_get_addr(input_map);
 +
-+    err = av_nvtegra_syncpt_wait(ctx->channel, tf->fence, -1);
++    err = av_nvtegra_syncpt_wait(tf->channel, tf->fence, -1);
 +    if (err < 0)
 +        return err;
 +
 +    tf->in_flight = false;
 +
-+    if (!ctx->is_nvjpg) {
-+        nvdec_status = (nvdec_status_s *)(mem + ctx->status_off);
++    if (!tf->is_nvjpg) {
++        nvdec_status = (nvdec_status_s *)(mem + tf->status_off);
 +        if (nvdec_status->error_status != 0 || nvdec_status->mbs_in_error != 0)
 +            return AVERROR_UNKNOWN;
 +
 +        decode_cycles = nvdec_status->cycle_count * 16;
 +    } else {
-+        nvjpg_status = (nvjpg_dec_status *)(mem + ctx->status_off);
++        nvjpg_status = (nvjpg_dec_status *)(mem + tf->status_off);
 +        if (nvjpg_status->error_status != 0 || nvjpg_status->bytes_offset == 0)
 +            return AVERROR_UNKNOWN;
 +
 +        decode_cycles = nvjpg_status->cycle_count;
 +    }
 +
-+    /* Decode time in µs: decode_cycles * 1000000 / ctx->channel->clock */
-+    err = av_nvtegra_dfs_update(hw_device_ctx, ctx->channel, tf->bitstream_len, decode_cycles);
++    /* Decode time in µs: decode_cycles * 1000000 / tf->channel->clock */
++    err = av_nvtegra_dfs_update(hw_device_ctx, tf->channel, tf->bitstream_len, decode_cycles);
 +    if (err < 0)
 +        return err;
 +
@@ -781,10 +780,13 @@ index 0000000000..1978fcf644
 +        fdd->hwaccel_priv_free = nvtegra_fdd_priv_free;
 +        fdd->post_process      = ff_nvtegra_wait_decode;
 +
-+        tf->ctx = ctx;
++        tf->channel    = ctx->channel;
++        tf->status_off = ctx->status_off;
++        tf->is_nvjpg   = ctx->is_nvjpg;
 +
++        tf->hw_device_ref = av_buffer_ref(ctx->hw_device_ref);
 +        tf->input_map_ref = av_buffer_pool_get(ctx->decoder_pool);
-+        if (!tf->input_map_ref) {
++        if (!tf->hw_device_ref || !tf->input_map_ref) {
 +            err = AVERROR(ENOMEM);
 +            goto fail;
 +        }
@@ -805,6 +807,9 @@ index 0000000000..1978fcf644
 +    return 0;
 +
 +fail:
++    fdd->hwaccel_priv      = NULL;
++    fdd->hwaccel_priv_free = NULL;
++    fdd->post_process      = NULL;
 +    nvtegra_fdd_priv_free(tf);
 +    return err;
 +}
@@ -1067,7 +1072,7 @@ new file mode 100644
 index 0000000000..5260c8b3c5
 --- /dev/null
 +++ b/libavcodec/nvtegra_decode.h
-@@ -0,0 +1,94 @@
+@@ -0,0 +1,101 @@
 +/*
 + * Copyright (c) 2024 averne <averne381@gmail.com>
 + *
@@ -1125,7 +1130,14 @@ index 0000000000..5260c8b3c5
 +} FFNVTegraDecodeContext;
 +
 +typedef struct FFNVTegraDecodeFrame {
-+    FFNVTegraDecodeContext *ctx;
++    /*
++     * Frames can outlive the hwaccel context (eg. reordered frames output after
++     * a hwaccel reinit), so keep our own device reference instead of a context pointer
++     */
++    AVBufferRef *hw_device_ref;
++    AVNVTegraChannel *channel;
++    uint32_t status_off;
++    bool is_nvjpg;
 +    AVBufferRef *input_map_ref;
 +    uint32_t fence;
 +    uint32_t bitstream_len;
