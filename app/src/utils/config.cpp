@@ -652,6 +652,7 @@ void AppConfig::checkRestart(char* argv[]) {
 
 int AppConfig::getOptionIndex(const Item item, int default_index) const {
     auto it = settingMap.find(item);
+    if (it == settingMap.end()) return default_index;
     if (setting.contains(it->second.key)) {
         try {
             std::string value = this->setting.at(it->second.key);
@@ -666,6 +667,7 @@ int AppConfig::getOptionIndex(const Item item, int default_index) const {
 
 int AppConfig::getValueIndex(const Item item, int default_index) const {
     auto it = settingMap.find(item);
+    if (it == settingMap.end()) return default_index;
     if (setting.contains(it->second.key)) {
         try {
             long value = this->setting.at(it->second.key);

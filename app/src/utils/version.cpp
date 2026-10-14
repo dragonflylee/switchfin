@@ -20,10 +20,36 @@
 #include "utils/thread.hpp"
 #include "api/http.hpp"
 
+#include <algorithm>
+#include <cctype>
+#include <vector>
+
 using namespace brls::literals;
 
 #define STR_IMPL(x) #x
 #define STR(x) STR_IMPL(x)
+
+namespace {
+// 将 "v1.10.0-beta" 之类的版本号解析为数值段；忽略前导 'v' 与预发布后缀
+std::vector<long> parseVersion(const std::string& v) {
+    std::vector<long> parts;
+    size_t i = 0;
+    if (i < v.size() && (v[i] == 'v' || v[i] == 'V')) ++i;  // 跳过可选的 'v' 前缀
+    while (i < v.size()) {
+        if (!std::isdigit(static_cast<unsigned char>(v[i]))) {
+            ++i;  // 跳过分隔符/非数字字符
+            continue;
+        }
+        long n = 0;
+        while (i < v.size() && std::isdigit(static_cast<unsigned char>(v[i]))) {
+            n = n * 10 + (v[i] - '0');
+            ++i;
+        }
+        parts.push_back(n);
+    }
+    return parts;
+}
+}  // namespace
 
 std::string AppVersion::getVersion() { return STR(APP_VERSION); }
 
@@ -112,7 +138,11 @@ std::string AppVersion::getDeviceName() {
     return fmt::format("{} for {}", getPackageName(), getPlatform());
 }
 
-bool AppVersion::needUpdate(std::string latestVersion) { return false; }
+bool AppVersion::needUpdate(const std::string& latestVersion) {
+    auto lhs = parseVersion(latestVersion);
+    auto rhs = parseVersion(getVersion());
+    return std::lexicographical_compare(rhs.begin(), rhs.end(), lhs.begin(), lhs.end());
+}
 
 void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
     if (!AppVersion::updating->load()) {
@@ -125,7 +155,7 @@ void AppVersion::checkUpdate(int delay, bool showUpToDateDialog) {
             auto resp = HTTP::get(url, HTTP::Timeout{});
             nlohmann::json j = nlohmann::json::parse(resp);
             std::string latest_ver = j.at("tag_name").get<std::string>();
-            if (latest_ver.compare(getVersion()) <= 0) {
+            if (!needUpdate(latest_ver)) {
                 brls::Logger::info("App is up to date");
                 if (showUpToDateDialog) brls::sync([]() { Dialog::show("main/setting/others/up2date"_i18n); });
                 return;
