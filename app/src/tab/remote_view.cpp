@@ -157,7 +157,7 @@ public:
             titles.push_back(mpv.getString(key));
         }
         if (titles.size() > 1) view->setList(titles, 0);
-        view->setTitie(titles.front());
+        else if (!titles.empty()) view->setTitie(titles.front());
 
         playSubscribeID = view->getPlayEvent()->subscribe([this, &mpv](int index) {
             if (index < 0 || index >= (int)titles.size()) {

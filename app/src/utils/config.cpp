@@ -537,26 +537,33 @@ bool AppConfig::checkLogin() {
     }
 
     auto is_user = [this](const AppUser& u) { return u.id == this->user_id; };
-    this->user = std::find_if(this->users.begin(), this->users.end(), is_user);
-    if (this->user == this->users.end()) return false;
+    auto userIter = std::find_if(this->users.begin(), this->users.end(), is_user);
+    if (userIter == this->users.end()) return false;
 
-    auto is_server = [this](const AppServer& s) { return s.id == this->user->server_id; };
+    auto is_server = [&userIter](const AppServer& s) { return s.id == userIter->server_id; };
     auto it = std::find_if(this->servers.begin(), this->servers.end(), is_server);
     if (it == this->servers.end()) return false;
 
     this->server_url = it->urls.front();
-    HTTP::Header header = {this->getAuth(this->user->access_token)};
+    HTTP::Header header = {this->getAuth(userIter->access_token)};
     std::string uri = fmt::format("{}/Users/{}", this->server_url, this->user_id);
     try {
         std::string resp = HTTP::get(uri, header, HTTP::Timeout{});
         jellyfin::UserInfo info = nlohmann::json::parse(resp);
-        this->user->is_admin = info.Policy.IsAdministrator;
-        this->user->config = std::move(info.Configuration);
+        userIter->is_admin = info.Policy.IsAdministrator;
+        userIter->config = std::move(info.Configuration);
         return true;
     } catch (const std::exception& ex) {
         brls::Logger::warning("AppConfig {} checkLogin: {}", this->server_url, ex.what());
         return false;
     }
+}
+
+const AppUser& AppConfig::currentUser() const {
+    static const AppUser empty{};
+    auto it = std::find_if(this->users.begin(), this->users.end(),
+        [this](const AppUser& u) { return u.id == this->user_id; });
+    return it != this->users.end() ? *it : empty;
 }
 
 bool AppConfig::checkDanmuku() {
@@ -706,11 +713,10 @@ void AppConfig::addUser(const AppUser& u, const std::string& url) {
         it->is_admin = u.is_admin;
         it->config = std::move(u.config);
     } else {
-        it = this->users.insert(it, u);
+        this->users.push_back(u);
     }
     this->server_url = url;
     this->user_id = u.id;
-    this->user = it;
     this->save();
 }
 

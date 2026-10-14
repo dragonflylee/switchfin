@@ -58,8 +58,6 @@ inline void from_json(const nlohmann::json& nlohmann_json_j, AppRemote& nlohmann
 }
 
 class AppConfig : public brls::Singleton<AppConfig> {
-    using UserIter = std::vector<AppUser>::iterator;
-
 public:
     enum Item {
         FULLSCREEN,
@@ -178,11 +176,13 @@ public:
     const std::string& getDeviceId() { return this->device; }
     std::string getAuth(const std::string& token = "");
     const std::string& getUserId() const { return this->user_id; }
-    const std::string& getUserName() const { return this->user->name; }
-    const std::string& getToken() const { return this->user->access_token; }
+    /// @brief 当前登录用户（按 user_id 匹配）；未登录时返回安全的空对象
+    const AppUser& currentUser() const;
+    const std::string& getUserName() const { return this->currentUser().name; }
+    const std::string& getToken() const { return this->currentUser().access_token; }
     const std::string& getUrl() const { return this->server_url; }
-    bool isAdmin() const { return this->user->is_admin; }
-    const jellyfin::UserConfig& userConfig() const { return this->user->config; }
+    bool isAdmin() const { return this->currentUser().is_admin; }
+    const jellyfin::UserConfig& userConfig() const { return this->currentUser().config; }
     void addRemote(const AppRemote& r);
     void updateRemote(size_t index, const AppRemote& r);
     void removeRemote(size_t index);
@@ -197,7 +197,6 @@ public:
 private:
     static std::unordered_map<Item, Option> settingMap;
 
-    UserIter user;
     std::string user_id;
     std::string server_url;
     std::string device;

@@ -164,12 +164,11 @@ void ServerList::onContentAvailable() {
 }
 
 void ServerList::willAppear(bool resetState) {
-    auto& list = AppConfig::instance().getServers();
     ServerCell* item = nullptr;
     std::string url = AppConfig::instance().getUrl();
     this->sidebarServers->clearViews();
 
-    for (auto& s : list) {
+    for (auto& s : AppConfig::instance().getServers()) {
         item = new ServerCell(s);
         item->getFocusEvent()->subscribe([&](brls::View* view) {
             this->setActive(view);
