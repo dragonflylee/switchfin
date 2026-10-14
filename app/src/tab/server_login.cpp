@@ -201,7 +201,21 @@ void ServerLogin::doQuickLogin() {
     brls::async([ASYNC_TOKEN]() {
         try {
             HTTP::Header header = {AppConfig::instance().getAuth()};
-            std::string resp = HTTP::get(this->url + jellyfin::apiQuickInitiate, header);
+			// old get api is removed in Jellyfin v12; new post api has been around since August 2020.
+			std::string resp;
+            try {
+				resp = HTTP::post(this->url + jellyfin::apiQuickInitiate,"", header);
+			} catch (const std::exception& ex) {
+            	std::string msg = ex.what();
+				if (msg.find("405") != std::string::npos){
+					// for backwards compatibility with old get api
+					std::string resp = HTTP::get(this->url + jellyfin::apiQuickInitiate, header);
+					brls::Logger::info("Using old " + jellyfin::apiQuickInitiate + " get api");
+				}
+				else {
+					throw ex;
+				}
+			}
             jellyfin::QuickConnect r = nlohmann::json::parse(resp);
             brls::sync([ASYNC_TOKEN, r]() {
                 ASYNC_RELEASE
