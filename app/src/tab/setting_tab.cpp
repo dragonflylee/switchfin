@@ -142,7 +142,6 @@ void SettingTab::onCreate() {
         }
     }
 
-/// Hardware decode
 #ifdef __SWITCH__
     btnOverClock->init(
         "main/setting/others/overclock"_i18n, conf.getItem(AppConfig::OVERCLOCK, false), [&conf](bool value) {
@@ -153,17 +152,13 @@ void SettingTab::onCreate() {
     btnOverClock->setVisibility(brls::Visibility::GONE);
 #endif
 
-/// Hardware decode
-#ifdef PS4
-    btnHWDEC->setVisibility(brls::Visibility::GONE);
-#else
+    /// Hardware decode
     btnHWDEC->init("main/setting/playback/hwdec"_i18n, MPVCore::HARDWARE_DEC, [&conf](bool value) {
         if (MPVCore::HARDWARE_DEC == value) return;
         MPVCore::HARDWARE_DEC = value;
         MPVCore::instance().restart();
         conf.setItem(AppConfig::PLAYER_HWDEC, value);
     });
-#endif
 
 #if defined(ANDROID)
     auto& voOption = conf.getOptions(AppConfig::MPV_VO);
