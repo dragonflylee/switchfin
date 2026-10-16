@@ -1,12 +1,12 @@
 diff --git a/audio/decode/ad_spdif.c b/audio/decode/ad_spdif.c
-index decd972..e578434 100644
+index decd97206d..b15cf11e45 100644
 --- a/audio/decode/ad_spdif.c
 +++ b/audio/decode/ad_spdif.c
 @@ -53,7 +53,11 @@ struct spdifContext {
      struct mp_decoder public;
  };
  
-+#if LIBAVCODEC_VERSION_MAJOR < 61
++#if LIBAVFORMAT_VERSION_MAJOR < 61
  static int write_packet(void *p, uint8_t *buf, int buf_size)
 +#else
 +static int write_packet(void *p, const uint8_t *buf, int buf_size)
@@ -14,8 +14,41 @@ index decd972..e578434 100644
  {
      struct spdifContext *ctx = p;
  
+diff --git a/demux/demux.c b/demux/demux.c
+index 3ed519318f..24ec83c9dc 100644
+--- a/demux/demux.c
++++ b/demux/demux.c
+@@ -68,6 +68,7 @@ extern const demuxer_desc_t demuxer_desc_null;
+ extern const demuxer_desc_t demuxer_desc_timeline;
+ 
+ static const demuxer_desc_t *const demuxer_list[] = {
++    &demuxer_desc_lavf,
+     &demuxer_desc_disc,
+     &demuxer_desc_edl,
+     &demuxer_desc_cue,
+@@ -77,7 +78,6 @@ static const demuxer_desc_t *const demuxer_list[] = {
+ #if HAVE_LIBARCHIVE
+     &demuxer_desc_libarchive,
+ #endif
+-    &demuxer_desc_lavf,
+     &demuxer_desc_mf,
+     &demuxer_desc_playlist,
+     &demuxer_desc_null,
+diff --git a/demux/demux_lavf.c b/demux/demux_lavf.c
+index 166bc8f908..1b1f7a43d7 100644
+--- a/demux/demux_lavf.c
++++ b/demux/demux_lavf.c
+@@ -115,7 +115,7 @@ const struct m_sub_options demux_lavf_conf = {
+     },
+     .size = sizeof(struct demux_lavf_opts),
+     .defaults = &(const struct demux_lavf_opts){
+-        .probeinfo = -1,
++        .probeinfo = 1,
+         .allow_mimetype = true,
+         .hacks = true,
+         // AVPROBE_SCORE_MAX/4 + 1 is the "recommended" limit. Below that, the
 diff --git a/filters/f_lavfi.c b/filters/f_lavfi.c
-index 597cf91..c0596d3 100644
+index 597cf91fc0..c0596d32eb 100644
 --- a/filters/f_lavfi.c
 +++ b/filters/f_lavfi.c
 @@ -1024,7 +1024,11 @@ static const char *get_avopt_type_name(enum AVOptionType type)
@@ -31,7 +64,7 @@ index 597cf91..c0596d3 100644
      case AV_OPT_TYPE_CONST: // fallthrough
      default:
 diff --git a/filters/f_swresample.c b/filters/f_swresample.c
-index fb1ef05..09148b5 100644
+index fb1ef05194..09148b5f88 100644
 --- a/filters/f_swresample.c
 +++ b/filters/f_swresample.c
 @@ -23,6 +23,7 @@
@@ -80,7 +113,7 @@ index fb1ef05..09148b5 100644
      av_opt_set_int(p->avrctx_out, "in_sample_fmt",      out_samplefmtp, 0);
      av_opt_set_int(p->avrctx_out, "out_sample_fmt",     out_samplefmt, 0);
 diff --git a/osdep/timer-linux.c b/osdep/timer-linux.c
-index 281a601..66a3bdb 100644
+index 281a6013f3..66a3bdb16a 100644
 --- a/osdep/timer-linux.c
 +++ b/osdep/timer-linux.c
 @@ -24,6 +24,8 @@
@@ -93,7 +126,7 @@ index 281a601..66a3bdb 100644
  {
      if (us < 0)
 diff --git a/osdep/timer.c b/osdep/timer.c
-index 8a52823..689c8f2 100644
+index 8a52823b0f..689c8f2ff1 100644
 --- a/osdep/timer.c
 +++ b/osdep/timer.c
 @@ -28,6 +28,8 @@
@@ -105,8 +138,265 @@ index 8a52823..689c8f2 100644
  static uint64_t raw_time_offset;
  static pthread_once_t timer_init_once = PTHREAD_ONCE_INIT;
  
+diff --git a/video/decode/vd_lavc.c b/video/decode/vd_lavc.c
+index 2106dcb56e..d1e354e035 100644
+--- a/video/decode/vd_lavc.c
++++ b/video/decode/vd_lavc.c
+@@ -1009,9 +1009,7 @@ static int get_buffer2_direct(AVCodecContext *avctx, AVFrame *pic, int flags)
+     int linesize_align[AV_NUM_DATA_POINTERS] = {0};
+     avcodec_align_dimensions2(avctx, &w, &h, linesize_align);
+ 
+-    // We assume that different alignments are just different power-of-2s.
+-    // Thus, a higher alignment always satisfies a lower alignment.
+-    int stride_align = MP_IMAGE_BYTE_ALIGN;
++    int stride_align = 0;
+     for (int n = 0; n < AV_NUM_DATA_POINTERS; n++)
+         stride_align = MPMAX(stride_align, linesize_align[n]);
+ 
+diff --git a/video/out/gpu/osd.c b/video/out/gpu/osd.c
+index 91505a987d..10aa8d1187 100644
+--- a/video/out/gpu/osd.c
++++ b/video/out/gpu/osd.c
+@@ -51,6 +51,12 @@ struct mpgl_osd_part {
+     enum sub_bitmap_format format;
+     int change_id;
+     struct ra_tex *texture;
++#ifdef __PS4__
++    // BGRA subtitles use four single-channel masks and the precompiled ASS
++    // shader. Retail Piglet cannot compile the bitmap fragment shader.
++    struct ra_tex *rgb[3];
++    int bitmap_pass;
++#endif
+     int w, h;
+     int num_subparts;
+     int prev_num_subparts;
+@@ -87,6 +93,9 @@ struct mpgl_osd *mpgl_osd_init(struct ra *ra, struct mp_log *log,
+ 
+     ctx->fmt_table[SUBBITMAP_LIBASS] = ra_find_unorm_format(ra, 1, 1);
+     ctx->fmt_table[SUBBITMAP_BGRA]   = ra_find_unorm_format(ra, 1, 4);
++#ifdef __PS4__
++    ctx->fmt_table[SUBBITMAP_BGRA] = ctx->fmt_table[SUBBITMAP_LIBASS];
++#endif
+ 
+     for (int n = 0; n < MAX_OSD_PARTS; n++)
+         ctx->parts[n] = talloc_zero(ctx, struct mpgl_osd_part);
+@@ -105,6 +114,10 @@ void mpgl_osd_destroy(struct mpgl_osd *ctx)
+     for (int n = 0; n < MAX_OSD_PARTS; n++) {
+         struct mpgl_osd_part *p = ctx->parts[n];
+         ra_tex_free(ctx->ra, &p->texture);
++#ifdef __PS4__
++        for (int c = 0; c < 3; c++)
++            ra_tex_free(ctx->ra, &p->rgb[c]);
++#endif
+     }
+     talloc_free(ctx);
+ }
+@@ -136,6 +149,10 @@ static bool upload_osd(struct mpgl_osd *ctx, struct mpgl_osd_part *osd,
+         osd->format != imgs->format)
+     {
+         ra_tex_free(ra, &osd->texture);
++#ifdef __PS4__
++        for (int c = 0; c < 3; c++)
++            ra_tex_free(ra, &osd->rgb[c]);
++#endif
+ 
+         osd->format = imgs->format;
+         osd->w = MPMAX(32, req_w);
+@@ -163,6 +180,17 @@ static bool upload_osd(struct mpgl_osd *ctx, struct mpgl_osd_part *osd,
+         osd->texture = ra_tex_create(ra, &params);
+         if (!osd->texture)
+             goto done;
++#ifdef __PS4__
++        if (imgs->format == SUBBITMAP_BGRA) {
++            for (int c = 0; c < 3; c++) {
++                osd->rgb[c] = ra_tex_create(ra, &params);
++                if (!osd->rgb[c])
++                    goto done;
++            }
++            MP_VERBOSE(ctx, "PS4 bitmap subtitles: precompiled ASS shader, "
++                       "four-channel composition (pgs-fix-1).\n");
++        }
++#endif
+     }
+ 
+     struct ra_tex_upload_params params = {
+@@ -173,6 +201,30 @@ static bool upload_osd(struct mpgl_osd *ctx, struct mpgl_osd_part *osd,
+         .stride = imgs->packed->stride[0],
+     };
+ 
++#ifdef __PS4__
++    if (imgs->format == SUBBITMAP_BGRA) {
++        // mpv supplies premultiplied BGRA. First attenuate the destination
++        // with A, then add premultiplied R/G/B separately. Linear texture
++        // filtering commutes with this decomposition, including soft edges.
++        uint8_t *mask = talloc_size(ctx->scratch,
++                                   (size_t)imgs->packed_w * imgs->packed_h);
++        const uint8_t *src = imgs->packed->planes[0];
++        params.src = mask;
++        params.stride = imgs->packed_w;
++        ok = true;
++        for (int c = 0; c < 4 && ok; c++) {
++            for (int y = 0; y < imgs->packed_h; y++) {
++                const uint8_t *row = src + y * imgs->packed->stride[0];
++                for (int x = 0; x < imgs->packed_w; x++)
++                    mask[y * imgs->packed_w + x] = row[4 * x + 3 - c];
++            }
++            params.tex = c == 0 ? osd->texture : osd->rgb[c - 1];
++            ok = params.tex && ra->fns->tex_upload(ra, &params);
++        }
++        talloc_free(mask);
++        goto done;
++    }
++#endif
+     ok = ra->fns->tex_upload(ra, &params);
+ 
+ done:
+@@ -203,7 +255,17 @@ static void gen_osd_cb(void *pctx, struct sub_bitmaps *imgs)
+            osd->num_subparts * sizeof(osd->subparts[0]));
+ }
+ 
+-bool mpgl_osd_draw_prepare(struct mpgl_osd *ctx, int index,
++int mpgl_osd_draw_passes(struct mpgl_osd *ctx, int index)
++{
++#ifdef __PS4__
++    struct mpgl_osd_part *part = ctx->parts[index];
++    if (part->format == SUBBITMAP_BGRA)
++        return part->num_subparts * 4;
++#endif
++    return 1;
++}
++
++bool mpgl_osd_draw_prepare(struct mpgl_osd *ctx, int index, int pass,
+                            struct gl_shader_cache *sc)
+ {
+     assert(index >= 0 && index < MAX_OSD_PARTS);
+@@ -213,7 +275,16 @@ bool mpgl_osd_draw_prepare(struct mpgl_osd *ctx, int index,
+     if (!fmt || !part->num_subparts || !part->texture)
+         return false;
+ 
+-    gl_sc_uniform_texture(sc, "osdtex", part->texture);
++    struct ra_tex *texture = part->texture;
++#ifdef __PS4__
++    part->bitmap_pass = pass;
++    if (fmt == SUBBITMAP_BGRA) {
++        int channel = pass % 4;
++        texture = channel == 0 ? part->texture : part->rgb[channel - 1];
++        fmt = SUBBITMAP_LIBASS;
++    }
++#endif
++    gl_sc_uniform_texture(sc, "osdtex", texture);
+     switch (fmt) {
+     case SUBBITMAP_BGRA: {
+         GLSL(color = texture(osdtex, texcoord).bgra;)
+@@ -254,7 +325,16 @@ static void generate_verts(struct mpgl_osd_part *part, struct gl_transform t)
+     MP_TARRAY_GROW(part, part->vertices,
+                    part->num_vertices + part->num_subparts * 6);
+ 
+-    for (int n = 0; n < part->num_subparts; n++) {
++    int first = 0, end = part->num_subparts;
++#ifdef __PS4__
++    if (part->format == SUBBITMAP_BGRA) {
++        // Complete all four passes for one rectangle before the next, so
++        // overlapping subtitle rectangles retain source-over ordering.
++        first = part->bitmap_pass / 4;
++        end = first + 1;
++    }
++#endif
++    for (int n = first; n < end; n++) {
+         struct sub_bitmap *b = &part->subparts[n];
+         struct vertex *va = &part->vertices[part->num_vertices];
+ 
+@@ -264,6 +344,15 @@ static void generate_verts(struct mpgl_osd_part *part, struct gl_transform t)
+         uint8_t color[4] = { c >> 24, (c >> 16) & 0xff,
+                             (c >> 8) & 0xff, 255 - (c & 0xff) };
+ 
++#ifdef __PS4__
++        if (part->format == SUBBITMAP_BGRA) {
++            int channel = part->bitmap_pass % 4;
++            color[0] = color[1] = color[2] = 0;
++            color[3] = 255;
++            if (channel)
++                color[channel - 1] = 255;
++        }
++#endif
+         write_quad(va, t,
+                    b->x, b->y, b->x + b->dw, b->y + b->dh,
+                    b->src_x, b->src_y, b->src_x + b->w, b->src_y + b->h,
+@@ -310,6 +399,17 @@ void mpgl_osd_draw_finish(struct mpgl_osd *ctx, int index,
+     }
+ 
+     const int *factors = &blend_factors[part->format][0];
++#ifdef __PS4__
++    if (part->format == SUBBITMAP_BGRA) {
++        if (part->bitmap_pass % 4 == 0) {
++            gl_sc_blend(sc, RA_BLEND_SRC_ALPHA, RA_BLEND_ONE_MINUS_SRC_ALPHA,
++                        RA_BLEND_ONE, RA_BLEND_ONE_MINUS_SRC_ALPHA);
++        } else {
++            gl_sc_blend(sc, RA_BLEND_SRC_ALPHA, RA_BLEND_ONE,
++                        RA_BLEND_ZERO, RA_BLEND_ONE);
++        }
++    } else
++#endif
+     gl_sc_blend(sc, factors[0], factors[1], factors[2], factors[3]);
+ 
+     gl_sc_dispatch_draw(sc, fbo.tex, false, vertex_vao, MP_ARRAY_SIZE(vertex_vao),
+diff --git a/video/out/gpu/osd.h b/video/out/gpu/osd.h
+index 00fbc4914f..2066abafa6 100644
+--- a/video/out/gpu/osd.h
++++ b/video/out/gpu/osd.h
+@@ -15,7 +15,8 @@ void mpgl_osd_destroy(struct mpgl_osd *ctx);
+ void mpgl_osd_generate(struct mpgl_osd *ctx, struct mp_osd_res res, double pts,
+                        int stereo_mode, int draw_flags);
+ void mpgl_osd_resize(struct mpgl_osd *ctx, struct mp_osd_res res, int stereo_mode);
+-bool mpgl_osd_draw_prepare(struct mpgl_osd *ctx, int index,
++int mpgl_osd_draw_passes(struct mpgl_osd *ctx, int index);
++bool mpgl_osd_draw_prepare(struct mpgl_osd *ctx, int index, int pass,
+                            struct gl_shader_cache *sc);
+ void mpgl_osd_draw_finish(struct mpgl_osd *ctx, int index,
+                           struct gl_shader_cache *sc, struct ra_fbo fbo);
+diff --git a/video/out/gpu/video.c b/video/out/gpu/video.c
+index 4233f14336..70f3ae14bc 100644
+--- a/video/out/gpu/video.c
++++ b/video/out/gpu/video.c
+@@ -2917,21 +2917,23 @@ static void pass_draw_osd(struct gl_video *p, int osd_flags, int frame_flags,
+ 
+     timer_pool_start(p->osd_timer);
+     for (int n = 0; n < MAX_OSD_PARTS; n++) {
+-        // (This returns false if this part is empty with nothing to draw.)
+-        if (!mpgl_osd_draw_prepare(p->osd, n, p->sc))
+-            continue;
+-        // When subtitles need to be color managed, assume they're in sRGB
+-        // (for lack of anything saner to do)
+-        if (cms) {
+-            static const struct mp_colorspace csp_srgb = {
+-                .primaries = MP_CSP_PRIM_BT_709,
+-                .gamma = MP_CSP_TRC_SRGB,
+-                .light = MP_CSP_LIGHT_DISPLAY,
+-            };
++        for (int pass = 0; pass < mpgl_osd_draw_passes(p->osd, n); pass++) {
++            // (This returns false if this part is empty with nothing to draw.)
++            if (!mpgl_osd_draw_prepare(p->osd, n, pass, p->sc))
++                continue;
++            // When subtitles need to be color managed, assume they're in sRGB
++            // (for lack of anything saner to do)
++            if (cms) {
++                static const struct mp_colorspace csp_srgb = {
++                    .primaries = MP_CSP_PRIM_BT_709,
++                    .gamma = MP_CSP_TRC_SRGB,
++                    .light = MP_CSP_LIGHT_DISPLAY,
++                };
+ 
+-            pass_colormanage(p, csp_srgb, fbo.color_space, true);
++                pass_colormanage(p, csp_srgb, fbo.color_space, true);
++            }
++            mpgl_osd_draw_finish(p->osd, n, p->sc, fbo);
+         }
+-        mpgl_osd_draw_finish(p->osd, n, p->sc, fbo);
+     }
+ 
+     timer_pool_stop(p->osd_timer);
 diff --git a/video/out/opengl/ra_gl.c b/video/out/opengl/ra_gl.c
-index f535f1f..325daa6 100644
+index f535f1f13d..5646b7efcb 100644
 --- a/video/out/opengl/ra_gl.c
 +++ b/video/out/opengl/ra_gl.c
 @@ -6,6 +6,10 @@
@@ -120,7 +410,7 @@ index f535f1f..325daa6 100644
  // For ra.priv
  struct ra_gl {
      GL *gl;
-@@ -749,13 +753,46 @@ static void compile_attach_shader(struct ra *ra, GLuint program,
+@@ -749,13 +753,45 @@ static void compile_attach_shader(struct ra *ra, GLuint program,
      GL *gl = ra_gl_get(ra);
  
      GLuint shader = gl->CreateShader(type);
@@ -138,8 +428,7 @@ index f535f1f..325daa6 100644
 +            MP_VERBOSE(ra, "compile_attach_shader: precompiled shader found, using it\n");
 +            glShaderBinary(1, &shader, 0, (const void *) shader_bin->src, shader_bin->size);
 +        } else {
-+            MP_VERBOSE(ra, "compile_attach_shader: precompiled shader not found, falling back to source compilation\n");
-+            gl->ShaderSource(shader, 1, &source, NULL);
++            MP_VERBOSE(ra, "compile_attach_shader: precompiled shader not found\n");
 +        }
 +    } else {
 +        gl->ShaderSource(shader, 1, &source, NULL);
@@ -170,7 +459,7 @@ index f535f1f..325daa6 100644
      if (mp_msg_test(ra->log, pri)) {
 diff --git a/video/out/opengl/ra_ps4.c b/video/out/opengl/ra_ps4.c
 new file mode 100644
-index 0000000..91e0479
+index 0000000000..91e0479866
 --- /dev/null
 +++ b/video/out/opengl/ra_ps4.c
 @@ -0,0 +1,1535 @@
@@ -1711,7 +2000,7 @@ index 0000000..91e0479
 +
 diff --git a/video/out/opengl/ra_ps4.h b/video/out/opengl/ra_ps4.h
 new file mode 100644
-index 0000000..aa2e4ea
+index 0000000000..aa2e4ea5c6
 --- /dev/null
 +++ b/video/out/opengl/ra_ps4.h
 @@ -0,0 +1,47 @@
@@ -1763,7 +2052,7 @@ index 0000000..aa2e4ea
 +#define ps4_frag_59EAFD_sha "59EAFD8B6C03161A000079B3A3DB5831CBC0F6874BCE8C676B5372B22B30A891"
 +
 diff --git a/wscript_build.py b/wscript_build.py
-index a470808..56d41f9 100644
+index a470808ae5..56d41f9b9c 100644
 --- a/wscript_build.py
 +++ b/wscript_build.py
 @@ -240,7 +240,6 @@ def build(ctx):
@@ -1796,241 +2085,3 @@ index a470808..56d41f9 100644
          ( "video/out/opengl/utils.c",            "gl" ),
          ( "video/out/present_sync.c",            "wayland || x11" ),
          ( "video/out/wldmabuf/context_wldmabuf.c", "dmabuf-wayland" ),
---- a/video/out/gpu/osd.c
-+++ b/video/out/gpu/osd.c
-@@ -51,6 +51,12 @@
-     enum sub_bitmap_format format;
-     int change_id;
-     struct ra_tex *texture;
-+#ifdef __PS4__
-+    // BGRA subtitles use four single-channel masks and the precompiled ASS
-+    // shader. Retail Piglet cannot compile the bitmap fragment shader.
-+    struct ra_tex *rgb[3];
-+    int bitmap_pass;
-+#endif
-     int w, h;
-     int num_subparts;
-     int prev_num_subparts;
-@@ -87,6 +93,9 @@
- 
-     ctx->fmt_table[SUBBITMAP_LIBASS] = ra_find_unorm_format(ra, 1, 1);
-     ctx->fmt_table[SUBBITMAP_BGRA]   = ra_find_unorm_format(ra, 1, 4);
-+#ifdef __PS4__
-+    ctx->fmt_table[SUBBITMAP_BGRA] = ctx->fmt_table[SUBBITMAP_LIBASS];
-+#endif
- 
-     for (int n = 0; n < MAX_OSD_PARTS; n++)
-         ctx->parts[n] = talloc_zero(ctx, struct mpgl_osd_part);
-@@ -105,6 +114,10 @@
-     for (int n = 0; n < MAX_OSD_PARTS; n++) {
-         struct mpgl_osd_part *p = ctx->parts[n];
-         ra_tex_free(ctx->ra, &p->texture);
-+#ifdef __PS4__
-+        for (int c = 0; c < 3; c++)
-+            ra_tex_free(ctx->ra, &p->rgb[c]);
-+#endif
-     }
-     talloc_free(ctx);
- }
-@@ -136,6 +149,10 @@
-         osd->format != imgs->format)
-     {
-         ra_tex_free(ra, &osd->texture);
-+#ifdef __PS4__
-+        for (int c = 0; c < 3; c++)
-+            ra_tex_free(ra, &osd->rgb[c]);
-+#endif
- 
-         osd->format = imgs->format;
-         osd->w = MPMAX(32, req_w);
-@@ -163,6 +180,17 @@
-         osd->texture = ra_tex_create(ra, &params);
-         if (!osd->texture)
-             goto done;
-+#ifdef __PS4__
-+        if (imgs->format == SUBBITMAP_BGRA) {
-+            for (int c = 0; c < 3; c++) {
-+                osd->rgb[c] = ra_tex_create(ra, &params);
-+                if (!osd->rgb[c])
-+                    goto done;
-+            }
-+            MP_VERBOSE(ctx, "PS4 bitmap subtitles: precompiled ASS shader, "
-+                       "four-channel composition (pgs-fix-1).\n");
-+        }
-+#endif
-     }
- 
-     struct ra_tex_upload_params params = {
-@@ -173,6 +201,30 @@
-         .stride = imgs->packed->stride[0],
-     };
- 
-+#ifdef __PS4__
-+    if (imgs->format == SUBBITMAP_BGRA) {
-+        // mpv supplies premultiplied BGRA. First attenuate the destination
-+        // with A, then add premultiplied R/G/B separately. Linear texture
-+        // filtering commutes with this decomposition, including soft edges.
-+        uint8_t *mask = talloc_size(ctx->scratch,
-+                                   (size_t)imgs->packed_w * imgs->packed_h);
-+        const uint8_t *src = imgs->packed->planes[0];
-+        params.src = mask;
-+        params.stride = imgs->packed_w;
-+        ok = true;
-+        for (int c = 0; c < 4 && ok; c++) {
-+            for (int y = 0; y < imgs->packed_h; y++) {
-+                const uint8_t *row = src + y * imgs->packed->stride[0];
-+                for (int x = 0; x < imgs->packed_w; x++)
-+                    mask[y * imgs->packed_w + x] = row[4 * x + 3 - c];
-+            }
-+            params.tex = c == 0 ? osd->texture : osd->rgb[c - 1];
-+            ok = params.tex && ra->fns->tex_upload(ra, &params);
-+        }
-+        talloc_free(mask);
-+        goto done;
-+    }
-+#endif
-     ok = ra->fns->tex_upload(ra, &params);
- 
- done:
-@@ -203,7 +255,17 @@
-            osd->num_subparts * sizeof(osd->subparts[0]));
- }
- 
--bool mpgl_osd_draw_prepare(struct mpgl_osd *ctx, int index,
-+int mpgl_osd_draw_passes(struct mpgl_osd *ctx, int index)
-+{
-+#ifdef __PS4__
-+    struct mpgl_osd_part *part = ctx->parts[index];
-+    if (part->format == SUBBITMAP_BGRA)
-+        return part->num_subparts * 4;
-+#endif
-+    return 1;
-+}
-+
-+bool mpgl_osd_draw_prepare(struct mpgl_osd *ctx, int index, int pass,
-                            struct gl_shader_cache *sc)
- {
-     assert(index >= 0 && index < MAX_OSD_PARTS);
-@@ -213,7 +275,16 @@
-     if (!fmt || !part->num_subparts || !part->texture)
-         return false;
- 
--    gl_sc_uniform_texture(sc, "osdtex", part->texture);
-+    struct ra_tex *texture = part->texture;
-+#ifdef __PS4__
-+    part->bitmap_pass = pass;
-+    if (fmt == SUBBITMAP_BGRA) {
-+        int channel = pass % 4;
-+        texture = channel == 0 ? part->texture : part->rgb[channel - 1];
-+        fmt = SUBBITMAP_LIBASS;
-+    }
-+#endif
-+    gl_sc_uniform_texture(sc, "osdtex", texture);
-     switch (fmt) {
-     case SUBBITMAP_BGRA: {
-         GLSL(color = texture(osdtex, texcoord).bgra;)
-@@ -254,7 +325,16 @@
-     MP_TARRAY_GROW(part, part->vertices,
-                    part->num_vertices + part->num_subparts * 6);
- 
--    for (int n = 0; n < part->num_subparts; n++) {
-+    int first = 0, end = part->num_subparts;
-+#ifdef __PS4__
-+    if (part->format == SUBBITMAP_BGRA) {
-+        // Complete all four passes for one rectangle before the next, so
-+        // overlapping subtitle rectangles retain source-over ordering.
-+        first = part->bitmap_pass / 4;
-+        end = first + 1;
-+    }
-+#endif
-+    for (int n = first; n < end; n++) {
-         struct sub_bitmap *b = &part->subparts[n];
-         struct vertex *va = &part->vertices[part->num_vertices];
- 
-@@ -264,6 +344,15 @@
-         uint8_t color[4] = { c >> 24, (c >> 16) & 0xff,
-                             (c >> 8) & 0xff, 255 - (c & 0xff) };
- 
-+#ifdef __PS4__
-+        if (part->format == SUBBITMAP_BGRA) {
-+            int channel = part->bitmap_pass % 4;
-+            color[0] = color[1] = color[2] = 0;
-+            color[3] = 255;
-+            if (channel)
-+                color[channel - 1] = 255;
-+        }
-+#endif
-         write_quad(va, t,
-                    b->x, b->y, b->x + b->dw, b->y + b->dh,
-                    b->src_x, b->src_y, b->src_x + b->w, b->src_y + b->h,
-@@ -310,6 +399,17 @@
-     }
- 
-     const int *factors = &blend_factors[part->format][0];
-+#ifdef __PS4__
-+    if (part->format == SUBBITMAP_BGRA) {
-+        if (part->bitmap_pass % 4 == 0) {
-+            gl_sc_blend(sc, RA_BLEND_SRC_ALPHA, RA_BLEND_ONE_MINUS_SRC_ALPHA,
-+                        RA_BLEND_ONE, RA_BLEND_ONE_MINUS_SRC_ALPHA);
-+        } else {
-+            gl_sc_blend(sc, RA_BLEND_SRC_ALPHA, RA_BLEND_ONE,
-+                        RA_BLEND_ZERO, RA_BLEND_ONE);
-+        }
-+    } else
-+#endif
-     gl_sc_blend(sc, factors[0], factors[1], factors[2], factors[3]);
- 
-     gl_sc_dispatch_draw(sc, fbo.tex, false, vertex_vao, MP_ARRAY_SIZE(vertex_vao),
---- a/video/out/gpu/osd.h
-+++ b/video/out/gpu/osd.h
-@@ -15,7 +15,8 @@
- void mpgl_osd_generate(struct mpgl_osd *ctx, struct mp_osd_res res, double pts,
-                        int stereo_mode, int draw_flags);
- void mpgl_osd_resize(struct mpgl_osd *ctx, struct mp_osd_res res, int stereo_mode);
--bool mpgl_osd_draw_prepare(struct mpgl_osd *ctx, int index,
-+int mpgl_osd_draw_passes(struct mpgl_osd *ctx, int index);
-+bool mpgl_osd_draw_prepare(struct mpgl_osd *ctx, int index, int pass,
-                            struct gl_shader_cache *sc);
- void mpgl_osd_draw_finish(struct mpgl_osd *ctx, int index,
-                           struct gl_shader_cache *sc, struct ra_fbo fbo);
---- a/video/out/gpu/video.c
-+++ b/video/out/gpu/video.c
-@@ -2917,21 +2917,23 @@
- 
-     timer_pool_start(p->osd_timer);
-     for (int n = 0; n < MAX_OSD_PARTS; n++) {
--        // (This returns false if this part is empty with nothing to draw.)
--        if (!mpgl_osd_draw_prepare(p->osd, n, p->sc))
--            continue;
--        // When subtitles need to be color managed, assume they're in sRGB
--        // (for lack of anything saner to do)
--        if (cms) {
--            static const struct mp_colorspace csp_srgb = {
--                .primaries = MP_CSP_PRIM_BT_709,
--                .gamma = MP_CSP_TRC_SRGB,
--                .light = MP_CSP_LIGHT_DISPLAY,
--            };
--
--            pass_colormanage(p, csp_srgb, fbo.color_space, true);
--        }
--        mpgl_osd_draw_finish(p->osd, n, p->sc, fbo);
-+        for (int pass = 0; pass < mpgl_osd_draw_passes(p->osd, n); pass++) {
-+            // (This returns false if this part is empty with nothing to draw.)
-+            if (!mpgl_osd_draw_prepare(p->osd, n, pass, p->sc))
-+                continue;
-+            // When subtitles need to be color managed, assume they're in sRGB
-+            // (for lack of anything saner to do)
-+            if (cms) {
-+                static const struct mp_colorspace csp_srgb = {
-+                    .primaries = MP_CSP_PRIM_BT_709,
-+                    .gamma = MP_CSP_TRC_SRGB,
-+                    .light = MP_CSP_LIGHT_DISPLAY,
-+                };
-+
-+                pass_colormanage(p, csp_srgb, fbo.color_space, true);
-+            }
-+            mpgl_osd_draw_finish(p->osd, n, p->sc, fbo);
-+        }
-     }
- 
-     timer_pool_stop(p->osd_timer);
