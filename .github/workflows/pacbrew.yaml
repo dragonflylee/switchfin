@@ -12,7 +12,7 @@ jobs:
   build-portlibs:
     runs-on: ubuntu-latest
     container:
-      image: xfangfang/pacbrew:250221
+      image: dragonflylee/pacbrew
     steps:
     - name: Disable autocrlf
       run: git config --global core.autocrlf false
