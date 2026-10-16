@@ -1796,3 +1796,241 @@ index a470808..56d41f9 100644
          ( "video/out/opengl/utils.c",            "gl" ),
          ( "video/out/present_sync.c",            "wayland || x11" ),
          ( "video/out/wldmabuf/context_wldmabuf.c", "dmabuf-wayland" ),
+--- a/video/out/gpu/osd.c
++++ b/video/out/gpu/osd.c
+@@ -51,6 +51,12 @@
+     enum sub_bitmap_format format;
+     int change_id;
+     struct ra_tex *texture;
++#ifdef __PS4__
++    // BGRA subtitles use four single-channel masks and the precompiled ASS
++    // shader. Retail Piglet cannot compile the bitmap fragment shader.
++    struct ra_tex *rgb[3];
++    int bitmap_pass;
++#endif
+     int w, h;
+     int num_subparts;
+     int prev_num_subparts;
+@@ -87,6 +93,9 @@
+ 
+     ctx->fmt_table[SUBBITMAP_LIBASS] = ra_find_unorm_format(ra, 1, 1);
+     ctx->fmt_table[SUBBITMAP_BGRA]   = ra_find_unorm_format(ra, 1, 4);
++#ifdef __PS4__
++    ctx->fmt_table[SUBBITMAP_BGRA] = ctx->fmt_table[SUBBITMAP_LIBASS];
++#endif
+ 
+     for (int n = 0; n < MAX_OSD_PARTS; n++)
+         ctx->parts[n] = talloc_zero(ctx, struct mpgl_osd_part);
+@@ -105,6 +114,10 @@
+     for (int n = 0; n < MAX_OSD_PARTS; n++) {
+         struct mpgl_osd_part *p = ctx->parts[n];
+         ra_tex_free(ctx->ra, &p->texture);
++#ifdef __PS4__
++        for (int c = 0; c < 3; c++)
++            ra_tex_free(ctx->ra, &p->rgb[c]);
++#endif
+     }
+     talloc_free(ctx);
+ }
+@@ -136,6 +149,10 @@
+         osd->format != imgs->format)
+     {
+         ra_tex_free(ra, &osd->texture);
++#ifdef __PS4__
++        for (int c = 0; c < 3; c++)
++            ra_tex_free(ra, &osd->rgb[c]);
++#endif
+ 
+         osd->format = imgs->format;
+         osd->w = MPMAX(32, req_w);
+@@ -163,6 +180,17 @@
+         osd->texture = ra_tex_create(ra, &params);
+         if (!osd->texture)
+             goto done;
++#ifdef __PS4__
++        if (imgs->format == SUBBITMAP_BGRA) {
++            for (int c = 0; c < 3; c++) {
++                osd->rgb[c] = ra_tex_create(ra, &params);
++                if (!osd->rgb[c])
++                    goto done;
++            }
++            MP_VERBOSE(ctx, "PS4 bitmap subtitles: precompiled ASS shader, "
++                       "four-channel composition (pgs-fix-1).\n");
++        }
++#endif
+     }
+ 
+     struct ra_tex_upload_params params = {
+@@ -173,6 +201,30 @@
+         .stride = imgs->packed->stride[0],
+     };
+ 
++#ifdef __PS4__
++    if (imgs->format == SUBBITMAP_BGRA) {
++        // mpv supplies premultiplied BGRA. First attenuate the destination
++        // with A, then add premultiplied R/G/B separately. Linear texture
++        // filtering commutes with this decomposition, including soft edges.
++        uint8_t *mask = talloc_size(ctx->scratch,
++                                   (size_t)imgs->packed_w * imgs->packed_h);
++        const uint8_t *src = imgs->packed->planes[0];
++        params.src = mask;
++        params.stride = imgs->packed_w;
++        ok = true;
++        for (int c = 0; c < 4 && ok; c++) {
++            for (int y = 0; y < imgs->packed_h; y++) {
++                const uint8_t *row = src + y * imgs->packed->stride[0];
++                for (int x = 0; x < imgs->packed_w; x++)
++                    mask[y * imgs->packed_w + x] = row[4 * x + 3 - c];
++            }
++            params.tex = c == 0 ? osd->texture : osd->rgb[c - 1];
++            ok = params.tex && ra->fns->tex_upload(ra, &params);
++        }
++        talloc_free(mask);
++        goto done;
++    }
++#endif
+     ok = ra->fns->tex_upload(ra, &params);
+ 
+ done:
+@@ -203,7 +255,17 @@
+            osd->num_subparts * sizeof(osd->subparts[0]));
+ }
+ 
+-bool mpgl_osd_draw_prepare(struct mpgl_osd *ctx, int index,
++int mpgl_osd_draw_passes(struct mpgl_osd *ctx, int index)
++{
++#ifdef __PS4__
++    struct mpgl_osd_part *part = ctx->parts[index];
++    if (part->format == SUBBITMAP_BGRA)
++        return part->num_subparts * 4;
++#endif
++    return 1;
++}
++
++bool mpgl_osd_draw_prepare(struct mpgl_osd *ctx, int index, int pass,
+                            struct gl_shader_cache *sc)
+ {
+     assert(index >= 0 && index < MAX_OSD_PARTS);
+@@ -213,7 +275,16 @@
+     if (!fmt || !part->num_subparts || !part->texture)
+         return false;
+ 
+-    gl_sc_uniform_texture(sc, "osdtex", part->texture);
++    struct ra_tex *texture = part->texture;
++#ifdef __PS4__
++    part->bitmap_pass = pass;
++    if (fmt == SUBBITMAP_BGRA) {
++        int channel = pass % 4;
++        texture = channel == 0 ? part->texture : part->rgb[channel - 1];
++        fmt = SUBBITMAP_LIBASS;
++    }
++#endif
++    gl_sc_uniform_texture(sc, "osdtex", texture);
+     switch (fmt) {
+     case SUBBITMAP_BGRA: {
+         GLSL(color = texture(osdtex, texcoord).bgra;)
+@@ -254,7 +325,16 @@
+     MP_TARRAY_GROW(part, part->vertices,
+                    part->num_vertices + part->num_subparts * 6);
+ 
+-    for (int n = 0; n < part->num_subparts; n++) {
++    int first = 0, end = part->num_subparts;
++#ifdef __PS4__
++    if (part->format == SUBBITMAP_BGRA) {
++        // Complete all four passes for one rectangle before the next, so
++        // overlapping subtitle rectangles retain source-over ordering.
++        first = part->bitmap_pass / 4;
++        end = first + 1;
++    }
++#endif
++    for (int n = first; n < end; n++) {
+         struct sub_bitmap *b = &part->subparts[n];
+         struct vertex *va = &part->vertices[part->num_vertices];
+ 
+@@ -264,6 +344,15 @@
+         uint8_t color[4] = { c >> 24, (c >> 16) & 0xff,
+                             (c >> 8) & 0xff, 255 - (c & 0xff) };
+ 
++#ifdef __PS4__
++        if (part->format == SUBBITMAP_BGRA) {
++            int channel = part->bitmap_pass % 4;
++            color[0] = color[1] = color[2] = 0;
++            color[3] = 255;
++            if (channel)
++                color[channel - 1] = 255;
++        }
++#endif
+         write_quad(va, t,
+                    b->x, b->y, b->x + b->dw, b->y + b->dh,
+                    b->src_x, b->src_y, b->src_x + b->w, b->src_y + b->h,
+@@ -310,6 +399,17 @@
+     }
+ 
+     const int *factors = &blend_factors[part->format][0];
++#ifdef __PS4__
++    if (part->format == SUBBITMAP_BGRA) {
++        if (part->bitmap_pass % 4 == 0) {
++            gl_sc_blend(sc, RA_BLEND_SRC_ALPHA, RA_BLEND_ONE_MINUS_SRC_ALPHA,
++                        RA_BLEND_ONE, RA_BLEND_ONE_MINUS_SRC_ALPHA);
++        } else {
++            gl_sc_blend(sc, RA_BLEND_SRC_ALPHA, RA_BLEND_ONE,
++                        RA_BLEND_ZERO, RA_BLEND_ONE);
++        }
++    } else
++#endif
+     gl_sc_blend(sc, factors[0], factors[1], factors[2], factors[3]);
+ 
+     gl_sc_dispatch_draw(sc, fbo.tex, false, vertex_vao, MP_ARRAY_SIZE(vertex_vao),
+--- a/video/out/gpu/osd.h
++++ b/video/out/gpu/osd.h
+@@ -15,7 +15,8 @@
+ void mpgl_osd_generate(struct mpgl_osd *ctx, struct mp_osd_res res, double pts,
+                        int stereo_mode, int draw_flags);
+ void mpgl_osd_resize(struct mpgl_osd *ctx, struct mp_osd_res res, int stereo_mode);
+-bool mpgl_osd_draw_prepare(struct mpgl_osd *ctx, int index,
++int mpgl_osd_draw_passes(struct mpgl_osd *ctx, int index);
++bool mpgl_osd_draw_prepare(struct mpgl_osd *ctx, int index, int pass,
+                            struct gl_shader_cache *sc);
+ void mpgl_osd_draw_finish(struct mpgl_osd *ctx, int index,
+                           struct gl_shader_cache *sc, struct ra_fbo fbo);
+--- a/video/out/gpu/video.c
++++ b/video/out/gpu/video.c
+@@ -2917,21 +2917,23 @@
+ 
+     timer_pool_start(p->osd_timer);
+     for (int n = 0; n < MAX_OSD_PARTS; n++) {
+-        // (This returns false if this part is empty with nothing to draw.)
+-        if (!mpgl_osd_draw_prepare(p->osd, n, p->sc))
+-            continue;
+-        // When subtitles need to be color managed, assume they're in sRGB
+-        // (for lack of anything saner to do)
+-        if (cms) {
+-            static const struct mp_colorspace csp_srgb = {
+-                .primaries = MP_CSP_PRIM_BT_709,
+-                .gamma = MP_CSP_TRC_SRGB,
+-                .light = MP_CSP_LIGHT_DISPLAY,
+-            };
+-
+-            pass_colormanage(p, csp_srgb, fbo.color_space, true);
+-        }
+-        mpgl_osd_draw_finish(p->osd, n, p->sc, fbo);
++        for (int pass = 0; pass < mpgl_osd_draw_passes(p->osd, n); pass++) {
++            // (This returns false if this part is empty with nothing to draw.)
++            if (!mpgl_osd_draw_prepare(p->osd, n, pass, p->sc))
++                continue;
++            // When subtitles need to be color managed, assume they're in sRGB
++            // (for lack of anything saner to do)
++            if (cms) {
++                static const struct mp_colorspace csp_srgb = {
++                    .primaries = MP_CSP_PRIM_BT_709,
++                    .gamma = MP_CSP_TRC_SRGB,
++                    .light = MP_CSP_LIGHT_DISPLAY,
++                };
++
++                pass_colormanage(p, csp_srgb, fbo.color_space, true);
++            }
++            mpgl_osd_draw_finish(p->osd, n, p->sc, fbo);
++        }
+     }
+ 
+     timer_pool_stop(p->osd_timer);
