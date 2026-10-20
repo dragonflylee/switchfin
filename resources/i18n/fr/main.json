@@ -12,7 +12,7 @@
     "setting": "Paramètres"
   },
   "home": {
-    "resume": "Lecture",
+    "resume": "Continuer le visionnage",
     "nextup": "Suivant",
     "latest": "Ajoutés récemment"
   },
@@ -24,36 +24,36 @@
   },
   "about": {
     "header": "A propos du logiciel",
-    "brief": "Jellyfin permet à plusieurs utilisateurs de se connecter et de diffuser des médias",
-    "repo_header": "URL du projet open source"
+    "brief": "Un énième client tiers pour Jellyfin",
+    "repo_header": "Dépôt du projet"
   },
   "dashboard": {
     "session": "Session",
     "device": "Appareil",
     "activity": "Activité",
-    "path": "Chemins",
+    "path": "Chemin",
     "restart": "Redémarrer",
     "confirm_restart": "Voulez-vous vraiment redémarrer Jellyfin ?",
     "scan_all": "Actualiser toutes les médiathèques",
-    "within_minute": "Dans 1 minute",
+    "within_minute": "Il y a moins d'une minute",
     "minute_ago": "Il y a {} minutes",
     "hour_ago": "Il y a {} heures"
   },
   "player": {
     "subtitle": "Sous-titres",
-    "none": "Ne pas afficher",
+    "none": "Aucun",
     "audio": "Pistes audio",
     "common": "Général",
     "speed": "Vitesse de lecture",
-    "quality": "Qualité",
-    "chapter": "Chapitres",
+    "quality": "Qualité vidéo",
+    "chapter": "Chapitre",
     "auto": "Automatique",
     "toggle": "Lecture/Pause",
     "prev": "Précédent",
     "next": "Suivant",
     "error": "Échec de lecture",
-    "episode": "Sélections",
-    "speed_up": "Lecture en vitesse accélérée"
+    "episode": "Épisode",
+    "speed_up": "Vitesse actuelle : {}"
   },
   "ebook": {
     "zoom": "Zoom",
@@ -61,21 +61,21 @@
     "zoom_out": "Réduire",
     "single_page": "Page unique",
     "double_page": "Double page",
-    "outline": "Outline",
-    "no_outline": "No outline"
+    "outline": "Sommaire",
+    "no_outline": "Aucun sommaire"
   },
   "danmaku": {
-    "header": "Paramètres des sous-titres interactifs",
+    "header": "Paramètres des commentaires défilants",
     "performance": {
-      "header": "Performance des commentaires",
+      "header": "Performances des commentaires",
       "render": "Taille de rendu"
     },
     "style": {
       "header": "Style des commentaires",
       "font": "Type de bordure",
       "font_stroke": "Bordure",
-      "font_incline": "Projection",
-      "font_shadow": "Trait accentué",
+      "font_incline": "Contour décalé",
+      "font_shadow": "Ombre",
       "font_pure": "Couleur unie",
       "area": "Zone d'affichage",
       "area_1_4": "1/4 d'écran",
@@ -86,39 +86,39 @@
       "fontsize": "Taille de police des commentaires",
       "line_height": "Hauteur de ligne des commentaires",
       "speed": "Vitesse des commentaires",
-      "speed_slow_plus": "Très lent",
-      "speed_slow": "Plus lent",
+      "speed_slow_plus": "Très lente",
+      "speed_slow": "Lente",
       "speed_fast_plus": "Très rapide",
-      "speed_fast": "Plus Rapide",
-      "speed_moderate": "Moyenne"
+      "speed_fast": "Rapide",
+      "speed_moderate": "Modérée"
     }
   },
   "media": {
-    "sort": "Trié",
+    "sort": "Trier",
     "sort_by": "Trier par",
     "filter": "Filtrer",
     "order": "Ordre",
     "ascending": "Ordre croissant",
     "descending": "Ordre décroissant",
     "name": "Nom",
-    "seasons": "saisons",
+    "seasons": "Saisons",
     "add_favorite": "Ajouter aux favoris",
     "del_favorite": "Retirer des favoris",
-    "mark_played": "Marquer comme lu",
-    "mark_unplayed": "Marquer comme non lu",
+    "mark_played": "Marquer comme vu",
+    "mark_unplayed": "Marquer comme non vu",
     "play": "Lire",
-    "intro": "introduire",
+    "intro": "Introduction",
     "people": "Personnes",
     "special": "Bonus",
-    "similar": "Plus de ce genre",
+    "similar": "Titres similaires",
     "date_add": "Date d'ajout",
-    "date_played": "Date de diffusion",
+    "date_played": "Date de dernière lecture",
     "premiere_date": "Date de sortie",
     "play_count": "Nombre de lectures",
     "rating": "Note",
     "random": "Aléatoire",
-    "played": "Lu",
-    "unplayed": "Non lu"
+    "played": "Vu",
+    "unplayed": "Non vu"
   },
   "search": {
     "hint": "Prise en charge des mots-clés et des premières lettres des mots-clés",
@@ -138,7 +138,7 @@
     }
   },
   "remote": {
-    "local": "localhost",
+    "local": "Stockage local",
     "folder": "Dossier",
     "up": "Dossier parent",
     "add": "Ajouter un serveur",
@@ -154,6 +154,8 @@
     "required": "Renseigne au moins le nom et l'hôte."
   },
   "download": {
+    "quality": "Qualité de téléchargement",
+    "original": "Qualité d'origine",
     "start": "Télécharger",
     "cancel": "Annuler le téléchargement",
     "remove": "Supprimer le téléchargement",
@@ -173,9 +175,7 @@
     "section_done": "Téléchargés",
     "remove_all": "Tout supprimer",
     "confirm_remove_all": "Supprimer tous les téléchargements ?",
-    "empty_sub": "Les films et épisodes téléchargés se retrouvent ici, pour les regarder hors ligne.",
-    "quality": "Download Quality",
-    "original": "Original"
+    "empty_sub": "Les films et épisodes téléchargés se retrouvent ici, pour les regarder hors ligne."
   },
   "setting": {
     "quit_hint": "L'application va bientôt se fermer, les paramètres prendront effet lors du prochain démarrage",
@@ -194,7 +194,7 @@
       "invalid": "L'URL doit commencer par http:// ou https://",
       "connect": "Connexion",
       "delete": "Voulez-vous supprimer ?",
-      "local": "Serveur local",
+      "local": "Serveurs locaux",
       "users": "{} utilisateurs",
       "sigin_to": "Se connecter à {}",
       "signin": "Se connecter"
@@ -202,12 +202,12 @@
     "playback": {
       "header": "Paramètres de lecture",
       "bottom_bar": "Afficher la barre de progression en bas",
-      "low_quality": "Décodage en basse qualité (réduit la qualité de l'image pour un moindre consommation d'énergie)",
-      "in_memory_cache": "Cache de décodage",
+      "low_quality": "Décodage basse qualité (utilise moins de CPU)",
+      "in_memory_cache": "Cache en mémoire",
       "subs_fallback": "Chargement automatique des sous-titres",
-      "vo": "sortie vidéo",
+      "vo": "Sortie vidéo",
       "hwdec": "Décodage matériel",
-      "force_directplay": "Forcer le décodage côté client",
+      "force_directplay": "Forcer la lecture directe",
       "osd_on_toggle": "Afficher l'interface de contrôle lors de la pause",
       "touch_gesture": "Activer les gestes de progression de lecture",
       "clip_point": "Afficher la position des chapitres sur la barre de progression",
@@ -232,7 +232,7 @@
     "aspect": {
       "header": "Rapport d'aspect vidéo",
       "crop": "Remplir",
-      "stretch": "Étirement",
+      "stretch": "Étirer",
       "auto": "Automatique"
     },
     "equalizer": {
@@ -271,15 +271,15 @@
       "hot_key": "Description des raccourcis clavier cachés",
       "font": "Configurer une police personnalisée",
       "error_q1": "Impossible d'accéder à Internet",
-      "error_a1": "1. Assurez-vous que le système d'exploitation et le firmware sont à jour.\n2. Vérifiez que l'heure du système (y compris la date) est correcte.\n3. Réinitialisez les paramètres réseau par défaut, y compris l'IP, le DNS, etc.",
+      "error_a1": "1. Assurez-vous qu'Atmosphère et le firmware de la console sont à jour.\n2. Vérifiez que la date et l'heure du système sont correctes.\n3. Rétablissez les paramètres réseau par défaut, notamment l'adresse IP et le DNS.\n4. En cas d'utilisation en Chine, vérifiez les éventuelles restrictions réseau.",
       "error_q2": "Le logiciel se ferme de manière aléatoire avec une erreur",
       "error_a2": "1. Utilisez une carte mémoire formatée en FAT32.\n2. Assurez-vous que le système d'exploitation et le firmware sont à jour.\n3. Attendez que les développeurs corrigent le problème.",
       "font_q1": "Comment configurer des polices ou des icônes de touches personnalisées.",
-      "font_a1": "1. Téléchargez le fichier de police ou de police d'icônes que vous souhaitez.\n2. Renommez la police en : \"font.tff\" et l'icône en : \"icone.tff\".\n3. Placez les fichiers renommés dans le répertoire de configuration de l'application.\n4. Redémarrez l'application.",
+      "font_a1": "1. Téléchargez la police ou la police d'icônes souhaitée.\n2. Renommez le fichier de police en \"font.ttf\" et celui de la police d'icônes en \"icon.ttf\".\n3. Placez les fichiers dans le répertoire de configuration de l'application.\n4. Redémarrez l'application.",
       "font_q2": "Questions fréquentes",
-      "font_a2": "1. Le logiciel donne la priorité à l'affichage des polices personnalisées, en utilisant les polices intégrées comme sauvegarde.\n2. \"Paramètres - Tutoriel utilisateur\"  fournit un élément de menu pour ouvrir rapidement le répertoire de configuration.",
+      "font_a2": "1. Switchfin affiche les polices personnalisées en priorité et utilise les polices intégrées en leur absence.\n2. Le menu \"Paramètres - Tutoriel\" permet d'ouvrir rapidement le répertoire de configuration.\n3. Sous Linux, Switchfin utilise xdg-open pour ouvrir ce répertoire. Si cela ne fonctionne pas, vous pouvez installer cet outil.",
       "font_q3": "Les sous-titres ne peuvent être affichés correctement.",
-      "font_a3": "Copiez le fichier de police TTF approprié dans {}/subfront.ttf"
+      "font_a3": "Placez un fichier TTF dans {}/subfont.ttf"
     },
     "quick_connect": {
       "header": "Connexion rapide",
@@ -322,12 +322,12 @@
     }
   },
   "hints": {
-    "hint1": "Veuillez sélectionner n'importe quel jeu sur le bureau et maintenir la touche  enfoncée",
-    "hint2": "Cliquez sur  pour ouvrir, maintenez la touche  enfoncée pendant que l'application est ouverte, jusqu'à ce que vous accédiez au hbmenu.",
-    "hint3": "Sélectionnez Switchfin dans le menu hbmenu",
-    "hint4": "Optionnel : Installez le fichier NSP de Switchfin pour ouvrir directement Switchfin via l'icône du bureau.",
-    "hint_nsp": "Cliquez sur  pour installer l'icône du bureau",
-    "hint_confirm": "L'installation de l'icône du bureau peut entraîner un bannissement de la console. Veuillez confirmer à nouveau",
-    "hint_right": "Les images de la console portable proviennent d'Internet, et les droits d'auteur appartiennent à Nintendo Co., Ltd"
+    "hint1": "Sélectionnez un jeu depuis l'écran d'accueil.",
+    "hint2": "Maintenez la touche  enfoncée et appuyez sur  pour ouvrir le hbmenu.",
+    "hint3": "Dans le hbmenu, sélectionnez Switchfin.",
+    "hint4": "Facultatif : utilisez le forwarder NSP fourni par Switchfin.",
+    "hint_nsp": "Appuyez sur  pour installer le forwarder NSP.",
+    "hint_confirm": "L'installation du forwarder NSP peut entraîner le bannissement de la console. Veuillez confirmer à nouveau.",
+    "hint_right": "Les images proviennent d'Internet ; les droits d'auteur appartiennent à Nintendo Co., Ltd."
   }
 }
