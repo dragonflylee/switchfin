@@ -37,6 +37,10 @@
 #include <SDL2/SDL_main.h>
 #endif
 
+#if defined(__PS4__)
+#include <SDL2/SDL.h>
+#endif
+
 using namespace brls::literals;  // for _i18n
 
 int main(int argc, char* argv[]) {
@@ -65,6 +69,12 @@ int main(int argc, char* argv[]) {
     if (!conf.init()) {
         return 0;
     }
+
+    // Enable PS4 touchpad movement, physical mouse clicks and tap shortcuts.
+#if defined(__PS4__)
+    SDL_SetHint("SDL_PS4_TOUCHPAD_MOUSE", "1");
+    SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
+#endif
 
     // Init the app and i18n
     if (!brls::Application::init()) {

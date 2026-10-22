@@ -1,8 +1,68 @@
 diff --git a/src/joystick/ps4/SDL_sysjoystick.c b/src/joystick/ps4/SDL_sysjoystick.c
-index 7fb06514d..c4b46d1d9 100644
 --- a/src/joystick/ps4/SDL_sysjoystick.c
 +++ b/src/joystick/ps4/SDL_sysjoystick.c
-@@ -392,11 +392,11 @@ PS4_JoystickGetGamepadMapping(int device_index, SDL_GamepadMapping *out) {
+@@ -49,6 +49,8 @@
+ static int pads_handles[ORBIS_USER_SERVICE_MAX_LOGIN_USERS]; // index: sdl joy number, entry: sce pad handle
+ 
+ static int SDL_numjoysticks = 0;
++
++#include "SDL_ps4touchpad.h"
+ 
+ // "Sony DualShock 4 V2" buttons layout
+ static const unsigned int button_map[] = {
+@@ -206,6 +208,8 @@
+     joystick->nhats = 1;
+     joystick->instance_id = device_index;
+ 
++    PS4_InitTouchpadMouse(device_index, pads_handles[device_index]);
++
+     return 0;
+ }
+ 
+@@ -230,7 +234,7 @@
+     OrbisPadData pad;
+ 
+     int index = (int) SDL_JoystickInstanceID(joystick);
+-    if (index > ORBIS_USER_SERVICE_MAX_LOGIN_USERS) {
++    if (index < 0 || index >= ORBIS_USER_SERVICE_MAX_LOGIN_USERS) {
+         SDL_Log("PS4_JoystickUpdate: invalid joystick index: %i\n", index);
+         return;
+     }
+@@ -241,9 +245,13 @@
+     }
+ 
+     pad = pads[index];
+-    scePadReadState(pads_handles[index], &pad);
+-
+-    buttons = pad.buttons;
++    if (scePadReadState(pads_handles[index], &pad) != 0) {
++        PS4_ResetTouchpadMouse(index);
++        return;
++    }
++    PS4_UpdateTouchpadMouse(index, &pad);
++
++    buttons = PS4_TouchpadButtons(index, &pad);
+ 
+     lx = pad.leftStick.x;
+     ly = pad.leftStick.y;
+@@ -307,7 +315,7 @@
+ /* Function to close a joystick after use */
+ void PS4_JoystickClose(SDL_Joystick *joystick) {
+     int index = (int) SDL_JoystickInstanceID(joystick);
+-    if (index > ORBIS_USER_SERVICE_MAX_LOGIN_USERS) {
++    if (index < 0 || index >= ORBIS_USER_SERVICE_MAX_LOGIN_USERS) {
+         SDL_Log("PS4_JoystickClose: invalid joystick index: %i\n", index);
+         return;
+     }
+@@ -317,6 +325,7 @@
+         return;
+     }
+ 
++    PS4_ResetTouchpadMouse(index);
+     scePadClose(pads_handles[index]);
+ }
+ 
+@@ -392,11 +401,11 @@
      out->y.kind = EMappingKind_Button;
      out->y.target = 3;
      out->back.kind = EMappingKind_Button;
@@ -96,3 +156,183 @@ index 47b93aa80..5c9e29d8a 100644
  
      // 1280x720 RGBA8888
      SDL_zero(mode);
+diff --git a/src/joystick/ps4/SDL_ps4touchpad.h b/src/joystick/ps4/SDL_ps4touchpad.h
+new file mode 100644
+--- /dev/null
++++ b/src/joystick/ps4/SDL_ps4touchpad.h
+@@ -0,0 +1,175 @@
++/* Switchfin's opt-in DualShock 4 trackpad mouse. Uses the existing pad owner. */
++#include "SDL_hints.h"
++#include "SDL_timer.h"
++#include "../../events/SDL_mouse_c.h"
++
++#define PS4_TOUCHPAD_MOUSE_ID ((SDL_MouseID)0x50533450)
++
++typedef struct PS4_TouchpadMouse {
++    int resolution_x, resolution_y;
++    int fingers, finger_id[2];
++    float x, y, remainder_x, remainder_y, tap_distance;
++    Uint32 down_time, action_time;
++    SDL_bool tap, require_lift, mouse_down, action_down;
++    SDL_Window *window;
++} PS4_TouchpadMouse;
++
++static PS4_TouchpadMouse touchpad_mouse[ORBIS_USER_SERVICE_MAX_LOGIN_USERS];
++
++static void PS4_ResetTouchpadMouse(int index)
++{
++    PS4_TouchpadMouse *s = &touchpad_mouse[index];
++    int rx = s->resolution_x, ry = s->resolution_y;
++    if (s->mouse_down) {
++        SDL_SendMouseButton(NULL, PS4_TOUCHPAD_MOUSE_ID, SDL_RELEASED, SDL_BUTTON_LEFT);
++    }
++    SDL_zero(*s);
++    s->resolution_x = rx;
++    s->resolution_y = ry;
++    s->require_lift = SDL_TRUE;
++}
++
++static void PS4_InitTouchpadMouse(int index, int handle)
++{
++    OrbisPadInformation info;
++    PS4_ResetTouchpadMouse(index);
++    SDL_zero(info);
++    scePadGetControllerInformation(handle, &info);
++    touchpad_mouse[index].resolution_x = info.touchResolutionX ? info.touchResolutionX : 1920;
++    touchpad_mouse[index].resolution_y = info.touchResolutionY ? info.touchResolutionY : 942;
++    if (SDL_GetHintBoolean("SDL_PS4_TOUCHPAD_MOUSE", SDL_FALSE)) {
++        SDL_Log("PS4 touchpad mouse: press to click, tap for shortcut, two-finger scroll");
++    }
++}
++
++static void PS4_UpdateTouchpadMouse(int index, const OrbisPadData *pad)
++{
++    PS4_TouchpadMouse *s = &touchpad_mouse[index];
++    SDL_Window *window = SDL_GetKeyboardFocus();
++    Uint32 now = SDL_GetTicks();
++    int count = SDL_min(pad->touch.fingers, 2);
++    int width, height;
++    float x, y, dx, dy;
++
++    if (!SDL_GetHintBoolean("SDL_PS4_TOUCHPAD_MOUSE", SDL_FALSE) ||
++        !pad->connected || !window) {
++        PS4_ResetTouchpadMouse(index);
++        return;
++    }
++    if (s->window != window) {
++        PS4_ResetTouchpadMouse(index);
++        s->window = window;
++    }
++    SDL_GetWindowSize(window, &width, &height);
++    if (width <= 0 || height <= 0 || !s->resolution_x || !s->resolution_y) {
++        PS4_ResetTouchpadMouse(index);
++        return;
++    }
++    /* A contact held across a disconnect/focus change is not a new tap. */
++    if (s->require_lift) {
++        if (!count && !(pad->buttons & ORBIS_PAD_BUTTON_TOUCH_PAD)) {
++            s->require_lift = SDL_FALSE;
++        }
++        return;
++    }
++
++    if (s->action_down && (Uint32)(now - s->action_time) >= 50) {
++        s->action_down = SDL_FALSE;
++    }
++
++    /* Physical press is the mouse button; suppress the shortcut for this touch. */
++    if (pad->buttons & ORBIS_PAD_BUTTON_TOUCH_PAD) {
++        s->tap = SDL_FALSE;
++        if (!s->mouse_down) {
++            if (!SDL_GetMouse()->has_position) {
++                SDL_SendMouseMotion(window, PS4_TOUCHPAD_MOUSE_ID, 0, width / 2, height / 2);
++            }
++            SDL_SendMouseButton(window, PS4_TOUCHPAD_MOUSE_ID, SDL_PRESSED, SDL_BUTTON_LEFT);
++            s->mouse_down = SDL_TRUE;
++        }
++    } else if (s->mouse_down) {
++        SDL_SendMouseButton(window, PS4_TOUCHPAD_MOUSE_ID, SDL_RELEASED, SDL_BUTTON_LEFT);
++        s->mouse_down = SDL_FALSE;
++    }
++    if (!count) {
++        if (s->fingers == 1 && s->tap && (Uint32)(now - s->down_time) <= 250) {
++            /* Keep a tap visible to SDL_GameControllerGetButton polling. */
++            s->action_down = SDL_TRUE;
++            s->action_time = now;
++        }
++        s->fingers = 0;
++        s->tap = SDL_FALSE;
++        s->tap_distance = 0;
++        s->remainder_x = s->remainder_y = 0;
++        return;
++    }
++
++    x = pad->touch.touch[0].x;
++    y = pad->touch.touch[0].y;
++    if (count == 2) {
++        x = (x + pad->touch.touch[1].x) * 0.5f;
++        y = (y + pad->touch.touch[1].y) * 0.5f;
++        s->tap = SDL_FALSE;
++    }
++    if (!s->fingers) {
++        s->tap = count == 1 && !(pad->buttons & ORBIS_PAD_BUTTON_TOUCH_PAD);
++        s->down_time = now;
++        /* Establish the SDL mouse position once, not at every finger landing. */
++        if (!SDL_GetMouse()->has_position) {
++            SDL_SendMouseMotion(window, PS4_TOUCHPAD_MOUSE_ID, 0, width / 2, height / 2);
++        }
++    } else if (count == s->fingers &&
++               ((count == 1 && s->finger_id[0] == pad->touch.touch[0].finger) ||
++                (count == 2 &&
++                 ((s->finger_id[0] == pad->touch.touch[0].finger &&
++                   s->finger_id[1] == pad->touch.touch[1].finger) ||
++                  (s->finger_id[1] == pad->touch.touch[0].finger &&
++                   s->finger_id[0] == pad->touch.touch[1].finger))))) {
++        dx = x - s->x;
++        dy = y - s->y;
++        if (count == 1) {
++            int mx, my, cx, cy;
++            s->tap_distance += SDL_fabsf(dx) / s->resolution_x + SDL_fabsf(dy) / s->resolution_y;
++            if (s->tap_distance > 0.02f) {
++                s->tap = SDL_FALSE;
++            }
++            s->remainder_x += dx * width * 1.5f / s->resolution_x;
++            s->remainder_y += dy * height * 1.5f / s->resolution_y;
++            mx = (int)s->remainder_x;
++            my = (int)s->remainder_y;
++            s->remainder_x -= mx;
++            s->remainder_y -= my;
++            if (mx || my) {
++                SDL_GetMouseState(&cx, &cy);
++                SDL_SendMouseMotion(window, PS4_TOUCHPAD_MOUSE_ID, 0,
++                                    SDL_clamp(cx + mx, 0, width - 1),
++                                    SDL_clamp(cy + my, 0, height - 1));
++            }
++        } else {
++            SDL_SendMouseWheel(window, PS4_TOUCHPAD_MOUSE_ID,
++                               -dx * 96.0f / s->resolution_x,
++                               -dy * 96.0f / s->resolution_y, SDL_MOUSEWHEEL_NORMAL);
++        }
++    } else {
++        /* Re-anchor on finger replacement or count changes; never click. */
++        s->tap = SDL_FALSE;
++        s->remainder_x = s->remainder_y = 0;
++    }
++    s->x = x;
++    s->y = y;
++    s->fingers = count;
++    s->finger_id[0] = pad->touch.touch[0].finger;
++    s->finger_id[1] = count == 2 ? pad->touch.touch[1].finger : -1;
++}
++
++static Uint32 PS4_TouchpadButtons(int index, const OrbisPadData *pad)
++{
++    Uint32 buttons = pad->buttons;
++    if (SDL_GetHintBoolean("SDL_PS4_TOUCHPAD_MOUSE", SDL_FALSE)) {
++        buttons &= ~ORBIS_PAD_BUTTON_TOUCH_PAD;
++        if (touchpad_mouse[index].action_down) {
++            buttons |= ORBIS_PAD_BUTTON_TOUCH_PAD;
++        }
++    }
++    return buttons;
++}
