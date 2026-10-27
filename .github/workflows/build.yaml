@@ -103,7 +103,7 @@ jobs:
     container:
       image: devkitpro/devkita64:20260219
     env:
-      BASE_URL: https://github.com/dragonflylee/switchfin/releases/download/switch-portlibs
+      BASE_URL: https://github.com/${{ github.repository }}/releases/download/switch-portlibs
     steps:
     - uses: actions/checkout@v7
       with:
@@ -151,7 +151,7 @@ jobs:
     container:
       image: xfangfang/pacbrew:250221
     env:
-      BASE_URL: https://github.com/dragonflylee/switchfin/releases/download/pacbrew
+      BASE_URL: https://github.com/${{ github.repository }}/releases/download/pacbrew
     steps:
     - uses: actions/checkout@v7
       with:
@@ -190,7 +190,7 @@ jobs:
         submodules: recursive
     - name: Update dependencies
       env:
-        BASE_URL: https://github.com/dragonflylee/switchfin/releases/download/vita-packages
+        BASE_URL: https://github.com/${{ github.repository }}/releases/download/vita-packages
       run: |
         for pkg in mbedtls-3.6.7-1 curl-8.16.0-3 mupdf-1.24.11-1 ffmpeg-n6.0-3 mpv-0.36.0-3; do
           vdpm pacman --noconfirm -U $BASE_URL/${pkg}-vita.pkg.tar.xz
@@ -325,7 +325,7 @@ jobs:
     - name: Install deps
       run: |
         brew install create-dmg dylibbundler
-        curl -sSL https://github.com/dragonflylee/switchfin/releases/download/macos-dylib/dylib-mpv41-${{ matrix.tag }}.tar.gz | tar zxf - -C ${{ runner.temp }}
+        curl -sSL https://github.com/${{ github.repository }}/releases/download/macos-dylib/dylib-mpv41-${{ matrix.tag }}.tar.gz | tar zxf - -C ${{ runner.temp }}
     - name: Build App
       env:
         DYLD_LIBRARY_PATH: ${{ runner.temp }}/lib
@@ -387,7 +387,7 @@ jobs:
     - name: Install dependency
       run: |
         for pkg in glfw-3.5.0-1 curl-8.21.0-1 mpv-0.41.0-2 libmupdf-1.24.11-1 libwebp-1.6.0-1; do
-          curl -sLO https://github.com/dragonflylee/switchfin/releases/download/mingw-packages/${MINGW_PACKAGE_PREFIX}-${pkg}-any.pkg.tar.zst
+          curl -sLO https://github.com/${{ github.repository }}/releases/download/mingw-packages/${MINGW_PACKAGE_PREFIX}-${pkg}-any.pkg.tar.zst
         done
         pacman -U --noconfirm *.pkg.tar.zst
 
@@ -416,7 +416,10 @@ jobs:
           -DVERSION_BUILD=${{ github.run_number }}
         cmake --build build
         cv2pdb64 build/Switchfin.exe
-        cp -a README.md ${MINGW_PREFIX}/bin/{libmpv-2.dll,libmupdf.dll} build
+        cp -a README.md ${MINGW_PREFIX}/bin/libmpv-2.dll build
+        if [ "${{ github.event.inputs.disable_mupdf }}" != "true" ]; then
+          cp -a ${MINGW_PREFIX}/bin/libmupdf.dll build
+        fi
     - name: Upload Assets
       uses: actions/upload-artifact@v7
       with:

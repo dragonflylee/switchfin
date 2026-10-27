@@ -26,14 +26,14 @@ download:
 	curl --retry 5 -sSL https://github.com/dragonflylee/glfw/archive/switchfin.tar.gz | tar zxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://casper.mupdf.com/downloads/archive/mupdf-1.24.11-source.tar.lz | tar --lzip -xf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://www.freedesktop.org/software/uchardet/releases/uchardet-0.0.8.tar.xz | tar Jxf - -C $(TMPDIR)
-	curl --retry 5 -sSL https://downloads.sourceforge.net/project/freetype/freetype2/2.14.3/freetype-2.14.3.tar.xz | tar Jxf - -C $(TMPDIR)
-	curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/14.5.0/harfbuzz-14.5.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://downloads.sourceforge.net/project/freetype/freetype2/2.15.0/freetype-2.15.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/15.0.0/harfbuzz-15.0.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/fribidi/fribidi/releases/download/v1.0.17/fribidi-1.0.17.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/libass/libass/releases/download/0.17.5/libass-0.17.5.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://downloads.videolan.org/pub/videolan/dav1d/1.5.4/dav1d-1.5.4.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/mpv-player/mpv/archive/v0.41.0.tar.gz | tar zxf - -C $(TMPDIR)
-	git clone https://github.com/haasn/libplacebo.git -b v7.360.1 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
+	git clone https://github.com/haasn/libplacebo.git -b v7.387.0 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
 	patch -d $(TMPDIR)/mpv-0.41.0 -Nbp1 -i $(CURDIR)/mpv.patch
 
 curl:
@@ -88,14 +88,14 @@ libwebp:
 	cmake --install build/libwebp
 
 freetype:
-	meson setup build/freetype $(TMPDIR)/freetype-2.14.3 --default-library=shared \
+	meson setup build/freetype $(TMPDIR)/freetype-2.15.0 --default-library=shared \
 		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX) \
 		-Dharfbuzz=disabled -Dbrotli=disabled -Dzlib=system
 	meson compile -C build/freetype
 	meson install -C build/freetype
 
 harfbuzz: freetype
-	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-14.5.0 \
+	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-15.0.0 \
 		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX) \
 		-Dtests=disabled -Ddocs=disabled -Dicu=disabled -Dcairo=disabled \
 		-Dglib=disabled -Dgobject=disabled -Dbenchmark=disabled -Dutilities=disabled

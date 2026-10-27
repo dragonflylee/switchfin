@@ -89,8 +89,8 @@ modules:
               - --disable-blacklist
             sources:
               - type: archive
-                url: https://github.com/vcrhonek/hwdata/archive/v0.410.tar.gz
-                sha256: 2864b061b179b8ad8cb6a7339ca07678240a183d9cedce8677a4950acaf798e0
+                url: https://github.com/vcrhonek/hwdata/archive/v0.412.tar.gz
+                sha256: f0c64cd7e31d70a5fb3a52e53ab50a61e74c0421a6381eaa45114eec3bde5fe7
 
       - name: libplacebo
         buildsystem: meson
@@ -103,8 +103,8 @@ modules:
         sources:
           - type: git
             url: https://github.com/haasn/libplacebo.git
-            commit: cee9b076f2c63104ccfd497fa79c39a867293ec4
-            tag: v7.360.1
+            commit: 275f7dea27924cdd34ab2e6c20e448b6bc4fab65
+            tag: v7.387.0
             x-checker-data:
               type: git
               tag-pattern: ^v([\d.]+)$
@@ -154,7 +154,6 @@ modules:
           - --disable-muxers
           - --disable-filters
           - --enable-filter=hflip,vflip,transpose
-          - --enable-libssh2
           - --enable-libdrm
           - --enable-vaapi
           - --enable-vdpau
@@ -177,8 +176,6 @@ modules:
               url-template: https://ffmpeg.org/releases/ffmpeg-$version.tar.xz
           - type: patch
             path: patches/ffmpeg-v4l2request.patch
-          - type: patch
-            path: mingw64/ffmpeg/avio.patch
         modules:
           - name: nv-codec-headers
             cleanup:
@@ -195,18 +192,6 @@ modules:
                   project-id: 223796
                   stable-only: true
                   url-template: https://github.com/FFmpeg/nv-codec-headers/archive/n$version.tar.gz
-          - name: libssh2
-            buildsystem: cmake-ninja
-            config-opts:
-              - -DCMAKE_BUILD_TYPE=Release
-              - -DBUILD_SHARED_LIBS=ON
-              - -DBUILD_STATIC_LIBS=OFF
-              - -DBUILD_EXAMPLES=ON
-              - -DBUILD_TESTING=OFF
-            sources:
-              - type: archive
-                url: https://libssh2.org/download/libssh2-1.11.1.tar.xz
-                sha256: 9954cb54c4f548198a7cbebad248bdc87dd64bd26185708a294b2b50771e3769
 
   - name: glfw
     buildsystem: cmake-ninja

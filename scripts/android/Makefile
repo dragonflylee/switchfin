@@ -39,16 +39,16 @@ download:
 	wget -qO- https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.7/mbedtls-3.6.7.tar.bz2 | tar jxf - -C $(TMPDIR)
 	wget -qO- https://curl.se/download/curl-8.21.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/webmproject/libwebp/archive/v1.6.0.tar.gz | tar zxf - -C $(TMPDIR)
-	wget -qO- https://downloads.sourceforge.net/project/freetype/freetype2/2.14.3/freetype-2.14.3.tar.xz | tar Jxf - -C $(TMPDIR)
-	wget -qO- https://github.com/GNOME/libxml2/archive/v2.15.3.tar.gz | tar zxf - -C $(TMPDIR)
+	wget -qO- https://downloads.sourceforge.net/project/freetype/freetype2/2.15.0/freetype-2.15.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	wget -qO- https://github.com/GNOME/libxml2/archive/v2.15.4.tar.gz | tar zxf - -C $(TMPDIR)
 	wget -qO- https://github.com/fontconfig/fontconfig/archive/2.18.3.tar.gz | tar zxf - -C $(TMPDIR)
-	wget -qO- https://github.com/harfbuzz/harfbuzz/releases/download/14.5.0/harfbuzz-14.5.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	wget -qO- https://github.com/harfbuzz/harfbuzz/releases/download/15.0.0/harfbuzz-15.0.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/fribidi/fribidi/releases/download/v1.0.17/fribidi-1.0.17.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/libass/libass/releases/download/0.17.5/libass-0.17.5.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.5.4/dav1d-1.5.4.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/mpv-player/mpv/archive/v0.41.0.tar.gz | tar zxf - -C $(TMPDIR)
-	git clone https://github.com/haasn/libplacebo.git -b v7.360.1 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
+	git clone https://github.com/haasn/libplacebo.git -b v7.387.0 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
 	patch -d $(TMPDIR)/libwebp-1.6.0 -Nbp1 -i $(PWD)/scripts/mingw64/libwebp/0001-mingw-cmake-output.patch
 
 SDL2:
@@ -91,13 +91,13 @@ libwebp:
 	DESTDIR=$(PREFIX) cmake --install build/libwebp
 
 freetype:
-	meson setup build/freetype $(TMPDIR)/freetype-2.14.3 --cross-file "$(CURDIR)/$(ABI).meson" \
+	meson setup build/freetype $(TMPDIR)/freetype-2.15.0 --cross-file "$(CURDIR)/$(ABI).meson" \
 		-Dharfbuzz=disabled -Dbrotli=disabled -Dzlib=enabled
 	meson compile -C build/freetype
 	meson install -C build/freetype --destdir $(PREFIX)
 
 libxm2:
-	meson setup build/libxm2 $(TMPDIR)/libxml2-2.15.3 --cross-file "$(CURDIR)/$(ABI).meson" \
+	meson setup build/libxm2 $(TMPDIR)/libxml2-2.15.4 --cross-file "$(CURDIR)/$(ABI).meson" \
 		-Dminimum=true -Dpush=enabled -Dreader=enabled -Dsax1=enabled -Diso8859x=enabled \
 		-Dpattern=enabled -Ddocs=disabled
 	meson compile -C build/libxm2
@@ -110,7 +110,7 @@ fontconfig: libxm2
 	meson install -C build/fontconfig --destdir $(PREFIX)
 
 harfbuzz: freetype
-	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-14.5.0 --cross-file "$(CURDIR)/$(ABI).meson" \
+	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-15.0.0 --cross-file "$(CURDIR)/$(ABI).meson" \
 		-Dfreetype=enabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled \
 		-Dchafa=disabled -Dtests=disabled -Dintrospection=disabled \
 		-Ddocs=disabled -Ddoc_tests=false -Dutilities=disabled
