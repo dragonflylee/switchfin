@@ -1,10 +1,6 @@
 //
 // Media segment (intro / credits / recap ...) helpers.
 //
-// Pure logic only: no borealis, no network. Keeping it separate makes the
-// "what should the player do now" decision unit testable and keeps the
-// player views free of tick arithmetic.
-//
 
 #pragma once
 
