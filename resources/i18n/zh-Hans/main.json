@@ -53,7 +53,13 @@
     "next": "下一个",
     "error": "播放失败",
     "episode": "选集",
-    "speed_up": "{} 倍速播放中"
+    "speed_up": "{} 倍速播放中",
+    "skip": "跳过",
+    "skip_intro": "跳过片头",
+    "skip_credits": "跳过片尾",
+    "skip_recap": "跳过回顾",
+    "skip_preview": "跳过预告",
+    "skip_commercial": "跳过广告"
   },
   "ebook": {
     "zoom": "缩放",
@@ -213,7 +219,11 @@
       "transcodec": "转码格式",
       "audio_channels": "声道",
       "video_quality": "视频质量",
-      "subsync": "字幕同步"
+      "subsync": "字幕同步",
+      "segment": "片头/片尾跳过",
+      "segment_off": "关闭",
+      "segment_ask": "询问",
+      "segment_skip": "自动跳过"
     },
     "transcode": {
       "header": "转码配置"

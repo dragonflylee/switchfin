@@ -7,6 +7,7 @@
 #include <borealis.hpp>
 #include <utils/event.hpp>
 #include <api/jellyfin/media.hpp>
+#include <view/media_segment.hpp>
 
 class VideoProgressSlider;
 class SVGImage;
@@ -49,6 +50,16 @@ public:
     void setDanmakuEnable(brls::Visibility v);
 
     void setChapters(const std::vector<jellyfin::MediaChapter>& chaps, uint64_t duration);
+
+    /// @brief 更新媒体片段（片头/片尾等），由 PlayerView 在播放前拉取
+    void setSegments(const std::string& itemId, const std::vector<jellyfin::MediaSegment>& list);
+    /// @brief 清空媒体片段（切换视频或停止播放时调用）
+    void clearSegments();
+    /// @brief 跳过当前播放位置所在的片段，无片段时返回 false
+    bool skipSegment();
+
+    /// 片段处理方式，由 AppConfig::PLAYER_SEGMENT_MODE 持久化
+    inline static segment::Mode SEGMENT_MODE = segment::Mode::ASK;
 
     void playNext(int offset);
 
@@ -115,6 +126,14 @@ private:
     BRLS_BIND(brls::Box, speedHintBox, "video/speed/hint/box");
     BRLS_BIND(brls::Label, hintLabel, "video/osd/hint/label");
     BRLS_BIND(brls::Box, hintBox, "video/osd/hint/box");
+    BRLS_BIND(brls::Box, btnSegment, "video/segment/box");
+    BRLS_BIND(brls::Label, btnSegmentLabel, "video/segment/label");
+
+    /// @brief 根据播放进度处理媒体片段
+    void onPlaybackProgress(double pos);
+    void doSkipSegment(const jellyfin::MediaSegment& seg);
+    void showSegmentButton(const jellyfin::MediaSegment& seg);
+    void hideSegmentButton();
 
     bool toggleDanmaku();
     void refreshDanmakuIcon();
@@ -147,6 +166,14 @@ private:
     brls::Event<int> playIndexEvent;
     brls::VoidEvent settingEvent;
     View* lastFocusedView = nullptr;
+
+    // 媒体片段
+    std::vector<jellyfin::MediaSegment> segments;
+    std::string segmentsItemId;
+    std::string handledSegmentId;
+    double handledSegmentEnd = 0;
+    bool segmentButtonVisible = false;
+    brls::Time segmentLastShowTime = 0;
 
     // OSD
     bool isOsdShown = false;

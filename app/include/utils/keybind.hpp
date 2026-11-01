@@ -57,4 +57,6 @@ public:
     DECL_KEYBIND(VideoOsd);
     // 视频播放暂停
     DECL_KEYBIND(VideoPause);
+    // 跳过片头/片尾
+    DECL_KEYBIND(SkipSegment);
 };

@@ -153,6 +153,18 @@ VideoView::VideoView() {
     });
     this->btnDanmakuSetting->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnDanmakuSetting));
 
+    /// 片头/片尾跳过按钮，快捷键与手柄 LT
+    this->btnSegment->registerClickAction([this](brls::View* view) { return this->skipSegment(); });
+    this->btnSegment->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnSegment));
+    // 手柄 LT 跳过：跳跃提示不可聚焦（避免打断 OSD 的焦点链），
+    // 控制器用 LT、键盘用配置的快捷键、触屏/鼠标直接点按钮。
+    this->registerAction(
+        "main/player/skip"_i18n, brls::BUTTON_LT,
+        [this](brls::View* view) { return this->skipSegment(); }, true);
+    if (KeyBind::getSkipSegment().code != brls::BRLS_KBD_KEY_UNKNOWN) {
+        this->registerAction(KeyBind::getSkipSegment(), [this](brls::View* view) { return this->skipSegment(); });
+    }
+
     this->registerMpvEvent();
 
     osdSlider->getProgressSetEvent().subscribe([this](float progress) {
@@ -499,6 +511,11 @@ void VideoView::draw(NVGcontext* vg, float x, float y, float w, float h, brls::S
         this->hintLastShowTime = 0;
     }
 
+    // draw skip segment button
+    if (this->segmentButtonVisible) {
+        this->btnSegment->frame(ctx);
+    }
+
     // hot key
     this->buttonProcessing();
 
@@ -621,6 +638,7 @@ void VideoView::registerMpvEvent() {
                 this->leftStatusLabel->setText(misc::sec2Time(mpv.video_progress));
                 this->osdSlider->setProgress((float)mpv.playback_time / mpv.duration);
             }
+            this->onPlaybackProgress(mpv.playback_time);
             break;
         case MpvEventEnum::VIDEO_SPEED_CHANGE:
             if (std::fabs(mpv.video_speed - 1) < 1e-5) {
@@ -633,6 +651,7 @@ void VideoView::registerMpvEvent() {
             // 播放结束
             disableDimming(false);
             this->toggleIcon->setImageFromSVGRes("icon/ico-play.svg");
+            this->clearSegments();
             this->playIndexEvent.fire(++this->playIndex);
             break;
         case MpvEventEnum::CACHE_SPEED_CHANGE:
@@ -826,7 +845,12 @@ bool VideoView::close(bool quit) {
 
 void VideoView::disableDimming(bool disable) {
     brls::Application::getPlatform()->disableScreenDimming(disable, "Playing video", AppVersion::getPackageName());
-    brls::Application::setAutomaticDeactivation(!disable);
+    // Keep the normal full-speed main loop.  Automatic deactivation makes the
+    // GLFW loop wait up to 200 ms (5 FPS) when idle, but gamepad state is
+    // polled and does not wake that wait: after leaving the player, scrolling
+    // titles stuttered and short A/B presses were missed.  The idle throttle is
+    // not useful while a gamepad is connected.
+    brls::Application::setAutomaticDeactivation(false);
 }
 
 void VideoView::setDanmakuEnable(brls::Visibility v) {
@@ -900,6 +924,111 @@ void VideoView::setChapters(const std::vector<jellyfin::MediaChapter>& chaps, ui
     this->btnVideoChapter->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnVideoChapter));
     this->btnVideoChapter->setVisibility(brls::Visibility::VISIBLE);
     for (auto& view : this->btnVideoChapter->getChildren()) view->setVisibility(brls::Visibility::VISIBLE);
+}
+
+/// 媒体片段（片头/片尾/回顾...）
+static std::string segmentTitle(const std::string& type) {
+    if (type == jellyfin::segTypeIntro) return "main/player/skip_intro"_i18n;
+    if (type == jellyfin::segTypeCredits || type == jellyfin::segTypeOutro) return "main/player/skip_credits"_i18n;
+    if (type == jellyfin::segTypeRecap) return "main/player/skip_recap"_i18n;
+    if (type == jellyfin::segTypePreview) return "main/player/skip_preview"_i18n;
+    if (type == jellyfin::segTypeCommercial) return "main/player/skip_commercial"_i18n;
+    return "main/player/skip"_i18n;
+}
+
+void VideoView::setSegments(const std::string& itemId, const std::vector<jellyfin::MediaSegment>& list) {
+    if (itemId != this->segmentsItemId) this->hideSegmentButton();
+    this->segmentsItemId = itemId;
+    this->segments = list;
+    this->handledSegmentId.clear();
+    this->handledSegmentEnd = 0;
+    brls::Logger::info("VideoView: {} media segments for {}", list.size(), itemId);
+}
+
+void VideoView::clearSegments() {
+    this->segments.clear();
+    this->segmentsItemId.clear();
+    this->handledSegmentId.clear();
+    this->handledSegmentEnd = 0;
+    this->hideSegmentButton();
+}
+
+void VideoView::onPlaybackProgress(double pos) {
+    // 跳过提示超时隐藏
+    if (this->segmentButtonVisible && brls::getCPUTimeUsec() > this->segmentLastShowTime) {
+        this->hideSegmentButton();
+    }
+    // 已处理的片段播放结束后重新布防，用户回拖进同一片段时不会重复跳过
+    if (!this->handledSegmentId.empty() && this->handledSegmentEnd > 0 && pos > this->handledSegmentEnd + 1) {
+        this->handledSegmentId.clear();
+        this->handledSegmentEnd = 0;
+    }
+    if (this->segments.empty()) return;
+
+    auto decision = segment::evaluate(this->segments, pos, SEGMENT_MODE, this->handledSegmentId);
+    if (decision.id.empty()) return;
+
+    const auto* current = segment::find(this->segments, pos);
+    if (current == nullptr) return;
+
+    switch (decision.action) {
+    case segment::Action::SKIP:
+        brls::Logger::info("VideoView: skip {} at {}s", decision.type, pos);
+        this->doSkipSegment(*current);
+        break;
+    case segment::Action::ASK:
+        this->handledSegmentId = decision.id;
+        this->showSegmentButton(*current);
+        break;
+    case segment::Action::NEXT:
+        // 无结束时间（片尾）直接播放下一集
+        this->handledSegmentId = decision.id;
+        this->playNext(1);
+        break;
+    default:
+        // 片段过短，标记为已处理
+        this->handledSegmentId = decision.id;
+    }
+}
+
+void VideoView::doSkipSegment(const jellyfin::MediaSegment& seg) {
+    this->handledSegmentId = seg.Id;
+    this->handledSegmentEnd = segment::ticksToSec(seg.EndTicks);
+    this->hideSegmentButton();
+
+    if (seg.EndTicks == 0) {
+        this->playNext(1);
+        return;
+    }
+    // 已经越过片段末尾时不需要跳转
+    auto& mpv = MPVCore::instance();
+    if (this->handledSegmentEnd <= mpv.playback_time) return;
+
+    // 默认（absolute）跳到目标位置之前最近的关键帧，比 absolute+exact 快得多，
+    // 片段边界本身已由分析器对齐到关键帧
+    mpv.seek(this->handledSegmentEnd);
+    this->showHint(segmentTitle(seg.Type));
+}
+
+bool VideoView::skipSegment() {
+    auto& mpv = MPVCore::instance();
+    const auto* seg = segment::find(this->segments, mpv.playback_time);
+    if (seg == nullptr) return false;
+    this->doSkipSegment(*seg);
+    return true;
+}
+
+void VideoView::showSegmentButton(const jellyfin::MediaSegment& seg) {
+    this->btnSegmentLabel->setText(segmentTitle(seg.Type));
+    this->btnSegment->setVisibility(brls::Visibility::VISIBLE);
+    this->segmentButtonVisible = true;
+    // 与 jellyfin-web 一致：8 秒后自动隐藏
+    this->segmentLastShowTime = brls::getCPUTimeUsec() + 8 * 1000000;
+}
+
+void VideoView::hideSegmentButton() {
+    this->segmentButtonVisible = false;
+    this->btnSegment->setVisibility(brls::Visibility::GONE);
 }
 
 void VideoView::playNext(int offset) { this->playIndexEvent.fire(this->playIndex + offset); }

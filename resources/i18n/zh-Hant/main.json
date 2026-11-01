@@ -53,7 +53,13 @@
     "next": "下一個",
     "error": "播放錯誤",
     "episode": "選集",
-    "speed_up": "{} 倍速播放中"
+    "speed_up": "{} 倍速播放中",
+    "skip": "跳過",
+    "skip_intro": "跳過片頭",
+    "skip_credits": "跳過片尾",
+    "skip_recap": "跳過回顧",
+    "skip_preview": "跳過預告",
+    "skip_commercial": "跳過廣告"
   },
   "ebook": {
     "zoom": "縮放",
@@ -213,7 +219,11 @@
       "transcodec": "轉碼格式",
       "audio_channels": "音訊聲道數",
       "video_quality": "視訊品質",
-      "subsync": "字幕同步"
+      "subsync": "字幕同步",
+      "segment": "片頭/片尾跳過",
+      "segment_off": "關閉",
+      "segment_ask": "詢問",
+      "segment_skip": "自動跳過"
     },
     "transcode": {
       "header": "轉碼設定"

@@ -1,5 +1,22 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+* skip intros, credits, recaps, previews and commercials using Jellyfin media segments
+  (Intro Skipper and other providers)
+* player setting to ask before skipping, skip automatically or ignore media segments
+* `key_skip_segment` shortcut (default `n`), gamepad LT and an on-screen skip prompt
+* open-ended outro segments advance to the next episode
+
+### Fixed
+
+* a pending media-segment request is cancelled when the player closes, so it no longer
+  delays shutdown
+* keep the main loop at full speed after leaving the player so polled gamepad input is
+  not delayed by the 5 FPS automatic-deactivation mode
+
 ## [0.9.4]
 
 ### Added

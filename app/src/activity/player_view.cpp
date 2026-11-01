@@ -96,6 +96,7 @@ PlayerView::PlayerView(const jellyfin::Item& item, const uint64_t seekTicks, con
     }
 
     this->setChapters(item.Chapters, item.RunTimeTicks);
+    if (item.Type != jellyfin::mediaTypeTvChannel) this->requestSegments(this->itemId);
     this->playMedia(seekTicks > 0 ? seekTicks : item.UserData.PlaybackPositionTicks);
 
     // Report stop when application exit
@@ -105,6 +106,10 @@ PlayerView::PlayerView(const jellyfin::Item& item, const uint64_t seekTicks, con
 }
 
 PlayerView::~PlayerView() {
+    // Don't let an in-flight MediaSegments request keep the single brls::async
+    // worker busy (and delay Threading::stop) after the player is gone.
+    if (this->segmentCancel) this->segmentCancel->store(true);
+
     auto& mpv = MPVCore::instance();
     mpv.getEvent()->unsubscribe(eventSubscribeID);
     mpv.getCustomEvent()->unsubscribe(customEventSubscribeID);
@@ -160,6 +165,65 @@ void PlayerView::setChapters(const std::vector<jellyfin::MediaChapter>& chaps, u
     this->view->setChapters(chaps, duration);
 }
 
+void PlayerView::requestSegments(const std::string& mediaId) {
+    this->view->clearSegments();
+
+    // Abort the request for the previous item (if any) before starting a new
+    // one; the old response is also ignored by the mediaId check below.
+    if (this->segmentCancel) this->segmentCancel->store(true);
+    auto cancel = std::make_shared<std::atomic_bool>(false);
+    this->segmentCancel = cancel;
+
+    // 不传 includeSegmentTypes：MediaSegmentType 的枚举值在不同 Jellyfin 版本中不同
+    // （10.10 为 Outro，后续版本改名 Credits），未知类型会让服务端返回 400。
+    // 超时设短一些：退出时若仍有请求在飞，会拖慢关闭速度。
+    auto& conf = AppConfig::instance();
+    const std::string url =
+        conf.getUrl() + fmt::format(fmt::runtime(jellyfin::apiMediaSegments), mediaId);
+    const std::string auth = conf.getAuth(conf.getToken());
+
+    ASYNC_RETAIN
+    brls::async([ASYNC_TOKEN, mediaId, url, auth, cancel]() {
+        // Every exit path must release the async token, including 404/network
+        // errors; otherwise the token counter for this view leaks forever.
+        auto release = [ASYNC_TOKEN]() {
+            brls::sync([ASYNC_TOKEN]() { ASYNC_RELEASE });
+        };
+
+        if (cancel->load()) {
+            release();
+            return;
+        }
+
+        std::string body;
+        try {
+            body = HTTP::get(url, HTTP::Header{auth}, HTTP::Timeout{1500}, HTTP::Cancel{cancel});
+        } catch (const std::exception& ex) {
+            // A cancelled request is expected when the player closes; don't
+            // report it as a server problem.
+            if (!cancel->load())
+                brls::Logger::warning("PlayerView: no media segments for {} ({})", mediaId, ex.what());
+            release();
+            return;
+        }
+        if (body.empty()) {  // 204/404 等，无片段
+            release();
+            return;
+        }
+        try {
+            auto r = nlohmann::json::parse(body).get<jellyfin::Result<jellyfin::MediaSegment>>();
+            brls::sync([ASYNC_TOKEN, mediaId, items = std::move(r.Items)]() {
+                ASYNC_RELEASE
+                if (mediaId != this->itemId) return;
+                this->view->setSegments(mediaId, items);
+            });
+        } catch (const std::exception& ex) {
+            brls::Logger::warning("PlayerView: bad media segments for {} ({})", mediaId, ex.what());
+            release();
+        }
+    });
+}
+
 bool PlayerView::playIndex(int index) {
     if (index < 0 || index >= (int)this->episodes.size()) {
         return VideoView::close();
@@ -170,6 +234,7 @@ bool PlayerView::playIndex(int index) {
     this->itemId = item.Id;
     this->sourceId = item.Id;
     this->setChapters(item.Chapters, item.RunTimeTicks);
+    this->requestSegments(this->itemId);
     this->playMedia(0);
     view->setTitie(fmt::format("S{}E{} - {}", item.ParentIndexNumber, item.IndexNumber, item.Name));
     return true;
