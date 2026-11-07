@@ -14,30 +14,31 @@ endif
 
 all: download build
 
-build: mpv curl mupdf glfw
+build: curl mpv mupdf glfw
 
 clean:
 	@rm -rf build
 
 download:
 	curl --retry 5 -sSL https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.7/mbedtls-3.6.7.tar.bz2 | tar jxf - -C $(TMPDIR)
-	curl --retry 5 -sSL https://curl.se/download/curl-8.21.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://curl.se/download/curl-8.23.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/webmproject/libwebp/archive/v1.6.0.tar.gz | tar zxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/dragonflylee/glfw/archive/switchfin.tar.gz | tar zxf - -C $(TMPDIR)
-	curl --retry 5 -sSL https://casper.mupdf.com/downloads/archive/mupdf-1.24.11-source.tar.lz | tar --lzip -xf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://casper.mupdf.com/downloads/archive/mupdf-1.28.6-source.tar.lz | tar --lzip -xf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://www.freedesktop.org/software/uchardet/releases/uchardet-0.0.8.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://downloads.sourceforge.net/project/freetype/freetype2/2.15.0/freetype-2.15.0.tar.xz | tar Jxf - -C $(TMPDIR)
-	curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/15.0.0/harfbuzz-15.0.0.tar.xz | tar Jxf - -C $(TMPDIR)
-	curl --retry 5 -sSL https://github.com/fribidi/fribidi/releases/download/v1.0.17/fribidi-1.0.17.tar.xz | tar Jxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://github.com/harfbuzz/harfbuzz/releases/download/15.1.0/harfbuzz-15.1.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://github.com/fribidi/fribidi/releases/download/v1.0.18/fribidi-1.0.18.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://github.com/libass/libass/releases/download/0.17.5/libass-0.17.5.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://downloads.videolan.org/pub/videolan/dav1d/1.5.4/dav1d-1.5.4.tar.xz | tar Jxf - -C $(TMPDIR)
 	curl --retry 5 -sSL https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz | tar Jxf - -C $(TMPDIR)
-	curl --retry 5 -sSL https://github.com/mpv-player/mpv/archive/v0.41.0.tar.gz | tar zxf - -C $(TMPDIR)
+	curl --retry 5 -sSL https://github.com/mpv-player/mpv/archive/v0.42.0.tar.gz | tar zxf - -C $(TMPDIR)
 	git clone https://github.com/haasn/libplacebo.git -b v7.387.0 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
-	patch -d $(TMPDIR)/mpv-0.41.0 -Nbp1 -i $(CURDIR)/mpv.patch
+	patch -d $(TMPDIR)/mpv-0.42.0 -Nbp1 -i $(CURDIR)/mpv.patch
+	sed -i '' '/\.private:/d' $(TMPDIR)/curl-8.23.0/libcurl.pc.in
 
-curl:
-	cmake -B build/curl -S $(TMPDIR)/curl-8.21.0 -G Ninja -DCMAKE_BUILD_TYPE=Release \
+curl: mbedtls
+	cmake -B build/curl -S $(TMPDIR)/curl-8.23.0 -G Ninja -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_OSX_ARCHITECTURES=$(OSX_ARCH) -DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_TARGET) \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_INSTALL_NAME_DIR=$(PREFIX)/lib \
 		-DBUILD_SHARED_LIBS=ON -DCURL_DISABLE_PROGRESS_METER=ON -DCURL_USE_MBEDTLS=ON \
@@ -95,7 +96,7 @@ freetype:
 	meson install -C build/freetype
 
 harfbuzz: freetype
-	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-15.0.0 \
+	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-15.1.0 \
 		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX) \
 		-Dtests=disabled -Ddocs=disabled -Dicu=disabled -Dcairo=disabled \
 		-Dglib=disabled -Dgobject=disabled -Dbenchmark=disabled -Dutilities=disabled
@@ -103,7 +104,7 @@ harfbuzz: freetype
 	meson install -C build/harfbuzz
 
 fribidi:
-	meson setup build/fribidi $(TMPDIR)/fribidi-1.0.17 \
+	meson setup build/fribidi $(TMPDIR)/fribidi-1.0.18 \
 		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX) \
 		-Dbin=false -Ddocs=false -Dtests=false
 	meson compile -C build/fribidi
@@ -122,7 +123,7 @@ dav1d:
 	meson compile -C build/dav1d
 	meson install -C build/dav1d
 
-ffmpeg: mbedtls libass dav1d libwebp
+ffmpeg: libass dav1d libwebp
 	mkdir -p build/ffmpeg && cd build/ffmpeg && \
 	$(TMPDIR)/ffmpeg-9.0.2/configure --enable-shared --disable-static --prefix=$(PREFIX) \
 		--enable-pthreads --enable-runtime-cpudetect --pkg-config-flags=--static \
@@ -147,7 +148,7 @@ libplacebo:
 	meson install -C build/libplacebo
 
 mpv: uchardet ffmpeg libplacebo
-	meson setup build/mpv $(TMPDIR)/mpv-0.41.0 --default-library=shared \
+	meson setup build/mpv $(TMPDIR)/mpv-0.42.0 --default-library=shared \
 		--cross-file "$(CURDIR)/$(OSX_ARCH).meson" --prefix=$(PREFIX) -Dtests=false \
 		-Dlibmpv=true -Dcplayer=false -Dswift-build=disabled -Dlua=disabled \
 		-Dmacos-cocoa-cb=disabled -Dmacos-media-player=disabled -Dmacos-touchbar=disabled \
@@ -155,9 +156,16 @@ mpv: uchardet ffmpeg libplacebo
 	meson compile -C build/mpv
 	meson install -C build/mpv
 
+MUPDF_SRC = $(TMPDIR)/mupdf-1.28.6-source
+MUPDF_VERSION_MINOR = $(shell grep "define FZ_VERSION_MINOR" $(MUPDF_SRC)/include/mupdf/fitz/version.h 2>/dev/null | cut -d ' ' -f 3)
+MUPDF_VERSION_PATCH = $(shell grep "define FZ_VERSION_PATCH" $(MUPDF_SRC)/include/mupdf/fitz/version.h 2>/dev/null | cut -d ' ' -f 3)
+MUPDF_SO_VERSION = .$(MUPDF_VERSION_MINOR).$(MUPDF_VERSION_PATCH)
+MUPDF_SO_VERSION_MAJOR = .$(MUPDF_VERSION_MINOR)
+
 mupdf:
-	make -C $(TMPDIR)/mupdf-1.24.11-source install-libs \
-		build=release shared=yes prefix=$(PREFIX) OS=MACOS \
+	make -C $(MUPDF_SRC) install-libs \
+		build=release shared=yes prefix=$(PREFIX) OS=Darwin \
+		SO_VERSION=$(MUPDF_SO_VERSION) SO_VERSION_MAJOR=$(MUPDF_SO_VERSION_MAJOR) \
 		XCFLAGS="-arch $(OSX_ARCH) -mmacosx-version-min=$(OSX_TARGET)" \
 		XLDFLAGS="-arch $(OSX_ARCH) -mmacosx-version-min=$(OSX_TARGET)" \
 		XLIB_LDFLAGS="-install_name $(PREFIX)/lib/libmupdf.dylib" \

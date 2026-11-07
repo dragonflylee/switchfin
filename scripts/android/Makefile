@@ -37,17 +37,17 @@ prefix:
 download:
 	wget -qO- https://github.com/libsdl-org/SDL/releases/download/release-2.32.10/SDL2-2.32.10.tar.gz | tar zxf - -C $(TMPDIR)
 	wget -qO- https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.7/mbedtls-3.6.7.tar.bz2 | tar jxf - -C $(TMPDIR)
-	wget -qO- https://curl.se/download/curl-8.21.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	wget -qO- https://curl.se/download/curl-8.23.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/webmproject/libwebp/archive/v1.6.0.tar.gz | tar zxf - -C $(TMPDIR)
 	wget -qO- https://downloads.sourceforge.net/project/freetype/freetype2/2.15.0/freetype-2.15.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/GNOME/libxml2/archive/v2.15.4.tar.gz | tar zxf - -C $(TMPDIR)
 	wget -qO- https://github.com/fontconfig/fontconfig/archive/2.18.3.tar.gz | tar zxf - -C $(TMPDIR)
-	wget -qO- https://github.com/harfbuzz/harfbuzz/releases/download/15.0.0/harfbuzz-15.0.0.tar.xz | tar Jxf - -C $(TMPDIR)
-	wget -qO- https://github.com/fribidi/fribidi/releases/download/v1.0.17/fribidi-1.0.17.tar.xz | tar Jxf - -C $(TMPDIR)
+	wget -qO- https://github.com/harfbuzz/harfbuzz/releases/download/15.1.0/harfbuzz-15.1.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	wget -qO- https://github.com/fribidi/fribidi/releases/download/v1.0.18/fribidi-1.0.18.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/libass/libass/releases/download/0.17.5/libass-0.17.5.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.5.4/dav1d-1.5.4.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz | tar Jxf - -C $(TMPDIR)
-	wget -qO- https://github.com/mpv-player/mpv/archive/v0.41.0.tar.gz | tar zxf - -C $(TMPDIR)
+	wget -qO- https://github.com/mpv-player/mpv/archive/v0.42.0.tar.gz | tar zxf - -C $(TMPDIR)
 	git clone https://github.com/haasn/libplacebo.git -b v7.387.0 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
 	patch -d $(TMPDIR)/libwebp-1.6.0 -Nbp1 -i $(PWD)/scripts/mingw64/libwebp/0001-mingw-cmake-output.patch
 
@@ -69,7 +69,7 @@ mbedtls:
 	DESTDIR=$(PREFIX) cmake --install build/mbedtls
 
 curl:
-	cmake -B build/curl -S $(TMPDIR)/curl-8.21.0 -G Ninja -DCMAKE_BUILD_TYPE=Release \
+	cmake -B build/curl -S $(TMPDIR)/curl-8.23.0 -G Ninja -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_TOOLCHAIN_FILE="$(ANDROID_NDK)/build/cmake/android.toolchain.cmake" \
 		-DANDROID_ABI=$(ABI) -DANDROID_PLATFORM=android-$(apilvl) -DCMAKE_WARN_DEPRECATED=FALSE \
 		-DBUILD_SHARED_LIBS=ON -DCURL_DISABLE_PROGRESS_METER=ON -DCURL_USE_MBEDTLS=ON \
@@ -110,7 +110,7 @@ fontconfig: libxm2
 	meson install -C build/fontconfig --destdir $(PREFIX)
 
 harfbuzz: freetype
-	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-15.0.0 --cross-file "$(CURDIR)/$(ABI).meson" \
+	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-15.1.0 --cross-file "$(CURDIR)/$(ABI).meson" \
 		-Dfreetype=enabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled \
 		-Dchafa=disabled -Dtests=disabled -Dintrospection=disabled \
 		-Ddocs=disabled -Ddoc_tests=false -Dutilities=disabled
@@ -118,7 +118,7 @@ harfbuzz: freetype
 	meson install -C build/harfbuzz --destdir $(PREFIX)
 
 fribidi:
-	meson setup build/fribidi $(TMPDIR)/fribidi-1.0.17 --cross-file "$(CURDIR)/$(ABI).meson" \
+	meson setup build/fribidi $(TMPDIR)/fribidi-1.0.18 --cross-file "$(CURDIR)/$(ABI).meson" \
 		-Dbin=false -Ddocs=false -Dtests=false
 	meson compile -C build/fribidi
 	meson install -C build/fribidi --destdir $(PREFIX)
@@ -157,7 +157,7 @@ libplacebo:
 	meson install -C build/libplacebo --destdir $(PREFIX)
 
 mpv: ffmpeg libplacebo SDL2
-	meson setup build/mpv $(TMPDIR)/mpv-0.41.0 \
+	meson setup build/mpv $(TMPDIR)/mpv-0.42.0 \
 		--cross-file "$(CURDIR)/$(ABI).meson" --default-library=shared \
 		-Dlibmpv=true -Dcplayer=false -Dtests=false -Diconv=disabled \
 		-Dsdl2-audio=enabled -Dsdl2-video=enabled -Dlua=disabled \

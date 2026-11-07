@@ -1,79 +1,55 @@
 diff --git a/Makefile b/Makefile
-index 25642e3b58..3319a62859 100644
+index 811ade9..b9893bc 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -95,7 +95,7 @@ endif
- 
- # --- Rules ---
- 
--$(OUT)/%.a :
-+$(OUT)/libmupdf-%.a :
- 	$(AR_CMD)
- 	$(RANLIB_CMD)
- 
-@@ -113,7 +113,7 @@ endif
- $(OUT)/%.def: $(OUT)/%.$(SO)$(SO_VERSION)
- 	$(GENDEF_CMD)
- 
--$(OUT)/%_$(SO)$(SO_VERSION).a: $(OUT)/%.def
-+$(OUT)/%.$(SO)$(SO_VERSION).a: $(OUT)/%.def
- 	$(DLLTOOL_CMD)
- 
- $(OUT)/source/helpers/mu-threads/%.o : source/helpers/mu-threads/%.c
-@@ -304,7 +304,7 @@ generate: source/html/css-properties.h
+@@ -489,11 +489,17 @@ install-headers:
+ install-libs: libs install-headers
+ 	install -d $(DESTDIR)$(libdir)
  ifeq ($(shared),yes)
- MUPDF_LIB = $(OUT)/libmupdf.$(SO)$(SO_VERSION)
- ifeq ($(SO),dll)
--MUPDF_LIB_IMPORT = $(OUT)/libmupdf_$(SO).a
-+MUPDF_LIB_IMPORT = $(OUT)/libmupdf.$(SO).a
- LIBS_TO_INSTALL_IN_BIN = $(MUPDF_LIB)
- LIBS_TO_INSTALL_IN_LIB = $(MUPDF_LIB_IMPORT)
++  ifeq ($(OS),MINGW)
++	install -d $(DESTDIR)$(bindir)
++	install -m 755 $(OUT)/libmupdf.$(SO)$(SO_VERSION) $(DESTDIR)$(bindir)/libmupdf.$(SO)$(SO_VERSION)
++	install -m 644 $(OUT)/libmupdf.dll.a $(DESTDIR)$(libdir)/libmupdf.dll.a
++  else
+ 	install -m $(SO_INSTALL_MODE) $(OUT)/libmupdf.$(SO)$(SO_VERSION) $(DESTDIR)$(libdir)/libmupdf.$(SO)$(SO_VERSION)
+   ifneq ($(OS),OpenBSD)
+ 	ln -sf libmupdf.$(SO)$(SO_VERSION) $(DESTDIR)$(libdir)/libmupdf.$(SO)$(SO_VERSION_MAJOR)
+ 	ln -sf libmupdf.$(SO)$(SO_VERSION) $(DESTDIR)$(libdir)/libmupdf.$(SO)
+   endif
++  endif
  else
+ 	install -m 644 $(MUPDF_LIB) $(DESTDIR)$(libdir)
+ 	install -m 644 $(THIRD_LIB) $(DESTDIR)$(libdir)
 diff --git a/Makerules b/Makerules
-index f582dc0614..da6819beee 100644
+index 090697d..6aa2cba 100644
 --- a/Makerules
 +++ b/Makerules
-@@ -88,6 +88,10 @@ ifeq ($(shared),yes)
+@@ -113,7 +113,11 @@ ifeq ($(OS),Darwin)
+   SO := dylib
+ else
+   LDREMOVEUNREACH := -Wl,--gc-sections
+-  SO := so
++  ifeq ($(OS),MINGW)
++    SO := dll
++  else
++    SO := so
++  endif
+ endif
+ 
+ SANITIZE_FLAGS += -fsanitize=undefined
+@@ -127,6 +131,10 @@ ifeq ($(shared),yes)
    LIB_CFLAGS = -fPIC
-   ifeq ($(OS),MACOS)
+   ifeq ($(OS),Darwin)
      LIB_LDFLAGS = -dynamiclib
 +  else ifeq ($(OS),MINGW)
 +    LIB_CFLAGS += -DFZ_DLL
-+    LIB_LDFLAGS = -shared -static-libgcc -static
++    LIB_LDFLAGS = -shared -static-libgcc -static -Wl,--out-implib,$(OUT)/libmupdf.dll.a
 +    USE_SONAME := no
    else ifeq ($(OS),wasm)
      LIB_LDFLAGS = -shared -sSIDE_MODULE
      EXE_LDFLAGS = -sMAIN_MODULE
-@@ -188,6 +192,27 @@ ifeq ($(OS),MINGW)
-   WINDRES := windres
-   HAVE_WIN32 := yes
- 
-+  USE_SYSTEM_FREETYPE := $(shell pkg-config --exists freetype2 && echo yes)
-+  ifeq ($(USE_SYSTEM_FREETYPE),yes)
-+	SYS_FREETYPE_CFLAGS := $(shell pkg-config --cflags freetype2)
-+	SYS_FREETYPE_LIBS := $(shell pkg-config --libs freetype2)
-+  endif
-+  USE_SYSTEM_HARFBUZZ := $(shell pkg-config --exists harfbuzz && echo yes)
-+  ifeq ($(USE_SYSTEM_HARFBUZZ),yes)
-+	SYS_HARFBUZZ_CFLAGS := $(shell pkg-config --cflags harfbuzz)
-+	SYS_HARFBUZZ_LIBS := $(shell pkg-config --libs harfbuzz)
-+  endif
-+  USE_SYSTEM_LIBJPEG := $(shell pkg-config --exists libjpeg && echo yes)
-+  ifeq ($(USE_SYSTEM_LIBJPEG),yes)
-+	SYS_LIBJPEG_CFLAGS := $(shell pkg-config --cflags libjpeg)
-+	SYS_LIBJPEG_LIBS := $(shell pkg-config --libs libjpeg)
-+  endif
-+  USE_SYSTEM_ZLIB := $(shell pkg-config --exists zlib && echo yes)
-+  ifeq ($(USE_SYSTEM_ZLIB),yes)
-+	SYS_ZLIB_CFLAGS := $(shell pkg-config --cflags zlib)
-+	SYS_ZLIB_LIBS := $(shell pkg-config --libs zlib)
-+  endif
-+
- else ifeq ($(OS),MACOS)
-   HAVE_GLUT := yes
-   SYS_GLUT_CFLAGS := -Wno-deprecated-declarations
 diff --git a/include/mupdf/fitz/buffer.h b/include/mupdf/fitz/buffer.h
-index 5ac949cf40..a14fe54ef1 100644
+index 5490657..90f1b01 100644
 --- a/include/mupdf/fitz/buffer.h
 +++ b/include/mupdf/fitz/buffer.h
 @@ -60,7 +60,7 @@ fz_buffer *fz_keep_buffer(fz_context *ctx, fz_buffer *buf);
@@ -105,12 +81,12 @@ index 5ac949cf40..a14fe54ef1 100644
 +FZ_FUNCTION fz_buffer *fz_new_buffer_from_copied_data(fz_context *ctx, const unsigned char *data, size_t size);
  
  /**
- 	Make a new buffer, containing a copy of the data used in
+ 	Create a new buffer with printf formatted data.
 diff --git a/include/mupdf/fitz/color.h b/include/mupdf/fitz/color.h
-index 0a7e985c90..29081edc27 100644
+index 93201b9..fb779ca 100644
 --- a/include/mupdf/fitz/color.h
 +++ b/include/mupdf/fitz/color.h
-@@ -272,11 +272,11 @@ fz_colorspace *fz_base_colorspace(fz_context *ctx, fz_colorspace *cs);
+@@ -293,11 +293,11 @@ fz_colorspace *fz_base_colorspace(fz_context *ctx, fz_colorspace *cs);
  	These return borrowed references that should not be dropped,
  	unless they are kept first.
  */
@@ -128,10 +104,97 @@ index 0a7e985c90..29081edc27 100644
  /**
  	Assign a name for a given colorant in a colorspace.
 diff --git a/include/mupdf/fitz/context.h b/include/mupdf/fitz/context.h
-index 8277c51f31..5b28f8aab3 100644
+index e2553b7..7dd9f79 100644
 --- a/include/mupdf/fitz/context.h
 +++ b/include/mupdf/fitz/context.h
-@@ -204,13 +204,13 @@ int fz_do_catchFL(fz_context *ctx, const char *file, int line);
+@@ -103,9 +103,9 @@ typedef struct
+ 
+ 	This assumes an enclosing fz_try() block within the callstack.
+ */
+-FZ_NORETURN void fz_vthrow(fz_context *ctx, int errcode, const char *, va_list ap);
+-FZ_NORETURN void fz_throw(fz_context *ctx, int errcode, const char *, ...) FZ_PRINTFLIKE(3,4);
+-FZ_NORETURN void fz_rethrow(fz_context *ctx);
++FZ_NORETURN FZ_FUNCTION void fz_vthrow(fz_context *ctx, int errcode, const char *, va_list ap);
++FZ_NORETURN FZ_FUNCTION void fz_throw(fz_context *ctx, int errcode, const char *, ...) FZ_PRINTFLIKE(3,4);
++FZ_NORETURN FZ_FUNCTION void fz_rethrow(fz_context *ctx);
+ 
+ /**
+ 	Called within a catch block this modifies the current
+@@ -113,7 +113,7 @@ FZ_NORETURN void fz_rethrow(fz_context *ctx);
+ 	modified to 'tocode'. Typically used for 'downgrading'
+ 	exception severity.
+ */
+-void fz_morph_error(fz_context *ctx, int fromcode, int tocode);
++FZ_FUNCTION void fz_morph_error(fz_context *ctx, int fromcode, int tocode);
+ 
+ /**
+ 	Log a warning.
+@@ -121,8 +121,8 @@ void fz_morph_error(fz_context *ctx, int fromcode, int tocode);
+ 	This goes to the registered warning stream (stderr by
+ 	default).
+ */
+-void fz_vwarn(fz_context *ctx, const char *fmt, va_list ap);
+-void fz_warn(fz_context *ctx, const char *fmt, ...) FZ_PRINTFLIKE(2,3);
++FZ_FUNCTION void fz_vwarn(fz_context *ctx, const char *fmt, va_list ap);
++FZ_FUNCTION void fz_warn(fz_context *ctx, const char *fmt, ...) FZ_PRINTFLIKE(2,3);
+ 
+ /**
+ 	Within an fz_catch() block, retrieve the formatted message
+@@ -130,7 +130,7 @@ void fz_warn(fz_context *ctx, const char *fmt, ...) FZ_PRINTFLIKE(2,3);
+ 
+ 	This assumes no intervening use of fz_try/fz_catch.
+ */
+-const char *fz_caught_message(fz_context *ctx);
++FZ_FUNCTION const char *fz_caught_message(fz_context *ctx);
+ 
+ /**
+ 	Within an fz_catch() block, retrieve the error code for
+@@ -138,7 +138,7 @@ const char *fz_caught_message(fz_context *ctx);
+ 
+ 	This assumes no intervening use of fz_try/fz_catch.
+ */
+-int fz_caught(fz_context *ctx);
++FZ_FUNCTION int fz_caught(fz_context *ctx);
+ 
+ /*
+ 	Within an fz_catch() block, retrieve the errno code for
+@@ -146,7 +146,7 @@ int fz_caught(fz_context *ctx);
+ 
+ 	Is undefined for non-SYSTEM errors.
+ */
+-int fz_caught_errno(fz_context *ctx);
++FZ_FUNCTION int fz_caught_errno(fz_context *ctx);
+ 
+ /**
+ 	Within an fz_catch() block, rethrow the current exception
+@@ -154,21 +154,21 @@ int fz_caught_errno(fz_context *ctx);
+ 
+ 	This assumes no intervening use of fz_try/fz_catch.
+ */
+-void fz_rethrow_if(fz_context *ctx, int errcode);
+-void fz_rethrow_unless(fz_context *ctx, int errcode);
++FZ_FUNCTION void fz_rethrow_if(fz_context *ctx, int errcode);
++FZ_FUNCTION void fz_rethrow_unless(fz_context *ctx, int errcode);
+ 
+ /**
+ 	Format an error message, and log it to the registered
+ 	error stream (stderr by default).
+ */
+-void fz_log_error_printf(fz_context *ctx, const char *fmt, ...) FZ_PRINTFLIKE(2,3);
+-void fz_vlog_error_printf(fz_context *ctx, const char *fmt, va_list ap);
++FZ_FUNCTION void fz_log_error_printf(fz_context *ctx, const char *fmt, ...) FZ_PRINTFLIKE(2,3);
++FZ_FUNCTION void fz_vlog_error_printf(fz_context *ctx, const char *fmt, va_list ap);
+ 
+ /**
+ 	Log a (preformatted) string to the registered
+ 	error stream (stderr by default).
+ */
+-void fz_log_error(fz_context *ctx, const char *str);
++FZ_FUNCTION void fz_log_error(fz_context *ctx, const char *str);
+ 
+ /**
+ 	Now, a debugging feature. If FZ_VERBOSE_EXCEPTIONS is 1 then
+@@ -203,13 +203,13 @@ int fz_do_catchFL(fz_context *ctx, const char *file, int line);
  #endif
  
  /* Report an error to the registered error callback. */
@@ -147,7 +210,7 @@ index 8277c51f31..5b28f8aab3 100644
  
  /* Convert an error into another runtime exception.
   * For use when converting an exception from Fitz to a language binding exception.
-@@ -361,7 +361,7 @@ enum {
+@@ -360,7 +360,7 @@ enum {
  
  	May return NULL.
  */
@@ -156,7 +219,7 @@ index 8277c51f31..5b28f8aab3 100644
  
  /**
  	Free a context and its global state.
-@@ -373,7 +373,7 @@ fz_context *fz_clone_context(fz_context *ctx);
+@@ -372,7 +372,7 @@ fz_context *fz_clone_context(fz_context *ctx);
  	Must not be called for a context that is being used in an active
  	fz_try(), fz_always() or fz_catch() block.
  */
@@ -165,7 +228,7 @@ index 8277c51f31..5b28f8aab3 100644
  
  /**
  	Set the user field in the context.
-@@ -664,7 +664,7 @@ void fz_disable_icc(fz_context *ctx);
+@@ -703,7 +703,7 @@ void *fz_realloc_array_imp(fz_context *ctx, void *p, size_t nmemb, size_t size);
  
  	Throws exception in the event of failure to allocate.
  */
@@ -174,7 +237,7 @@ index 8277c51f31..5b28f8aab3 100644
  
  /**
  	Allocate array of memory of count entries of size bytes.
-@@ -672,7 +672,7 @@ void *fz_malloc(fz_context *ctx, size_t size);
+@@ -711,7 +711,7 @@ void *fz_malloc(fz_context *ctx, size_t size);
  
  	Throws exception in the event of failure to allocate.
  */
@@ -183,7 +246,7 @@ index 8277c51f31..5b28f8aab3 100644
  
  /**
  	Reallocates a block of memory to given size. Existing contents
-@@ -685,7 +685,7 @@ void *fz_calloc(fz_context *ctx, size_t count, size_t size);
+@@ -724,7 +724,7 @@ void *fz_calloc(fz_context *ctx, size_t count, size_t size);
  
  	Throws exception in the event of failure to allocate.
  */
@@ -192,7 +255,7 @@ index 8277c51f31..5b28f8aab3 100644
  
  /**
  	Free a previously allocated block of memory.
-@@ -694,7 +694,7 @@ void *fz_realloc(fz_context *ctx, void *p, size_t size);
+@@ -733,7 +733,7 @@ void *fz_realloc(fz_context *ctx, void *p, size_t size);
  
  	Never throws exceptions.
  */
@@ -200,8 +263,8 @@ index 8277c51f31..5b28f8aab3 100644
 +FZ_FUNCTION void fz_free(fz_context *ctx, void *p);
  
  /**
- 	fz_malloc equivalent that returns NULL rather than throwing
-@@ -757,11 +757,11 @@ void fz_drop_string(fz_context *ctx, fz_string *str);
+ 	Flexible array member allocation helpers.
+@@ -819,11 +819,11 @@ void fz_drop_string(fz_context *ctx, fz_string *str);
  
  /* Implementations exposed for speed, but considered private. */
  
@@ -218,7 +281,7 @@ index 8277c51f31..5b28f8aab3 100644
  
  #ifndef FZ_JMPBUF_ALIGN
  #define FZ_JMPBUF_ALIGN 32
-@@ -835,7 +835,7 @@ struct fz_context
+@@ -928,7 +928,7 @@ struct fz_context
  	fz_glyph_cache *glyph_cache;
  };
  
@@ -228,10 +291,10 @@ index 8277c51f31..5b28f8aab3 100644
  /**
  	Lock one of the user supplied mutexes.
 diff --git a/include/mupdf/fitz/document.h b/include/mupdf/fitz/document.h
-index eca2a70905..9152983143 100644
+index f077b6f..0773722 100644
 --- a/include/mupdf/fitz/document.h
 +++ b/include/mupdf/fitz/document.h
-@@ -422,7 +422,7 @@ void fz_register_document_handler(fz_context *ctx, const fz_document_handler *ha
+@@ -442,7 +442,7 @@ void fz_register_document_handler(fz_context *ctx, const fz_document_handler *ha
  	Register handlers for all the standard document types supported in
  	this build.
  */
@@ -240,7 +303,7 @@ index eca2a70905..9152983143 100644
  
  /**
  	Given a magic find a document handler that can handle a
-@@ -479,7 +479,7 @@ const fz_document_handler *fz_recognize_document_stream_and_dir_content(fz_conte
+@@ -499,7 +499,7 @@ const fz_document_handler *fz_recognize_document_stream_and_dir_content(fz_conte
  
  	filename: a path to a file as it would be given to open(2).
  */
@@ -249,7 +312,7 @@ index eca2a70905..9152983143 100644
  
  /**
  	Open a document file and read its basic structure so pages and
-@@ -505,7 +505,7 @@ fz_document *fz_open_accelerated_document(fz_context *ctx, const char *filename,
+@@ -525,7 +525,7 @@ fz_document *fz_open_accelerated_document(fz_context *ctx, const char *filename,
  	NOTE: The caller retains ownership of 'stream' - the document will take its
  	own reference if required.
  */
@@ -258,7 +321,7 @@ index eca2a70905..9152983143 100644
  
  /**
  	Open a document using the specified stream object rather than
-@@ -595,7 +595,7 @@ void *fz_new_document_of_size(fz_context *ctx, int size);
+@@ -615,7 +615,7 @@ void *fz_new_document_of_size(fz_context *ctx, int size);
  
  	Never throws exceptions.
  */
@@ -267,7 +330,7 @@ index eca2a70905..9152983143 100644
  
  /**
  	Decrement the document reference count. When the reference
-@@ -604,13 +604,13 @@ fz_document *fz_keep_document(fz_context *ctx, fz_document *doc);
+@@ -624,13 +624,13 @@ fz_document *fz_keep_document(fz_context *ctx, fz_document *doc);
  
  	Never throws exceptions.
  */
@@ -283,7 +346,7 @@ index eca2a70905..9152983143 100644
  
  /**
  	Test if the given password can decrypt the document.
-@@ -628,14 +628,14 @@ int fz_needs_password(fz_context *ctx, fz_document *doc);
+@@ -648,14 +648,14 @@ int fz_needs_password(fz_context *ctx, fz_document *doc);
  		Bit 1 => User password authenticated
  		Bit 2 => Owner password authenticated
  */
@@ -300,7 +363,7 @@ index eca2a70905..9152983143 100644
  
  /**
  	Get an iterator for the document outline.
-@@ -676,7 +676,7 @@ fz_location fz_lookup_bookmark(fz_context *ctx, fz_document *doc, fz_bookmark ma
+@@ -704,7 +704,7 @@ fz_location fz_lookup_bookmark(fz_context *ctx, fz_document *doc, fz_bookmark ma
  
  	May return 0 for documents with no pages.
  */
@@ -309,7 +372,7 @@ index eca2a70905..9152983143 100644
  
  /**
  	Resolve an internal link to a page number, location, and possible viewing parameters.
-@@ -700,7 +700,7 @@ char *fz_format_link_uri(fz_context *ctx, fz_document *doc, fz_link_dest dest);
+@@ -728,7 +728,7 @@ char *fz_format_link_uri(fz_context *ctx, fz_document *doc, fz_link_dest dest);
  
  	Returns (-1,-1) if the URI cannot be resolved.
  */
@@ -318,7 +381,7 @@ index eca2a70905..9152983143 100644
  
  /**
  	Run the document structure through a device.
-@@ -758,20 +758,20 @@ fz_location fz_location_from_page_number(fz_context *ctx, fz_document *doc, int
+@@ -786,20 +786,20 @@ fz_location fz_location_from_page_number(fz_context *ctx, fz_document *doc, int
  	chapters to be laid out in order to calculate the number of
  	pages within those chapters.
  */
@@ -342,7 +405,7 @@ index eca2a70905..9152983143 100644
  
  /**
  	Return the number of pages in a chapter.
-@@ -815,8 +815,8 @@ fz_page *fz_new_page_of_size(fz_context *ctx, int size, fz_document *doc);
+@@ -843,8 +843,8 @@ fz_page *fz_new_page_of_size(fz_context *ctx, int size, fz_document *doc);
  /**
  	Determine the size of a page at 72 dpi.
  */
@@ -353,7 +416,7 @@ index eca2a70905..9152983143 100644
  
  /**
  	Run a page through a device.
-@@ -877,7 +877,7 @@ void fz_run_page_widgets(fz_context *ctx, fz_page *page, fz_device *dev, fz_matr
+@@ -905,7 +905,7 @@ void fz_run_page_widgets(fz_context *ctx, fz_page *page, fz_device *dev, fz_matr
  
  	Never throws exceptions.
  */
@@ -361,8 +424,8 @@ index eca2a70905..9152983143 100644
 +FZ_FUNCTION fz_page *fz_keep_page(fz_context *ctx, fz_page *page);
  
  /**
- 	Increment the reference count for the page. Returns the same
-@@ -893,7 +893,7 @@ fz_page *fz_keep_page_locked(fz_context *ctx, fz_page *page);
+ 	Decrements the reference count for the page. When the reference
+@@ -913,7 +913,7 @@ fz_page *fz_keep_page(fz_context *ctx, fz_page *page);
  
  	Never throws exceptions.
  */
@@ -372,10 +435,10 @@ index eca2a70905..9152983143 100644
  /**
  	Get the presentation details for a given page.
 diff --git a/include/mupdf/fitz/geometry.h b/include/mupdf/fitz/geometry.h
-index 57ca0e8823..288c49ab16 100644
+index 8ea8b37..c40d115 100644
 --- a/include/mupdf/fitz/geometry.h
 +++ b/include/mupdf/fitz/geometry.h
-@@ -409,7 +409,7 @@ fz_matrix fz_concat(fz_matrix left, fz_matrix right);
+@@ -425,7 +425,7 @@ fz_matrix fz_concat(fz_matrix left, fz_matrix right);
  
  	Returns m.
  */
@@ -385,10 +448,10 @@ index 57ca0e8823..288c49ab16 100644
  /**
  	Scale a matrix by premultiplication.
 diff --git a/include/mupdf/fitz/outline.h b/include/mupdf/fitz/outline.h
-index 6f5810c559..e9202697cf 100644
+index 3ab76ad..b002288 100644
 --- a/include/mupdf/fitz/outline.h
 +++ b/include/mupdf/fitz/outline.h
-@@ -143,7 +143,7 @@ fz_outline *fz_keep_outline(fz_context *ctx, fz_outline *outline);
+@@ -176,7 +176,7 @@ fz_outline *fz_keep_outline(fz_context *ctx, fz_outline *outline);
  
  	Never throws exceptions.
  */
@@ -398,7 +461,7 @@ index 6f5810c559..e9202697cf 100644
  /**
  	Routine to implement the old Structure based API from an iterator.
 diff --git a/include/mupdf/fitz/pixmap.h b/include/mupdf/fitz/pixmap.h
-index e1c1fab3ae..da6fdf1d02 100644
+index 02b5bbb..668afa7 100644
 --- a/include/mupdf/fitz/pixmap.h
 +++ b/include/mupdf/fitz/pixmap.h
 @@ -188,7 +188,7 @@ fz_pixmap *fz_clone_pixmap(fz_context *ctx, const fz_pixmap *old);
@@ -420,7 +483,7 @@ index e1c1fab3ae..da6fdf1d02 100644
  /**
  	Return the colorspace of a pixmap
 diff --git a/include/mupdf/fitz/stream.h b/include/mupdf/fitz/stream.h
-index 13d1c7793b..093f026e58 100644
+index 73268b9..fd38e8c 100644
 --- a/include/mupdf/fitz/stream.h
 +++ b/include/mupdf/fitz/stream.h
 @@ -53,7 +53,7 @@ typedef struct fz_stream fz_stream;
@@ -468,7 +531,7 @@ index 13d1c7793b..093f026e58 100644
  
  /**
  	return the current reading position within a stream
-@@ -339,7 +339,7 @@ struct fz_stream
+@@ -345,7 +345,7 @@ struct fz_stream
  	drop: Should clean up and free the internal state. May not
  	throw exceptions.
  */
@@ -477,8 +540,23 @@ index 13d1c7793b..093f026e58 100644
  
  /**
  	Attempt to read a stream into a buffer. If truncated
+diff --git a/include/mupdf/fitz/system.h b/include/mupdf/fitz/system.h
+index fea6960..b644020 100644
+--- a/include/mupdf/fitz/system.h
++++ b/include/mupdf/fitz/system.h
+@@ -111,7 +111,9 @@ typedef unsigned __int64 uint64_t;
+ 
+ /* We assume that pretty much any X86 or X64 machine has SSE these days. */
+ #ifndef ARCH_HAS_SSE
+-#if defined(_M_IX86) || defined(_M_AMD64) || defined(_M_X64)
++#if defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_AMD64) || defined(_M_X64))
++#define ARCH_HAS_SSE 1
++#elif defined(__SSE4_1__)
+ #define ARCH_HAS_SSE 1
+ #endif
+ #endif
 diff --git a/include/mupdf/fitz/util.h b/include/mupdf/fitz/util.h
-index 00485082b1..ea8c5e3573 100644
+index 4a51794..23129d5 100644
 --- a/include/mupdf/fitz/util.h
 +++ b/include/mupdf/fitz/util.h
 @@ -54,9 +54,9 @@ fz_display_list *fz_new_display_list_from_page_contents(fz_context *ctx, fz_page
@@ -494,43 +572,3 @@ index 00485082b1..ea8c5e3573 100644
  
  /**
  	Render the page contents without annotations.
-diff --git a/source/fitz/directory.c b/source/fitz/directory.c
-index 9088edd483..d723dec463 100644
---- a/source/fitz/directory.c
-+++ b/source/fitz/directory.c
-@@ -26,7 +26,7 @@
- #include <errno.h>
- #include <sys/stat.h>
- 
--#ifdef _MSC_VER
-+#ifdef _WIN32
- #include <windows.h>
- #include <errno.h>
- #define stat _stat
-@@ -133,7 +133,7 @@ fz_archive *
- fz_open_directory(fz_context *ctx, const char *path)
- {
- 	fz_directory *dir;
--#ifdef _MSC_VER
-+#ifdef _WIN32
- 	WCHAR *wpath = NULL;
- 	size_t z = 3;
- 	HANDLE h = NULL;
-@@ -162,7 +162,7 @@ fz_open_directory(fz_context *ctx, const char *path)
- 
- 	fz_try(ctx)
- 	{
--#ifdef _MSC_VER
-+#ifdef _WIN32
- 		char const *p = path;
- 		WCHAR *w;
- 		while (*p)
-@@ -248,7 +248,7 @@ fz_open_directory(fz_context *ctx, const char *path)
- 	}
- 	fz_always(ctx)
- 	{
--#ifdef _MSC_VER
-+#ifdef _WIN32
- 		fz_free(ctx, wpath);
- 		if (h)
- 			(void)FindClose(h);

@@ -4,7 +4,7 @@
 _realname=spirv-headers
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-epoch=3
+epoch=2
 pkgver=1.4.363.0
 pkgrel=1
 pkgdesc='Machine-readable files for the SPIR-V Registry (mingw-w64)'

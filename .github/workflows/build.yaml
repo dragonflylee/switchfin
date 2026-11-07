@@ -116,7 +116,7 @@ jobs:
     - name: Update dependencies
       run: |
         dkp-pacman --noconfirm -U $BASE_URL/hacBrewPack-3.05-1-x86_64.pkg.tar.zst
-        for pkg in mbedtls-3.6.7-1 libssh2-1.11.1-1 dav1d-1.5.4-1 curl-8.21.0-3 ffmpeg-7.1.5-5 mupdf-1.24.11-1 libmpv${{ matrix.shuffix }}-0.36.0-5 nspmini-main-1; do
+        for pkg in mbedtls-3.6.7-1 libssh2-1.11.1-1 dav1d-1.5.4-1 curl-8.23.0-3 ffmpeg-7.1.5-5 mupdf-1.28.6-1 libmpv${{ matrix.shuffix }}-0.36.0-5 nspmini-main-1; do
           dkp-pacman --noconfirm -U $BASE_URL/switch-${pkg}-any.pkg.tar.zst
         done
         git config --system --add safe.directory $GITHUB_WORKSPACE
@@ -192,7 +192,7 @@ jobs:
       env:
         BASE_URL: https://github.com/${{ github.repository }}/releases/download/vita-packages
       run: |
-        for pkg in mbedtls-3.6.7-1 curl-8.16.0-3 mupdf-1.24.11-1 ffmpeg-n6.0-3 mpv-0.36.0-3; do
+        for pkg in mbedtls-3.6.7-1 curl-8.16.0-3 mupdf-1.28.6-1 ffmpeg-n6.0-3 mpv-0.36.0-3; do
           vdpm pacman --noconfirm -U $BASE_URL/${pkg}-vita.pkg.tar.xz
         done
         git config --system --add safe.directory $GITHUB_WORKSPACE
@@ -325,7 +325,7 @@ jobs:
     - name: Install deps
       run: |
         brew install create-dmg dylibbundler
-        curl -sSL https://github.com/${{ github.repository }}/releases/download/macos-dylib/dylib-mpv41-${{ matrix.tag }}.tar.gz | tar zxf - -C ${{ runner.temp }}
+        curl -sSL https://github.com/${{ github.repository }}/releases/download/macos-dylib/dylib-mpv42-${{ matrix.tag }}.tar.gz | tar zxf - -C ${{ runner.temp }}
     - name: Build App
       env:
         DYLD_LIBRARY_PATH: ${{ runner.temp }}/lib
@@ -386,7 +386,7 @@ jobs:
         submodules: recursive
     - name: Install dependency
       run: |
-        for pkg in glfw-3.5.0-1 curl-8.21.0-1 mpv-0.41.0-2 libmupdf-1.24.11-1 libwebp-1.6.0-1; do
+        for pkg in glfw-3.5.0-1 curl-8.23.0-1 mpv-0.42.0-2 libmupdf-1.28.6-2 libwebp-1.6.0-1; do
           curl -sLO https://github.com/${{ github.repository }}/releases/download/mingw-packages/${MINGW_PACKAGE_PREFIX}-${pkg}-any.pkg.tar.zst
         done
         pacman -U --noconfirm *.pkg.tar.zst

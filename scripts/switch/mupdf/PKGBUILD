@@ -2,7 +2,7 @@
 # Contributor: Julian Uy <uyjulian@gmail.com>
 
 pkgname=switch-mupdf
-pkgver=1.24.11
+pkgver=1.28.6
 pkgrel=1
 pkgdesc='MuPDF is a lightweight PDF, XPS, and E-book viewer.'
 arch=('any')
@@ -13,7 +13,7 @@ depends=("switch-freetype" "switch-harfbuzz" "switch-libjpeg-turbo" "switch-zlib
 makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
 source=("https://casper.mupdf.com/downloads/archive/mupdf-$pkgver-source.tar.lz" "mupdf.patch")
 groups=('switch-portlibs')
-sha256sums=('ac159293040934e250e4495782f8cd04c8cbbaf992fbd9faf32dab2ec657117b' 'SKIP')
+sha256sums=('f675f2456916d720cc3108c4a6a9de6467ee0665dbca440cd62a382a75be917e' 'SKIP')
 
 build() {
   cd mupdf-$pkgver-source

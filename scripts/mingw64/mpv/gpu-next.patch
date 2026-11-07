@@ -1,72 +1,46 @@
+From 787d7ae22e7a6362dc94d60e21570cfce1259b09 Mon Sep 17 00:00:00 2001
+From: dragonflylee <dragonflylee@outlook.com>
+Date: Thu, 17 Sep 2026 13:23:09 +0800
+Subject: [PATCH] vo_libmpv: add libplacebo-based "gpu-next" render backend
+
+Add a "gpu-next" backend for mpv_render_context, selected with the new MPV_RENDER_PARAM_BACKEND (gpu stays the default). It wraps OpenGL and D3D11 targets into pl_tex and drives libplacebo (frame queue, OSD upload, screenshots, hwdec interop, DR buffers). Option and format/crop helpers move to gpu_next/vo_gpu_next.h to be shared with vo_gpu_next.
+---
+ DOCS/client-api-changes.rst          |    2 +
+ include/mpv/render.h                 |    8 +
+ meson.build                          |    7 +-
+ video/out/gpu_next/context.c         |  255 ++++-
+ video/out/gpu_next/libmpv_gpu_next.c | 1416 ++++++++++++++++++++++++++
+ video/out/gpu_next/libmpv_gpu_next.h |   49 +
+ video/out/gpu_next/vo_gpu_next.h     |   50 +
+ video/out/libmpv.h                   |    1 +
+ video/out/vo_gpu_next.c              |   36 +-
+ video/out/vo_libmpv.c                |   18 +-
+ 10 files changed, 1802 insertions(+), 40 deletions(-)
+ create mode 100644 video/out/gpu_next/libmpv_gpu_next.c
+ create mode 100644 video/out/gpu_next/libmpv_gpu_next.h
+ create mode 100644 video/out/gpu_next/vo_gpu_next.h
+
 diff --git a/DOCS/client-api-changes.rst b/DOCS/client-api-changes.rst
-index 2a4838ead5..04ef4f2367 100644
+index a07705739814b..04ef4f2367529 100644
 --- a/DOCS/client-api-changes.rst
 +++ b/DOCS/client-api-changes.rst
-@@ -32,6 +32,12 @@ API changes
- 
- ::
- 
-+ --- mpv 0.42.0 ---
-+ 2.6    - add MPV_RENDER_API_TYPE_D3D11 render API backend, along with
-+          MPV_RENDER_PARAM_D3D11_INIT_PARAMS and MPV_RENDER_PARAM_D3D11_FBO,
-+          and a new render_d3d11.h header.
+@@ -36,6 +36,8 @@ API changes
+  2.6    - add MPV_RENDER_API_TYPE_D3D11 render API backend, along with
+           MPV_RENDER_PARAM_D3D11_INIT_PARAMS and MPV_RENDER_PARAM_D3D11_FBO,
+           and a new render_d3d11.h header.
 +        - add MPV_RENDER_PARAM_BACKEND to select the render backend
 +          ('gpu' or 'gpu-next').
   --- mpv 0.40.0 ---
   2.5    - Deprecate MPV_RENDER_PARAM_AMBIENT_LIGHT. no replacement.
   --- mpv 0.39.0 ---
-diff --git a/include/mpv/client.h b/include/mpv/client.h
-index 85cff63bd5..190839c2b5 100644
---- a/include/mpv/client.h
-+++ b/include/mpv/client.h
-@@ -248,7 +248,7 @@ extern "C" {
-  * relational operators (<, >, <=, >=).
-  */
- #define MPV_MAKE_VERSION(major, minor) (((major) << 16) | (minor) | 0UL)
--#define MPV_CLIENT_API_VERSION MPV_MAKE_VERSION(2, 5)
-+#define MPV_CLIENT_API_VERSION MPV_MAKE_VERSION(2, 6)
- 
- /**
-  * The API user is allowed to "#define MPV_ENABLE_DEPRECATED 0" before
 diff --git a/include/mpv/render.h b/include/mpv/render.h
-index 99aadeb5d8..073a34b379 100644
+index 0b59982fc4997..073a34b379d6c 100644
 --- a/include/mpv/render.h
 +++ b/include/mpv/render.h
-@@ -49,6 +49,7 @@ extern "C" {
-  * Supported backends
-  * ------------------
-  *
-+ * Direct3D 11: via MPV_RENDER_API_TYPE_D3D11, see render_d3d11.h header.
-  * OpenGL: via MPV_RENDER_API_TYPE_OPENGL, see render_gl.h header.
-  * Software: via MPV_RENDER_API_TYPE_SW, see section "Software renderer"
-  *
-@@ -213,8 +214,9 @@ typedef enum mpv_render_param_type {
-      * Control surface depth. Valid for mpv_render_context_render().
-      * Type: int*
-      * This implies the depth of the surface passed to the render function in
--     * bits per channel. If omitted or set to 0, the renderer will assume 8.
--     * Typically used to control dithering.
-+     * bits per channel. If omitted or set to 0, the renderer will use the
-+     * depth of the texture format with the Direct3D 11 backend, and assume 8
-+     * otherwise. Typically used to control dithering.
+@@ -435,6 +435,14 @@ typedef enum mpv_render_param_type {
+      * Type: mpv_d3d11_fbo*
       */
-     MPV_RENDER_PARAM_DEPTH = 5,
-     /**
-@@ -422,6 +424,25 @@ typedef enum mpv_render_param_type {
-      * See MPV_RENDER_PARAM_SW_STRIDE for alignment requirements.
-      */
-     MPV_RENDER_PARAM_SW_POINTER = 20,
-+    /**
-+     * Required parameters for initializing the Direct3D 11 renderer. Valid
-+     * for mpv_render_context_create().
-+     * Type: mpv_d3d11_init_params*
-+     */
-+    MPV_RENDER_PARAM_D3D11_INIT_PARAMS = 21,
-+    /**
-+     * Describes a D3D11 render target. Valid for mpv_render_context_render().
-+     * Type: mpv_d3d11_fbo*
-+     */
-+    MPV_RENDER_PARAM_D3D11_FBO = 22,
+     MPV_RENDER_PARAM_D3D11_FBO = 22,
 +    /**
 +     * The name of the render backend to use. Valid for mpv_render_context_create().
 +     * Type: char*
@@ -78,144 +52,11 @@ index 99aadeb5d8..073a34b379 100644
  } mpv_render_param_type;
  
  /**
-@@ -464,6 +485,8 @@ typedef struct mpv_render_param {
- /**
-  * Predefined values for MPV_RENDER_PARAM_API_TYPE.
-  */
-+// See render_d3d11.h
-+#define MPV_RENDER_API_TYPE_D3D11 "d3d11"
- // See render_gl.h
- #define MPV_RENDER_API_TYPE_OPENGL "opengl"
- // See section "Software renderer"
-diff --git a/include/mpv/render_d3d11.h b/include/mpv/render_d3d11.h
-new file mode 100644
-index 0000000000..7fa4c12ce4
---- /dev/null
-+++ b/include/mpv/render_d3d11.h
-@@ -0,0 +1,118 @@
-+/* Copyright (C) 2024 the mpv developers
-+ *
-+ * Permission to use, copy, modify, and/or distribute this software for any
-+ * purpose with or without fee is hereby granted, provided that the above
-+ * copyright notice and this permission notice appear in all copies.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-+ */
-+
-+#ifndef MPV_CLIENT_API_RENDER_D3D11_H_
-+#define MPV_CLIENT_API_RENDER_D3D11_H_
-+
-+#include "render.h"
-+
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
-+/**
-+ * Direct3D 11 backend
-+ * -------------------
-+ *
-+ * This header contains definitions for using Direct3D 11 with the render.h
-+ * API.
-+ *
-+ * API use
-+ * -------
-+ *
-+ * The mpv_render_* API is used. That API supports multiple backends, and this
-+ * section documents specifics for the Direct3D 11 backend.
-+ *
-+ * Use mpv_render_context_create() with MPV_RENDER_PARAM_API_TYPE set to
-+ * MPV_RENDER_API_TYPE_D3D11, and MPV_RENDER_PARAM_D3D11_INIT_PARAMS provided.
-+ *
-+ * Call mpv_render_context_render() with MPV_RENDER_PARAM_D3D11_FBO to render
-+ * the video frame to a D3D11 texture. The API user is responsible for creating
-+ * and presenting the texture (for example, via a DXGI swap chain).
-+ *
-+ * Direct3D 11 state
-+ * -----------------
-+ *
-+ * mpv renders with the immediate context of the device and does not restore
-+ * its state, so the API user has to set its own state again after calling the
-+ * mpv_render_* functions. State that mpv does not set, like the geometry, hull
-+ * and domain shader stages, must be at the defaults that
-+ * ID3D11DeviceContext::ClearState() sets.
-+ *
-+ * Threading
-+ * ---------
-+ *
-+ * Unlike OpenGL, Direct3D 11 does not use a per-thread implicit context. Any
-+ * thread may call the mpv_render_* functions with this backend, subject to the
-+ * general restrictions described in render.h. Other threads must not use the
-+ * immediate context while an mpv_render_* function runs.
-+ *
-+ * Hardware decoding
-+ * -----------------
-+ *
-+ * d3d11va decodes on the device passed in mpv_d3d11_init_params from mpv's
-+ * decoder thread, and mpv enables multithread protection on the device for it.
-+ * A device created with D3D11_CREATE_DEVICE_SINGLETHREADED does not support
-+ * this, so only copy-back hardware decoding like d3d11va-copy works with it.
-+ */
-+
-+/**
-+ * For initializing the mpv D3D11 state via MPV_RENDER_PARAM_D3D11_INIT_PARAMS.
-+ */
-+typedef struct mpv_d3d11_init_params {
-+    /**
-+     * The ID3D11Device to use for rendering. libmpv will add a reference to
-+     * the device, so it is safe to release the caller's reference after
-+     * mpv_render_context_create() returns.
-+     *
-+     * Type: ID3D11Device*
-+     */
-+    void *device;
-+} mpv_d3d11_init_params;
-+
-+/**
-+ * For MPV_RENDER_PARAM_D3D11_FBO.
-+ */
-+typedef struct mpv_d3d11_fbo {
-+    /**
-+     * The D3D11 texture to render into. This must be a 2D texture
-+     * (ID3D11Texture2D) created on the same ID3D11Device that was passed to
-+     * mpv_render_context_create() via mpv_d3d11_init_params.
-+     *
-+     * The texture must have been created with at least the
-+     * D3D11_BIND_RENDER_TARGET bind flag and D3D11_USAGE_DEFAULT usage. It
-+     * must not be multisampled, a texture array, or mipmapped. Formats like
-+     * DXGI_FORMAT_B8G8R8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM,
-+     * DXGI_FORMAT_R10G10B10A2_UNORM and DXGI_FORMAT_R16G16B16A16_FLOAT are
-+     * supported. sRGB formats are not supported.
-+     *
-+     * The texture is owned by the caller. mpv_render_context_render() submits
-+     * all its rendering to the immediate context before it returns, and keeps
-+     * no reference to the texture. Later work on the same device, like
-+     * presenting the texture or resizing its swap chain, needs no further
-+     * synchronization. If another device uses the texture, the API user has to
-+     * synchronize the access, for example with a keyed mutex acquired around
-+     * mpv_render_context_render().
-+     *
-+     * Type: ID3D11Texture2D*
-+     */
-+    void *tex;
-+} mpv_d3d11_fbo;
-+
-+#ifdef __cplusplus
-+}
-+#endif
-+
-+#endif
 diff --git a/meson.build b/meson.build
-index fb10be5078..4359322ad0 100644
+index 154a9e65e7cff..6eebc3f8e6c99 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -255,6 +255,7 @@ sources = files(
+@@ -269,6 +269,7 @@ sources = files(
      'video/out/placebo/utils.c',
      'video/out/vo_gpu_next.c',
      'video/out/gpu_next/context.c',
@@ -223,257 +64,21 @@ index fb10be5078..4359322ad0 100644
  
      ## osdep
      'osdep/io.c',
-@@ -320,7 +321,7 @@ features += {'darwin': darwin}
- features += {'posix': posix}
- features += {'dos-paths': win32, 'win32': win32}
- 
--mswin_flags = ['-D_WIN32_WINNT=0x0A00', '-DWINVER=0x0A00', '-DUNICODE',
-+mswin_flags = ['-D_WIN32_WINNT=0x0602', '-DWINVER=0x0602', '-DUNICODE',
-                '-DCOBJMACROS', '-DINITGUID', '-DNOMINMAX',
-                '-D_USE_MATH_DEFINES', '-DWIN32_LEAN_AND_MEAN',
-                '-D_CRT_DECLARE_NONSTDC_NAMES', '-D_CRT_NONSTDC_NO_WARNINGS',
-@@ -503,7 +504,6 @@ if features['win32-desktop']
-                           cc.find_library('imm32'),
-                           cc.find_library('ntdll'),
-                           cc.find_library('ole32'),
--                          cc.find_library('pathcch'),
-                           cc.find_library('shcore'),
-                           cc.find_library('user32'),
-                           cc.find_library('uuid'),
-@@ -516,11 +516,13 @@ if features['win32-desktop']
-     else
-         sources += files('osdep/subprocess-dummy.c')
-     endif
-+    if features['win32-executable']
-+        sources += files('osdep/w32_register.c')
-+    endif
-     sources += files('input/ipc-win.c',
-                      'player/clipboard/clipboard-win.c',
-                      'osdep/language-win.c',
-                      'osdep/terminal-win.c',
--                     'osdep/w32_register.c',
-                      'video/out/w32_common.c',
-                      'video/out/win32/displayconfig.c',
-                      'video/out/win32/droptarget.c',
-@@ -1029,7 +1031,8 @@ d3d11 = get_option('d3d11').require(
- features += {'d3d11': d3d11.allowed()}
- if features['d3d11']
-     sources += files('video/out/d3d11/context.c',
--                     'video/out/d3d11/ra_d3d11.c')
-+                     'video/out/d3d11/ra_d3d11.c',
-+                     'video/out/d3d11/libmpv_d3d11.c')
- endif
- 
- wayland = {
-@@ -1797,6 +1800,9 @@ if get_option('libmpv')
+@@ -1852,8 +1853,10 @@ if get_option('libmpv')
+                  description: 'mpv media player client library')
  
      headers = ['include/mpv/client.h', 'include/mpv/render.h',
-                'include/mpv/render_gl.h', 'include/mpv/stream_cb.h']
+-               'include/mpv/render_d3d11.h', 'include/mpv/render_gl.h',
+-               'include/mpv/stream_cb.h']
++               'include/mpv/render_gl.h', 'include/mpv/stream_cb.h']
 +    if features['d3d11']
 +        headers += 'include/mpv/render_d3d11.h'
 +    endif
      install_headers(headers, subdir: 'mpv')
  
      # Allow projects to build with libmpv by cloning into ./subprojects/mpv
-diff --git a/misc/path_utils.c b/misc/path_utils.c
-index af56162aa6..dcb04c3fb2 100644
---- a/misc/path_utils.c
-+++ b/misc/path_utils.c
-@@ -34,7 +34,7 @@
- #include "misc/ctype.h"
- #include "misc/path_utils.h"
- 
--#if HAVE_DOS_PATHS
-+#if defined(HAVE_PATHCCH) && HAVE_PATHCCH
- #include <windows.h>
- #include <pathcch.h>
- #endif
-@@ -172,7 +172,7 @@ char *mp_normalize_path(void *talloc_ctx, const char *path)
-         path = mp_path_join(tmp, cwd, path);
-     }
- 
--#if HAVE_DOS_PATHS
-+#if defined(HAVE_PATHCCH) && HAVE_PATHCCH
-     wchar_t *pathw = mp_from_utf8(tmp, path);
-     wchar_t *read = pathw, *write = pathw;
-     wchar_t prev = '\0';
-@@ -198,6 +198,8 @@ char *mp_normalize_path(void *talloc_ctx, const char *path)
-     char *ret = SUCCEEDED(hr) ? mp_to_utf8(talloc_ctx, pathc) : talloc_strdup(talloc_ctx, path);
-     talloc_free(tmp);
-     return ret;
-+#elif HAVE_DOS_PATHS
-+    return talloc_strdup(talloc_ctx, path);
- #else
-     char *result = talloc_strdup(tmp, "");
-     const char *next;
-diff --git a/options/options.c b/options/options.c
-index 716c3e6f10..7202deb625 100644
---- a/options/options.c
-+++ b/options/options.c
-@@ -531,7 +531,9 @@ static const m_option_t mp_opts[] = {
-     {"msg-module", OPT_BOOL(msg_module), .flags = UPDATE_TERM},
-     {"msg-time", OPT_BOOL(msg_time), .flags = UPDATE_TERM},
- #if HAVE_WIN32_DESKTOP
-+#if HAVE_WIN32_EXECUTABLE
-     {"", OPT_SUBSTRUCT(w32_register_opts, w32_register_conf)},
-+#endif
-     {"priority", OPT_CHOICE(w32_priority,
-         {"no",          0},
-         {"realtime",    REALTIME_PRIORITY_CLASS},
-diff --git a/player/main.c b/player/main.c
-index 37eb6b18f5..09ad005f3e 100644
---- a/player/main.c
-+++ b/player/main.c
-@@ -391,7 +391,7 @@ int mp_initialize(struct MPContext *mpctx, char **options)
-     if (handle_help_options(mpctx))
-         return 1; // help
- 
--#if HAVE_WIN32_DESKTOP
-+#if HAVE_WIN32_EXECUTABLE
-     if (mp_w32_handle_register(mpctx))
-         return 1; // register/unregister
- #endif
-diff --git a/video/out/d3d11/libmpv_d3d11.c b/video/out/d3d11/libmpv_d3d11.c
-new file mode 100644
-index 0000000000..fb539e5b63
---- /dev/null
-+++ b/video/out/d3d11/libmpv_d3d11.c
-@@ -0,0 +1,101 @@
-+/*
-+ * This file is part of mpv.
-+ *
-+ * mpv is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU Lesser General Public
-+ * License as published by the Free Software Foundation; either
-+ * version 2.1 of the License, or (at your option) any later version.
-+ *
-+ * mpv is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU Lesser General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU Lesser General Public
-+ * License along with mpv.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include "common/msg.h"
-+#include "mpv/render_d3d11.h"
-+#include "ra_d3d11.h"
-+#include "video/out/gpu/libmpv_gpu.h"
-+#include "video/out/gpu/ra.h"
-+
-+struct priv {
-+    struct ra_tex *wrapped_tex;
-+};
-+
-+static int init(struct libmpv_gpu_context *ctx, mpv_render_param *params)
-+{
-+    struct priv *p = ctx->priv = talloc_zero(NULL, struct priv);
-+
-+    mpv_d3d11_init_params *init_params = get_mpv_render_param(params, MPV_RENDER_PARAM_D3D11_INIT_PARAMS, NULL);
-+    if (!init_params || !init_params->device)
-+        return MPV_ERROR_INVALID_PARAMETER;
-+
-+    struct ra_ctx *ra_ctx = talloc_zero(p, struct ra_ctx);
-+    ra_ctx->log = ctx->log;
-+    ra_ctx->global = ctx->global;
-+
-+    if (!spirv_compiler_init(ra_ctx))
-+        return MPV_ERROR_UNSUPPORTED;
-+
-+    ra_ctx->ra = ra_d3d11_create(init_params->device, ctx->log, ra_ctx->spirv);
-+    if (!ra_ctx->ra)
-+        return MPV_ERROR_UNSUPPORTED;
-+
-+    ctx->ra_ctx = ra_ctx;
-+    return 0;
-+}
-+
-+static int wrap_fbo(struct libmpv_gpu_context *ctx, mpv_render_param *params,
-+                    struct ra_tex **out)
-+{
-+    struct priv *p = ctx->priv;
-+
-+    mpv_d3d11_fbo *fbo = get_mpv_render_param(params, MPV_RENDER_PARAM_D3D11_FBO, NULL);
-+    if (!fbo || !fbo->tex)
-+        return MPV_ERROR_INVALID_PARAMETER;
-+
-+    ra_tex_free(ctx->ra_ctx->ra, &p->wrapped_tex);
-+    p->wrapped_tex = ra_d3d11_wrap_tex(ctx->ra_ctx->ra, (ID3D11Resource *)fbo->tex);
-+    if (!p->wrapped_tex)
-+        return MPV_ERROR_UNSUPPORTED;
-+
-+    if (!p->wrapped_tex->params.render_dst) {
-+        MP_ERR(ctx, "Texture was not created with D3D11_BIND_RENDER_TARGET\n");
-+        ra_tex_free(ctx->ra_ctx->ra, &p->wrapped_tex);
-+        return MPV_ERROR_INVALID_PARAMETER;
-+    }
-+
-+    *out = p->wrapped_tex;
-+    return 0;
-+}
-+
-+static void done_frame(struct libmpv_gpu_context *ctx, bool ds)
-+{
-+    struct priv *p = ctx->priv;
-+
-+    ra_d3d11_flush(ctx->ra_ctx->ra);
-+    ra_tex_free(ctx->ra_ctx->ra, &p->wrapped_tex);
-+}
-+
-+static void destroy(struct libmpv_gpu_context *ctx)
-+{
-+    struct priv *p = ctx->priv;
-+
-+    if (ctx->ra_ctx && ctx->ra_ctx->ra) {
-+        ra_tex_free(ctx->ra_ctx->ra, &p->wrapped_tex);
-+        // ra_d3d11 frees its own struct from inside its destroy callback.
-+        ctx->ra_ctx->ra->fns->destroy(ctx->ra_ctx->ra);
-+        ctx->ra_ctx->ra = NULL;
-+    }
-+}
-+
-+const struct libmpv_gpu_context_fns libmpv_gpu_context_d3d11 = {
-+    .api_name   = MPV_RENDER_API_TYPE_D3D11,
-+    .init       = init,
-+    .wrap_fbo   = wrap_fbo,
-+    .done_frame = done_frame,
-+    .destroy    = destroy,
-+};
-diff --git a/video/out/gpu/libmpv_gpu.c b/video/out/gpu/libmpv_gpu.c
-index 1b13c79632..2d8f442f65 100644
---- a/video/out/gpu/libmpv_gpu.c
-+++ b/video/out/gpu/libmpv_gpu.c
-@@ -6,6 +6,9 @@
- #include "video/out/libmpv.h"
- 
- static const struct libmpv_gpu_context_fns *context_backends[] = {
-+#if HAVE_D3D11
-+    &libmpv_gpu_context_d3d11,
-+#endif
- #if HAVE_GL
-     &libmpv_gpu_context_gl,
- #endif
-@@ -181,6 +184,8 @@ static int render(struct render_backend *ctx, mpv_render_param *params,
- 
-     int depth = *(int *)get_mpv_render_param(params, MPV_RENDER_PARAM_DEPTH,
-                                              &(int){0});
-+    if (!depth)
-+        depth = tex->params.format->component_depth[0];
-     gl_video_set_fb_depth(p->renderer, depth);
- 
-     bool flip = *(int *)get_mpv_render_param(params, MPV_RENDER_PARAM_FLIP_Y,
-diff --git a/video/out/gpu/libmpv_gpu.h b/video/out/gpu/libmpv_gpu.h
-index 497dcc3f69..fad1a00c0a 100644
---- a/video/out/gpu/libmpv_gpu.h
-+++ b/video/out/gpu/libmpv_gpu.h
-@@ -38,3 +38,4 @@ struct libmpv_gpu_context_fns {
- };
- 
- extern const struct libmpv_gpu_context_fns libmpv_gpu_context_gl;
-+extern const struct libmpv_gpu_context_fns libmpv_gpu_context_d3d11;
 diff --git a/video/out/gpu_next/context.c b/video/out/gpu_next/context.c
-index 2c7c9fa21e..468aa132b0 100644
+index 369921cfc51b8..43402c6a211af 100644
 --- a/video/out/gpu_next/context.c
 +++ b/video/out/gpu_next/context.c
 @@ -28,17 +28,19 @@
@@ -498,7 +103,7 @@ index 2c7c9fa21e..468aa132b0 100644
  #include "video/out/opengl/context.h"
  #include "video/out/opengl/ra_gl.h"
  # if HAVE_EGL
-@@ -235,3 +237,249 @@ skip_common_pl_cleanup:
+@@ -234,3 +236,252 @@ void gpu_ctx_destroy(struct gpu_ctx **ctxp)
      talloc_free(ctx);
      *ctxp = NULL;
  }
@@ -626,6 +231,7 @@ index 2c7c9fa21e..468aa132b0 100644
 +    if (spirv_compiler_init(ra_ctx) &&
 +        (ra_ctx->ra = ra_d3d11_create(dev, ctx->log, ra_ctx->spirv)))
 +    {
++        mp_assert(!ra_ctx->vo && !ra_ctx->fns && !ra_ctx->swapchain);
 +        ctx->ra_ctx = ra_ctx;
 +        return;
 +    }
@@ -640,6 +246,8 @@ index 2c7c9fa21e..468aa132b0 100644
 +    if (!ra_ctx)
 +        return;
 +
++    // Like ra_ctx_destroy(), but without fns->uninit() (never ran a ra_ctx_fns).
++    mp_assert(!ra_ctx->fns);
 +    if (ra_ctx->ra) {
 +        ra_ctx->ra->fns->destroy(ra_ctx->ra);
 +        ra_ctx->ra = NULL;
@@ -750,10 +358,10 @@ index 2c7c9fa21e..468aa132b0 100644
 +#endif // HAVE_D3D11 && defined(PL_HAVE_D3D11)
 diff --git a/video/out/gpu_next/libmpv_gpu_next.c b/video/out/gpu_next/libmpv_gpu_next.c
 new file mode 100644
-index 0000000000..44a75882d1
+index 0000000000000..d07705037925d
 --- /dev/null
 +++ b/video/out/gpu_next/libmpv_gpu_next.c
-@@ -0,0 +1,1338 @@
+@@ -0,0 +1,1416 @@
 +/*
 + * This file is part of mpv.
 + *
@@ -888,7 +496,6 @@ index 0000000000..44a75882d1
 +    struct ra_hwdec *hwdec;
 +    struct osd_state subs;
 +    uint64_t osd_sync;
-+    uint64_t signature;         // unique per queue entry, see draw_frame()
 +};
 +
 +static pl_buf get_dr_buf(struct priv *p, const uint8_t *ptr)
@@ -956,6 +563,19 @@ index 0000000000..44a75882d1
 +    if (!buf)
 +        return NULL;
 +
++    // Check the pool limit before creating the image: freeing an image whose
++    // buffer was already destroyed would trip free_dr_buf()'s assertion.
++    mp_mutex_lock(&p->dr_lock);
++    bool ok = p->num_dr_buffers < MP_MAX_DR_BUFFERS;
++    mp_mutex_unlock(&p->dr_lock);
++
++    if (!ok) {
++        MP_WARN(p, "DR buffer pool exhausted (%d buffers), falling back to "
++                   "software decoding.\n", MP_MAX_DR_BUFFERS);
++        pl_buf_destroy(gpu, &buf);
++        return NULL;
++    }
++
 +    struct mp_image *mpi = mp_image_from_buffer(imgfmt, w, h, stride_align,
 +                                                buf->data, buf->params.size,
 +                                                p, free_dr_buf);
@@ -965,18 +585,8 @@ index 0000000000..44a75882d1
 +    }
 +
 +    mp_mutex_lock(&p->dr_lock);
-+    bool ok = p->num_dr_buffers < MP_MAX_DR_BUFFERS;
-+    if (ok)
-+        MP_TARRAY_APPEND(p, p->dr_buffers, p->num_dr_buffers, buf);
++    MP_TARRAY_APPEND(p, p->dr_buffers, p->num_dr_buffers, buf);
 +    mp_mutex_unlock(&p->dr_lock);
-+
-+    if (!ok) {
-+        MP_WARN(p, "DR buffer pool exhausted (%d buffers), falling back to "
-+                   "software decoding.\n", MP_MAX_DR_BUFFERS);
-+        pl_buf_destroy(gpu, &buf);
-+        talloc_free(mpi);
-+        return NULL;
-+    }
 +
 +    return mpi;
 +}
@@ -1041,23 +651,50 @@ index 0000000000..44a75882d1
 +    }
 +}
 +
++// Compute the OSD rect and overlay coords when blending subs into a frame.
++static struct mp_osd_res blend_subs_osd_res(const struct gl_video_opts *opts,
++                                            const struct pl_frame *image,
++                                            const struct pl_frame *target,
++                                            struct mp_image *src,
++                                            enum pl_overlay_coords *coords)
++{
++    bool in_video = opts->blend_subs == BLEND_SUBS_VIDEO;
++    const struct pl_rect2df *crop = in_video ? &image->crop : &target->crop;
++    float w = pl_rect_w(*crop);
++    float h = pl_rect_h(*crop);
++    float rx = w / pl_rect_w(image->crop);
++    float ry = h / pl_rect_h(image->crop);
++
++    *coords = in_video ? PL_OVERLAY_COORDS_SRC_CROP
++                       : PL_OVERLAY_COORDS_DST_CROP;
++    return (struct mp_osd_res) {
++        .w = w,
++        .h = h,
++        .ml = -image->crop.x0 * rx,
++        .mr = (image->crop.x1 - src->params.w) * rx,
++        .mt = -image->crop.y0 * ry,
++        .mb = (image->crop.y1 - src->params.h) * ry,
++        .display_par = 1.0,
++    };
++}
++
 +static void update_overlays(struct priv *p, struct mp_osd_res res, int flags,
 +                            enum pl_overlay_coords coords,
 +                            struct osd_state *state, struct pl_frame *frame,
 +                            struct mp_image *src)
 +{
-+    if (!p->current_osd)
-+        return;
-+
 +    recycle_subs(p, state);
 +
-+    double pts = src ? src->pts : 0;
-+    struct sub_bitmap_list *subs = osd_render(p->current_osd, res, pts,
-+                                              flags, mp_draw_sub_formats);
-+    if (!subs)
-+        return;
-+
 +    state->num_overlays = 0;
++    struct sub_bitmap_list *subs = NULL;
++
++    if (!p->current_osd)
++        goto done;
++
++    double pts = src ? src->pts : 0;
++    subs = osd_render(p->current_osd, res, pts, flags, mp_draw_sub_formats);
++    if (!subs)
++        goto done;
 +
 +    for (int n = 0; n < subs->num_items; n++) {
 +        const struct sub_bitmaps *item = subs->items[n];
@@ -1075,17 +712,9 @@ index 0000000000..44a75882d1
 +            bool src_hdr = pl_color_transfer_is_hdr(src->params.color.transfer);
 +            if (!mono || (item->video_color_space && !src_hdr))
 +                color = src->params.color;
-+
-+            if (mono) {
-+                if (pl_color_transfer_is_hdr(frame->color.transfer) &&
-+                    p->next_opts->sub_hdr_peak)
-+                    color.hdr.max_luma = p->next_opts->sub_hdr_peak;
-+            } else if (pl_color_transfer_is_hdr(color.transfer)) {
-+                if (!pl_color_transfer_is_hdr(frame->color.transfer))
-+                    color.hdr.max_luma = PL_COLOR_SDR_WHITE;
-+                else if (p->next_opts->image_subs_hdr_peak != -1)
-+                    color.hdr.max_luma = p->next_opts->image_subs_hdr_peak;
-+            }
++            if (mono && pl_color_transfer_is_hdr(frame->color.transfer) &&
++                p->next_opts->sub_hdr_peak)
++                color.hdr.max_luma = p->next_opts->sub_hdr_peak;
 +        }
 +
 +        entry->num_parts = 0;
@@ -1133,6 +762,7 @@ index 0000000000..44a75882d1
 +        }
 +    }
 +
++done:
 +    frame->overlays = state->overlays;
 +    frame->num_overlays = state->num_overlays;
 +
@@ -1245,7 +875,7 @@ index 0000000000..44a75882d1
 +// Fill `frame->num_planes` and per-plane component_mapping from an
 +// hwdec-mapped imgfmt description.
 +static void setup_hwdec_plane_mapping(struct pl_frame *frame,
-+                                      struct mp_imgfmt_desc *desc)
++                                      const struct mp_imgfmt_desc *desc)
 +{
 +    frame->num_planes = desc->num_planes;
 +    for (int n = 0; n < frame->num_planes; n++) {
@@ -1287,8 +917,10 @@ index 0000000000..44a75882d1
 +        s->owner = owner;
 +    }
 +
++    if (ra_hwdec_mapper_begin_access(s->mapper) < 0)
++        return false;
 +    // Set before handing out textures so that the release libplacebo issues
-+    // after a failed acquire unmaps the frame again.
++    // after a failed acquire ends the access again.
 +    s->acquired = true;
 +
 +    for (int n = 0; n < frame->num_planes; n++) {
@@ -1306,8 +938,8 @@ index 0000000000..44a75882d1
 +{
 +    if (!s->acquired)
 +        return;
++    ra_hwdec_mapper_end_access(s->mapper);
 +    s->acquired = false;
-+    slot_unmap(p, s);
 +}
 +
 +static bool hwdec_acquire(pl_gpu gpu, struct pl_frame *frame)
@@ -1386,7 +1018,6 @@ index 0000000000..44a75882d1
 +            talloc_free(data[n].priv);
 +            return false;
 +        }
-+        plane->texture = tex[n];
 +
 +        // Without async callback support, we have to poll...
 +        if (!gpu->limits.callbacks && data[n].buf)
@@ -1401,16 +1032,24 @@ index 0000000000..44a75882d1
 +static bool upload_frame(struct priv *p, struct pl_frame *out_frame,
 +                         struct mp_image *img)
 +{
++    struct mp_image_params par = img->params;
++    mp_image_params_guess_csp(&par);
++
 +    *out_frame = (struct pl_frame) {
-+        .color = img->params.color,
-+        .repr = img->params.repr,
++        .color = par.color,
++        .repr = par.repr,
++        .rotation = par.rotate / 90,
 +    };
 +
 +    pl_tex tex[4] = {0};
 +    bool ok = upload_planes_sw(p, p->gpu, img, out_frame, tex);
-+    if (!ok)
++    if (!ok) {
 +        upload_frame_cleanup(p, out_frame);
-+    return ok;
++        return false;
++    }
++
++    pl_frame_set_chroma_location(out_frame, par.chroma_location);
++    return true;
 +}
 +
 +static bool map_frame(pl_gpu gpu, pl_tex *tex, const struct pl_source_frame *src,
@@ -1591,7 +1230,6 @@ index 0000000000..44a75882d1
 +            struct mp_image *mpi = mp_image_new_ref(frame->frames[n]);
 +            struct frame_priv *fp = talloc_zero(mpi, struct frame_priv);
 +            fp->p = p;
-+            fp->signature = id;
 +            mpi->priv = fp;
 +
 +            pl_queue_push(p->queue, &(struct pl_source_frame) {
@@ -1657,15 +1295,9 @@ index 0000000000..44a75882d1
 +        p->osd_sync++;
 +
 +    // Must happen before pl_render_image_mix(), which otherwise derives the
-+    // crop from the (not yet acquired) hwdec plane texture.
-+    //
-+    // Frame IDs are used for signatures because mp_image pointers get
-+    // recycled; the OSD sync value keeps identical frames with a different
-+    // OSD distinct.
-+    uint64_t signatures[32];
-+    int num_sig = MPMIN(mix.num_frames, MP_ARRAY_SIZE(signatures));
-+
-+    for (int i = 0; i < num_sig; i++) {
++    // crop from the (not yet acquired) hwdec plane texture. `mix.signatures`
++    // is temporary memory valid only for this pl_queue_update().
++    for (int i = 0; i < mix.num_frames; i++) {
 +        struct pl_frame *image = (struct pl_frame *) mix.frames[i];
 +        struct mp_image *mpi = image->user_data;
 +        struct frame_priv *fp = mpi->priv;
@@ -1675,18 +1307,17 @@ index 0000000000..44a75882d1
 +            image->num_overlays = 0;
 +            fp->osd_sync = 0;
 +        } else if (fp->osd_sync < p->osd_sync) {
-+            update_overlays(p, p->osd_res, OSD_DRAW_SUB_ONLY,
-+                            PL_OVERLAY_COORDS_DST_CROP, &fp->subs, image, mpi);
++            enum pl_overlay_coords rel;
++            struct mp_osd_res res =
++                blend_subs_osd_res(opts, image, &target, mpi, &rel);
++            update_overlays(p, res, OSD_DRAW_SUB_ONLY, rel, &fp->subs,
++                            image, mpi);
 +            fp->osd_sync = p->osd_sync;
 +        }
 +
 +        // Fold the OSD sync value in to disambiguate identical frames with a
 +        // modified OSD.
-+        signatures[i] = fp->signature ^ (fp->osd_sync << 48);
-+    }
-+    if (num_sig) {
-+        mix.signatures = signatures;
-+        mix.num_frames = num_sig;
++        ((uint64_t *) mix.signatures)[i] ^= fp->osd_sync << 48;
 +    }
 +
 +    struct mp_image *ref = mix.num_frames > 0 ? mix.frames[0]->user_data : NULL;
@@ -1750,8 +1381,12 @@ index 0000000000..44a75882d1
 +static void update_external(struct render_backend *ctx, struct vo *vo)
 +{
 +    struct priv *p = ctx->priv;
++    struct osd_state *new_osd = vo ? vo->osd : NULL;
 +
-+    p->current_osd = vo ? vo->osd : NULL;
++    if (new_osd != p->current_osd)
++        p->osd_sync++;
++
++    p->current_osd = new_osd;
 +}
 +
 +static void resize(struct render_backend *ctx, struct mp_rect *src,
@@ -1759,12 +1394,17 @@ index 0000000000..44a75882d1
 +{
 +    struct priv *p = ctx->priv;
 +
-+    if (src)
-+        p->src = *src;
-+    if (dst)
-+        p->dst = *dst;
-+    if (osd)
-+        p->osd_res = *osd;
++    if (mp_rect_equals(&p->src, src) &&
++        mp_rect_equals(&p->dst, dst) &&
++        osd_res_equals(p->osd_res, *osd))
++    {
++        return;
++    }
++
++    p->osd_sync++;
++    p->src = *src;
++    p->dst = *dst;
++    p->osd_res = *osd;
 +}
 +
 +static void video_screenshot(struct render_backend *ctx, struct vo_frame *frame,
@@ -1773,10 +1413,20 @@ index 0000000000..44a75882d1
 +    struct priv *p = ctx->priv;
 +    const struct gl_video_opts *opts = p->gl_opts_cache->opts;
 +    struct mp_image *img = frame ? frame->current : NULL;
++    pl_tex fbo = NULL;
++    struct osd_state sub_state = {0};
 +    struct pl_render_params params = p->pars->params;
 +    params.skip_caching_single_frame = true;
 +    params.preserve_mixing_cache = false;
 +    params.frame_mixer = NULL;
++
++    // Screenshots must not depend on delayed peak detection.
++    struct pl_peak_detect_params peak_params;
++    if (params.peak_detect_params) {
++        peak_params = *params.peak_detect_params;
++        params.peak_detect_params = &peak_params;
++        peak_params.allow_delayed = false;
++    }
 +
 +    if (!img)
 +        return;
@@ -1791,16 +1441,39 @@ index 0000000000..44a75882d1
 +    if (!pl_color_transfer_is_hdr(source.color.transfer))
 +        source.color.hdr.max_luma = 0;
 +
-+    int w = img->w, h = img->h;
-+    if (img->params.rotate % 180 == 90)
-+        MPSWAP(int, w, h);
++    struct mp_rect src = p->src, dst = p->dst;
++    struct mp_osd_res osd = p->osd_res;
++    if (!args->scaled) {
++        int w, h;
++        mp_image_params_get_dsize(&img->params, &w, &h);
++        if (w < 1 || h < 1)
++            goto done;
 +
-+    apply_crop(&source, p->src, img->params.w, img->params.h);
++        int src_w = img->params.w;
++        int src_h = img->params.h;
++        src = (struct mp_rect) {0, 0, src_w, src_h};
++        dst = (struct mp_rect) {0, 0, w, h};
++
++        if (mp_image_crop_valid(&img->params))
++            src = img->params.crop;
++
++        if (img->params.rotate % 180 == 90) {
++            MPSWAP(int, w, h);
++            MPSWAP(int, src_w, src_h);
++        }
++        mp_rect_rotate(&src, src_w, src_h, img->params.rotate);
++        mp_rect_rotate(&dst, w, h, img->params.rotate);
++
++        osd = (struct mp_osd_res) {
++            .display_par = 1.0,
++            .w = mp_rect_w(dst),
++            .h = mp_rect_h(dst),
++        };
++    }
 +
 +    // Create target FBO, try high bit depth first
 +    int mpfmt = IMGFMT_RGBA;
-+    pl_tex fbo = NULL;
-+    for (int depth = opts->dither_depth > 8 ? 16 : 8; depth; depth -= 8) {
++    for (int depth = args->high_bit_depth ? 16 : 8; depth; depth -= 8) {
 +        mpfmt = depth == 16 ? IMGFMT_RGBA64 : IMGFMT_RGBA;
 +        pl_fmt fmt = pl_find_fmt(p->gpu, PL_FMT_UNORM, 4, depth, depth,
 +                                 PL_FMT_CAP_RENDERABLE | PL_FMT_CAP_HOST_READABLE);
@@ -1808,8 +1481,8 @@ index 0000000000..44a75882d1
 +            continue;
 +
 +        fbo = pl_tex_create(p->gpu, pl_tex_params(
-+            .w = w,
-+            .h = h,
++            .w = osd.w,
++            .h = osd.h,
 +            .format = fmt,
 +            .blit_dst = true,
 +            .renderable = true,
@@ -1826,7 +1499,6 @@ index 0000000000..44a75882d1
 +    }
 +
 +    struct pl_frame target = {
-+        .color = pl_color_space_srgb,
 +        .repr = pl_color_repr_rgb,
 +        .num_planes = 1,
 +        .planes[0] = {
@@ -1836,6 +1508,12 @@ index 0000000000..44a75882d1
 +        },
 +    };
 +
++    if (args->native_csp) {
++        target.color = source.color;
++    } else {
++        target.color = pl_color_space_srgb;
++    }
++
 +    // Round-trip back to sRGB if the source is also sRGB.
 +    if ((opts->treat_srgb_as_power22 & 1) &&
 +        target.color.transfer == PL_COLOR_TRC_SRGB &&
@@ -1844,24 +1522,32 @@ index 0000000000..44a75882d1
 +        target.color.transfer = PL_COLOR_TRC_GAMMA22;
 +    }
 +
-+    apply_crop(&target, (struct mp_rect){ 0, 0, w, h }, fbo->params.w,
-+               fbo->params.h);
++    apply_crop(&source, src, img->params.w, img->params.h);
++    apply_crop(&target, dst, fbo->params.w, fbo->params.h);
 +
-+    struct mp_osd_res osd = {
-+        .w = w,
-+        .h = h,
-+        .display_par = 1.0, // Screenshots have square pixels
-+    };
-+    struct osd_state sub_state = {0};
-+    update_overlays(p, osd, 0, PL_OVERLAY_COORDS_DST_FRAME, &sub_state, &target,
-+                    img);
++    int osd_flags = 0;
++    if (!args->subs)
++        osd_flags |= OSD_DRAW_OSD_ONLY;
++    if (!args->osd)
++        osd_flags |= OSD_DRAW_SUB_ONLY;
++
++    if (opts->blend_subs) {
++        enum pl_overlay_coords rel;
++        struct mp_osd_res res =
++            blend_subs_osd_res(opts, &source, &target, img, &rel);
++        update_overlays(p, res, osd_flags, rel, &sub_state, &source, img);
++    } else {
++        update_overlays(p, osd, osd_flags, PL_OVERLAY_COORDS_DST_FRAME,
++                        &sub_state, &target, img);
++        source.num_overlays = 0;
++    }
 +
 +    if (!pl_render_image(p->rr, &source, &target, &params)) {
 +        MP_ERR(p, "Failed rendering frame!\n");
 +        goto done;
 +    }
 +
-+    args->res = mp_image_alloc(mpfmt, w, h);
++    args->res = mp_image_alloc(mpfmt, osd.w, osd.h);
 +    if (!args->res) {
 +        MP_ERR(p, "Failed to allocate screenshot image.\n");
 +        goto done;
@@ -2094,7 +1780,7 @@ index 0000000000..44a75882d1
 +};
 diff --git a/video/out/gpu_next/libmpv_gpu_next.h b/video/out/gpu_next/libmpv_gpu_next.h
 new file mode 100644
-index 0000000000..c5bce3931d
+index 0000000000000..c5bce3931dc0e
 --- /dev/null
 +++ b/video/out/gpu_next/libmpv_gpu_next.h
 @@ -0,0 +1,49 @@
@@ -2149,10 +1835,10 @@ index 0000000000..c5bce3931d
 +
 diff --git a/video/out/gpu_next/vo_gpu_next.h b/video/out/gpu_next/vo_gpu_next.h
 new file mode 100644
-index 0000000000..a42edfc178
+index 0000000000000..4aa595c999c94
 --- /dev/null
 +++ b/video/out/gpu_next/vo_gpu_next.h
-@@ -0,0 +1,49 @@
+@@ -0,0 +1,50 @@
 +#pragma once
 +
 +#include <libplacebo/common.h>
@@ -2175,6 +1861,7 @@ index 0000000000..a42edfc178
 +};
 +
 +struct gl_next_opts {
++    struct pl_tone_map_constants tone_constants;
 +    bool delayed_peak;
 +    int sub_hdr_peak;
 +    int image_subs_hdr_peak;
@@ -2203,7 +1890,7 @@ index 0000000000..a42edfc178
 +void apply_crop(struct pl_frame *frame, struct mp_rect crop,
 +                   int width, int height);
 diff --git a/video/out/libmpv.h b/video/out/libmpv.h
-index 02efefb101..c11c7e7ba2 100644
+index 02efefb1016f6..c11c7e7ba27dd 100644
 --- a/video/out/libmpv.h
 +++ b/video/out/libmpv.h
 @@ -80,4 +80,5 @@ struct render_backend_fns {
@@ -2213,10 +1900,10 @@ index 02efefb101..c11c7e7ba2 100644
 +extern const struct render_backend_fns render_backend_gpu_next;
  extern const struct render_backend_fns render_backend_sw;
 diff --git a/video/out/vo_gpu_next.c b/video/out/vo_gpu_next.c
-index 2d95eb85b8..56b533c86c 100644
+index b6d69308da558..a86005ad1a6b3 100644
 --- a/video/out/vo_gpu_next.c
 +++ b/video/out/vo_gpu_next.c
-@@ -48,6 +48,7 @@
+@@ -50,6 +50,7 @@
  #include "gpu/video_shaders.h"
  #include "sub/osd.h"
  #include "gpu_next/context.h"
@@ -2224,7 +1911,7 @@ index 2d95eb85b8..56b533c86c 100644
  
  #if HAVE_GL && defined(PL_HAVE_OPENGL)
  #include <libplacebo/opengl.h>
-@@ -81,13 +82,6 @@ struct user_hook {
+@@ -85,13 +86,6 @@ struct user_hook {
      const struct pl_hook *hook;
  };
  
@@ -2238,11 +1925,12 @@ index 2d95eb85b8..56b533c86c 100644
  struct frame_info {
      int count;
      struct pl_dispatch_info info[VO_PASS_PERF_MAX];
-@@ -163,23 +157,6 @@ struct priv {
+@@ -186,24 +180,6 @@ struct priv {
  static void update_render_options(struct vo *vo);
  static void update_lut(struct priv *p, struct user_lut *lut);
  
 -struct gl_next_opts {
+-    struct pl_tone_map_constants tone_constants;
 -    bool delayed_peak;
 -    int sub_hdr_peak;
 -    int image_subs_hdr_peak;
@@ -2262,8 +1950,8 @@ index 2d95eb85b8..56b533c86c 100644
  const struct m_opt_choice_alternatives lut_types[] = {
      {"auto",        PL_LUT_UNKNOWN},
      {"native",      PL_LUT_NATIVE},
-@@ -425,9 +402,9 @@ struct frame_priv {
-     struct ra_hwdec *hwdec;
+@@ -597,9 +573,9 @@ struct frame_priv {
+     struct pl_frame el_frame;
  };
  
 -static int plane_data_from_imgfmt(struct pl_plane_data out_data[4],
@@ -2275,7 +1963,7 @@ index 2d95eb85b8..56b533c86c 100644
  {
      struct mp_imgfmt_desc desc = mp_imgfmt_get_desc(imgfmt);
      if (!desc.num_planes || !(desc.flags & MP_IMGFLAG_HAS_COMPS))
-@@ -925,8 +902,8 @@ static void apply_target_options(struct priv *p, struct pl_frame *target,
+@@ -1286,8 +1262,8 @@ static void apply_target_options(struct priv *p, struct pl_frame *target,
      target->icc = p->icc_profile;
  }
  
@@ -2287,7 +1975,7 @@ index 2d95eb85b8..56b533c86c 100644
      frame->crop = (struct pl_rect2df) {
          .x0 = crop.x0,
 diff --git a/video/out/vo_libmpv.c b/video/out/vo_libmpv.c
-index a91016df4f..7d356177fe 100644
+index 558a1de14b0d9..57c83150e5fff 100644
 --- a/video/out/vo_libmpv.c
 +++ b/video/out/vo_libmpv.c
 @@ -111,12 +111,6 @@ struct mpv_render_context {
@@ -2303,7 +1991,7 @@ index a91016df4f..7d356177fe 100644
  static void update(struct mpv_render_context *ctx)
  {
      mp_mutex_lock(&ctx->update_lock);
-@@ -184,6 +178,22 @@ int mpv_render_context_create(mpv_render_context **res, mpv_handle *mpv,
+@@ -184,6 +178,18 @@ int mpv_render_context_create(mpv_render_context **res, mpv_handle *mpv,
      if (GET_MPV_RENDER_PARAM(params, MPV_RENDER_PARAM_ADVANCED_CONTROL, int, 0))
          ctx->advanced_control = true;
  
@@ -2314,85 +2002,11 @@ index a91016df4f..7d356177fe 100644
 +        NULL
 +    };
 +
-+    if (strcmp(backend, "gpu-next") == 0) {
++    if (backend && strcmp(backend, "gpu-next") == 0) {
 +        MP_VERBOSE(ctx, "Using the 'gpu-next' render backend.\n");
 +        render_backends[0] = &render_backend_gpu_next;
-+    } else if (strcmp(backend, "gpu") != 0) {
-+        MP_ERR(ctx, "Unknown render backend '%s'.\n", backend);
-+        mpv_render_context_free(ctx);
-+        return MPV_ERROR_INVALID_PARAMETER;
 +    }
 +
      int err = MPV_ERROR_NOT_IMPLEMENTED;
      for (int n = 0; render_backends[n]; n++) {
          ctx->renderer = talloc_zero(NULL, struct render_backend);
-diff --git a/video/out/w32_common.c b/video/out/w32_common.c
-index 0393fe9df5..12540df5af 100644
---- a/video/out/w32_common.c
-+++ b/video/out/w32_common.c
-@@ -78,6 +78,9 @@ EXTERN_C IMAGE_DOS_HEADER __ImageBase;
- #define WM_SHOWMENU (WM_USER + 1)
- 
- struct w32_api {
-+    HRESULT (WINAPI *pGetDpiForMonitor)(HMONITOR, MONITOR_DPI_TYPE, UINT*, UINT*);
-+    BOOL (WINAPI *pAdjustWindowRectExForDpi)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
-+    int (WINAPI *pGetSystemMetricsForDpi)(int nIndex, UINT dpi);
-     BOOLEAN (WINAPI *pShouldAppsUseDarkMode)(void);
-     DWORD (WINAPI *pSetPreferredAppMode)(DWORD mode);
- };
-@@ -195,7 +198,9 @@ struct vo_w32_state {
- 
- static inline int get_system_metrics(struct vo_w32_state *w32, int metric)
- {
--    return GetSystemMetricsForDpi(metric, w32->dpi);
-+    return w32->api.pGetSystemMetricsForDpi
-+               ? w32->api.pGetSystemMetricsForDpi(metric, w32->dpi)
-+               : GetSystemMetrics(metric);
- }
- 
- static void adjust_window_rect(struct vo_w32_state *w32, HWND hwnd, RECT *rc)
-@@ -203,8 +208,13 @@ static void adjust_window_rect(struct vo_w32_state *w32, HWND hwnd, RECT *rc)
-     if (!w32->opts->border && !IsMaximized(w32->window))
-         return;
- 
--    AdjustWindowRectExForDpi(rc, GetWindowLongPtrW(hwnd, GWL_STYLE), 0,
--                             GetWindowLongPtrW(hwnd, GWL_EXSTYLE), w32->dpi);
-+    if (w32->api.pAdjustWindowRectExForDpi) {
-+        w32->api.pAdjustWindowRectExForDpi(rc,
-+            GetWindowLongPtrW(hwnd, GWL_STYLE), 0,
-+            GetWindowLongPtrW(hwnd, GWL_EXSTYLE), w32->dpi);
-+    } else {
-+        AdjustWindowRect(rc, GetWindowLongPtrW(hwnd, GWL_STYLE), 0);
-+    }
- }
- 
- static bool check_windows10_build(DWORD build)
-@@ -670,7 +680,8 @@ static void update_dpi(struct vo_w32_state *w32)
-     HDC hdc = NULL;
-     int dpi = 0;
- 
--    if (GetDpiForMonitor(w32->monitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY) == S_OK) {
-+    if (w32->api.pGetDpiForMonitor && w32->api.pGetDpiForMonitor(w32->monitor,
-+                                     MDT_EFFECTIVE_DPI, &dpiX, &dpiY) == S_OK) {
-         dpi = (int)dpiX;
-         MP_VERBOSE(w32, "DPI detected from the new API: %d\n", dpi);
-     } else if ((hdc = GetDC(NULL))) {
-@@ -2013,6 +2024,18 @@ void vo_w32_config(struct vo *vo)
- 
- static void w32_api_load(struct vo_w32_state *w32)
- {
-+    HMODULE shcore_dll = LoadLibraryW(L"shcore.dll");
-+    // Available since Win8.1
-+    w32->api.pGetDpiForMonitor = !shcore_dll ? NULL :
-+                (void *)GetProcAddress(shcore_dll, "GetDpiForMonitor");
-+
-+    HMODULE user32_dll = LoadLibraryW(L"user32.dll");
-+    // Available since Win10
-+    w32->api.pAdjustWindowRectExForDpi = !user32_dll ? NULL :
-+                (void *)GetProcAddress(user32_dll, "AdjustWindowRectExForDpi");
-+    w32->api.pGetSystemMetricsForDpi = !user32_dll ? NULL :
-+                (void *)GetProcAddress(user32_dll, "GetSystemMetricsForDpi");
-+
-     // Dark mode related functions, available since the 1809 Windows 10 update
-     // Check the Windows build version as on previous versions used ordinals
-     // may point to unexpected code/data. Alternatively could check uxtheme.dll
