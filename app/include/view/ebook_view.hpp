@@ -22,16 +22,28 @@ private:
         int page = 0;
     };
 
+    // 后台线程只做网络下载，文档解析与渲染都在 UI 线程
+    struct LoadResult {
+        bool ok = false;
+        bool local = false;
+        std::string error;
+        std::string data;
+    };
+
     void zoomIn();
     void zoomOut();
     void togglePageMode();
     void renderCurrent();
     void applyZoom();
+    int pageStep() const;
+    void goToPage(int target);
     void computeLayout(float& dispW, float& dispH, float& groupW, float& groupH);
     void updateLayout();
     void clampPan();
     void loadOutline();
     void showOutline();
+    static LoadResult loadInBackground(const std::string& url, const HTTP::Header& headers);
+    void applyLoadResult(const std::string& url, LoadResult&& result, float percent);
 
     brls::Image* left = nullptr;
     brls::Image* right = nullptr;

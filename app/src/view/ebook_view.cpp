@@ -7,18 +7,15 @@
 #include <mupdf/fitz.h>
 
 namespace {
-// MuPDF only allows fz_clone_context() when the context has real lock
-// callbacks. Without them fz_clone_context() returns NULL and EBookView::open()
-// bails out before any page is rendered (blank screen). Provide a mutex array
-// so the background (cloned) context can safely share the document/store with
-// the main-thread rendering context.
-#ifndef FZ_LOCK_MAX
-#define FZ_LOCK_MAX 4
-#endif
+// MuPDF 仅在 context 具有真实 lock 回调时才允许 fz_clone_context()。
 std::mutex gFzLocks[FZ_LOCK_MAX];
 
-void fzLockCB(void* user, int lock) { gFzLocks[lock].lock(); }
-void fzUnlockCB(void* user, int lock) { gFzLocks[lock].unlock(); }
+void fzLockCB(void* user, int lock) {
+    if (lock >= 0 && lock < FZ_LOCK_MAX) gFzLocks[lock].lock();
+}
+void fzUnlockCB(void* user, int lock) {
+    if (lock >= 0 && lock < FZ_LOCK_MAX) gFzLocks[lock].unlock();
+}
 
 fz_locks_context gFzLocksCtx = {nullptr, fzLockCB, fzUnlockCB};
 }  // namespace
@@ -36,7 +33,6 @@ using namespace brls::literals;
 
 namespace {
 constexpr float ZOOM_LEVELS[] = {0.5f, 0.75f, 1.0f, 1.5f, 2.0f, 3.0f, 4.0f, 6.0f, 8.0f};
-constexpr size_t ZOOM_LEVELS_COUNT = sizeof(ZOOM_LEVELS) / sizeof(ZOOM_LEVELS[0]);
 }  // namespace
 
 EBookView::EBookView() {
@@ -44,8 +40,10 @@ EBookView::EBookView() {
     this->setHideHighlight(true);
     this->setHideHighlightBackground(true);
     this->left = new brls::Image();
+    this->left->setFreeTexture(true);  // 逐页持有并释放纹理，避免翻页泄漏
     this->left->setMarginRight(10);
     this->right = new brls::Image();
+    this->right->setFreeTexture(true);
     this->addView(this->left);
     this->addView(this->right);
     this->loading = new brls::ProgressSpinner(brls::ProgressSpinnerSize::LARGE);
@@ -62,7 +60,8 @@ EBookView::EBookView() {
     this->setClipsToBounds(true);
 
     this->ctx = fz_new_context(nullptr, &gFzLocksCtx, FZ_STORE_DEFAULT);
-    fz_register_document_handlers(ctx);
+    if (!this->ctx) brls::Logger::error("EBookView: failed to create MuPDF context");
+    else fz_register_document_handlers(this->ctx);
 
     this->registerAction("hints/back"_i18n, brls::BUTTON_B,
         [this](brls::View* view) { return brls::Application::popActivity(brls::TransitionAnimation::NONE); });
@@ -98,15 +97,13 @@ EBookView::EBookView() {
 
     this->registerAction("main/player/prev"_i18n, brls::BUTTON_LEFT, [this](brls::View* view) {
         if (this->page <= 0) return false;
-        this->page--;
-        this->renderCurrent();
+        this->goToPage(this->page - this->pageStep());
         return true;
     });
 
     this->registerAction("main/player/next"_i18n, brls::BUTTON_RIGHT, [this](brls::View* view) {
-        if (this->page >= this->count - 1) return false;
-        this->page++;
-        this->renderCurrent();
+        if (this->page + this->pageStep() >= this->count) return false;
+        this->goToPage(this->page + this->pageStep());
         return true;
     });
 
@@ -114,14 +111,13 @@ EBookView::EBookView() {
         new brls::TapGestureRecognizer([this](brls::TapGestureStatus status, brls::Sound* soundToPlay) {
             if (status.state != brls::GestureState::END) return;
             auto frame = this->getFrame();
+            const int step = this->pageStep();
             if (status.position.x < frame.getMidX()) {
                 if (this->page <= 0) return;
-                this->page--;
-                this->renderCurrent();
+                this->goToPage(this->page - step);
             } else {
-                if (this->page >= this->count - 1) return;
-                this->page++;
-                this->renderCurrent();
+                if (this->page + step >= this->count) return;
+                this->goToPage(this->page + step);
             }
         }));
 
@@ -141,59 +137,114 @@ EBookView::~EBookView() {
     if (this->ctx) fz_drop_context(this->ctx);
 }
 
-void EBookView::open(const std::string& url, float percent, const HTTP::Header& headers) {
-    this->page = std::floor(percent);
+EBookView::LoadResult EBookView::loadInBackground(const std::string& url, const HTTP::Header& headers) {
+    LoadResult result;
+    // 后台仅做网络 IO，不触碰共享的 fz_context
+    try {
+        if (url.find("://") == std::string::npos) {
+            result.local = true;
+        } else {
+            result.data = HTTP::get(url, HTTP::Timeout{}, headers);
+        }
+        result.ok = true;
+    } catch (const std::exception& ex) {
+        result.error = ex.what();
+        result.ok = false;
+    }
+    return result;
+}
 
+void EBookView::open(const std::string& url, float percent, const HTTP::Header& headers) {
     this->loading->setVisibility(brls::Visibility::VISIBLE);
 
     ASYNC_RETAIN
-    brls::async([ASYNC_TOKEN, url, headers]() {
-        try {
-            fz_stream* stream = nullptr;
-            if (url.find("://") == std::string::npos) {
-                stream = fz_open_file(ctx, url.c_str());
-            } else {
-                std::string content = HTTP::get(url, HTTP::Timeout{}, headers);
-                fz_buffer* buf = fz_new_buffer_from_copied_data(ctx, (const uint8_t*)content.data(), content.size());
-                stream = fz_open_buffer(ctx, buf);
-                fz_drop_buffer(ctx, buf);
-            }
-            fz_try(ctx) this->doc = fz_open_document_with_stream(ctx, url.c_str(), stream);
-            fz_always(ctx) fz_drop_stream(ctx, stream);
-            fz_catch(ctx) throw fz_error(ctx);
-
-            fz_try(ctx) this->count = fz_count_pages(ctx, this->doc);
-            fz_catch(ctx) throw fz_error(ctx);
-
-            this->loadOutline();
-
-            fz_try(ctx) {
-                fz_page* p = fz_load_page(ctx, this->doc, 0);
-                fz_rect bounds = fz_bound_page(ctx, p);
-                this->pageWidth = bounds.x1 - bounds.x0;
-                this->pageHeight = bounds.y1 - bounds.y0;
-                fz_drop_page(ctx, p);
-            }
-            fz_catch(ctx) {}
-
-            brls::sync([ASYNC_TOKEN]() {
-                ASYNC_RELEASE
-                this->loading->setVisibility(brls::Visibility::GONE);
-                this->renderCurrent();
-            });
-        } catch (const std::exception& ex) {
-            std::string msg = ex.what();
-            brls::sync([ASYNC_TOKEN, msg]() {
-                ASYNC_RELEASE
-                this->loading->setVisibility(brls::Visibility::GONE);
-                this->dismiss([msg]() { brls::Application::notify(msg); });
-            });
-        }
+    brls::async([ASYNC_TOKEN, url, headers, percent]() {
+        LoadResult result = EBookView::loadInBackground(url, headers);
+        brls::sync([ASYNC_TOKEN, url, result = std::move(result), percent]() mutable {
+            ASYNC_RELEASE
+            this->loading->setVisibility(brls::Visibility::GONE);
+            this->applyLoadResult(url, std::move(result), percent);
+        });
     });
 }
 
+void EBookView::applyLoadResult(
+    const std::string& url, LoadResult&& result, float percent) {
+    // 关闭上一次打开的文档（若 open 被重复调用）
+    if (this->doc) {
+        fz_drop_document(this->ctx, this->doc);
+        this->doc = nullptr;
+    }
+    this->count = 0;
+    this->pageWidth = 0;
+    this->pageHeight = 0;
+    this->outline.clear();
+    this->outlineLoaded = false;
+
+    if (!result.ok) {
+        std::string msg = result.error.empty() ? "main/player/error"_i18n : result.error;
+        this->dismiss([msg]() { brls::Application::notify(msg); });
+        return;
+    }
+    if (!this->ctx) {
+        this->dismiss([]() { brls::Application::notify("main/player/error"_i18n); });
+        return;
+    }
+
+    fz_stream* stream = nullptr;
+    fz_buffer* buf = nullptr;
+    try {
+        if (result.local) {
+            stream = fz_open_file(this->ctx, url.c_str());
+        } else {
+            buf = fz_new_buffer_from_copied_data(
+                this->ctx, (const uint8_t*)result.data.data(), result.data.size());
+            stream = fz_open_buffer(this->ctx, buf);
+        }
+        fz_try(this->ctx) this->doc = fz_open_document_with_stream(this->ctx, url.c_str(), stream);
+        fz_catch(this->ctx) throw fz_error(this->ctx);
+
+        fz_try(this->ctx) this->count = fz_count_pages(this->ctx, this->doc);
+        fz_catch(this->ctx) throw fz_error(this->ctx);
+
+        fz_try(this->ctx) {
+            fz_page* p = fz_load_page(this->ctx, this->doc, 0);
+            fz_rect bounds = fz_bound_page(this->ctx, p);
+            this->pageWidth = bounds.x1 - bounds.x0;
+            this->pageHeight = bounds.y1 - bounds.y0;
+            fz_drop_page(this->ctx, p);
+        }
+        fz_catch(this->ctx) {}
+
+        this->loadOutline();
+    } catch (const std::exception& ex) {
+        std::string msg = ex.what();
+        if (buf) fz_drop_buffer(this->ctx, buf);
+        if (stream) fz_drop_stream(this->ctx, stream);
+        if (this->doc) {
+            fz_drop_document(this->ctx, this->doc);
+            this->doc = nullptr;
+        }
+        this->count = 0;
+        this->dismiss([msg]() { brls::Application::notify(msg); });
+        return;
+    }
+    if (buf) fz_drop_buffer(this->ctx, buf);
+    if (stream) fz_drop_stream(this->ctx, stream);
+
+    // percent 为页码，夹取到有效范围
+    this->page = (int)std::floor(percent);
+    if (this->count > 0) this->page = std::clamp(this->page, 0, this->count - 1);
+    else this->page = 0;
+    this->panX = 0;
+    this->panY = 0;
+
+    this->renderCurrent();
+}
+
 void EBookView::render(brls::Image* view, int n) {
-    if (n < 0 || n >= this->count) {
+    if (!view) return;
+    if (n < 0 || n >= this->count || !this->ctx || !this->doc) {
         view->clear();
         return;
     }
@@ -205,34 +256,49 @@ void EBookView::render(brls::Image* view, int n) {
         if (maxDim > 0) scale = std::min(scale, 4000.0f / maxDim);
     }
     fz_matrix ctm = fz_scale(scale, scale);
-    fz_try(ctx) pix = fz_new_pixmap_from_page_number(ctx, doc, n, ctm, fz_device_rgb(ctx), 1);
-    fz_catch(ctx) return;
-    auto vg = brls::Application::getNVGContext();
+    fz_try(this->ctx) pix = fz_new_pixmap_from_page_number(this->ctx, this->doc, n, ctm, fz_device_rgb(this->ctx), 1);
+    fz_catch(this->ctx) return;
+    auto* vg = brls::Application::getNVGContext();
     int tex = nvgCreateImageRGBA(vg, pix->w, pix->h, 0, pix->samples);
-    fz_drop_pixmap(ctx, pix);
+    fz_drop_pixmap(this->ctx, pix);
+    if (tex <= 0) return;
+    // innerSetImage 会在 freeTexture=true 时释放旧纹理
     view->innerSetImage(tex);
     view->setBackgroundColor(nvgRGB(245, 246, 247));
 }
 
 void EBookView::renderCurrent() {
     if (this->count <= 0) return;
-    if (this->singlePage) {
-        this->render(this->left, this->page);
-    } else {
-        this->render(this->left, this->page);
+    if (!this->singlePage) this->page &= ~1;  // 双页模式对齐到左页
+    this->page = std::clamp(this->page, 0, this->count - 1);
+    this->render(this->left, this->page);
+    if (this->singlePage)
+        this->right->clear();
+    else
         this->render(this->right, this->page + 1);
-    }
     this->updateLayout();
+}
+
+int EBookView::pageStep() const { return this->singlePage ? 1 : 2; }
+
+void EBookView::goToPage(int target) {
+    const int last = std::max(0, this->count - 1);
+    int p = std::clamp(target, 0, last);
+    if (!this->singlePage) p &= ~1;  // 双页对齐
+    this->page = p;
+    this->panX = 0;
+    this->panY = 0;
+    this->renderCurrent();
 }
 
 void EBookView::loadOutline() {
     this->outline.clear();
     this->outlineLoaded = false;
-    if (!this->doc) return;
+    if (!this->doc || !this->ctx) return;
 
     fz_outline* root = nullptr;
-    fz_try(ctx) root = fz_load_outline(ctx, this->doc);
-    fz_catch(ctx) return;
+    fz_try(this->ctx) root = fz_load_outline(this->ctx, this->doc);
+    fz_catch(this->ctx) return;
     if (!root) return;
 
     // Walk the (possibly nested) outline tree and flatten it into a flat list.
@@ -246,11 +312,12 @@ void EBookView::loadOutline() {
             // Prefer the resolved page number, fall back to the page location.
             int p = -1;
             if (cur->page.chapter >= 0 && cur->page.page >= 0)
-                p = fz_page_number_from_location(ctx, this->doc, cur->page);
+                p = fz_page_number_from_location(this->ctx, this->doc, cur->page);
             if (p < 0 && cur->uri) {
                 float xp, yp;
-                fz_location loc = fz_resolve_link(ctx, this->doc, cur->uri, &xp, &yp);
-                if (loc.chapter >= 0 && loc.page >= 0) p = fz_page_number_from_location(ctx, this->doc, loc);
+                fz_location loc = fz_resolve_link(this->ctx, this->doc, cur->uri, &xp, &yp);
+                if (loc.chapter >= 0 && loc.page >= 0)
+                    p = fz_page_number_from_location(this->ctx, this->doc, loc);
             }
             if (p < 0 || p >= this->count) p = 0;
             bm.page = p;
@@ -262,7 +329,7 @@ void EBookView::loadOutline() {
     };
     walk(root, 0);
 
-    fz_drop_outline(ctx, root);
+    fz_drop_outline(this->ctx, root);
     this->outlineLoaded = true;
 }
 
@@ -288,32 +355,25 @@ void EBookView::showOutline() {
         "main/ebook/outline"_i18n, titles,
         [this](int index) {
             if (index < 0 || index >= (int)this->outline.size()) return;
-            this->page = this->outline[index].page;
-            this->panX = 0;
-            this->panY = 0;
-            this->renderCurrent();
+            this->goToPage(this->outline[index].page);
         },
         selected);
     brls::Application::pushActivity(new brls::Activity(dropdown));
 }
 
 void EBookView::zoomIn() {
-    size_t idx = 0;
-    for (size_t i = 0; i < ZOOM_LEVELS_COUNT; i++) {
-        if (ZOOM_LEVELS[i] <= this->zoom + 1e-4f) idx = i;
-    }
-    if (idx + 1 >= ZOOM_LEVELS_COUNT) return;
-    this->zoom = ZOOM_LEVELS[idx + 1];
+    auto it = std::upper_bound(
+        std::begin(ZOOM_LEVELS), std::end(ZOOM_LEVELS), this->zoom + 1e-4f);
+    if (it == std::end(ZOOM_LEVELS)) return;
+    this->zoom = *it;
     this->applyZoom();
 }
 
 void EBookView::zoomOut() {
-    size_t idx = ZOOM_LEVELS_COUNT - 1;
-    for (size_t i = ZOOM_LEVELS_COUNT; i-- > 0;) {
-        if (ZOOM_LEVELS[i] >= this->zoom - 1e-4f) idx = i;
-    }
-    if (idx == 0) return;
-    this->zoom = ZOOM_LEVELS[idx - 1];
+    auto it = std::lower_bound(
+        std::begin(ZOOM_LEVELS), std::end(ZOOM_LEVELS), this->zoom - 1e-4f);
+    if (it == std::begin(ZOOM_LEVELS)) return;
+    this->zoom = *(it - 1);
     this->applyZoom();
 }
 
@@ -328,6 +388,7 @@ void EBookView::togglePageMode() {
     this->singlePage = !this->singlePage;
     this->panX = 0;
     this->panY = 0;
+    if (!this->singlePage) this->page &= ~1;  // 切到双页时对齐跨页起始
     this->updateActionHint(
         brls::BUTTON_LSB, this->singlePage ? "main/ebook/double_page"_i18n : "main/ebook/single_page"_i18n);
     brls::Application::getGlobalHintsUpdateEvent()->fire();
@@ -342,8 +403,9 @@ void EBookView::onLayout() {
 void EBookView::computeLayout(float& dispW, float& dispH, float& groupW, float& groupH) {
     float availW = this->getWidth() - this->getPaddingLeft() - this->getPaddingRight();
     float availH = this->getHeight() - this->getPaddingTop() - this->getPaddingBottom();
-    float aspect = this->pageWidth / this->pageHeight;
-    const float gap = this->left->getMarginRight();
+    const float gap = this->left ? this->left->getMarginRight() : 0.f;
+    // 防止 pageHeight 为 0 时除零
+    float aspect = (this->pageWidth > 0 && this->pageHeight > 0) ? this->pageWidth / this->pageHeight : 1.0f;
 
     if (this->singlePage) {
         dispW = availW;
