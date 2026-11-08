@@ -81,18 +81,20 @@ static void deleteSurfaceObj() {
 #endif
 
 void MPVCore::on_update(void *self) {
+#if defined(MPV_SW_RENDER) || defined(BOREALIS_USE_GXM)
+    // SW/GXM 在回调中直接渲染，必须调用 update()。
     MPVCore *mpv = reinterpret_cast<MPVCore *>(self);
     brls::sync([mpv]() {
+        if (!mpv->mpv_context) return;
         uint64_t flags = mpv_render_context_update(mpv->mpv_context);
-#if defined(MPV_SW_RENDER) || defined(BOREALIS_USE_GXM)
         if (flags & MPV_RENDER_UPDATE_FRAME) {
             mpv_render_context_render(mpv->mpv_context, mpv->mpv_params);
             mpv_render_context_report_swap(mpv->mpv_context);
         }
-#else
-        (void)flags;
-#endif
     });
+#else
+    (void)self;
+#endif
 }
 
 void MPVCore::on_wakeup(void *self) {
@@ -379,6 +381,19 @@ void MPVCore::clean() {
         // mpv_destroy(this->mpv);
         this->mpv = nullptr;
     }
+#ifdef BOREALIS_USE_D3D11
+    // mpv 销毁时会对共享的 device context 调用 ClearState()，清空 render target 与 viewport。
+    // 重新绑定 render target，并恢复 viewport（否则要等窗口 resize 才恢复）。
+    D3D11_CONTEXT->beginFrame();
+    ID3D11DeviceContext *ctx = nullptr;
+    D3D11_CONTEXT->getDevice()->GetImmediateContext(&ctx);
+    if (ctx) {
+        D3D11_VIEWPORT vp = {0, 0, (float)brls::Application::windowWidth,
+            (float)brls::Application::windowHeight, 0, 1};
+        ctx->RSSetViewports(1, &vp);
+        ctx->Release();
+    }
+#endif
 #ifdef ANDROID
     deleteSurfaceObj();
 #endif
@@ -456,6 +471,7 @@ void MPVCore::setFrameSize(brls::Rect area) {
     // but mpvRenderContextRender(...) will call functions similar to beginFrame() and endFrame() to draw content to FBO,
     // and that will cause error in GXM, so call in brls::sync to make the mpv drawing calls outside the brls::Application::frame().
     brls::sync([this]() {
+        if (!this->mpv_context) return;
         mpv_render_context_render(this->mpv_context, mpv_params);
         mpv_render_context_report_swap(this->mpv_context);
     });
