@@ -113,8 +113,15 @@ void Image::with(brls::Image* view, const std::string& url) {
 }
 
 void Image::with(brls::Image* view, const std::string& url, const HTTP::Header& headers) {
+    if (view == nullptr) return;
+
     int tex = brls::TextureCache::instance().getCache(url);
     if (tex > 0) {
+        // 纹理由缓存统一管理，view 不得自行销毁，否则下次命中会是已释放的句柄
+        view->setFreeTexture(false);
+        // 复用 view 时归还旧纹理引用计数，避免泄漏
+        int old = view->getTexture();
+        if (old > 0 && old != tex) brls::TextureCache::instance().removeCache(old);
         view->innerSetImage(tex);
         return;
     }
@@ -159,15 +166,24 @@ void Image::cancel(brls::Image* view) {
 }
 
 void Image::doRequest(HTTP& s) {
-    if (this->isCancel->load()) {
-        Image::clear(this->image);
-        return;
+    // 在锁内拷贝参数，避免与主线程 with() 写入成员产生数据竞争
+    std::string url;
+    HTTP::Header headers;
+    brls::Image* imagePtr = nullptr;
+    HTTP::Cancel isCancelCopy;
+    {
+        std::lock_guard<std::mutex> lock(requestMutex);
+        url = this->url;
+        headers = this->headers;
+        imagePtr = this->image;
+        isCancelCopy = this->isCancel;
     }
+
     try {
         std::ostringstream body;
-        HTTP::set_option(s, this->isCancel, HTTP::Timeout{});
-        if (!this->headers.empty()) HTTP::set_option(s, this->headers);
-        s._get(this->url, &body);
+        HTTP::set_option(s, isCancelCopy, HTTP::Timeout{});
+        if (!headers.empty()) HTTP::set_option(s, headers);
+        s._get(url, &body);
         std::string data = body.str();
         uint8_t* imageData = nullptr;
         int imageW = 0, imageH = 0;
@@ -200,15 +216,10 @@ void Image::doRequest(HTTP& s) {
             imageData = compressed;
         }
 #endif
-        auto imagePtr = this->image;
-        auto urlCopy = this->url;
-        auto isCancelCopy = this->isCancel;
-
-        brls::Logger::verbose("request Image {} size {}", urlCopy, data.size());
-        brls::sync([imagePtr, urlCopy, isCancelCopy, imageData, imageW, imageH, isWebp] {
+        brls::Logger::verbose("request Image {} size {}", url, data.size());
+        brls::sync([imagePtr, url, isCancelCopy, imageData, imageW, imageH, isWebp] {
             if (!isCancelCopy->load()) {
-                // Load texture
-                int tex = brls::TextureCache::instance().getCache(urlCopy);
+                int tex = brls::TextureCache::instance().getCache(url);
                 if (tex == 0 && imageData != nullptr) {
                     NVGcontext* vg = brls::Application::getNVGContext();
 #ifdef BOREALIS_USE_GXM
@@ -217,9 +228,14 @@ void Image::doRequest(HTTP& s) {
 #else
                     tex = nvgCreateImageRGBA(vg, imageW, imageH, 0, imageData);
 #endif
-                    brls::TextureCache::instance().addCache(urlCopy, tex);
+                    brls::TextureCache::instance().addCache(url, tex);
                 }
-                if (tex > 0) imagePtr->innerSetImage(tex);
+                if (tex > 0) {
+                    // 复用 view 时归还旧纹理引用计数，避免泄漏
+                    int old = imagePtr->getTexture();
+                    if (old > 0 && old != tex) brls::TextureCache::instance().removeCache(old);
+                    imagePtr->innerSetImage(tex);
+                }
                 clear(imagePtr);
             }
             if (imageData) {
@@ -236,8 +252,8 @@ void Image::doRequest(HTTP& s) {
             }
         });
     } catch (const std::exception& ex) {
-        brls::Logger::warning("request image {} {}", this->url, ex.what());
-        Image::clear(this->image);
+        brls::Logger::warning("request image {} {}", url, ex.what());
+        Image::clear(imagePtr);
     }
 }
 
