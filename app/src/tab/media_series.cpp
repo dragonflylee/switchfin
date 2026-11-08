@@ -271,7 +271,12 @@ void MediaSeries::doDownloadSeries() {
             auto& dm = DownloadManager::instance();
             std::vector<std::string> wanted;
             for (auto& item : r.Items) {
-                if (dm.findItem(item.Id) > DownloadStatus::Completed) wanted.push_back(item.Id);
+                // Only queue episodes that are neither present nor in progress.
+                DownloadStatus status = dm.findItem(item.Id);
+                if (status == DownloadStatus::NotFound || status == DownloadStatus::Failed ||
+                    status == DownloadStatus::Cancelled) {
+                    wanted.push_back(item.Id);
+                }
             }
             if (wanted.empty()) {
                 brls::Application::notify("main/download/completed"_i18n);
