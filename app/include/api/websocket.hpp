@@ -34,5 +34,7 @@ private:
     brls::RepeatingTimer hb;
     std::atomic_bool isStop{false};
     std::mutex easyMutex;
+    std::mutex closeMutex;
+    bool closeSent = false;
     void *easy = nullptr;
 };

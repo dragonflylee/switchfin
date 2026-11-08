@@ -6,11 +6,26 @@
 #include <libretro-common/retro_timers.h>
 #include <curl/curl.h>
 
+namespace {
 const std::string msgKeepAlive = R"({"MessageType":"KeepAlive"})";
+
+void sendCloseOnce(CURL* easy, std::mutex& mutex, bool& sent, std::mutex& closeMutex) {
+    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard<std::mutex> closeLock(closeMutex);
+    if (easy == nullptr || sent) return;
+    sent = true;
+    size_t sentLen = 0;
+    curl_ws_send(easy, "", 0, &sentLen, 0, CURLWS_CLOSE);
+}
+}  // namespace
 
 websocket::websocket(const std::string& url) {
 #if LIBCURL_VERSION_NUM >= 0x080000 && !defined(__PS4__)
     this->easy = curl_easy_init();
+    if (this->easy == nullptr) {
+        brls::Logger::error("ws init failed: {}", url);
+        return;
+    }
     curl_easy_setopt(this->easy, CURLOPT_URL, url.c_str());
 
     // enable all supported built-in compressions
@@ -22,14 +37,11 @@ websocket::websocket(const std::string& url) {
     curl_easy_setopt(this->easy, CURLOPT_WRITEDATA, this);
 
     hb.setCallback([this]() {
-        brls::async([this]() {
-            // 析构已开始则不再使用 easy，避免与 cleanup 竞态
-            if (this->isStop.load()) return;
-            std::lock_guard<std::mutex> lock(this->easyMutex);
-            if (this->isStop.load() || this->easy == nullptr) return;
-            size_t slen = msgKeepAlive.size();
-            curl_ws_send(this->easy, msgKeepAlive.data(), slen, &slen, 0, CURLWS_TEXT);
-        });
+        if (this->isStop.load()) return;
+        std::lock_guard<std::mutex> lock(this->easyMutex);
+        if (this->isStop.load() || this->easy == nullptr) return;
+        size_t slen = msgKeepAlive.size();
+        curl_ws_send(this->easy, msgKeepAlive.data(), slen, &slen, 0, CURLWS_TEXT);
     });
 
 #ifdef BOREALIS_USE_STD_THREAD
@@ -42,25 +54,14 @@ websocket::websocket(const std::string& url) {
 
 websocket::~websocket() {
 #if LIBCURL_VERSION_NUM >= 0x080000 && !defined(__PS4__)
-    // 1) 先置停止标志，让心跳回调与接收循环尽快退出，不再发起新的 easy 操作
     this->isStop.store(true);
-    // 2) 停止心跳定时器
     this->hb.stop();
-    // 3) 发送关闭帧唤醒接收线程的 curl_easy_perform（send 在锁内，避免与心跳并发）
-    {
-        std::lock_guard<std::mutex> lock(this->easyMutex);
-        if (this->easy != nullptr) {
-            size_t sent;
-            curl_ws_send(this->easy, "", 0, &sent, 0, CURLWS_CLOSE);
-        }
-    }
-    // 4) 等待接收线程结束，此后不再有人使用 easy
+    sendCloseOnce(this->easy, this->easyMutex, this->closeSent, this->closeMutex);
 #ifdef BOREALIS_USE_STD_THREAD
-    this->th->join();
+    if (this->th && this->th->joinable()) this->th->join();
 #else
-    pthread_join(this->th, nullptr);
+    if (this->th) pthread_join(this->th, nullptr);
 #endif
-    // 5) 最后清理
     {
         std::lock_guard<std::mutex> lock(this->easyMutex);
         if (this->easy != nullptr) {
@@ -73,14 +74,24 @@ websocket::~websocket() {
 
 void* websocket::wsRecv(void* ptr) {
     websocket* p = reinterpret_cast<websocket*>(ptr);
-    // 指数退避，上限 60s，避免长期断网时 t 溢出/睡眠过久
-    for (uint64_t t = 500;; t = std::min<uint64_t>(t * 2, 60000)) {
-        CURLcode res = curl_easy_perform(p->easy);
-        if (res == CURLE_OK) break;
-        p->hb.stop();
-        brls::Logger::warning("ws perform failed: {}", curl_easy_strerror(res));
+    uint64_t delay = 1000;
+    while (!p->isStop.load()) {
+        CURL* easy = nullptr;
+        {
+            std::lock_guard<std::mutex> lock(p->easyMutex);
+            easy = p->easy;
+        }
+        if (easy == nullptr) break;
+        CURLcode res = curl_easy_perform(easy);
         if (p->isStop.load()) break;
-        retro_sleep(t);
+        p->hb.stop();
+        if (res != CURLE_OK) {
+            brls::Logger::warning("ws perform failed: {}", curl_easy_strerror(res));
+        } else {
+            brls::Logger::info("ws connection closed by peer, reconnecting");
+        }
+        retro_sleep(delay);
+        delay = std::min<uint64_t>(delay * 2, 30000);
     }
     brls::Logger::info("ws recv exit");
     return nullptr;
@@ -102,7 +113,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MsgArguments, Header, Text, Time
 
 struct MsgPlay {
     std::vector<std::string> ItemIds;
-    uint64_t StartPositionTicks;
+    uint64_t StartPositionTicks = 0;
     std::string PlayCommand;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MsgPlay, ItemIds, StartPositionTicks, PlayCommand);
@@ -112,8 +123,10 @@ size_t websocket::onMsg(char* b, size_t size, size_t nitems, void* ptr) {
         if (nitems <= 2) return nitems;
         std::string resp(b, nitems);
         Message m = nlohmann::json::parse(resp);
+        if (m.MessageType.empty()) return nitems;
         if (m.MessageType == "Playstate") {
-            std::string cmd = m.Data.at("Command");
+            const std::string cmd = m.Data.value("Command", std::string{});
+            if (cmd.empty()) return nitems;
             brls::sync([cmd, m]() {
                 auto& mpv = MPVCore::instance();
                 if (cmd == "PlayPause") {
@@ -121,7 +134,7 @@ size_t websocket::onMsg(char* b, size_t size, size_t nitems, void* ptr) {
                 } else if (cmd == "Stop") {
                     mpv.getCustomEvent()->fire(SYNC_STOP, nullptr);
                 } else if (cmd == "Seek") {
-                    int64_t seek = m.Data.at("SeekPositionTicks").get<int64_t>();
+                    int64_t seek = m.Data.value("SeekPositionTicks", int64_t{0});
                     mpv.seek(seek / jellyfin::PLAYTICKS, "absolute");
                 } else {
                     mpv.getCustomEvent()->fire(cmd, nullptr);
@@ -139,10 +152,14 @@ size_t websocket::onMsg(char* b, size_t size, size_t nitems, void* ptr) {
                 brls::Logger::info("play command: {}", resp);
             }
         } else if (m.MessageType == "GeneralCommand") {
-            MsgArguments args = m.Data.at("Arguments");
+            auto it = m.Data.find("Arguments");
+            if (it == m.Data.end() || !it->is_object()) return nitems;
+            MsgArguments args = it->get<MsgArguments>();
+            if (args.Text.empty()) return nitems;
             brls::sync([args]() { brls::Application::notify(args.Text); });
         } else if (m.MessageType == "ForceKeepAlive") {
             websocket* p = reinterpret_cast<websocket*>(ptr);
+            if (p == nullptr || p->isStop.load()) return nitems;
             jellyfin::postJSON(
                 {
                     {"PlayableMediaTypes", {"Video"}},
@@ -151,9 +168,8 @@ size_t websocket::onMsg(char* b, size_t size, size_t nitems, void* ptr) {
                     {"SupportsMediaControl", true},
                 },
                 [](...) {}, nullptr, jellyfin::apiCapabilities);
-            p->hb.start(20000);
-        } else if (m.MessageType == "Sessions") {
-        } else if (m.MessageType != "KeepAlive") {
+            if (!p->hb.isRunning()) p->hb.start(20000);
+        } else if (m.MessageType != "KeepAlive" && m.MessageType != "Sessions") {
             brls::Logger::debug("ws recv: {}", resp);
         }
     } catch (const std::exception& ex) {
