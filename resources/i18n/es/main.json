@@ -157,6 +157,7 @@
     "start": "Descargar",
     "cancel": "Cancelar descarga",
     "remove": "Eliminar descarga",
+    "resume": "Reanudar",
     "downloading": "Descargando...",
     "completed": "Descargado",
     "failed": "Descarga fallida",

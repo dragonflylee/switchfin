@@ -159,6 +159,7 @@
     "start": "開始下載",
     "cancel": "取消下載",
     "remove": "移除下載",
+    "resume": "續傳",
     "downloading": "下載中...",
     "completed": "已完成",
     "failed": "下載失败",

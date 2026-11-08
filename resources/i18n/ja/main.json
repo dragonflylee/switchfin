@@ -157,6 +157,7 @@
     "start": "ダウンロード",
     "cancel": "ダウンロードをキャンセル",
     "remove": "ダウンロードを削除",
+    "resume": "再開",
     "downloading": "ダウンロード中…",
     "completed": "ダウンロード済み",
     "failed": "ダウンロード失敗",

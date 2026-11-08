@@ -159,6 +159,7 @@
     "start": "Download",
     "cancel": "Cancel Download",
     "remove": "Remove Download",
+    "resume": "Resume",
     "downloading": "Downloading...",
     "completed": "Downloaded",
     "failed": "Download Failed",

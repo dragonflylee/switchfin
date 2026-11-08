@@ -159,6 +159,7 @@
     "start": "İndir",
     "cancel": "İndirmeyi İptal Et",
     "remove": "İndirmeyi Kaldır",
+    "resume": "Devam Et",
     "downloading": "İndiriliyor...",
     "completed": "İndirildi",
     "failed": "İndirme Başarısız",
