@@ -99,6 +99,9 @@ endif ()
 # build borealis and other third party libraries
 add_subdirectory(library)
 
+# MSYS2 pkg-config emits Windows paths (D:/...) that break FindCURL.
+set(PKG_CONFIG_ARGN "--dont-define-prefix" CACHE STRING "" FORCE)
+
 if (USE_SYSTEM_CURL)
     find_package(CURL REQUIRED)
 else ()
@@ -193,9 +196,7 @@ else ()
 endif()
 
 if (BUILTIN_NSP)
-    find_library(NSP_LIB NAMES nsp REQUIRED)
-    list(APPEND APP_PLATFORM_LIB nsp)
-    list(APPEND APP_PLATFORM_OPTION -DBUILTIN_NSP)
+    # 构建期用 hacBrewPack 生成 <titleid>.nsp 并打进 romfs，运行时分拆 NCA 注册到 NCM。
     add_subdirectory(scripts/forwarder)
 endif ()
 

@@ -116,7 +116,7 @@ jobs:
     - name: Update dependencies
       run: |
         dkp-pacman --noconfirm -U $BASE_URL/hacBrewPack-3.05-1-x86_64.pkg.tar.zst
-        for pkg in mbedtls-3.6.7-1 libssh2-1.11.1-1 dav1d-1.5.4-1 curl-8.23.0-3 ffmpeg-7.1.5-5 mupdf-1.28.6-1 libmpv${{ matrix.shuffix }}-0.36.0-5 nspmini-main-1; do
+        for pkg in mbedtls-3.6.7-1 libssh2-1.11.1-1 dav1d-1.5.4-1 curl-8.23.0-3 ffmpeg-7.1.5-5 mupdf-1.28.6-1 libmpv${{ matrix.shuffix }}-0.36.0-5; do
           dkp-pacman --noconfirm -U $BASE_URL/switch-${pkg}-any.pkg.tar.zst
         done
         git config --system --add safe.directory $GITHUB_WORKSPACE
@@ -130,8 +130,8 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release \
           -DPLATFORM_SWITCH=ON \
           -DUSE_LIBUSBHSFS=ON \
-          -DUSE_MUPDF=${{ github.event.inputs.disable_mupdf && 'OFF' || 'ON' }} \
-          -DBUILTIN_NSP=${{ github.event.inputs.disable_builtin_nsp && 'OFF' || 'ON' }} \
+          -DUSE_MUPDF=${{ inputs.disable_mupdf && 'OFF' || 'ON' }} \
+          -DBUILTIN_NSP=${{ inputs.disable_builtin_nsp && 'OFF' || 'ON' }} \
           -DVERSION_BUILD=${{ github.run_number }}
         make -C build Switchfin.nro -j$(nproc)
     - name: Upload nro
@@ -199,7 +199,7 @@ jobs:
     - name: Build
       run: |
         cmake -B build -G Ninja -DPLATFORM_PSV=ON -DUSE_GXM=ON \
-          -DUSE_MUPDF=${{ github.event.inputs.disable_mupdf && 'OFF' || 'ON' }} \
+          -DUSE_MUPDF=${{ inputs.disable_mupdf && 'OFF' || 'ON' }} \
           -DUSE_VITA_SHARK=OFF -DVERSION_BUILD=${{ github.run_number }}
         cmake --build build
     - name: Upload vpk
@@ -334,7 +334,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release \
           -DPLATFORM_DESKTOP=ON \
           -DUSE_SYSTEM_GLFW=ON \
-          -DUSE_MUPDF=${{ github.event.inputs.disable_mupdf && 'OFF' || 'ON' }} \
+          -DUSE_MUPDF=${{ inputs.disable_mupdf && 'OFF' || 'ON' }} \
           -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} \
           -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.target }} \
           -DVERSION_BUILD=${{ github.run_number }}
@@ -412,12 +412,12 @@ jobs:
           -DUSE_SYSTEM_GLFW=ON \
           -DUSE_D3D11=ON \
           -DUSE_LIBROMFS=ON \
-          -DUSE_MUPDF=${{ github.event.inputs.disable_mupdf && 'OFF' || 'ON' }} \
+          -DUSE_MUPDF=${{ inputs.disable_mupdf && 'OFF' || 'ON' }} \
           -DVERSION_BUILD=${{ github.run_number }}
         cmake --build build
         cv2pdb64 build/Switchfin.exe
         cp -a README.md ${MINGW_PREFIX}/bin/libmpv-2.dll build
-        if [ "${{ github.event.inputs.disable_mupdf }}" != "true" ]; then
+        if [ "${{ inputs.disable_mupdf }}" != "true" ]; then
           cp -a ${MINGW_PREFIX}/bin/libmupdf.dll build
         fi
     - name: Upload Assets

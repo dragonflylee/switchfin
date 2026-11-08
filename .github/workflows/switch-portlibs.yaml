@@ -34,7 +34,7 @@ jobs:
           echo building $pkg
           su - builder -c "cd $pkg && dkp-makepkg -siCf --noconfirm"
         done
-        for pkg in mpv curl mupdf nspmini hacbrewpack; do
+        for pkg in mpv curl mupdf hacbrewpack; do
           echo building $pkg
           su - builder -c "cd $pkg && dkp-makepkg -sCf --noconfirm"
         done

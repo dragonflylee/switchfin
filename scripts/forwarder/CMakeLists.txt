@@ -18,6 +18,10 @@ endif()
 
 project(forwarder)
 
+if (NOT DD_EXECUTABLE)
+    find_program(DD_EXECUTABLE dd REQUIRED)
+endif ()
+
 # NPDM: the program_id comes from PROJECT_TITLEID (root CMakeLists), the
 # single source of truth for the title ID — do not hardcode it here.
 configure_file("${PROJECT_SOURCE_DIR}/config.json.in" "${PROJECT_BINARY_DIR}/config.json" @ONLY)
@@ -41,6 +45,8 @@ add_custom_target(${PROJECT_NAME}.pfs0 DEPENDS ${PROJECT_NAME}
 add_custom_target(${PROJECT_NAME}.nsp DEPENDS ${PROJECT_NAME}.pfs0
     COMMAND ${CMAKE_COMMAND} -E make_directory "control" "logo"
     COMMAND ${NX_NACPTOOL_EXE} --create "${PROJECT_NAME}" "${PROJECT_AUTHOR}" "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_ALTER}" "control/control.nacp"
+    # 清零存档数据字段（0x3080 起 0x20 字节），避免安装后提示“应用数据损坏”。
+    COMMAND ${DD_EXECUTABLE} if=/dev/zero of=control/control.nacp bs=1 seek=12416 count=32 conv=notrunc
     COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/icon/logo.png" "logo/NintendoLogo.png"
     COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/icon/logo.gif" "logo/StartupMovie.gif"
     COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_ICON}" "control/icon_AmericanEnglish.dat"

@@ -13,6 +13,7 @@ See [README "Development"](README.md#development) for prerequisites.
   `USE_D3D11` = D3D11 instead of OpenGL; `USE_SYSTEM_GLFW` = use installed glfw3 instead of FetchContent.
 - Switch: `cmake -B build_switch -DPLATFORM_SWITCH=ON && make -C build_switch Switchfin.nro -j$(nproc)`.
 - Optional features: `USE_MUPDF`, `USE_WEBP`, `USE_BOOST_FILESYSTEM`, `USE_LIBROMFS`, `MPV_SW_RENDER`, `BUILTIN_NSP`, `USE_LIBUSBHSFS`.
+- `BUILTIN_NSP` uses hacBrewPack (build-time) to generate `resources/forwarder.nsp` into romfs; `app/src/utils/forwarder.cpp` splits its NCAs and registers them into NCM at runtime (no `nspmini`).
 - **No unit tests.** Verify by compiling the target and running the app.
 - CI: `.github/workflows/build.yaml`; packaging: [scripts/](scripts/README.md).
 - Formatting: `.clang-format` (4-space, column 120, `SortIncludes: Never` — don't reorder includes).

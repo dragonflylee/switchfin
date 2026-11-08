@@ -5,9 +5,10 @@
 #include "activity/hint_activity.hpp"
 #include "view/gallery_view.hpp"
 #include "api/analytics.hpp"
+#include "utils/forwarder.hpp"
 
-#ifdef BUILTIN_NSP
-#include <nspmini.hpp>
+#ifdef __SWITCH__
+#include <switch.h>
 #endif
 
 using namespace brls::literals;
@@ -52,12 +53,26 @@ public:
             auto dialog = new brls::Dialog("main/hints/hint_confirm"_i18n);
             dialog->addButton("hints/cancel"_i18n, []() {});
             dialog->addButton("hints/ok"_i18n, []() {
-#ifdef BUILTIN_NSP
+#ifdef __SWITCH__
                 brls::Application::blockInputs();
 
-                mini::InstallSD("romfs:/forwarder.nsp");
-                unsigned long long AppTitleID = mini::GetTitleID();
-                appletRequestLaunchApplication(AppTitleID, NULL);
+                brls::async([]() {
+                    // 安装到 SD 卡，图标显示在主屏幕
+                    u64 title_id = 0;
+                    const auto error = forwarder::install(NcmStorageId_SdCard, title_id);
+
+                    brls::sync([error, title_id]() {
+                        brls::Application::unblockInputs();
+                        if (error.empty()) {
+                            // 安装成功：直接启动已安装的 forwarder
+                            appletRequestLaunchApplication(title_id, nullptr);
+                        } else {
+                            auto errDialog = new brls::Dialog(error);
+                            errDialog->addButton("hints/ok"_i18n, []() {});
+                            errDialog->open();
+                        }
+                    });
+                });
 #endif
             });
             dialog->open();
@@ -79,7 +94,7 @@ HintActivity::HintActivity() {
 void HintActivity::onContentAvailable() {
     brls::Logger::debug("HintActivityActivity: onContentAvailable");
 
-#ifdef BUILTIN_NSP
+#ifdef __SWITCH__
     gallery->setData({
         {"img/hint_game_1.png", "main/hints/hint1"_i18n},
         {"img/hint_game_2.png", "main/hints/hint2"_i18n},
