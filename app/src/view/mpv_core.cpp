@@ -57,11 +57,13 @@ static jobject surface;
 static int64_t getNativeSurface() {
     int64_t ptr = 0;
     JNIEnv *env = static_cast<JNIEnv *>(SDL_AndroidGetJNIEnv());
+    if (!env) return ptr;
     jobject activity = static_cast<jobject>(SDL_AndroidGetActivity());
     jclass cls = env->GetObjectClass(activity);
     jmethodID jmethod = env->GetStaticMethodID(cls, "getMpvSurface", "()Landroid/view/Surface;");
     jobject surface_ = env->CallStaticObjectMethod(cls, jmethod);
     if (surface_ != nullptr) {
+        if (surface) env->DeleteGlobalRef(surface);  // 避免 restart() 时泄漏
         surface = env->NewGlobalRef(surface_);
         ptr = (int64_t)(intptr_t)surface;
         env->DeleteLocalRef(surface_);
@@ -73,7 +75,8 @@ static int64_t getNativeSurface() {
 
 static void deleteSurfaceObj() {
     auto env = static_cast<JNIEnv *>(SDL_AndroidGetJNIEnv());
-    env->DeleteGlobalRef(surface);
+    if (surface) env->DeleteGlobalRef(surface);
+    surface = nullptr;
 }
 #endif
 
@@ -319,8 +322,7 @@ void MPVCore::init() {
 #ifdef BOREALIS_USE_D3D11
     misc::initCrashDump();
 #endif
-    brls::Logger::info("version: {} ffmpeg {}", mpv_get_property_string(mpv, "mpv-version"),
-        mpv_get_property_string(mpv, "ffmpeg-version"));
+    brls::Logger::info("version: {} ffmpeg {}", getString("mpv-version"), getString("ffmpeg-version"));
 
     this->command("set", "audio-client-name", AppVersion::getPackageName().c_str());
     // set event callback
@@ -361,7 +363,7 @@ void MPVCore::init() {
 }
 
 void MPVCore::clean() {
-    check_error(mpv_command_string(this->mpv, "quit"));
+    if (this->mpv) check_error(mpv_command_string(this->mpv, "quit"));
     brls::Application::getWindowFocusChangedEvent()->unsubscribe(focusSubscription);
     brls::Application::getWindowSizeChangedEvent()->unsubscribe(sizeSubscription);
 
@@ -534,9 +536,9 @@ void MPVCore::draw(brls::Rect area, float alpha) {
 }
 
 std::string MPVCore::getCacheSpeed() const {
-    if (cache_speed >> 20 > 0) {
+    if ((cache_speed >> 20) > 0) {
         return fmt::format("{:.2f} MB/s", (cache_speed >> 10) / 1024.0f);
-    } else if (cache_speed >> 10 > 0) {
+    } else if ((cache_speed >> 10) > 0) {
         return fmt::format("{:.2f} KB/s", cache_speed / 1024.0f);
     } else {
         return fmt::format("{} B/s", cache_speed);
