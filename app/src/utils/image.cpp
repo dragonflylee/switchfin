@@ -101,6 +101,42 @@ static void dxt_compress(uint8_t* dst, uint8_t* src, uint32_t w, uint32_t h, boo
 }
 #endif
 
+// Some transparent logos (e.g. TMDB) carry a near-white opaque bar along the
+// border that bilinear CLAMP sampling smears into a visible white band. Clear
+// the alpha of contiguous near-white opaque edge columns/rows; normal artwork
+// is untouched because a line must be ~all white to qualify.
+static bool is_white_line(const uint8_t* p, int w, int h, int x, int y, int dx, int dy) {
+    int hit = 0;
+    for (int i = 0, n = dx ? w : h; i < n; i++) {
+        const uint8_t* px = p + ((size_t)(y + dy * i) * w + (x + dx * i)) * 4;
+        if (px[3] >= 250 && px[0] >= 250 && px[1] >= 250 && px[2] >= 250) hit++;
+    }
+    return hit * 100 >= (dx ? w : h) * 95;
+}
+
+static void clear_line(uint8_t* p, int w, int h, int x, int y, int dx, int dy) {
+    for (int i = 0, n = dx ? w : h; i < n; i++) p[((size_t)(y + dy * i) * w + (x + dx * i)) * 4 + 3] = 0;
+}
+
+static void trim_white_border(uint8_t* p, int w, int h) {
+    // Only scan a small fraction of each border so an all-white image does not
+    // cost a full pass per edge.
+    const int maxX = w / 20 > 0 ? w / 20 : 1;
+    const int maxY = h / 20 > 0 ? h / 20 : 1;
+    for (int i = 0; i < maxX && i < w; i++) {
+        if (is_white_line(p, w, h, i, 0, 0, 1)) clear_line(p, w, h, i, 0, 0, 1); else break;
+    }
+    for (int i = 0; i < maxX && i < w; i++) {
+        if (is_white_line(p, w, h, w - 1 - i, 0, 0, 1)) clear_line(p, w, h, w - 1 - i, 0, 0, 1); else break;
+    }
+    for (int i = 0; i < maxY && i < h; i++) {
+        if (is_white_line(p, w, h, 0, i, 1, 0)) clear_line(p, w, h, 0, i, 1, 0); else break;
+    }
+    for (int i = 0; i < maxY && i < h; i++) {
+        if (is_white_line(p, w, h, 0, h - 1 - i, 1, 0)) clear_line(p, w, h, 0, h - 1 - i, 1, 0); else break;
+    }
+}
+
 Image::Image() : image(nullptr) {
     this->isCancel = std::make_shared<std::atomic_bool>(false);
     brls::Logger::verbose("new Image {}", fmt::ptr(this));
@@ -199,6 +235,8 @@ void Image::doRequest(HTTP& s) {
             int n;
             imageData = stbi_load_from_memory((unsigned char*)data.c_str(), data.size(), &imageW, &imageH, &n, 4);
         }
+
+        if (imageData) trim_white_border(imageData, imageW, imageH);
 
 #ifdef BOREALIS_USE_GXM
         if (imageData) {
