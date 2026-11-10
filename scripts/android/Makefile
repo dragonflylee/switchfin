@@ -24,7 +24,7 @@ endif
 all: download build
 	@echo Using toolchain ${TOOLCHAIN}
 
-build: prefix mpv curl clean
+build: prefix curl mpv clean
 
 clean:
 	@rm -rf build
@@ -68,7 +68,7 @@ mbedtls:
 	cmake --build build/mbedtls
 	DESTDIR=$(PREFIX) cmake --install build/mbedtls
 
-curl:
+curl: mbedtls
 	cmake -B build/curl -S $(TMPDIR)/curl-8.23.0 -G Ninja -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_TOOLCHAIN_FILE="$(ANDROID_NDK)/build/cmake/android.toolchain.cmake" \
 		-DANDROID_ABI=$(ABI) -DANDROID_PLATFORM=android-$(apilvl) -DCMAKE_WARN_DEPRECATED=FALSE \
@@ -135,7 +135,7 @@ dav1d:
 	meson compile -C build/dav1d
 	meson install -C build/dav1d --destdir $(PREFIX)
 
-ffmpeg: mbedtls libass dav1d libwebp
+ffmpeg: libass dav1d libwebp
 	mkdir -p build/ffmpeg && cd build/ffmpeg && \
 	$(TMPDIR)/ffmpeg-9.0.2/configure --enable-shared --disable-static --pkg-config=pkg-config \
 		--target-os=android --arch=$(firstword $(subst -, ,$(CC))) --cpu=$(CPU) --cc=$(CC) \
