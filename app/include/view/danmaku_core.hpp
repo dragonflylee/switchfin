@@ -99,6 +99,11 @@ public:
     void setSpeed(double speed);
 
     /**
+     * 重置屏幕上的弹幕，避免进度跳转后新旧弹幕重叠
+     */
+    void seek();
+
+    /**
      * 绘制弹幕
      * @param vg nanovg 上下文
      * @param x 绘制区域的x坐标

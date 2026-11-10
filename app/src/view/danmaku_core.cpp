@@ -85,6 +85,8 @@ DanmakuCore::DanmakuCore() {
             this->reset();
         } else if (e == MpvEventEnum::VIDEO_SPEED_CHANGE) {
             this->setSpeed(MPVCore::instance().getSpeed());
+        } else if (e == MpvEventEnum::MPV_RESUME) {
+            this->seek();
         }
     });
 }
@@ -155,6 +157,25 @@ void DanmakuCore::refresh() {
         scrollLines[k].second = 0;
         centerLines[k] = 0;
     }
+    danmakuMutex.unlock();
+}
+
+void DanmakuCore::seek() {
+    danmakuMutex.lock();
+    for (size_t k = 0; k < lineNum; k++) {
+        scrollLines[k].first = 0;
+        scrollLines[k].second = 0;
+        centerLines[k] = 0;
+    }
+    size_t from = danmakuIndex;
+    for (size_t j = 0; j < danmakuData.size(); j++) {
+        auto& i = danmakuData[j];
+        if (!i.showing) continue;
+        i.showing = false;
+        i.canShow = true;
+        if (j < from) from = j;
+    }
+    danmakuIndex = from;
     danmakuMutex.unlock();
 }
 

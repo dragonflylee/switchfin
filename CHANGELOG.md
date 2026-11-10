@@ -17,6 +17,7 @@
 * compare versions numerically in update check
 * keep nvtegra decode frames alive across hwaccel reinit
 * svg: fix crash when toggling fullscreen on macOS (#165)
+* danmaku: reset on-screen danmaku after seeking to prevent overlap (#163)
 
 ## [0.9.4]
 
