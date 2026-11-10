@@ -98,6 +98,7 @@ ContextMenu::ContextMenu(const jellyfin::Item& item, BaseCardCell* view) : itemI
                 });
                 break;
             case DownloadStatus::Completed:
+                brls::Logger::info("ContextMenu download completed: {}", this->itemId);
                 brls::Application::notify("main/download/completed"_i18n);
                 break;
             default:
@@ -143,6 +144,7 @@ bool ContextMenu::doPlayed() {
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
+            brls::Logger::warning("ContextMenu doPlayed: {}", ex);
             brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
         },
         jellyfin::apiPlayedItems, AppConfig::instance().getUserId(), this->itemId);
@@ -163,6 +165,7 @@ bool ContextMenu::doFavorite() {
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
+            brls::Logger::warning("ContextMenu doFavorite: {}", ex);
             brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
         },
         jellyfin::apiFavoriteItems, AppConfig::instance().getUserId(), this->itemId);
@@ -179,6 +182,7 @@ bool ContextMenu::unPlayed() {
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
+            brls::Logger::warning("ContextMenu unPlayed: {}", ex);
             brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
         },
         jellyfin::apiPlayedItems, AppConfig::instance().getUserId(), this->itemId);
@@ -195,6 +199,7 @@ bool ContextMenu::unFavorite() {
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
+            brls::Logger::warning("ContextMenu unFavorite: {}", ex);
             brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
         },
         jellyfin::apiFavoriteItems, AppConfig::instance().getUserId(), this->itemId);

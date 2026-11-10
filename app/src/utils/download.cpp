@@ -119,7 +119,10 @@ void DownloadManager::addDownload(const std::string& itemId, DownloadQuality qua
             brls::Logger::info("Download queued: {}", item.Name);
             this->processQueue();
         },
-        [](const std::string& ex) { brls::Application::notify(ex); }, jellyfin::apiUserItem,
+        [](const std::string& ex) {
+            brls::Logger::warning("Download fetch item detail failed: {}", ex);
+            brls::Application::notify(ex);
+        }, jellyfin::apiUserItem,
         AppConfig::instance().getUserId(), itemId);
 }
 

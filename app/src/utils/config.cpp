@@ -284,7 +284,10 @@ bool AppConfig::init() {
 #elif defined(__PSV__)
     int search_unk[2];
     if (_vshKernelSearchModuleByName("CapUnlocker", search_unk) >= 0) {
-        brls::sync([]() { brls::Application::notify("CapUnlocker found"); });
+        brls::sync([]() {
+            brls::Logger::info("CapUnlocker found");
+            brls::Application::notify("CapUnlocker found");
+        });
         sceKernelChangeThreadPriority(SCE_KERNEL_THREAD_ID_SELF, 64);
         sceKernelChangeThreadCpuAffinityMask(SCE_KERNEL_THREAD_ID_SELF, SCE_KERNEL_CPU_MASK_SYSTEM);
     }

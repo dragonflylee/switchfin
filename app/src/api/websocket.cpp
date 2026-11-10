@@ -156,6 +156,7 @@ size_t websocket::onMsg(char* b, size_t size, size_t nitems, void* ptr) {
             if (it == m.Data.end() || !it->is_object()) return nitems;
             MsgArguments args = it->get<MsgArguments>();
             if (args.Text.empty()) return nitems;
+            brls::Logger::info("ws display message: {}", args.Text);
             brls::sync([args]() { brls::Application::notify(args.Text); });
         } else if (m.MessageType == "ForceKeepAlive") {
             websocket* p = reinterpret_cast<websocket*>(ptr);

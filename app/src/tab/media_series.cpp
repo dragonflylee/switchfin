@@ -210,6 +210,7 @@ void MediaSeries::doSimilar() {
             ASYNC_RELEASE
             this->similar->setVisibility(brls::Visibility::GONE);
             this->labelSimilar->setSubtitle(ex);
+            brls::Logger::warning("MediaSeries doSimilar: {}", ex);
             brls::Application::notify(ex);
         },
         jellyfin::apiSimilar, this->seriesId, query);
@@ -234,6 +235,7 @@ void MediaSeries::doSpecial() {
             ASYNC_RELEASE
             this->special->setVisibility(brls::Visibility::GONE);
             this->labelSpecial->setSubtitle(ex);
+            brls::Logger::warning("MediaSeries doSpecial: {}", ex);
             brls::Application::notify(ex);
         },
         jellyfin::apiItemSpecial, AppConfig::instance().getUserId(), this->seriesId);
@@ -258,6 +260,7 @@ void MediaSeries::doPlay() {
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
+            brls::Logger::warning("MediaSeries doPlay: {}", ex);
             brls::Application::notify(ex);
         },
         jellyfin::apiShowNextUp, query);
@@ -279,6 +282,7 @@ void MediaSeries::doDownloadSeries() {
                 }
             }
             if (wanted.empty()) {
+                brls::Logger::info("MediaSeries download all completed: {}", this->seriesId);
                 brls::Application::notify("main/download/completed"_i18n);
                 return;
             }
@@ -287,11 +291,13 @@ void MediaSeries::doDownloadSeries() {
                     auto& dm = DownloadManager::instance();
                     int qi = AppConfig::instance().getValueIndex(AppConfig::DOWNLOAD_QUALITY);
                     for (auto& key : wanted) dm.addDownload(key, static_cast<DownloadQuality>(qi));
+                    brls::Logger::info("MediaSeries download queued: {}", wanted.size());
                     brls::Application::notify("main/download/queued"_i18n);
                 });
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
+            brls::Logger::warning("MediaSeries doDownloadSeries: {}", ex);
             brls::Application::notify(ex);
         },
         jellyfin::apiShowEpisodes, this->seriesId, "");
@@ -321,6 +327,7 @@ bool MediaSeries::doFavorite() {
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
+            brls::Logger::warning("MediaSeries doFavorite: {}", ex);
             brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
         },
         jellyfin::apiFavoriteItems, AppConfig::instance().getUserId(), this->seriesId);
@@ -337,6 +344,7 @@ bool MediaSeries::unFavorite() {
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
+            brls::Logger::warning("MediaSeries unFavorite: {}", ex);
             brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
         },
         jellyfin::apiFavoriteItems, AppConfig::instance().getUserId(), this->seriesId);

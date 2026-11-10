@@ -183,10 +183,12 @@ void EBookView::applyLoadResult(
 
     if (!result.ok) {
         std::string msg = result.error.empty() ? "main/player/error"_i18n : result.error;
+        brls::Logger::warning("EBookView open failed: {}", msg);
         this->dismiss([msg]() { brls::Application::notify(msg); });
         return;
     }
     if (!this->ctx) {
+        brls::Logger::warning("EBookView context missing");
         this->dismiss([]() { brls::Application::notify("main/player/error"_i18n); });
         return;
     }
@@ -226,6 +228,7 @@ void EBookView::applyLoadResult(
             this->doc = nullptr;
         }
         this->count = 0;
+        brls::Logger::warning("EBookView load exception: {}", msg);
         this->dismiss([msg]() { brls::Application::notify(msg); });
         return;
     }
@@ -339,6 +342,7 @@ void EBookView::showOutline() {
         this->loadOutline();
     }
     if (this->outline.empty()) {
+        brls::Logger::info("EBookView outline empty: {}", "main/ebook/no_outline"_i18n);
         brls::Application::notify("main/ebook/no_outline"_i18n);
         return;
     }
@@ -381,6 +385,7 @@ void EBookView::applyZoom() {
     this->panX = 0;
     this->panY = 0;
     this->renderCurrent();
+    brls::Logger::info("EBookView zoom: {}%", (int)(this->zoom * 100));
     brls::Application::notify(fmt::format("{} {}%", "main/ebook/zoom"_i18n, (int)(this->zoom * 100)));
 }
 
