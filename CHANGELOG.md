@@ -16,6 +16,7 @@
 * websocket: harden receive loop, reconnect on normal close and fix teardownt
 * compare versions numerically in update check
 * keep nvtegra decode frames alive across hwaccel reinit
+* svg: fix crash when toggling fullscreen on macOS (#165)
 
 ## [0.9.4]
 
