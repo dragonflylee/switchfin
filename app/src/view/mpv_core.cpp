@@ -209,6 +209,7 @@ void MPVCore::init() {
         mpv_set_option_string(mpv, "msg-level", "all=v");
     } else if (brls::Application::isDebuggingViewEnabled()) {
         mpv_request_log_messages(mpv, "info");
+        mpv_set_option_string(mpv, "log-file", fmt::format("mpv_{}.log", std::time(nullptr)).c_str());
     }
 
 #if (defined(__APPLE__) || defined(__linux__) || defined(_WIN32)) && !defined(ANDROID)
