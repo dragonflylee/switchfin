@@ -1,5 +1,22 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+* add resume download with HTTP range/ETag support and progress bar for cancelled items
+* auto-download subtitles and fallback subtitle URL when `DeliveryUrl` is missing
+* add configurable download path setting
+
+### Fixed
+
+* support the new Quick Connect API (#272)
+* PS4: fix bitmap subtitle bluescreen (#271)
+* image: keep texture owned by cache and trim near-white border bars causing smears (#243)
+* websocket: harden receive loop, reconnect on normal close and fix teardownt
+* compare versions numerically in update check
+* keep nvtegra decode frames alive across hwaccel reinit
+
 ## [0.9.4]
 
 ### Added
