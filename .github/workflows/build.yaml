@@ -442,6 +442,10 @@ jobs:
       with:
         ndk-version: r27d
         link-to-sdk: true
+    - uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version: '17'
     - name: Install dependency
       run: |
         sudo apt-get update
