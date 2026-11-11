@@ -17,6 +17,57 @@
 
 using namespace brls::literals;  // for _i18n
 
+static void openGallery(const std::vector<jellyfin::Episode>& list, const std::string& type, size_t index) {
+    auto& conf = AppConfig::instance();
+    const std::string base = conf.getUrl();
+    const std::string query = HTTP::encode_form({{"api_key", conf.getToken()}});
+    std::vector<std::string> urls;
+    size_t start = 0;
+    for (size_t i = 0; i < list.size(); i++) {
+        if (!type.empty() && list[i].Type != type) continue;
+        if (i == index) start = urls.size();
+        urls.emplace_back(base + fmt::format(fmt::runtime(jellyfin::apiDownload), list[i].Id, query));
+    }
+    if (!urls.empty()) brls::Application::pushActivity(new GalleryActivity(std::move(urls), start));
+}
+
+class PhotoAlbum : public brls::Box {
+public:
+    explicit PhotoAlbum(const std::string& albumId) {
+        this->setAxis(brls::Axis::COLUMN);
+        this->setAlignItems(brls::AlignItems::CENTER);
+        this->setJustifyContent(brls::JustifyContent::CENTER);
+        this->setBackgroundColor(nvgRGBA(0, 0, 0, 180));
+
+        auto* spinner = new brls::ProgressSpinner(brls::ProgressSpinnerSize::LARGE);
+        spinner->setWidth(80);
+        spinner->setHeight(80);
+        this->addView(spinner);
+
+        std::string query = HTTP::encode_form({
+            {"userId", AppConfig::instance().getUserId()},
+            {"parentId", albumId},
+            {"includeItemTypes", jellyfin::mediaTypePhoto},
+            {"recursive", "true"},
+            {"limit", "1000"},
+        });
+
+        ASYNC_RETAIN
+        jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
+            [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
+                ASYNC_RELEASE
+                brls::Application::popActivity(
+                    brls::TransitionAnimation::NONE, [items = r.Items] { openGallery(items, "", 0); });
+            },
+            [ASYNC_TOKEN](const std::string& ex) {
+                ASYNC_RELEASE
+                brls::Application::popActivity(brls::TransitionAnimation::NONE,
+                    [ex] { brls::Application::notify(ex); });
+            },
+            jellyfin::apiUserLibrary, AppConfig::instance().getUserId(), query);
+    }
+};
+
 const std::string badgeXML = R"xml(
     <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="38" height="32" viewBox="0 0 38 32">
         <rect width="38" height="32" rx="12" fill="#028087" />
@@ -251,8 +302,9 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
         recycler->present(new MediaSeason(item));
     } else if (item.Type == jellyfin::mediaTypeMovie) {
         recycler->present(new MediaMovie(item));
-    } else if (item.Type == jellyfin::mediaTypeFolder || item.Type == jellyfin::mediaTypeBoxSet ||
-               item.Type == jellyfin::mediaTypePhotoAlbum) {
+    } else if (item.Type == jellyfin::mediaTypePhotoAlbum) {
+        brls::Application::pushActivity(new brls::Activity(new PhotoAlbum(item.Id)), brls::TransitionAnimation::NONE);
+    } else if (item.Type == jellyfin::mediaTypeFolder || item.Type == jellyfin::mediaTypeBoxSet) {
         recycler->present(new MediaCollection(item.Id));
     } else if (item.Type == jellyfin::mediaTypeMusicVideo || item.Type == jellyfin::mediaTypeVideo) {
         PlayerView* view = new PlayerView(item);
@@ -268,10 +320,7 @@ void VideoDataSource::onItemSelected(brls::Box* recycler, size_t index) {
     } else if (item.Type == jellyfin::mediaTypePlaylist) {
         recycler->present(new Playlist(item));
     } else if (item.Type == jellyfin::mediaTypePhoto) {
-        auto& conf = AppConfig::instance();
-        std::string query = HTTP::encode_form({{"api_key", conf.getToken()}});
-        std::string url = conf.getUrl() + fmt::format(fmt::runtime(jellyfin::apiDownload), item.Id, query);
-        brls::Application::pushActivity(new GalleryActivity(url));
+        openGallery(this->list, jellyfin::mediaTypePhoto, index);
 #ifdef USE_MUPDF
     } else if (item.Type == jellyfin::mediaTypeBook) {
         auto view = new EBookView();

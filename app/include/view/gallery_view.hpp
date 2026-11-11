@@ -2,10 +2,6 @@
 // Created by fang on 2022/8/21.
 //
 
-// register this view in main.cpp
-//#include "view/gallery_view.hpp"
-//    brls::Application::registerXMLView("GalleryView", GalleryView::create);
-
 #pragma once
 
 #include <borealis.hpp>
@@ -52,6 +48,13 @@ public:
     void setData(GalleryData value);
 
     void addCustomView(GalleryItem *view);
+
+    // Show the item at index immediately.
+    void setIndex(unsigned int index);
+
+    unsigned int getIndex() { return this->index; }
+
+    unsigned int getItemCount() { return this->getChildren().size(); }
 
     void prev();
 

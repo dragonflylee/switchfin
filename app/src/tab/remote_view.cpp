@@ -308,7 +308,16 @@ public:
         }
 
         if (item.type == remote::EntryType::IMAGE) {
-            brls::Application::pushActivity(new GalleryActivity(item.url(), client->getHeaders()));
+            std::vector<std::string> urls;
+            size_t start = 0;
+            for (size_t i = 0; i < this->list.size(); i++) {
+                auto& it = this->list.at(i);
+                if (it.type == remote::EntryType::IMAGE) {
+                    if (i == index) start = urls.size();
+                    urls.push_back(it.url());
+                }
+            }
+            brls::Application::pushActivity(new GalleryActivity(urls, start, client->getHeaders()));
             return;
         }
 #ifdef USE_MUPDF

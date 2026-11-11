@@ -31,14 +31,14 @@ GalleryView::GalleryView() {
         },
         true);
     this->registerAction(
-        "main/player/prev"_i18n, brls::BUTTON_RB,
+        "main/player/next"_i18n, brls::BUTTON_RB,
         [this](brls::View* view) -> bool {
             next();
             return true;
         },
         false);
     this->registerAction(
-        "main/player/prev"_i18n, brls::BUTTON_RT,
+        "main/player/next"_i18n, brls::BUTTON_RT,
         [this](brls::View* view) -> bool {
             next();
             return true;
@@ -105,9 +105,24 @@ void GalleryView::addCustomView(GalleryItem* view) {
     }
 }
 
+void GalleryView::setIndex(unsigned int index) {
+    auto& children = this->getChildren();
+    if (index >= children.size()) return;
+
+    for (unsigned int i = 0; i < children.size(); i++) {
+        auto* item = (GalleryItem*)children[i];
+        if (i != index) item->setVisibility(brls::Visibility::INVISIBLE);
+    }
+    auto* item = (GalleryItem*)children[index];
+    item->setVisibility(brls::Visibility::VISIBLE);
+    item->show([]() {}, true, 500);
+    this->index = index;
+}
+
 void GalleryView::prev() {
     if (this->index <= 0) {
-        brls::Application::getCurrentFocus()->shakeHighlight(brls::FocusDirection::LEFT);
+        if (auto* focus = brls::Application::getCurrentFocus())
+            focus->shakeHighlight(brls::FocusDirection::LEFT);
         return;
     }
     ((GalleryItem*)this->getChildren()[this->index])->animate(GalleryAnimation::EXIT_RIGHT);
@@ -118,7 +133,8 @@ void GalleryView::prev() {
 
 void GalleryView::next() {
     if (this->index + 1 >= this->getChildren().size()) {
-        brls::Application::getCurrentFocus()->shakeHighlight(brls::FocusDirection::RIGHT);
+        if (auto* focus = brls::Application::getCurrentFocus())
+            focus->shakeHighlight(brls::FocusDirection::RIGHT);
         return;
     }
     ((GalleryItem*)this->getChildren()[this->index])->animate(GalleryAnimation::EXIT_LEFT);
