@@ -54,13 +54,16 @@ VideoProgressSlider::VideoProgressSlider() {
 
             if (status.state == brls::GestureState::UNSURE) {
                 *soundToPlay = brls::SOUND_FOCUS_CHANGE;
-                lastProgress = progress;
                 return;
             }
 
             else if (status.state == brls::GestureState::INTERRUPTED || status.state == brls::GestureState::FAILED) {
                 *soundToPlay = brls::SOUND_TOUCH_UNFOCUS;
                 return;
+            }
+
+            else if (status.state == brls::GestureState::START) {
+                lastProgress = progress;
             }
 
             float paddingWidth = getWidth() - pointer->getWidth();
@@ -80,16 +83,14 @@ VideoProgressSlider::VideoProgressSlider() {
     this->addGestureRecognizer(
         new brls::TapGestureRecognizer([this](brls::TapGestureStatus status, brls::Sound* soundToPlay) {
             if (status.state != brls::GestureState::END) return;
-            brls::View* root     = this->getParentActivity()->getContentView();
-            float localX         = status.position.x - (this->getX() - root->getX());
-            float paddingWidth   = getWidth() - pointer->getWidth();
+            float paddingWidth = getWidth() - pointer->getWidth();
+            float localX       = status.position.x - getX();
             setProgress((localX - pointer->getWidth() / 2.0f) / paddingWidth);
             progressSetEvent.fire(this->progress);
             brls::Application::giveFocus(this->getParentActivity()->getContentView());
         }));
 
     progress = 0;
-    lastProgress = 0;
 }
 
 brls::View* VideoProgressSlider::create() { return new VideoProgressSlider(); }
@@ -102,8 +103,6 @@ void VideoProgressSlider::onLayout() {
 brls::View* VideoProgressSlider::getDefaultFocus() { return pointer; }
 
 void VideoProgressSlider::setProgress(float progress) {
-    this->lastProgress = progress;
-
     this->progress = progress;
     if (this->progress < 0) this->progress = 0;
     if (this->progress > 1) this->progress = 1;
