@@ -4,7 +4,45 @@
 
 #include "view/gallery_view.hpp"
 
+#include <algorithm>
+#include <cmath>
+#include <map>
+
 using namespace brls::literals;
+
+class PinchGestureRecognizer : public brls::GestureRecognizer {
+public:
+    using Callback = std::function<void(float scale, bool active)>;
+
+    explicit PinchGestureRecognizer(Callback callback) : callback(std::move(callback)) {}
+
+    brls::GestureState recognitionLoop(
+        brls::TouchState touch, brls::MouseState mouse, brls::View* view, brls::Sound* soundToPlay) override {
+        if (touch.phase == brls::TouchPhase::END || touch.phase == brls::TouchPhase::NONE)
+            this->points.erase(touch.fingerId);
+        else
+            this->points[touch.fingerId] = touch.position;
+
+        if (this->points.size() < 2) {
+            if (this->lastDistance > 0) this->callback(1.0f, false);
+            this->lastDistance = 0;
+            return this->state = brls::GestureState::FAILED;
+        }
+
+        auto it        = this->points.begin();
+        brls::Point a  = it->second;
+        brls::Point b  = (++it)->second;
+        float distance = std::hypot(b.x - a.x, b.y - a.y);
+        if (this->lastDistance > 0 && distance > 0) this->callback(distance / this->lastDistance, true);
+        this->lastDistance = distance;
+        return this->state = brls::GestureState::STAY;
+    }
+
+private:
+    Callback callback;
+    std::map<int, brls::Point> points;
+    float lastDistance = 0;
+};
 
 GalleryView::GalleryView() {
     brls::Logger::debug("View GalleryView: create");
@@ -51,6 +89,34 @@ GalleryView::GalleryView() {
             return true;
         },
         true);
+
+    this->registerAction(
+        "main/ebook/zoom_in"_i18n, brls::BUTTON_UP,
+        [this](brls::View* view) -> bool {
+            this->zoom(1.0f + GalleryItem::ZOOM_STEP);
+            return true;
+        },
+        false, true);
+    this->registerAction(
+        "main/ebook/zoom_out"_i18n, brls::BUTTON_DOWN,
+        [this](brls::View* view) -> bool {
+            this->zoom(1.0f / (1.0f + GalleryItem::ZOOM_STEP));
+            return true;
+        },
+        false, true);
+
+    this->addGestureRecognizer(new brls::PanGestureRecognizer(
+        [this](brls::PanGestureStatus status, brls::Sound* soundToPlay) {
+            if (this->pinching) return;
+            if (status.state != brls::GestureState::START && status.state != brls::GestureState::STAY) return;
+            if (auto* item = this->currentItem()) item->panBy(status.delta.x, status.delta.y);
+        },
+        brls::PanAxis::ANY));
+
+    this->addGestureRecognizer(new PinchGestureRecognizer([this](float scale, bool active) {
+        this->pinching = active;
+        if (active && scale != 1.0f) this->zoom(scale);
+    }));
 
     this->addGestureRecognizer(
         new brls::TapGestureRecognizer([this](brls::TapGestureStatus status, brls::Sound* soundToPlay) {
@@ -125,6 +191,7 @@ void GalleryView::prev() {
             focus->shakeHighlight(brls::FocusDirection::LEFT);
         return;
     }
+    if (auto* item = this->currentItem()) item->resetZoom();
     ((GalleryItem*)this->getChildren()[this->index])->animate(GalleryAnimation::EXIT_RIGHT);
 
     this->index--;
@@ -137,10 +204,21 @@ void GalleryView::next() {
             focus->shakeHighlight(brls::FocusDirection::RIGHT);
         return;
     }
+    if (auto* item = this->currentItem()) item->resetZoom();
     ((GalleryItem*)this->getChildren()[this->index])->animate(GalleryAnimation::EXIT_LEFT);
 
     this->index++;
     ((GalleryItem*)this->getChildren()[this->index])->animate(GalleryAnimation::ENTER_RIGHT);
+}
+
+GalleryItem* GalleryView::currentItem() {
+    auto& children = this->getChildren();
+    if (this->index >= children.size()) return nullptr;
+    return (GalleryItem*)children[this->index];
+}
+
+void GalleryView::zoom(float factor) {
+    if (auto* item = this->currentItem()) item->zoomBy(factor);
 }
 
 void GalleryView::setIndicatorPosition(float height) { this->indicatorPosition = height; }
@@ -272,4 +350,55 @@ void GalleryItem::startScrolling(float newScroll) {
     this->contentOffsetX.setTickCallback([this] { this->setTranslationX(this->contentOffsetX); });
     this->contentOffsetX.start();
     this->invalidate();
+}
+
+void GalleryItem::zoomBy(float factor) {
+    float newZoom = std::max(MIN_ZOOM, std::min(MAX_ZOOM, this->zoom * factor));
+    if (newZoom == this->zoom) return;
+    this->panX *= newZoom / this->zoom;
+    this->panY *= newZoom / this->zoom;
+    this->zoom = newZoom;
+    if (!this->isZoomed()) {
+        this->resetZoom();
+        return;
+    }
+    this->clampPan();
+    this->invalidate();
+}
+
+void GalleryItem::resetZoom() {
+    if (!this->isZoomed() && this->panX == 0 && this->panY == 0) return;
+    this->zoom = MIN_ZOOM;
+    this->panX = this->panY = 0;
+    this->invalidate();
+}
+
+void GalleryItem::panBy(float dx, float dy) {
+    if (!this->isZoomed()) return;
+    this->panX += dx;
+    this->panY += dy;
+    this->clampPan();
+    this->invalidate();
+}
+
+void GalleryItem::clampPan() {
+    float maxX = getWidth() * (this->zoom - 1.0f) * 0.5f;
+    float maxY = getHeight() * (this->zoom - 1.0f) * 0.5f;
+    this->panX = std::max(-maxX, std::min(maxX, this->panX));
+    this->panY = std::max(-maxY, std::min(maxY, this->panY));
+}
+
+void GalleryItem::draw(
+    NVGcontext* vg, float x, float y, float width, float height, brls::Style style, brls::FrameContext* ctx) {
+    if (!this->isZoomed()) {
+        Box::draw(vg, x, y, width, height, style, ctx);
+        return;
+    }
+    nvgSave(vg);
+    nvgIntersectScissor(vg, x, y, width, height);
+    nvgTranslate(vg, x + width * 0.5f + this->panX, y + height * 0.5f + this->panY);
+    nvgScale(vg, this->zoom, this->zoom);
+    nvgTranslate(vg, -width * 0.5f, -height * 0.5f);
+    Box::draw(vg, 0, 0, width, height, style, ctx);
+    nvgRestore(vg);
 }

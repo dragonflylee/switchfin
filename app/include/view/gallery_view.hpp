@@ -21,8 +21,28 @@ public:
 
     void startScrolling(float newScroll);
 
+    void zoomBy(float factor);
+
+    void panBy(float dx, float dy);
+
+    void resetZoom();
+
+    void draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style,
+        brls::FrameContext* ctx) override;
+
+    static constexpr float MIN_ZOOM = 1.0f;
+    static constexpr float MAX_ZOOM = 5.0f;
+    static constexpr float ZOOM_STEP = 0.25f;
+
 private:
+    bool isZoomed() const { return this->zoom > MIN_ZOOM; }
+
+    void clampPan();
+
     brls::Animatable contentOffsetX = 0.0f;
+    float zoom = 1.0f;
+    float panX = 0.0f;
+    float panY = 0.0f;
 };
 
 class ImageGalleryItem : public GalleryItem {
@@ -60,13 +80,18 @@ public:
 
     void next();
 
+    void zoom(float factor);
+
     void setIndicatorPosition(float height);
 
     void draw(NVGcontext *vg, float x, float y, float width, float height, brls::Style style,
         brls::FrameContext *ctx) override;
 
 private:
+    GalleryItem* currentItem();
+
     GalleryData data;
     unsigned int index = 0;
     float indicatorPosition = 0.98;
+    bool pinching = false;
 };

@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+* gallery: browse images with L/R paging, zoom (buttons or pinch) and drag to pan
+
+### Fixed
+
+* player: keep progress slider pointer in sync with the finger while dragging
+* websocket: abort blocking receive on exit so teardown no longer hangs the app
+
 ## [0.9.5]
 
 ### Added
