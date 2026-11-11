@@ -8,15 +8,6 @@
 
 namespace {
 const std::string msgKeepAlive = R"({"MessageType":"KeepAlive"})";
-
-void sendCloseOnce(CURL* easy, std::mutex& mutex, bool& sent, std::mutex& closeMutex) {
-    std::lock_guard<std::mutex> lock(mutex);
-    std::lock_guard<std::mutex> closeLock(closeMutex);
-    if (easy == nullptr || sent) return;
-    sent = true;
-    size_t sentLen = 0;
-    curl_ws_send(easy, "", 0, &sentLen, 0, CURLWS_CLOSE);
-}
 }  // namespace
 
 websocket::websocket(const std::string& url) {
@@ -35,6 +26,11 @@ websocket::websocket(const std::string& url) {
     curl_easy_setopt(this->easy, CURLOPT_SSL_VERIFYHOST, 0L);
     curl_easy_setopt(this->easy, CURLOPT_WRITEFUNCTION, onMsg);
     curl_easy_setopt(this->easy, CURLOPT_WRITEDATA, this);
+    // 启用进度回调, 使 curl_easy_perform() 能被 onProgress 中断, 避免退出时 join() 卡死
+    curl_easy_setopt(this->easy, CURLOPT_NOSIGNAL, 1L);
+    curl_easy_setopt(this->easy, CURLOPT_NOPROGRESS, 0L);
+    curl_easy_setopt(this->easy, CURLOPT_XFERINFOFUNCTION, onProgress);
+    curl_easy_setopt(this->easy, CURLOPT_XFERINFODATA, this);
 
     hb.setCallback([this]() {
         if (this->isStop.load()) return;
@@ -54,9 +50,9 @@ websocket::websocket(const std::string& url) {
 
 websocket::~websocket() {
 #if LIBCURL_VERSION_NUM >= 0x080000 && !defined(__PS4__)
+    // 先置停止标志, 由 onProgress 中断 curl_easy_perform(), 再 join
     this->isStop.store(true);
     this->hb.stop();
-    sendCloseOnce(this->easy, this->easyMutex, this->closeSent, this->closeMutex);
 #ifdef BOREALIS_USE_STD_THREAD
     if (this->th && this->th->joinable()) this->th->join();
 #else
@@ -70,6 +66,11 @@ websocket::~websocket() {
         }
     }
 #endif
+}
+
+int websocket::onProgress(void* ptr, curl_off_t, curl_off_t, curl_off_t, curl_off_t) {
+    websocket* p = reinterpret_cast<websocket*>(ptr);
+    return (p == nullptr || p->isStop.load()) ? 1 : 0;
 }
 
 void* websocket::wsRecv(void* ptr) {
