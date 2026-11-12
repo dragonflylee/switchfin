@@ -1,7 +1,7 @@
 
 # Maintainer: WinterMute <davem@devkitpro.org>
 pkgname=switch-curl
-pkgver=8.21.0
+pkgver=8.23.0
 pkgrel=3
 pkgdesc='An URL retrieval utility and library'
 arch=('any')
@@ -10,10 +10,10 @@ license=('zlib')
 options=(!strip libtool staticlibs)
 depends=('switch-zlib' 'switch-mbedtls')
 makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
-source=("https://curl.haxx.se/download/curl-${pkgver}.tar.xz")
+source=("https://curl.se/download/curl-${pkgver}.tar.xz")
 groups=('switch-portlibs')
 
-sha256sums=('aa1b66a70eace83dc624508745646c08ae561de512ab403adffb93ac87fc72e6')
+sha256sums=('8dadd7d2536a314f982ad05a651b713f426bf7d02cc2c76cffb9796f2218e6c5')
 
 build() {
   cd curl-$pkgver

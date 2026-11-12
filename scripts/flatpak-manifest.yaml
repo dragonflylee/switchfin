@@ -1,6 +1,6 @@
 app-id: fun.dragonfly.switchfin
 runtime: org.freedesktop.Platform
-runtime-version: "25.08"
+runtime-version: "26.08"
 sdk: org.freedesktop.Sdk
 command: Switchfin
 finish-args:
@@ -35,8 +35,8 @@ modules:
       - make -j ${FLATPAK_BUILDER_N_JOBS} prefix=${FLATPAK_DEST} build=release OS=Linux USE_SYSTEM_LIBS=yes USE_SYSTEM_GUMBO=no USE_SYSTEM_JBIG2DEC=no TOOL_APPS= VIEW_APPS= install-shared-c
     sources:
       - type: archive
-        url: https://casper.mupdf.com/downloads/archive/mupdf-1.24.11-source.tar.lz
-        sha256: ac159293040934e250e4495782f8cd04c8cbbaf992fbd9faf32dab2ec657117b
+        url: https://casper.mupdf.com/downloads/archive/mupdf-1.28.6-source.tar.lz
+        sha256: f675f2456916d720cc3108c4a6a9de6467ee0665dbca440cd62a382a75be917e
 
   - name: libmpv
     buildsystem: meson
@@ -51,8 +51,8 @@ modules:
       - -Dvulkan=disabled
     sources:
       - type: archive
-        url: https://github.com/mpv-player/mpv/archive/v0.41.0.tar.gz
-        sha256: ee21092a5ee427353392360929dc64645c54479aefdb5babc5cfbb5fad626209
+        url: https://github.com/mpv-player/mpv/archive/v0.42.0.tar.gz
+        sha256: bcfebbfa2b65a6d88dc97ea18117831072373e38b5785a2afb874ed4df5070dd
         x-checker-data:
           type: anitya
           project-id: 5348
@@ -81,6 +81,11 @@ modules:
           - type: archive
             url: https://gitlab.freedesktop.org/emersion/libdisplay-info/-/releases/0.4.0/downloads/libdisplay-info-0.4.0.tar.xz
             sha256: 43b180baa143e2035654759d84e2b2f5ee77d5fe817c423838c7fe59c0d68459
+            x-checker-data:
+              type: anitya
+              project-id: 326668
+              stable-only: true
+              url-template: https://gitlab.freedesktop.org/emersion/libdisplay-info/-/releases/$version/downloads/libdisplay-info-$version.tar.xz
         modules:
           - name: hwdata
             cleanup:
@@ -89,8 +94,13 @@ modules:
               - --disable-blacklist
             sources:
               - type: archive
-                url: https://github.com/vcrhonek/hwdata/archive/v0.410.tar.gz
-                sha256: 2864b061b179b8ad8cb6a7339ca07678240a183d9cedce8677a4950acaf798e0
+                url: https://github.com/vcrhonek/hwdata/archive/v0.413.tar.gz
+                sha256: 5a71ab7a48c668ef912fcfdbec046949087019f8dd7fb967445d36fbeb778350
+                x-checker-data:
+                  type: anitya
+                  project-id: 5387
+                  stable-only: true
+                  url-template: https://github.com/vcrhonek/hwdata/archive/v$version.tar.gz
 
       - name: libplacebo
         buildsystem: meson
@@ -103,8 +113,8 @@ modules:
         sources:
           - type: git
             url: https://github.com/haasn/libplacebo.git
-            commit: cee9b076f2c63104ccfd497fa79c39a867293ec4
-            tag: v7.360.1
+            commit: 275f7dea27924cdd34ab2e6c20e448b6bc4fab65
+            tag: v7.387.0
             x-checker-data:
               type: git
               tag-pattern: ^v([\d.]+)$
@@ -154,7 +164,6 @@ modules:
           - --disable-muxers
           - --disable-filters
           - --enable-filter=hflip,vflip,transpose
-          - --enable-libssh2
           - --enable-libdrm
           - --enable-vaapi
           - --enable-vdpau
@@ -177,8 +186,6 @@ modules:
               url-template: https://ffmpeg.org/releases/ffmpeg-$version.tar.xz
           - type: patch
             path: patches/ffmpeg-v4l2request.patch
-          - type: patch
-            path: mingw64/ffmpeg/avio.patch
         modules:
           - name: nv-codec-headers
             cleanup:
@@ -195,18 +202,6 @@ modules:
                   project-id: 223796
                   stable-only: true
                   url-template: https://github.com/FFmpeg/nv-codec-headers/archive/n$version.tar.gz
-          - name: libssh2
-            buildsystem: cmake-ninja
-            config-opts:
-              - -DCMAKE_BUILD_TYPE=Release
-              - -DBUILD_SHARED_LIBS=ON
-              - -DBUILD_STATIC_LIBS=OFF
-              - -DBUILD_EXAMPLES=ON
-              - -DBUILD_TESTING=OFF
-            sources:
-              - type: archive
-                url: https://libssh2.org/download/libssh2-1.11.1.tar.xz
-                sha256: 9954cb54c4f548198a7cbebad248bdc87dd64bd26185708a294b2b50771e3769
 
   - name: glfw
     buildsystem: cmake-ninja

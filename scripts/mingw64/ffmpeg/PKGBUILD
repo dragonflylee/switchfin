@@ -27,7 +27,10 @@ makedepends=(
   "${MINGW_PACKAGE_PREFIX}-nasm"
 )
 options=('staticlibs' '!strip')
-source=("https://ffmpeg.org/releases/${_realname}-${pkgver}.tar.xz" "avio.patch")
+source=(
+  "https://ffmpeg.org/releases/${_realname}-${pkgver}.tar.xz"
+  "https://github.com/dragonflylee/ffmpeg/commit/avio.patch"
+)
 sha256sums=('8c3850283eb25fa026482078a04051e0be17347b09ef81a0849bec15a96e002e' 'SKIP')
 
 prepare() {
@@ -43,6 +46,7 @@ build() {
     --arch=${CARCH%%-*} \
     --cc=${CC} \
     --cxx=${CXX} \
+    --extra-cflags=-DFFMPEG_STATIC_DLLEXPORT \
     --disable-shared \
     --enable-static \
     --pkg-config-flags=-static \

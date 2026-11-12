@@ -26,6 +26,7 @@ jobs:
         chown -R vitasdk:vitasdk scripts/vita
         su -p vitasdk -s /bin/bash <<'EOF'
           export PATH=$VITASDK/bin:$PATH
+          export PACMAN=$VITASDK/libexec/vdpm/pacman
           cd $GITHUB_WORKSPACE/scripts/vita
 
           for pkg in mbedtls ffmpeg mpv mupdf curl; do

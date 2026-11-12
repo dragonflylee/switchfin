@@ -1,10 +1,10 @@
 diff --git a/Makerules b/Makerules
-index f582dc0614..687c3b4160 100644
+index 090697d..f0e697a 100644
 --- a/Makerules
 +++ b/Makerules
-@@ -379,3 +379,18 @@ ifeq "$(OS)" "ios"
-   LD = xcrun ld
-   RANLIB = xcrun ranlib
+@@ -405,3 +405,18 @@ ifeq "$(OS)" "pyodide"
+   HAVE_LIBCRYPTO=no
+   CFLAGS += -pthread
  endif
 +
 +ifeq "$(OS)" "switch"
@@ -21,11 +21,33 @@ index f582dc0614..687c3b4160 100644
 +  USE_SYSTEM_LIBJPEG = yes
 +  USE_SYSTEM_ZLIB = yes
 +endif
+diff --git a/include/mupdf/fitz/system.h b/include/mupdf/fitz/system.h
+index fea6960..e31e091 100644
+--- a/include/mupdf/fitz/system.h
++++ b/include/mupdf/fitz/system.h
+@@ -39,6 +39,17 @@
+ #include <setjmp.h> /* needed for the try/catch macros */
+ #include <stdio.h> /* useful for debug printfs */
+ 
++#ifdef __SWITCH__
++/* devkitPro's newlib defines "quad" as a macro in <sys/types.h> when
++ * __BSD_VISIBLE is set, which clashes with the fz_quad "quad" members.
++ * Include the header early and undefine the macro so later includes
++ * (e.g. <zlib.h>) cannot reintroduce it. */
++#include <sys/types.h>
++#ifdef quad
++#undef quad
++#endif
++#endif
++
+ #ifdef __cplusplus
+ /* C++ doesn't support flexible array members... */
+ #define FZ_FLEXIBLE_ARRAY 1
 diff --git a/source/fitz/string.c b/source/fitz/string.c
-index 4a0de4fc48..aeaf8cabf6 100644
+index 1b1114b..071f892 100644
 --- a/source/fitz/string.c
 +++ b/source/fitz/string.c
-@@ -235,7 +235,11 @@ char *fz_realpath(const char *path, char *buf)
+@@ -300,7 +300,11 @@ char *fz_realpath(const char *path, char *buf)
  
  char *fz_realpath(const char *path, char *buf)
  {
@@ -37,3 +59,34 @@ index 4a0de4fc48..aeaf8cabf6 100644
  }
  
  #endif
+diff --git a/source/fitz/random.c b/source/fitz/random.c
+index ad92c63..1e6464c 100644
+--- a/source/fitz/random.c
++++ b/source/fitz/random.c
+@@ -36,6 +36,10 @@
+ #endif
+ #endif
+ 
++#if defined(__SWITCH__)
++#define FZ_NO_GETENTROPY 1
++#endif
++
+ #ifdef _WIN32
+ 
+ static void getentropy_fallback(unsigned char *s, int n)
+@@ -91,10 +95,14 @@ void fz_memrnd(fz_context *ctx, unsigned char *data, int len)
+ #elif defined(EMSCRIPTEN)
+ 		// __wasi_random_get is not yet widely supported, so we can't call getentropy
+ 		getentropy_fallback(entropy, sizeof entropy);
+-#elif defined(__ANDROID__) && (__ANDROID_API__ < 28)
++#elif (defined(__ANDROID__) && (__ANDROID_API__ < 28)) || defined(FZ_NO_GETENTROPY)
+ 		// Android before 9.0 does not have getentropy(), but does have
+ 		// arc4random_buf that sources from /dev/urandom.
++#if defined(__SWITCH__)
++		getentropy_fallback(entropy, sizeof entropy);
++#else
+ 		arc4random_buf(entropy, sizeof entropy);
++#endif
+ #else
+ 		if (getentropy(entropy, sizeof entropy) < 0)
+ 			getentropy_fallback(entropy, sizeof entropy);

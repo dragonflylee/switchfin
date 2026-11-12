@@ -277,6 +277,7 @@ void SearchTab::doSearch(const std::string& searchTerm) {
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
+            brls::Logger::warning("SearchTab search: {}", ex);
             brls::Application::notify(ex);
         },
         jellyfin::apiUserLibrary, AppConfig::instance().getUserId(), query);

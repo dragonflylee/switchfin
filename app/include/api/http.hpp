@@ -11,6 +11,7 @@
 #include <atomic>
 #include <fstream>
 #include <sstream>
+#include <cstdint>
 #include <curl/system.h>
 
 #include <borealis/core/event.hpp>
@@ -28,8 +29,8 @@ public:
     inline static std::string PROXY;
 
     struct Range {
-        int start = 0;
-        int end = 0;
+        int64_t start = 0;
+        int64_t end = 0;
     };
 
     struct Timeout {
@@ -51,6 +52,8 @@ public:
     ~HTTP();
 
     static std::string encode_form(const Form& form);
+    /// @brief Response status code of the last request (0 before any request).
+    int responseCode() const { return this->lastCode; }
     void _get(const std::string& url, std::ostream* out);
     bool getinfo(char** arg);
     int propfind(const std::string& url, std::ostream* out);
@@ -128,4 +131,5 @@ private:
     struct curl_slist* chunk;
     Cancel is_cancel;
     Progress event;
+    int lastCode = 0;
 };

@@ -170,7 +170,8 @@ VideoView::VideoView() {
     osdSlider->getProgressSetEvent().subscribe([this](float progress) {
         brls::Logger::verbose("Set progress: {}", progress);
         this->showOSD(true);
-        MPVCore::instance().seek(progress * 100, "absolute-percent");
+        auto& mpv = MPVCore::instance();
+        if (mpv.duration > 0) mpv.seek(progress * mpv.duration, "absolute+exact");
     });
 
     osdSlider->getProgressEvent().subscribe([this](float progress) { this->showOSD(false); });

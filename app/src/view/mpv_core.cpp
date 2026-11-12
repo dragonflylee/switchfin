@@ -57,11 +57,13 @@ static jobject surface;
 static int64_t getNativeSurface() {
     int64_t ptr = 0;
     JNIEnv *env = static_cast<JNIEnv *>(SDL_AndroidGetJNIEnv());
+    if (!env) return ptr;
     jobject activity = static_cast<jobject>(SDL_AndroidGetActivity());
     jclass cls = env->GetObjectClass(activity);
     jmethodID jmethod = env->GetStaticMethodID(cls, "getMpvSurface", "()Landroid/view/Surface;");
     jobject surface_ = env->CallStaticObjectMethod(cls, jmethod);
     if (surface_ != nullptr) {
+        if (surface) env->DeleteGlobalRef(surface);  // 避免 restart() 时泄漏
         surface = env->NewGlobalRef(surface_);
         ptr = (int64_t)(intptr_t)surface;
         env->DeleteLocalRef(surface_);
@@ -73,23 +75,26 @@ static int64_t getNativeSurface() {
 
 static void deleteSurfaceObj() {
     auto env = static_cast<JNIEnv *>(SDL_AndroidGetJNIEnv());
-    env->DeleteGlobalRef(surface);
+    if (surface) env->DeleteGlobalRef(surface);
+    surface = nullptr;
 }
 #endif
 
 void MPVCore::on_update(void *self) {
+#if defined(MPV_SW_RENDER) || defined(BOREALIS_USE_GXM)
+    // SW/GXM 在回调中直接渲染，必须调用 update()。
     MPVCore *mpv = reinterpret_cast<MPVCore *>(self);
     brls::sync([mpv]() {
+        if (!mpv->mpv_context) return;
         uint64_t flags = mpv_render_context_update(mpv->mpv_context);
-#if defined(MPV_SW_RENDER) || defined(BOREALIS_USE_GXM)
         if (flags & MPV_RENDER_UPDATE_FRAME) {
             mpv_render_context_render(mpv->mpv_context, mpv->mpv_params);
             mpv_render_context_report_swap(mpv->mpv_context);
         }
-#else
-        (void)flags;
-#endif
     });
+#else
+    (void)self;
+#endif
 }
 
 void MPVCore::on_wakeup(void *self) {
@@ -204,6 +209,7 @@ void MPVCore::init() {
         mpv_set_option_string(mpv, "msg-level", "all=v");
     } else if (brls::Application::isDebuggingViewEnabled()) {
         mpv_request_log_messages(mpv, "info");
+        mpv_set_option_string(mpv, "log-file", fmt::format("mpv_{}.log", std::time(nullptr)).c_str());
     }
 
 #if (defined(__APPLE__) || defined(__linux__) || defined(_WIN32)) && !defined(ANDROID)
@@ -319,8 +325,7 @@ void MPVCore::init() {
 #ifdef BOREALIS_USE_D3D11
     misc::initCrashDump();
 #endif
-    brls::Logger::info("version: {} ffmpeg {}", mpv_get_property_string(mpv, "mpv-version"),
-        mpv_get_property_string(mpv, "ffmpeg-version"));
+    brls::Logger::info("version: {} ffmpeg {}", getString("mpv-version"), getString("ffmpeg-version"));
 
     this->command("set", "audio-client-name", AppVersion::getPackageName().c_str());
     // set event callback
@@ -361,7 +366,7 @@ void MPVCore::init() {
 }
 
 void MPVCore::clean() {
-    check_error(mpv_command_string(this->mpv, "quit"));
+    if (this->mpv) check_error(mpv_command_string(this->mpv, "quit"));
     brls::Application::getWindowFocusChangedEvent()->unsubscribe(focusSubscription);
     brls::Application::getWindowSizeChangedEvent()->unsubscribe(sizeSubscription);
 
@@ -377,6 +382,19 @@ void MPVCore::clean() {
         // mpv_destroy(this->mpv);
         this->mpv = nullptr;
     }
+#ifdef BOREALIS_USE_D3D11
+    // mpv 销毁时会对共享的 device context 调用 ClearState()，清空 render target 与 viewport。
+    // 重新绑定 render target，并恢复 viewport（否则要等窗口 resize 才恢复）。
+    D3D11_CONTEXT->beginFrame();
+    ID3D11DeviceContext *ctx = nullptr;
+    D3D11_CONTEXT->getDevice()->GetImmediateContext(&ctx);
+    if (ctx) {
+        D3D11_VIEWPORT vp = {0, 0, (float)brls::Application::windowWidth,
+            (float)brls::Application::windowHeight, 0, 1};
+        ctx->RSSetViewports(1, &vp);
+        ctx->Release();
+    }
+#endif
 #ifdef ANDROID
     deleteSurfaceObj();
 #endif
@@ -454,6 +472,7 @@ void MPVCore::setFrameSize(brls::Rect area) {
     // but mpvRenderContextRender(...) will call functions similar to beginFrame() and endFrame() to draw content to FBO,
     // and that will cause error in GXM, so call in brls::sync to make the mpv drawing calls outside the brls::Application::frame().
     brls::sync([this]() {
+        if (!this->mpv_context) return;
         mpv_render_context_render(this->mpv_context, mpv_params);
         mpv_render_context_report_swap(this->mpv_context);
     });
@@ -534,9 +553,9 @@ void MPVCore::draw(brls::Rect area, float alpha) {
 }
 
 std::string MPVCore::getCacheSpeed() const {
-    if (cache_speed >> 20 > 0) {
+    if ((cache_speed >> 20) > 0) {
         return fmt::format("{:.2f} MB/s", (cache_speed >> 10) / 1024.0f);
-    } else if (cache_speed >> 10 > 0) {
+    } else if ((cache_speed >> 10) > 0) {
         return fmt::format("{:.2f} KB/s", cache_speed / 1024.0f);
     } else {
         return fmt::format("{} B/s", cache_speed);

@@ -24,6 +24,7 @@ public:
 private:
     static void* wsRecv(void*);
     static size_t onMsg(char *b, size_t size, size_t nitems, void *p);
+    static int onProgress(void* ptr, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow);
     static void onPlayNow(const std::string& itemId, uint64_t seekTicks);
 
 #ifdef BOREALIS_USE_STD_THREAD

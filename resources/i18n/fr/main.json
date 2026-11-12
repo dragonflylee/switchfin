@@ -159,6 +159,7 @@
     "start": "Télécharger",
     "cancel": "Annuler le téléchargement",
     "remove": "Supprimer le téléchargement",
+    "resume": "Reprendre",
     "downloading": "Téléchargement…",
     "completed": "Téléchargé",
     "failed": "Échec du téléchargement",

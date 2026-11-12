@@ -14,10 +14,14 @@ SVGImage::SVGImage() {
     // 改变窗口大小时自动更新纹理
     subscription = brls::Application::getWindowSizeChangedEvent()->subscribe([this]() {
         if (!filePath.empty()) {
-            brls::Visibility v = getVisibility();
-            this->setVisibility(brls::Visibility::VISIBLE);
-            setImageFromSVGFile(filePath);
-            this->setVisibility(v);
+            // 调整窗口大小可能发生在布局中，此时重绘会重入 invalidate() 导致崩溃，延迟到下一帧
+            brls::sync([this]() {
+                if (filePath.empty()) return;
+                brls::Visibility v = getVisibility();
+                this->setVisibility(brls::Visibility::VISIBLE);
+                setImageFromSVGFile(filePath);
+                this->setVisibility(v);
+            });
         }
     });
 }

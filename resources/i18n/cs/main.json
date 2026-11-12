@@ -159,6 +159,7 @@
     "start": "Stáhnout",
     "cancel": "Zrušit stahování",
     "remove": "Odstranit stažené",
+    "resume": "Pokračovat",
     "downloading": "Stahování…",
     "completed": "Staženo",
     "failed": "Stahování selhalo",

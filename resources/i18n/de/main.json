@@ -159,6 +159,7 @@
     "start": "Herunterladen",
     "cancel": "Download abbrechen",
     "remove": "Download entfernen",
+    "resume": "Fortsetzen",
     "downloading": "Wird heruntergeladen...",
     "completed": "Heruntergeladen",
     "failed": "Download fehlgeschlagen",

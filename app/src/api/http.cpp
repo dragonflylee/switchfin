@@ -152,7 +152,9 @@ void HTTP::set_option(const Header& hs) {
 }
 
 void HTTP::set_option(const Range& r) {
-    const std::string range_str = std::to_string(r.start) + "-" + std::to_string(r.end);
+    // end == 0 means "from start to the end of the file" -> "start-".
+    const std::string range_str = r.end > 0 ? std::to_string(r.start) + "-" + std::to_string(r.end)
+                                            : std::to_string(r.start) + "-";
     curl_easy_setopt(this->easy, CURLOPT_RANGE, range_str.c_str());
 }
 
@@ -219,7 +221,8 @@ int HTTP::perform(std::ostream* body) {
 
     long status_code = 0;
     curl_easy_getinfo(this->easy, CURLINFO_RESPONSE_CODE, &status_code);
-    return status_code;
+    this->lastCode = static_cast<int>(status_code);
+    return this->lastCode;
 }
 
 std::string HTTP::encode_form(const Form& form) {

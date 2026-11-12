@@ -159,6 +159,7 @@
     "start": "다운로드",
     "cancel": "다운로드 취소",
     "remove": "다운로드 삭제",
+    "resume": "이어받기",
     "downloading": "다운로드 중...",
     "completed": "다운로드 완료",
     "failed": "다운로드 실패",

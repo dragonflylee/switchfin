@@ -9,6 +9,31 @@
 * player setting to ask before skipping, skip automatically or ignore media segments
 * `key_skip_segment` shortcut (default `n`), gamepad LT and an on-screen skip prompt
 * open-ended outro segments advance to the next episode
+* gallery: browse images with L/R paging, zoom (buttons or pinch) and drag to pan
+
+### Fixed
+
+* player: keep progress slider pointer in sync with the finger while dragging
+* websocket: abort blocking receive on exit so teardown no longer hangs the app
+
+## [0.9.5]
+
+### Added
+
+* add resume download with HTTP range/ETag support and progress bar for cancelled items
+* auto-download subtitles and fallback subtitle URL when `DeliveryUrl` is missing
+* add configurable download path setting
+
+### Fixed
+
+* support the new Quick Connect API (#272)
+* PS4: fix bitmap subtitle bluescreen (#271)
+* image: keep texture owned by cache and trim near-white border bars causing smears (#243)
+* websocket: harden receive loop, reconnect on normal close and fix teardownt
+* compare versions numerically in update check
+* keep nvtegra decode frames alive across hwaccel reinit
+* svg: fix crash when toggling fullscreen on macOS (#165)
+* danmaku: reset on-screen danmaku after seeking to prevent overlap (#163)
 
 ## [0.9.4]
 

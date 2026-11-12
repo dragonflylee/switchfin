@@ -58,6 +58,11 @@ jobs:
           echo building $pkg
           pushd $pkg; makepkg-mingw -scCf --noconfirm; popd
         done
+    - name: Archive Build Packages
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ matrix.sys }}-${{ github.run_number }}
+        path: scripts/mingw64/*/*.pkg.tar.zst
     - name: Upload packages
       uses: softprops/action-gh-release@v3
       with:

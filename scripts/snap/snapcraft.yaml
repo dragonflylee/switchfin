@@ -2,7 +2,7 @@ name: switchfin
 summary: switchfin
 description: |
   third-party PC player for Jellyfin
-version: "0.9.4"
+version: "0.9.5"
 grade: stable
 icon: ../resources/icon/icon.png
 base: core20
@@ -24,7 +24,7 @@ layout:
 
 parts:
   libmpv:
-    source: https://github.com/mpv-player/mpv/archive/v0.41.0.tar.gz
+    source: https://github.com/mpv-player/mpv/archive/v0.42.0.tar.gz
     source-type: tar
     plugin: meson
     meson-parameters:

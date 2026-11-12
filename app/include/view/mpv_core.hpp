@@ -138,7 +138,7 @@ public:
 #elif defined(__PSV__)
     inline static std::string PLAYER_HWDEC_METHOD = "vita-copy";
 #elif defined(__PS4__)
-    inline static std::string PLAYER_HWDEC_METHOD = "no";
+    inline static std::string PLAYER_HWDEC_METHOD = "auto-copy";
 #else
     inline static std::string PLAYER_HWDEC_METHOD = "auto-safe";
 #endif

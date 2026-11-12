@@ -40,18 +40,27 @@ public:
     BRLS_BIND(brls::Image, image, "gallery/image");
 };
 
-GalleryActivity::GalleryActivity(const std::string& url, const HTTP::Header& headers) {
-    brls::Logger::debug("GalleryActivity: create");
+GalleryActivity::GalleryActivity(const std::string& url, const HTTP::Header& headers)
+    : GalleryActivity({url}, 0, headers) {}
 
-    this->view = new NetImageGalleryItem(url, headers);
+GalleryActivity::GalleryActivity(std::vector<std::string> urls, size_t index, const HTTP::Header& headers)
+    : urls(std::move(urls)), startIndex(index), headers(headers) {
+    brls::Logger::debug("GalleryActivity: create, {} image(s)", this->urls.size());
 }
 
 void GalleryActivity::onContentAvailable() {
     brls::Logger::debug("GalleryActivity: onContentAvailable");
     gallery->setIndicatorPosition(0.97);
-    gallery->addCustomView(this->view);
+
+    if (this->urls.empty()) return;
+
+    for (const auto& url : this->urls) {
+        gallery->addCustomView(new NetImageGalleryItem(url, this->headers));
+    }
+
+    if (this->startIndex < this->urls.size()) gallery->setIndex((unsigned int)this->startIndex);
 }
 
 GalleryActivity::~GalleryActivity() { brls::Logger::debug("GalleryActivity: delete"); }
 
-bool GalleryActivity::isTranslucent() { return true; }
+bool GalleryActivity::isTranslucent() { return urls.size() < 1; }

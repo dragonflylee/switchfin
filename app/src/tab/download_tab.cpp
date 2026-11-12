@@ -9,6 +9,8 @@
 
 #include <algorithm>
 
+#include <borealis/views/dropdown.hpp>
+
 using namespace brls::literals;
 
 class SegmentedBar : public brls::Rectangle {
@@ -48,8 +50,7 @@ private:
     std::vector<std::pair<float, NVGcolor>> segments;
 };
 
-/// Section header ("In progress", "Downloaded"): non-focusable row,
-/// skipped by navigation (getDefaultFocus -> nullptr).
+/// Section header ("In progress", "Downloaded"): non-focusable, skipped by navigation.
 class DownloadSectionHeader : public RecyclingGridItem {
 public:
     DownloadSectionHeader() {
@@ -135,6 +136,15 @@ public:
             this->status->setText("main/download/failed"_i18n);
             this->status->setTextColor(theme.getColor("color/danger"));
             break;
+        case DownloadStatus::Cancelled:
+            this->status->setText("hints/cancel"_i18n);
+            this->status->setTextColor(theme.getColor("font/grey"));
+            if (item.downloadedBytes > 0) {
+                this->badge->setVisibility(brls::Visibility::GONE);
+                this->progressRow->setVisibility(brls::Visibility::VISIBLE);
+                this->setProgress(item.downloadedBytes, item.totalBytes);
+            }
+            break;
         default:;
         }
     }
@@ -172,9 +182,7 @@ private:
     SegmentedBar* progressBar = nullptr;
 };
 
-/// Sectioned list: "In progress" (Downloading + Queued, queue order)
-/// then "Downloaded" (Completed + Failed). Per-row heights via
-/// heightForRow (flow mode).
+/// Sectioned list: "In progress" (Downloading + Queued) then "Downloaded" (Completed + Failed).
 class DownloadDataSource : public RecyclingGridDataSource {
 public:
     static constexpr float HEADER_FIRST_HEIGHT = 42;
@@ -192,11 +200,12 @@ public:
     explicit DownloadDataSource(std::vector<DownloadItem> all) : dlDir(DownloadManager::instance().downloadDir()) {
         std::vector<DownloadItem> active, done;
         for (auto& it : all) {
-            if (it.status == DownloadStatus::Completed && it.totalBytes <= 0 && !it.filePath.empty()) {
+            if (it.status == DownloadStatus::Completed && it.totalBytes == 0 && !it.filePath.empty()) {
                 // inherited index without Content-Length: real file size
                 try {
-                    it.totalBytes = (int64_t)fs::file_size(this->dlDir + "/" + it.itemId + "/" + it.filePath);
-                } catch (const std::exception&) {
+                    it.totalBytes = fs::file_size(fmt::format("{}/{}/{}", this->dlDir, it.itemId, it.filePath));
+                } catch (const std::exception& ex) {
+                    brls::Logger::warning("file_size {}: {}", it.filePath, ex.what());
                 }
             }
             bool isActive = it.status == DownloadStatus::Downloading || it.status == DownloadStatus::Queued;
@@ -247,10 +256,30 @@ public:
                 "main/download/confirm_cancel"_i18n, [id]() { DownloadManager::instance().cancelDownload(id); });
         } else if (item.status == DownloadStatus::Queued) {
             DownloadManager::instance().resumeQueue();
-        } else if (item.status == DownloadStatus::Failed) {
+        } else if (item.status == DownloadStatus::Failed || item.status == DownloadStatus::Cancelled) {
+            // Defer pushActivity; doing it inside the click handler hides the Dropdown.
             std::string id = item.itemId;
-            Dialog::cancelable(
-                "main/download/confirm_remove"_i18n, [id]() { DownloadManager::instance().removeDownload(id); });
+            std::string name = item.name;
+            DownloadQuality quality = item.quality;
+            brls::sync([id, name, quality]() {
+                brls::Dropdown* dropdown = new brls::Dropdown(
+                    name,
+                    {"main/download/resume"_i18n, "main/download/remove"_i18n},
+                    [id, quality](int selected) {
+                        // Defer work until the Dropdown pops its own activity.
+                        brls::sync([id, quality, selected]() {
+                            if (selected == 0) {
+                                DownloadManager::instance().addDownload(id, quality);
+                            } else {
+                                Dialog::cancelable("main/download/confirm_remove"_i18n,
+                                    [id]() { DownloadManager::instance().removeDownload(id); });
+                            }
+                        });
+                        return true;
+                    },
+                    0);
+                brls::Application::pushActivity(new brls::Activity(dropdown));
+            });
         }
     }
 
@@ -310,7 +339,7 @@ DownloadView::DownloadView() {
     this->recycler->registerCell("Cell", []() { return new DownloadCard(); });
     this->recycler->registerCell("Header", []() { return new DownloadSectionHeader(); });
     // row 0 is always a section header: zero initial offset, the focus
-    // falls back to the first focusable card (Box::getDefaultFocus)
+    // falls back to the first focusable card
     this->recycler->setDefaultCellFocus(0);
 
     auto deleteAction = [this](brls::View*) {
@@ -363,7 +392,6 @@ DownloadView::DownloadView() {
                 auto* cell = dynamic_cast<DownloadCard*>(this->recycler->getGridItemByIndex(index));
                 if (cell) cell->setProgress(downloaded, total);
             } else {
-                // row not yet materialized (safety): rebuild
                 this->loadItems();
             }
         });
@@ -400,8 +428,8 @@ void DownloadView::updateStorage() {
     const std::string dir = dm.downloadDir();
     auto items = dm.getItems();
 
-    // pleNx bytes: completed = known size (or real file for an inherited
-    // index), in progress/failed = bytes already written to disk
+    // completed = known size or real file for an inherited index;
+    // in progress/failed = bytes already written to disk
     int64_t appBytes = 0;
     for (auto& it : items) {
         if (it.status == DownloadStatus::Completed) {

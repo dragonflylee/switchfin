@@ -199,6 +199,24 @@ cmake -B build_mingw -G Ninja -DPLATFORM_DESKTOP=ON
 cmake --build build_mingw
 ```
 
+### Debug Mode
+
+```bash
+./Switchfin -d -v              # debug logs + overlay
+./Switchfin -v -o app.log      # also save logs to a file
+```
+
+These flags can be combined:
+
+- `-d` — print more detailed debug logs.
+- `-v` — show the on-screen debug overlay (FPS, memory, ...) and save MPV logs to `mpv_<timestamp>.log`.
+- `-t` — show MPV's own messages in the terminal.
+- `-o <file>` — write the app log to a file (default `switchfin.log`).
+- `-version` — print the version and exit.
+The overlay can also be toggled in **Settings → Others → Debug**. On Switch, pass arguments via `nxlink` (see above).
+
+If a video shows a black screen or garbled picture, check `mpv_*.log` — it usually reveals an unsupported codec, hardware decode failure, or a server error. Attach it when reporting decoding bugs.
+
 ## Acknowledgements
 
 - **@xfangfang** for [wiliwili](https://github.com/xfangfang/wiliwili)

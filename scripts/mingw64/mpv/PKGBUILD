@@ -4,7 +4,7 @@
 _realname=mpv
 pkgbase="mingw-w64-${_realname}"
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=0.41.0
+pkgver=0.42.0
 pkgrel=2
 pkgdesc="Video player based on MPlayer/mplayer2 (mingw-w64)"
 url="https://mpv.io/"
@@ -26,13 +26,14 @@ makedepends=(
 options=('strip')
 source=(
   "${_realname}-${pkgver}.tar.gz"::"https://github.com/mpv-player/${_realname}/archive/v${pkgver}.tar.gz"
-  "0001-d3d11-render.patch"
+  "win7-compat.patch" "gpu-next.patch"
 )
-sha256sums=('ee21092a5ee427353392360929dc64645c54479aefdb5babc5cfbb5fad626209' 'SKIP')
+sha256sums=('bcfebbfa2b65a6d88dc97ea18117831072373e38b5785a2afb874ed4df5070dd' 'SKIP' 'SKIP')
 
 prepare() {
   cd "${srcdir}/${_realname}-${pkgver}"
-  patch -Nbp1 -i "${srcdir}/0001-d3d11-render.patch"
+  patch -Nbp1 -i "${srcdir}/win7-compat.patch"
+  patch -Nbp1 -i "${srcdir}/gpu-next.patch"
 }
 
 build() {

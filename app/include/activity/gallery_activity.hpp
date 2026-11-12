@@ -9,7 +9,6 @@
 #include <api/http.hpp>
 
 class GalleryView;
-class NetImageGalleryItem;
 
 class GalleryActivity : public brls::Activity {
 public:
@@ -17,6 +16,9 @@ public:
     CONTENT_FROM_XML_RES("activity/gallery.xml");
 
     explicit GalleryActivity(const std::string& url, const HTTP::Header& headers = {});
+
+    // Browse a list of images starting at index; L/R switch between them.
+    GalleryActivity(std::vector<std::string> urls, size_t index, const HTTP::Header& headers = {});
 
     bool isTranslucent() override;
 
@@ -27,5 +29,7 @@ public:
 private:
     BRLS_BIND(GalleryView, gallery, "hint/gallery");
 
-    NetImageGalleryItem* view;
+    std::vector<std::string> urls;
+    size_t startIndex = 0;
+    HTTP::Header headers;
 };

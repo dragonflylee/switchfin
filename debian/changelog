@@ -1,3 +1,14 @@
+switchfin (0.9.5-1) unstable; urgency=medium
+
+  * support the new Quick Connect API
+  * add resume download with HTTP range/ETag support and progress bar for cancelled items
+  * auto-download subtitles and fallback subtitle URL when DeliveryUrl is missing
+  * add configurable download path setting
+  * PS4: fix bitmap subtitle bluescreen
+  * compare versions numerically in update check
+
+ -- dragonflylee <dragonflylee@outlook.com>  Tue, 10 Nov 2026 10:53:00 +0800
+
 switchfin (0.9.4-1) unstable; urgency=medium
 
   * add local file gallery viewing

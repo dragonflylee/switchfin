@@ -17,7 +17,8 @@ depends=('switch-zlib' 'switch-bzip2' 'switch-libass' 'switch-libfribidi'
          'switch-freetype' 'switch-mbedtls' 'switch-dav1d' 'switch-libssh2')
 source=(
   "https://ffmpeg.org/releases/ffmpeg-${pkgver}.tar.xz"
-  "ffmpeg-${pkgver}.patch" "getnameinfo.patch" "avio.patch"
+  "https://github.com/dragonflylee/ffmpeg/commit/avio.patch"
+  "ffmpeg-${pkgver}.patch" "getnameinfo.patch"
 )
 sha256sums=('de668509caf9e35e3cd162473441fdb29538c6d96ed080292b3cf9e6fc5d558f' 'SKIP' 'SKIP' 'SKIP')
 

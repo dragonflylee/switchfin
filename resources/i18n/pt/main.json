@@ -159,6 +159,7 @@
     "start": "Transferir",
     "cancel": "Cancelar transferência",
     "remove": "Remover transferência",
+    "resume": "Retomar",
     "downloading": "A transferir...",
     "completed": "Transferido",
     "failed": "Transferência falhada",

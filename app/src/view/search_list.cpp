@@ -45,6 +45,7 @@ void SearchList::doRequest(const std::string& searchTerm) {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             this->title->setSubtitle(ex);
+            brls::Logger::warning("SearchList doSearch: {}", ex);
             brls::Application::notify(ex);
         },
         jellyfin::apiUserLibrary, AppConfig::instance().getUserId(), query);

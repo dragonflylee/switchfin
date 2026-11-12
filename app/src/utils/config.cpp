@@ -155,7 +155,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
 
 static std::string generateDeviceId() {
 #ifdef __SWITCH__
-    AccountUid uid;
+    AccountUid uid{};
     accountInitialize(AccountServiceType_Administrator);
     if (R_FAILED(accountGetPreselectedUser(&uid))) {
         if (R_FAILED(accountTrySelectUserWithoutInteraction(&uid, false))) {
@@ -171,31 +171,30 @@ static std::string generateDeviceId() {
 #elif defined(__PSV__)
     char cid[0x20];
     if (_vshSblAimgrGetConsoleId(cid) >= 0) {
-        char text[0x40];
-        sceClibSnprintf(text, sizeof(text) - 1, "%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
-            cid[0x0], cid[0x1], cid[0x2], cid[0x3], cid[0x4], cid[0x5], cid[0x6], cid[0x7], cid[0x8], cid[0x9],
-            cid[0xA], cid[0xB], cid[0xC], cid[0xD], cid[0xE], cid[0xF]);
-        return text;
+        return misc::hexEncode(reinterpret_cast<uint8_t*>(cid), 0x10);
     }
 #elif defined(ANDROID)
     JNIEnv* env = static_cast<JNIEnv*>(SDL_AndroidGetJNIEnv());
-    jclass utilsClass = env->FindClass("org/libsdl/app/PlatformUtils");
+    jclass utilsClass = env ? env->FindClass("org/libsdl/app/PlatformUtils") : nullptr;
     if (utilsClass) {
         jmethodID jmethod = env->GetStaticMethodID(utilsClass, "getAndroidId", "()Ljava/lang/String;");
-        jstring jname = (jstring)env->CallStaticObjectMethod(utilsClass, jmethod);
-        const char* name = env->GetStringUTFChars(jname, nullptr);
-        std::string deviceId = name;
-        env->ReleaseStringUTFChars(jname, name);
-        env->DeleteLocalRef(jname);
+        jstring jname = jmethod ? (jstring)env->CallStaticObjectMethod(utilsClass, jmethod) : nullptr;
+        if (jname) {
+            const char* name = env->GetStringUTFChars(jname, nullptr);
+            std::string deviceId = name ? name : "";
+            if (name) env->ReleaseStringUTFChars(jname, name);
+            env->DeleteLocalRef(jname);
+            env->DeleteLocalRef(utilsClass);
+            return deviceId;
+        }
         env->DeleteLocalRef(utilsClass);
-        return deviceId;
     }
 #elif defined(_WIN32)
     HW_PROFILE_INFOW profile;
     if (GetCurrentHwProfileW(&profile)) {
-        std::vector<char> deviceId(HW_PROFILE_GUIDLEN);
-        WideCharToMultiByte(CP_UTF8, 0, profile.szHwProfileGuid, std::wcslen(profile.szHwProfileGuid), deviceId.data(),
-            deviceId.size(), nullptr, nullptr);
+        std::vector<char> deviceId(HW_PROFILE_GUIDLEN + 1);
+        WideCharToMultiByte(
+            CP_UTF8, 0, profile.szHwProfileGuid, -1, deviceId.data(), (int)deviceId.size(), nullptr, nullptr);
         return deviceId.data();
     }
 #elif defined(__APPLE__)
@@ -245,6 +244,8 @@ bool AppConfig::init() {
             return false;
         }
     }
+    // 关闭文件句柄，避免退出时 save() 在 Windows 上因文件被占用而写入失败
+    f.close();
 
 #if defined(_WIN32) && !defined(_WINRT_)
     misc::initCrashDump();
@@ -286,7 +287,10 @@ bool AppConfig::init() {
 #elif defined(__PSV__)
     int search_unk[2];
     if (_vshKernelSearchModuleByName("CapUnlocker", search_unk) >= 0) {
-        brls::sync([]() { brls::Application::notify("CapUnlocker found"); });
+        brls::sync([]() {
+            brls::Logger::info("CapUnlocker found");
+            brls::Application::notify("CapUnlocker found");
+        });
         sceKernelChangeThreadPriority(SCE_KERNEL_THREAD_ID_SELF, 64);
         sceKernelChangeThreadCpuAffinityMask(SCE_KERNEL_THREAD_ID_SELF, SCE_KERNEL_CPU_MASK_SYSTEM);
     }
@@ -548,7 +552,7 @@ bool AppConfig::checkLogin() {
 
     auto is_server = [&userIter](const AppServer& s) { return s.id == userIter->server_id; };
     auto it = std::find_if(this->servers.begin(), this->servers.end(), is_server);
-    if (it == this->servers.end()) return false;
+    if (it == this->servers.end() || it->urls.empty()) return false;
 
     this->server_url = it->urls.front();
     HTTP::Header header = {this->getAuth(userIter->access_token)};
@@ -613,9 +617,11 @@ std::string AppConfig::configDir() const {
 #elif __linux__
     char* config_home = getenv("XDG_CONFIG_HOME");
     if (config_home) return fmt::format("{}/{}", config_home, AppVersion::getPackageName());
-    return fmt::format("{}/.config/{}", getenv("HOME"), AppVersion::getPackageName());
+    const char* home = getenv("HOME");
+    return fmt::format("{}/.config/{}", home ? home : ".", AppVersion::getPackageName());
 #elif __APPLE__
-    return fmt::format("{}/Library/Application Support/{}", getenv("HOME"), AppVersion::getPackageName());
+    const char* home = getenv("HOME");
+    return fmt::format("{}/Library/Application Support/{}", home ? home : ".", AppVersion::getPackageName());
 #endif
 }
 
@@ -798,14 +804,17 @@ void AppConfig::addColor(const brls::ThemeVariant tv, const std::string& name, N
     } else {
         unsigned int r = 0, g = 0, b = 0;
         std::string s = setting.at(name).get<std::string>();
-
-        std::stringstream sr{s.substr(1, 2)};
-        sr >> std::hex >> r;
-        std::stringstream sg{s.substr(3, 2)};
-        sg >> std::hex >> g;
-        std::stringstream sb{s.substr(5, 2)};
-        sb >> std::hex >> b;
-        theme.addColor(name, nvgRGB(r, g, b));
+        if (s.size() >= 7 && s[0] == '#') {
+            std::stringstream sr{s.substr(1, 2)};
+            sr >> std::hex >> r;
+            std::stringstream sg{s.substr(3, 2)};
+            sg >> std::hex >> g;
+            std::stringstream sb{s.substr(5, 2)};
+            sb >> std::hex >> b;
+            theme.addColor(name, nvgRGB(r, g, b));
+        } else {
+            theme.addColor(name, defaultColor);
+        }
     }
 }
 

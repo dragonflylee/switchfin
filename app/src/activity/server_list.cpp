@@ -17,7 +17,7 @@ using namespace brls::literals;  // for _i18n
 
 class ServerCell : public brls::Box {
 public:
-    ServerCell(const AppServer& s) {
+    ServerCell(const AppServer& s) : server(s) {
         this->inflateFromXMLRes("xml/view/server_item.xml");
 
         this->setFocusSound(brls::SOUND_FOCUS_SIDEBAR);
@@ -32,8 +32,10 @@ public:
         this->addGestureRecognizer(new brls::TapGestureRecognizer(this));
 
         this->labelName->setText(s.name.empty() ? "-" : s.name);
-        this->labelUrl->setText(s.urls.front());
+        this->labelUrl->setText(s.urls.empty() ? "-" : s.urls.front());
     }
+
+    AppServer server;
 
     void setActive(bool active) {
         auto theme = brls::Application::getTheme();
@@ -45,8 +47,6 @@ public:
             this->labelName->setTextColor(theme["brls/text"]);
         }
     }
-
-    bool getActive() { return this->accent->getVisibility() == brls::Visibility::VISIBLE; }
 
 private:
     BRLS_BIND(brls::Rectangle, accent, "brls/sidebar/item_accent");
@@ -75,6 +75,7 @@ public:
 
     RecyclingGridItem* cellForRow(RecyclingView* recycler, size_t index) override {
         UserCell* cell = dynamic_cast<UserCell*>(recycler->dequeueReusableCell("Cell"));
+        if (!cell) return nullptr;
         auto& u = this->list.at(index);
         auto deleteAction = [this, u](brls::View* view) {
             Dialog::cancelable("main/setting/server/delete"_i18n, [this, u]() {
@@ -96,18 +97,21 @@ public:
     void onItemSelected(brls::Box* recycler, size_t index) override {
         brls::Application::blockInputs();
 
-        brls::async([this, index]() {
-            auto& u = this->list.at(index);
+        AppUser u = this->list.at(index);
+        ServerList* parent = this->parent;
+        brls::async([u, parent]() {
             HTTP::Header header = {AppConfig::instance().getAuth(u.access_token)};
-            std::string uri = fmt::format("{}/Users/{}", this->parent->getUrl(), u.id);
+            std::string url = parent->getUrl();
+            std::string uri = fmt::format("{}/Users/{}", url, u.id);
 
             try {
                 std::string resp = HTTP::get(uri, header, HTTP::Timeout{});
                 jellyfin::UserInfo info = nlohmann::json::parse(resp);
-                u.is_admin = info.Policy.IsAdministrator;
-                u.config = std::move(info.Configuration);
-                brls::sync([this, u]() {
-                    AppConfig::instance().addUser(u, this->parent->getUrl());
+                AppUser user = u;
+                user.is_admin = info.Policy.IsAdministrator;
+                user.config = std::move(info.Configuration);
+                brls::sync([user, url]() {
+                    AppConfig::instance().addUser(user, url);
                     brls::Application::unblockInputs();
                     brls::Application::clear();
                     brls::Application::pushActivity(new MainActivity(), brls::TransitionAnimation::NONE);
@@ -168,16 +172,18 @@ void ServerList::willAppear(bool resetState) {
     std::string url = AppConfig::instance().getUrl();
     this->sidebarServers->clearViews();
 
-    for (auto& s : AppConfig::instance().getServers()) {
+    auto servers = AppConfig::instance().getServers();
+    for (const auto& s : servers) {
+        if (s.urls.empty()) continue;
         item = new ServerCell(s);
-        item->getFocusEvent()->subscribe([&](brls::View* view) {
+        item->getFocusEvent()->subscribe([this, item](brls::View* view) {
             this->setActive(view);
-            this->onServer(s);
+            this->onServer(item->server);
         });
 
-        auto deleteAction = [&](brls::View* item) {
-            Dialog::cancelable("main/setting/server/delete"_i18n, [&]() {
-                if (AppConfig::instance().removeServer(s.id)) {
+        auto deleteAction = [this, item](brls::View*) {
+            Dialog::cancelable("main/setting/server/delete"_i18n, [this, item]() {
+                if (AppConfig::instance().removeServer(item->server.id)) {
                     brls::View* view = new ServerAdd();
                     this->tabFrame->setTabAttachedView(view);
                     brls::Application::giveFocus(view);
@@ -190,14 +196,10 @@ void ServerList::willAppear(bool resetState) {
         item->registerAction("hints/delete"_i18n, brls::BUTTON_X, deleteAction);
         item->registerAction(brls::BRLS_KBD_KEY_DELETE, deleteAction);
 
-        if (s.urls.size() > 0) {
-            if (url.empty()) {
-                url = s.urls.front();
-            }
-            if (s.urls.front() == url) {
-                item->setActive(true);
-                this->onServer(s);
-            }
+        if (url.empty()) url = s.urls.front();
+        if (s.urls.front() == url) {
+            item->setActive(true);
+            this->onServer(item->server);
         }
 
         this->sidebarServers->addView(item);
@@ -208,12 +210,12 @@ void ServerList::willAppear(bool resetState) {
 
 void ServerList::onServer(const AppServer& s) {
     this->inputUrl->setDetailText(s.urls.front());
-    this->inputUrl->registerClickAction([&](...) {
-        brls::Dropdown* dropdown = new brls::Dropdown("main/setting/url"_i18n, s.urls, [&](int selected) {
+    this->inputUrl->registerClickAction([this, s](...) {
+        brls::Dropdown* dropdown = new brls::Dropdown("main/setting/url"_i18n, s.urls, [this, s](int selected) {
             const std::string& url = s.urls[selected];
-            auto updateAction = [&](const std::string& text) {
+            auto updateAction = [this, id = s.id](const std::string& text) {
                 AppServer server;
-                server.id = s.id;
+                server.id = id;
                 server.urls.push_back(text);
                 AppConfig::instance().addServer(server);
                 this->inputUrl->setDetailText(text);

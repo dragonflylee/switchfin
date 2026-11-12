@@ -84,14 +84,13 @@ VideoProgressSlider::VideoProgressSlider() {
         new brls::TapGestureRecognizer([this](brls::TapGestureStatus status, brls::Sound* soundToPlay) {
             if (status.state != brls::GestureState::END) return;
             float paddingWidth = getWidth() - pointer->getWidth();
-            float delta = status.position.x - pointer->getWidth() / 2.0f - pointer->getX();
-            setProgress(progress + delta / paddingWidth);
+            float localX       = status.position.x - getX();
+            setProgress((localX - pointer->getWidth() / 2.0f) / paddingWidth);
             progressSetEvent.fire(this->progress);
             brls::Application::giveFocus(this->getParentActivity()->getContentView());
         }));
 
     progress = 0;
-    lastProgress = 0;
 }
 
 brls::View* VideoProgressSlider::create() { return new VideoProgressSlider(); }
@@ -104,8 +103,6 @@ void VideoProgressSlider::onLayout() {
 brls::View* VideoProgressSlider::getDefaultFocus() { return pointer; }
 
 void VideoProgressSlider::setProgress(float progress) {
-    this->lastProgress = progress;
-
     this->progress = progress;
     if (this->progress < 0) this->progress = 0;
     if (this->progress > 1) this->progress = 1;

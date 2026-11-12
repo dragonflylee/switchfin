@@ -101,6 +101,42 @@ static void dxt_compress(uint8_t* dst, uint8_t* src, uint32_t w, uint32_t h, boo
 }
 #endif
 
+// Some transparent logos (e.g. TMDB) carry a near-white opaque bar along the
+// border that bilinear CLAMP sampling smears into a visible white band. Clear
+// the alpha of contiguous near-white opaque edge columns/rows; normal artwork
+// is untouched because a line must be ~all white to qualify.
+static bool is_white_line(const uint8_t* p, int w, int h, int x, int y, int dx, int dy) {
+    int hit = 0;
+    for (int i = 0, n = dx ? w : h; i < n; i++) {
+        const uint8_t* px = p + ((size_t)(y + dy * i) * w + (x + dx * i)) * 4;
+        if (px[3] >= 250 && px[0] >= 250 && px[1] >= 250 && px[2] >= 250) hit++;
+    }
+    return hit * 100 >= (dx ? w : h) * 95;
+}
+
+static void clear_line(uint8_t* p, int w, int h, int x, int y, int dx, int dy) {
+    for (int i = 0, n = dx ? w : h; i < n; i++) p[((size_t)(y + dy * i) * w + (x + dx * i)) * 4 + 3] = 0;
+}
+
+static void trim_white_border(uint8_t* p, int w, int h) {
+    // Only scan a small fraction of each border so an all-white image does not
+    // cost a full pass per edge.
+    const int maxX = w / 20 > 0 ? w / 20 : 1;
+    const int maxY = h / 20 > 0 ? h / 20 : 1;
+    for (int i = 0; i < maxX && i < w; i++) {
+        if (is_white_line(p, w, h, i, 0, 0, 1)) clear_line(p, w, h, i, 0, 0, 1); else break;
+    }
+    for (int i = 0; i < maxX && i < w; i++) {
+        if (is_white_line(p, w, h, w - 1 - i, 0, 0, 1)) clear_line(p, w, h, w - 1 - i, 0, 0, 1); else break;
+    }
+    for (int i = 0; i < maxY && i < h; i++) {
+        if (is_white_line(p, w, h, 0, i, 1, 0)) clear_line(p, w, h, 0, i, 1, 0); else break;
+    }
+    for (int i = 0; i < maxY && i < h; i++) {
+        if (is_white_line(p, w, h, 0, h - 1 - i, 1, 0)) clear_line(p, w, h, 0, h - 1 - i, 1, 0); else break;
+    }
+}
+
 Image::Image() : image(nullptr) {
     this->isCancel = std::make_shared<std::atomic_bool>(false);
     brls::Logger::verbose("new Image {}", fmt::ptr(this));
@@ -113,8 +149,15 @@ void Image::with(brls::Image* view, const std::string& url) {
 }
 
 void Image::with(brls::Image* view, const std::string& url, const HTTP::Header& headers) {
+    if (view == nullptr) return;
+
     int tex = brls::TextureCache::instance().getCache(url);
     if (tex > 0) {
+        // 纹理由缓存统一管理，view 不得自行销毁，否则下次命中会是已释放的句柄
+        view->setFreeTexture(false);
+        // 复用 view 时归还旧纹理引用计数，避免泄漏
+        int old = view->getTexture();
+        if (old > 0 && old != tex) brls::TextureCache::instance().removeCache(old);
         view->innerSetImage(tex);
         return;
     }
@@ -159,15 +202,24 @@ void Image::cancel(brls::Image* view) {
 }
 
 void Image::doRequest(HTTP& s) {
-    if (this->isCancel->load()) {
-        Image::clear(this->image);
-        return;
+    // 在锁内拷贝参数，避免与主线程 with() 写入成员产生数据竞争
+    std::string url;
+    HTTP::Header headers;
+    brls::Image* imagePtr = nullptr;
+    HTTP::Cancel isCancelCopy;
+    {
+        std::lock_guard<std::mutex> lock(requestMutex);
+        url = this->url;
+        headers = this->headers;
+        imagePtr = this->image;
+        isCancelCopy = this->isCancel;
     }
+
     try {
         std::ostringstream body;
-        HTTP::set_option(s, this->isCancel, HTTP::Timeout{});
-        if (!this->headers.empty()) HTTP::set_option(s, this->headers);
-        s._get(this->url, &body);
+        HTTP::set_option(s, isCancelCopy, HTTP::Timeout{});
+        if (!headers.empty()) HTTP::set_option(s, headers);
+        s._get(url, &body);
         std::string data = body.str();
         uint8_t* imageData = nullptr;
         int imageW = 0, imageH = 0;
@@ -183,6 +235,8 @@ void Image::doRequest(HTTP& s) {
             int n;
             imageData = stbi_load_from_memory((unsigned char*)data.c_str(), data.size(), &imageW, &imageH, &n, 4);
         }
+
+        if (imageData) trim_white_border(imageData, imageW, imageH);
 
 #ifdef BOREALIS_USE_GXM
         if (imageData) {
@@ -200,15 +254,10 @@ void Image::doRequest(HTTP& s) {
             imageData = compressed;
         }
 #endif
-        auto imagePtr = this->image;
-        auto urlCopy = this->url;
-        auto isCancelCopy = this->isCancel;
-
-        brls::Logger::verbose("request Image {} size {}", urlCopy, data.size());
-        brls::sync([imagePtr, urlCopy, isCancelCopy, imageData, imageW, imageH, isWebp] {
+        brls::Logger::verbose("request Image {} size {}", url, data.size());
+        brls::sync([imagePtr, url, isCancelCopy, imageData, imageW, imageH, isWebp] {
             if (!isCancelCopy->load()) {
-                // Load texture
-                int tex = brls::TextureCache::instance().getCache(urlCopy);
+                int tex = brls::TextureCache::instance().getCache(url);
                 if (tex == 0 && imageData != nullptr) {
                     NVGcontext* vg = brls::Application::getNVGContext();
 #ifdef BOREALIS_USE_GXM
@@ -217,9 +266,14 @@ void Image::doRequest(HTTP& s) {
 #else
                     tex = nvgCreateImageRGBA(vg, imageW, imageH, 0, imageData);
 #endif
-                    brls::TextureCache::instance().addCache(urlCopy, tex);
+                    brls::TextureCache::instance().addCache(url, tex);
                 }
-                if (tex > 0) imagePtr->innerSetImage(tex);
+                if (tex > 0) {
+                    // 复用 view 时归还旧纹理引用计数，避免泄漏
+                    int old = imagePtr->getTexture();
+                    if (old > 0 && old != tex) brls::TextureCache::instance().removeCache(old);
+                    imagePtr->innerSetImage(tex);
+                }
                 clear(imagePtr);
             }
             if (imageData) {
@@ -236,8 +290,8 @@ void Image::doRequest(HTTP& s) {
             }
         });
     } catch (const std::exception& ex) {
-        brls::Logger::warning("request image {} {}", this->url, ex.what());
-        Image::clear(this->image);
+        brls::Logger::warning("request image {} {}", url, ex.what());
+        Image::clear(imagePtr);
     }
 }
 
