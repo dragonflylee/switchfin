@@ -17,6 +17,8 @@ public:
     RemoteAdd(std::function<void()> onDone, int editIndex = -1);
     ~RemoteAdd() override;
 
+    bool isTranslucent() override { return true; }
+
     /// Pushes the form as an activity. `onDone` is called after a
     /// successful save (the caller refreshes its server list).
     static void open(std::function<void()> onDone, int editIndex = -1);

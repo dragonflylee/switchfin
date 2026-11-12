@@ -63,4 +63,4 @@ void GalleryActivity::onContentAvailable() {
 
 GalleryActivity::~GalleryActivity() { brls::Logger::debug("GalleryActivity: delete"); }
 
-bool GalleryActivity::isTranslucent() { return true; }
+bool GalleryActivity::isTranslucent() { return urls.size() < 1; }
