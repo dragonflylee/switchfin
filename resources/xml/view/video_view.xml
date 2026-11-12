@@ -459,4 +459,30 @@
         </brls:Box>
     </brls:Box>
 
+    <!-- 片头/片尾跳过按钮，由 VideoView 控制显示 -->
+    <brls:Box
+        id="video/segment/box"
+        width="auto"
+        height="50"
+        alignItems="center"
+        justifyContent="center"
+        visibility="gone"
+        positionType="absolute"
+        positionBottom="150"
+        positionRight="60"
+        cornerRadius="8"
+        backgroundColor="#000000A0"
+        focusable="false"
+        hideHighlightBackground="true"
+        highlightCornerRadius="8">
+        <brls:Label
+            id="video/segment/label"
+            marginLeft="20"
+            marginRight="20"
+            textColor="@theme/color/white"
+            horizontalAlign="center"
+            verticalAlign="center"
+            text="@i18n/main/player/skip" />
+    </brls:Box>
+
 </brls:Box>

@@ -53,7 +53,13 @@
     "next": "Next",
     "error": "Playback error",
     "episode": "Episode",
-    "speed_up": "Current speed {}"
+    "speed_up": "Current speed {}",
+    "skip": "Skip",
+    "skip_intro": "Skip Intro",
+    "skip_credits": "Skip Credits",
+    "skip_recap": "Skip Recap",
+    "skip_preview": "Skip Preview",
+    "skip_commercial": "Skip Commercial"
   },
   "ebook": {
     "zoom": "Zoom",
@@ -214,7 +220,11 @@
       "transcodec": "Codec",
       "audio_channels": "Audio Channels",
       "video_quality": "Video Quality",
-      "subsync": "Subtitle Sync"
+      "subsync": "Subtitle Sync",
+      "segment": "Intro/credits skipping",
+      "segment_off": "Off",
+      "segment_ask": "Ask",
+      "segment_skip": "Skip automatically"
     },
     "transcode": {
       "header": "Transcode"

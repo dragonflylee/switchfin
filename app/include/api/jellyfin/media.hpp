@@ -17,6 +17,9 @@ const std::string_view apiShowEpisodes = "/Shows/{}/Episodes?{}";
 const std::string_view apiSimilar = "/Items/{}/Similar?{}";
 const std::string_view apiLiveChannels = "/LiveTv/Channels?{}";
 const std::string_view apiProgramRecommend = "/LiveTv/Programs/Recommended?{}";
+// Media segments (intro/credits/recap/...) published by a server side provider,
+// e.g. the Intro Skipper plugin. Jellyfin 10.10+ only.
+const std::string_view apiMediaSegments = "/MediaSegments/{}";
 const std::string_view apiGenres = "/Genres?{}";
 const std::string_view apiArtists = "/Artists?{}";
 const std::string_view apiMovieRecommend = "/Movies/Recommendations?{}";
@@ -71,6 +74,16 @@ const std::string mediaTypePlaylist = "Playlist";
 const std::string mediaTypeProgram = "Program";
 const std::string mediaTypeTvChannel = "TvChannel";
 
+// MediaSegmentType values, kept as strings on purpose: an unknown type reported by a
+// newer server must not break playback, so requests always send an explicit list.
+const std::string segTypeIntro = "Intro";
+const std::string segTypeCredits = "Credits";
+// Jellyfin 10.10 named this "Outro", later releases renamed it to "Credits"
+const std::string segTypeRecap = "Recap";
+const std::string segTypePreview = "Preview";
+const std::string segTypeCommercial = "Commercial";
+const std::string segTypeOutro = "Outro";
+
 const std::string streamTypeVideo = "Video";
 const std::string streamTypeAudio = "Audio";
 const std::string streamTypeSubtitle = "Subtitle";
@@ -97,6 +110,17 @@ struct MediaChapter {
     uint64_t StartPositionTicks = 0;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaChapter, Name, StartPositionTicks);
+
+// A skippable part of a media item. EndTicks is 0 for segments that run to the end
+// of the item (an outro), see MediaSegments / MediaSegmentDto in the Jellyfin API.
+struct MediaSegment {
+    std::string Id;
+    std::string ItemId;
+    std::string Type;
+    uint64_t StartTicks = 0;
+    uint64_t EndTicks = 0;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaSegment, Id, ItemId, Type, StartTicks, EndTicks);
 
 struct Genres {
     std::string Id;
