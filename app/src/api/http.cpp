@@ -2,6 +2,7 @@
 #include "utils/config.hpp"
 #include <borealis/core/logger.hpp>
 #include <curl/curl.h>
+#include <mutex>
 #if defined(BOREALIS_USE_GXM)
 #include <mbedtls/platform.h>
 #include <psp2/gxm.h>
@@ -85,36 +86,59 @@ const std::string HTTP::USER_AGENT = fmt::format(
 
 /// @brief curl context
 
+static std::mutex share_mutex;
+
+static void curl_share_lock_cb(CURL*, curl_lock_data, curl_lock_access, void* userptr) {
+    static_cast<std::mutex*>(userptr)->lock();
+}
+
+static void curl_share_unlock_cb(CURL*, curl_lock_data, void* userptr) {
+    static_cast<std::mutex*>(userptr)->unlock();
+}
+
 HTTP::HTTP() : chunk(nullptr) {
     static struct Global {
         Global() {
 #ifdef BOREALIS_USE_GXM
             mbedtls_platform_set_calloc_free(sce_calloc, sce_free);
-            curl_global_init_mem(CURL_GLOBAL_DEFAULT, sce_malloc, sce_free, sce_realloc, sce_strdup, sce_calloc);
+            CURLcode rc = curl_global_init_mem(CURL_GLOBAL_DEFAULT, sce_malloc, sce_free, sce_realloc, sce_strdup, sce_calloc);
 #else
             CURLcode rc = curl_global_init(CURL_GLOBAL_ALL);
             brls::Logger::debug("curl global init {}", std::to_string(rc));
 #endif
+            if (rc != CURLE_OK) {
+                brls::Logger::error("curl global init failed: {}", curl_easy_strerror(rc));
+                return;
+            }
             this->share = curl_share_init();
-            curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
+            if (!this->share) {
+                brls::Logger::error("curl share init failed");
+                return;
+            }
+            curl_share_setopt(share, CURLSHOPT_LOCKFUNC, curl_share_lock_cb);
+            curl_share_setopt(share, CURLSHOPT_UNLOCKFUNC, curl_share_unlock_cb);
+            curl_share_setopt(share, CURLSHOPT_USERDATA, &share_mutex);
+            CURLSHcode code = curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
+            if (code != CURLSHE_OK) {
+                brls::Logger::warning("curl share DNS disabled: {}", curl_share_strerror(code));
+                curl_share_cleanup(this->share);
+                this->share = nullptr;
+            }
         }
         ~Global() {
-            curl_share_cleanup(this->share);
+            if (this->share) curl_share_cleanup(this->share);
             curl_global_cleanup();
             brls::Logger::debug("curl cleanup");
         }
-        // Avoids initalization order problems
-        std::mutex init_lock;
         CURLSH* share;
     } global;
 
-    global.init_lock.lock();
     this->easy = curl_easy_init();
-    global.init_lock.unlock();
+    if (this->easy == nullptr) return;
 
     curl_easy_setopt(this->easy, CURLOPT_USERAGENT, USER_AGENT.c_str());
     curl_easy_setopt(this->easy, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(this->easy, CURLOPT_SHARE, global.share);
+    if (global.share) curl_easy_setopt(this->easy, CURLOPT_SHARE, global.share);
     // enable all supported built-in compressions
     curl_easy_setopt(this->easy, CURLOPT_ACCEPT_ENCODING, "");
     curl_easy_setopt(this->easy, CURLOPT_VERBOSE, 0L);
@@ -212,6 +236,7 @@ size_t HTTP::easy_write_cb(char* ptr, size_t size, size_t nmemb, void* userdata)
 }
 
 int HTTP::perform(std::ostream* body) {
+    if (this->easy == nullptr) throw curl_error("curl handle unavailable (out of memory)");
     curl_easy_setopt(this->easy, CURLOPT_WRITEFUNCTION, easy_write_cb);
     curl_easy_setopt(this->easy, CURLOPT_WRITEDATA, body);
     curl_easy_setopt(this->easy, CURLOPT_PROXY, PROXY_STATUS ? PROXY.c_str() : nullptr);
