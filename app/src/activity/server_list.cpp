@@ -149,6 +149,13 @@ void ServerList::onContentAvailable() {
         return true;
     });
 
+    // AutoTabFrame 会拦截 UP 导航，在详情区按上时手动切回左侧的添加按钮
+    auto focusAdd = [this](brls::View*) {
+        brls::Application::giveFocus(this->btnServerAdd);
+        return true;
+    };
+    this->serverDetail->registerAction("", brls::BUTTON_NAV_UP, focusAdd, true);
+
     if (brls::Application::getActivitiesStack().size() > 1) {
         brls::View* tab = this->getView("tab/remote");
         if (tab) tab->setVisibility(brls::Visibility::GONE);
@@ -158,6 +165,7 @@ void ServerList::onContentAvailable() {
         view->present(new ServerAdd());
         return true;
     });
+    this->sidebarServers->registerAction("", brls::BUTTON_NAV_UP, focusAdd, true);
 
     this->recyclerUsers->registerCell("Cell", []() { return new UserCell(); });
 
