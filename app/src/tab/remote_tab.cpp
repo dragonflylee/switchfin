@@ -24,6 +24,8 @@ RemoteTab::~RemoteTab() { brls::Logger::debug("RemoteTab: deleted"); }
 brls::View* RemoteTab::create() { return new RemoteTab(); }
 
 void RemoteTab::onCreate() {
+    this->views.clear();
+
     AutoSidebarItem* item;
     item = new AutoSidebarItem();
     item->setTabStyle(AutoTabBarStyle::ACCENT);
@@ -49,8 +51,9 @@ void RemoteTab::onCreate() {
 
             auto c = remote::create(r);
             auto view = new RemoteView(c);
+            this->views.push_back(view);
             view->registerAction("hints/edit"_i18n, brls::BUTTON_Y, [this, i](...) {
-                RemoteAdd::open([this]() { this->refresh(); }, (int)i);
+                RemoteAdd::open([this, i]() { this->refreshRemote(i); }, (int)i);
                 return true;
             });
             this->tabFrame->addTab(item, [view, r]() {
@@ -58,15 +61,38 @@ void RemoteTab::onCreate() {
                 return view;
             });
         } catch (const std::exception& ex) {
+            this->views.push_back(nullptr);
             brls::Logger::warning("remote {} create {}", r.name, ex.what());
         }
     }
 }
 
+void RemoteTab::refreshRemote(size_t index) {
+    auto& remotes = AppConfig::instance().getRemotes();
+    if (index >= remotes.size() || index >= this->views.size()) {
+        this->refresh();
+        return;
+    }
+
+    RemoteView* view = this->views[index];
+    if (!view) {
+        this->refresh();
+        return;
+    }
+
+    try {
+        view->reload(remote::create(remotes[index]));
+        if (auto* bar = view->getTabBar()) bar->setLabel(remotes[index].name);
+    } catch (const std::exception& ex) {
+        brls::Logger::warning("remote {} reload {}", remotes[index].name, ex.what());
+        brls::Application::notify(ex.what());
+    }
+}
+
 void RemoteTab::refresh() {
-    // the focus may be in a view about to be destroyed: first put it
-    // back on the parent frame's sidebar (which survives)
+    int active = this->tabFrame->getActiveIndex();
     AutoTabFrame::focus2Sidebar(this);
     this->tabFrame->clearTabs();
     this->onCreate();
+    if (active > 0) this->tabFrame->setDefaultTabIndex((size_t)active);
 }

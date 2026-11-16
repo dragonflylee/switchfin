@@ -42,6 +42,7 @@ private:
     AppRemote build();
     /// Validates, tests the connection (async + spinner) then saves.
     void submit();
+    void save(const AppRemote& r);
 
     std::function<void()> onDone;
     int editIndex;

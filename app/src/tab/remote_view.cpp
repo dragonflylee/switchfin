@@ -383,7 +383,16 @@ void RemoteView::push(const std::string& path) {
     RecyclingGrid* view = this->newRecycler();
     this->stack.push_back(view);
     this->setContent(view);
+    this->path = path;
+    this->load(path);
+}
 
+void RemoteView::reload(Client c) {
+    this->client = c;
+    this->load(this->path);
+}
+
+void RemoteView::load(const std::string& path) {
     ASYNC_RETAIN
     // path 按值捕获：submit 异步执行，引用捕获会在本函数返回后悬垂
     ThreadPool::instance().submit([ASYNC_TOKEN, path](HTTP&) {

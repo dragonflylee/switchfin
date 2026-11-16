@@ -265,6 +265,15 @@ void RemoteAdd::submit() {
         return;
     }
 
+    // unchanged connection: skip the test
+    if (this->editIndex >= 0) {
+        auto& o = AppConfig::instance().getRemotes()[this->editIndex];
+        if (r.url == o.url && r.user == o.user && r.passwd == o.passwd) {
+            this->save(r);
+            return;
+        }
+    }
+
     this->btnSave->setVisibility(brls::Visibility::GONE);
     this->spinner->setVisibility(brls::Visibility::VISIBLE);
     brls::Application::blockInputs();
@@ -282,14 +291,7 @@ void RemoteAdd::submit() {
                 this->spinner->setVisibility(brls::Visibility::GONE);
                 this->btnSave->setVisibility(brls::Visibility::VISIBLE);
 
-                auto& conf = AppConfig::instance();
-                if (this->editIndex < 0)
-                    conf.addRemote(r);
-                else
-                    conf.updateRemote((size_t)this->editIndex, r);
-                auto cb = this->onDone;
-                brls::Application::popActivity();
-                if (cb) cb();
+                this->save(r);
             });
         } catch (const std::exception& ex) {
             std::string error = fmt::format(fmt::runtime("main/remote/test_failed"_i18n), ex.what());
@@ -302,4 +304,15 @@ void RemoteAdd::submit() {
             });
         }
     });
+}
+
+void RemoteAdd::save(const AppRemote& r) {
+    auto& conf = AppConfig::instance();
+    if (this->editIndex < 0)
+        conf.addRemote(r);
+    else
+        conf.updateRemote((size_t)this->editIndex, r);
+    auto cb = this->onDone;
+    brls::Application::popActivity();
+    if (cb) cb();
 }

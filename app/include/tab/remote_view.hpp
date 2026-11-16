@@ -23,6 +23,9 @@ public:
 
     void push(const std::string& path);
 
+    /// Swap the client and re-list the current path in place.
+    void reload(Client c);
+
     void dismiss(std::function<void(void)> cb = [] {}) override;
 
     static void play(const std::string& path, const std::string& name = "", const std::string& itemId = "");
@@ -30,10 +33,12 @@ public:
 protected:
     void setContent(RecyclingGrid* view);
     RecyclingGrid* newRecycler();
+    void load(const std::string& path);
 
     std::vector<RecyclingGrid*> stack;
     RecyclingGrid* recycler;
     Client client;
+    std::string path;
 };
 
 class UmsView : public RemoteView {
