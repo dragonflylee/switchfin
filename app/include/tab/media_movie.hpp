@@ -32,6 +32,7 @@ private:
     BRLS_BIND(brls::Label, labelRating, "movie/label/rating");
     BRLS_BIND(TextBox, labelOverview, "movie/label/overview");
     BRLS_BIND(brls::Label, labelGenres, "movie/label/genres");
+    BRLS_BIND(brls::Label, labelPlaybackTiming, "movie/label/playback_timing");
     BRLS_BIND(brls::Header, labelSimilar, "movie/label/similar");
     BRLS_BIND(brls::SelectorCell, btnSource, "movie/source");
     BRLS_BIND(IconButton, btnPlay, "movie/play");
@@ -44,12 +45,15 @@ private:
     void doMovie();
     void doSimilar();
     void updateDownloadButton();
+    void updatePlaybackTiming();
 
     bool doFavorite();
     bool unFavorite();
     void updateFavoriteButton(bool favorite);
 
+    const uint64_t runTimeTicks;
     int64_t playTicks = 0;
+    brls::RepeatingTimer playbackTimingTicker;
     std::string itemId;
     std::string sourceId;
     bool isFavorite = false;

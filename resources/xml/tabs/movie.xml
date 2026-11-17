@@ -142,6 +142,14 @@
                         textColor="@theme/font/grey"
                         marginBottom="16" />
 
+                    <brls:Label
+                        id="movie/label/playback_timing"
+                        fontSize="14"
+                        animated="false"
+                        textColor="@theme/font/grey"
+                        visibility="gone"
+                        marginBottom="16" />
+
                     <brls:Box
                         id="movie/buttons"
                         axis="row"

@@ -11,10 +11,12 @@
 #include "utils/misc.hpp"
 #include "utils/dialog.hpp"
 #include <fmt/ranges.h>
+#include <algorithm>
+#include <ctime>
 
 using namespace brls::literals;  // for _i18n
 
-MediaMovie::MediaMovie(const jellyfin::Item& item) : itemId(item.Id) {
+MediaMovie::MediaMovie(const jellyfin::Item& item) : runTimeTicks(item.RunTimeTicks), itemId(item.Id) {
     brls::Logger::debug("Tab MediaMovie: create");
     // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/movie.xml");
@@ -89,6 +91,7 @@ MediaMovie::MediaMovie(const jellyfin::Item& item) : itemId(item.Id) {
 }
 
 MediaMovie::~MediaMovie() {
+    this->playbackTimingTicker.stop();
     brls::Logger::debug("Tab MediaMovie: delete");
     auto& dm = DownloadManager::instance();
     dm.getProgressEvent()->unsubscribe(this->progressSub);
@@ -113,10 +116,33 @@ void MediaMovie::updateDownloadButton() {
     }
 }
 
+void MediaMovie::updatePlaybackTiming() {
+    if (this->runTimeTicks == 0) return;
+
+    const uint64_t minutes = std::max<uint64_t>(1, (this->runTimeTicks / jellyfin::PLAYTICKS + 30) / 60);
+    std::string text = minutes < 60
+        ? fmt::format(fmt::runtime("main/media/duration_minutes"_i18n), minutes)
+        : fmt::format(fmt::runtime("main/media/duration_hours_minutes"_i18n), minutes / 60, minutes % 60);
+
+    const uint64_t position = this->playTicks > 0 ? static_cast<uint64_t>(this->playTicks) : 0;
+    const uint64_t remaining = position < this->runTimeTicks ? this->runTimeTicks - position : this->runTimeTicks;
+    const auto now = std::time(nullptr);
+    if (now != std::time_t(-1)) {
+        const std::time_t finish = now + static_cast<int64_t>(remaining / jellyfin::PLAYTICKS);
+        const std::tm* local = std::localtime(&finish);
+        char time[6];
+        if (local && std::strftime(time, sizeof(time), "%H:%M", local)) {
+            text += " · " + fmt::format(fmt::runtime("main/media/ends_at"_i18n), time);
+        }
+    }
+    this->labelPlaybackTiming->setText(text);
+}
+
 void MediaMovie::doRequest() {
     int64_t ticks = MPVCore::instance().playback_time;
     this->playTicks = ticks * jellyfin::PLAYTICKS;
     this->btnPlay->setText(ticks > 0 ? misc::sec2Time(ticks) : "main/media/play"_i18n);
+    this->updatePlaybackTiming();
 }
 
 void MediaMovie::doMovie() {
@@ -200,6 +226,14 @@ void MediaMovie::doMovie() {
             this->playTicks = r.UserData.PlaybackPositionTicks;
             this->btnPlay->setText(
                 this->playTicks > 0 ? misc::sec2Time(this->playTicks / jellyfin::PLAYTICKS) : "main/media/play"_i18n);
+
+            if (this->runTimeTicks > 0) {
+                this->updatePlaybackTiming();
+                this->labelGenres->setMarginBottom(6);
+                this->labelPlaybackTiming->setVisibility(brls::Visibility::VISIBLE);
+                this->playbackTimingTicker.setCallback([this]() { this->updatePlaybackTiming(); });
+                this->playbackTimingTicker.start(60000);
+            }
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
