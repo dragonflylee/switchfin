@@ -21,6 +21,8 @@ namespace misc {
 
 std::string sec2Time(int64_t t);
 
+std::string formatMediaDuration(uint64_t seconds);
+
 std::string formatSize(uint64_t s);
 
 std::string formatTime(const std::string& str);

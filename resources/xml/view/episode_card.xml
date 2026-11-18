@@ -49,12 +49,29 @@
 
     <brls:Box
         axis="column"
-        marginLeft="20">
-        <brls:Label
-            id="episode/card/name"
+        marginLeft="20"
+        grow="1"
+        shrink="1">
+        <brls:Box
             margin="10"
-            singleLine="true"
-            fontSize="18" />
+            axis="row"
+            alignItems="center">
+            <brls:Label
+                id="episode/card/name"
+                grow="1"
+                shrink="1"
+                singleLine="true"
+                fontSize="18" />
+            <brls:Label
+                id="episode/card/duration"
+                marginLeft="12"
+                shrink="0"
+                singleLine="true"
+                animated="false"
+                fontSize="14"
+                textColor="@theme/font/grey"
+                visibility="gone" />
+        </brls:Box>
 
         <TextBox
             id="episode/card/overview"

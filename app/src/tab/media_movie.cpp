@@ -11,7 +11,6 @@
 #include "utils/misc.hpp"
 #include "utils/dialog.hpp"
 #include <fmt/ranges.h>
-#include <algorithm>
 #include <ctime>
 
 using namespace brls::literals;  // for _i18n
@@ -119,10 +118,7 @@ void MediaMovie::updateDownloadButton() {
 void MediaMovie::updatePlaybackTiming() {
     if (this->runTimeTicks == 0) return;
 
-    const uint64_t minutes = std::max<uint64_t>(1, (this->runTimeTicks / jellyfin::PLAYTICKS + 30) / 60);
-    std::string text = minutes < 60
-        ? fmt::format(fmt::runtime("main/media/duration_minutes"_i18n), minutes)
-        : fmt::format(fmt::runtime("main/media/duration_hours_minutes"_i18n), minutes / 60, minutes % 60);
+    std::string text = misc::formatMediaDuration(this->runTimeTicks / jellyfin::PLAYTICKS);
 
     const uint64_t position = this->playTicks > 0 ? static_cast<uint64_t>(this->playTicks) : 0;
     const uint64_t remaining = position < this->runTimeTicks ? this->runTimeTicks - position : this->runTimeTicks;

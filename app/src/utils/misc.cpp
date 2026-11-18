@@ -153,6 +153,14 @@ std::string misc::sec2Time(int64_t t) {
     return pre0(hour, 2) + ":" + pre0(minute, 2) + ":" + pre0(sec, 2);
 }
 
+std::string misc::formatMediaDuration(uint64_t seconds) {
+    const uint64_t minutes = std::max<uint64_t>(1, seconds / 60 + (seconds % 60 >= 30));
+    if (minutes < 60) {
+        return fmt::format(fmt::runtime("main/media/duration_minutes"_i18n), minutes);
+    }
+    return fmt::format(fmt::runtime("main/media/duration_hours_minutes"_i18n), minutes / 60, minutes % 60);
+}
+
 std::string misc::formatSize(uint64_t s) {
     if (s == 0) return "-";
     if (s < (1 << 20)) return fmt::format("{}KB", s / 1024);
