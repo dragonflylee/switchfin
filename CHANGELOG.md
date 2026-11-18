@@ -4,6 +4,11 @@
 
 ### Added
 
+* skip intros, credits, recaps, previews and commercials using Jellyfin media segments API
+  (Intro Skipper and other providers)
+* player setting to ask before skipping, skip automatically or ignore media segments
+* `key_skip_segment` shortcut (default `n`), gamepad LT and an on-screen skip prompt
+* open-ended outro segments advance to the next episode
 * gallery: browse images with L/R paging, zoom (buttons or pinch) and drag to pan
 
 ### Fixed

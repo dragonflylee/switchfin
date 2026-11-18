@@ -8,6 +8,9 @@
 #include <utils/event.hpp>
 #include <api/jellyfin/media.hpp>
 
+#include <atomic>
+#include <memory>
+
 class VideoView;
 
 class PlayerView : public brls::Box {
@@ -33,6 +36,8 @@ public:
 
 private:
     void setChapters(const std::vector<jellyfin::MediaChapter>& chaps, uint64_t duration);
+    /// @brief 拉取媒体片段（片头/片尾等），Jellyfin 10.10+ 的 MediaSegments API
+    void requestSegments(const std::string& mediaId);
     /// @brief get video url
     void playMedia(const uint64_t seekTicks);
     bool playIndex(int index);
@@ -57,4 +62,8 @@ private:
     brls::VoidEvent::Subscription settingSubscribeID;
     MPVCustomEvent::Subscription customEventSubscribeID;
     VideoView* view = nullptr;
+
+    /// Set when the player is closed or switches items, so a pending segment
+    /// request aborts instead of delaying shutdown on the async task thread.
+    std::shared_ptr<std::atomic_bool> segmentCancel;
 };

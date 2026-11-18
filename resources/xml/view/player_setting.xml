@@ -73,6 +73,8 @@
                         id="setting/player/bottom_bar" />
                     <brls:BooleanCell
                         id="setting/player/osd_on_toggle" />
+                    <brls:SelectorCell
+                        id="setting/player/segment" />
                 </brls:Box>
 
                 <brls:Header

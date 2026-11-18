@@ -86,6 +86,7 @@ public:
         PLAYER_ASPECT,
         PLAYER_SUBS_FALLBACK,
         PLAYER_TV_MODE,
+        PLAYER_SEGMENT_MODE,  // 片头/片尾处理方式：关闭/询问/自动跳过
         DANMAKU,
         DANMAKU_ON,
         DANMAKU_STYLE_AREA,
@@ -123,6 +124,7 @@ public:
         KEY_VIDEO_SPEED,    // 视频倍速菜单快捷键
         KEY_VIDEO_OSD,      // 切换OSD显示
         KEY_VIDEO_PAUSE,    // 视频播放暂停快捷键
+        KEY_SKIP_SEGMENT,   // 跳过片头/片尾快捷键
     };
 
     AppConfig() = default;

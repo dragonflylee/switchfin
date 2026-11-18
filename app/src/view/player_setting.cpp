@@ -2,6 +2,7 @@
 #include "view/button_close.hpp"
 #include "view/mpv_core.hpp"
 #include "view/player_setting.hpp"
+#include "view/video_view.hpp"
 
 using namespace brls::literals;
 
@@ -126,6 +127,18 @@ PlayerSetting::PlayerSetting(const jellyfin::Source* src) {
         "main/setting/playback/osd_on_toggle"_i18n, conf.getItem(AppConfig::OSD_ON_TOGGLE, true), [&conf](bool value) {
             MPVCore::OSD_ON_TOGGLE = value;
             conf.setItem(AppConfig::OSD_ON_TOGGLE, value);
+        });
+
+    /// 片头/片尾跳过方式
+    btnSegmentMode->init("main/setting/playback/segment"_i18n,
+        {
+            "main/setting/playback/segment_off"_i18n,
+            "main/setting/playback/segment_ask"_i18n,
+            "main/setting/playback/segment_skip"_i18n,
+        },
+        conf.getValueIndex(AppConfig::PLAYER_SEGMENT_MODE, 1), [&conf](int selected) {
+            VideoView::SEGMENT_MODE = segment::toMode(selected);
+            conf.setItem(AppConfig::PLAYER_SEGMENT_MODE, selected);
         });
 
     /// Player mirror

@@ -48,6 +48,7 @@ constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
 #include "utils/thread.hpp"
 #include "view/mpv_core.hpp"
 #include "view/danmaku_core.hpp"
+#include "view/video_view.hpp"
 #include <lunasvg.h>
 
 std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
@@ -89,6 +90,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {PLAYER_HWDEC_CUSTOM, {"player_hwdec_custom"}},
     {PLAYER_ASPECT, {"player_aspect", {"auto", "stretch", "crop", "4:3", "16:9"}}},
     {PLAYER_TV_MODE, {"player_tv_mode"}},
+    {PLAYER_SEGMENT_MODE, {"player_segment_mode", {"off", "ask", "skip"}, {0, 1, 2}}},
     {DANMAKU, {"danmaku"}},
     {DANMAKU_ON, {"danmaku_on"}},
     {DANMAKU_STYLE_AREA, {"danmaku_style_area", {"1/4", "1/2", "3/4", "1"}, {25, 50, 75, 100}}},
@@ -148,6 +150,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {KEY_VIDEO_SPEED, {"key_video_speed"}},
     {KEY_VIDEO_OSD, {"key_video_osd"}},
     {KEY_VIDEO_PAUSE, {"key_video_pause"}},
+    {KEY_SKIP_SEGMENT, {"key_skip_segment"}},
 };
 
 static std::string generateDeviceId() {
@@ -353,6 +356,8 @@ bool AppConfig::init() {
     // 初始化视频比例
     MPVCore::VIDEO_ASPECT = this->getItem(PLAYER_ASPECT, MPVCore::VIDEO_ASPECT);
     MPVCore::OSD_TV_MODE = this->getItem(PLAYER_TV_MODE, false);
+    // 初始化片头/片尾片段的处理方式（默认询问）
+    VideoView::SEGMENT_MODE = segment::toMode(this->getItem(PLAYER_SEGMENT_MODE, 1));
 
     // 初始化弹幕相关内容
     DanmakuCore::DANMAKU_ON = this->getItem(DANMAKU_ON, true);
@@ -388,6 +393,7 @@ bool AppConfig::init() {
     KeyBind::setRewind(this->getItem(KEY_REWIND, std::string{"["}));
     KeyBind::setVideoOsd(this->getItem(KEY_VIDEO_OSD, std::string{"o"}));
     KeyBind::setVideoPause(this->getItem(KEY_VIDEO_PAUSE, std::string{"space"}));
+    KeyBind::setSkipSegment(this->getItem(KEY_SKIP_SEGMENT, std::string{"n"}));
 
     // 初始化一些在创建窗口之后才能初始化的内容
     brls::Application::getWindowCreationDoneEvent()->subscribe([this]() {
