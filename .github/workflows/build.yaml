@@ -227,6 +227,8 @@ jobs:
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-26.08
       options: --privileged
+      volumes:
+        - /var/lib/flatpak
     runs-on: ${{ matrix.runner }}
     if: ${{ inputs.platform == 'flatpak' || github.event_name != 'workflow_dispatch' }}
     steps:
