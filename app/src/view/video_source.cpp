@@ -80,6 +80,7 @@ public:
     EpisodeCardCell() { this->inflateFromXMLRes("xml/view/episode_card.xml"); }
 
     BRLS_BIND(brls::Label, labelName, "episode/card/name");
+    BRLS_BIND(brls::Label, labelDuration, "episode/card/duration");
     BRLS_BIND(brls::Label, labelOverview, "episode/card/overview");
 };
 
@@ -111,6 +112,12 @@ public:
             cell->labelName->setText(fmt::format("{}. {}", item.IndexNumber, item.Name));
         } else {
             cell->labelName->setText(item.Name);
+        }
+        if (item.RunTimeTicks > 0) {
+            cell->labelDuration->setText(misc::formatMediaDuration(item.RunTimeTicks / jellyfin::PLAYTICKS));
+            cell->labelDuration->setVisibility(brls::Visibility::VISIBLE);
+        } else {
+            cell->labelDuration->setVisibility(brls::Visibility::GONE);
         }
         cell->labelOverview->setText(item.Overview);
 
