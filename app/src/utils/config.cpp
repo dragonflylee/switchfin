@@ -402,6 +402,13 @@ bool AppConfig::init() {
             brls::Application::setSwapInputKeys(!brls::Application::isSwapInputKeys());
         }
 
+        {
+            int fontSize = 0;
+            auto fontData = nvgGetFontData(
+                brls::Application::getNVGContext(), brls::Application::getFont(brls::FONT_REGULAR), &fontSize);
+            if (fontData) lunasvg_add_font_face_from_data("", false, false, fontData, fontSize, nullptr, nullptr);
+        }
+
         // 初始化弹幕字体
         std::string danmakuFont = this->configDir() + "/danmaku.ttf";
         // 只在应用模式下加载自定义字体 减少switch上的内存占用
@@ -461,15 +468,6 @@ bool AppConfig::init() {
     if (getItem(AppConfig::OVERCLOCK, false)) {
         SwitchSys::setClock(true);
     };
-    PlFontData font;
-    if (R_SUCCEEDED(plGetSharedFontByType(&font, PlSharedFontType_Standard))) {
-        lunasvg_add_font_face_from_data("", false, false, font.address, font.size, nullptr, nullptr);
-    }
-#elif !defined(USE_LIBROMFS)
-    lunasvg_add_font_face_from_file("", false, false, BRLS_ASSET("font/switch_font.ttf"));
-#else
-    auto& font = romfs::get("font/switch_font.ttf");
-    if (font.valid()) lunasvg_add_font_face_from_data("", false, false, font.data(), font.size(), nullptr, nullptr);
 #endif
     Ums::instance().init();
 

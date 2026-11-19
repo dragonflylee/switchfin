@@ -1,10 +1,11 @@
+#include <libretro-common/retro_timers.h>
+#include <curl/curl.h>
+
 #include "api/websocket.hpp"
 #include "utils/config.hpp"
 #include "api/jellyfin.hpp"
 #include <view/mpv_core.hpp>
 #include <activity/player_view.hpp>
-#include <libretro-common/retro_timers.h>
-#include <curl/curl.h>
 
 namespace {
 const std::string msgKeepAlive = R"({"MessageType":"KeepAlive"})";
