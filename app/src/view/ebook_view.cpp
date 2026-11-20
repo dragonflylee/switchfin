@@ -6,7 +6,8 @@
 #include "utils/keybind.hpp"
 #include <mupdf/fitz.h>
 
-namespace {
+namespace mupdf {
+
 // MuPDF 仅在 context 具有真实 lock 回调时才允许 fz_clone_context()。
 std::mutex gFzLocks[FZ_LOCK_MAX];
 
@@ -17,8 +18,11 @@ void fzUnlockCB(void* user, int lock) {
     if (lock >= 0 && lock < FZ_LOCK_MAX) gFzLocks[lock].unlock();
 }
 
+// Register borealis fonts (Latin + CJK + fallback) as MuPDF system font hooks.
+void install_font(fz_context* ctx);
+
 fz_locks_context gFzLocksCtx = {nullptr, fzLockCB, fzUnlockCB};
-}  // namespace
+}  // namespace mupdf
 
 class fz_error : public std::exception {
 public:
@@ -58,10 +62,6 @@ EBookView::EBookView() {
     this->setPaddingTop(10.f);
     this->setPaddingBottom(10.f);
     this->setClipsToBounds(true);
-
-    this->ctx = fz_new_context(nullptr, &gFzLocksCtx, FZ_STORE_DEFAULT);
-    if (!this->ctx) brls::Logger::error("EBookView: failed to create MuPDF context");
-    else fz_register_document_handlers(this->ctx);
 
     this->registerAction("hints/back"_i18n, brls::BUTTON_B,
         [this](brls::View* view) { return brls::Application::popActivity(brls::TransitionAnimation::NONE); });
@@ -130,11 +130,20 @@ EBookView::EBookView() {
             this->updateLayout();
         },
         brls::PanAxis::ANY));
+
+    this->ctx = fz_new_context(nullptr, &mupdf::gFzLocksCtx, FZ_STORE_DEFAULT);
+    if (this->ctx) {
+        mupdf::install_font(this->ctx);
+        fz_register_document_handlers(this->ctx);
+    }
 }
 
 EBookView::~EBookView() {
-    if (this->doc) fz_drop_document(this->ctx, this->doc);
-    if (this->ctx) fz_drop_context(this->ctx);
+    this->close();
+    if (this->ctx) {
+        fz_drop_context(this->ctx);
+        this->ctx = nullptr;
+    }
 }
 
 EBookView::LoadResult EBookView::loadInBackground(const std::string& url, const HTTP::Header& headers) {
@@ -154,7 +163,23 @@ EBookView::LoadResult EBookView::loadInBackground(const std::string& url, const 
     return result;
 }
 
+void EBookView::close() {
+    if (this->doc) {
+        fz_drop_document(this->ctx, this->doc);
+        this->doc = nullptr;
+    }
+    this->count = 0;
+}
+
 void EBookView::open(const std::string& url, float percent, const HTTP::Header& headers) {
+    this->close();
+
+    if (!this->ctx) {
+        brls::Logger::error("EBookView: MuPDF context unavailable");
+        this->dismiss([]() { brls::Application::notify("main/player/error"_i18n); });
+        return;
+    }
+
     this->loading->setVisibility(brls::Visibility::VISIBLE);
 
     ASYNC_RETAIN
@@ -185,11 +210,6 @@ void EBookView::applyLoadResult(
         std::string msg = result.error.empty() ? "main/player/error"_i18n : result.error;
         brls::Logger::warning("EBookView open failed: {}", msg);
         this->dismiss([msg]() { brls::Application::notify(fmt::format("open: {}", msg)); });
-        return;
-    }
-    if (!this->ctx) {
-        brls::Logger::warning("EBookView context missing");
-        this->dismiss([]() { brls::Application::notify("main/player/error"_i18n); });
         return;
     }
 

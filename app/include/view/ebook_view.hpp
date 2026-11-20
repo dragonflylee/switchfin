@@ -14,6 +14,7 @@ public:
     void onLayout() override;
 
     void open(const std::string& input, float percent = 0, const HTTP::Header& headers = {});
+    void close();
     void render(brls::Image* view, int n);
 
 private:
