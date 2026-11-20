@@ -246,11 +246,9 @@ void MPVCore::init() {
     };
 #elif defined(BOREALIS_USE_D3D11)
     mpv_d3d11_init_params init_params{.device = D3D11_CONTEXT->getDevice()};
-    const char *backend = conf.getItem(AppConfig::MPV_RENDER, false) ? "gpu-next" : "gpu";
     mpv_render_param params[] = {
         {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_D3D11)},
         {MPV_RENDER_PARAM_D3D11_INIT_PARAMS, &init_params},
-        {MPV_RENDER_PARAM_BACKEND, const_cast<char *>(backend)},
         {MPV_RENDER_PARAM_INVALID, nullptr},
     };
 #elif defined(BOREALIS_USE_DEKO3D)
