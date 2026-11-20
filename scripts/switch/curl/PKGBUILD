@@ -25,7 +25,7 @@ build() {
 
   ./configure --prefix=$PORTLIBS_PREFIX --host=aarch64-none-elf \
     --disable-shared --enable-static --disable-ipv6 --disable-unix-sockets \
-    --disable-manual --enable-threaded-resolver --disable-progress-meter \
+    --disable-manual --disable-threaded-resolver --disable-progress-meter \
     --without-zstd --without-brotli --without-libpsl --enable-websockets \
     --with-mbedtls --with-default-ssl-backend=mbedtls
   sed -i '/HAVE_SOCKETPAIR/d' lib/curl_config.h

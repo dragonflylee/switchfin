@@ -9,12 +9,14 @@ depends=('freetype' 'harfbuzz' 'libjpeg-turbo')
 build() {
   cd mupdf-${pkgver}-source
   patch -Np1 -i "$srcdir/mupdf.patch"
-  make build=release OS=psvita libs -j$(nproc)
+  make build=release OS=psvita libs -j$(nproc) \
+    tofu=yes tofu_cjk=yes
 }
 
 package () {
   cd mupdf-${pkgver}-source
   make build=release \
     prefix="$prefix" DESTDIR="$pkgdir" \
+    tofu=yes tofu_cjk=yes \
     OS=psvita install-libs
 }

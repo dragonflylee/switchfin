@@ -32,7 +32,7 @@ modules:
   - name: mupdf
     buildsystem: simple
     build-commands:
-      - make -j ${FLATPAK_BUILDER_N_JOBS} prefix=${FLATPAK_DEST} build=release OS=Linux USE_SYSTEM_LIBS=yes USE_SYSTEM_GUMBO=no USE_SYSTEM_JBIG2DEC=no TOOL_APPS= VIEW_APPS= install-shared-c
+      - make -j ${FLATPAK_BUILDER_N_JOBS} prefix=${FLATPAK_DEST} build=release OS=Linux USE_SYSTEM_LIBS=yes USE_SYSTEM_GUMBO=no USE_SYSTEM_JBIG2DEC=no tofu=yes tofu_cjk=yes TOOL_APPS= VIEW_APPS= install-shared-c
     sources:
       - type: archive
         url: https://casper.mupdf.com/downloads/archive/mupdf-1.28.6-source.tar.lz
@@ -176,10 +176,11 @@ modules:
           - --enable-zlib
           - --enable-bzlib
           - --enable-libass
+          - --enable-libcurl
         sources:
           - type: archive
-            url: https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz
-            sha256: 8c3850283eb25fa026482078a04051e0be17347b09ef81a0849bec15a96e002e
+            url: https://ffmpeg.org/releases/ffmpeg-9.1.tar.xz
+            sha256: 1a4d394ae63d190a526cd052eb4415c156b5c5e2df37efab41a7de0b8fde2433
             x-checker-data:
               type: anitya
               project-id: 5405

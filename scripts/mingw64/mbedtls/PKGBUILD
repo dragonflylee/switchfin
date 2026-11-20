@@ -3,7 +3,7 @@
 _realname=mbedtls
 pkgbase="mingw-w64-${_realname}"
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=3.6.7
+pkgver=3.6.8
 pkgrel=1
 pkgdesc="Portable cryptographic and SSL/TLS library, aka polarssl (mingw-w64)"
 arch=('any')
@@ -24,7 +24,7 @@ makedepends=(
   "${MINGW_PACKAGE_PREFIX}-ninja"
 )
 source=("https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-${pkgver}/mbedtls-${pkgver}.tar.bz2")
-sha256sums=('a7e8bcbec0e6f761b4af24f25677626b35f762f68eef79c08677a363212d11f6')
+sha256sums=('bc54b818e87f49c0b3281dd85d24adaede0e63b4e822e3fbd49c005a38b9595b')
 
 build() {
   if [[ ${MSYSTEM} == MINGW32 ]]; then

@@ -3,7 +3,7 @@ name: macos-dylib
 on:
   push:
     tags: [ macos-dylib ]
-    branches: [ macos, mpv ]
+  workflow_dispatch:
 
 permissions:
   contents: write

@@ -3,7 +3,7 @@ name: mingw-packages
 on:
   push:
     tags: [ mingw-packages ]
-    branches: [ mingw, mpv ]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -38,7 +38,8 @@ jobs:
           make
           git
           diffutils
-          mingw-w64-${{ matrix.env }}-nasm
+          nasm
+          xxhash
           mingw-w64-${{ matrix.env }}-meson
           mingw-w64-${{ matrix.env }}-cmake
           mingw-w64-${{ matrix.env }}-cc

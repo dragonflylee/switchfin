@@ -16,7 +16,6 @@ url="https://www.freetype.org/"
 license=('spdx:GPL-2.0-or-later OR FTL')
 depends=(
   "${MINGW_PACKAGE_PREFIX}-bzip2"
-  "${MINGW_PACKAGE_PREFIX}-libpng"
   "${MINGW_PACKAGE_PREFIX}-zlib"
 )
 makedepends=(
@@ -37,6 +36,7 @@ build() {
       -Dharfbuzz=disabled \
       -Dtests=disabled \
       -Dbrotli=disabled \
+      -Dpng=disabled \
       "build-${MSYSTEM}" \
       "${srcdir}/${_realname}-${pkgver}"
 

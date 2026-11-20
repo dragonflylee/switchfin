@@ -4,7 +4,7 @@
 _realname=harfbuzz
 pkgbase=mingw-w64-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
-pkgver=15.1.0
+pkgver=15.2.0
 pkgrel=1
 pkgdesc="OpenType text shaping engine (mingw-w64)"
 arch=('any')
@@ -18,11 +18,10 @@ makedepends=(
 )
 depends=(
   "${MINGW_PACKAGE_PREFIX}-freetype"
-  "${MINGW_PACKAGE_PREFIX}-libpng"
 )
 options=('staticlibs' '!strip')
 source=("${url}/releases/download/${pkgver}/harfbuzz-${pkgver}.tar.xz")
-sha256sums=('0fc7c565443a5f4be7da65ac5ee5bd737d9b158dc908708b7689a0a5796b0c8d')
+sha256sums=('e2ec49090744383cdbe7df808c1cedaafba06a97be8dc4211fe546ba585f12cb')
 noextract=("harfbuzz-${pkgver}.tar.xz")
 
 prepare() {
@@ -40,6 +39,9 @@ build() {
       -Dglib=disabled \
       -Dcairo=disabled \
       -Dgobject=disabled \
+      -Dpng=disabled \
+      -Draster=disabled \
+      -Dvector=disabled \
       -Dtests=disabled \
       -Ddocs=disabled \
       -Dbenchmark=disabled \

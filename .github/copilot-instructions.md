@@ -11,7 +11,7 @@ See [README "Development"](README.md#development) for prerequisites.
 - Desktop: `cmake -B build -DPLATFORM_DESKTOP=ON && cmake --build build` (`build/` already exists).
 - Windows (MinGW + D3D11): `cmake -B build -G 'MinGW Makefiles' -DPLATFORM_DESKTOP=ON -DUSE_D3D11=ON -DUSE_SYSTEM_GLFW=ON && cmake --build build -j$(nproc)`.
   `USE_D3D11` = D3D11 instead of OpenGL; `USE_SYSTEM_GLFW` = use installed glfw3 instead of FetchContent.
-- Switch: `cmake -B build_switch -DPLATFORM_SWITCH=ON && make -C build_switch Switchfin.nro -j$(nproc)`.
+- Switch: `cmake -B build_switch -DPLATFORM_SWITCH=ON -DDEKO3D=ON && make -C build_switch Switchfin.nro -j$(nproc)`.
 - Optional features: `USE_MUPDF`, `USE_WEBP`, `USE_BOOST_FILESYSTEM`, `USE_LIBROMFS`, `MPV_SW_RENDER`, `BUILTIN_NSP`, `USE_LIBUSBHSFS`.
 - **No unit tests.** Verify by compiling the target and running the app.
 - CI: `.github/workflows/build.yaml`; packaging: [scripts/](scripts/README.md).

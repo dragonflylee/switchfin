@@ -2085,3 +2085,25 @@ index a470808ae5..56d41f9b9c 100644
          ( "video/out/opengl/utils.c",            "gl" ),
          ( "video/out/present_sync.c",            "wayland || x11" ),
          ( "video/out/wldmabuf/context_wldmabuf.c", "dmabuf-wayland" ),
+
+diff --git a/meson.build b/meson.build
+index 65d23586a5..5f1c1e3a24 100644
+--- a/meson.build
++++ b/meson.build
+@@ -404,7 +404,7 @@
+     sources += path_source + subprocess_source + \
+                files('input/ipc-unix.c',
+                      'osdep/polldev.c',
+-                     'osdep/terminal-unix.c',
++                     'osdep/terminal-dummy.c',
+                      'sub/filter_regex.c')
+ endif
+ 
+@@ -1246,6 +1246,7 @@
+                      'video/out/opengl/formats.c',
+                      'video/out/opengl/libmpv_gl.c',
+                      'video/out/opengl/ra_gl.c',
++                     'video/out/opengl/ra_ps4.c',
+                      'video/out/opengl/utils.c')
+ elif not features['gl'] and get_option('gl').enabled()
+     error('gl enabled but no OpenGL video output could be found!')

@@ -22,12 +22,14 @@ build() {
 
   source ${DEVKITPRO}/switchvars.sh
 
-  make build=release OS=switch libs -j$(nproc)
+  make build=release OS=switch libs -j$(nproc) \
+    tofu=yes tofu_cjk=yes
 }
 
 package() {
   cd mupdf-$pkgver-source
   make build=release \
     prefix="${PORTLIBS_PREFIX}" DESTDIR="$pkgdir" \
+    tofu=yes tofu_cjk=yes \
     OS=switch install-libs
 }

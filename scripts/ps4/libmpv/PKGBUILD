@@ -8,10 +8,10 @@ arch=('any')
 url='https://mpv.io/'
 license=('GPL')
 options=(!strip !debug libtool staticlibs)
-source=("libmpv-${pkgver}.tar.gz::https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz" "mpv.patch")
-sha256sums=('29abc44f8ebee013bb2f9fe14d80b30db19b534c679056e4851ceadf5a5e8bf6' 'SKIP')
+source=("libmpv-${pkgver}.tar.gz::https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz" 'mpv.patch' 'cross.txt')
+sha256sums=('29abc44f8ebee013bb2f9fe14d80b30db19b534c679056e4851ceadf5a5e8bf6' 'SKIP' 'SKIP')
 makedepends=('ps4-openorbis-pkg-config' 'ps4-openorbis-vars')
-depends=('ps4-openorbis-sdl2' 'ps4-openorbis-ffmpeg')
+depends=('ps4-openorbis-sdl2' 'ps4-openorbis-ffmpeg' 'ps4-openorbis-libass')
 groups=('ps4-openorbis-portlibs')
 
 prepare() {
@@ -20,22 +20,20 @@ prepare() {
 }
 
 build() {
-  cd mpv-$pkgver
-
   source /opt/pacbrew/ps4/openorbis/ps4vars.sh
 
-  ./bootstrap.py
+  meson setup build mpv-${pkgver} \
+    --buildtype=plain --cross-file=cross.txt \
+    --default-library=static --libdir=lib \
+    --prefix="${OPENORBIS}/usr" \
+    -Dcplayer=false -Dlibmpv=true \
+    -Diconv=disabled -Djpeg=disabled -Dlibavdevice=disabled \
+    -Dsdl2=enabled -Dsdl2-audio=enabled -Dsdl2-gamepad=disabled -Dsdl2-video=disabled
 
-  TARGET=x86_64 ./waf configure --prefix="${OPENORBIS}/usr" \
-    --disable-libmpv-shared --enable-libmpv-static --disable-cplayer \
-    --disable-iconv --disable-jpeg --disable-libavdevice \
-    --enable-sdl2 --enable-sdl2-audio --disable-sdl2-gamepad --disable-sdl2-video
-
-  ./waf build
+  meson compile -C build
 }
 
 package() {
-  cd mpv-$pkgver
-  ./waf install --destdir=$pkgdir
+  meson install -C build --destdir "${pkgdir}"
 }
 

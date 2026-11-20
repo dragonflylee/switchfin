@@ -24,7 +24,7 @@ endif
 all: download build
 	@echo Using toolchain ${TOOLCHAIN}
 
-build: prefix curl mpv clean
+build: prefix mpv clean
 
 clean:
 	@rm -rf build
@@ -36,17 +36,17 @@ prefix:
 
 download:
 	wget -qO- https://github.com/libsdl-org/SDL/releases/download/release-2.32.10/SDL2-2.32.10.tar.gz | tar zxf - -C $(TMPDIR)
-	wget -qO- https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.7/mbedtls-3.6.7.tar.bz2 | tar jxf - -C $(TMPDIR)
+	wget -qO- https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.8/mbedtls-3.6.8.tar.bz2 | tar jxf - -C $(TMPDIR)
 	wget -qO- https://curl.se/download/curl-8.23.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/webmproject/libwebp/archive/v1.6.0.tar.gz | tar zxf - -C $(TMPDIR)
 	wget -qO- https://downloads.sourceforge.net/project/freetype/freetype2/2.15.0/freetype-2.15.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/GNOME/libxml2/archive/v2.15.4.tar.gz | tar zxf - -C $(TMPDIR)
 	wget -qO- https://github.com/fontconfig/fontconfig/archive/2.18.3.tar.gz | tar zxf - -C $(TMPDIR)
-	wget -qO- https://github.com/harfbuzz/harfbuzz/releases/download/15.1.0/harfbuzz-15.1.0.tar.xz | tar Jxf - -C $(TMPDIR)
+	wget -qO- https://github.com/harfbuzz/harfbuzz/releases/download/15.2.0/harfbuzz-15.2.0.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/fribidi/fribidi/releases/download/v1.0.18/fribidi-1.0.18.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/libass/libass/releases/download/0.17.5/libass-0.17.5.tar.xz | tar Jxf - -C $(TMPDIR)
-	wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.5.4/dav1d-1.5.4.tar.xz | tar Jxf - -C $(TMPDIR)
-	wget -qO- https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz | tar Jxf - -C $(TMPDIR)
+	wget -qO- https://downloads.videolan.org/pub/videolan/dav1d/1.5.5/dav1d-1.5.5.tar.xz | tar Jxf - -C $(TMPDIR)
+	wget -qO- https://ffmpeg.org/releases/ffmpeg-9.1.tar.xz | tar Jxf - -C $(TMPDIR)
 	wget -qO- https://github.com/mpv-player/mpv/archive/v0.42.0.tar.gz | tar zxf - -C $(TMPDIR)
 	git clone https://github.com/haasn/libplacebo.git -b v7.387.0 --depth 1 --recurse-submodules $(TMPDIR)/libplacebo
 	patch -d $(TMPDIR)/libwebp-1.6.0 -Nbp1 -i $(PWD)/scripts/mingw64/libwebp/0001-mingw-cmake-output.patch
@@ -60,7 +60,7 @@ SDL2:
 	DESTDIR=$(PREFIX) cmake --install build/SDL2
 
 mbedtls:
-	cmake -B build/mbedtls -S $(TMPDIR)/mbedtls-3.6.7 -G Ninja -DCMAKE_BUILD_TYPE=Release \
+	cmake -B build/mbedtls -S $(TMPDIR)/mbedtls-3.6.8 -G Ninja -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_TOOLCHAIN_FILE="$(ANDROID_NDK)/build/cmake/android.toolchain.cmake" \
 		-DANDROID_ABI=$(ABI) -DANDROID_PLATFORM=android-$(apilvl) -DCMAKE_WARN_DEPRECATED=FALSE \
 		-DUSE_SHARED_MBEDTLS_LIBRARY=OFF -DUSE_STATIC_MBEDTLS_LIBRARY=ON \
@@ -110,9 +110,10 @@ fontconfig: libxm2
 	meson install -C build/fontconfig --destdir $(PREFIX)
 
 harfbuzz: freetype
-	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-15.1.0 --cross-file "$(CURDIR)/$(ABI).meson" \
+	meson setup build/harfbuzz $(TMPDIR)/harfbuzz-15.2.0 --cross-file "$(CURDIR)/$(ABI).meson" \
 		-Dfreetype=enabled -Dglib=disabled -Dgobject=disabled -Dcairo=disabled \
-		-Dchafa=disabled -Dtests=disabled -Dintrospection=disabled \
+		-Dchafa=disabled -Draster=disabled -Dvector=disabled \
+		-Dtests=disabled -Dintrospection=disabled \
 		-Ddocs=disabled -Ddoc_tests=false -Dutilities=disabled
 	meson compile -C build/harfbuzz
 	meson install -C build/harfbuzz --destdir $(PREFIX)
@@ -129,22 +130,22 @@ libass: harfbuzz fribidi fontconfig
 	meson install -C build/libass --destdir $(PREFIX)
 
 dav1d:
-	meson setup build/dav1d $(TMPDIR)/dav1d-1.5.4 --cross-file "$(CURDIR)/$(ABI).meson" \
+	meson setup build/dav1d $(TMPDIR)/dav1d-1.5.5 --cross-file "$(CURDIR)/$(ABI).meson" \
 		-Db_lto=true -Dstack_alignment=16 -Denable_tools=false \
 		-Denable_examples=false -Denable_tests=false -Denable_docs=false
 	meson compile -C build/dav1d
 	meson install -C build/dav1d --destdir $(PREFIX)
 
-ffmpeg: libass dav1d libwebp
+ffmpeg: curl libass dav1d libwebp
 	mkdir -p build/ffmpeg && cd build/ffmpeg && \
-	$(TMPDIR)/ffmpeg-9.0.2/configure --enable-shared --disable-static --pkg-config=pkg-config \
+	$(TMPDIR)/ffmpeg-9.1/configure --enable-shared --disable-static --pkg-config=pkg-config \
 		--target-os=android --arch=$(firstword $(subst -, ,$(CC))) --cpu=$(CPU) --cc=$(CC) \
 		--enable-cross-compile --cross-prefix=llvm- --sysroot=$(TOOLCHAIN)/sysroot \
 		--extra-cflags="-I$(PREFIX)/include $(CPUFLAGS)" --extra-ldflags="-L$(PREFIX)/lib" \
 		--disable-programs --disable-debug --disable-doc --enable-network \
 		--disable-vulkan --disable-devices --disable-autodetect --enable-jni \
 		--enable-mediacodec --enable-libass --enable-libdav1d --enable-zlib \
-		--disable-muxers --disable-encoders --enable-mbedtls --enable-version3 \
+		--disable-muxers --disable-encoders --enable-mbedtls --enable-libcurl --enable-version3 \
 		--disable-filters --enable-filter=hflip,vflip,transpose
 	make -C build/ffmpeg -j$(shell nproc)
 	make -C build/ffmpeg install DESTDIR=$(PREFIX)

@@ -26,7 +26,7 @@ makedepends=(
 options=('strip')
 source=(
   "${_realname}-${pkgver}.tar.gz"::"https://github.com/mpv-player/${_realname}/archive/v${pkgver}.tar.gz"
-  "win7-compat.patch" "gpu-next.patch"
+  "win7-compat.patch"
 )
 sha256sums=('bcfebbfa2b65a6d88dc97ea18117831072373e38b5785a2afb874ed4df5070dd' 'SKIP')
 

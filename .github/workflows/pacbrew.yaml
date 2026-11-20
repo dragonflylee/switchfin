@@ -3,7 +3,7 @@ name: pacbrew
 on:
   push:
     tags: [ pacbrew ]
-    branches: [ ps4, mpv ]
+  workflow_dispatch:
 
 permissions:
   contents: write

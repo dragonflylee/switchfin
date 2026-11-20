@@ -3,7 +3,7 @@ name: switch-portlibs
 on:
   push:
     tags: [ switch-portlibs ]
-    branches: [ deko3d, mpv ]
+  workflow_dispatch:
 
 permissions:
   contents: write

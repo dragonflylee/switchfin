@@ -434,6 +434,64 @@ index f077b6f..0773722 100644
  
  /**
  	Get the presentation details for a given page.
+diff --git a/include/mupdf/fitz/font.h b/include/mupdf/fitz/font.h
+index 5e52583..368e606 100644
+--- a/include/mupdf/fitz/font.h
++++ b/include/mupdf/fitz/font.h
+@@ -289,7 +289,7 @@ typedef fz_font *(fz_load_system_fallback_font_fn)(fz_context *ctx, int script,
+ 
+ 	Only one set of hooks can be in use at a time.
+ */
+-void fz_install_load_system_font_funcs(fz_context *ctx,
++FZ_FUNCTION void fz_install_load_system_font_funcs(fz_context *ctx,
+ 	fz_load_system_font_fn *f,
+ 	fz_load_system_cjk_font_fn *f_cjk,
+ 	fz_load_system_fallback_font_fn *f_fallback);
+@@ -430,7 +430,7 @@ const unsigned char *fz_lookup_noto_boxes_font(fz_context *ctx, int *len);
+ 		Noto(Sans|Serif)${STEM}-Regular.(otf|ttf)
+ */
+ const char *fz_lookup_noto_stem_from_script(fz_context *ctx, int script, int language);
+-const char *fz_lookup_script_name(fz_context *ctx, int script, int language);
++FZ_FUNCTION const char *fz_lookup_script_name(fz_context *ctx, int script, int language);
+ 
+ /**
+ 	Try to load a fallback font for the
+@@ -481,7 +481,7 @@ fz_font *fz_new_type3_font(fz_context *ctx, const char *name, fz_matrix matrix);
+ 
+ 	Returns new font handle, or throws exception on error.
+ */
+-fz_font *fz_new_font_from_memory(fz_context *ctx, const char *name, const unsigned char *data, int len, int index, int use_glyph_bbox);
++FZ_FUNCTION fz_font *fz_new_font_from_memory(fz_context *ctx, const char *name, const unsigned char *data, int len, int index, int use_glyph_bbox);
+ 
+ /**
+ 	Create a new font from a font file in a fz_buffer.
+@@ -498,7 +498,7 @@ fz_font *fz_new_font_from_memory(fz_context *ctx, const char *name, const unsign
+ 
+ 	Returns new font handle, or throws exception on error.
+ */
+-fz_font *fz_new_font_from_buffer(fz_context *ctx, const char *name, fz_buffer *buffer, int index, int use_glyph_bbox);
++FZ_FUNCTION fz_font *fz_new_font_from_buffer(fz_context *ctx, const char *name, fz_buffer *buffer, int index, int use_glyph_bbox);
+ 
+ /**
+ 	Create a new font from a font file.
+@@ -515,7 +515,7 @@ fz_font *fz_new_font_from_buffer(fz_context *ctx, const char *name, fz_buffer *b
+ 
+ 	Returns new font handle, or throws exception on error.
+ */
+-fz_font *fz_new_font_from_file(fz_context *ctx, const char *name, const char *path, int index, int use_glyph_bbox);
++FZ_FUNCTION fz_font *fz_new_font_from_file(fz_context *ctx, const char *name, const char *path, int index, int use_glyph_bbox);
+ 
+ /**
+ 	Create a new font from one of the built-in fonts.
+@@ -544,7 +544,7 @@ fz_font *fz_keep_font(fz_context *ctx, fz_font *font);
+ 
+ 	font: The font to drop a reference to.
+ */
+-void fz_drop_font(fz_context *ctx, fz_font *font);
++FZ_FUNCTION void fz_drop_font(fz_context *ctx, fz_font *font);
+ 
+ /**
+ 	Set the font bbox.
 diff --git a/include/mupdf/fitz/geometry.h b/include/mupdf/fitz/geometry.h
 index 8ea8b37..c40d115 100644
 --- a/include/mupdf/fitz/geometry.h
