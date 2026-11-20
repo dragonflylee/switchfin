@@ -284,7 +284,7 @@ void MediaCollection::loadFilter() {
         }
     } catch (const std::exception& ex) {
         brls::Logger::warning("MediaCollection parse sort: {}", ex.what());
-        brls::Application::notify(ex.what());
+        brls::Application::notify(fmt::format("sort: {}", ex.what()));
     }
 }
 
@@ -347,7 +347,7 @@ void MediaCollection::doRequest() {
             ASYNC_RELEASE
             if (this->startIndex > 0) {
                 brls::Logger::warning("MediaCollection doRequest next: {}", ex);
-                brls::Application::notify(ex);
+                brls::Application::notify(fmt::format("paging: {}", ex));
             } else {
                 this->recycler->setError(ex);
             }

@@ -211,7 +211,7 @@ void MediaSeries::doSimilar() {
             this->similar->setVisibility(brls::Visibility::GONE);
             this->labelSimilar->setSubtitle(ex);
             brls::Logger::warning("MediaSeries doSimilar: {}", ex);
-            brls::Application::notify(ex);
+            brls::Application::notify(fmt::format("similar: {}", ex));
         },
         jellyfin::apiSimilar, this->seriesId, query);
 }
@@ -236,7 +236,7 @@ void MediaSeries::doSpecial() {
             this->special->setVisibility(brls::Visibility::GONE);
             this->labelSpecial->setSubtitle(ex);
             brls::Logger::warning("MediaSeries doSpecial: {}", ex);
-            brls::Application::notify(ex);
+            brls::Application::notify(fmt::format("special: {}", ex));
         },
         jellyfin::apiItemSpecial, AppConfig::instance().getUserId(), this->seriesId);
 }
@@ -261,7 +261,7 @@ void MediaSeries::doPlay() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("MediaSeries doPlay: {}", ex);
-            brls::Application::notify(ex);
+            brls::Application::notify(fmt::format("play: {}", ex));
         },
         jellyfin::apiShowNextUp, query);
 }
@@ -298,7 +298,7 @@ void MediaSeries::doDownloadSeries() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("MediaSeries doDownloadSeries: {}", ex);
-            brls::Application::notify(ex);
+            brls::Application::notify(fmt::format("download: {}", ex));
         },
         jellyfin::apiShowEpisodes, this->seriesId, "");
 }
@@ -328,7 +328,8 @@ bool MediaSeries::doFavorite() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("MediaSeries doFavorite: {}", ex);
-            brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
+            brls::Application::popActivity(brls::TransitionAnimation::NONE,
+                [ex]() { brls::Application::notify(fmt::format("favorite: {}", ex)); });
         },
         jellyfin::apiFavoriteItems, AppConfig::instance().getUserId(), this->seriesId);
 
@@ -345,7 +346,8 @@ bool MediaSeries::unFavorite() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("MediaSeries unFavorite: {}", ex);
-            brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
+            brls::Application::popActivity(brls::TransitionAnimation::NONE,
+                [ex]() { brls::Application::notify(fmt::format("unfavorite: {}", ex)); });
         },
         jellyfin::apiFavoriteItems, AppConfig::instance().getUserId(), this->seriesId);
 

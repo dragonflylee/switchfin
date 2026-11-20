@@ -145,7 +145,8 @@ bool ContextMenu::doPlayed() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("ContextMenu doPlayed: {}", ex);
-            brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
+            brls::Application::popActivity(brls::TransitionAnimation::NONE,
+                [ex]() { brls::Application::notify(fmt::format("played: {}", ex)); });
         },
         jellyfin::apiPlayedItems, AppConfig::instance().getUserId(), this->itemId);
 
@@ -166,7 +167,8 @@ bool ContextMenu::doFavorite() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("ContextMenu doFavorite: {}", ex);
-            brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
+            brls::Application::popActivity(brls::TransitionAnimation::NONE,
+                [ex]() { brls::Application::notify(fmt::format("favorite: {}", ex)); });
         },
         jellyfin::apiFavoriteItems, AppConfig::instance().getUserId(), this->itemId);
 
@@ -183,7 +185,8 @@ bool ContextMenu::unPlayed() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("ContextMenu unPlayed: {}", ex);
-            brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
+            brls::Application::popActivity(brls::TransitionAnimation::NONE,
+                [ex]() { brls::Application::notify(fmt::format("unplayed: {}", ex)); });
         },
         jellyfin::apiPlayedItems, AppConfig::instance().getUserId(), this->itemId);
 
@@ -200,7 +203,8 @@ bool ContextMenu::unFavorite() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("ContextMenu unFavorite: {}", ex);
-            brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
+            brls::Application::popActivity(brls::TransitionAnimation::NONE,
+                [ex]() { brls::Application::notify(fmt::format("unfavorite: {}", ex)); });
         },
         jellyfin::apiFavoriteItems, AppConfig::instance().getUserId(), this->itemId);
 

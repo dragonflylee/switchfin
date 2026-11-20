@@ -85,8 +85,8 @@ void RecylingVideo::doRequest(bool refresh) {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             this->title->setSubtitle(ex);
-            brls::Logger::warning("RecylingVideo doLatest: {}", ex);
-            brls::Application::notify(ex);
+            brls::Logger::warning("RecylingVideo doRequest: {}", ex);
+            brls::Application::notify(fmt::format("request: {}", ex));
         },
         this->queryCallback(this->start, this->pageSize));
 }
@@ -112,8 +112,8 @@ void RecylingVideo::doLatest(bool refresh) {
             ASYNC_RELEASE
             this->recycler->setVisibility(brls::Visibility::GONE);
             this->title->setSubtitle(ex);
-            brls::Logger::warning("RecylingVideo doLatest episodes: {}", ex);
-            brls::Application::notify(ex);
+            brls::Logger::warning("RecylingVideo doLatest: {}", ex);
+            brls::Application::notify(fmt::format("latest: {}", ex));
         },
         this->queryCallback(0, this->pageSize));
 }
@@ -144,7 +144,7 @@ void RecylingVideo::doLiveTV(bool refresh) {
             ASYNC_RELEASE
             this->title->setSubtitle(ex);
             brls::Logger::warning("RecylingVideo doLiveTV: {}", ex);
-            brls::Application::notify(ex);
+            brls::Application::notify(fmt::format("live tv: {}", ex));
         },
         this->queryCallback(this->start, this->pageSize));
 }

@@ -104,7 +104,7 @@ void VideoProfile::onRequest() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("VideoProfile session: {}", ex);
-            brls::Application::notify(ex);
+            brls::Application::notify(fmt::format("sessions: {}", ex));
         },
         jellyfin::apiSessionList, query);
 }

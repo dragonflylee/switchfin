@@ -464,7 +464,7 @@ void Dashboard::doItemCount() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("Dashboard doItemCount: {}", ex);
-            brls::Application::notify(ex);
+            brls::Application::notify(fmt::format("item count: {}", ex));
         },
         jellyfin::apiItemCount);
 }
@@ -481,7 +481,7 @@ void Dashboard::doSystemInfo() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("Dashboard doSystemInfo: {}", ex);
-            brls::Application::notify(ex);
+            brls::Application::notify(fmt::format("system info: {}", ex));
         },
         jellyfin::apiSystemInfo);
 }
@@ -519,7 +519,7 @@ void Dashboard::doSession() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("Dashboard doSession: {}", ex);
-            brls::Application::notify(ex);
+            brls::Application::notify(fmt::format("sessions: {}", ex));
         },
         jellyfin::apiSessionList, "activeWithinSeconds=960");
 }
@@ -536,7 +536,7 @@ void Dashboard::doRestart() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("Dashboard doRestart: {}", ex);
-            brls::Application::notify(ex);
+            brls::Application::notify(fmt::format("restart: {}", ex));
             this->btnRestart->setState(brls::ButtonState::ENABLED);
         },
         jellyfin::apiRestart);
@@ -552,7 +552,7 @@ void Dashboard::doListTask() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("Dashboard doListTask: {}", ex);
-            brls::Application::notify(ex);
+            brls::Application::notify(fmt::format("list tasks: {}", ex));
         },
         jellyfin::apiScheduledTasks);
 }
@@ -572,7 +572,7 @@ void Dashboard::doRunTask(const std::string& id) {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("Dashboard doRunTask: {}", ex);
-            brls::Application::notify(ex);
+            brls::Application::notify(fmt::format("run task: {}", ex));
             this->btnScan->setState(brls::ButtonState::ENABLED);
         },
         jellyfin::apiRunTask, it->second);

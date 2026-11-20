@@ -264,7 +264,7 @@ void MediaMovie::doSimilar() {
             this->similar->setVisibility(brls::Visibility::GONE);
             this->labelSimilar->setSubtitle(ex);
             brls::Logger::warning("MediaMovie doSimilar: {}", ex);
-            brls::Application::notify(ex);
+            brls::Application::notify(fmt::format("similar: {}", ex));
         },
         jellyfin::apiSimilar, this->itemId, query);
 }
@@ -282,7 +282,8 @@ bool MediaMovie::doFavorite() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("MediaMovie doFavorite: {}", ex);
-            brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
+            brls::Application::popActivity(brls::TransitionAnimation::NONE,
+                [ex]() { brls::Application::notify(fmt::format("favorite: {}", ex)); });
         },
         jellyfin::apiFavoriteItems, AppConfig::instance().getUserId(), this->itemId);
 
@@ -299,7 +300,8 @@ bool MediaMovie::unFavorite() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("MediaMovie unFavorite: {}", ex);
-            brls::Application::popActivity(brls::TransitionAnimation::NONE, [ex]() { brls::Application::notify(ex); });
+            brls::Application::popActivity(brls::TransitionAnimation::NONE,
+                [ex]() { brls::Application::notify(fmt::format("unfavorite: {}", ex)); });
         },
         jellyfin::apiFavoriteItems, AppConfig::instance().getUserId(), this->itemId);
 

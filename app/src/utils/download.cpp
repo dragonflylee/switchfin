@@ -121,7 +121,7 @@ void DownloadManager::addDownload(const std::string& itemId, DownloadQuality qua
         },
         [](const std::string& ex) {
             brls::Logger::warning("Download fetch item detail failed: {}", ex);
-            brls::Application::notify(ex);
+            brls::Application::notify(fmt::format("item detail: {}", ex));
         }, jellyfin::apiUserItem,
         AppConfig::instance().getUserId(), itemId);
 }

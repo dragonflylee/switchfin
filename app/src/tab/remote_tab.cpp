@@ -85,7 +85,7 @@ void RemoteTab::refreshRemote(size_t index) {
         if (auto* bar = view->getTabBar()) bar->setLabel(remotes[index].name);
     } catch (const std::exception& ex) {
         brls::Logger::warning("remote {} reload {}", remotes[index].name, ex.what());
-        brls::Application::notify(ex.what());
+        brls::Application::notify(fmt::format("reload: {}", ex.what()));
     }
 }
 

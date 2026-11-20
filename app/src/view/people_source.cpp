@@ -82,7 +82,7 @@ public:
             [ASYNC_TOKEN](const std::string& ex) {
                 ASYNC_RELEASE
                 brls::Logger::warning("PeopleView detail: {}", ex);
-                brls::Application::notify(ex);
+                brls::Application::notify(fmt::format("people: {}", ex));
             },
             jellyfin::apiUserItem, AppConfig::instance().getUserId(), this->peopleId);
     }

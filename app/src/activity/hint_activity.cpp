@@ -72,12 +72,12 @@ private:
 };
 
 HintActivity::HintActivity() {
-    brls::Logger::debug("HintActivityActivity: create");
+    brls::Logger::debug("HintActivity: create");
     GA("tutorial_begin")
 }
 
 void HintActivity::onContentAvailable() {
-    brls::Logger::debug("HintActivityActivity: onContentAvailable");
+    brls::Logger::debug("HintActivity: onContentAvailable");
 
 #ifdef BUILTIN_NSP
     gallery->setData({
@@ -97,6 +97,6 @@ void HintActivity::onContentAvailable() {
 }
 
 HintActivity::~HintActivity() {
-    brls::Logger::debug("HintActivityActivity: delete");
+    brls::Logger::debug("HintActivity: delete");
     GA("tutorial_complete")
 }

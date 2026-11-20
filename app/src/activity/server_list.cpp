@@ -136,7 +136,7 @@ private:
 
 ServerList::ServerList() { brls::Logger::debug("ServerList: create"); }
 
-ServerList::~ServerList() { brls::Logger::debug("ServerList Activity: delete"); }
+ServerList::~ServerList() { brls::Logger::debug("ServerList: delete"); }
 
 void ServerList::onContentAvailable() {
     this->inputUrl->detail->setSingleLine(true);

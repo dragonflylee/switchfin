@@ -62,7 +62,7 @@ public:
             [ASYNC_TOKEN](const std::string& ex) {
                 ASYNC_RELEASE
                 brls::Application::popActivity(brls::TransitionAnimation::NONE,
-                    [ex] { brls::Application::notify(ex); });
+                    [ex] { brls::Application::notify(fmt::format("library: {}", ex)); });
             },
             jellyfin::apiUserLibrary, AppConfig::instance().getUserId(), query);
     }

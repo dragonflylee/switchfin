@@ -118,7 +118,7 @@ void SuggestMovie::doLatest() {
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
             brls::Logger::warning("SuggestMovie doLatest: {}", ex);
-            brls::Application::notify(ex);
+            brls::Application::notify(fmt::format("latest: {}", ex));
         },
         jellyfin::apiUserLatest, AppConfig::instance().getUserId(), query);
 }

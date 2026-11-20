@@ -184,7 +184,7 @@ void EBookView::applyLoadResult(
     if (!result.ok) {
         std::string msg = result.error.empty() ? "main/player/error"_i18n : result.error;
         brls::Logger::warning("EBookView open failed: {}", msg);
-        this->dismiss([msg]() { brls::Application::notify(msg); });
+        this->dismiss([msg]() { brls::Application::notify(fmt::format("open: {}", msg)); });
         return;
     }
     if (!this->ctx) {
@@ -229,7 +229,7 @@ void EBookView::applyLoadResult(
         }
         this->count = 0;
         brls::Logger::warning("EBookView load exception: {}", msg);
-        this->dismiss([msg]() { brls::Application::notify(msg); });
+        this->dismiss([msg]() { brls::Application::notify(fmt::format("load: {}", msg)); });
         return;
     }
     if (buf) fz_drop_buffer(this->ctx, buf);
@@ -342,7 +342,7 @@ void EBookView::showOutline() {
         this->loadOutline();
     }
     if (this->outline.empty()) {
-        brls::Logger::info("EBookView outline empty: {}", "main/ebook/no_outline"_i18n);
+        brls::Logger::info("EBookView outline empty");
         brls::Application::notify("main/ebook/no_outline"_i18n);
         return;
     }
