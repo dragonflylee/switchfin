@@ -66,8 +66,14 @@ HRecyclerFrame::~HRecyclerFrame() {
 
     if (this->dataSource) delete dataSource;
 
-    for (auto it : queueMap) {
-        for (auto item : *it.second) delete item;
+    for (const auto& it : queueMap) {
+        for (auto item : *it.second) {
+            item->setParent(nullptr);
+            if (item->isPtrLocked())
+                item->freeView();
+            else
+                delete item;
+        }
         delete it.second;
     }
 }
