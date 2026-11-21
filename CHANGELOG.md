@@ -4,6 +4,7 @@
 
 ### Added
 
+* http: reuse connections between requests to speed up image and API loading
 * episodes: show duration beside episode titles (#286) @txemaleon
 * movie: show runtime and estimated end time (#285) @txemaleon
 * gallery: browse images with L/R paging, zoom (buttons or pinch) and drag to pan

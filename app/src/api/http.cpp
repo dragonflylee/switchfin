@@ -3,6 +3,9 @@
 #include <borealis/core/logger.hpp>
 #include <curl/curl.h>
 #include <mutex>
+#ifndef BOREALIS_USE_STD_THREAD
+#include <pthread.h>
+#endif
 #if defined(BOREALIS_USE_GXM)
 #include <mbedtls/platform.h>
 #include <psp2/gxm.h>
@@ -86,17 +89,92 @@ const std::string HTTP::USER_AGENT = fmt::format(
 
 /// @brief curl context
 
-static std::mutex share_mutex;
+namespace {
 
-static void curl_share_lock_cb(CURL*, curl_lock_data, curl_lock_access, void* userptr) {
-    static_cast<std::mutex*>(userptr)->lock();
-}
+// 每线程一个常驻 multi，线程内复用 easy handle
+class Pool {
+private:
+    Pool() {
+        this->curlm = curl_multi_init();
+        if (this->curlm) curl_multi_setopt(this->curlm, CURLMOPT_MAXCONNECTS, 6L);
+    }
 
-static void curl_share_unlock_cb(CURL*, curl_lock_data, void* userptr) {
-    static_cast<std::mutex*>(userptr)->unlock();
-}
+public:
+    static constexpr size_t MAX_IDLE = 4;
 
-HTTP::HTTP() : chunk(nullptr) {
+    static Pool* instance() { return get(true); }
+
+    static void release_thread() { get(false); }
+
+    CURLM* multi() const { return this->curlm; }
+
+    CURL* acquire() {
+        std::lock_guard<std::mutex> lock(this->poolMutex);
+        if (this->curlm == nullptr) return nullptr;
+        if (this->idleHandles.empty()) return curl_easy_init();
+        CURL* easy = this->idleHandles.back();
+        this->idleHandles.pop_back();
+        return easy;
+    }
+
+    void release(CURL* easy) {
+        if (easy == nullptr) return;
+        std::lock_guard<std::mutex> lock(this->poolMutex);
+        // 复位选项，同时断开对调用方即将释放的串表等数据的引用；连接缓存会保留
+        curl_easy_reset(easy);
+        if (this->curlm != nullptr && this->idleHandles.size() < MAX_IDLE) {
+            this->idleHandles.push_back(easy);
+            return;
+        }
+        curl_easy_cleanup(easy);
+    }
+
+private:
+    // keep=false 时释放并返回 nullptr。PS4 libc 未导出 __cxa_thread_atexit_impl，
+    // Switch 的 TLS 也不可靠，所以自己管理池的创建与销毁。
+    static Pool* get(bool keep) {
+#ifdef BOREALIS_USE_STD_THREAD
+        static thread_local Pool* pool = keep ? new Pool() : nullptr;
+        return pool;
+#else
+        static pthread_key_t key = create_key();
+
+        Pool* pool = static_cast<Pool*>(pthread_getspecific(key));
+        if (keep && pool == nullptr) {
+            pool = new Pool();
+            pthread_setspecific(key, pool);
+        } else if (!keep && pool != nullptr) {
+            pthread_setspecific(key, nullptr);
+            delete pool;
+        }
+        return pool;
+#endif
+    }
+
+#ifndef BOREALIS_USE_STD_THREAD
+    static pthread_key_t create_key() {
+        static pthread_key_t key;
+        static std::once_flag once;
+        std::call_once(once, []() { pthread_key_create(&key, nullptr); });
+        return key;
+    }
+#endif
+
+    ~Pool() {
+        for (CURL* easy : this->idleHandles) {
+            curl_easy_cleanup(easy);
+        }
+        if (this->curlm != nullptr) curl_multi_cleanup(this->curlm);
+    }
+
+    CURLM* curlm = nullptr;
+    std::vector<CURL*> idleHandles;
+    std::mutex poolMutex;
+};
+
+}  // namespace
+
+HTTP::HTTP() {
     static struct Global {
         Global() {
 #ifdef BOREALIS_USE_GXM
@@ -110,55 +188,35 @@ HTTP::HTTP() : chunk(nullptr) {
                 brls::Logger::error("curl global init failed: {}", curl_easy_strerror(rc));
                 return;
             }
-            this->share = curl_share_init();
-            if (!this->share) {
-                brls::Logger::error("curl share init failed");
-                return;
-            }
-            curl_share_setopt(share, CURLSHOPT_LOCKFUNC, curl_share_lock_cb);
-            curl_share_setopt(share, CURLSHOPT_UNLOCKFUNC, curl_share_unlock_cb);
-            curl_share_setopt(share, CURLSHOPT_USERDATA, &share_mutex);
-            CURLSHcode code = curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
-            if (code != CURLSHE_OK) {
-                brls::Logger::warning("curl share DNS disabled: {}", curl_share_strerror(code));
-                curl_share_cleanup(this->share);
-                this->share = nullptr;
-            }
         }
         ~Global() {
-            if (this->share) curl_share_cleanup(this->share);
             curl_global_cleanup();
             brls::Logger::debug("curl cleanup");
         }
-        CURLSH* share;
     } global;
+    (void)global;
 
-    this->easy = curl_easy_init();
-    if (this->easy == nullptr) return;
+    CURL* easy = Pool::instance()->acquire();
+    this->easy = easy;
+    if (easy == nullptr) return;
 
-    curl_easy_setopt(this->easy, CURLOPT_USERAGENT, USER_AGENT.c_str());
-    curl_easy_setopt(this->easy, CURLOPT_FOLLOWLOCATION, 1L);
-    if (global.share) curl_easy_setopt(this->easy, CURLOPT_SHARE, global.share);
+    curl_easy_setopt(easy, CURLOPT_USERAGENT, USER_AGENT.c_str());
+    curl_easy_setopt(easy, CURLOPT_FOLLOWLOCATION, 1L);
     // enable all supported built-in compressions
-    curl_easy_setopt(this->easy, CURLOPT_ACCEPT_ENCODING, "");
-    curl_easy_setopt(this->easy, CURLOPT_VERBOSE, 0L);
-    curl_easy_setopt(this->easy, CURLOPT_SSL_VERIFYPEER, 0L);
-    curl_easy_setopt(this->easy, CURLOPT_SSL_VERIFYHOST, 0L);
-    // Every request runs from a background thread (ThreadPool / brls::async), so
-    // libcurl must never reach for SIGALRM to time out a name resolve — signals
-    // only work on the main thread and are unsafe multi-threaded (curl docs:
-    // "libcurl cannot function properly multi-threaded unless CURLOPT_NOSIGNAL
-    // is set"). With NOSIGNAL, DNS timeouts rely solely on the async (threaded)
-    // resolver, which is why the Vita curl build must enable it.
-    curl_easy_setopt(this->easy, CURLOPT_NOSIGNAL, 1L);
+    curl_easy_setopt(easy, CURLOPT_ACCEPT_ENCODING, "");
+    curl_easy_setopt(easy, CURLOPT_VERBOSE, 0L);
+    curl_easy_setopt(easy, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(easy, CURLOPT_SSL_VERIFYHOST, 0L);
+    // 请求都在后台线程，禁止 libcurl 用信号做超时
+    curl_easy_setopt(easy, CURLOPT_NOSIGNAL, 1L);
 #if LIBCURL_VERSION_NUM >= 0x071900 && !defined(__PS4__)
-    curl_easy_setopt(this->easy, CURLOPT_TCP_KEEPALIVE, 1L);
+    curl_easy_setopt(easy, CURLOPT_TCP_KEEPALIVE, 1L);
 #endif
 }
 
 HTTP::~HTTP() {
     if (this->chunk != nullptr) curl_slist_free_all(this->chunk);
-    if (this->easy != nullptr) curl_easy_cleanup(this->easy);
+    if (this->easy != nullptr) Pool::instance()->release(static_cast<CURL*>(this->easy));
 }
 
 void HTTP::set_user_agent(const std::string& agent) { curl_easy_setopt(this->easy, CURLOPT_USERAGENT, agent.c_str()); }
@@ -236,16 +294,50 @@ size_t HTTP::easy_write_cb(char* ptr, size_t size, size_t nmemb, void* userdata)
 }
 
 int HTTP::perform(std::ostream* body) {
-    if (this->easy == nullptr) throw curl_error("curl handle unavailable (out of memory)");
-    curl_easy_setopt(this->easy, CURLOPT_WRITEFUNCTION, easy_write_cb);
-    curl_easy_setopt(this->easy, CURLOPT_WRITEDATA, body);
-    curl_easy_setopt(this->easy, CURLOPT_PROXY, PROXY_STATUS ? PROXY.c_str() : nullptr);
+    CURL* easy = static_cast<CURL*>(this->easy);
+    // 用当前线程的 multi 驱动：句柄可能是在别的线程借出的
+    CURLM* multi = Pool::instance()->multi();
+    if (easy == nullptr || multi == nullptr) throw curl_error("curl handle unavailable (out of memory)");
 
-    CURLcode res = curl_easy_perform(this->easy);
+    curl_easy_setopt(easy, CURLOPT_WRITEFUNCTION, easy_write_cb);
+    curl_easy_setopt(easy, CURLOPT_WRITEDATA, body);
+    curl_easy_setopt(easy, CURLOPT_PROXY, PROXY_STATUS ? PROXY.c_str() : nullptr);
+
+    // 每次传输都要 add/remove 一次，连接缓存挂在 multi 上不会丢
+    CURLMcode mc = curl_multi_add_handle(multi, easy);
+    if (mc != CURLM_OK) throw curl_error(fmt::format("curl multi: {}", curl_multi_strerror(mc)));
+
+    // 任何抛出路径都要把句柄摘下来，否则下次复用会失败
+    struct Detach {
+        CURLM* multi;
+        CURL* easy;
+        ~Detach() { curl_multi_remove_handle(this->multi, this->easy); }
+    } detach{multi, easy};
+
+    CURLcode res = CURLE_OK;
+    int running = 0;
+    for (;;) {
+        mc = curl_multi_perform(multi, &running);
+        if (mc != CURLM_OK) throw curl_error(fmt::format("curl multi: {}", curl_multi_strerror(mc)));
+        if (!running) break;
+        mc = curl_multi_poll(multi, nullptr, 0, 100, nullptr);
+        if (mc != CURLM_OK) throw curl_error(fmt::format("curl multi: {}", curl_multi_strerror(mc)));
+    }
+
+    bool done = false;
+    int pending = 0;
+    CURLMsg* msg = nullptr;
+    while ((msg = curl_multi_info_read(multi, &pending)) != nullptr) {
+        if (msg->msg == CURLMSG_DONE && msg->easy_handle == easy) {
+            res = msg->data.result;
+            done = true;
+        }
+    }
+    if (!done) throw curl_error("curl multi: transfer result missing");
     if (res != CURLE_OK) throw curl_error(res);
 
     long status_code = 0;
-    curl_easy_getinfo(this->easy, CURLINFO_RESPONSE_CODE, &status_code);
+    curl_easy_getinfo(easy, CURLINFO_RESPONSE_CODE, &status_code);
     this->lastCode = static_cast<int>(status_code);
     return this->lastCode;
 }
@@ -262,6 +354,8 @@ std::string HTTP::encode_form(const Form& form) {
     }
     return ss.str();
 }
+
+void HTTP::cleanup_thread() { Pool::release_thread(); }
 
 void HTTP::_get(const std::string& url, std::ostream* out) {
     curl_easy_setopt(this->easy, CURLOPT_URL, url.c_str());
