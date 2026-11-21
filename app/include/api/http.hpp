@@ -49,7 +49,10 @@ public:
 
     HTTP();
     HTTP(const HTTP& other) = delete;
+    HTTP& operator=(const HTTP& other) = delete;
     ~HTTP();
+
+    static void cleanup_thread();
 
     static std::string encode_form(const Form& form);
     /// @brief Response status code of the last request (0 before any request).
@@ -127,8 +130,8 @@ private:
         set_option_internal<Ts...>(std::forward<Ts>(ts)...);
     }
 
-    void* easy;
-    struct curl_slist* chunk;
+    void* easy = nullptr;  // CURL*
+    struct curl_slist* chunk = nullptr;
     Cancel is_cancel;
     Progress event;
     int lastCode = 0;

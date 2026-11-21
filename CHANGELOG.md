@@ -10,6 +10,7 @@
 
 ### Fixed
 
+* http: reuse connections between requests to speed up image and API loading
 * image: request artwork at the laid-out size, snapped to 32 px to reuse cache
 * detail: keep poster and logo aspect ratio, add a 720p layout branch
 * music/people: drop the duplicate cover request on construction

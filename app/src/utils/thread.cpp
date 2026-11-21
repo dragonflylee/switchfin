@@ -64,6 +64,7 @@ void *ThreadPool::task_loop(void *ptr) {
     }
 
     brls::Logger::verbose("thread: exit {}", fmt::ptr(p));
+    HTTP::cleanup_thread();
     return nullptr;
 }
 
