@@ -184,7 +184,8 @@ void Image::with(brls::Image* view, const std::string& url, const HTTP::Header& 
     item->image = view;
     item->url = url;
     item->headers = headers;
-    item->isCancel->store(false);
+    // 每次请求独立的取消标记，避免池复用激活已取消的旧回调
+    item->isCancel = std::make_shared<std::atomic_bool>(false);
     view->ptrLock();
     // 设置图片组件不处理纹理的销毁，由缓存统一管理纹理销毁
     view->setFreeTexture(false);
@@ -256,7 +257,8 @@ void Image::doRequest(HTTP& s) {
 #endif
         brls::Logger::verbose("request Image {} size {}", url, data.size());
         brls::sync([imagePtr, url, isCancelCopy, imageData, imageW, imageH, isWebp] {
-            if (!isCancelCopy->load()) {
+            // imagePtr 可能已被置空
+            if (!isCancelCopy->load() && imagePtr != nullptr) {
                 int tex = brls::TextureCache::instance().getCache(url);
                 if (tex == 0 && imageData != nullptr) {
                     NVGcontext* vg = brls::Application::getNVGContext();
@@ -291,7 +293,8 @@ void Image::doRequest(HTTP& s) {
         });
     } catch (const std::exception& ex) {
         brls::Logger::warning("request image {} {}", url, ex.what());
-        Image::clear(imagePtr);
+        // 取消时已清理过，避免误清该 view 上的新请求
+        if (!isCancelCopy->load()) Image::clear(imagePtr);
     }
 }
 

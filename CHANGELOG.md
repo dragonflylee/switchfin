@@ -4,10 +4,15 @@
 
 ### Added
 
+* episodes: show duration beside episode titles (#286) @txemaleon
+* movie: show runtime and estimated end time (#285) @txemaleon
 * gallery: browse images with L/R paging, zoom (buttons or pinch) and drag to pan
 
 ### Fixed
 
+* image: fix crash from revived callbacks of cancelled requests
+* ebook: reuse borealis fonts in MuPDF to reduce binary size and share font memory
+* remote: reload in place after editing, skip the test when unchanged
 * player: keep progress slider pointer in sync with the finger while dragging
 * websocket: abort blocking receive on exit so teardown no longer hangs the app
 
@@ -21,8 +26,8 @@
 
 ### Fixed
 
-* support the new Quick Connect API (#272)
-* PS4: fix bitmap subtitle bluescreen (#271)
+* support the new Quick Connect API (#272) @Kaspian-TC
+* PS4: fix bitmap subtitle bluescreen (#271) @OzoneH3
 * image: keep texture owned by cache and trim near-white border bars causing smears (#243)
 * websocket: harden receive loop, reconnect on normal close and fix teardownt
 * compare versions numerically in update check
