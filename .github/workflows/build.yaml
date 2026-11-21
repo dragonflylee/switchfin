@@ -69,8 +69,12 @@ jobs:
       uses: actions/download-artifact@v8
     - name: Package Assets
       run: |
+        for f in */*; do
+          [[ -f $f && $f == *"-$GITHUB_RUN_NUMBER"* ]] || continue
+          mv "$f" "${f//-$GITHUB_RUN_NUMBER/}"
+        done
         for p in Switchfin-windows-*; do
-          [[ -d $p ]] && 7z a -tzip -mx9 $p.zip ./$p/* && rm -rf $p
+          [[ -d $p ]] && 7z a -tzip -mx9 "$p.zip" ./$p/* && rm -rf $p
         done
         tree
     - name: Release and Upload Assets

@@ -1,3 +1,16 @@
+switchfin (0.9.6-1) unstable; urgency=medium
+
+  * episodes: show duration beside episode titles
+  * movie: show runtime and estimated end time
+  * gallery: browse images with L/R paging, zoom and drag to pan
+  * image: fix crash from revived callbacks of cancelled requests
+  * ebook: reuse borealis fonts in MuPDF to reduce binary size
+  * remote: reload in place after editing, skip the test when unchanged
+  * player: keep progress slider pointer in sync with the finger while dragging
+  * websocket: abort blocking receive on exit so teardown no longer hangs the app
+
+ -- dragonflylee <dragonflylee@outlook.com>  Sat, 21 Nov 2026 10:53:00 +0800
+
 switchfin (0.9.5-1) unstable; urgency=medium
 
   * support the new Quick Connect API
