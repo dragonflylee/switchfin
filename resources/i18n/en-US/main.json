@@ -313,6 +313,7 @@
       "always_on_top": "Always on top",
       "single": "Single instance",
       "overclock": "CPU Overclock",
+      "playback_boost": "Boost CPU/GPU clocks during playback",
       "debug": "Debug View",
       "sync": "Preserve order setting",
       "theme": {

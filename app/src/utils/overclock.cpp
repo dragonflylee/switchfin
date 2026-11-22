@@ -96,4 +96,36 @@ bool SwitchSys::setClock(const SwitchSys::Module &module, int hz) {
     return false;
 }
 
+#elif defined(__PSV__)
+
+#include <psp2/power.h>
+#include <borealis/core/logger.hpp>
+
+void VitaSys::setPlaybackClock(bool boost) {
+    if (boost) {
+        if (!PLAYBACK_BOOST || boosted) return;
+        stock_arm = scePowerGetArmClockFrequency();
+        stock_bus = scePowerGetBusClockFrequency();
+        stock_gpu = scePowerGetGpuClockFrequency();
+        stock_xbar = scePowerGetGpuXbarClockFrequency();
+
+        scePowerSetArmClockFrequency(444);
+        scePowerSetBusClockFrequency(222);
+        scePowerSetGpuClockFrequency(222);
+        scePowerSetGpuXbarClockFrequency(166);
+        boosted = true;
+
+        brls::Logger::info("VitaSys: clocks {}/{}/{}/{} -> {}/{}/{}/{}", stock_arm, stock_bus, stock_gpu, stock_xbar,
+            scePowerGetArmClockFrequency(), scePowerGetBusClockFrequency(), scePowerGetGpuClockFrequency(),
+            scePowerGetGpuXbarClockFrequency());
+    } else if (boosted) {
+        if (stock_arm > 0) scePowerSetArmClockFrequency(stock_arm);
+        if (stock_bus > 0) scePowerSetBusClockFrequency(stock_bus);
+        if (stock_gpu > 0) scePowerSetGpuClockFrequency(stock_gpu);
+        if (stock_xbar > 0) scePowerSetGpuXbarClockFrequency(stock_xbar);
+        boosted = false;
+        brls::Logger::info("VitaSys: clocks restored");
+    }
+}
+
 #endif
