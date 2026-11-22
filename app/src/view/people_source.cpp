@@ -51,13 +51,6 @@ public:
         this->doPeople();
         this->movie->doRequest();
         this->series->doRequest();
-        ;
-
-        Image::load(this->imageLogo, jellyfin::apiPrimaryImage, item.Id,
-            HTTP::encode_form({
-                {"tag", item.PrimaryImageTag},
-                {"maxWidth", "350"},
-            }));
     }
 
     ~PeopleView() override {
@@ -77,6 +70,12 @@ public:
                     this->labelLocation->setText(r.ProductionLocations.front());
                 } else {
                     this->labelLocation->setVisibility(brls::Visibility::GONE);
+                }
+
+                auto it = r.ImageTags.find(jellyfin::imageTypePrimary);
+                if (it != r.ImageTags.end()) {
+                    Image::load(this->imageLogo, 350, jellyfin::apiPrimaryImage, r.Id,
+                        HTTP::encode_form({{ "tag", it->second }}));
                 }
             },
             [ASYNC_TOKEN](const std::string& ex) {
@@ -111,8 +110,8 @@ RecyclingGridItem* PeopleDataSource::cellForRow(RecyclingView* recycler, size_t 
     cell->labelExt->setText(item.Role);
 
     if (!item.PrimaryImageTag.empty()) {
-        Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
-            HTTP::encode_form({{"tag", item.PrimaryImageTag}, {"maxWidth", "350"}}));
+        Image::load(cell->picture, 350, jellyfin::apiPrimaryImage, item.Id,
+            HTTP::encode_form({{ "tag", item.PrimaryImageTag }}));
     }
     return cell;
 }

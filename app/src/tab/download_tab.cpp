@@ -89,8 +89,8 @@ public:
         if (fs::exists(thumbPath)) {
             this->thumb->setImageFromFile(thumbPath);
         } else {
-            Image::load(this->thumb, jellyfin::apiPrimaryImage, item.itemId,
-                HTTP::encode_form({{"tag", item.imagePrimaryTag}, {"maxWidth", "300"}}));
+            Image::load(this->thumb, 300, jellyfin::apiPrimaryImage, item.itemId,
+                HTTP::encode_form({{ "tag", item.imagePrimaryTag }}));
         }
 
         // title = episode or movie name; subtitle = "Show · SxEy" or year,

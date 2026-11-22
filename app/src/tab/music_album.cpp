@@ -94,16 +94,9 @@ MusicAlbum::MusicAlbum(const jellyfin::Item& item) : itemId(item.Id) {
 
     this->albumTitle->setText(item.Name);
     if (item.ProductionYear) this->albumYear->setText(std::to_string(item.ProductionYear));
-    // loading cover
+    // 封面由 doAlbum 的回调加载，此时组件已经完成布局
     auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
-    if (it != item.ImageTags.end()) {
-        Image::load(this->imageCover, jellyfin::apiPrimaryImage, itemId,
-            HTTP::encode_form({
-                {"tag", it->second},
-                {"maxWidth", "240"},
-            }));
-        this->imageCover->setVisibility(brls::Visibility::VISIBLE);
-    }
+    if (it != item.ImageTags.end()) this->imageCover->setVisibility(brls::Visibility::VISIBLE);
 
     this->doAlbum();
     this->doTracks();
@@ -151,10 +144,9 @@ void MusicAlbum::doAlbum() {
 
             auto logo = r.ImageTags.find(jellyfin::imageTypePrimary);
             if (logo != r.ImageTags.end()) {
-                Image::load(this->imageCover, jellyfin::apiPrimaryImage, r.Id,
+                Image::load(this->imageCover, 240, jellyfin::apiPrimaryImage, r.Id,
                     HTTP::encode_form({
                         {"tag", logo->second},
-                        {"maxWidth", "240"},
                     }));
             }
         },

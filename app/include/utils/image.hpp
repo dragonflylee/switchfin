@@ -13,9 +13,12 @@ public:
 
     virtual ~Image();
 
+    static int pixelWidth(brls::View* view, int fallback = 300);
+
     template <typename... Args>
-    static void load(brls::Image* view, const fmt::string_view fmt, Args&&... args) {
+    static void load(brls::Image* view, int fallback, const fmt::string_view fmt, Args&&... args) {
         std::string path = fmt::format(fmt::runtime(fmt), std::forward<Args>(args)...);
+        path += fmt::format("{}maxWidth={}", path.empty() ? "" : "&", pixelWidth(view, fallback));
         return with(view, AppConfig::instance().getUrl() + path);
     }
 

@@ -101,11 +101,11 @@ public:
 
         auto epimage = item.ImageTags.find(jellyfin::imageTypePrimary);
         if (epimage != item.ImageTags.end()) {
-            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
-                HTTP::encode_form({{"tag", epimage->second}, {"fillWidth", "300"}}));
+            Image::load(cell->picture, 300, jellyfin::apiPrimaryImage, item.Id,
+                HTTP::encode_form({{ "tag", epimage->second }}));
         } else if (item.SeriesId.is_string()) {
-            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId.get<std::string>(),
-                HTTP::encode_form({{"tag", item.SeriesPrimaryImageTag}, {"fillWidth", "300"}}));
+            Image::load(cell->picture, 300, jellyfin::apiPrimaryImage, item.SeriesId.get<std::string>(),
+                HTTP::encode_form({{ "tag", item.SeriesPrimaryImageTag }}));
         }
 
         if (item.IndexNumber > 0) {
@@ -236,17 +236,17 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
 
         auto it = item.ImageTags.find(jellyfin::imageTypeThumb);
         if (it != item.ImageTags.end()) {
-            Image::load(cell->picture, jellyfin::apiThumbImage, item.Id,
-                HTTP::encode_form({{"tag", it->second}, {"maxWidth", "325"}}));
+            Image::load(cell->picture, 325, jellyfin::apiThumbImage, item.Id,
+                HTTP::encode_form({{ "tag", it->second }}));
         } else if (item.ParentThumbImageTag.size() > 0) {
-            Image::load(cell->picture, jellyfin::apiThumbImage, item.ParentThumbItemId,
-                HTTP::encode_form({{"tag", item.ParentThumbImageTag}, {"maxWidth", "325"}}));
+            Image::load(cell->picture, 325, jellyfin::apiThumbImage, item.ParentThumbItemId,
+                HTTP::encode_form({{ "tag", item.ParentThumbImageTag }}));
         } else if (item.ParentBackdropImageTags.size() > 0) {
-            Image::load(cell->picture, jellyfin::apiBackdropImage, item.ParentBackdropItemId, 0,
-                HTTP::encode_form({{"tag", item.ParentBackdropImageTags.at(0)}, {"maxWidth", "325"}}));
+            Image::load(cell->picture, 325, jellyfin::apiBackdropImage, item.ParentBackdropItemId, 0,
+                HTTP::encode_form({{ "tag", item.ParentBackdropImageTags.at(0) }}));
         } else if (item.SeriesId.is_string()) {
-            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.SeriesId.get<std::string>(),
-                HTTP::encode_form({{"tag", item.SeriesPrimaryImageTag}, {"maxWidth", "325"}}));
+            Image::load(cell->picture, 325, jellyfin::apiPrimaryImage, item.SeriesId.get<std::string>(),
+                HTTP::encode_form({{ "tag", item.SeriesPrimaryImageTag }}));
         }
     } else {
         cell->labelTitle->setText(item.Name);
@@ -261,8 +261,8 @@ RecyclingGridItem* VideoDataSource::cellForRow(RecyclingView* recycler, size_t i
 
         auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
         if (it != item.ImageTags.end()) {
-            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
-                HTTP::encode_form({{"tag", it->second}, {"maxWidth", "325"}}));
+            Image::load(cell->picture, 325, jellyfin::apiPrimaryImage, item.Id,
+                HTTP::encode_form({{ "tag", it->second }}));
         }
     }
 

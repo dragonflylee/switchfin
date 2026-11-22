@@ -154,10 +154,9 @@ const std::string& MusicView::currentId() { return this->itemId; }
 void MusicView::image(brls::Image* image) {
     for (auto& it : this->playList) {
         if (it.second.Id == this->itemId) {
-            Image::load(image, jellyfin::apiPrimaryImage, it.second.ImageId,
+            Image::load(image, 240, jellyfin::apiPrimaryImage, it.second.ImageId,
                 HTTP::encode_form({
                     {"tag", it.second.ImageTag},
-                    {"maxWidth", "240"},
                 }));
         }
     }

@@ -54,7 +54,8 @@ public:
         auto& item = this->list.at(index);
         auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
         if (it != item.ImageTags.end()) {
-            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id, HTTP::encode_form({{"tag", it->second}}));
+            Image::load(cell->picture, 300, jellyfin::apiPrimaryImage, item.Id,
+                HTTP::encode_form({{ "tag", it->second }}));
             cell->labelTitle->setVisibility(brls::Visibility::GONE);
             cell->picture->setVisibility(brls::Visibility::VISIBLE);
 

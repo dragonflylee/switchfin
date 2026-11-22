@@ -183,26 +183,23 @@ void MediaMovie::doMovie() {
 
             auto poster = r.ImageTags.find(jellyfin::imageTypePrimary);
             if (poster != r.ImageTags.end()) {
-                // maxWidth only: the server keeps the real ratio
-                Image::load(this->imagePoster, jellyfin::apiPrimaryImage, r.Id,
+                Image::load(this->imagePoster, 300, jellyfin::apiPrimaryImage, r.Id,
                     HTTP::encode_form({
                         {"tag", poster->second},
-                        {"maxWidth", "300"},
                     }));
             }
 
             auto logo = r.ImageTags.find(jellyfin::imageTypeLogo);
             if (logo != r.ImageTags.end()) {
-                Image::load(this->imageLogo, jellyfin::apiLogoImage, r.Id,
+                Image::load(this->imageLogo, 440, jellyfin::apiLogoImage, r.Id,
                     HTTP::encode_form({
                         {"tag", logo->second},
-                        {"maxWidth", "440"},
                     }));
             }
 
             if (r.BackdropImageTags.size() > 0) {
-                Image::load(this->imageBackdrop, jellyfin::apiBackdropImage, r.Id, 0,
-                    HTTP::encode_form({{"tag", r.BackdropImageTags.at(0)}}));
+                Image::load(this->imageBackdrop, 1280, jellyfin::apiBackdropImage, r.Id, 0,
+                    HTTP::encode_form({{ "tag", r.BackdropImageTags.at(0) }}));
             } else {
                 this->bannerBox->setVisibility(brls::Visibility::GONE);
                 this->contentRow->setMarginTop(0);

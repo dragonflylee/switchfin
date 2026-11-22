@@ -94,7 +94,7 @@ public:
     }
 
     void setImage(const std::string& userId, const std::string& tag) {
-        Image::load(this->avatar, jellyfin::apiUserImage, userId, "tag=" + tag);
+        Image::load(this->avatar, 40, jellyfin::apiUserImage, userId, "tag=" + tag);
     }
 
     void prepareForReuse() override { this->avatar->setImageFromRes("img/account.png"); }
@@ -314,7 +314,7 @@ public:
         this->app->setText(fmt::format("{} {}", item.Client, item.ApplicationVersion));
         this->user->setText(item.UserName);
         if (item.UserPrimaryImageTag.size() > 0) {
-            Image::load(this->avatar, jellyfin::apiUserImage, item.UserId, "tag=" + item.UserPrimaryImageTag);
+            Image::load(this->avatar, 50, jellyfin::apiUserImage, item.UserId, "tag=" + item.UserPrimaryImageTag);
         }
         if (item.NowPlayingItem.Id.size() > 0) {
             if (item.NowPlayingItem.Type == jellyfin::mediaTypeEpisode) {

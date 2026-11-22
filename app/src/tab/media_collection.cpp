@@ -36,8 +36,8 @@ public:
         cell->labelExt->setVisibility(brls::Visibility::GONE);
         auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
         if (it != item.ImageTags.end()) {
-            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
-                HTTP::encode_form({{"tag", it->second}, {"maxWidth", "300"}}));
+            Image::load(cell->picture, 300, jellyfin::apiPrimaryImage, item.Id,
+                HTTP::encode_form({{ "tag", it->second }}));
         }
         return cell;
     }

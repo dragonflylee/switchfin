@@ -193,6 +193,17 @@ void Image::with(brls::Image* view, const std::string& url, const HTTP::Header& 
     ThreadPool::instance().submit([item](HTTP& s) { item->doRequest(s); });
 }
 
+int Image::pixelWidth(brls::View* view, int fallback) {
+    if (view == nullptr) return fallback;
+
+    float width = view->getWidth();
+    if (!std::isfinite(width) || width <= 0.f) return fallback;
+
+    // 对齐 32 像素，让相近宽度共用同一缓存 key
+    const int pixels = (static_cast<int>(std::lround(width)) + 31) / 32 * 32;
+    return std::max(pixels, 160);
+}
+
 void Image::cancel(brls::Image* view) {
     if (view == nullptr) return;
 

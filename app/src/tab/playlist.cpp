@@ -56,16 +56,16 @@ public:
 
         if (item.Type == jellyfin::mediaTypeAudio) {
             if (!item.AlbumPrimaryImageTag.empty()) {
-                Image::load(cell->picture, jellyfin::apiPrimaryImage, item.AlbumId,
-                    HTTP::encode_form({{"tag", item.AlbumPrimaryImageTag}, {"maxWidth", "50"}}));
+                Image::load(cell->picture, 50, jellyfin::apiPrimaryImage, item.AlbumId,
+                    HTTP::encode_form({{ "tag", item.AlbumPrimaryImageTag }}));
             }
 
             cell->misc->setText(fmt::format("{}", fmt::join(item.Artists, " ")));
         } else {
             auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
             if (it != item.ImageTags.end()) {
-                Image::load(cell->picture, jellyfin::apiPrimaryImage, item.Id,
-                    HTTP::encode_form({{"tag", it->second}, {"maxWidth", "50"}}));
+                Image::load(cell->picture, 50, jellyfin::apiPrimaryImage, item.Id,
+                    HTTP::encode_form({{ "tag", it->second }}));
             }
 
             if (item.CommunityRating > 0) {
@@ -128,10 +128,9 @@ Playlist::Playlist(const jellyfin::Item& item) : itemId(item.Id) {
     // loading cover
     auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
     if (it != item.ImageTags.end()) {
-        Image::load(this->cover, jellyfin::apiPrimaryImage, itemId,
+        Image::load(this->cover, 240, jellyfin::apiPrimaryImage, itemId,
             HTTP::encode_form({
                 {"tag", it->second},
-                {"maxWidth", "240"},
             }));
         this->cover->setVisibility(brls::Visibility::VISIBLE);
     }

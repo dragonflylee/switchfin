@@ -47,8 +47,8 @@ public:
         auto& item = this->list.at(index);
 
         if (!item.AlbumPrimaryImageTag.empty()) {
-            Image::load(cell->picture, jellyfin::apiPrimaryImage, item.AlbumId,
-                HTTP::encode_form({{"tag", item.AlbumPrimaryImageTag}, {"maxWidth", "50"}}));
+            Image::load(cell->picture, 50, jellyfin::apiPrimaryImage, item.AlbumId,
+                HTTP::encode_form({{ "tag", item.AlbumPrimaryImageTag }}));
         }
 
         cell->setId(item.Id);
@@ -101,10 +101,9 @@ SongList::SongList(const std::string& itemId, const std::string& artistIds) : it
                 if (cell) cell->setSelected(item->Id);
             }
             if (item->ImageTag.size() > 0)
-                Image::load(this->cover, jellyfin::apiPrimaryImage, item->ImageId,
+                Image::load(this->cover, 240, jellyfin::apiPrimaryImage, item->ImageId,
                     HTTP::encode_form({
                         {"tag", item->ImageTag},
-                        {"maxWidth", "240"},
                     }));
             this->title->setText(item->Album);
         }
