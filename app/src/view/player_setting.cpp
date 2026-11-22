@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "utils/config.hpp"
 #include "view/button_close.hpp"
 #include "view/mpv_core.hpp"
@@ -26,6 +28,8 @@ PlayerSetting::PlayerSetting(const jellyfin::Source* src) {
 
     std::vector<std::string> audioTrack, audioSource;
     std::vector<int> audioStream;
+    // mpv track ids, parallel to audioTrack / subTrack (0 = no subtitle)
+    std::vector<int64_t> audioId, subId = {0};
     std::vector<std::string> subTrack = {"main/player/none"_i18n};
     std::vector<std::string> subSource = {"main/player/none"_i18n};
     std::vector<int> subStream = {0};
@@ -40,10 +44,14 @@ PlayerSetting::PlayerSetting(const jellyfin::Source* src) {
         else if (title.empty())
             title = lang;
         if (title.empty()) title = fmt::format("{} track {}", type, n);
-        if (type == "sub")
+        int64_t id = mpv.getInt(fmt::format("track-list/{}/id", n));
+        if (type == "sub") {
             subTrack.push_back(title);
-        else if (type == "audio")
+            subId.push_back(id);
+        } else if (type == "audio") {
             audioTrack.push_back(title);
+            audioId.push_back(id);
+        }
     }
 
     if (src != nullptr) {
@@ -59,10 +67,14 @@ PlayerSetting::PlayerSetting(const jellyfin::Source* src) {
     }
     // 字幕选择
     if (subTrack.size() > 1) {
-        int64_t value = mpv.getInt("sid");
-        this->subtitleTrack->init("main/player/subtitle"_i18n, subTrack, value, [&mpv](int selected) {
-            selectedSubtitle = selected;
-            mpv.setInt("sid", selected);
+        // sid may name a track missing from the list (e.g. a sub-add that
+        // finished after track-list was read), so map ids instead of indexing
+        int64_t sid = mpv.getInt("sid");
+        auto it = std::find(subId.begin(), subId.end(), sid);
+        int value = it != subId.end() ? it - subId.begin() : 0;
+        this->subtitleTrack->init("main/player/subtitle"_i18n, subTrack, value, [&mpv, subId](int selected) {
+            selectedSubtitle = subId[selected];
+            mpv.setInt("sid", selectedSubtitle);
         });
     } else if (subSource.size() > 1) {
         int value = 0;
@@ -77,9 +89,11 @@ PlayerSetting::PlayerSetting(const jellyfin::Source* src) {
     }
     // 音轨选择
     if (audioTrack.size() > 1) {
-        int64_t value = mpv.getInt("aid", 1) - 1;
-        this->audioTrack->init("main/player/audio"_i18n, audioTrack, value, [&mpv](int selected) {
-            selectedAudio = selected + 1;
+        int64_t aid = mpv.getInt("aid", 1);
+        auto it = std::find(audioId.begin(), audioId.end(), aid);
+        int value = it != audioId.end() ? it - audioId.begin() : 0;
+        this->audioTrack->init("main/player/audio"_i18n, audioTrack, value, [&mpv, audioId](int selected) {
+            selectedAudio = audioId[selected];
             mpv.setInt("aid", selectedAudio);
         });
         this->audioTrack->detail->setVisibility(brls::Visibility::GONE);
