@@ -103,7 +103,7 @@ void HomeTab::onCreate() {
 
                 } else {
                     std::string itemId = std::move(item.Id);
-                    if (item.CollectionType == "music") {
+                    if (item.CollectionType == "music" || item.CollectionType == "homevideos") {
                         recyler->setFrameHeight(225);
                     } else if (item.CollectionType == "books") {
                         recyler->setFrameHeight(280);

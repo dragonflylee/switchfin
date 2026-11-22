@@ -1,6 +1,7 @@
 #include <borealis/core/application.hpp>
 #include <yoga/YGNode.h>
 #include "view/text_box.hpp"
+#include <algorithm>
 
 static YGSize textBoxMeasureFunc(
     YGNodeRef node, float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode) {
@@ -29,7 +30,7 @@ static YGSize textBoxMeasureFunc(
 TextBox::TextBox() {
     this->setAutoAnimate(false);
 
-    this->registerFloatXMLAttribute("maxRows", [this](float value) { this->maxRows = (size_t)value; });
+    this->registerFloatXMLAttribute("maxRows", [this](float value) { this->maxRows = std::max<size_t>(1, value); });
 
     YGNodeSetMeasureFunc(this->ygNode, textBoxMeasureFunc);
 }
@@ -95,7 +96,11 @@ float TextBox::cutText(float width) {
     const char* stringStart = this->fullText.c_str();
     int nrows = nvgTextBreakLines(vg, stringStart, nullptr, width, rows.data(), rows.size());
     if (nrows > 0) {
-        this->cuttedText = this->fullText.substr(0, rows[nrows - 1].end - rows[0].start);
+        const char* cutEnd = rows[nrows - 1].end;
+        this->cuttedText = this->fullText.substr(0, cutEnd - rows[0].start);
+        if (nrows == (int)this->maxRows && cutEnd < stringStart + this->fullText.size()) {
+            this->cuttedText += "\u2026";
+        }
         requiredHeight += nrows * this->lineHeight * lineh;
     }
     this->cuttedWidth = width;  // memoize: draw() recuts only when width changes
