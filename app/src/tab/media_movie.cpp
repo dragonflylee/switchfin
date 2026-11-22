@@ -15,12 +15,6 @@
 
 using namespace brls::literals;  // for _i18n
 
-namespace {
-std::string joinNames(const std::vector<std::string>& list) {
-    return fmt::format("{}", fmt::join(list, ", "));
-}
-}  // namespace
-
 MediaMovie::MediaMovie(const jellyfin::Item& item) : runTimeTicks(item.RunTimeTicks), itemId(item.Id) {
     brls::Logger::debug("Tab MediaMovie: create");
     // Inflate the tab from the XML file
@@ -181,8 +175,8 @@ void MediaMovie::updateCredits(const jellyfin::Detail& r) {
         this->labelPeople->setVisibility(brls::Visibility::VISIBLE);
     }
 
-    setRow(this->boxDirector, this->labelDirector, joinNames(directors));
-    setRow(this->boxWriter, this->labelWriter, joinNames(writers));
+    setRow(this->boxDirector, this->labelDirector, misc::joinNames(directors));
+    setRow(this->boxWriter, this->labelWriter, misc::joinNames(writers));
 
     if (crew.empty()) {
         this->crew->setVisibility(brls::Visibility::GONE);
@@ -199,7 +193,7 @@ void MediaMovie::updateCredits(const jellyfin::Detail& r) {
 
     std::vector<std::string> studios;
     for (const auto& it : r.Studios) studios.push_back(it.Name);
-    setRow(this->boxStudios, this->labelStudios, joinNames(studios));
+    setRow(this->boxStudios, this->labelStudios, misc::joinNames(studios));
 
     setRow(this->boxRelease, this->labelRelease,
         r.PremiereDate.empty() ? std::string() : r.PremiereDate.substr(0, r.PremiereDate.find('T')));
@@ -207,7 +201,7 @@ void MediaMovie::updateCredits(const jellyfin::Detail& r) {
     std::vector<std::string> providers;
     for (const auto& [key, value] : r.ProviderIds) providers.push_back(key);
     std::sort(providers.begin(), providers.end());
-    setRow(this->boxProviders, this->labelProviders, joinNames(providers));
+    setRow(this->boxProviders, this->labelProviders, misc::joinNames(providers));
 
     brls::View* rows[] = {this->labelTags, this->boxProviders, this->boxStudios, this->boxRelease,
         this->boxDirector, this->boxWriter};

@@ -112,6 +112,8 @@
     "director": "Yönetmen",
     "writer": "Senarist",
     "studios": "Stüdyolar",
+    "episodes": "{} bölüm",
+    "present": "Günümüz",
     "providers": "Sağlayıcılar",
     "tags": "Etiketler",
     "media_info": "Video",

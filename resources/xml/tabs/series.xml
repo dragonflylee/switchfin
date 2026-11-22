@@ -89,6 +89,15 @@
                         fontSize="42"
                         marginBottom="14" />
 
+                    <brls:Label
+                        id="series/label/original_title"
+                        fontSize="17"
+                        animated="false"
+                        singleLine="true"
+                        textColor="@theme/font/grey"
+                        visibility="gone"
+                        marginBottom="14" />
+
                     <brls:Box
                         alignItems="center"
                         marginBottom="14">
@@ -108,6 +117,23 @@
                         </brls:Box>
 
                         <brls:Box
+                            id="series/episodes"
+                            cornerRadius="14"
+                            height="28"
+                            alignItems="center"
+                            paddingLeft="12"
+                            paddingRight="12"
+                            marginRight="8"
+                            visibility="gone"
+                            backgroundColor="@theme/color/pill">
+                            <brls:Label
+                                id="series/label/episodes"
+                                singleLine="true"
+                                fontSize="14" />
+                        </brls:Box>
+
+                        <brls:Box
+                            id="series/parental"
                             cornerRadius="14"
                             height="28"
                             alignItems="center"
@@ -123,6 +149,7 @@
                         </brls:Box>
 
                         <brls:Box
+                            id="series/rating"
                             cornerRadius="14"
                             height="28"
                             alignItems="center"
@@ -147,6 +174,15 @@
                         fontSize="14"
                         animated="false"
                         textColor="@theme/font/grey"
+                        visibility="gone"
+                        marginBottom="16" />
+
+                    <brls:Label
+                        id="series/label/tagline"
+                        fontSize="15"
+                        animated="false"
+                        textColor="@theme/font/grey"
+                        visibility="gone"
                         marginBottom="16" />
 
                     <!-- inline buttons under the genres, before the synopsis:
@@ -184,6 +220,70 @@
                         id="series/label/overview"
                         fontSize="15"
                         textColor="@theme/font/grey" />
+
+                    <brls:Box
+                        id="series/info"
+                        axis="column"
+                        visibility="gone"
+                        marginTop="20">
+
+                        <brls:Label
+                            id="series/info/tags"
+                            fontSize="14"
+                            animated="false"
+                            textColor="@theme/font/grey"
+                            marginBottom="14" />
+
+                        <brls:Box
+                            id="series/info/providers"
+                            alignItems="center"
+                            visibility="gone"
+                            marginBottom="12">
+                            <brls:Label
+                                fontSize="14"
+                                textColor="@theme/font/grey"
+                                width="110"
+                                singleLine="true"
+                                text="@i18n/main/media/providers" />
+                            <brls:Label
+                                id="series/info/providers/value"
+                                fontSize="14"
+                                animated="false" />
+                        </brls:Box>
+
+                        <brls:Box
+                            id="series/info/studios"
+                            alignItems="center"
+                            visibility="gone"
+                            marginBottom="12">
+                            <brls:Label
+                                fontSize="14"
+                                textColor="@theme/font/grey"
+                                width="110"
+                                singleLine="true"
+                                text="@i18n/main/media/studios" />
+                            <brls:Label
+                                id="series/info/studios/value"
+                                fontSize="14"
+                                animated="false" />
+                        </brls:Box>
+
+                        <brls:Box
+                            id="series/info/release"
+                            alignItems="center"
+                            visibility="gone">
+                            <brls:Label
+                                fontSize="14"
+                                textColor="@theme/font/grey"
+                                width="110"
+                                singleLine="true"
+                                text="@i18n/main/media/premiere_date" />
+                            <brls:Label
+                                id="series/info/release/value"
+                                fontSize="14"
+                                animated="false" />
+                        </brls:Box>
+                    </brls:Box>
 
                 </brls:Box>
             </brls:Box>

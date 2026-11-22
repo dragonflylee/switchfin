@@ -113,6 +113,8 @@
     "director": "Режиссёр",
     "writer": "Сценарист",
     "studios": "Студии",
+    "episodes": "{} эпизодов",
+    "present": "сейчас",
     "providers": "Источники",
     "tags": "Теги",
     "media_info": "Видео",

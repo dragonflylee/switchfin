@@ -2,7 +2,7 @@
 #include <borealis/core/logger.hpp>
 #include <borealis/core/i18n.hpp>
 #include <fmt/chrono.h>
-#include <algorithm>
+#include <fmt/ranges.h>
 #include <random>
 #include <sstream>
 #include <iomanip>
@@ -166,6 +166,10 @@ std::string misc::formatSize(uint64_t s) {
     if (s < (1 << 20)) return fmt::format("{}KB", s / 1024);
     if (s < (1 << 30)) return fmt::format("{:.2f}MB", (s >> 10) / 1024.0f);
     return fmt::format("{:.2f}GB", (s >> 20) / 1024.0f);
+}
+
+std::string misc::joinNames(const std::vector<std::string>& list) {
+    return fmt::format("{}", fmt::join(list, ", "));
 }
 
 std::string misc::formatTime(const std::string& str) {

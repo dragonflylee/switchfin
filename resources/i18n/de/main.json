@@ -113,6 +113,8 @@
     "director": "Regie",
     "writer": "Drehbuch",
     "studios": "Studios",
+    "episodes": "{} Folgen",
+    "present": "Heute",
     "providers": "Anbieter",
     "tags": "Schlagwörter",
     "media_info": "Video",

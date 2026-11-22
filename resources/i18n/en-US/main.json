@@ -113,6 +113,8 @@
     "director": "Director",
     "writer": "Writer",
     "studios": "Studios",
+    "episodes": "{} episodes",
+    "present": "Present",
     "providers": "Providers",
     "tags": "Tags",
     "media_info": "Video",

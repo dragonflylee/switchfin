@@ -27,6 +27,8 @@ std::string formatSize(uint64_t s);
 
 std::string formatTime(const std::string& str);
 
+std::string joinNames(const std::vector<std::string>& list);
+
 std::string randHex(const int len);
 
 std::string hexEncode(const unsigned char* data, size_t len);

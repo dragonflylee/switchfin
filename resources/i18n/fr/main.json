@@ -113,6 +113,8 @@
     "director": "Réalisateur",
     "writer": "Scénariste",
     "studios": "Studios",
+    "episodes": "{} épisodes",
+    "present": "Aujourd'hui",
     "providers": "Fournisseurs",
     "tags": "Mots-clés",
     "media_info": "Vidéo",

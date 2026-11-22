@@ -29,11 +29,25 @@ private:
     BRLS_BIND(brls::Image, imageLogo, "series/image/logo");
     BRLS_BIND(brls::Image, imagePoster, "series/image/poster");
     BRLS_BIND(brls::Label, labelTitle, "series/label/title");
+    BRLS_BIND(brls::Label, labelOriginalTitle, "series/label/original_title");
     BRLS_BIND(brls::Label, labelYear, "series/label/year");
+    BRLS_BIND(brls::Box, pillEpisodes, "series/episodes");
+    BRLS_BIND(brls::Label, labelEpisodes, "series/label/episodes");
+    BRLS_BIND(brls::Box, pillParental, "series/parental");
     BRLS_BIND(brls::Label, parentalRating, "series/parental/rating");
+    BRLS_BIND(brls::Box, pillRating, "series/rating");
     BRLS_BIND(brls::Label, labelRating, "series/label/rating");
     BRLS_BIND(TextBox, labelOverview, "series/label/overview");
     BRLS_BIND(brls::Label, labelGenres, "series/label/genres");
+    BRLS_BIND(brls::Label, labelTagline, "series/label/tagline");
+    BRLS_BIND(brls::Box, infoBox, "series/info");
+    BRLS_BIND(brls::Label, labelTags, "series/info/tags");
+    BRLS_BIND(brls::Box, boxProviders, "series/info/providers");
+    BRLS_BIND(brls::Label, labelProviders, "series/info/providers/value");
+    BRLS_BIND(brls::Box, boxStudios, "series/info/studios");
+    BRLS_BIND(brls::Label, labelStudios, "series/info/studios/value");
+    BRLS_BIND(brls::Box, boxRelease, "series/info/release");
+    BRLS_BIND(brls::Label, labelRelease, "series/info/release/value");
     BRLS_BIND(IconButton, btnPlay, "series/play");
     BRLS_BIND(IconButton, btnDownload, "series/download");
     BRLS_BIND(IconButton, btnFavorite, "series/favorite");
@@ -50,6 +64,7 @@ private:
     void doSeason();
     void doSimilar();
     void doSpecial();
+    void updateCredits(const jellyfin::Detail& r);
     /// plays the next unwatched episode
     void doPlay();
     /// downloads the whole show (filtered allLeaves, confirmation dialog)

@@ -7,15 +7,31 @@
 #include "tab/media_series.hpp"
 #include "view/h_recycling.hpp"
 #include "view/icon_button.hpp"
-#include "view/svg_image.hpp"
 #include "view/text_box.hpp"
 #include "view/video_card.hpp"
 #include "view/people_source.hpp"
 #include "view/video_source.hpp"
 #include "utils/dialog.hpp"
+#include "utils/misc.hpp"
 #include <fmt/ranges.h>
 
 using namespace brls::literals;  // for _i18n
+
+namespace {
+std::string yearOf(const std::string& date) {
+    return date.size() < 4 ? std::string() : date.substr(0, 4);
+}
+
+bool isPast(const std::string& date) {
+    if (date.size() < 10) return false;
+    const std::time_t now = std::time(nullptr);
+    const std::tm* local = std::localtime(&now);
+    if (!local) return false;
+    char today[11];
+    if (!std::strftime(today, sizeof(today), "%Y-%m-%d", local)) return false;
+    return date.substr(0, 10) < today;
+}
+}  // namespace
 
 MediaSeries::MediaSeries(const jellyfin::Episode& item) {
     brls::Logger::debug("Tab MediaSeries: create");
@@ -86,6 +102,47 @@ void MediaSeries::doRequest() {
     this->doSeason();
 }
 
+void MediaSeries::updateCredits(const jellyfin::Detail& r) {
+    auto setRow = [](brls::View* row, brls::Label* label, const std::string& text) {
+        row->setVisibility(text.empty() ? brls::Visibility::GONE : brls::Visibility::VISIBLE);
+        if (!text.empty()) label->setText(text);
+    };
+
+    auto setLabel = [](brls::Label* label, const std::string& text) {
+        label->setVisibility(text.empty() ? brls::Visibility::GONE : brls::Visibility::VISIBLE);
+        if (!text.empty()) label->setText(text);
+    };
+
+    setLabel(this->labelTags,
+        r.Tags.empty() ? std::string()
+                       : fmt::format("{}: {}", "main/media/tags"_i18n, fmt::format("{}", fmt::join(r.Tags, ", "))));
+
+    std::vector<std::string> providers;
+    for (const auto& [key, value] : r.ProviderIds) providers.push_back(key);
+    std::sort(providers.begin(), providers.end());
+    setRow(this->boxProviders, this->labelProviders, misc::joinNames(providers));
+
+    std::vector<std::string> studios;
+    for (const auto& it : r.Studios) studios.push_back(it.Name);
+    setRow(this->boxStudios, this->labelStudios, misc::joinNames(studios));
+
+    std::string span = yearOf(r.PremiereDate);
+    if (!span.empty()) {
+        const bool ongoing = r.Status == "Continuing" && (r.EndDate.empty() || !isPast(r.EndDate));
+        const std::string end = ongoing ? "main/media/present"_i18n : yearOf(r.EndDate);
+        if (!end.empty()) span = fmt::format("{} - {}", span, end);
+    }
+    setRow(this->boxRelease, this->labelRelease, span);
+
+    brls::View* rows[] = {this->labelTags, this->boxProviders, this->boxStudios, this->boxRelease};
+    brls::View* last = nullptr;
+    for (auto* row : rows) {
+        if (row->getVisibility() == brls::Visibility::VISIBLE) last = row;
+    }
+    for (auto* row : rows) row->setMarginBottom(row == last ? 0 : 12);
+    this->infoBox->setVisibility(last ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
+}
+
 void MediaSeries::doSeries() {
     ASYNC_RETAIN
     jellyfin::getJSON<jellyfin::Detail>(
@@ -93,18 +150,43 @@ void MediaSeries::doSeries() {
             ASYNC_RELEASE
             this->labelTitle->setText(r.Name);
             this->labelYear->setText(std::to_string(r.ProductionYear));
+
+            if (r.OriginalTitle.empty() || r.OriginalTitle == r.Name) {
+                this->labelOriginalTitle->setVisibility(brls::Visibility::GONE);
+            } else {
+                this->labelOriginalTitle->setText(
+                    fmt::format("{}: {}", "main/media/original_title"_i18n, r.OriginalTitle));
+                this->labelOriginalTitle->setVisibility(brls::Visibility::VISIBLE);
+            }
+
+            if (r.RecursiveItemCount > 0) {
+                this->labelEpisodes->setText(
+                    fmt::format(fmt::runtime("main/media/episodes"_i18n), r.RecursiveItemCount));
+                this->pillEpisodes->setVisibility(brls::Visibility::VISIBLE);
+            } else {
+                this->pillEpisodes->setVisibility(brls::Visibility::GONE);
+            }
+
             if (r.OfficialRating.empty()) {
-                this->parentalRating->getParent()->setVisibility(brls::Visibility::GONE);
+                this->pillParental->setVisibility(brls::Visibility::GONE);
             } else {
                 this->parentalRating->setText(r.OfficialRating);
-                this->parentalRating->getParent()->setVisibility(brls::Visibility::VISIBLE);
+                this->pillParental->setVisibility(brls::Visibility::VISIBLE);
             }
             if (r.CommunityRating == 0.f) {
-                this->labelRating->getParent()->setVisibility(brls::Visibility::GONE);
+                this->pillRating->setVisibility(brls::Visibility::GONE);
             } else {
                 this->labelRating->setText(fmt::format("{:.1f}", r.CommunityRating));
-                this->labelRating->getParent()->setVisibility(brls::Visibility::VISIBLE);
+                this->pillRating->setVisibility(brls::Visibility::VISIBLE);
             }
+
+            if (r.Taglines.empty()) {
+                this->labelTagline->setVisibility(brls::Visibility::GONE);
+            } else {
+                this->labelTagline->setText(r.Taglines.front());
+                this->labelTagline->setVisibility(brls::Visibility::VISIBLE);
+            }
+
             this->labelOverview->setText(r.Overview);
 
             if (r.Genres.empty()) {
@@ -113,6 +195,9 @@ void MediaSeries::doSeries() {
                 this->labelGenres->setText(fmt::format("{}", fmt::join(r.Genres, ", ")));
                 this->labelGenres->setVisibility(brls::Visibility::VISIBLE);
             }
+
+            this->updateCredits(r);
+
             if (r.People.size() > 0) {
                 this->people->setDataSource(new PeopleDataSource(r.People));
             } else {

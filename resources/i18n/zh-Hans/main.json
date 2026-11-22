@@ -113,6 +113,8 @@
     "director": "导演",
     "writer": "编剧",
     "studios": "工作室",
+    "episodes": "{} 集",
+    "present": "现在",
     "providers": "来源",
     "tags": "标签",
     "media_info": "视频",

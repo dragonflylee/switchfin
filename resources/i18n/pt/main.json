@@ -113,6 +113,8 @@
     "director": "Realizador",
     "writer": "Argumentista",
     "studios": "Estúdios",
+    "episodes": "{} episódios",
+    "present": "Presente",
     "providers": "Fornecedores",
     "tags": "Etiquetas",
     "media_info": "Vídeo",

@@ -191,7 +191,10 @@ struct Detail : public Item {
     std::string Overview;
     std::string OfficialRating;
     std::string PremiereDate;
+    std::string EndDate;
+    std::string Status;
     float CommunityRating = 0.0f;
+    long RecursiveItemCount = 0;
     std::vector<std::string> BackdropImageTags;
     std::vector<std::string> Genres;
     std::vector<std::string> Taglines;
@@ -202,8 +205,8 @@ struct Detail : public Item {
     std::map<std::string, std::string> ProviderIds;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Detail, Id, Name, Type, ImageTags, ProductionYear, OriginalTitle,
-    Overview, OfficialRating, PremiereDate, CommunityRating, BackdropImageTags, Genres, Taglines, Tags, People,
-    MediaSources, Studios, ProviderIds, UserData);
+    Overview, OfficialRating, PremiereDate, EndDate, Status, CommunityRating, RecursiveItemCount, BackdropImageTags,
+    Genres, Taglines, Tags, People, MediaSources, Studios, ProviderIds, UserData);
 
 struct Season : public Item {
     long IndexNumber = 0;

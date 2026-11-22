@@ -112,6 +112,8 @@
     "director": "Director",
     "writer": "Guionista",
     "studios": "Estudios",
+    "episodes": "{} episodios",
+    "present": "Presente",
     "providers": "Proveedores",
     "tags": "Etiquetas",
     "media_info": "Vídeo",
