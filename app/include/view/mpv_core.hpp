@@ -29,6 +29,35 @@
 
 typedef std::unordered_map<std::string, std::string> MPVMap;
 
+// Render mpv frames from a brls::Ticking (before Application::frame()) instead
+// of a brls::sync task (after it). Other backends that draw mpv into a borealis
+// FBO (deko3d, D3D11) can opt in by defining this.
+#if defined(BOREALIS_USE_GXM)
+#define MPV_RENDER_TICKING
+#endif
+
+#if defined(MPV_RENDER_TICKING)
+#include <atomic>
+
+class MPVCore;
+
+/// Renders the pending mpv frame once per main loop iteration.
+/// brls tickings run before Application::frame(), so the frame is drawn into
+/// the FBO before the UI samples it and shows up in the same UI frame, instead
+/// of one frame later as with brls::sync (which runs after frame()).
+class MPVRenderTicking : public brls::Ticking {
+public:
+    explicit MPVRenderTicking(MPVCore *core) : core(core) {}
+
+protected:
+    bool onUpdate(brls::Time delta) override;
+
+private:
+    MPVCore *core;
+    brls::Time pausedElapsed = 0;  // ms since the last render while paused
+};
+#endif
+
 class MPVCore : public brls::Singleton<MPVCore> {
 public:
     MPVCore();
@@ -38,6 +67,11 @@ public:
     void restart();
 
     void init();
+
+#if defined(MPV_RENDER_TICKING)
+    /// Render the frame mpv asked for in on_update(), if any (main thread only)
+    void renderPendingFrame();
+#endif
 
     void clean();
 
@@ -220,9 +254,13 @@ private:
         .format = SCE_GXM_TEXTURE_FORMAT_U8U8U8U8_RGBA,
     };
     int flip_y{1};
-    mpv_render_param mpv_params[3] = {
+    // Never block the UI thread until the frame's target time; a rendered
+    // frame is shown by the UI frame that immediately follows.
+    int block_for_target_time{0};
+    mpv_render_param mpv_params[4] = {
         {MPV_RENDER_PARAM_FLIP_Y, &flip_y},
         {MPV_RENDER_PARAM_GXM_FBO, &mpv_fbo},
+        {MPV_RENDER_PARAM_BLOCK_FOR_TARGET_TIME, &block_for_target_time},
         {MPV_RENDER_PARAM_INVALID, nullptr},
     };
 #else
@@ -234,6 +272,10 @@ private:
         {MPV_RENDER_PARAM_FLIP_Y, &flip_y},
         {MPV_RENDER_PARAM_INVALID, nullptr},
     };
+#endif
+#if defined(MPV_RENDER_TICKING)
+    std::atomic<bool> render_pending{false};
+    MPVRenderTicking renderTicking{this};
 #endif
 
     // MPV 内部事件，传递内容为: 事件类型
