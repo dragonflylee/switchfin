@@ -130,8 +130,15 @@ struct MediaPeople {
     std::string Name;
     std::string PrimaryImageTag;
     std::string Role;
+    std::string Type;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaPeople, Id, Name, PrimaryImageTag, Role);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(MediaPeople, Id, Name, PrimaryImageTag, Role, Type);
+
+struct Studio {
+    std::string Id;
+    std::string Name;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Studio, Id, Name);
 
 struct Attachment {
     std::string Codec;
@@ -144,14 +151,19 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Attachment, Codec, Name, Index, 
 struct Stream {
     std::string Codec;
     std::string DisplayTitle;
+    std::string Language;
     std::string Type;
+    std::string HeightRange;
+    std::string VideoRange;
     long Index = 0;
+    long Height = 0;
+    long Channels = 0;
     bool IsDefault = false;
     bool IsExternal = false;
     std::string DeliveryUrl;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
-    Stream, Codec, DisplayTitle, Type, Index, IsDefault, IsExternal, DeliveryUrl);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Stream, Codec, DisplayTitle, Language, Type, HeightRange, VideoRange,
+    Index, Height, Channels, IsDefault, IsExternal, DeliveryUrl);
 
 struct Source {
     std::string Id;
@@ -178,14 +190,20 @@ struct Detail : public Item {
     std::string OriginalTitle;
     std::string Overview;
     std::string OfficialRating;
+    std::string PremiereDate;
     float CommunityRating = 0.0f;
     std::vector<std::string> BackdropImageTags;
     std::vector<std::string> Genres;
+    std::vector<std::string> Taglines;
+    std::vector<std::string> Tags;
     std::vector<MediaPeople> People;
     std::vector<Source> MediaSources;
+    std::vector<Studio> Studios;
+    std::map<std::string, std::string> ProviderIds;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Detail, Id, Name, Type, ImageTags, ProductionYear, OriginalTitle,
-    Overview, OfficialRating, CommunityRating, BackdropImageTags, Genres, People, MediaSources, UserData);
+    Overview, OfficialRating, PremiereDate, CommunityRating, BackdropImageTags, Genres, Taglines, Tags, People,
+    MediaSources, Studios, ProviderIds, UserData);
 
 struct Season : public Item {
     long IndexNumber = 0;

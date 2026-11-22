@@ -84,6 +84,15 @@
                         fontSize="42"
                         marginBottom="14" />
 
+                    <brls:Label
+                        id="movie/label/original_title"
+                        fontSize="17"
+                        animated="false"
+                        singleLine="true"
+                        textColor="@theme/font/grey"
+                        visibility="gone"
+                        marginBottom="14" />
+
                     <brls:Box
                         alignItems="center"
                         marginBottom="14">
@@ -103,6 +112,23 @@
                         </brls:Box>
 
                         <brls:Box
+                            id="movie/duration"
+                            cornerRadius="14"
+                            height="28"
+                            alignItems="center"
+                            paddingLeft="12"
+                            paddingRight="12"
+                            marginRight="8"
+                            visibility="gone"
+                            backgroundColor="@theme/color/pill">
+                            <brls:Label
+                                id="movie/label/duration"
+                                singleLine="true"
+                                fontSize="14" />
+                        </brls:Box>
+
+                        <brls:Box
+                            id="movie/parental"
                             cornerRadius="14"
                             height="28"
                             alignItems="center"
@@ -118,6 +144,7 @@
                         </brls:Box>
 
                         <brls:Box
+                            id="movie/rating"
                             cornerRadius="14"
                             height="28"
                             alignItems="center"
@@ -142,11 +169,20 @@
                         fontSize="14"
                         animated="false"
                         textColor="@theme/font/grey"
+                        visibility="gone"
                         marginBottom="16" />
 
                     <brls:Label
                         id="movie/label/playback_timing"
                         fontSize="14"
+                        animated="false"
+                        textColor="@theme/font/grey"
+                        visibility="gone"
+                        marginBottom="16" />
+
+                    <brls:Label
+                        id="movie/label/tagline"
+                        fontSize="15"
                         animated="false"
                         textColor="@theme/font/grey"
                         visibility="gone"
@@ -178,10 +214,116 @@
                             marginLeft="12" />
                     </brls:Box>
 
+                    <brls:Label
+                        id="movie/label/media"
+                        fontSize="14"
+                        animated="false"
+                        textColor="@theme/font/grey"
+                        visibility="gone"
+                        marginBottom="16" />
+
                     <TextBox
                         id="movie/label/overview"
                         fontSize="15"
                         textColor="@theme/font/grey" />
+
+                    <brls:Box
+                        id="movie/info"
+                        axis="column"
+                        visibility="gone"
+                        marginTop="20">
+
+                        <brls:Label
+                            id="movie/info/tags"
+                            fontSize="14"
+                            animated="false"
+                            textColor="@theme/font/grey"
+                            marginBottom="14" />
+
+                        <brls:Box
+                            id="movie/info/providers"
+                            alignItems="center"
+                            visibility="gone"
+                            marginBottom="12">
+                            <brls:Label
+                                fontSize="14"
+                                textColor="@theme/font/grey"
+                                width="110"
+                                singleLine="true"
+                                text="@i18n/main/media/providers" />
+                            <brls:Label
+                                id="movie/info/providers/value"
+                                fontSize="14"
+                                animated="false" />
+                        </brls:Box>
+
+                        <brls:Box
+                            id="movie/info/studios"
+                            alignItems="center"
+                            visibility="gone"
+                            marginBottom="12">
+                            <brls:Label
+                                fontSize="14"
+                                textColor="@theme/font/grey"
+                                width="110"
+                                singleLine="true"
+                                text="@i18n/main/media/studios" />
+                            <brls:Label
+                                id="movie/info/studios/value"
+                                fontSize="14"
+                                animated="false" />
+                        </brls:Box>
+
+                        <brls:Box
+                            id="movie/info/release"
+                            alignItems="center"
+                            visibility="gone"
+                            marginBottom="12">
+                            <brls:Label
+                                fontSize="14"
+                                textColor="@theme/font/grey"
+                                width="110"
+                                singleLine="true"
+                                text="@i18n/main/media/premiere_date" />
+                            <brls:Label
+                                id="movie/info/release/value"
+                                fontSize="14"
+                                animated="false" />
+                        </brls:Box>
+
+                        <brls:Box
+                            id="movie/info/director"
+                            alignItems="center"
+                            visibility="gone"
+                            marginBottom="12">
+                            <brls:Label
+                                fontSize="14"
+                                textColor="@theme/font/grey"
+                                width="110"
+                                singleLine="true"
+                                text="@i18n/main/media/director" />
+                            <brls:Label
+                                id="movie/info/director/value"
+                                fontSize="14"
+                                animated="false" />
+                        </brls:Box>
+
+                        <brls:Box
+                            id="movie/info/writer"
+                            alignItems="center"
+                            visibility="gone">
+                            <brls:Label
+                                fontSize="14"
+                                textColor="@theme/font/grey"
+                                width="110"
+                                singleLine="true"
+                                text="@i18n/main/media/writer" />
+                            <brls:Label
+                                id="movie/info/writer/value"
+                                fontSize="14"
+                                animated="false" />
+                        </brls:Box>
+                    </brls:Box>
 
                 </brls:Box>
             </brls:Box>
@@ -202,6 +344,24 @@
                 paddingLeft="@style/main/content_padding_sides"
                 paddingRight="@style/main/content_padding_sides"
                 id="movie/people" />
+
+            <brls:Header
+                id="movie/label/crew"
+                title="@i18n/main/media/crew"
+                visibility="gone"
+                marginBottom="6"
+                marginLeft="@style/main/content_padding_sides"
+                marginRight="@style/main/content_padding_sides" />
+
+            <HRecyclerFrame
+                id="movie/crew"
+                height="250"
+                itemWidth="140"
+                itemSpace="18"
+                marginBottom="28"
+                visibility="gone"
+                paddingLeft="@style/main/content_padding_sides"
+                paddingRight="@style/main/content_padding_sides" />
 
             <brls:Header
                 marginBottom="6"

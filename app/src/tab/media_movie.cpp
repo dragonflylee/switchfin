@@ -15,6 +15,12 @@
 
 using namespace brls::literals;  // for _i18n
 
+namespace {
+std::string joinNames(const std::vector<std::string>& list) {
+    return fmt::format("{}", fmt::join(list, ", "));
+}
+}  // namespace
+
 MediaMovie::MediaMovie(const jellyfin::Item& item) : runTimeTicks(item.RunTimeTicks), itemId(item.Id) {
     brls::Logger::debug("Tab MediaMovie: create");
     // Inflate the tab from the XML file
@@ -22,6 +28,7 @@ MediaMovie::MediaMovie(const jellyfin::Item& item) : runTimeTicks(item.RunTimeTi
 
     this->labelTitle->setText(item.Name);
     this->people->registerCell("Cell", MediaCardCell::create);
+    this->crew->registerCell("Cell", MediaCardCell::create);
     this->similar->registerCell("Cell", VideoCardCell::create);
 
     if (brls::Application::getThemeVariant() == brls::ThemeVariant::LIGHT) {
@@ -141,6 +148,77 @@ void MediaMovie::doRequest() {
     this->updatePlaybackTiming();
 }
 
+void MediaMovie::updateCredits(const jellyfin::Detail& r) {
+    std::vector<jellyfin::MediaPeople> cast, crew;
+    std::vector<std::string> directors, writers;
+    for (const auto& it : r.People) {
+        if (it.Type == "Actor" || it.Type.empty()) {
+            cast.push_back(it);
+        } else {
+            crew.push_back(it);
+            if (it.Type == "Director") directors.push_back(it.Name);
+            if (it.Type == "Writer") writers.push_back(it.Name);
+        }
+    }
+
+    auto setRow = [](brls::View* row, brls::Label* label, const std::string& text) {
+        row->setVisibility(text.empty() ? brls::Visibility::GONE : brls::Visibility::VISIBLE);
+        if (!text.empty()) label->setText(text);
+    };
+
+    // 标签行本身就是 Label，自身兼作容器，无需额外包装
+    auto setLabel = [](brls::Label* label, const std::string& text) {
+        label->setVisibility(text.empty() ? brls::Visibility::GONE : brls::Visibility::VISIBLE);
+        if (!text.empty()) label->setText(text);
+    };
+
+    if (cast.empty()) {
+        this->people->setVisibility(brls::Visibility::GONE);
+        this->labelPeople->setVisibility(brls::Visibility::GONE);
+    } else {
+        this->people->setDataSource(new PeopleDataSource(cast));
+        this->people->setVisibility(brls::Visibility::VISIBLE);
+        this->labelPeople->setVisibility(brls::Visibility::VISIBLE);
+    }
+
+    setRow(this->boxDirector, this->labelDirector, joinNames(directors));
+    setRow(this->boxWriter, this->labelWriter, joinNames(writers));
+
+    if (crew.empty()) {
+        this->crew->setVisibility(brls::Visibility::GONE);
+        this->labelCrew->setVisibility(brls::Visibility::GONE);
+    } else {
+        this->crew->setDataSource(new PeopleDataSource(crew));
+        this->crew->setVisibility(brls::Visibility::VISIBLE);
+        this->labelCrew->setVisibility(brls::Visibility::VISIBLE);
+    }
+
+    setLabel(this->labelTags,
+        r.Tags.empty() ? std::string()
+                       : fmt::format("{}: {}", "main/media/tags"_i18n, fmt::format("{}", fmt::join(r.Tags, ", "))));
+
+    std::vector<std::string> studios;
+    for (const auto& it : r.Studios) studios.push_back(it.Name);
+    setRow(this->boxStudios, this->labelStudios, joinNames(studios));
+
+    setRow(this->boxRelease, this->labelRelease,
+        r.PremiereDate.empty() ? std::string() : r.PremiereDate.substr(0, r.PremiereDate.find('T')));
+
+    std::vector<std::string> providers;
+    for (const auto& [key, value] : r.ProviderIds) providers.push_back(key);
+    std::sort(providers.begin(), providers.end());
+    setRow(this->boxProviders, this->labelProviders, joinNames(providers));
+
+    brls::View* rows[] = {this->labelTags, this->boxProviders, this->boxStudios, this->boxRelease,
+        this->boxDirector, this->boxWriter};
+    brls::View* last = nullptr;
+    for (auto* row : rows) {
+        if (row->getVisibility() == brls::Visibility::VISIBLE) last = row;
+    }
+    for (auto* row : rows) row->setMarginBottom(row == last ? 0 : 12);
+    this->infoBox->setVisibility(last ? brls::Visibility::VISIBLE : brls::Visibility::GONE);
+}
+
 void MediaMovie::doMovie() {
     ASYNC_RETAIN
     jellyfin::getJSON<jellyfin::Detail>(
@@ -148,18 +226,42 @@ void MediaMovie::doMovie() {
             ASYNC_RELEASE
             this->labelTitle->setText(r.Name);
             this->labelYear->setText(std::to_string(r.ProductionYear));
+
+            if (r.OriginalTitle.empty() || r.OriginalTitle == r.Name) {
+                this->labelOriginalTitle->setVisibility(brls::Visibility::GONE);
+            } else {
+                this->labelOriginalTitle->setText(
+                    fmt::format("{}: {}", "main/media/original_title"_i18n, r.OriginalTitle));
+                this->labelOriginalTitle->setVisibility(brls::Visibility::VISIBLE);
+            }
+
+            if (r.RunTimeTicks > 0) {
+                this->labelDuration->setText(misc::formatMediaDuration(r.RunTimeTicks / jellyfin::PLAYTICKS));
+                this->pillDuration->setVisibility(brls::Visibility::VISIBLE);
+            } else {
+                this->pillDuration->setVisibility(brls::Visibility::GONE);
+            }
+
             if (r.OfficialRating.empty()) {
-                this->parentalRating->getParent()->setVisibility(brls::Visibility::GONE);
+                this->pillParental->setVisibility(brls::Visibility::GONE);
             } else {
                 this->parentalRating->setText(r.OfficialRating);
-                this->parentalRating->getParent()->setVisibility(brls::Visibility::VISIBLE);
+                this->pillParental->setVisibility(brls::Visibility::VISIBLE);
             }
             if (r.CommunityRating == 0.f) {
-                this->labelRating->getParent()->setVisibility(brls::Visibility::GONE);
+                this->pillRating->setVisibility(brls::Visibility::GONE);
             } else {
                 this->labelRating->setText(fmt::format("{:.1f}", r.CommunityRating));
-                this->labelRating->getParent()->setVisibility(brls::Visibility::VISIBLE);
+                this->pillRating->setVisibility(brls::Visibility::VISIBLE);
             }
+
+            if (r.Taglines.empty()) {
+                this->labelTagline->setVisibility(brls::Visibility::GONE);
+            } else {
+                this->labelTagline->setText(r.Taglines.front());
+                this->labelTagline->setVisibility(brls::Visibility::VISIBLE);
+            }
+
             this->labelOverview->setText(r.Overview);
 
             if (r.Genres.empty()) {
@@ -168,11 +270,9 @@ void MediaMovie::doMovie() {
                 this->labelGenres->setText(fmt::format("{}", fmt::join(r.Genres, ", ")));
                 this->labelGenres->setVisibility(brls::Visibility::VISIBLE);
             }
-            if (r.People.size() > 0) {
-                this->people->setDataSource(new PeopleDataSource(r.People));
-            } else {
-                this->people->setVisibility(brls::Visibility::GONE);
-            }
+
+            this->updateCredits(r);
+
             this->updateFavoriteButton(r.UserData.IsFavorite);
 
             if (r.UserData.Played) {
@@ -206,6 +306,49 @@ void MediaMovie::doMovie() {
                 this->contentInfo->setMarginTop(0);
             }
 
+
+            std::map<std::string, std::string> streamText;
+            auto parseStream = [](const jellyfin::Source& source) {
+                std::string video, audio;
+                for (const auto& stream : source.MediaStreams) {
+                    if (stream.Type == jellyfin::streamTypeVideo && video.empty()) {
+                        std::string resolution = !stream.HeightRange.empty() ? stream.HeightRange
+                            : (stream.Height > 0 ? fmt::format("{}p", stream.Height) : std::string());
+                        std::string codec = stream.Codec;
+                        std::transform(codec.begin(), codec.end(), codec.begin(),
+                            [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
+                        std::vector<std::string> parts;
+                        if (!resolution.empty()) parts.push_back(resolution);
+                        if (!codec.empty()) parts.push_back(codec);
+                        if (!stream.VideoRange.empty()) parts.push_back(stream.VideoRange);
+                        video = fmt::format("{}", fmt::join(parts, " "));
+                    } else if (stream.Type == jellyfin::streamTypeAudio && audio.empty() &&
+                               (stream.IsDefault || source.DefaultAudioStreamIndex == stream.Index)) {
+                        std::vector<std::string> parts;
+                        if (!stream.Language.empty()) parts.push_back(stream.Language);
+                        if (stream.Channels > 0) parts.push_back(fmt::format("{} ch", stream.Channels));
+                        audio = fmt::format("{}", fmt::join(parts, " · "));
+                    }
+                }
+                std::vector<std::string> parts;
+                if (!video.empty()) parts.push_back(video);
+                if (!audio.empty()) parts.push_back(audio);
+                return fmt::format("{}", fmt::join(parts, " · "));
+            };
+            auto showStream = [this](const std::string& text) {
+                if (text.empty()) {
+                    this->labelMedia->setVisibility(brls::Visibility::GONE);
+                    return;
+                }
+                this->labelMedia->setText(fmt::format("{} {}", "main/media/media_info"_i18n, text));
+                this->labelMedia->setVisibility(brls::Visibility::VISIBLE);
+            };
+
+            for (const auto& source : r.MediaSources) {
+                streamText[source.Id] = parseStream(source);
+            }
+            if (!r.MediaSources.empty()) showStream(streamText[r.MediaSources.front().Id]);
+
             if (r.MediaSources.size() > 1) {
                 std::vector<std::string> names, ids;
                 for (auto& it : r.MediaSources) {
@@ -213,7 +356,11 @@ void MediaMovie::doMovie() {
                     ids.push_back(it.Id);
                 }
                 this->btnSource->init(
-                    "main/setting/version"_i18n, names, 0, [this, ids](int index) { this->sourceId = ids[index]; });
+                    "main/setting/version"_i18n, names, 0, [this, ids, streamText, showStream](int index) {
+                        this->sourceId = ids[index];
+                        auto it = streamText.find(this->sourceId);
+                        if (it != streamText.end()) showStream(it->second);
+                    });
                 this->btnSource->setVisibility(brls::Visibility::VISIBLE);
             }
 
