@@ -955,7 +955,7 @@ index a1459e9512..6109de6d88 100644
  };
  
 diff --git a/video/decode/vd_lavc.c b/video/decode/vd_lavc.c
-index 2106dcb56e..a5464a1e6f 100644
+index 2106dcb56e..86e95c74a0 100644
 --- a/video/decode/vd_lavc.c
 +++ b/video/decode/vd_lavc.c
 @@ -246,6 +246,8 @@ const struct autoprobe_info hwdec_autoprobe_info[] = {
@@ -967,7 +967,7 @@ index 2106dcb56e..a5464a1e6f 100644
      {"mmal",            HWDEC_FLAG_AUTO},
      {"mmal-copy",       HWDEC_FLAG_AUTO | HWDEC_FLAG_WHITELIST},
      {"mediacodec",      HWDEC_FLAG_AUTO},
-@@ -663,6 +665,91 @@ static void reinit(struct mp_filter *vd)
+@@ -663,6 +665,169 @@ static void reinit(struct mp_filter *vd)
          force_fallback(vd);
  }
  
@@ -1002,28 +1002,104 @@ index 2106dcb56e..a5464a1e6f 100644
 +    return NULL;
 +}
 +
-+static void __attribute__((optimize("no-optimize-sibling-calls"))) vram_free(void *opaque, uint8_t *data)
++// Decoder output lives in CDRAM so GXM can sample it directly. Allocating
++// and freeing a 256KiB-aligned memblock for every frame costs two kernel
++// calls per frame, so keep a small pool of released blocks and reuse them.
++#define VRAM_POOL_MAX 8
++
++struct vram_block {
++    SceUID mb;
++    void *ptr;
++    int size;
++};
++
++static pthread_mutex_t vram_pool_lock = PTHREAD_MUTEX_INITIALIZER;
++static struct vram_block *vram_pool[VRAM_POOL_MAX];
++static int vram_pool_count = 0;
++
++static void vram_block_destroy(struct vram_block *b)
 +{
-+    SceUID mb = (intptr_t) opaque;
-+    sceKernelFreeMemBlock(mb);
++    sceKernelFreeMemBlock(b->mb);
++    free(b);
 +}
 +
-+static bool vram_alloc(int *size, SceUID *mb, void **ptr)
++static void __attribute__((optimize("no-optimize-sibling-calls"))) vram_free(void *opaque, uint8_t *data)
 +{
-+    *size = FFALIGN(*size, 256 * 1024);
++    struct vram_block *b = opaque;
++
++    pthread_mutex_lock(&vram_pool_lock);
++    if (vram_pool_count < VRAM_POOL_MAX) {
++        vram_pool[vram_pool_count++] = b;
++        b = NULL;
++    }
++    pthread_mutex_unlock(&vram_pool_lock);
++
++    if (b)
++        vram_block_destroy(b);
++}
++
++// Release every pooled block (blocks still in use return to the pool later).
++static void vram_pool_flush(void)
++{
++    struct vram_block *stale[VRAM_POOL_MAX];
++    int n;
++
++    pthread_mutex_lock(&vram_pool_lock);
++    n = vram_pool_count;
++    for (int i = 0; i < n; i++)
++        stale[i] = vram_pool[i];
++    vram_pool_count = 0;
++    pthread_mutex_unlock(&vram_pool_lock);
++
++    for (int i = 0; i < n; i++)
++        vram_block_destroy(stale[i]);
++}
++
++static struct vram_block *vram_alloc(int size)
++{
++    size = FFALIGN(size, 256 * 1024);
++
++    struct vram_block *b = NULL;
++    bool stale = false;
++
++    pthread_mutex_lock(&vram_pool_lock);
++    for (int i = vram_pool_count - 1; i >= 0; i--) {
++        if (vram_pool[i]->size == size) {
++            b = vram_pool[i];
++            vram_pool[i] = vram_pool[--vram_pool_count];
++            break;
++        }
++    }
++    // Only blocks of another size are left (resolution changed): drop them.
++    stale = !b && vram_pool_count > 0;
++    pthread_mutex_unlock(&vram_pool_lock);
++
++    if (stale)
++        vram_pool_flush();
++    if (b)
++        return b;
++
 +    SceUID m = sceKernelAllocMemBlock("gpu_mem",
 +                                      SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW,
-+                                      *size, NULL);
++                                      size, NULL);
 +    if (m < 0)
-+        return false;
++        return NULL;
 +
 +    void *p = NULL;
-+    if (sceKernelGetMemBlockBase(m, &p) != 0)
-+        return false;
++    if (sceKernelGetMemBlockBase(m, &p) != 0) {
++        sceKernelFreeMemBlock(m);
++        return NULL;
++    }
 +
-+    *mb = m;
-+    *ptr = p;
-+    return true;
++    b = malloc(sizeof(*b));
++    if (!b) {
++        sceKernelFreeMemBlock(m);
++        return NULL;
++    }
++    b->mb = m;
++    b->ptr = p;
++    b->size = size;
++    return b;
 +}
 +
 +static int get_buffer2_direct_gxm(AVCodecContext *avctx, AVFrame *pic, int flags)
@@ -1040,17 +1116,19 @@ index 2106dcb56e..a5464a1e6f 100644
 +    int height = FFMAX(FFALIGN(pic->height, 16), 64);
 +    int pitch = FFALIGN(width, spec->alignment_pitch);
 +
-+    // for simplicity's sake I do not use memory pool, which is more efficient
-+    SceUID mb = 0;
-+    void *vram = NULL;
 +    int size = av_image_get_buffer_size(pic->format, pitch, height, 1);
-+    if (!vram_alloc(&size, &mb, &vram)) {
++    struct vram_block *b = vram_alloc(size);
++    if (!b) {
 +        MP_ERR(p, "vram alloc failed size=%d\n", size);
 +        return AVERROR_UNKNOWN;
 +    }
 +
-+    pic->buf[0] = av_buffer_create(vram, size, vram_free, (void*) mb, 0);
-+    av_image_fill_arrays(pic->data, pic->linesize, vram, pic->format, pitch, height, 1);
++    pic->buf[0] = av_buffer_create(b->ptr, b->size, vram_free, b, 0);
++    if (!pic->buf[0]) {
++        vram_free(b, NULL);
++        return AVERROR(ENOMEM);
++    }
++    av_image_fill_arrays(pic->data, pic->linesize, b->ptr, pic->format, pitch, height, 1);
 +
 +    return 0;
 +}
@@ -1059,7 +1137,7 @@ index 2106dcb56e..a5464a1e6f 100644
  static void init_avctx(struct mp_filter *vd)
  {
      vd_ffmpeg_ctx *ctx = vd->priv;
-@@ -750,6 +837,7 @@ static void init_avctx(struct mp_filter *vd)
+@@ -750,6 +915,7 @@ static void init_avctx(struct mp_filter *vd)
          mp_set_avcodec_threads(vd->log, avctx, lavc_param->threads);
      }
  
@@ -1067,7 +1145,7 @@ index 2106dcb56e..a5464a1e6f 100644
      if (!ctx->use_hwdec && ctx->vo && lavc_param->dr) {
          avctx->opaque = vd;
          avctx->get_buffer2 = get_buffer2_direct;
-@@ -759,6 +847,7 @@ static void init_avctx(struct mp_filter *vd)
+@@ -759,6 +925,7 @@ static void init_avctx(struct mp_filter *vd)
          });
  #endif
      }
@@ -1075,7 +1153,7 @@ index 2106dcb56e..a5464a1e6f 100644
  
      avctx->flags |= lavc_param->bitexact ? AV_CODEC_FLAG_BITEXACT : 0;
      avctx->flags2 |= lavc_param->fast ? AV_CODEC_FLAG2_FAST : 0;
-@@ -813,6 +902,13 @@ static void init_avctx(struct mp_filter *vd)
+@@ -813,6 +980,13 @@ static void init_avctx(struct mp_filter *vd)
          goto error;
      }
  
@@ -1089,6 +1167,16 @@ index 2106dcb56e..a5464a1e6f 100644
      /* open it */
      if (avcodec_open2(avctx, lavc_codec, NULL) < 0)
          goto error;
+@@ -873,6 +1047,9 @@ static void uninit_avctx(struct mp_filter *vd)
+     av_frame_free(&ctx->pic);
+     mp_free_av_packet(&ctx->avpkt);
+     av_buffer_unref(&ctx->cached_hw_frames_ctx);
++#if HAVE_GXM
++    vram_pool_flush();
++#endif
+ 
+     avcodec_free_context(&ctx->avctx);
+ 
 diff --git a/video/fmt-conversion.c b/video/fmt-conversion.c
 index aa7d857341..6c39f267b7 100644
 --- a/video/fmt-conversion.c
