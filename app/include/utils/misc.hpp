@@ -17,6 +17,10 @@ namespace fs = std::experimental::filesystem;
 #error "Failed to include <filesystem> header!"
 #endif
 
+namespace brls {
+class Label;
+}  // namespace brls
+
 namespace misc {
 
 std::string sec2Time(int64_t t);
@@ -28,6 +32,8 @@ std::string formatSize(uint64_t s);
 std::string formatTime(const std::string& str);
 
 std::string joinNames(const std::vector<std::string>& list);
+
+brls::Label* providerLink(const std::string& key, const std::string& id, bool isSeries);
 
 std::string randHex(const int len);
 

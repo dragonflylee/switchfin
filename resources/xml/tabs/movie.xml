@@ -251,10 +251,6 @@
                                 width="110"
                                 singleLine="true"
                                 text="@i18n/main/media/providers" />
-                            <brls:Label
-                                id="movie/info/providers/value"
-                                fontSize="14"
-                                animated="false" />
                         </brls:Box>
 
                         <brls:Box

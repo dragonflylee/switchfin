@@ -28,12 +28,10 @@ MediaMovie::MediaMovie(const jellyfin::Item& item) : runTimeTicks(item.RunTimeTi
     if (brls::Application::getThemeVariant() == brls::ThemeVariant::LIGHT) {
         this->imageFade->setImageFromRes("img/fade-bottom-light.png");
     }
-    // the buttons and the cast row have no geometric overlap: D-pad nav
-    // cannot find it. Explicit route — the row materializes its first cell
-    // if needed (HRecyclerFrame::getDefaultFocus) and the "centered" scroll
-    // follows the focus
+    // 按钮与演员行没有几何重叠，D-pad 无法自动导航，需显式指定路由
     this->btnPlay->setCustomNavigationRoute(brls::FocusDirection::DOWN, "movie/people");
     this->btnDownload->setCustomNavigationRoute(brls::FocusDirection::DOWN, "movie/people");
+    this->btnFavorite->setCustomNavigationRoute(brls::FocusDirection::DOWN, "movie/people");
 
     this->btnPlay->registerClickAction([this, item](...) {
         PlayerView* view = new PlayerView(item, this->playTicks, this->sourceId);
@@ -198,11 +196,10 @@ void MediaMovie::updateCredits(const jellyfin::Detail& r) {
     setRow(this->boxRelease, this->labelRelease,
         r.PremiereDate.empty() ? std::string() : r.PremiereDate.substr(0, r.PremiereDate.find('T')));
 
-    std::vector<std::string> providers;
-    for (const auto& [key, value] : r.ProviderIds) providers.push_back(key);
-    std::sort(providers.begin(), providers.end());
-    setRow(this->boxProviders, this->labelProviders, misc::joinNames(providers));
-
+    this->boxProviders->setVisibility(r.ProviderIds.empty() ? brls::Visibility::GONE : brls::Visibility::VISIBLE);
+    for (const auto& [key, id] : r.ProviderIds) {
+        this->boxProviders->addView(misc::providerLink(key, id, false));
+    }
     brls::View* rows[] = {this->labelTags, this->boxProviders, this->boxStudios, this->boxRelease,
         this->boxDirector, this->boxWriter};
     brls::View* last = nullptr;

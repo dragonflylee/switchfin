@@ -43,7 +43,6 @@ private:
     BRLS_BIND(brls::Box, infoBox, "series/info");
     BRLS_BIND(brls::Label, labelTags, "series/info/tags");
     BRLS_BIND(brls::Box, boxProviders, "series/info/providers");
-    BRLS_BIND(brls::Label, labelProviders, "series/info/providers/value");
     BRLS_BIND(brls::Box, boxStudios, "series/info/studios");
     BRLS_BIND(brls::Label, labelStudios, "series/info/studios/value");
     BRLS_BIND(brls::Box, boxRelease, "series/info/release");

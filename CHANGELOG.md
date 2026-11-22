@@ -2,11 +2,19 @@
 
 ## [Unreleased]
 
+### Added
+
+* movie/series: show original title, tagline, tags, studios, provider links and stream info
+* album: show track count, total duration and genres
+* textbox: truncate with an ellipsis when the text exceeds `maxRows`
+
 ### Fixed
 
 * image: request artwork at the laid-out size, snapped to 32 px to reuse cache
 * detail: keep poster and logo aspect ratio, add a 720p layout branch
 * music/people: drop the duplicate cover request on construction
+* detail: route D-pad down from every action button to the cast row
+* home: use a shorter card height for home video libraries
 
 ## [0.9.6]
 

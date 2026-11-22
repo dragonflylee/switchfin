@@ -1,5 +1,8 @@
 #include "utils/misc.hpp"
+#include <borealis/core/application.hpp>
 #include <borealis/core/logger.hpp>
+#include <borealis/core/touch/tap_gesture.hpp>
+#include <borealis/views/label.hpp>
 #include <borealis/core/i18n.hpp>
 #include <fmt/chrono.h>
 #include <fmt/ranges.h>
@@ -170,6 +173,36 @@ std::string misc::formatSize(uint64_t s) {
 
 std::string misc::joinNames(const std::vector<std::string>& list) {
     return fmt::format("{}", fmt::join(list, ", "));
+}
+
+brls::Label* misc::providerLink(const std::string& key, const std::string& id, bool isSeries) {
+    std::string url;
+    if (!id.empty()) {
+        if (key == "Imdb") {
+            url = "https://www.imdb.com/title/" + id;
+        } else if (key == "Tvdb") {
+            url = "https://www.thetvdb.com/series/" + id;
+        } else if (key == "Tmdb") {
+            url = fmt::format("https://www.themoviedb.org/{}/{}", isSeries ? "tv" : "movie", id);
+        } else if (key == "TmdbCollection") {
+            url = "https://www.themoviedb.org/collection/" + id;
+        }
+    }
+
+    auto* link = new brls::Label();
+    link->setText(key);
+    link->setFontSize(14);
+    link->setMarginRight(8);
+    link->setTextColor(brls::Application::getTheme().getColor(url.empty() ? "font/grey" : "color/app"));
+    if (url.empty()) return link;
+
+    link->setFocusable(true);
+    link->registerClickAction([url](brls::View*) {
+        brls::Application::getPlatform()->openBrowser(url);
+        return true;
+    });
+    link->addGestureRecognizer(new brls::TapGestureRecognizer(link));
+    return link;
 }
 
 std::string misc::formatTime(const std::string& str) {

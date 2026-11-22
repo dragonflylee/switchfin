@@ -53,10 +53,10 @@ MediaSeries::MediaSeries(const jellyfin::Episode& item) {
     if (brls::Application::getThemeVariant() == brls::ThemeVariant::LIGHT) {
         this->imageFade->setImageFromRes("img/fade-bottom-light.png");
     }
-    // the buttons and the seasons row have no geometric overlap:
-    // explicit route (cf. media_movie.cpp)
+    // 按钮与季列表无几何重叠，需显式指定 D-pad 路由
     this->btnPlay->setCustomNavigationRoute(brls::FocusDirection::DOWN, "series/seasons");
     this->btnDownload->setCustomNavigationRoute(brls::FocusDirection::DOWN, "series/seasons");
+    this->btnFavorite->setCustomNavigationRoute(brls::FocusDirection::DOWN, "series/seasons");
 
     this->btnPlay->registerClickAction([this](...) {
         this->doPlay();
@@ -117,10 +117,10 @@ void MediaSeries::updateCredits(const jellyfin::Detail& r) {
         r.Tags.empty() ? std::string()
                        : fmt::format("{}: {}", "main/media/tags"_i18n, fmt::format("{}", fmt::join(r.Tags, ", "))));
 
-    std::vector<std::string> providers;
-    for (const auto& [key, value] : r.ProviderIds) providers.push_back(key);
-    std::sort(providers.begin(), providers.end());
-    setRow(this->boxProviders, this->labelProviders, misc::joinNames(providers));
+    this->boxProviders->setVisibility(r.ProviderIds.empty() ? brls::Visibility::GONE : brls::Visibility::VISIBLE);
+    for (const auto& [key, id] : r.ProviderIds) {
+        this->boxProviders->addView(misc::providerLink(key, id, true));
+    }
 
     std::vector<std::string> studios;
     for (const auto& it : r.Studios) studios.push_back(it.Name);
