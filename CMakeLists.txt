@@ -293,6 +293,9 @@ elseif (PLATFORM_PSV)
     if (USE_VITA_SHARK)
         list(APPEND PSV_ASSETS_FILES "${CMAKE_BINARY_DIR}/vendor/SceShaccCg" module)
     endif ()
+    # newlib lacks C99 printf length modifiers (%zd...), see utils/psv_printf.cpp
+    target_link_options(${PROJECT_NAME} PRIVATE
+        -Wl,--wrap=_svfprintf_r -Wl,--wrap=_vfprintf_r -Wl,--wrap=vfprintf)
     vita_create_self(${PROJECT_NAME}.self ${PROJECT_NAME} UNSAFE NOASLR)
     vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} ${PROJECT_NAME}.self
         VERSION ${VITA_VERSION}
