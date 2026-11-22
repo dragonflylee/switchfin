@@ -37,9 +37,9 @@ prepare() {
 
 build() {
   if [[ ${MSYSTEM} == CLANG* ]]; then
-    LDFLAGS="-lc++ -static-libgcc -static"
+    LDFLAGS="-lc++ -static"
   else
-    LDFLAGS="-lstdc++ -static-libgcc -static-libstdc++ -static"
+    LDFLAGS="-lstdc++ -static-libstdc++ -static"
   fi
 
   MSYS2_ARG_CONV_EXCL="--prefix=" \
