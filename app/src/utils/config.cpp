@@ -879,24 +879,6 @@ void AppConfig::initThemes() {
             brls::getStyle().addMetric("app/grid/3", 5);
             brls::getStyle().addMetric("app/grid/2", 4);
             break;
-        case 720:
-            // switch (720p)
-            brls::getStyle().addMetric("app/album/height", 230);
-            brls::getStyle().addMetric("app/books/height", 290);
-            brls::getStyle().addMetric("app/video/height", 310);
-            brls::getStyle().addMetric("app/card/poster/width", 195);
-            brls::getStyle().addMetric("app/card/poster/row", 348);
-            brls::getStyle().addMetric("app/card/wide/width", 355);
-            brls::getStyle().addMetric("app/card/wide/row", 255);
-            brls::getStyle().addMetric("app/detail/poster/width", 190);
-            brls::getStyle().addMetric("app/detail/poster/row", 285);
-            brls::getStyle().addMetric("app/detail/logo/width", 430);
-            brls::getStyle().addMetric("app/grid/6", 6);
-            brls::getStyle().addMetric("app/grid/5", 5);
-            brls::getStyle().addMetric("app/grid/4", 4);
-            brls::getStyle().addMetric("app/grid/3", 3);
-            brls::getStyle().addMetric("app/grid/2", 2);
-            break;
         case 900:
             brls::getStyle().addMetric("app/album/height", 240);
             brls::getStyle().addMetric("app/books/height", 305);
@@ -915,17 +897,18 @@ void AppConfig::initThemes() {
             brls::getStyle().addMetric("app/grid/2", 3);
             break;
         default:
-            brls::getStyle().addMetric("app/album/height", 225);
-            brls::getStyle().addMetric("app/books/height", 280);
-            brls::getStyle().addMetric("app/video/height", 300);
+            // 720p (switch) 及其它未列出的分辨率
             // row = width x image ratio + 55 of labels (cf. PSV block)
-            brls::getStyle().addMetric("app/card/poster/width", 185);
-            brls::getStyle().addMetric("app/card/poster/row", 333);
-            brls::getStyle().addMetric("app/card/wide/width", 340);
-            brls::getStyle().addMetric("app/card/wide/row", 246);
-            brls::getStyle().addMetric("app/detail/poster/width", 200);
-            brls::getStyle().addMetric("app/detail/poster/row", 300);
-            brls::getStyle().addMetric("app/detail/logo/width", 455);
+            brls::getStyle().addMetric("app/album/height", 230);
+            brls::getStyle().addMetric("app/books/height", 290);
+            brls::getStyle().addMetric("app/video/height", 310);
+            brls::getStyle().addMetric("app/card/poster/width", 195);
+            brls::getStyle().addMetric("app/card/poster/row", 348);
+            brls::getStyle().addMetric("app/card/wide/width", 355);
+            brls::getStyle().addMetric("app/card/wide/row", 255);
+            brls::getStyle().addMetric("app/detail/poster/width", 190);
+            brls::getStyle().addMetric("app/detail/poster/row", 285);
+            brls::getStyle().addMetric("app/detail/logo/width", 430);
             brls::getStyle().addMetric("app/grid/6", 6);
             brls::getStyle().addMetric("app/grid/5", 5);
             brls::getStyle().addMetric("app/grid/4", 4);
