@@ -234,6 +234,11 @@ void MPVCore::init() {
     check_error(mpv_observe_property(mpv, 9, "speed", MPV_FORMAT_DOUBLE));
     check_error(mpv_observe_property(mpv, 10, "volume", MPV_FORMAT_INT64));
 
+#if MPV_CLIENT_API_VERSION >= MPV_MAKE_VERSION(2, 7)
+    // 仅在指定渲染器时覆盖 libmpv 默认值（默认按 gpu-next -> gpu 依次尝试）
+    bool useGpu = conf.getItem(AppConfig::MPV_RENDER, false);
+    const char *renderer = useGpu ? MPV_RENDER_RENDERER_GPU : MPV_RENDER_RENDERER_GPU_NEXT;
+#endif
 // init renderer params
 #ifdef ANDROID
     int64_t wid = getNativeSurface();
@@ -249,6 +254,9 @@ void MPVCore::init() {
     mpv_render_param params[] = {
         {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_D3D11)},
         {MPV_RENDER_PARAM_D3D11_INIT_PARAMS, &init_params},
+#if MPV_CLIENT_API_VERSION >= MPV_MAKE_VERSION(2, 7)
+        {MPV_RENDER_PARAM_RENDERER, const_cast<char *>(renderer)},
+#endif
         {MPV_RENDER_PARAM_INVALID, nullptr},
     };
 #elif defined(BOREALIS_USE_DEKO3D)
@@ -309,6 +317,9 @@ void MPVCore::init() {
 #endif
 #if defined(GLFW_EXPOSE_NATIVE_WAYLAND)
         {MPV_RENDER_PARAM_WL_DISPLAY, glfwGetWaylandDisplay()},
+#endif
+#if MPV_CLIENT_API_VERSION >= MPV_MAKE_VERSION(2, 7)
+        {MPV_RENDER_PARAM_RENDERER, const_cast<char *>(renderer)},
 #endif
         {MPV_RENDER_PARAM_INVALID, nullptr},
     };
