@@ -217,6 +217,7 @@
       "header": "Playback",
       "bottom_bar": "Show bottom progress bar",
       "low_quality": "Low quality decoding (with less CPU usage)",
+      "latency_hacks": "Low latency video timing (may cause dropped frames)",
       "in_memory_cache": "Inmemory cache",
       "subs_fallback": "Autoload subtitles",
       "vo": "Video output",

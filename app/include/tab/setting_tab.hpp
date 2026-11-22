@@ -38,6 +38,7 @@ private:
     BRLS_BIND(brls::DetailCell, btnDashboard, "setting/dashboard");
     BRLS_BIND(brls::BooleanCell, btnHWDEC, "setting/video/hwdec");
     BRLS_BIND(brls::BooleanCell, btnQuality, "setting/video/low_quality");
+    BRLS_BIND(brls::BooleanCell, btnLatencyHacks, "setting/video/latency_hacks");
     BRLS_BIND(brls::BooleanCell, btnSubFallback, "setting/video/subs_fallback");
     BRLS_BIND(brls::BooleanCell, btnDirectPlay, "setting/video/directplay");
     BRLS_BIND(brls::SelectorCell, selectorVO, "setting/mpv/vo");
