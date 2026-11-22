@@ -260,9 +260,10 @@ using Recommends = std::vector<Recommend>;
 struct Album : public Item {
     std::string AlbumArtist;
     long RecursiveItemCount = 0;
+    std::vector<std::string> Genres;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
-    Album, Id, Name, Type, ImageTags, ProductionYear, AlbumArtist, RunTimeTicks, RecursiveItemCount);
+    Album, Id, Name, Type, ImageTags, ProductionYear, AlbumArtist, RunTimeTicks, RecursiveItemCount, Genres);
 
 struct Track : public Item {
     long IndexNumber = 0;

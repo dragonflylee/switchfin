@@ -7,6 +7,8 @@
 #include "utils/misc.hpp"
 #include <fmt/ranges.h>
 
+using namespace brls::literals;  // for _i18n
+
 class MusicTrackCell : public RecyclingGridItem {
 public:
     MusicTrackCell() { this->inflateFromXMLRes("xml/view/music_track.xml"); }
@@ -93,6 +95,7 @@ MusicAlbum::MusicAlbum(const jellyfin::Item& item) : itemId(item.Id) {
     this->tracks->registerCell("Cell", []() { return new MusicTrackCell(); });
 
     this->albumTitle->setText(item.Name);
+    this->albumAritst->setText(" ");
     if (item.ProductionYear) this->albumYear->setText(std::to_string(item.ProductionYear));
     // 封面由 doAlbum 的回调加载，此时组件已经完成布局
     auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
@@ -141,6 +144,27 @@ void MusicAlbum::doAlbum() {
         [ASYNC_TOKEN](const jellyfin::Album& r) {
             ASYNC_RELEASE
             this->albumAritst->setText(r.AlbumArtist);
+
+            if (r.RecursiveItemCount > 0) {
+                this->albumTracks->setText(fmt::format(fmt::runtime("main/media/tracks"_i18n), r.RecursiveItemCount));
+                this->albumTrackCount->setVisibility(brls::Visibility::VISIBLE);
+            } else {
+                this->albumTrackCount->setVisibility(brls::Visibility::GONE);
+            }
+
+            if (r.RunTimeTicks > 0) {
+                this->albumDuration->setText(misc::formatMediaDuration(r.RunTimeTicks / jellyfin::PLAYTICKS));
+                this->albumDurationBox->setVisibility(brls::Visibility::VISIBLE);
+            } else {
+                this->albumDurationBox->setVisibility(brls::Visibility::GONE);
+            }
+
+            if (r.Genres.empty()) {
+                this->albumGenres->setVisibility(brls::Visibility::GONE);
+            } else {
+                this->albumGenres->setText(misc::joinNames(r.Genres));
+                this->albumGenres->setVisibility(brls::Visibility::VISIBLE);
+            }
 
             auto logo = r.ImageTags.find(jellyfin::imageTypePrimary);
             if (logo != r.ImageTags.end()) {
