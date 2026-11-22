@@ -43,7 +43,7 @@
                     justifyContent="center">
                     <brls:Image
                         id="series/image/logo"
-                        width="440"
+                        width="@style/app/detail/logo/width"
                         height="120"
                         scalingType="fit" />
                 </brls:Box>
@@ -61,14 +61,16 @@
                 <!-- 64: the poster only rises ~86 px into the banner
                      (poster lowered, info column unchanged) -->
                 <brls:Box
-                    width="220"
+                    width="@style/app/detail/poster/width"
                     axis="column"
                     marginTop="64"
                     marginRight="34">
                     <brls:Image
                         id="series/image/poster"
-                        height="330"
-                        scalingType="fill"
+                        width="@style/app/detail/poster/width"
+                        height="@style/app/detail/poster/row"
+                        scalingType="fit"
+                        imageAlign="center"
                         cornerRadius="10"
                         backgroundColor="@theme/color/grey_1"
                         image="@res/img/video-card-bg.png" />

@@ -848,6 +848,10 @@ void AppConfig::initThemes() {
         brls::getStyle().addMetric("app/card/poster/row", 280);
         brls::getStyle().addMetric("app/card/wide/width", 280);
         brls::getStyle().addMetric("app/card/wide/row", 213);
+        // detail pages (movie/series): poster/row = poster/width x 1.5 (2:3)
+        brls::getStyle().addMetric("app/detail/poster/width", 140);
+        brls::getStyle().addMetric("app/detail/poster/row", 210);
+        brls::getStyle().addMetric("app/detail/logo/width", 320);
         brls::getStyle().addMetric("app/grid/6", 5);
         brls::getStyle().addMetric("app/grid/5", 4);
         brls::getStyle().addMetric("app/grid/4", 3);
@@ -866,11 +870,32 @@ void AppConfig::initThemes() {
             brls::getStyle().addMetric("app/card/poster/row", 393);
             brls::getStyle().addMetric("app/card/wide/width", 410);
             brls::getStyle().addMetric("app/card/wide/row", 286);
+            brls::getStyle().addMetric("app/detail/poster/width", 280);
+            brls::getStyle().addMetric("app/detail/poster/row", 420);
+            brls::getStyle().addMetric("app/detail/logo/width", 640);
             brls::getStyle().addMetric("app/grid/6", 8);
             brls::getStyle().addMetric("app/grid/5", 7);
             brls::getStyle().addMetric("app/grid/4", 6);
             brls::getStyle().addMetric("app/grid/3", 5);
             brls::getStyle().addMetric("app/grid/2", 4);
+            break;
+        case 720:
+            // switch (720p)
+            brls::getStyle().addMetric("app/album/height", 230);
+            brls::getStyle().addMetric("app/books/height", 290);
+            brls::getStyle().addMetric("app/video/height", 310);
+            brls::getStyle().addMetric("app/card/poster/width", 195);
+            brls::getStyle().addMetric("app/card/poster/row", 348);
+            brls::getStyle().addMetric("app/card/wide/width", 355);
+            brls::getStyle().addMetric("app/card/wide/row", 255);
+            brls::getStyle().addMetric("app/detail/poster/width", 190);
+            brls::getStyle().addMetric("app/detail/poster/row", 285);
+            brls::getStyle().addMetric("app/detail/logo/width", 430);
+            brls::getStyle().addMetric("app/grid/6", 6);
+            brls::getStyle().addMetric("app/grid/5", 5);
+            brls::getStyle().addMetric("app/grid/4", 4);
+            brls::getStyle().addMetric("app/grid/3", 3);
+            brls::getStyle().addMetric("app/grid/2", 2);
             break;
         case 900:
             brls::getStyle().addMetric("app/album/height", 240);
@@ -880,6 +905,9 @@ void AppConfig::initThemes() {
             brls::getStyle().addMetric("app/card/poster/row", 363);
             brls::getStyle().addMetric("app/card/wide/width", 375);
             brls::getStyle().addMetric("app/card/wide/row", 266);
+            brls::getStyle().addMetric("app/detail/poster/width", 240);
+            brls::getStyle().addMetric("app/detail/poster/row", 360);
+            brls::getStyle().addMetric("app/detail/logo/width", 530);
             brls::getStyle().addMetric("app/grid/6", 7);
             brls::getStyle().addMetric("app/grid/5", 6);
             brls::getStyle().addMetric("app/grid/4", 5);
@@ -895,6 +923,9 @@ void AppConfig::initThemes() {
             brls::getStyle().addMetric("app/card/poster/row", 333);
             brls::getStyle().addMetric("app/card/wide/width", 340);
             brls::getStyle().addMetric("app/card/wide/row", 246);
+            brls::getStyle().addMetric("app/detail/poster/width", 200);
+            brls::getStyle().addMetric("app/detail/poster/row", 300);
+            brls::getStyle().addMetric("app/detail/logo/width", 455);
             brls::getStyle().addMetric("app/grid/6", 6);
             brls::getStyle().addMetric("app/grid/5", 5);
             brls::getStyle().addMetric("app/grid/4", 4);

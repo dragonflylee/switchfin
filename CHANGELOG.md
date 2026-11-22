@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+* detail: keep poster and logo aspect ratio, add a 720p layout branch
+
 ## [0.9.6]
 
 ### Added

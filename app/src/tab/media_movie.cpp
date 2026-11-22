@@ -183,10 +183,11 @@ void MediaMovie::doMovie() {
 
             auto poster = r.ImageTags.find(jellyfin::imageTypePrimary);
             if (poster != r.ImageTags.end()) {
+                // maxWidth only: the server keeps the real ratio
                 Image::load(this->imagePoster, jellyfin::apiPrimaryImage, r.Id,
                     HTTP::encode_form({
                         {"tag", poster->second},
-                        {"maxWidth", "325"},
+                        {"maxWidth", "300"},
                     }));
             }
 
