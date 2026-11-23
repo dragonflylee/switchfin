@@ -535,7 +535,7 @@ index 0000000000..85fd94eb17
 +
 +#endif
 diff --git a/meson.build b/meson.build
-index f9fe4e7263..62a3d19360 100644
+index f9fe4e7263..ab404c1eff 100644
 --- a/meson.build
 +++ b/meson.build
 @@ -294,7 +294,8 @@ endif
@@ -558,7 +558,7 @@ index f9fe4e7263..62a3d19360 100644
 +                     'osdep/subprocess-dummy.c',
 +                     'osdep/terminal-dummy.c',
 +                     'osdep/main-fn-unix.c',
-+                     'osdep/language-posix.c',
++                     'osdep/language-switch.c',
 +                     'input/ipc-dummy.c',
 +                     'sub/filter_regex.c')
 +endif
@@ -814,6 +814,42 @@ index 905558c284..f616f58575 100644
  
  extern char **environ;
  
+diff --git a/osdep/language-switch.c b/osdep/language-switch.c
+new file mode 100644
+index 0000000000..8d07849f8b
+--- /dev/null
++++ b/osdep/language-switch.c
+@@ -0,0 +1,30 @@
++#include <switch.h>
++
++#include <string.h>
++
++#include "misc/language.h"
++#include "mpv_talloc.h"
++#include "osdep/strnlen.h"
++
++char **mp_get_user_langs(void)
++{
++    // Read the system language from Horizon OS; env vars are not available.
++    // LanguageCode is a u64 holding a NUL-terminated tag like "en-US"
++    // (not the SetLanguage enum).
++    // https://switchbrew.org/wiki/Settings_services#LanguageCode
++    u64 languageCode = 0;
++    if (R_FAILED(setGetSystemLanguage(&languageCode)))
++        return NULL;
++
++    // Bound the length in case it is not NUL-terminated within the u64.
++    const char *lang = (const char *)&languageCode;
++    size_t len = strnlen(lang, sizeof(languageCode));
++    if (!len)
++        return NULL;
++
++    char **ret = talloc_array_ptrtype(NULL, ret, 2);
++    ret[0] = talloc_strndup(ret, lang, len);
++    ret[1] = NULL;
++
++    return ret;
++}
 diff --git a/osdep/switch/sys/mman.h b/osdep/switch/sys/mman.h
 new file mode 100644
 index 0000000000..398ff01729
@@ -906,6 +942,29 @@ index 0eb13a7eed..f9add30bc2 100644
      if (mp_property_do(name, M_PROPERTY_GET, &val, mpctx) <= 0) {
          set_osd_msg(mpctx, osdl, osd_duration, "Could not read: '%s'", name);
          cmd->success = false;
+diff --git a/player/loadfile.c b/player/loadfile.c
+index 851413bb06..b3b6d452ed 100644
+--- a/player/loadfile.c
++++ b/player/loadfile.c
+@@ -1276,6 +1276,10 @@ static void open_demux_reentrant(struct MPContext *mpctx)
+     if (!mpctx->open_active)
+         start_open(mpctx, url, mpctx->playing->stream_flags, false);
+ 
++    // If thread failed to start, cancel the playback
++    if (!mpctx->open_active)
++        goto cancel;
++
+     // User abort should cancel the opener now.
+     mp_cancel_set_parent(mpctx->open_cancel, mpctx->playback_abort);
+ 
+@@ -1294,6 +1298,7 @@ static void open_demux_reentrant(struct MPContext *mpctx)
+         mpctx->error_playing = mpctx->open_res_error;
+     }
+ 
++cancel:
+     cancel_open(mpctx); // cleanup
+ }
+ 
 diff --git a/sub/filter_regex.c b/sub/filter_regex.c
 index 8e299918ce..c7b08f5273 100644
 --- a/sub/filter_regex.c
@@ -986,6 +1045,19 @@ index e4e5652875..6b57464b32 100644
          mp_ass_configure_fonts(ctx->ass_renderer, sd->opts->sub_style,
                                 sd->global, sd->log);
      }
+diff --git a/video/decode/vd_lavc.c b/video/decode/vd_lavc.c
+index 2106dcb56e..d17bd8c4cf 100644
+--- a/video/decode/vd_lavc.c
++++ b/video/decode/vd_lavc.c
+@@ -246,6 +246,8 @@ const struct autoprobe_info hwdec_autoprobe_info[] = {
+     {"vdpau-copy",      HWDEC_FLAG_AUTO | HWDEC_FLAG_WHITELIST},
+     {"drm",             HWDEC_FLAG_AUTO | HWDEC_FLAG_WHITELIST},
+     {"drm-copy",        HWDEC_FLAG_AUTO | HWDEC_FLAG_WHITELIST},
++    {"nvtegra",         HWDEC_FLAG_AUTO | HWDEC_FLAG_WHITELIST},
++    {"nvtegra-copy",    HWDEC_FLAG_AUTO | HWDEC_FLAG_WHITELIST},
+     {"mmal",            HWDEC_FLAG_AUTO},
+     {"mmal-copy",       HWDEC_FLAG_AUTO | HWDEC_FLAG_WHITELIST},
+     {"mediacodec",      HWDEC_FLAG_AUTO},
 diff --git a/video/fmt-conversion.c b/video/fmt-conversion.c
 index aa7d857341..088cb8366f 100644
 --- a/video/fmt-conversion.c
@@ -3211,7 +3283,7 @@ index 82f65b4afa..4c32e9c9ad 100644
  ]
  
 diff --git a/wscript_build.py b/wscript_build.py
-index a470808ae5..e60634f5a1 100644
+index a470808ae5..e9a526e69c 100644
 --- a/wscript_build.py
 +++ b/wscript_build.py
 @@ -240,7 +240,6 @@ def build(ctx):
@@ -3236,7 +3308,15 @@ index a470808ae5..e60634f5a1 100644
          ( "osdep/subprocess-win.c",              "win32-desktop" ),
          ( "osdep/subprocess-dummy.c" ),
      ])
-@@ -309,6 +306,7 @@ def build(ctx):
+@@ -266,6 +263,7 @@ def build(ctx):
+     language_c = ctx.pick_first_matching_dep([
+         ( "osdep/language-apple.c",              "cocoa" ),
+         ( "osdep/language-win.c",                "win32-desktop" ),
++        ( "osdep/language-switch.c",             "hos" ),
+         ( "osdep/language-posix.c" ),
+     ])
+ 
+@@ -309,6 +307,7 @@ def build(ctx):
          ( "audio/out/ao_wasapi.c",               "wasapi" ),
          ( "audio/out/ao_wasapi_changenotify.c",  "wasapi" ),
          ( "audio/out/ao_wasapi_utils.c",         "wasapi" ),
@@ -3244,7 +3324,7 @@ index a470808ae5..e60634f5a1 100644
          ( "audio/out/buffer.c" ),
  
          ## Core
-@@ -542,6 +540,10 @@ def build(ctx):
+@@ -542,6 +541,10 @@ def build(ctx):
          ( "video/out/present_sync.c",            "wayland || x11" ),
          ( "video/out/wldmabuf/context_wldmabuf.c", "dmabuf-wayland" ),
          ( "video/out/wldmabuf/ra_wldmabuf.c",      "dmabuf-wayland" ),
@@ -3255,7 +3335,7 @@ index a470808ae5..e60634f5a1 100644
          ( "video/out/vo.c" ),
          ( "video/out/vo_caca.c",                 "caca" ),
          ( "video/out/vo_direct3d.c",             "direct3d" ),
-@@ -621,10 +623,10 @@ def build(ctx):
+@@ -621,10 +624,10 @@ def build(ctx):
          ( "osdep/semaphore_osx.c" ),
          ( "osdep/subprocess.c" ),
          ( subprocess_c ),
@@ -3268,7 +3348,7 @@ index a470808ae5..e60634f5a1 100644
          ( "osdep/windows_utils.c",               "os-win32" ),
  
          ## tree_allocator
-@@ -779,7 +781,7 @@ def build(ctx):
+@@ -779,7 +782,7 @@ def build(ctx):
          )
  
          headers = ["client.h", "render.h",
