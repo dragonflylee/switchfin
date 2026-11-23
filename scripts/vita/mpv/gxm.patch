@@ -415,7 +415,7 @@ index 0000000000..d1fc3f7eca
 +#endif
 \ No newline at end of file
 diff --git a/meson.build b/meson.build
-index f9fe4e7263..b36e81cbbf 100644
+index f9fe4e7263..0f0fd74549 100644
 --- a/meson.build
 +++ b/meson.build
 @@ -292,9 +292,10 @@ if cc.get_id() == 'clang'
@@ -430,12 +430,13 @@ index f9fe4e7263..b36e81cbbf 100644
  
  features += {'darwin': darwin}
  features += {'posix': posix}
-@@ -311,6 +312,28 @@ if host_machine.system() == 'cygwin'
+@@ -311,6 +312,29 @@ if host_machine.system() == 'cygwin'
      flags += [mswin_flags, '-mwin32']
  endif
  
 +if psvita
-+    dependencies += cc.find_library('SceAudio_stub')
++    dependencies += [cc.find_library('SceAudio_stub'),
++                     cc.find_library('SceAppUtil_stub')]
 +    link_flags += ['-Wl,-q', '-Wl,-z,nocopyreloc']
 +    features += {'vitashark': get_option('vitashark').allowed()}
 +    if (features['vitashark'])
@@ -448,7 +449,7 @@ index f9fe4e7263..b36e81cbbf 100644
 +    sources += files('osdep/terminal-dummy.c',
 +                     'osdep/path-unix.c',
 +                     'osdep/timer-linux.c',
-+                     'osdep/language-posix.c',
++                     'osdep/language-vita.c',
 +                     'audio/out/ao_vita.c',
 +                     'video/out/gxm/libmpv_gxm.c',
 +                     'video/out/gxm/ra_gxm.c',
@@ -459,7 +460,7 @@ index f9fe4e7263..b36e81cbbf 100644
  noexecstack = false
  if cc.has_link_argument('-Wl,-z,noexecstack')
      link_flags += '-Wl,-z,noexecstack'
-@@ -332,7 +355,7 @@ endif
+@@ -332,7 +356,7 @@ endif
  features += {'ta-leak-report': get_option('ta-leak-report')}
  
  libdl = dependency('dl', required: false)
@@ -468,7 +469,7 @@ index f9fe4e7263..b36e81cbbf 100644
  if features['libdl']
      dependencies += libdl
  endif
-@@ -398,6 +421,10 @@ if features['cocoa']
+@@ -398,6 +422,10 @@ if features['cocoa']
                       'video/out/cocoa/window.m')
  endif
  
@@ -479,7 +480,7 @@ index f9fe4e7263..b36e81cbbf 100644
  if posix
      path_source = files('osdep/path-unix.c')
      subprocess_source = files('osdep/subprocess-posix.c')
-@@ -1713,7 +1740,7 @@ major = client_h_define.split('|')[0].split('<<')[0].strip('() ')
+@@ -1713,7 +1741,7 @@ major = client_h_define.split('|')[0].split('<<')[0].strip('() ')
  minor = client_h_define.split('|')[1].strip('() ')
  client_api_version = major + '.' + minor + '.0'
  
@@ -488,7 +489,7 @@ index f9fe4e7263..b36e81cbbf 100644
                   version: client_api_version, include_directories: includedir,
                   install: get_option('libmpv'), build_by_default: get_option('libmpv'))
  
-@@ -1723,7 +1750,7 @@ if get_option('libmpv')
+@@ -1723,7 +1751,7 @@ if get_option('libmpv')
      pkg.generate(libmpv, version: client_api_version,
                   description: 'mpv media player client library')
  
@@ -662,6 +663,69 @@ index 37431e60eb..6b76a4b719 100644
  // Broken crap with __USE_MINGW_ANSI_STDIO
  #if defined(__MINGW32__) && defined(__GNUC__) && !defined(__clang__)
  #undef PRINTF_ATTRIBUTE
+diff --git a/osdep/language-vita.c b/osdep/language-vita.c
+new file mode 100644
+index 0000000000..6f7deae237
+--- /dev/null
++++ b/osdep/language-vita.c
+@@ -0,0 +1,57 @@
++#include <psp2/apputil.h>
++#include <psp2/system_param.h>
++
++#include "misc/language.h"
++#include "mpv_talloc.h"
++
++static void psv_apputil_init(void)
++{
++    static bool inited;
++    if (inited)
++        return;
++    inited = true;
++
++    SceAppUtilInitParam initParam = {0};
++    SceAppUtilBootParam bootParam = {0};
++    sceAppUtilInit(&initParam, &bootParam);
++}
++
++char **mp_get_user_langs(void)
++{
++    psv_apputil_init();
++
++    int lang = SCE_SYSTEM_PARAM_LANG_ENGLISH_US;
++    if (sceAppUtilSystemParamGetInt(SCE_SYSTEM_PARAM_ID_LANG, &lang) < 0)
++        return NULL;
++
++    const char *tag;
++    switch (lang) {
++    case SCE_SYSTEM_PARAM_LANG_JAPANESE:       tag = "ja";    break;
++    case SCE_SYSTEM_PARAM_LANG_ENGLISH_US:     tag = "en-US"; break;
++    case SCE_SYSTEM_PARAM_LANG_FRENCH:         tag = "fr";    break;
++    case SCE_SYSTEM_PARAM_LANG_SPANISH:        tag = "es";    break;
++    case SCE_SYSTEM_PARAM_LANG_GERMAN:         tag = "de";    break;
++    case SCE_SYSTEM_PARAM_LANG_ITALIAN:        tag = "it";    break;
++    case SCE_SYSTEM_PARAM_LANG_DUTCH:          tag = "nl";    break;
++    case SCE_SYSTEM_PARAM_LANG_PORTUGUESE_PT:  tag = "pt-PT"; break;
++    case SCE_SYSTEM_PARAM_LANG_RUSSIAN:        tag = "ru";    break;
++    case SCE_SYSTEM_PARAM_LANG_KOREAN:         tag = "ko";    break;
++    case SCE_SYSTEM_PARAM_LANG_CHINESE_T:      tag = "zh-Hant"; break;
++    case SCE_SYSTEM_PARAM_LANG_CHINESE_S:      tag = "zh-Hans"; break;
++    case SCE_SYSTEM_PARAM_LANG_FINNISH:        tag = "fi";    break;
++    case SCE_SYSTEM_PARAM_LANG_SWEDISH:        tag = "sv";    break;
++    case SCE_SYSTEM_PARAM_LANG_DANISH:         tag = "da";    break;
++    case SCE_SYSTEM_PARAM_LANG_NORWEGIAN:      tag = "no";    break;
++    case SCE_SYSTEM_PARAM_LANG_POLISH:         tag = "pl";    break;
++    case SCE_SYSTEM_PARAM_LANG_PORTUGUESE_BR:  tag = "pt-BR"; break;
++    case SCE_SYSTEM_PARAM_LANG_ENGLISH_GB:     tag = "en-GB"; break;
++    case SCE_SYSTEM_PARAM_LANG_TURKISH:        tag = "tr";    break;
++    default:                                   tag = "en-US"; break;
++    }
++
++    char **ret = talloc_array_ptrtype(NULL, ret, 2);
++    ret[0] = talloc_strdup(ret, tag);
++    ret[1] = NULL;
++
++    return ret;
++}
 diff --git a/osdep/vita/include/sys/mman.h b/osdep/vita/include/sys/mman.h
 new file mode 100644
 index 0000000000..365bed89a7
@@ -756,6 +820,29 @@ index 0eb13a7eed..f9add30bc2 100644
      if (mp_property_do(name, M_PROPERTY_GET, &val, mpctx) <= 0) {
          set_osd_msg(mpctx, osdl, osd_duration, "Could not read: '%s'", name);
          cmd->success = false;
+diff --git a/player/loadfile.c b/player/loadfile.c
+index 851413bb06..b3b6d452ed 100644
+--- a/player/loadfile.c
++++ b/player/loadfile.c
+@@ -1276,6 +1276,10 @@ static void open_demux_reentrant(struct MPContext *mpctx)
+     if (!mpctx->open_active)
+         start_open(mpctx, url, mpctx->playing->stream_flags, false);
+ 
++    // If thread failed to start, cancel the playback
++    if (!mpctx->open_active)
++        goto cancel;
++
+     // User abort should cancel the opener now.
+     mp_cancel_set_parent(mpctx->open_cancel, mpctx->playback_abort);
+ 
+@@ -1294,6 +1298,7 @@ static void open_demux_reentrant(struct MPContext *mpctx)
+         mpctx->error_playing = mpctx->open_res_error;
+     }
+ 
++cancel:
+     cancel_open(mpctx); // cleanup
+ }
+ 
 diff --git a/video/csputils.c b/video/csputils.c
 index 34fc4ead42..6014c47433 100644
 --- a/video/csputils.c
