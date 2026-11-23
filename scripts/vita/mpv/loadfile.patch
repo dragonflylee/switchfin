@@ -1,0 +1,16 @@
+--- a/player/loadfile.c
++++ b/player/loadfile.c
+@@ -1276,6 +1276,13 @@
+     if (!mpctx->open_active)
+         start_open(mpctx, url, mpctx->playing->stream_flags, false);
+ 
++    // start_open() gives up when the opener thread cannot be created (e.g. out
++    // of memory), leaving open_cancel NULL. Fail the load instead of crashing.
++    if (!mpctx->open_active) {
++        MP_ERR(mpctx, "Failed to create the demuxer open thread.\n");
++        return;
++    }
++
+     // User abort should cancel the opener now.
+     mp_cancel_set_parent(mpctx->open_cancel, mpctx->playback_abort);
+ 
