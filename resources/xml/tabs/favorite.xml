@@ -1,0 +1,20 @@
+<brls:Box
+    width="auto"
+    height="auto">
+
+    <brls:ScrollingFrame
+        width="auto"
+        height="auto"
+        grow="1.0">
+
+        <brls:Box
+            axis="column"
+            id="favorite/box"
+            paddingLeft="@style/main/content_padding_sides"
+            paddingRight="@style/main/content_padding_sides"
+            paddingTop="@style/main/content_padding_top_bottom"
+            paddingBottom="@style/main/content_padding_top_bottom">
+
+        </brls:Box>
+    </brls:ScrollingFrame>
+</brls:Box>

@@ -1,6 +1,8 @@
 {
   "tabs": {
     "home": "Domů",
+    "favorite": "Oblíbené",
+    "collection": "Kolekce",
     "genres": "Žánry",
     "program": "Programy",
     "suggest": "Návrhy",
@@ -148,7 +150,9 @@
       "movie": "Film",
       "music": "Hudba",
       "series": "Seriál",
-      "episode": "Epizoda"
+      "episode": "Epizoda",
+      "album": "Album",
+      "photo_album": "Fotoalbum"
     }
   },
   "remote": {

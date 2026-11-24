@@ -1,6 +1,8 @@
 {
   "tabs": {
     "home": "Главная",
+    "favorite": "Избранное",
+    "collection": "Коллекции",
     "genres": "Жанры",
     "program": "Передачи",
     "suggest": "Рекомендации",
@@ -148,7 +150,9 @@
       "movie": "Фильм",
       "music": "Музыка",
       "series": "Сериал",
-      "episode": "Эпизод"
+      "episode": "Эпизод",
+      "album": "Альбом",
+      "photo_album": "Фотоальбом"
     }
   },
   "remote": {
