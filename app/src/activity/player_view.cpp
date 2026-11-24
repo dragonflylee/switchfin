@@ -178,15 +178,25 @@ bool PlayerView::playIndex(int index) {
 void PlayerView::playMedia(const uint64_t seekTicks) {
 #if defined(__PS4__)
     int maxAllowedHeight = 1080;
-#elif defined(__PSV__)
+#else
+#if defined(__PSV__)
+    // The Vita can't decode above 720p, and its screen is 960x544.
     int maxAllowedHeight = 720;
+    int maxAllowedWidth = 1280;
 #else
     int maxAllowedHeight = brls::Application::windowHeight;
+#endif
     if (MPVCore::VIDEO_QUALITY <= 0) {
     } else if (MPVCore::VIDEO_QUALITY <= 420000) {
         maxAllowedHeight = 360;
     } else if (MPVCore::VIDEO_QUALITY <= 720000) {
         maxAllowedHeight = 480;
+#if defined(__PSV__)
+    } else if (MPVCore::VIDEO_QUALITY <= 3000000) {
+        // Screen size: no extra pixels to decode or downscale every frame.
+        maxAllowedHeight = 544;
+        maxAllowedWidth = 960;
+#endif
     } else if (MPVCore::VIDEO_QUALITY <= 4000000) {
         maxAllowedHeight = 720;
     } else if (MPVCore::VIDEO_QUALITY <= 8000000) {
@@ -196,6 +206,10 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
     } else if (MPVCore::VIDEO_QUALITY <= 120000000) {
         maxAllowedHeight = 2160;
     }
+#if defined(__PSV__)
+    if (maxAllowedHeight > 720) maxAllowedHeight = 720;
+    if (maxAllowedWidth > maxAllowedHeight * 16 / 9) maxAllowedWidth = maxAllowedHeight * 16 / 9;
+#endif
 #endif
     nlohmann::json conditions = {
 #if defined(__PSV__)
@@ -209,6 +223,12 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
             {"Condition", "LessThanEqual"},
             {"Property", "VideoLevel"},
             {"Value", 40},
+            {"IsRequired", false},
+        },
+        {
+            {"Condition", "LessThanEqual"},
+            {"Property", "Width"},
+            {"Value", maxAllowedWidth},
             {"IsRequired", false},
         },
 #endif
