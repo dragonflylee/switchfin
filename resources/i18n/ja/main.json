@@ -1,6 +1,8 @@
 {
   "tabs": {
     "home": "ホーム",
+    "favorite": "お気に入り",
+    "collection": "コレクション",
     "genres": "ジャンル",
     "program": "番組",
     "suggest": "おすすめ",
@@ -148,7 +150,9 @@
       "movie": "動画",
       "music": "音楽",
       "series": "シリーズ",
-      "episode": "エピソード"
+      "episode": "エピソード",
+      "album": "アルバム",
+      "photo_album": "フォトアルバム"
     }
   },
   "remote": {

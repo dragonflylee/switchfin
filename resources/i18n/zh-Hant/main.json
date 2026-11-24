@@ -1,6 +1,8 @@
 {
   "tabs": {
     "home": "首頁",
+    "favorite": "我的最愛",
+    "collection": "合集",
     "genres": "類型",
     "program": "節目",
     "suggest": "建議",
@@ -148,7 +150,9 @@
       "movie": "電影",
       "music": "音樂",
       "series": "節目",
-      "episode": "劇集"
+      "episode": "劇集",
+      "album": "專輯",
+      "photo_album": "相簿"
     }
   },
   "remote": {

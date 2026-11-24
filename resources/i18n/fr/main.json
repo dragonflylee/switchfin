@@ -1,6 +1,8 @@
 {
   "tabs": {
     "home": "Accueil",
+    "favorite": "Favoris",
+    "collection": "Collections",
     "genres": "Genres",
     "program": "Séries",
     "suggest": "Suggestions",
@@ -148,7 +150,9 @@
       "movie": "Film",
       "music": "Musiques",
       "series": "Séries",
-      "episode": "Épisode"
+      "episode": "Épisode",
+      "album": "Album",
+      "photo_album": "Album photo"
     }
   },
   "remote": {

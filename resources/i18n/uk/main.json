@@ -1,6 +1,8 @@
 {
   "tabs": {
     "home": "Домівка",
+    "favorite": "Обране",
+    "collection": "Колекції",
     "genres": "Жанр",
     "program": "Програми",
     "suggest": "Пропозиції",
@@ -148,7 +150,9 @@
       "movie": "Фільм",
       "music": "Музика",
       "series": "Серіал",
-      "episode": "Епізод"
+      "episode": "Епізод",
+      "album": "Альбом",
+      "photo_album": "Фотоальбом"
     }
   },
   "remote": {

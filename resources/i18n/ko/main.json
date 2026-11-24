@@ -1,6 +1,8 @@
 {
   "tabs": {
     "home": "홈",
+    "favorite": "즐겨찾기",
+    "collection": "컬렉션",
     "genres": "장르",
     "program": "프로그램",
     "suggest": "제안",
@@ -148,7 +150,9 @@
       "movie": "영화",
       "music": "음악",
       "series": "시리즈",
-      "episode": "에피소드"
+      "episode": "에피소드",
+      "album": "앨범",
+      "photo_album": "사진 앨범"
     }
   },
   "remote": {

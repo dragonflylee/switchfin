@@ -4,6 +4,7 @@
 
 ### Added
 
+* home: add a "Favorites" tab, grouped by media type
 * movie/series: show original title, tagline, tags, studios, provider links and stream info
 * album: show track count, total duration and genres
 * textbox: truncate with an ellipsis when the text exceeds `maxRows`

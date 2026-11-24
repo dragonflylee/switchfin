@@ -2,37 +2,53 @@
     width="auto"
     height="auto">
 
-    <brls:ScrollingFrame
-        width="auto"
-        height="auto"
-        grow="1.0">
+    <AutoTabFrame
+        id="home/tabFrame"
+        grow="1"
+        defaultTab="0"
+        tabHeight="70"
+        tabJustifyContent="center"
+        tabItemActiveTextColor="@theme/color/app"
+        sidebarPosition="top">
 
-        <brls:Box
-            axis="column"
-            id="home/box"
-            paddingLeft="@style/main/content_padding_sides"
-            paddingRight="@style/main/content_padding_sides"
-            paddingTop="@style/main/content_padding_top_bottom"
-            paddingBottom="@style/main/content_padding_top_bottom">
+        <Tab label="@i18n/main/tabs/home"
+            fontSize="18">
 
-            <RecylingVideo
-                nextPage="auto"
-                pageSize="6"
-                frameHeight="235"
-                itemWidth="325"
-                id="home/user/resume"
-                title="@i18n/main/home/resume" />
+            <brls:ScrollingFrame
+                width="auto"
+                height="auto"
+                grow="1.0">
 
-            <RecylingVideo
-                nextPage="auto"
-                pageSize="6"
-                frameHeight="235"
-                itemWidth="325"
-                id="home/show/nextup"
-                title="@i18n/main/home/nextup" />
+                <brls:Box
+                    axis="column"
+                    id="home/box"
+                    paddingLeft="@style/main/content_padding_sides"
+                    paddingRight="@style/main/content_padding_sides"
+                    paddingBottom="@style/main/content_padding_top_bottom">
 
-        </brls:Box>
+                    <RecylingVideo
+                        nextPage="auto"
+                        pageSize="6"
+                        frameHeight="235"
+                        itemWidth="325"
+                        id="home/user/resume"
+                        title="@i18n/main/home/resume" />
 
-    </brls:ScrollingFrame>
+                    <RecylingVideo
+                        nextPage="auto"
+                        pageSize="6"
+                        frameHeight="235"
+                        itemWidth="325"
+                        id="home/show/nextup"
+                        title="@i18n/main/home/nextup" />
 
+                </brls:Box>
+            </brls:ScrollingFrame>
+        </Tab>
+
+        <Tab label="@i18n/main/tabs/favorite"
+            fontSize="18">
+            <FavoriteTab />
+        </Tab>
+    </AutoTabFrame>
 </brls:Box>
