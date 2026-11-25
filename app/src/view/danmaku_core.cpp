@@ -5,6 +5,7 @@
 #include <borealis/core/logger.hpp>
 #include <borealis/core/application.hpp>
 
+#include <cmath>
 #include <cstdlib>
 #include <utility>
 
@@ -14,6 +15,16 @@
 #ifndef MAX_DANMAKU_LENGTH
 #define MAX_DANMAKU_LENGTH 4096
 #endif
+
+namespace {
+
+// 弹幕亚像素 NanoVG 文本绘制（移植自 wiliwili PR #729）。
+float snapVerticalPixel(float y, float devicePxRatio) {
+    if (devicePxRatio <= 0.0f) return y;
+    return std::floor(y * devicePxRatio + 0.5f) / devicePxRatio;
+}
+
+}  // namespace
 
 DanmakuItem::DanmakuItem(std::string content, const char* attributes) : msg(std::move(content)) {
     std::vector<std::string> attrs;
@@ -51,25 +62,39 @@ void DanmakuItem::draw(NVGcontext* vg, float x, float y, float alpha, bool multi
     float dx, dy;
     dx = dy = DanmakuCore::DANMAKU_STYLE_FONT == DanmakuFontStyle::DANMAKU_FONT_INCLINE;
 
+    if (multiLine) {
+        // 多行弹幕（高级弹幕）不参与亚像素平移
+        if (DanmakuCore::DANMAKU_STYLE_FONT != DanmakuFontStyle::DANMAKU_FONT_PURE) {
+            nvgFontDilate(vg, dilate);
+            nvgFontBlur(vg, blur);
+            nvgFillColor(vg, a(borderColor, alpha));
+            nvgTextBox(vg, x + dx, y + dy, MAX_DANMAKU_LENGTH, msg.c_str(), nullptr);
+        }
+        nvgFontDilate(vg, 0.0f);
+        nvgFontBlur(vg, 0.0f);
+        nvgFillColor(vg, a(color, alpha));
+        nvgTextBox(vg, x + dx, y + dy, MAX_DANMAKU_LENGTH, msg.c_str(), nullptr);
+        return;
+    }
+
+    // 经 xform 平移后在 (0, 0) 提交字形，避免 Fontstash 将横向位置与字距吸附到整数像素
+    nvgSave(vg);
+    nvgTranslate(vg, x, snapVerticalPixel(y, brls::Application::windowScale));
+
     // background
     if (DanmakuCore::DANMAKU_STYLE_FONT != DanmakuFontStyle::DANMAKU_FONT_PURE) {
         nvgFontDilate(vg, dilate);
         nvgFontBlur(vg, blur);
         nvgFillColor(vg, a(borderColor, alpha));
-        if (multiLine)
-            nvgTextBox(vg, x + dx, y + dy, MAX_DANMAKU_LENGTH, msg.c_str(), nullptr);
-        else
-            nvgText(vg, x + dx, y + dy, msg.c_str(), nullptr);
+        nvgText(vg, dx, dy, msg.c_str(), nullptr);
     }
 
     // content
     nvgFontDilate(vg, 0.0f);
     nvgFontBlur(vg, 0.0f);
     nvgFillColor(vg, a(color, alpha));
-    if (multiLine)
-        nvgTextBox(vg, x + dx, y + dy, MAX_DANMAKU_LENGTH, msg.c_str(), nullptr);
-    else
-        nvgText(vg, x, y, msg.c_str(), nullptr);
+    nvgText(vg, 0.0f, 0.0f, msg.c_str(), nullptr);
+    nvgRestore(vg);
 }
 
 NVGcolor DanmakuItem::a(NVGcolor color, float alpha) {
@@ -289,7 +314,11 @@ void DanmakuCore::draw(NVGcontext* vg, float x, float y, float width, float heig
             // 根据位置判断是否显示弹幕
             if (position > width + i.length) {
                 i.showing = false;
-                danmakuIndex = j + 1;
+                i.canShow = false;
+                while (
+                    this->danmakuIndex < this->danmakuData.size() && !this->danmakuData[this->danmakuIndex].canShow) {
+                    this->danmakuIndex++;
+                }
                 continue;
             }
 
@@ -309,7 +338,11 @@ void DanmakuCore::draw(NVGcontext* vg, float x, float y, float width, float heig
                 }
             } else if (i.time + SECOND < playbackTime) {
                 // 滚动弹幕
-                danmakuIndex = j + 1;
+                i.canShow = false;
+                while (
+                    this->danmakuIndex < this->danmakuData.size() && !this->danmakuData[this->danmakuIndex].canShow) {
+                    this->danmakuIndex++;
+                }
                 continue;
             }
 
@@ -352,8 +385,10 @@ void DanmakuCore::draw(NVGcontext* vg, float x, float y, float width, float heig
 
                 // 是否使用线形动画
                 brls::EasingFunction easing;
-                if (ani->linear) easing = tweeny::easing::linear;
-                else easing = tweeny::easing::cubicIn;
+                if (ani->linear)
+                    easing = tweeny::easing::linear;
+                else
+                    easing = tweeny::easing::cubicIn;
 
                 // 是否使用相对坐标
                 float relativeSizeX = 1.0f, relativeSizeY = 1.0f;
