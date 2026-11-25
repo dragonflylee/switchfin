@@ -89,6 +89,7 @@ std::unordered_map<AppConfig::Item, AppConfig::Option> AppConfig::settingMap = {
     {PLAYER_HWDEC_CUSTOM, {"player_hwdec_custom"}},
     {PLAYER_ASPECT, {"player_aspect", {"auto", "stretch", "crop", "4:3", "16:9"}}},
     {PLAYER_TV_MODE, {"player_tv_mode"}},
+    {PLAYER_LATENCY_HACKS, {"player_latency_hacks"}},
     {DANMAKU, {"danmaku"}},
     {DANMAKU_ON, {"danmaku_on"}},
     {DANMAKU_STYLE_AREA, {"danmaku_style_area", {"1/4", "1/2", "3/4", "1"}, {25, 50, 75, 100}}},
@@ -353,6 +354,7 @@ bool AppConfig::init() {
     // 初始化视频比例
     MPVCore::VIDEO_ASPECT = this->getItem(PLAYER_ASPECT, MPVCore::VIDEO_ASPECT);
     MPVCore::OSD_TV_MODE = this->getItem(PLAYER_TV_MODE, false);
+    MPVCore::LATENCY_HACKS = this->getItem(PLAYER_LATENCY_HACKS, MPVCore::LATENCY_HACKS);
 
     // 初始化弹幕相关内容
     DanmakuCore::DANMAKU_ON = this->getItem(DANMAKU_ON, true);

@@ -162,6 +162,11 @@ public:
     inline static bool LOW_QUALITY = false;
     inline static bool SUBS_FALLBACK = true;
 
+    // mpv video-latency-hacks: only queue one frame and take frame durations
+    // from the container fps. A wrong container fps (e.g. interlaced sources
+    // reporting 59.94) makes frames look late and get dropped by the VO.
+    inline static bool LATENCY_HACKS = false;
+
     // 视频缓存（是否使用内存缓存视频，值为缓存的大小，单位MB）
     inline static int INMEMORY_CACHE = 0;
 

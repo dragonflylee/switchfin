@@ -86,6 +86,7 @@ public:
         PLAYER_ASPECT,
         PLAYER_SUBS_FALLBACK,
         PLAYER_TV_MODE,
+        PLAYER_LATENCY_HACKS,
         DANMAKU,
         DANMAKU_ON,
         DANMAKU_STYLE_AREA,

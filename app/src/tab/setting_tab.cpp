@@ -181,6 +181,13 @@ void SettingTab::onCreate() {
         conf.setItem(AppConfig::PLAYER_LOW_QUALITY, value);
     });
 
+    btnLatencyHacks->init("main/setting/playback/latency_hacks"_i18n, MPVCore::LATENCY_HACKS, [&conf](bool value) {
+        if (MPVCore::LATENCY_HACKS == value) return;
+        MPVCore::LATENCY_HACKS = value;
+        MPVCore::instance().restart();
+        conf.setItem(AppConfig::PLAYER_LATENCY_HACKS, value);
+    });
+
     btnSubFallback->init("main/setting/playback/subs_fallback"_i18n, MPVCore::SUBS_FALLBACK, [&conf](bool value) {
         if (MPVCore::SUBS_FALLBACK == value) return;
         MPVCore::SUBS_FALLBACK = value;

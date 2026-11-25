@@ -51,6 +51,8 @@
                     id="setting/mpv/vo" />
                 <brls:BooleanCell
                     id="setting/video/low_quality" />
+                <brls:BooleanCell
+                    id="setting/video/latency_hacks" />
                 <brls:SelectorCell
                     id="setting/video/inmemory" />
                 <brls:SelectorCell

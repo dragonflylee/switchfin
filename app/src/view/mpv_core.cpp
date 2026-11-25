@@ -171,6 +171,7 @@ void MPVCore::init() {
     mpv_set_option_string(mpv, "user-agent", HTTP::USER_AGENT.c_str());
     mpv_set_option_string(mpv, "osd-level", "0");
     mpv_set_option_string(mpv, "video-timing-offset", "0");  // 60fps
+    mpv_set_option_string(mpv, "video-latency-hacks", MPVCore::LATENCY_HACKS ? "yes" : "no");
     mpv_set_option_string(mpv, "reset-on-next-file", "speed,pause");
     mpv_set_option_string(mpv, "subs-fallback", SUBS_FALLBACK ? "yes" : "no");
     mpv_set_option_string(mpv, "vo", MPVCore::VO.c_str());
@@ -217,8 +218,6 @@ void MPVCore::init() {
 #elif defined(__PSV__)
     mpv_set_option_string(mpv, "vd-lavc-threads", "4");
     mpv_set_option_string(mpv, "fbo-format", "rgba8");
-    // Fix vo_wait_frame() cannot be wakeup
-    mpv_set_option_string(mpv, "video-latency-hacks", "yes");
 #elif defined(ANDROID)
     mpv_set_option_string(mpv, "gpu-context", "android");
     mpv_set_option_string(mpv, "opengl-es", "yes");
