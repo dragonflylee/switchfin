@@ -4,6 +4,30 @@
 
 #include "view/svg_image.hpp"
 #include <borealis/core/cache_helper.hpp>
+#include <fstream>
+#include <sstream>
+
+/// Icons are drawn with two fixed colors; swap them for the theme's
+/// icon/default and icon/active so theme files can recolor every icon.
+bool SVGImage::TINT_ICONS = false;
+
+static void tintIcon(std::string& svg) {
+    if (!SVGImage::TINT_ICONS) return;  // theme colors not registered yet
+    auto theme = brls::Application::getTheme();
+    auto hex = [](NVGcolor c) {
+        return fmt::format("#{:02X}{:02X}{:02X}", (int)(c.r * 255.0f + 0.5f), (int)(c.g * 255.0f + 0.5f),
+            (int)(c.b * 255.0f + 0.5f));
+    };
+    const std::pair<const char*, std::string> swaps[] = {
+        {"#61666D", hex(theme["icon/default"])},
+        {"#028087", hex(theme["icon/active"])},
+    };
+    for (auto& [from, to] : swaps) {
+        if (to == from) continue;
+        for (size_t pos = 0; (pos = svg.find(from, pos)) != std::string::npos; pos += to.size())
+            svg.replace(pos, 7, to);
+    }
+}
 
 SVGImage::SVGImage() {
     this->registerFilePathXMLAttribute("svg", [this](const std::string& value) { this->setImageFromSVGFile(value); });
@@ -31,7 +55,9 @@ void SVGImage::setImageFromSVGRes(const std::string& value) {
     filePath = "@res/" + value;
     if (checkCache(filePath) > 0) return;
     auto image = romfs::get(value);
-    this->document = lunasvg::Document::loadFromData((const char*)image.string().data(), image.size());
+    std::string svg((const char*)image.string().data(), image.size());
+    tintIcon(svg);
+    this->document = lunasvg::Document::loadFromData(svg);
     if (this->document) {
         this->updateBitmap();
     } else {
@@ -58,7 +84,12 @@ void SVGImage::setImageFromSVGFile(const std::string& value) {
 #endif
     if (checkCache(value) > 0) return;
 
-    this->document = lunasvg::Document::loadFromFile(value);
+    std::ifstream in(value, std::ios::binary);
+    std::stringstream ss;
+    ss << in.rdbuf();
+    std::string svg = ss.str();
+    tintIcon(svg);
+    this->document = lunasvg::Document::loadFromData(svg);
     if (this->document) {
         this->updateBitmap();
     } else {

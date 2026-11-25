@@ -19,6 +19,7 @@
 #include "activity/server_list.hpp"
 #include "activity/hint_activity.hpp"
 #include "utils/config.hpp"
+#include "utils/theme_file.hpp"
 #include "utils/thread.hpp"
 #include <curl/curl.h>
 #include "view/mpv_core.hpp"
@@ -395,13 +396,13 @@ void SettingTab::onCreate() {
 
     // App theme
     int themeIndex = conf.getOptionIndex(AppConfig::APP_THEME);
-    selectorTheme->init("main/setting/others/theme/header"_i18n,
-        {
-            "main/setting/others/theme/1"_i18n,
-            "main/setting/others/theme/2"_i18n,
-            "main/setting/others/theme/3"_i18n,
-        },
-        themeIndex, [themeIndex](int selected) {
+    std::vector<std::string> themeNames = {
+        "main/setting/others/theme/1"_i18n,
+        "main/setting/others/theme/2"_i18n,
+        "main/setting/others/theme/3"_i18n,
+    };
+    for (auto& theme : themes::all()) themeNames.push_back(theme.name);
+    selectorTheme->init("main/setting/others/theme/header"_i18n, themeNames, themeIndex, [themeIndex](int selected) {
             if (themeIndex == selected) return;
             auto& conf = AppConfig::instance();
             auto& themeOptions = conf.getOptions(AppConfig::APP_THEME);

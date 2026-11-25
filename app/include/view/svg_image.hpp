@@ -9,6 +9,9 @@
 
 class SVGImage : public brls::Image {
 public:
+    /// set once the icon/* theme colors exist (AppConfig::initThemes)
+    static bool TINT_ICONS;
+
     SVGImage();
 
     ~SVGImage() override;

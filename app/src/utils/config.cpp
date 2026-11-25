@@ -44,6 +44,8 @@ constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
 #include "utils/config.hpp"
 #include "utils/keybind.hpp"
 #include "utils/misc.hpp"
+#include "utils/theme_file.hpp"
+#include "view/svg_image.hpp"
 #include "utils/ums.hpp"
 #include "utils/thread.hpp"
 #include "view/mpv_core.hpp"
@@ -224,6 +226,24 @@ static std::string generateDeviceId() {
     }
 #endif
     return misc::randHex(16);
+}
+
+/// Handheld Vita (PCH-1000 is OLED) and Switch OLED
+static bool isOledScreen() {
+#if defined(__SWITCH__)
+    SetSysProductModel model = SetSysProductModel_Invalid;
+    return R_SUCCEEDED(setsysGetProductModel(&model)) && model == SetSysProductModel_Aula;
+#elif defined(__PSV__)
+    return vshSblAimgrIsGenuineVITA();
+#else
+    return false;
+#endif
+}
+
+/// "auto" picks the bundled black theme on OLED screens
+static std::string resolveTheme(const std::string& appTheme) {
+    if (appTheme == "auto" && isOledScreen() && themes::find("black")) return "black";
+    return appTheme;
 }
 
 bool AppConfig::init() {
@@ -426,12 +446,20 @@ bool AppConfig::init() {
             DanmakuCore::DANMAKU_FONT = brls::Application::getDefaultFont();
         }
         // 初始化主题
-        std::string appTheme = this->getItem(APP_THEME, std::string("auto"));
+        std::string appTheme = resolveTheme(this->getItem(APP_THEME, std::string("auto")));
         if (appTheme == "light") {
             brls::Application::getPlatform()->setThemeVariant(brls::ThemeVariant::LIGHT);
         } else if (appTheme == "dark") {
             brls::Application::getPlatform()->setThemeVariant(brls::ThemeVariant::DARK);
+        } else if (auto* theme = themes::find(appTheme)) {
+            brls::Application::getPlatform()->setThemeVariant(theme->base);
         }
+#ifdef __PSV__
+        // The Vita has no system theme to follow; default to dark
+        else {
+            brls::Application::getPlatform()->setThemeVariant(brls::ThemeVariant::DARK);
+        }
+#endif
 
         // 初始化纹理缓存数量
 #if defined(__PSV__) || defined(__PS4__)
@@ -838,6 +866,28 @@ void AppConfig::initThemes() {
     // 深浅配色通用的灰色字体颜色
     this->addColor(brls::ThemeVariant::LIGHT, "font/grey", nvgRGB(148, 153, 160));
     this->addColor(brls::ThemeVariant::DARK, "font/grey", nvgRGB(148, 153, 160));
+    // icon colors (the two colors drawn in the bundled SVG icons)
+    this->addColor(brls::ThemeVariant::LIGHT, "icon/default", nvgRGB(0x61, 0x66, 0x6D));
+    this->addColor(brls::ThemeVariant::DARK, "icon/default", nvgRGB(0x61, 0x66, 0x6D));
+    this->addColor(brls::ThemeVariant::LIGHT, "icon/active", nvgRGB(0x02, 0x80, 0x87));
+    this->addColor(brls::ThemeVariant::DARK, "icon/active", nvgRGB(0x02, 0x80, 0x87));
+    SVGImage::TINT_ICONS = true;
+
+    // Theme files: bundled ones and the user's themes/ folder. They show up in
+    // the theme list and override colors of their base (light/dark) theme.
+    themes::load(this->configDir());
+    auto& themeOptions = settingMap[APP_THEME].options;
+    themeOptions.resize(3);  // auto, light, dark
+    for (auto& theme : themes::all()) themeOptions.push_back(theme.id);
+
+    if (auto* theme = themes::find(resolveTheme(this->getItem(APP_THEME, std::string("auto"))))) {
+        auto& target =
+            theme->base == brls::ThemeVariant::LIGHT ? brls::Theme::getLightTheme() : brls::Theme::getDarkTheme();
+        for (auto& [name, color] : theme->colors) {
+            // single colors set in config.json still win
+            if (!setting.contains(name)) target.addColor(name, color);
+        }
+    }
 
     if (brls::Application::ORIGINAL_WINDOW_HEIGHT == 544) {
         brls::getStyle().addMetric("app/album/height", 215);

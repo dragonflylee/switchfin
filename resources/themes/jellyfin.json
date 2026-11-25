@@ -1,0 +1,26 @@
+{
+    "name": "Jellyfin",
+    "base": "dark",
+    "colors": {
+        "brls/clear": "#0e0a14",
+        "brls/background": "#0e0a14",
+        "brls/sidebar/background": "#1a1226",
+        "brls/sidebar/active_item": "#aa5cc3",
+        "brls/sidebar/separator": "#2e2238",
+        "brls/header/border": "#2e2238",
+        "brls/accent": "#aa5cc3",
+        "brls/highlight/color1": "#aa5cc3",
+        "brls/highlight/color2": "#00a4dc",
+        "brls/highlight/background": "#22182e",
+        "brls/button/primary_enabled_background": "#aa5cc3",
+        "brls/slider/line_filled": "#00a4dc",
+        "brls/spinner/bar_color": "#aa5cc3",
+        "color/app": "#aa5cc3",
+        "color/surface": "#1c1426",
+        "color/grey_1": "#1a1226",
+        "color/grey_2": "#221a2e",
+        "color/line": "#2e2238",
+        "icon/default": "#7a6a8c",
+        "icon/active": "#aa5cc3"
+    }
+}

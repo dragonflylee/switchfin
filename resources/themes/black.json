@@ -1,0 +1,20 @@
+{
+    "name": "Black",
+    "base": "dark",
+    "colors": {
+        "brls/clear": "#000000",
+        "brls/background": "#000000",
+        "brls/sidebar/background": "#000000",
+        "brls/sidebar/separator": "#282828",
+        "brls/header/border": "#282828",
+        "brls/highlight/background": "#141414",
+        "brls/button/default_enabled_background": "#1e1e1e",
+        "brls/button/default_disabled_background": "#1e1e1e",
+        "color/surface": "#0e0e0e",
+        "color/grey_1": "#0a0a0a",
+        "color/grey_2": "#121212",
+        "color/line": "#282828",
+        "icon/default": "#5a5a5a",
+        "icon/active": "#33bae3"
+    }
+}
