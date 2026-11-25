@@ -66,6 +66,16 @@ PlayerSetting::PlayerSetting(const jellyfin::Source* src) {
         }
     }
     // 字幕选择
+#if defined(__PSV__)
+    // Subtitles are burned in by the server on the Vita (mpv can't draw text
+    // subtitles here), so always pick them through the server-side menu, and
+    // offer "None" since the server burns in its default track otherwise.
+    if (!subSource.empty()) {
+        subTrack.clear();
+        subSource.insert(subSource.begin(), "main/player/none"_i18n);
+        subStream.insert(subStream.begin(), -1);
+    }
+#endif
     if (subTrack.size() > 1) {
         // sid may name a track missing from the list (e.g. a sub-add that
         // finished after track-list was read), so map ids instead of indexing
@@ -77,9 +87,14 @@ PlayerSetting::PlayerSetting(const jellyfin::Source* src) {
             mpv.setInt("sid", selectedSubtitle);
         });
     } else if (subSource.size() > 1) {
+        int current = selectedSubtitle;
+#if defined(__PSV__)
+        // not picked yet: show the track the server burns in by default
+        if (current == 0) current = src ? src->DefaultSubtitleStreamIndex : -1;
+#endif
         int value = 0;
         for (size_t i = 0; i < subStream.size(); i++)
-            if (subStream[i] == selectedSubtitle) value = i;
+            if (subStream[i] == current) value = i;
         this->subtitleTrack->init("main/player/subtitle"_i18n, subSource, value, [subStream](int selected) {
             selectedSubtitle = subStream[selected];
             MPVCore::instance().getCustomEvent()->fire(QUALITY_CHANGE, nullptr);
