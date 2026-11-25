@@ -2,6 +2,7 @@
 #include <switch.h>
 #include "utils/overclock.hpp"
 #elif defined(__PSV__)
+#include "utils/overclock.hpp"
 #include <psp2/kernel/cpu.h>
 #include <psp2/kernel/threadmgr/thread.h>
 #include <psp2/appmgr.h>
@@ -470,6 +471,9 @@ bool AppConfig::init() {
     if (getItem(AppConfig::OVERCLOCK, false)) {
         SwitchSys::setClock(true);
     };
+#elif defined(__PSV__)
+    /// Boost clocks during video playback
+    VitaSys::PLAYBACK_BOOST = getItem(AppConfig::OVERCLOCK, true);
 #endif
     Ums::instance().init();
 

@@ -4,6 +4,7 @@
 #include "utils/gesture.hpp"
 #include "utils/keybind.hpp"
 #include "utils/misc.hpp"
+#include "utils/overclock.hpp"
 #include "view/danmaku_core.hpp"
 #include "view/danmaku_setting.hpp"
 #include "view/mpv_core.hpp"
@@ -46,6 +47,9 @@ VideoView::VideoView() {
     // 停止正在播放的音乐
     mpv.reset();
     mpv.enableVO(true);
+#ifdef __PSV__
+    VitaSys::setPlaybackClock(true);
+#endif
 
     if (MPVCore::OSD_TV_MODE) this->setTvMode(true);
 
@@ -336,6 +340,9 @@ VideoView::~VideoView() {
     disableDimming(false);
 
     MPVCore::instance().stop();
+#ifdef __PSV__
+    VitaSys::setPlaybackClock(false);
+#endif
 }
 
 void VideoView::setTitie(const std::string& title) { this->titleLabel->setText(title); }

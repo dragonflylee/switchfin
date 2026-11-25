@@ -1,6 +1,8 @@
 {
   "tabs": {
     "home": "Nhà",
+    "favorite": "Yêu thích",
+    "collection": "Bộ sưu tập",
     "genres": "Thể Loại",
     "program": "Chương Trình",
     "suggest": "Đề Xuất",
@@ -148,7 +150,9 @@
       "movie": "Phim",
       "music": "Nhạc",
       "series": "Phim Bộ",
-      "episode": "Tập"
+      "episode": "Tập",
+      "album": "Album",
+      "photo_album": "Album ảnh"
     }
   },
   "remote": {

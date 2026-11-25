@@ -8,6 +8,7 @@
 #include <view/presenter.hpp>
 
 class RecylingVideo;
+class AutoTabFrame;
 
 class HomeTab : public AttachedView, public Presenter {
 public:
@@ -24,6 +25,7 @@ private:
     BRLS_BIND(brls::Box, boxHome, "home/box");
     BRLS_BIND(RecylingVideo, userResume, "home/user/resume");
     BRLS_BIND(RecylingVideo, showNextup, "home/show/nextup");
+    BRLS_BIND(AutoTabFrame, tabFrame, "home/tabFrame");
 
     std::vector<RecylingVideo*> latest;
 };

@@ -41,4 +41,25 @@ private:
     static int stock_emc_clock;
 };
 
+#elif defined(__PSV__)
+
+/// PS Vita homebrew starts at reduced clocks (ARM 333MHz, GPU 111MHz).
+/// Video playback renders the borealis UI and the mpv frame on the same
+/// thread, so a slow UI frame turns directly into a dropped video frame.
+/// Raise the clocks while a video is open and restore them afterwards.
+class VitaSys {
+public:
+    /// User setting: boost clocks during video playback
+    inline static bool PLAYBACK_BOOST = true;
+
+    static void setPlaybackClock(bool boost);
+
+private:
+    inline static bool boosted = false;
+    inline static int stock_arm = 0;
+    inline static int stock_bus = 0;
+    inline static int stock_gpu = 0;
+    inline static int stock_xbar = 0;
+};
+
 #endif

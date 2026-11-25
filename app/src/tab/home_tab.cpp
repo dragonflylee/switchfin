@@ -11,8 +11,8 @@ using namespace brls::literals;  // for _i18n
 
 HomeTab::HomeTab() {
     brls::Logger::debug("Tab HomeTab: create");
-    // Inflate the tab from the XML file
     this->inflateFromXMLRes("xml/tabs/home.xml");
+    this->tabFrame->registerTabAction(this);
 
     this->userResume->onQuery([](size_t start, size_t pageSize) {
         std::string query = HTTP::encode_form({
@@ -67,6 +67,8 @@ void HomeTab::onCreate() {
 
     this->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, actionRefresh);
     this->registerAction(KeyBind::getRefresh(), actionRefresh);
+    this->boxHome->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, actionRefresh);
+    this->boxHome->registerAction(KeyBind::getRefresh(), actionRefresh);
 
     ASYNC_RETAIN
     jellyfin::getJSON<jellyfin::Result<jellyfin::Collection>>(

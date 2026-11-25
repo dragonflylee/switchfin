@@ -27,6 +27,7 @@
 #include "activity/hint_activity.hpp"
 #include "activity/loading_activity.hpp"
 #include "tab/home_tab.hpp"
+#include "tab/favorite_tab.hpp"
 #include "tab/media_folder.hpp"
 #include "tab/search_tab.hpp"
 #include "tab/remote_tab.hpp"
@@ -100,6 +101,7 @@ int main(int argc, char* argv[]) {
     brls::Application::registerXMLView("VideoProgressSlider", VideoProgressSlider::create);
 
     brls::Application::registerXMLView("HomeTab", HomeTab::create);
+    brls::Application::registerXMLView("FavoriteTab", FavoriteTab::create);
     brls::Application::registerXMLView("MediaFolders", MediaFolders::create);
     brls::Application::registerXMLView("SearchTab", SearchTab::create);
     brls::Application::registerXMLView("RemoteTab", RemoteTab::create);

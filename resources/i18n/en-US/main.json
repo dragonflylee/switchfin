@@ -1,6 +1,8 @@
 {
   "tabs": {
     "home": "Home",
+    "favorite": "Favorites",
+    "collection": "Collections",
     "genres": "Genres",
     "program": "Program",
     "suggest": "Suggestions",
@@ -148,7 +150,9 @@
       "movie": "Movie",
       "music": "Music",
       "series": "Series",
-      "episode": "Episode"
+      "episode": "Episode",
+      "album": "Album",
+      "photo_album": "Photo Album"
     }
   },
   "remote": {
@@ -310,6 +314,7 @@
       "always_on_top": "Always on top",
       "single": "Single instance",
       "overclock": "CPU Overclock",
+      "playback_boost": "Boost CPU/GPU clocks during playback",
       "debug": "Debug View",
       "sync": "Preserve order setting",
       "theme": {

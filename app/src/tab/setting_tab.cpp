@@ -26,7 +26,7 @@
 #include "api/analytics.hpp"
 #include "api/jellyfin.hpp"
 #include "utils/dialog.hpp"
-#ifdef __SWITCH__
+#if defined(__SWITCH__) || defined(__PSV__)
 #include "utils/overclock.hpp"
 #endif
 #ifdef __linux__
@@ -148,6 +148,11 @@ void SettingTab::onCreate() {
             SwitchSys::setClock(value);
             conf.setItem(AppConfig::OVERCLOCK, value);
         });
+#elif defined(__PSV__)
+    btnOverClock->init("main/setting/others/playback_boost"_i18n, VitaSys::PLAYBACK_BOOST, [&conf](bool value) {
+        VitaSys::PLAYBACK_BOOST = value;
+        conf.setItem(AppConfig::OVERCLOCK, value);
+    });
 #else
     btnOverClock->setVisibility(brls::Visibility::GONE);
 #endif

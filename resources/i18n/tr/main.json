@@ -1,6 +1,8 @@
 {
   "tabs": {
     "home": "Ana Sayfa",
+    "favorite": "Favoriler",
+    "collection": "Koleksiyonlar",
     "genres": "Türler",
     "program": "Diziler",
     "suggest": "Öneriler",
@@ -148,7 +150,9 @@
       "movie": "Filmler",
       "music": "Müzik",
       "series": "Diziler",
-      "episode": "Bölüm"
+      "episode": "Bölüm",
+      "album": "Albüm",
+      "photo_album": "Fotoğraf Albümü"
     }
   },
   "remote": {
