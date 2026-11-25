@@ -20,7 +20,6 @@ CustomButton::CustomButton() {
         this->icon->setVisibility(brls::Visibility::VISIBLE);
         this->icon->setImageFromSVGFile(value);
     });
-    this->registerFilePathXMLAttribute("iconActivate", [this](std::string value) { this->iconActivate = value; });
 }
 
 CustomButton::~CustomButton() { brls::Logger::debug("View CustomButton: delete"); }
@@ -35,7 +34,7 @@ void CustomButton::onFocusLost() {
 
 void CustomButton::onFocusGained() {
     this->focusEvent.fire(true);
-    this->icon->setImageFromSVGFile(this->iconActivate);
+    this->icon->setImageFromSVGFile(this->iconDefault, "icon/active");
     Box::onFocusGained();
 }
 

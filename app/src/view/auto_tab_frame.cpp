@@ -693,8 +693,6 @@ AutoSidebarItem::AutoSidebarItem() : Box(brls::Axis::ROW) {
         this->icon->setImageFromSVGFile(value);
     });
 
-    this->registerFilePathXMLAttribute("iconActivate", [this](std::string value) { this->iconActivate = value; });
-
     BRLS_REGISTER_ENUM_XML_ATTRIBUTE("style", AutoTabBarStyle, this->setTabStyle,
         {
             {"accent", AutoTabBarStyle::ACCENT},
@@ -765,10 +763,8 @@ void AutoSidebarItem::setActive(bool active) {
         this->label->setTextColor(this->tabItemActiveTextColor);
 
         if (this->icon->getVisibility() == brls::Visibility::VISIBLE) {
-            if (!this->iconActivate.empty())
-                this->icon->setImageFromSVGFile(this->iconActivate);
-            else if (!this->iconDefault.empty())
-                this->icon->setImageFromSVGFile(this->iconDefault);
+            if (!this->iconDefault.empty())
+                this->icon->setImageFromSVGFile(this->iconDefault, "icon/active");
         }
     } else {
         if (this->tabStyle == AutoTabBarStyle::ACCENT)

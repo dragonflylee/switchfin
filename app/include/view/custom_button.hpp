@@ -31,7 +31,7 @@ public:
     void setCustomNavigation(std::function<brls::View *(brls::FocusDirection)> navigation);
 
 private:
-    std::string iconDefault, iconActivate;
+    std::string iconDefault;
     SVGImage *icon = nullptr;
     brls::Event<bool> focusEvent;
     std::function<brls::View *(brls::FocusDirection)> customNavigation = nullptr;

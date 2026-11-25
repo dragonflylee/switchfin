@@ -45,7 +45,6 @@ constexpr uint32_t MINIMUM_WINDOW_HEIGHT = 360;
 #include "utils/keybind.hpp"
 #include "utils/misc.hpp"
 #include "utils/theme_file.hpp"
-#include "view/svg_image.hpp"
 #include "utils/ums.hpp"
 #include "utils/thread.hpp"
 #include "view/mpv_core.hpp"
@@ -593,8 +592,8 @@ bool AppConfig::checkLogin() {
 
 const AppUser& AppConfig::currentUser() const {
     static const AppUser empty{};
-    auto it = std::find_if(this->users.begin(), this->users.end(),
-        [this](const AppUser& u) { return u.id == this->user_id; });
+    auto it = std::find_if(
+        this->users.begin(), this->users.end(), [this](const AppUser& u) { return u.id == this->user_id; });
     return it != this->users.end() ? *it : empty;
 }
 
@@ -820,24 +819,11 @@ const std::vector<AppUser> AppConfig::getUsers(const std::string& id) const {
 
 void AppConfig::addColor(const brls::ThemeVariant tv, const std::string& name, NVGcolor defaultColor) {
     auto& theme = (tv == brls::ThemeVariant::LIGHT) ? brls::Theme::getLightTheme() : brls::Theme::getDarkTheme();
-
-    if (!setting.contains(name)) {
-        theme.addColor(name, defaultColor);
-    } else {
-        unsigned int r = 0, g = 0, b = 0;
-        std::string s = setting.at(name).get<std::string>();
-        if (s.size() >= 7 && s[0] == '#') {
-            std::stringstream sr{s.substr(1, 2)};
-            sr >> std::hex >> r;
-            std::stringstream sg{s.substr(3, 2)};
-            sg >> std::hex >> g;
-            std::stringstream sb{s.substr(5, 2)};
-            sb >> std::hex >> b;
-            theme.addColor(name, nvgRGB(r, g, b));
-        } else {
-            theme.addColor(name, defaultColor);
-        }
+    if (setting.contains(name) && setting.at(name).is_string()) {
+        NVGcolor color;
+        if (themes::parseColor(setting.at(name), color)) defaultColor = color;
     }
+    theme.addColor(name, defaultColor);
 }
 
 void AppConfig::initThemes() {
@@ -871,7 +857,6 @@ void AppConfig::initThemes() {
     this->addColor(brls::ThemeVariant::DARK, "icon/default", nvgRGB(0x61, 0x66, 0x6D));
     this->addColor(brls::ThemeVariant::LIGHT, "icon/active", nvgRGB(0x02, 0x80, 0x87));
     this->addColor(brls::ThemeVariant::DARK, "icon/active", nvgRGB(0x02, 0x80, 0x87));
-    SVGImage::TINT_ICONS = true;
 
     // Theme files: bundled ones and the user's themes/ folder. They show up in
     // the theme list and override colors of their base (light/dark) theme.

@@ -17,7 +17,7 @@ namespace themes {
 
 static std::vector<ThemeFile> loaded;
 
-static bool parseColor(const std::string& s, NVGcolor& out) {
+bool parseColor(const std::string& s, NVGcolor& out) {
     if ((s.size() != 7 && s.size() != 9) || s[0] != '#') return false;
     unsigned int r = 0, g = 0, b = 0, a = 255;
     if (std::sscanf(s.c_str() + 1, "%2x%2x%2x", &r, &g, &b) != 3) return false;

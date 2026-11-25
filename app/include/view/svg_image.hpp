@@ -9,18 +9,16 @@
 
 class SVGImage : public brls::Image {
 public:
-    /// set once the icon/* theme colors exist (AppConfig::initThemes)
-    static bool TINT_ICONS;
-
     SVGImage();
 
     ~SVGImage() override;
 
     void draw(NVGcontext* vg, float x, float y, float width, float height, brls::Style style, brls::FrameContext* ctx) override;
 
-    void setImageFromSVGRes(const std::string& value);
+    void setImageFromSVGRes(const std::string& value, const std::string& tint = "icon/default");
 
-    void setImageFromSVGFile(const std::string& value);
+    /// `tint` overrides the icon/default theme color used for the primary glyph
+    void setImageFromSVGFile(const std::string& value, const std::string& tint = "icon/default");
 
     void setImageFromSVGString(const std::string& value);
 
@@ -34,5 +32,8 @@ private:
     std::unique_ptr<lunasvg::Document> document = nullptr;
     brls::VoidEvent::Subscription subscription;
     std::string filePath;
+    std::string tint = "icon/default";
     float angle = 0;
+
+    void loadSVG(const std::string& value, std::string svg, const std::string& tint);
 };

@@ -90,13 +90,11 @@ public:
 
 #ifdef ANDROID
     void willDisappear(bool resetState) override {
-        if (brls::Application::getThemeVariant() == brls::ThemeVariant::LIGHT)
-            brls::Application::getTheme().addColor("brls/clear", nvgRGBA(235, 235, 235, 255));
-        else
-            brls::Application::getTheme().addColor("brls/clear", nvgRGBA(45, 45, 45, 255));
+        brls::Application::getTheme().addColor("brls/clear", savedClearColor);
     }
 
     void willAppear(bool resetState) override {
+        savedClearColor = brls::Application::getTheme().getColor("brls/clear");
         brls::Application::getTheme().addColor("brls/clear", nvgRGBA(0, 0, 0, 0));
     }
 #endif
@@ -172,6 +170,9 @@ public:
 
 private:
     std::string itemId;
+#ifdef ANDROID
+    NVGcolor savedClearColor = nvgRGBA(0, 0, 0, 0);
+#endif
     VideoView* view = new VideoView();
     std::string url;
     std::vector<std::string> titles;

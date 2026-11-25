@@ -26,6 +26,8 @@ struct ThemeFile {
 
 namespace themes {
 
+bool parseColor(const std::string& s, NVGcolor& out);
+
 /// Load bundled themes, then user themes from `userDir` (same id replaces).
 void load(const std::string& userDir);
 
