@@ -355,7 +355,7 @@ index 00fbc4914f..2066abafa6 100644
  void mpgl_osd_draw_finish(struct mpgl_osd *ctx, int index,
                            struct gl_shader_cache *sc, struct ra_fbo fbo);
 diff --git a/video/out/gpu/video.c b/video/out/gpu/video.c
-index 4233f14336..70f3ae14bc 100644
+index 4233f14336..2dc620d1b1 100644
 --- a/video/out/gpu/video.c
 +++ b/video/out/gpu/video.c
 @@ -2917,21 +2917,23 @@ static void pass_draw_osd(struct gl_video *p, int osd_flags, int frame_flags,
@@ -395,8 +395,35 @@ index 4233f14336..70f3ae14bc 100644
      }
  
      timer_pool_stop(p->osd_timer);
+@@ -3769,6 +3771,26 @@ static void check_gl_features(struct gl_video *p)
+     bool have_ssbo = ra->caps & RA_CAP_BUF_RW;
+     bool have_fragcoord = ra->caps & RA_CAP_FRAGCOORD;
+ 
++#ifdef __PS4__
++    // Piglet cannot compile GLSL at runtime, so every shader must be in the
++    // precompiled table. Options that change the generated shader (scaler,
++    // linear light, deband, dither, CMS) would produce uncached hashes; pin
++    // them to defaults. 4K -> display downscaling is the common case.
++    p->opts.scaler[SCALER_SCALE].kernel.name = "bilinear";
++    p->opts.scaler[SCALER_DSCALE] = gl_video_opts_def.scaler[SCALER_DSCALE];
++    p->opts.scaler[SCALER_CSCALE].kernel.name = "bilinear";
++    p->opts.linear_downscaling = false;
++    p->opts.linear_upscaling = false;
++    p->opts.sigmoid_upscaling = false;
++    p->opts.deband = false;
++    p->opts.dither_algo = DITHER_NONE;
++    p->opts.target_prim = MP_CSP_PRIM_AUTO;
++    p->opts.target_trc = MP_CSP_TRC_AUTO;
++    p->opts.tone_map.compute_peak = -1;
++    p->use_lut_3d = false;
++    MP_VERBOSE(p, "PS4: shader options restricted to the precompiled set.\n");
++#endif
++
+     const char *auto_fbo_fmts[] = {"rgba16f", "rgba16hf", "rgba16",
+                                    "rgb10_a2", "rgba8", 0};
+     const char *user_fbo_fmts[] = {p->opts.fbo_format, 0};
 diff --git a/video/out/opengl/ra_gl.c b/video/out/opengl/ra_gl.c
-index f535f1f13d..5646b7efcb 100644
+index f535f1f13d..dd0746fc66 100644
 --- a/video/out/opengl/ra_gl.c
 +++ b/video/out/opengl/ra_gl.c
 @@ -6,6 +6,10 @@
@@ -410,7 +437,7 @@ index f535f1f13d..5646b7efcb 100644
  // For ra.priv
  struct ra_gl {
      GL *gl;
-@@ -749,13 +753,45 @@ static void compile_attach_shader(struct ra *ra, GLuint program,
+@@ -749,13 +753,52 @@ static void compile_attach_shader(struct ra *ra, GLuint program,
      GL *gl = ra_gl_get(ra);
  
      GLuint shader = gl->CreateShader(type);
@@ -428,7 +455,14 @@ index f535f1f13d..5646b7efcb 100644
 +            MP_VERBOSE(ra, "compile_attach_shader: precompiled shader found, using it\n");
 +            glShaderBinary(1, &shader, 0, (const void *) shader_bin->src, shader_bin->size);
 +        } else {
-+            MP_VERBOSE(ra, "compile_attach_shader: precompiled shader not found\n");
++            // Piglet cannot compile GLSL at runtime; fail instead of drawing
++            // the blue error frame with no log clue.
++            MP_ERR(ra, "compile_attach_shader: no precompiled %s shader for "
++                   "sha %s; Piglet cannot compile GLSL at runtime\n",
++                   shader_typestr(type), hashstr);
++            gl->DeleteShader(shader);
++            *ok = false;
++            return;
 +        }
 +    } else {
 +        gl->ShaderSource(shader, 1, &source, NULL);
