@@ -180,9 +180,9 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
     int maxAllowedHeight = 1080;
 #else
 #if defined(__PSV__)
-    // The Vita can't decode above 720p, and its screen is 960x544.
-    int maxAllowedHeight = 720;
-    int maxAllowedWidth = 1280;
+    // Like other platforms use the window size: by default don't ask for
+    // more than the 960x544 screen can show (less to stream and decode).
+    int maxAllowedHeight = 544;
 #else
     int maxAllowedHeight = brls::Application::windowHeight;
 #endif
@@ -191,12 +191,6 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
         maxAllowedHeight = 360;
     } else if (MPVCore::VIDEO_QUALITY <= 720000) {
         maxAllowedHeight = 480;
-#if defined(__PSV__)
-    } else if (MPVCore::VIDEO_QUALITY <= 3000000) {
-        // Screen size: no extra pixels to decode or downscale every frame.
-        maxAllowedHeight = 544;
-        maxAllowedWidth = 960;
-#endif
     } else if (MPVCore::VIDEO_QUALITY <= 4000000) {
         maxAllowedHeight = 720;
     } else if (MPVCore::VIDEO_QUALITY <= 8000000) {
@@ -207,8 +201,10 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
         maxAllowedHeight = 2160;
     }
 #if defined(__PSV__)
-    if (maxAllowedHeight > 720) maxAllowedHeight = 720;
-    if (maxAllowedWidth > maxAllowedHeight * 16 / 9) maxAllowedWidth = maxAllowedHeight * 16 / 9;
+    // Never ask for more than the 960x544 screen, whatever bitrate is picked:
+    // a bigger stream only costs Wi-Fi and decode time to be downscaled.
+    if (maxAllowedHeight > 544) maxAllowedHeight = 544;
+    int maxAllowedWidth = maxAllowedHeight == 544 ? 960 : maxAllowedHeight * 16 / 9;
 #endif
 #endif
     nlohmann::json conditions = {
