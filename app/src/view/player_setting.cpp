@@ -77,11 +77,14 @@ PlayerSetting::PlayerSetting(const jellyfin::Source* src) {
             mpv.setInt("sid", selectedSubtitle);
         });
     } else if (subSource.size() > 1) {
+        // not picked yet: show the track the server chose by default
+        int current = streamSubtitle >= 0 ? streamSubtitle : (src ? src->DefaultSubtitleStreamIndex : -1);
         int value = 0;
         for (size_t i = 0; i < subStream.size(); i++)
-            if (subStream[i] == selectedSubtitle) value = i;
+            if (subStream[i] == current) value = i;
         this->subtitleTrack->init("main/player/subtitle"_i18n, subSource, value, [subStream](int selected) {
             selectedSubtitle = subStream[selected];
+            streamSubtitle = subStream[selected];
             MPVCore::instance().getCustomEvent()->fire(QUALITY_CHANGE, nullptr);
         });
     } else {
@@ -98,11 +101,13 @@ PlayerSetting::PlayerSetting(const jellyfin::Source* src) {
         });
         this->audioTrack->detail->setVisibility(brls::Visibility::GONE);
     } else if (audioSource.size() > 1) {
+        int current = streamAudio >= 0 ? streamAudio : (src ? src->DefaultAudioStreamIndex : -1);
         int value = 0;
         for (size_t i = 0; i < audioStream.size(); i++)
-            if (audioStream[i] == selectedAudio) value = i;
+            if (audioStream[i] == current) value = i;
         this->audioTrack->init("main/player/audio"_i18n, audioSource, value, [audioStream](int selected) {
             selectedAudio = audioStream[selected];
+            streamAudio = audioStream[selected];
             MPVCore::instance().getCustomEvent()->fire(QUALITY_CHANGE, nullptr);
         });
     } else {

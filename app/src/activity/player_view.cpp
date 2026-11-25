@@ -8,6 +8,8 @@
 #include "view/video_view.hpp"
 #include "view/video_profile.hpp"
 #include <tinyxml2.h>
+#include <algorithm>
+#include <cstdlib>
 
 using namespace brls::literals;
 
@@ -119,6 +121,8 @@ PlayerView::~PlayerView() {
 
     PlayerSetting::selectedSubtitle = 0;
     PlayerSetting::selectedAudio = 0;
+    PlayerSetting::streamSubtitle = -1;
+    PlayerSetting::streamAudio = -1;
 
     if (!mpv.isStopped()) this->reportStop();
     brls::Application::getExitEvent()->unsubscribe(this->exitSubscribeID);
@@ -319,14 +323,18 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
         {"UserId", AppConfig::instance().getUserId()},
         {"MediaSourceId", this->sourceId},
 #if defined(__PSV__)
-        {"AlwaysBurnInSubtitleWhenTranscoding", PlayerSetting::selectedSubtitle > 0},
+        {"AlwaysBurnInSubtitleWhenTranscoding", PlayerSetting::streamSubtitle > 0},
 #endif
         {"AllowAudioStreamCopy", true},
         {"DeviceProfile", profile},
     };
 
-    if (PlayerSetting::selectedAudio > 0) param.push_back({"AudioStreamIndex", PlayerSetting::selectedAudio});
-    if (PlayerSetting::selectedSubtitle > 0) param.push_back({"SubtitleStreamIndex", PlayerSetting::selectedSubtitle});
+    // Only indexes picked in a server-side menu are Jellyfin stream indexes
+    // (selectedAudio/Subtitle may hold mpv track ids). When nothing was picked
+    // the server applies its default, which follows the user's remembered choice.
+    if (PlayerSetting::streamAudio > 0) param.push_back({"AudioStreamIndex", PlayerSetting::streamAudio});
+    if (PlayerSetting::streamSubtitle > 0)
+        param.push_back({"SubtitleStreamIndex", PlayerSetting::streamSubtitle});
 
     ASYNC_RETAIN
     jellyfin::postJSON(
@@ -342,6 +350,16 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
             auto& mpv = MPVCore::instance();
             auto& svr = AppConfig::instance().getUrl();
             this->playSessionId = r.PlaySessionId;
+            if (!r.MediaSources.empty()) {
+                auto& src = r.MediaSources.front();
+                this->reportAudio = PlayerSetting::streamAudio > 0 ? PlayerSetting::streamAudio : src.DefaultAudioStreamIndex;
+                this->reportSubtitle =
+                    PlayerSetting::streamSubtitle > 0 ? PlayerSetting::streamSubtitle : src.DefaultSubtitleStreamIndex;
+                this->lastAudio = this->reportAudio;
+                this->lastSubtitle = this->reportSubtitle;
+                this->audioTrackIndex.clear();
+                this->subTrackIndex.clear();
+            }
 
             for (auto& item : r.MediaSources) {
                 std::stringstream ssextra;
@@ -393,6 +411,71 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
         jellyfin::apiPlayback, this->itemId);
 }
 
+/// Map mpv track ids to Jellyfin stream indexes. Embedded tracks keep the
+/// container order on both sides; added subtitle files match by URL.
+void PlayerView::mapTracks() {
+    auto& mpv = MPVCore::instance();
+    auto& svr = AppConfig::instance().getUrl();
+    std::vector<int> audio, sub;
+    for (auto& s : this->stream.MediaStreams) {
+        if (s.IsExternal) continue;
+        if (s.Type == jellyfin::streamTypeAudio) audio.push_back(s.Index);
+        if (s.Type == jellyfin::streamTypeSubtitle) sub.push_back(s.Index);
+    }
+    std::sort(audio.begin(), audio.end());
+    std::sort(sub.begin(), sub.end());
+    this->audioTrackIndex.clear();
+    this->subTrackIndex.clear();
+    size_t na = 0, ns = 0;
+    int64_t count = mpv.getInt("track-list/count");
+    for (int64_t n = 0; n < count; n++) {
+        std::string type = mpv.getString(fmt::format("track-list/{}/type", n));
+        int64_t id = mpv.getInt(fmt::format("track-list/{}/id", n), -1);
+        bool external = mpv.getString(fmt::format("track-list/{}/external", n)) == "yes";
+        if (type == "audio" && !external && na < audio.size()) {
+            this->audioTrackIndex[id] = audio[na++];
+        } else if (type == "sub" && !external && ns < sub.size()) {
+            this->subTrackIndex[id] = sub[ns++];
+        } else if (type == "sub" && external) {
+            std::string file = mpv.getString(fmt::format("track-list/{}/external-filename", n));
+            for (auto& s : this->stream.MediaStreams)
+                if (s.Type == jellyfin::streamTypeSubtitle && !s.DeliveryUrl.empty() && svr + s.DeliveryUrl == file)
+                    this->subTrackIndex[id] = s.Index;
+        }
+    }
+}
+
+/// Audio stream in use: mpv's track when the file plays directly (it may have
+/// been switched in mpv's menu), otherwise the one the server sends.
+int PlayerView::currentAudioIndex() {
+    if (this->playMethod != jellyfin::methodDirectPlay) return this->reportAudio;
+    std::string aid = MPVCore::instance().getString("aid");
+    if (aid.empty()) return this->lastAudio;  // file closed (stop report): keep the last pick
+    if (aid == "no") return this->lastAudio = -1;
+    int64_t id = std::atoll(aid.c_str());
+    if (!this->audioTrackIndex.count(id)) this->mapTracks();
+    auto it = this->audioTrackIndex.find(id);
+    return this->lastAudio = it != this->audioTrackIndex.end() ? it->second : this->reportAudio;
+}
+
+/// Subtitle stream in use: the mpv track if it maps to a Jellyfin stream,
+/// -1 when turned off, otherwise the one the server applies.
+int PlayerView::currentSubtitleIndex() {
+    std::string sid = MPVCore::instance().getString("sid");
+    if (sid.empty()) return this->lastSubtitle;  // file closed (stop report): keep the last pick
+    if (sid == "no") {
+#if defined(__PSV__)
+        // burned in by the server when transcoding, so mpv shows no track
+        if (this->playMethod == jellyfin::methodTranscode) return this->lastSubtitle = this->reportSubtitle;
+#endif
+        return this->lastSubtitle = -1;
+    }
+    int64_t id = std::atoll(sid.c_str());
+    if (!this->subTrackIndex.count(id)) this->mapTracks();
+    auto it = this->subTrackIndex.find(id);
+    return this->lastSubtitle = it != this->subTrackIndex.end() ? it->second : this->reportSubtitle;
+}
+
 void PlayerView::reportStart() {
     uint64_t ticks = MPVCore::instance().playback_time * jellyfin::PLAYTICKS;
     jellyfin::postJSON(
@@ -403,6 +486,8 @@ void PlayerView::reportStart() {
             {"PositionTicks", ticks},
             {"MediaSourceId", this->stream.Id},
             {"MaxStreamingBitrate", MPVCore::VIDEO_QUALITY},
+            {"AudioStreamIndex", this->currentAudioIndex()},
+            {"SubtitleStreamIndex", this->currentSubtitleIndex()},
         },
         [](...) {}, nullptr, jellyfin::apiPlayStart);
 }
@@ -415,6 +500,8 @@ void PlayerView::reportStop() {
             {"PlayMethod", this->playMethod},
             {"PlaySessionId", this->playSessionId},
             {"PositionTicks", ticks},
+            {"AudioStreamIndex", this->currentAudioIndex()},
+            {"SubtitleStreamIndex", this->currentSubtitleIndex()},
         },
         [](...) {}, nullptr, jellyfin::apiPlayStop);
 
@@ -432,6 +519,8 @@ void PlayerView::reportPlay(bool isPaused) {
             {"MediaSourceId", this->stream.Id},
             {"IsPaused", isPaused},
             {"PositionTicks", ticks},
+            {"AudioStreamIndex", this->currentAudioIndex()},
+            {"SubtitleStreamIndex", this->currentSubtitleIndex()},
         },
         [](...) {}, nullptr, jellyfin::apiPlaying);
 }

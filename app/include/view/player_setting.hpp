@@ -20,6 +20,11 @@ public:
 
     inline static int selectedSubtitle = -1;
     inline static int selectedAudio = -1;
+    /// Jellyfin stream index picked in a server-side track menu, sent with the
+    /// playback request: -1 = not picked (the server picks its default, which
+    /// follows the user's remembered choice)
+    inline static int streamSubtitle = -1;
+    inline static int streamAudio = -1;
 
     enum class Equalizer {
         BRIGHTNESS,

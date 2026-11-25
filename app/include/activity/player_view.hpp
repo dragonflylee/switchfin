@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <map>
+
 #include <borealis.hpp>
 #include <utils/event.hpp>
 #include <api/jellyfin/media.hpp>
@@ -48,6 +50,15 @@ private:
     /// @brief DirectPlay, Transcode
     std::string playMethod;
     std::string playSessionId;
+    /// Jellyfin stream indexes in use, reported so the server can remember them
+    int reportAudio = -1;
+    int reportSubtitle = -1;
+    /// mpv track id -> Jellyfin stream index, to report picks made in mpv's own menus
+    std::map<int64_t, int> audioTrackIndex, subTrackIndex;
+    int lastAudio = -1, lastSubtitle = -1;
+    void mapTracks();
+    int currentAudioIndex();
+    int currentSubtitleIndex();
     jellyfin::Source stream;
     std::vector<jellyfin::Episode> episodes;
 
