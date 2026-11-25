@@ -5,6 +5,11 @@
 #include <borealis/views/dialog.hpp>
 #include "utils/dialog.hpp"
 
+#ifdef __PSV__
+#include <psp2/appmgr.h>
+#include <psp2/kernel/processmgr.h>
+#endif
+
 using namespace brls::literals;
 
 void Dialog::show(const std::string& msg, Callback cb) {
@@ -24,6 +29,13 @@ void Dialog::cancelable(const std::string& msg, Callback cb) {
 void Dialog::quitApp(bool restart) {
     auto dialog = new brls::Dialog("main/setting/quit_hint"_i18n);
     dialog->addButton("hints/ok"_i18n, [restart]() {
+#ifdef __PSV__
+        // Settings are saved as soon as they change and the system frees
+        // everything the app holds when it exits, so skip the slow teardown
+        // (it waits on mpv and background tasks and can hang).
+        if (restart) sceAppMgrLoadExec("app0:eboot.bin", nullptr, nullptr);
+        sceKernelExitProcess(0);
+#endif
         brls::Box* container = new brls::Box();
         container->setJustifyContent(brls::JustifyContent::CENTER);
         container->setAlignItems(brls::AlignItems::CENTER);
