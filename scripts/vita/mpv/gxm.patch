@@ -63,9 +63,9 @@ index 0000000000..5a509ab9a4
 +}
 +
 +static bool audio_init(void **ctx, int samples, int freq, int channels) {
-+    SceAudioOutPortType type = (freq < 48000)
-+                               ? SCE_AUDIO_OUT_PORT_TYPE_BGM
-+                               : SCE_AUDIO_OUT_PORT_TYPE_MAIN;
++    // BGM ports are often unavailable to apps; MAIN only runs at 48 kHz,
++    // so init() always asks for 48 kHz and mpv resamples.
++    SceAudioOutPortType type = SCE_AUDIO_OUT_PORT_TYPE_MAIN;
 +    SceAudioOutMode mode = (channels == 1)
 +                           ? SCE_AUDIO_OUT_MODE_MONO
 +                           : SCE_AUDIO_OUT_MODE_STEREO;
@@ -200,7 +200,7 @@ index 0000000000..5a509ab9a4
 +{
 +    // conform to hardware/API restrictions
 +    ao->format = AF_FORMAT_S16;
-+    ao->samplerate = choose_samplerate(ao->samplerate);
++    ao->samplerate = choose_samplerate(48000);
 +    if (ao->channels.num > 2)
 +        mp_chmap_from_channels(&ao->channels, 2);
 +

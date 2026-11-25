@@ -1,0 +1,32 @@
+--- a/audio/out/buffer.c
++++ b/audio/out/buffer.c
+@@ -491,7 +491,15 @@
+ 
+ void init_buffer_pre(struct ao *ao)
+ {
+-    ao->buffer_state = talloc_zero(ao, struct buffer_state);
++    struct buffer_state *p = ao->buffer_state = talloc_zero(ao, struct buffer_state);
++
++    // ao_uninit() destroys these even when the driver failed to init, so
++    // create them here (destroying a never-initialized mutex crashes on Vita)
++    pthread_mutex_init(&p->lock, NULL);
++    pthread_cond_init(&p->wakeup, NULL);
++
++    pthread_mutex_init(&p->pt_lock, NULL);
++    pthread_cond_init(&p->pt_wakeup, NULL);
+ }
+ 
+ bool init_buffer_post(struct ao *ao)
+@@ -504,12 +512,6 @@
+         assert(ao->driver->get_state);
+     }
+ 
+-    pthread_mutex_init(&p->lock, NULL);
+-    pthread_cond_init(&p->wakeup, NULL);
+-
+-    pthread_mutex_init(&p->pt_lock, NULL);
+-    pthread_cond_init(&p->pt_wakeup, NULL);
+-
+     p->queue = mp_async_queue_create();
+     p->filter_root = mp_filter_create_root(ao->global);
+     p->input = mp_async_queue_create_filter(p->filter_root, MP_PIN_OUT, p->queue);
