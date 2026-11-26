@@ -373,6 +373,8 @@ RemoteView::~RemoteView() {
     this->setDimensions(View::AUTO, View::AUTO);
     PlayerSetting::selectedSubtitle = 0;
     PlayerSetting::selectedAudio = 0;
+    PlayerSetting::streamSubtitle = -1;
+    PlayerSetting::streamAudio = -1;
 
     /// 通知 MusicView 已关闭
     MusicView::instance().setParent(nullptr);
