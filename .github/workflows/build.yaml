@@ -197,7 +197,7 @@ jobs:
       env:
         BASE_URL: https://github.com/${{ github.repository }}/releases/download/vita-packages
       run: |
-        for pkg in mbedtls-3.6.8-1 curl-8.16.0-3 mupdf-1.28.6-1 ffmpeg-n6.0-3 mpv-0.36.0-4; do
+        for pkg in mbedtls-3.6.8-1 curl-8.16.0-3 mupdf-1.28.6-1 ffmpeg-n6.0-3 mpv-0.36.0-5; do
           vdpm pacman --noconfirm -U $BASE_URL/${pkg}-vita.pkg.tar.xz
         done
         git config --system --add safe.directory $GITHUB_WORKSPACE
