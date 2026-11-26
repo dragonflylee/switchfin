@@ -259,8 +259,9 @@ struct DisplaySort {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(DisplaySort, SortBy, SortOrder);
 
 void MediaCollection::openFilter(bool save) {
-    MediaFilter* filter = new MediaFilter();
-    filter->getEvent()->subscribe([this, save]() {
+    MediaFilter* dialog = new MediaFilter(this->filter);
+    dialog->getEvent()->subscribe([this, save, dialog]() {
+        this->filter = dialog->getState();
         this->startIndex = 0;
         this->recycler->showSkeleton();
         if (save) {
@@ -269,7 +270,7 @@ void MediaCollection::openFilter(bool save) {
         }
         this->doRequest();
     });
-    brls::Application::pushActivity(new brls::Activity(filter));
+    brls::Application::pushActivity(new brls::Activity(dialog));
 }
 
 void MediaCollection::loadFilter() {
@@ -283,10 +284,10 @@ void MediaCollection::loadFilter() {
 
     try {
         DisplaySort s = nlohmann::json::parse(it->second);
-        MediaFilter::selectedOrder = s.SortOrder == "Ascending" ? 0 : 1;
-        for (size_t i = 0; i < std::size(MediaFilter::sortList); i++) {
-            if (MediaFilter::sortList[i] == s.SortBy) {
-                MediaFilter::selectedSort = i;
+        this->filter.order = s.SortOrder == "Ascending" ? 0 : 1;
+        for (size_t i = 0; i < std::size(FilterState::sortList); i++) {
+            if (FilterState::sortList[i] == s.SortBy) {
+                this->filter.sort = (int)i;
             }
         }
     } catch (const std::exception& ex) {
@@ -297,8 +298,8 @@ void MediaCollection::loadFilter() {
 
 void MediaCollection::saveFilter() {
     nlohmann::json value = {
-        {"SortBy", MediaFilter::sortList[MediaFilter::selectedSort]},
-        {"SortOrder", MediaFilter::selectedOrder ? "Descending" : "Ascending"},
+        {"SortBy", this->filter.getSortBy()},
+        {"SortOrder", this->filter.getSortOrder()},
     };
     MediaCollection::customPrefs[this->prefKey] = value.dump();
 
@@ -315,14 +316,14 @@ void MediaCollection::doRequest() {
     const unsigned int id = ++this->requestId;
 
     std::vector<std::string> filters;
-    if (MediaFilter::selectedPlayed) filters.push_back("IsPlayed");
-    if (MediaFilter::selectedUnplayed) filters.push_back("IsUnplayed");
-    if (MediaFilter::selectedFavorite) filters.push_back("IsFavorite");
+    if (this->filter.played) filters.push_back("IsPlayed");
+    if (this->filter.unplayed) filters.push_back("IsUnplayed");
+    if (this->filter.favorite) filters.push_back("IsFavorite");
 
     HTTP::Form query = {
         {"parentId", this->itemId},
-        {"sortBy", MediaFilter::sortList[MediaFilter::selectedSort]},
-        {"sortOrder", MediaFilter::selectedOrder ? "Descending" : "Ascending"},
+        {"sortBy", this->filter.getSortBy()},
+        {"sortOrder", this->filter.getSortOrder()},
         {"fields", "PrimaryImageAspectRatio,Chapters,BasicSyncInfo"},
         {"enableImageTypes", "Primary"},
         {"filters", fmt::format("{}", fmt::join(filters, ","))},

@@ -5,10 +5,10 @@
 #pragma once
 
 #include <borealis.hpp>
+#include "view/media_filter.hpp"
 
 class RecyclingGrid;
 class AutoTabFrame;
-class MediaFilter;
 
 class MediaCollection : public brls::Box {
 public:
@@ -42,6 +42,7 @@ private:
 
     unsigned int requestId = 0;
 
+    FilterState filter;
     std::string prefId;
     std::string prefKey;
     static std::map<std::string, std::string> customPrefs;
