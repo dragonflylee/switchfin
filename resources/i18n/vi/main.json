@@ -1,6 +1,8 @@
 {
   "tabs": {
     "home": "Nhà",
+    "favorite": "Yêu thích",
+    "collection": "Bộ sưu tập",
     "genres": "Thể Loại",
     "program": "Chương Trình",
     "suggest": "Đề Xuất",
@@ -132,7 +134,8 @@
     "rating": "Đánh giá cộng đồng",
     "random": "Ngẫu nhiên",
     "played": "Đã phát",
-    "unplayed": "Chưa phát"
+    "unplayed": "Chưa phát",
+    "favorite": "Yêu thích"
   },
   "search": {
     "hint": "Từ khóa hỗ trợ và chữ cái đầu của chúng",
@@ -148,7 +151,9 @@
       "movie": "Phim",
       "music": "Nhạc",
       "series": "Phim Bộ",
-      "episode": "Tập"
+      "episode": "Tập",
+      "album": "Album",
+      "photo_album": "Album ảnh"
     }
   },
   "remote": {

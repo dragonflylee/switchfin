@@ -1,6 +1,8 @@
 {
   "tabs": {
     "home": "Home",
+    "favorite": "Favoriten",
+    "collection": "Sammlungen",
     "genres": "Genres",
     "program": "Programme",
     "suggest": "Vorschläge",
@@ -132,7 +134,8 @@
     "rating": "Community-Bewertung",
     "random": "Zufällig",
     "played": "Gesehen",
-    "unplayed": "Ungesehen"
+    "unplayed": "Ungesehen",
+    "favorite": "Favorit"
   },
   "search": {
     "hint": "Support keywords and their initial letters",
@@ -148,7 +151,9 @@
       "movie": "Filme",
       "music": "Musik",
       "series": "Serie",
-      "episode": "Folgen"
+      "episode": "Folgen",
+      "album": "Album",
+      "photo_album": "Fotoalbum"
     }
   },
   "remote": {

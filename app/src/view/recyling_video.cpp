@@ -38,8 +38,7 @@ RecylingVideo::RecylingVideo() {
 
     this->registerFloatXMLAttribute("pageSize", [this](float value) { this->setPageSize(value); });
 
-    this->registerAutoXMLAttribute(
-        "nextPage", [this]() { this->recycler->onNextPage([this]() { this->doRequest(); }); });
+    this->registerAutoXMLAttribute("nextPage", [this]() { this->setNextPage(); });
 
     this->recycler->registerCell("Cell", VideoCardCell::create);
 }
@@ -56,6 +55,10 @@ void RecylingVideo::setItemWidth(float width) {
 }
 
 void RecylingVideo::setPageSize(size_t pageSize) { this->pageSize = pageSize; }
+
+void RecylingVideo::setNextPage() {
+    this->recycler->onNextPage([this]() { this->doRequest(); });
+}
 
 void RecylingVideo::onQuery(const Callback& callback) { this->queryCallback = callback; }
 

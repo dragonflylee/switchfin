@@ -5,10 +5,10 @@
 #pragma once
 
 #include <borealis.hpp>
+#include "view/media_filter.hpp"
 
 class RecyclingGrid;
 class AutoTabFrame;
-class MediaFilter;
 
 class MediaCollection : public brls::Box {
 public:
@@ -17,7 +17,10 @@ public:
 
     brls::View* getDefaultFocus() override;
 
-    static void clearPref() { customPrefs.clear(); }
+    static void clearPref() {
+        customPrefs.clear();
+        prefsLoaded = false;
+    }
 
 private:
     BRLS_BIND(RecyclingGrid, recycler, "media/series");
@@ -27,6 +30,7 @@ private:
     void doPreferences();
     void doRequest();
 
+    void openFilter(bool save);
     void loadFilter();
     void saveFilter();
 
@@ -36,7 +40,11 @@ private:
     size_t pageSize;
     size_t startIndex;
 
+    unsigned int requestId = 0;
+
+    FilterState filter;
     std::string prefId;
     std::string prefKey;
     static std::map<std::string, std::string> customPrefs;
+    static bool prefsLoaded;
 };

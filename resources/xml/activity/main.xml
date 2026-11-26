@@ -38,6 +38,13 @@
 
             <Tab label=""
                 fontSize="18"
+                icon="@res/icon/ico-heart-gray.svg"
+                iconActivate="@res/icon/ico-heart.svg">
+                <FavoriteTab />
+            </Tab>
+
+            <Tab label=""
+                fontSize="18"
                 id="tab/remote"
                 icon="@res/icon/ico-cloud.svg"
                 iconActivate="@res/icon/ico-cloud-activate.svg">

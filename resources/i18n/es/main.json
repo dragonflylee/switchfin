@@ -1,6 +1,8 @@
 {
   "tabs": {
     "home": "Inicio",
+    "favorite": "Favoritos",
+    "collection": "Colecciones",
     "genres": "Géneros",
     "program": "Programas",
     "suggest": "Sugerencias",
@@ -132,6 +134,7 @@
     "random": "Aleatorio",
     "played": "Reproducido",
     "unplayed": "No reproducido",
+    "favorite": "Favorito",
     "del_favorite": "Remove favorites"
   },
   "search": {
@@ -148,7 +151,9 @@
       "movie": "Película",
       "music": "Música",
       "series": "Series",
-      "episode": "Episodio"
+      "episode": "Episodio",
+      "album": "Álbum",
+      "photo_album": "Álbum de fotos"
     }
   },
   "remote": {

@@ -1,6 +1,8 @@
 {
   "tabs": {
     "home": "Ana Sayfa",
+    "favorite": "Favoriler",
+    "collection": "Koleksiyonlar",
     "genres": "Türler",
     "program": "Diziler",
     "suggest": "Öneriler",
@@ -132,6 +134,7 @@
     "random": "Rastgele",
     "played": "Oynatıldı",
     "unplayed": "Oynatılmadı",
+    "favorite": "Favori",
     "del_favorite": "Remove favorites"
   },
   "search": {
@@ -148,7 +151,9 @@
       "movie": "Filmler",
       "music": "Müzik",
       "series": "Diziler",
-      "episode": "Bölüm"
+      "episode": "Bölüm",
+      "album": "Albüm",
+      "photo_album": "Fotoğraf Albümü"
     }
   },
   "remote": {

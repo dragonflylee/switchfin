@@ -22,6 +22,8 @@ public:
     void setFrameHeight(float height);
     void setItemWidth(float width);
     void setPageSize( size_t pageSize);
+    void setNextPage();
+
     void onQuery(const Callback& callback = nullptr);
     void doRequest(bool refresh = false);
     void doLatest(bool refresh = false);

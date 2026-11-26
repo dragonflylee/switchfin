@@ -1,6 +1,8 @@
 {
   "tabs": {
     "home": "홈",
+    "favorite": "즐겨찾기",
+    "collection": "컬렉션",
     "genres": "장르",
     "program": "프로그램",
     "suggest": "제안",
@@ -132,7 +134,8 @@
     "rating": "평점",
     "random": "무작위",
     "played": "재생됨",
-    "unplayed": "재생 안 됨"
+    "unplayed": "재생 안 됨",
+    "favorite": "즐겨찾기"
   },
   "search": {
     "hint": "키워드와 키워드의 첫 글자를 지원합니다.",
@@ -148,7 +151,9 @@
       "movie": "영화",
       "music": "음악",
       "series": "시리즈",
-      "episode": "에피소드"
+      "episode": "에피소드",
+      "album": "앨범",
+      "photo_album": "사진 앨범"
     }
   },
   "remote": {

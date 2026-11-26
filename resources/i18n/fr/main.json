@@ -1,6 +1,8 @@
 {
   "tabs": {
     "home": "Accueil",
+    "favorite": "Favoris",
+    "collection": "Collections",
     "genres": "Genres",
     "program": "Séries",
     "suggest": "Suggestions",
@@ -132,7 +134,8 @@
     "rating": "Note",
     "random": "Aléatoire",
     "played": "Vu",
-    "unplayed": "Non vu"
+    "unplayed": "Non vu",
+    "favorite": "Favori"
   },
   "search": {
     "hint": "Prise en charge des mots-clés et des premières lettres des mots-clés",
@@ -148,7 +151,9 @@
       "movie": "Film",
       "music": "Musiques",
       "series": "Séries",
-      "episode": "Épisode"
+      "episode": "Épisode",
+      "album": "Album",
+      "photo_album": "Album photo"
     }
   },
   "remote": {

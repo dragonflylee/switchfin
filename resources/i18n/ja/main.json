@@ -1,6 +1,8 @@
 {
   "tabs": {
     "home": "ホーム",
+    "favorite": "お気に入り",
+    "collection": "コレクション",
     "genres": "ジャンル",
     "program": "番組",
     "suggest": "おすすめ",
@@ -132,7 +134,8 @@
     "rating": "コミュニティ評価",
     "random": "ランダム",
     "played": "再生済み",
-    "unplayed": "未再生"
+    "unplayed": "未再生",
+    "favorite": "お気に入り"
   },
   "search": {
     "hint": "サポートキーワードとその頭文字",
@@ -148,7 +151,9 @@
       "movie": "動画",
       "music": "音楽",
       "series": "シリーズ",
-      "episode": "エピソード"
+      "episode": "エピソード",
+      "album": "アルバム",
+      "photo_album": "フォトアルバム"
     }
   },
   "remote": {
