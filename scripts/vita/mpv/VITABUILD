@@ -1,14 +1,15 @@
 pkgname=mpv
 pkgver=0.36.0
-pkgrel=4
+pkgrel=5
 url="https://mpv.io/"
-source=("${pkgname}-${pkgver}.tar.gz::https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz" "gxm.patch")
-sha256sums=('SKIP' 'SKIP')
+source=("${pkgname}-${pkgver}.tar.gz::https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz" "gxm.patch" "ao-buffer.patch")
+sha256sums=('SKIP' 'SKIP' 'SKIP')
 depends=('libass' 'ffmpeg')
 
 prepare() {
   cd $pkgname-$pkgver
   patch --strip=1 --input=${srcdir}/gxm.patch
+  patch --strip=1 --input=${srcdir}/ao-buffer.patch
 }
 
 build() {
