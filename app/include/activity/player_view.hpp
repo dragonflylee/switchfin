@@ -20,18 +20,19 @@ public:
 
 #ifdef ANDROID
     void willDisappear(bool resetState) override {
-        if (brls::Application::getThemeVariant() == brls::ThemeVariant::LIGHT)
-            brls::Application::getTheme().addColor("brls/clear", nvgRGBA(235, 235, 235, 255));
-        else
-            brls::Application::getTheme().addColor("brls/clear", nvgRGBA(45, 45, 45, 255));
+        brls::Application::getTheme().addColor("brls/clear", savedClearColor);
     }
 
     void willAppear(bool resetState) override {
+        savedClearColor = brls::Application::getTheme().getColor("brls/clear");
         brls::Application::getTheme().addColor("brls/clear", nvgRGBA(0, 0, 0, 0));
     }
 #endif
 
 private:
+#ifdef ANDROID
+    NVGcolor savedClearColor = nvgRGBA(0, 0, 0, 0);
+#endif
     void setChapters(const std::vector<jellyfin::MediaChapter>& chaps, uint64_t duration);
     /// @brief get video url
     void playMedia(const uint64_t seekTicks);

@@ -17,22 +17,19 @@
 
             <Tab label=""
                 fontSize="18"
-                icon="@res/icon/ico-home.svg"
-                iconActivate="@res/icon/ico-home-activate.svg">
+                icon="@res/icon/ico-home.svg">
                 <HomeTab />
             </Tab>
 
             <Tab label=""
                 fontSize="18"
-                icon="@res/icon/ico-media.svg"
-                iconActivate="@res/icon/ico-media-activate.svg">
+                icon="@res/icon/ico-media.svg">
                 <MediaFolders />
             </Tab>
 
             <Tab label=""
                 fontSize="18"
-                icon="@res/icon/ico-search.svg"
-                iconActivate="@res/icon/ico-search-activate.svg">
+                icon="@res/icon/ico-search.svg">
                 <SearchTab />
             </Tab>
 
@@ -46,15 +43,13 @@
             <Tab label=""
                 fontSize="18"
                 id="tab/remote"
-                icon="@res/icon/ico-cloud.svg"
-                iconActivate="@res/icon/ico-cloud-activate.svg">
+                icon="@res/icon/ico-cloud.svg">
                 <RemoteTab />
             </Tab>
 
             <Tab label=""
                 fontSize="18"
-                icon="@res/icon/ico-setting.svg"
-                iconActivate="@res/icon/ico-setting-activate.svg">
+                icon="@res/icon/ico-setting.svg">
                 <SettingTab />
             </Tab>
 

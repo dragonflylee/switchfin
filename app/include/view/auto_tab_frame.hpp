@@ -98,7 +98,7 @@ private:
     bool active = false;
     View* attachedView = nullptr;
     TabViewCreator attachedViewCreator = nullptr;
-    std::string iconDefault, iconActivate;
+    std::string iconDefault;
 };
 
 class AutoSidebarItemGroup {
