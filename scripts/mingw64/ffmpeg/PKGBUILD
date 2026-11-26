@@ -18,7 +18,7 @@ depends=(
   "${MINGW_PACKAGE_PREFIX}-curl"
   "${MINGW_PACKAGE_PREFIX}-dav1d"
   "${MINGW_PACKAGE_PREFIX}-libass"
-  "${MINGW_PACKAGE_PREFIX}-libssh2-mbedtls"
+  "${MINGW_PACKAGE_PREFIX}-libssh2-wincng"
   "${MINGW_PACKAGE_PREFIX}-zlib"
 )
 makedepends=(
@@ -29,12 +29,13 @@ makedepends=(
 options=('staticlibs' '!strip')
 source=(
   "https://ffmpeg.org/releases/${_realname}-${pkgver}.tar.xz"
-  "avio.patch"
+  "tls.patch" "avio.patch"
 )
-sha256sums=('1a4d394ae63d190a526cd052eb4415c156b5c5e2df37efab41a7de0b8fde2433' 'SKIP')
+sha256sums=('1a4d394ae63d190a526cd052eb4415c156b5c5e2df37efab41a7de0b8fde2433' 'SKIP' 'SKIP')
 
 prepare() {
   cd ${_realname}-${pkgver}
+  patch -Np1 -i "$srcdir/tls.patch"
   patch -Np1 -i "$srcdir/avio.patch"
 }
 
@@ -72,7 +73,7 @@ build() {
     --enable-libdav1d \
     --enable-libssh2 \
     --enable-libcurl \
-    --enable-mbedtls \
+    --enable-schannel \
     --enable-version3 \
     --enable-nvdec \
     --enable-ffnvcodec

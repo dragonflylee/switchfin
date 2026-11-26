@@ -8,12 +8,17 @@ arch=('any')
 url="https://curl.se/"
 license=('zlib')
 options=(!strip libtool staticlibs)
-depends=('switch-zlib' 'switch-mbedtls')
+depends=('switch-zlib')
 makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
-source=("https://curl.se/download/curl-${pkgver}.tar.xz")
+source=("https://curl.se/download/curl-${pkgver}.tar.xz" "tls.patch")
 groups=('switch-portlibs')
 
-sha256sums=('8dadd7d2536a314f982ad05a651b713f426bf7d02cc2c76cffb9796f2218e6c5')
+sha256sums=('8dadd7d2536a314f982ad05a651b713f426bf7d02cc2c76cffb9796f2218e6c5' 'SKIP')
+
+prepare() {
+  cd curl-$pkgver
+  patch -Np1 -i "$srcdir/tls.patch"
+}
 
 build() {
   cd curl-$pkgver
@@ -27,7 +32,7 @@ build() {
     --disable-shared --enable-static --disable-ipv6 --disable-unix-sockets \
     --disable-manual --disable-threaded-resolver --disable-progress-meter \
     --without-zstd --without-brotli --without-libpsl --enable-websockets \
-    --with-mbedtls --with-default-ssl-backend=mbedtls
+    --with-libnx --with-default-ssl-backend=libnx
   sed -i '/HAVE_SOCKETPAIR/d' lib/curl_config.h
   make -C lib -j$(nproc)
 }
@@ -35,7 +40,7 @@ build() {
 package() {
   cd curl-$pkgver
 
-  source /opt/devkitpro/switchvars.sh
+  source ${DEVKITPRO}/switchvars.sh
 
   make DESTDIR="$pkgdir" -C lib install
   make DESTDIR="$pkgdir" -C include install

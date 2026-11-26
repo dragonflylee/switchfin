@@ -1,0 +1,109 @@
+From e57e0dec9b3bd5485c8d2ca199042cbbff298fa7 Mon Sep 17 00:00:00 2001
+From: dragonflylee <dragonflylee@outlook.com>
+Date: Thu, 26 Nov 2026 10:31:56 +0800
+Subject: [PATCH] avformat/tls_schannel: don't hang on interrupted or stalled
+ connections
+
+The backend never checked the interrupt callback and looped without a
+bound, so a peer stalling mid-handshake (or renegotiating forever) could
+block a demux thread indefinitely.
+
+Check ff_check_interrupt() in the handshake and shutdown loops, honour
+h->rw_timeout as a handshake deadline, cap handshake round-trips, retry
+on EAGAIN, and check the callback before blocking in tls_read().
+---
+ libavformat/tls_schannel.c | 39 +++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 38 insertions(+), 1 deletion(-)
+
+diff --git a/libavformat/tls_schannel.c b/libavformat/tls_schannel.c
+index a789f500fb2..a087875eb8e 100644
+--- a/libavformat/tls_schannel.c
++++ b/libavformat/tls_schannel.c
+@@ -24,6 +24,7 @@
+ #include "config_components.h"
+ 
+ #include "libavutil/mem.h"
++#include "libavutil/time.h"
+ #include "avformat.h"
+ #include "internal.h"
+ #include "network.h"
+@@ -39,6 +40,7 @@
+ 
+ #define SCHANNEL_INITIAL_BUFFER_SIZE   4096
+ #define SCHANNEL_FREE_BUFFER_SIZE      1024
++#define SCHANNEL_MAX_HANDSHAKE_ITERATIONS 256
+ 
+ /* mingw does not define this symbol */
+ #ifndef SECBUFFER_ALERT
+@@ -758,6 +760,11 @@ static int tls_shutdown_client(URLContext *h)
+         init_sec_buffer_desc(&outbuf_desc, &outbuf, 1);
+ 
+         do {
++            if (ff_check_interrupt(&h->interrupt_callback)) {
++                av_log(h, AV_LOG_VERBOSE, "Aborting TLS shutdown on request\n");
++                break;
++            }
++
+             if (s->listen)
+                 sspi_ret = AcceptSecurityContext(&c->cred_handle, &c->ctxt_handle, NULL, c->request_flags, 0,
+                                                  &c->ctxt_handle, &outbuf_desc, &c->context_flags,
+@@ -830,6 +837,8 @@ static int tls_handshake_loop(URLContext *h, int initial)
+     struct sockaddr_storage recv_addr = { 0 };
+     socklen_t recv_addr_len = 0;
+     int i, ret = 0, read_data = initial;
++    int iterations = 0;
++    int64_t handshake_start = 0;
+ 
+     if (c->enc_buf == NULL) {
+         c->enc_buf_offset = 0;
+@@ -850,6 +859,29 @@ static int tls_handshake_loop(URLContext *h, int initial)
+     uc->flags &= ~AVIO_FLAG_NONBLOCK;
+ 
+     while (1) {
++        if (ff_check_interrupt(&h->interrupt_callback)) {
++            av_log(h, AV_LOG_VERBOSE, "Handshake aborted\n");
++            ret = AVERROR_EXIT;
++            goto fail;
++        }
++
++        if (h->rw_timeout > 0) {
++            if (!handshake_start)
++                handshake_start = av_gettime_relative();
++            else if (av_gettime_relative() - handshake_start > h->rw_timeout) {
++                av_log(h, AV_LOG_ERROR, "Handshake timed out\n");
++                ret = AVERROR(ETIMEDOUT);
++                goto fail;
++            }
++        }
++
++        if (++iterations > SCHANNEL_MAX_HANDSHAKE_ITERATIONS) {
++            av_log(h, AV_LOG_ERROR, "Handshake did not complete after %d iterations\n",
++                   SCHANNEL_MAX_HANDSHAKE_ITERATIONS);
++            ret = AVERROR(EIO);
++            goto fail;
++        }
++
+         if (c->enc_buf_size - c->enc_buf_offset < SCHANNEL_FREE_BUFFER_SIZE) {
+             c->enc_buf_size = c->enc_buf_offset + SCHANNEL_FREE_BUFFER_SIZE;
+             ret = av_reallocp(&c->enc_buf, c->enc_buf_size);
+@@ -861,7 +893,9 @@ static int tls_handshake_loop(URLContext *h, int initial)
+ 
+         if (read_data) {
+             ret = ffurl_read(uc, c->enc_buf + c->enc_buf_offset, c->enc_buf_size - c->enc_buf_offset);
+-            if (ret < 0) {
++            if (ret == AVERROR(EAGAIN)) {
++                continue;
++            } else if (ret < 0) {
+                 av_log(h, AV_LOG_ERROR, "Failed to read handshake response\n");
+                 goto fail;
+             }
+@@ -1242,6 +1276,9 @@ static int tls_read(URLContext *h, uint8_t *buf, int len)
+     if (c->sspi_close_notify)
+         goto cleanup;
+ 
++    if (ff_check_interrupt(&h->interrupt_callback))
++        return AVERROR_EXIT;
++
+     if (!c->connection_closed) {
+         size = c->enc_buf_size - c->enc_buf_offset;
+         if (size < SCHANNEL_FREE_BUFFER_SIZE || c->enc_buf_size < min_enc_buf_size) {

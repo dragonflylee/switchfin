@@ -2,12 +2,12 @@
 
 _realname=libssh2
 pkgbase=mingw-w64-${_realname}
-pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}-mbedtls"
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}-wincng"
 pkgver=1.11.1
 pkgrel=4
 pkgdesc="A library implementing the SSH2 protocol as defined by Internet Drafts (mingw-w64)"
 provides=("${MINGW_PACKAGE_PREFIX}-${_realname}")
-conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}" "${MINGW_PACKAGE_PREFIX}-${_realname}-wincng")
+conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}")
 arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'clangarm64')
 url="https://libssh2.org/"
@@ -16,9 +16,6 @@ msys2_references=(
 )
 msys2_repository_url='https://github.com/libssh2/libssh2'
 license=("spdx:BSD-3-Clause")
-depends=(
-  "${MINGW_PACKAGE_PREFIX}-mbedtls"
-)
 makedepends=(
   "${MINGW_PACKAGE_PREFIX}-cc"
   "${MINGW_PACKAGE_PREFIX}-cmake"
@@ -35,7 +32,7 @@ build() {
       -DCMAKE_DLL_NAME_WITH_SOVERSION=ON \
       -DBUILD_EXAMPLES=OFF \
       -DBUILD_TESTING=OFF \
-      -DCRYPTO_BACKEND=mbedTLS \
+      -DCRYPTO_BACKEND=WinCNG \
       "${srcdir}/${_realname}-${pkgver}"
   ${MINGW_PREFIX}/bin/cmake.exe --build "build-${MSYSTEM}"
 }

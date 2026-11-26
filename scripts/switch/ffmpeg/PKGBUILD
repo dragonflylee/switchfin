@@ -13,12 +13,10 @@ url='https://ffmpeg.org/'
 license=('GPL')
 options=(!strip staticlibs)
 makedepends=('switch-pkg-config' 'dkp-toolchain-vars')
-depends=('switch-zlib' 'switch-bzip2' 'switch-libass' 'switch-libfribidi'
-         'switch-freetype' 'switch-mbedtls' 'switch-dav1d' 'switch-libssh2')
+depends=('switch-zlib' 'switch-bzip2' 'switch-dav1d' 'switch-libssh2')
 source=(
   "https://ffmpeg.org/releases/ffmpeg-${pkgver}.tar.xz"
-  "https://github.com/dragonflylee/ffmpeg/commit/avio.patch"
-  "ffmpeg-${pkgver}.patch" "getnameinfo.patch"
+  "ffmpeg-${pkgver}.patch" "tls.patch" "avio.patch"
 )
 sha256sums=('de668509caf9e35e3cd162473441fdb29538c6d96ed080292b3cf9e6fc5d558f' 'SKIP' 'SKIP' 'SKIP')
 
@@ -27,7 +25,7 @@ groups=('switch-portlibs')
 prepare() {
   cd ffmpeg-$pkgver
   patch -Np1 -i "$srcdir/ffmpeg-${pkgver}.patch"
-  patch -Np1 -i "$srcdir/getnameinfo.patch"
+  patch -Np1 -i "$srcdir/tls.patch"
   patch -Np1 -i "$srcdir/avio.patch"
 }
 
@@ -46,7 +44,7 @@ build() {
     --enable-asm --enable-neon --disable-autodetect --enable-mbedtls --enable-version3 \
     --disable-avdevice --disable-encoders --disable-muxers \
     --enable-swscale --enable-swresample --enable-network --enable-libssh2 \
-    --enable-zlib --enable-bzlib --enable-libass --enable-libdav1d --enable-nvtegra \
+    --enable-zlib --enable-bzlib --enable-libdav1d --enable-nvtegra \
     --disable-filters --enable-filter=hflip,vflip,transpose
 
   make -j$(nproc)

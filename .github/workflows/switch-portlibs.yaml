@@ -30,7 +30,7 @@ jobs:
         dkp-pacman -R switch-mupdf switch-libmpv --noconfirm
 
         chown -R builder:builder scripts/switch
-        for pkg in mbedtls libssh2 dav1d ffmpeg libuam; do
+        for pkg in dav1d ffmpeg libuam; do
           echo building $pkg
           su - builder -c "cd $pkg && dkp-makepkg -siCf --noconfirm"
         done
