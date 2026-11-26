@@ -134,7 +134,8 @@
     "rating": "コミュニティ評価",
     "random": "ランダム",
     "played": "再生済み",
-    "unplayed": "未再生"
+    "unplayed": "未再生",
+    "favorite": "お気に入り"
   },
   "search": {
     "hint": "サポートキーワードとその頭文字",

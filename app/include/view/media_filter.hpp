@@ -19,6 +19,7 @@ public:
     inline static int selectedOrder = 1;
     inline static bool selectedPlayed = false;
     inline static bool selectedUnplayed = false;
+    inline static bool selectedFavorite = false;
 
     inline static std::string sortList[] = {
         "SortName",
@@ -36,6 +37,7 @@ private:
     BRLS_BIND(brls::SelectorCell, sortOrder, "media/sort/order");
     BRLS_BIND(brls::BooleanCell, filterPlayed, "media/filter/played");
     BRLS_BIND(brls::BooleanCell, filterUnplayed, "media/filter/unplayed");
+    BRLS_BIND(brls::BooleanCell, filterFavorite, "media/filter/favorite");
 
     brls::VoidEvent event;
 };

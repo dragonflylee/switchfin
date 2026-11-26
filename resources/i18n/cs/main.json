@@ -134,7 +134,8 @@
     "rating": "Komunitního hodnocení",
     "random": "Náhodně",
     "played": "Přehrané",
-    "unplayed": "Nepřehrané"
+    "unplayed": "Nepřehrané",
+    "favorite": "Oblíbené"
   },
   "search": {
     "hint": "Podpora klíčových slov a jejich počátečních písmen",

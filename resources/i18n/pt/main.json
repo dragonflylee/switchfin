@@ -134,7 +134,8 @@
     "rating": "Classificação",
     "random": "Aleatório",
     "played": "Reproduzido",
-    "unplayed": "Não Reproduzido"
+    "unplayed": "Não Reproduzido",
+    "favorite": "Favorito"
   },
   "search": {
     "hint": "Suporta palavras-chave e suas iniciais",

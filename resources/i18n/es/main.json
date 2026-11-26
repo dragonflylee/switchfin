@@ -134,6 +134,7 @@
     "random": "Aleatorio",
     "played": "Reproducido",
     "unplayed": "No reproducido",
+    "favorite": "Favorito",
     "del_favorite": "Remove favorites"
   },
   "search": {

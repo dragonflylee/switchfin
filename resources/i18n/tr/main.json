@@ -134,6 +134,7 @@
     "random": "Rastgele",
     "played": "Oynatıldı",
     "unplayed": "Oynatılmadı",
+    "favorite": "Favori",
     "del_favorite": "Remove favorites"
   },
   "search": {

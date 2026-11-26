@@ -134,7 +134,8 @@
     "rating": "Đánh giá cộng đồng",
     "random": "Ngẫu nhiên",
     "played": "Đã phát",
-    "unplayed": "Chưa phát"
+    "unplayed": "Chưa phát",
+    "favorite": "Yêu thích"
   },
   "search": {
     "hint": "Từ khóa hỗ trợ và chữ cái đầu của chúng",

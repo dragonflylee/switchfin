@@ -39,6 +39,8 @@ MediaFilter::MediaFilter() {
     this->filterPlayed->init("main/media/played"_i18n, selectedPlayed, [](bool value) { selectedPlayed = value; });
     this->filterUnplayed->init(
         "main/media/unplayed"_i18n, selectedUnplayed, [](bool value) { selectedUnplayed = value; });
+    this->filterFavorite->init(
+        "main/media/favorite"_i18n, selectedFavorite, [](bool value) { selectedFavorite = value; });
 }
 
 MediaFilter::~MediaFilter() { brls::Logger::debug("MediaFilter: delete"); }

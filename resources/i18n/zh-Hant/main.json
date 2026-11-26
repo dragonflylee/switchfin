@@ -134,7 +134,8 @@
     "rating": "評分",
     "random": "隨機",
     "played": "已播放",
-    "unplayed": "未播放"
+    "unplayed": "未播放",
+    "favorite": "收藏"
   },
   "search": {
     "hint": "支持關鍵字及關鍵字首字母",

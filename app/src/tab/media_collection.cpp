@@ -317,6 +317,7 @@ void MediaCollection::doRequest() {
     std::vector<std::string> filters;
     if (MediaFilter::selectedPlayed) filters.push_back("IsPlayed");
     if (MediaFilter::selectedUnplayed) filters.push_back("IsUnplayed");
+    if (MediaFilter::selectedFavorite) filters.push_back("IsFavorite");
 
     HTTP::Form query = {
         {"parentId", this->itemId},

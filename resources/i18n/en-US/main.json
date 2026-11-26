@@ -134,7 +134,8 @@
     "rating": "Community Rating",
     "random": "Random",
     "played": "Played",
-    "unplayed": "Unplayed"
+    "unplayed": "Unplayed",
+    "favorite": "Favorite"
   },
   "search": {
     "hint": "Supports keywords and their initial letters",
