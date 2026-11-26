@@ -62,12 +62,16 @@ PlayerView::PlayerView(const jellyfin::Item& item, const uint64_t seekTicks, con
                 if (s.Type == jellyfin::streamTypeSubtitle) {
                     if (s.DeliveryUrl.size() > 0 && (s.IsExternal || this->playMethod == jellyfin::methodTranscode)) {
                         std::string url = svr + s.DeliveryUrl;
-                        mpv.command("sub-add", url.c_str(), flag, s.DisplayTitle.c_str());
+                        // the server's default (the remembered choice) is shown right away
+                        bool pick = PlayerSetting::selectedSubtitle <= 0 && s.Index == this->reportSubtitle;
+                        mpv.command("sub-add", url.c_str(), pick ? "select" : flag, s.DisplayTitle.c_str());
                     }
                 }
             }
             if (PlayerSetting::selectedSubtitle > 0 && this->playMethod == jellyfin::methodDirectPlay) {
                 mpv.setInt("sid", PlayerSetting::selectedSubtitle);
+            } else if (this->playMethod == jellyfin::methodDirectPlay) {
+                this->applyDefaultTracks();
             }
             if (DanmakuCore::PLUGIN_ACTIVE && !this->stream.IsInfiniteStream) {
                 this->requestDanmaku();
@@ -441,6 +445,27 @@ void PlayerView::mapTracks() {
             for (auto& s : this->stream.MediaStreams)
                 if (s.Type == jellyfin::streamTypeSubtitle && !s.DeliveryUrl.empty() && svr + s.DeliveryUrl == file)
                     this->subTrackIndex[id] = s.Index;
+        }
+    }
+}
+
+/// Direct play: mpv picks tracks from the file's own flags, so select the
+/// server's defaults, which follow the user's remembered choice. Picks made in
+/// this session's menus take priority.
+void PlayerView::applyDefaultTracks() {
+    auto& mpv = MPVCore::instance();
+    this->mapTracks();
+    if (PlayerSetting::selectedAudio <= 0 && this->reportAudio >= 0) {
+        for (auto& [id, index] : this->audioTrackIndex)
+            if (index == this->reportAudio) mpv.setInt("aid", id);
+    }
+    if (PlayerSetting::selectedSubtitle <= 0) {
+        if (this->reportSubtitle < 0) {
+            mpv.command("set", "sid", "no");
+        } else {
+            // embedded tracks; an added subtitle file is selected by sub-add
+            for (auto& [id, index] : this->subTrackIndex)
+                if (index == this->reportSubtitle) mpv.setInt("sid", id);
         }
     }
 }

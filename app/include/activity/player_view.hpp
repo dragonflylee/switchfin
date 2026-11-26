@@ -57,6 +57,7 @@ private:
     std::map<int64_t, int> audioTrackIndex, subTrackIndex;
     int lastAudio = -1, lastSubtitle = -1;
     void mapTracks();
+    void applyDefaultTracks();
     int currentAudioIndex();
     int currentSubtitleIndex();
     jellyfin::Source stream;
