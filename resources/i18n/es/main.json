@@ -33,13 +33,11 @@
     "session": "Sesión",
     "device": "Dispositivo",
     "activity": "Actividad",
-    "path": "Ruta",
     "restart": "Reiniciar",
     "confirm_restart": "¿Estás seguro qué deseas reiniciar Jellyfin?",
     "scan_all": "Escanear todas las bibliotecas",
     "within_minute": "Menos de 1 minuto",
-    "minute_ago": "Hace {} minutos",
-    "hour_ago": "Hace {} horas"
+    "minute_ago": "Hace {} minutos"
   },
   "player": {
     "subtitle": "Subtítulos",
@@ -108,7 +106,6 @@
     "mark_played": "Marcar como reproducido",
     "mark_unplayed": "Marcar como no reproducido",
     "play": "Reproducir",
-    "intro": "Introducción",
     "people": "Reparto y equipo",
     "crew": "Equipo técnico",
     "director": "Director",
@@ -141,7 +138,6 @@
     "hint": "Admitir palabras clave y sus letras iniciales",
     "clear": "Limpiar",
     "delete": "Eliminar",
-    "paste": "Pegar",
     "history": "Historial",
     "suggest": "Sugerencias",
     "clear_history": "¿Confirmas que deseas eliminar el historial?",
@@ -174,7 +170,6 @@
   },
   "download": {
     "start": "Descargar",
-    "cancel": "Cancelar descarga",
     "remove": "Eliminar descarga",
     "resume": "Reanudar",
     "downloading": "Descargando...",
@@ -185,7 +180,6 @@
     "confirm_remove": "¿Eliminar esta descarga?",
     "confirm_cancel": "¿Cancelar esta descarga?",
     "confirm_season": "¿Descargar {} episodios?",
-    "play_offline": "Reproducir sin conexión",
     "storage": "Almacenamiento",
     "storage_free": "{} libres de {}",
     "section_active": "En curso",
@@ -200,7 +194,6 @@
     "quit_hint": "Vas a salir de la aplicación. La configuración tendrá efecto tras el próximo arranque",
     "name": "Nombre",
     "version": "Versión",
-    "os": "Sistema operativo",
     "url": "URL",
     "user": "Usuario",
     "username": "Usuario",
@@ -213,8 +206,6 @@
       "invalid": "La URL debe comenzar con http:// o https://",
       "connect": "Conectar",
       "delete": "¿Confirmar borrado?",
-      "local": "Servidor local",
-      "users": "{} usuarios",
       "sigin_to": "Conectar a {}",
       "signin": "Iniciar sesión"
     },
@@ -232,7 +223,6 @@
       "clip_point": "Mostrar marca de capítulo",
       "transcodec": "Codec",
       "audio_channels": "Canales de audio",
-      "video_quality": "Calidad de vídeo",
       "subsync": "Sincronización de subtítulos"
     },
     "transcode": {
@@ -268,8 +258,7 @@
       "threads": "Número de hilos para cargar imágenes",
       "timeout": "Tiempo de espera de las peticiones (ms)",
       "proxy": "Proxy",
-      "host": "Dirección",
-      "port": "Puerto"
+      "host": "Dirección"
     },
     "ui": {
       "header": "Interfaz",
@@ -287,7 +276,6 @@
       "header": "Tutorial",
       "open": "Como instalar icono de escritorio",
       "error": "Si encuentras un error",
-      "hot_key": "Teclas de acceso rápido",
       "font": "Usar fuente de letra personalizada",
       "error_q1": "Imposible acceder a la red",
       "error_a1": "1. Asegúrate que atmosphere y el firmware del sistema están actualizados\n2. Confirma que la hora del sistema (incluida la fecha) es correcta\n3. Restaura las opciones de red por defecto, incluyendo IP, DNS, etc",
@@ -302,11 +290,7 @@
     },
     "quick_connect": {
       "header": "Conexión rápida",
-      "code": "Código de conexión rápida",
-      "invalid": "Código de conexión rápida inválido",
-      "success": "Autorización de conexión rápida satisfactoria. Por favor continua en el otro dispositivo.",
-      "steps": "1. Abre la aplicación de Jellyfin en tu teléfono o navegador y conecta con tu cuenta\n2. Abre el menú de usuario y accede a la página de Conexión rápida\n3. Introduce en siguiente código:",
-      "disabled": "Atención: Conexión válida no habilitada"
+      "steps": "1. Abre la aplicación de Jellyfin en tu teléfono o navegador y conecta con tu cuenta\n2. Abre el menú de usuario y accede a la página de Conexión rápida\n3. Introduce en siguiente código:"
     },
     "others": {
       "header": "Miscelánea",

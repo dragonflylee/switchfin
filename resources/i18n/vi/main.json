@@ -33,13 +33,11 @@
     "session": "Phiên",
     "device": "Thiết bị",
     "activity": "Hoạt động",
-    "path": "Đường dẫn",
     "restart": "Khởi động lại",
     "confirm_restart": "Bạn có chắc muốn khởi động lại Jellyfin?",
     "scan_all": "Quét tất cả thư viện",
     "within_minute": "Trong vòng 1 phút",
-    "minute_ago": "{} phút trước",
-    "hour_ago": "{} giờ trước"
+    "minute_ago": "{} phút trước"
   },
   "player": {
     "subtitle": "Phụ đề",
@@ -109,7 +107,6 @@
     "mark_played": "Đánh dấu đã xem",
     "mark_unplayed": "Đánh dấu chưa xem",
     "play": "Phát",
-    "intro": "Giới thiệu",
     "people": "Diễn viên",
     "crew": "Đoàn làm phim",
     "director": "Đạo diễn",
@@ -141,7 +138,6 @@
     "hint": "Từ khóa hỗ trợ và chữ cái đầu của chúng",
     "clear": "Xoá tất cả",
     "delete": "Xoá",
-    "paste": "Dán",
     "history": "Lịch sử",
     "suggest": "Gợi ý",
     "clear_history": "Bạn có muốn xoá lịch sử?",
@@ -176,7 +172,6 @@
     "quality": "Chất lượng tải xuống",
     "original": "Nguyên gốc",
     "start": "Tải xuống",
-    "cancel": "Hủy tải xuống",
     "remove": "Xóa bản tải",
     "resume": "Tiếp tục",
     "downloading": "Đang tải xuống...",
@@ -188,7 +183,6 @@
     "confirm_remove": "Xóa bản tải này?",
     "confirm_cancel": "Hủy tải xuống này?",
     "confirm_season": "Tải {} tập?",
-    "play_offline": "Phát ngoại tuyến",
     "storage": "Bộ nhớ",
     "storage_free": "Còn trống {} / {}",
     "section_active": "Đang tải",
@@ -200,7 +194,6 @@
     "quit_hint": "Bạn cần thoát khỏi ứng dụng và mở lại ứng dụng để các cài đặt mới hoạt động",
     "name": "Tên",
     "version": "Phiên bản",
-    "os": "Hệ điều hành",
     "url": "URL",
     "user": "User",
     "username": "Tài khoản",
@@ -213,8 +206,6 @@
       "invalid": "Địa chỉ máy chủ không hợp lệ!",
       "connect": "Kết nối",
       "delete": "Xác nhận xoá?",
-      "local": "Máy chủ cục bộ",
-      "users": "{} users",
       "sigin_to": "Đăng nhập vào  {}",
       "signin": "Đăng nhập"
     },
@@ -231,7 +222,6 @@
       "clip_point": "Hiển thị các chương trong video",
       "transcodec": "Chuyển mã",
       "audio_channels": "Kênh âm thanh",
-      "video_quality": "Chất lượng video",
       "subsync": "Đồng bộ phụ đề",
       "vo": "Video output"
     },
@@ -268,8 +258,7 @@
       "threads": "Số lượng hình ảnh tải về",
       "timeout": "Thời gian quá hạn (ms)",
       "proxy": "Cài đặt Proxy",
-      "host": "Host",
-      "port": "Port"
+      "host": "Host"
     },
     "ui": {
       "header": "Giao diện",
@@ -287,7 +276,6 @@
       "header": "Hướng dẫn",
       "open": "Làm thế nào để cài Icon ra màn hình",
       "error": "Nếu bạn gặp lỗi",
-      "hot_key": "Phím tắt",
       "font": "Cài đặt font khác",
       "error_q1": "Không thể kết nối với internet",
       "error_a1": "1. Đảm bảo môi trường và chương trình cơ sở hệ thống được cập nhật\n2. Xác nhận rằng thời gian hệ thống là chính xác\n3. Khôi phục cài đặt mạng mặc định, bao gồm IP, DNS, v.v.\n4.Sử dụng ở Trung Quốc",
@@ -302,11 +290,7 @@
     },
     "quick_connect": {
       "header": "Kết nối nhanh",
-      "code": "Code kết nối nhanh",
-      "invalid": "Code kết nối nhanh không hợp lệ",
-      "success": "Xác thực kết nối nhanh thành công. Vui lòng tiếp tục trên thiết bị khác của bạn.",
-      "steps": "1. Mở ứng dụng Jellyfin trên điện thoại hoặc trình duyệt web và đăng nhập bằng tài khoản của bạn\n2. Mở menu người dùng và truy cập trang Kết nối nhanh\n3. Nhập mã sau:",
-      "disabled": "Lưu ý: Kết nối nhanh chưa được bật"
+      "steps": "1. Mở ứng dụng Jellyfin trên điện thoại hoặc trình duyệt web và đăng nhập bằng tài khoản của bạn\n2. Mở menu người dùng và truy cập trang Kết nối nhanh\n3. Nhập mã sau:"
     },
     "others": {
       "header": "Khác",

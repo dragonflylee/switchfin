@@ -33,13 +33,11 @@
     "session": "Session",
     "device": "Device",
     "activity": "Activity",
-    "path": "Path",
     "restart": "Restart",
     "confirm_restart": "Are you sure you wish to restart Jellyfin?",
     "scan_all": "Scan All Libraries",
     "within_minute": "Within 1 minute",
-    "minute_ago": "{} minutes ago",
-    "hour_ago": "{} hours ago"
+    "minute_ago": "{} minutes ago"
   },
   "player": {
     "subtitle": "Subtitle",
@@ -109,7 +107,6 @@
     "mark_played": "Mark played",
     "mark_unplayed": "Mark unplayed",
     "play": "Play",
-    "intro": "Intro",
     "people": "People",
     "crew": "Crew",
     "director": "Director",
@@ -141,7 +138,6 @@
     "hint": "Supports keywords and their initial letters",
     "clear": "Clear",
     "delete": "Delete",
-    "paste": "Paste",
     "history": "History",
     "suggest": "Suggest",
     "clear_history": "Confirm to clear search histroy?",
@@ -176,7 +172,6 @@
     "quality": "Download Quality",
     "original": "Original",
     "start": "Download",
-    "cancel": "Cancel Download",
     "remove": "Remove Download",
     "resume": "Resume",
     "downloading": "Downloading...",
@@ -188,7 +183,6 @@
     "confirm_remove": "Remove this download?",
     "confirm_cancel": "Cancel this download?",
     "confirm_season": "Download {} episodes?",
-    "play_offline": "Play Offline",
     "storage": "Storage",
     "storage_free": "{} free of {}",
     "section_active": "In Progress",
@@ -200,7 +194,6 @@
     "quit_hint": "You are about to exit the application. The settings will take effect after the next startup",
     "name": "Name",
     "version": "Version",
-    "os": "Operating System",
     "url": "URL",
     "user": "User",
     "username": "Username",
@@ -213,8 +206,6 @@
       "invalid": "URL must start with http:// or https://",
       "connect": "Connect",
       "delete": "Confirm to delete?",
-      "local": "Local Servers",
-      "users": "{} users",
       "sigin_to": "Sign In to  {}",
       "signin": "Sign In"
     },
@@ -233,7 +224,6 @@
       "clip_point": "Show clip point of chapter",
       "transcodec": "Codec",
       "audio_channels": "Audio Channels",
-      "video_quality": "Video Quality",
       "subsync": "Subtitle Sync"
     },
     "transcode": {
@@ -269,8 +259,7 @@
       "threads": "Number of image loading threads",
       "timeout": "Request timeout (ms)",
       "proxy": "Proxy Setting",
-      "host": "Host",
-      "port": "Port"
+      "host": "Host"
     },
     "ui": {
       "header": "UI",
@@ -288,7 +277,6 @@
       "header": "Tutorial",
       "open": "How to install desktop icon",
       "error": "If you encounter a bug",
-      "hot_key": "Hot keys",
       "font": "Set custom font",
       "error_q1": "Unable to access the network",
       "error_a1": "1. Ensure the atmosphere and system firmware are up to date\n2. Confirm that the system time is correct\n3. Restore the default network settings, including IP, DNS, etc\n4.Using in China",
@@ -303,11 +291,7 @@
     },
     "quick_connect": {
       "header": "Quick Connect",
-      "code": "Quick Connect code",
-      "invalid": "Invalid Quick Connect code",
-      "success": "Authorizing Quick Connect successful. Please continue on your other device.",
-      "steps": "1. Open the Jellyfin app on your phone or web browser and sign in with your account\n2. Open the user menu and go to the Quick Connect page\n3. Enter the following code:",
-      "disabled": "Note: Quick Connect not enabled"
+      "steps": "1. Open the Jellyfin app on your phone or web browser and sign in with your account\n2. Open the user menu and go to the Quick Connect page\n3. Enter the following code:"
     },
     "others": {
       "header": "Others",

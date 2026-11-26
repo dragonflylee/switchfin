@@ -33,13 +33,11 @@
     "session": "Oturum",
     "device": "Cihaz",
     "activity": "Etkinlik",
-    "path": "Dizin",
     "restart": "Yeniden Başlat",
     "confirm_restart": "Jellyfin'i yeniden başlatmak istediğinize emin misiniz?",
     "scan_all": "Tüm Kütüphaneleri Tara",
     "within_minute": "Son 1 dakika içinde",
-    "minute_ago": "{} dakika önce",
-    "hour_ago": "{} saat önce"
+    "minute_ago": "{} dakika önce"
   },
   "player": {
     "subtitle": "Alt yazı",
@@ -108,7 +106,6 @@
     "mark_played": "Oynatıldı olarak işaretle",
     "mark_unplayed": "Oynatılmadı olarak işaretle",
     "play": "Oynat",
-    "intro": "Başlangıç Jeneriği",
     "people": "Oyuncular",
     "crew": "Ekip",
     "director": "Yönetmen",
@@ -141,7 +138,6 @@
     "hint": "Anahtar kelimeleri ve baş harflerini destekler",
     "clear": "Temizle",
     "delete": "Sil",
-    "paste": "Yapıştır",
     "history": "Geçmiş",
     "suggest": "Öneriler",
     "clear_history": "Arama geçmişinin silinmesini onaylıyor musunuz?",
@@ -176,7 +172,6 @@
     "quality": "İndirme Kalitesi",
     "original": "Orijinal",
     "start": "İndir",
-    "cancel": "İndirmeyi İptal Et",
     "remove": "İndirmeyi Kaldır",
     "resume": "Devam Et",
     "downloading": "İndiriliyor...",
@@ -187,7 +182,6 @@
     "confirm_remove": "İndirilen dosya kaldırılsın mı?",
     "confirm_cancel": "Bu indirme iptal edilsin mi?",
     "confirm_season": "{} bölüm indirilsin mi?",
-    "play_offline": "Çevrim Dışı Oynat",
     "storage": "Depolama",
     "storage_free": "{} boş / toplam {}",
     "section_active": "Devam ediyor",
@@ -200,7 +194,6 @@
     "quit_hint": "Uygulamadan çıkış yapmak üzeresiniz. Değiştirilen ayarlar bir sonraki başlangıçtan sonra uygulanacak",
     "name": "Ad",
     "version": "Sürüm",
-    "os": "İşletim Sistemi",
     "url": "Bağlantı",
     "user": "Kullanıcı",
     "username": "Kullanıcı Adı",
@@ -213,8 +206,6 @@
       "invalid": "Bağlantı http:// veya https:// ile başlamalıdır",
       "connect": "Bağlan",
       "delete": "Silmeyi onaylıyor musunuz?",
-      "local": "Yerel Sunucular",
-      "users": "{} kullanıcı",
       "sigin_to": "{} sunucusuna giriş yap",
       "signin": "Giriş Yap"
     },
@@ -232,7 +223,6 @@
       "clip_point": "Video kısımlarında klip noktasını göster",
       "transcodec": "Video Çözücü",
       "audio_channels": "Ses Kanalları",
-      "video_quality": "Video Kalitesi",
       "subsync": "Alt Yazı Eşitleme"
     },
     "transcode": {
@@ -268,8 +258,7 @@
       "threads": "Görsel yükleme işlem sayısı",
       "timeout": "İstek zaman aşımı (ms)",
       "proxy": "Vekil Sunucu Seçenekleri",
-      "host": "Adres",
-      "port": "Bağlantı Noktası"
+      "host": "Adres"
     },
     "ui": {
       "header": "Arayüz",
@@ -287,7 +276,6 @@
       "header": "Kılavuz",
       "open": "Ana ekran simgesi nasıl yüklenir",
       "error": "Eğer bir hatayla karşılaşırsanız",
-      "hot_key": "Kısayollar",
       "font": "Özel yazı tipi ayarlama",
       "error_q1": "Ağa erişilemiyorsa",
       "error_a1": "1. Atmosphere ve sistem sürümünün güncel olduğundan emin olun\n2. Sistemin tarih ve saat ayarlarının doğru olduğunundan emin olun\n3. IP adresi, DNS gibi varsayılan ağ ayarlarını geri yükleyin\n4. Çin'de kullanıyorsanız da ağ ayarları sorun çıkarabilir",
@@ -302,11 +290,7 @@
     },
     "quick_connect": {
       "header": "Hızlı Bağlan",
-      "code": "Hızlı Bağlan kodu",
-      "invalid": "Geçersiz Hızlı Bağlan kodu",
-      "success": "Hızlı Bağlan başarıyla yetkilendirildi. Lütfen diğer cihazınızda devam edin.",
-      "steps": "1. Telefonunuzdaki veya web tarayıcınızdaki Jellyfin uygulamasını açın ve hesabınızla oturum açın.\n2. Kullanıcı menüsünü açın ve Hızlı Bağlan sayfasına gidin.\n3. Kodu girin:",
-      "disabled": "Not: Hızlı Bağlan etkin değil"
+      "steps": "1. Telefonunuzdaki veya web tarayıcınızdaki Jellyfin uygulamasını açın ve hesabınızla oturum açın.\n2. Kullanıcı menüsünü açın ve Hızlı Bağlan sayfasına gidin.\n3. Kodu girin:"
     },
     "others": {
       "header": "Diğer",

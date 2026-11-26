@@ -33,13 +33,11 @@
     "session": "Session",
     "device": "Appareil",
     "activity": "Activité",
-    "path": "Chemin",
     "restart": "Redémarrer",
     "confirm_restart": "Voulez-vous vraiment redémarrer Jellyfin ?",
     "scan_all": "Actualiser toutes les médiathèques",
     "within_minute": "Il y a moins d'une minute",
-    "minute_ago": "Il y a {} minutes",
-    "hour_ago": "Il y a {} heures"
+    "minute_ago": "Il y a {} minutes"
   },
   "player": {
     "subtitle": "Sous-titres",
@@ -109,7 +107,6 @@
     "mark_played": "Marquer comme vu",
     "mark_unplayed": "Marquer comme non vu",
     "play": "Lire",
-    "intro": "Introduction",
     "people": "Personnes",
     "crew": "Équipe",
     "director": "Réalisateur",
@@ -141,7 +138,6 @@
     "hint": "Prise en charge des mots-clés et des premières lettres des mots-clés",
     "clear": "Effacer",
     "delete": "Supprimer",
-    "paste": "Coller",
     "history": "Historique",
     "suggest": "Suggestion",
     "clear_history": "Confirmer la suppression de l'historique de recherche ?",
@@ -176,7 +172,6 @@
     "quality": "Qualité de téléchargement",
     "original": "Qualité d'origine",
     "start": "Télécharger",
-    "cancel": "Annuler le téléchargement",
     "remove": "Supprimer le téléchargement",
     "resume": "Reprendre",
     "downloading": "Téléchargement…",
@@ -188,20 +183,17 @@
     "confirm_remove": "Supprimer ce téléchargement ?",
     "confirm_cancel": "Annuler ce téléchargement ?",
     "confirm_season": "Télécharger {} épisodes ?",
-    "play_offline": "Lire hors ligne",
     "storage": "Stockage",
     "storage_free": "{} libres sur {}",
     "section_active": "En cours",
     "section_done": "Téléchargés",
     "remove_all": "Tout supprimer",
-    "confirm_remove_all": "Supprimer tous les téléchargements ?",
-    "empty_sub": "Les films et épisodes téléchargés se retrouvent ici, pour les regarder hors ligne."
+    "confirm_remove_all": "Supprimer tous les téléchargements ?"
   },
   "setting": {
     "quit_hint": "L'application va bientôt se fermer, les paramètres prendront effet lors du prochain démarrage",
     "name": "Nom",
     "version": "Version",
-    "os": "Système d'exploitation",
     "url": "URL",
     "user": "Utilisateur",
     "username": "Nom d'utilisateur",
@@ -214,8 +206,6 @@
       "invalid": "L'URL doit commencer par http:// ou https://",
       "connect": "Connexion",
       "delete": "Voulez-vous supprimer ?",
-      "local": "Serveurs locaux",
-      "users": "{} utilisateurs",
       "sigin_to": "Se connecter à {}",
       "signin": "Se connecter"
     },
@@ -233,7 +223,6 @@
       "clip_point": "Afficher la position des chapitres sur la barre de progression",
       "transcodec": "Format de transcodage",
       "audio_channels": "Canaux audio",
-      "video_quality": "Qualité vidéo",
       "subsync": "Synchronisation des sous-titres"
     },
     "transcode": {
@@ -269,8 +258,7 @@
       "threads": "Nombre de threads de chargement des images",
       "timeout": "Temps d'attente de la requête (en millisecondes)",
       "proxy": "Serveur proxy",
-      "host": "Adresse",
-      "port": "Port"
+      "host": "Adresse"
     },
     "ui": {
       "header": "Paramètres de l'interface",
@@ -288,7 +276,6 @@
       "header": "Tutoriel d'utilisation",
       "open": "Installer l'icône",
       "error": "Erreur dans le logiciel ou certaines fonctionnalités indisponibles",
-      "hot_key": "Description des raccourcis clavier cachés",
       "font": "Configurer une police personnalisée",
       "error_q1": "Impossible d'accéder à Internet",
       "error_a1": "1. Assurez-vous qu'Atmosphère et le firmware de la console sont à jour.\n2. Vérifiez que la date et l'heure du système sont correctes.\n3. Rétablissez les paramètres réseau par défaut, notamment l'adresse IP et le DNS.\n4. En cas d'utilisation en Chine, vérifiez les éventuelles restrictions réseau.",
@@ -303,11 +290,7 @@
     },
     "quick_connect": {
       "header": "Connexion rapide",
-      "code": "Code de vérification de connexion rapide.",
-      "invalid": "Code de vérification de connexion rapide invalide",
-      "success": "Autorisation de connexion rapide réussie. Veuillez continuer sur vos autres appareils",
-      "steps": "1. Ouvrez l'application mobile ou le navigateur, puis connectez-vous à votre compte Jellyfin.\n2. Ouvrez le menu utilisateur et accédez à la page de connexion rapide.\n3. Entrez le code de vérification suivant :",
-      "disabled": "Attention : La connexion rapide n'est pas activée."
+      "steps": "1. Ouvrez l'application mobile ou le navigateur, puis connectez-vous à votre compte Jellyfin.\n2. Ouvrez le menu utilisateur et accédez à la page de connexion rapide.\n3. Entrez le code de vérification suivant :"
     },
     "others": {
       "header": "Autres",

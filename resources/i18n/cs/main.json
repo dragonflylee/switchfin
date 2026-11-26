@@ -33,13 +33,11 @@
     "session": "sezení",
     "device": "Zařízení",
     "activity": "Aktivita",
-    "path": "Cesty",
     "restart": "Restartovat",
     "confirm_restart": "Opravdu chcete restartovat Jellyfin?",
     "scan_all": "Skenovat všechny knihovny",
     "within_minute": "méně než 1 minuta",
-    "minute_ago": "před {} minutami",
-    "hour_ago": "před {} hodinami"
+    "minute_ago": "před {} minutami"
   },
   "player": {
     "subtitle": "Titulky",
@@ -109,7 +107,6 @@
     "mark_played": "Označit přehrané",
     "mark_unplayed": "Označit nepřehrané",
     "play": "Přehrát",
-    "intro": "Přehled/Obsah",
     "people": "Lidé",
     "crew": "Štáb",
     "director": "Režie",
@@ -141,7 +138,6 @@
     "hint": "Podpora klíčových slov a jejich počátečních písmen",
     "clear": "Vyčistit",
     "delete": "Smazat",
-    "paste": "Vložit",
     "history": "Historie",
     "suggest": "Návrh",
     "clear_history": "Potvrzením vymazat historii vyhledávání?",
@@ -176,7 +172,6 @@
     "quality": "Kvalita stahování",
     "original": "Originál",
     "start": "Stáhnout",
-    "cancel": "Zrušit stahování",
     "remove": "Odstranit stažené",
     "resume": "Pokračovat",
     "downloading": "Stahování…",
@@ -188,7 +183,6 @@
     "confirm_remove": "Odstranit toto stažení?",
     "confirm_cancel": "Zrušit toto stahování?",
     "confirm_season": "Stáhnout {} epizod?",
-    "play_offline": "Přehrát offline",
     "storage": "Úložiště",
     "storage_free": "{} volných z {}",
     "section_active": "Probíhá",
@@ -200,7 +194,6 @@
     "quit_hint": "Chystáte se ukončit aplikaci. Nastavení se projeví po příštím spuštění",
     "name": "Jméno",
     "version": "Verze",
-    "os": "Operační Systém",
     "url": "Odkaz",
     "user": "Uživatel",
     "username": "Jméno uživatele",
@@ -213,8 +206,6 @@
       "invalid": "Neplatná adresa serveru!",
       "connect": "Připojit",
       "delete": "Potvrdit smazání?",
-      "local": "Místní Servery",
-      "users": "{} uživatelé",
       "sigin_to": "Přihlásit se do  {}",
       "signin": "Přihlásit se"
     },
@@ -232,7 +223,6 @@
       "clip_point": "Zobrazit bod klipu kapitoly",
       "transcodec": "Transcodec",
       "audio_channels": "Zvukové kanály",
-      "video_quality": "Kvalita videa",
       "subsync": "Synchronizace titulků"
     },
     "transcode": {
@@ -268,8 +258,7 @@
       "threads": "Počet vláken pro načítání obrázku",
       "timeout": "Časový limit požadavku (ms)",
       "proxy": "Nastavení proxy",
-      "host": "Hostitel",
-      "port": "Port"
+      "host": "Hostitel"
     },
     "ui": {
       "header": "Rozhraní",
@@ -287,7 +276,6 @@
       "header": "Výukový program",
       "open": "Jak nainstalovat ikonu na plochu",
       "error": "Pokud narazíte na chybu",
-      "hot_key": "Klávesové zkratky",
       "font": "Nastavit vlastní písmo",
       "error_q1": "Nelze získat přístup k síti",
       "error_a1": "1. Ujistěte se, že Atmosphere a firmware systému jsou aktuální\n2. Potvrďte, že systémový čas je správný\n3. Obnovte výchozí nastavení sítě, včetně IP, DNS atd\n4. Použití v Číně",
@@ -302,11 +290,7 @@
     },
     "quick_connect": {
       "header": "Rychlé připojení",
-      "code": "Kód rychlého připojení",
-      "invalid": "Neplatný kód rychlého připojení",
-      "success": "Autorizace rychlého připojení byla úspěšná. Pokračujte prosím na svém druhém zařízení.",
-      "steps": "1. Otevřete aplikaci Jellyfin v telefonu nebo webovém prohlížeči a přihlaste se pomocí svého účtu\n2. Otevřete uživatelskou nabídku a přejděte na stránku Rychlé připojení\n3. Zadejte následující kód:",
-      "disabled": "Poznámka: Rychlé připojení není povoleno"
+      "steps": "1. Otevřete aplikaci Jellyfin v telefonu nebo webovém prohlížeči a přihlaste se pomocí svého účtu\n2. Otevřete uživatelskou nabídku a přejděte na stránku Rychlé připojení\n3. Zadejte následující kód:"
     },
     "others": {
       "header": "Ostatní",

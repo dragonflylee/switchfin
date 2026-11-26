@@ -33,13 +33,11 @@
     "session": "Sessões",
     "device": "Dispositivos",
     "activity": "Actividades",
-    "path": "Directório",
     "restart": "Reiniciar",
     "confirm_restart": "Tem a certeza de que pretende reiniciar o Jellyfin?",
     "scan_all": "Fazer o scan todas as bibliotecas de media",
     "within_minute": "menos de 1 minuto",
-    "minute_ago": "{} minutos atrás",
-    "hour_ago": "{} horas atrás"
+    "minute_ago": "{} minutos atrás"
   },
   "player": {
     "subtitle": "Legendas",
@@ -109,7 +107,6 @@
     "mark_played": "Marcar como reproduzido",
     "mark_unplayed": "Desmarcar como reproduzido",
     "play": "Reproduzir",
-    "intro": "Introdução",
     "people": "Elenco e equipa",
     "crew": "Equipa técnica",
     "director": "Realizador",
@@ -141,7 +138,6 @@
     "hint": "Suporta palavras-chave e suas iniciais",
     "clear": "Vazio",
     "delete": "Excluir",
-    "paste": "Colar",
     "history": "Histórico",
     "suggest": "Sugestões",
     "clear_history": "Confirmar limpeza do histórico de pesquisa?",
@@ -176,7 +172,6 @@
     "quality": "Qualidade de transferência",
     "original": "Original",
     "start": "Transferir",
-    "cancel": "Cancelar transferência",
     "remove": "Remover transferência",
     "resume": "Retomar",
     "downloading": "A transferir...",
@@ -188,7 +183,6 @@
     "confirm_remove": "Remover esta transferência?",
     "confirm_cancel": "Cancelar esta transferência?",
     "confirm_season": "Transferir {} episódios?",
-    "play_offline": "Reproduzir offline",
     "storage": "Armazenamento",
     "storage_free": "{} livres de {}",
     "section_active": "Em curso",
@@ -200,7 +194,6 @@
     "quit_hint": "Está prestes a sair do aplicativo. As definições entrarão em vigor na próxima vez que o iniciar.",
     "name": "Nome",
     "version": "Versão",
-    "os": "Sistema Operacional",
     "url": "URL",
     "user": "Utilizador",
     "username": "Nome de utilizador",
@@ -213,8 +206,6 @@
       "invalid": "O URL deve começar com http:// ou https://",
       "connect": "Conexão",
       "delete": "Deseja remover?",
-      "local": "Servidor Local",
-      "users": "{} utilizadores",
       "sigin_to": "Iniciar sessão em {}",
       "signin": "Iniciar sessão"
     },
@@ -232,7 +223,6 @@
       "clip_point": "Mostrar a posição do capítulo na barra de progresso",
       "transcodec": "Formato de transcodificação",
       "audio_channels": "Canal de áudio",
-      "video_quality": "Qualidade do vídeo",
       "subsync": "Sincronização dos subtítulos"
     },
     "transcode": {
@@ -268,8 +258,7 @@
       "threads": "Número de threads para carregar imagens",
       "timeout": "Tempo limite da requisição (ms)",
       "proxy": "Opções do proxy",
-      "host": "Endereço IP",
-      "port": "Porta"
+      "host": "Endereço IP"
     },
     "ui": {
       "header": "Interface",
@@ -287,7 +276,6 @@
       "header": "Tutorial",
       "open": "Como instalar o ícone no ambiente de trabalho",
       "error": "Se encontraste algum erro",
-      "hot_key": "Teclas de atalho",
       "font": "Defina uma fonte personalizada",
       "error_q1": "Não foi possível aceder à rede.",
       "error_a1": "1. Certifique-se de que o firmware do sistema e o Atmosphere estão atualizados\n2.º Certifique-se a hora do sistema (incluindo a data) está correta\n3.º Restaure as definições de rede predefinidas, incluindo o endereço IP, DNS, etc",
@@ -302,11 +290,7 @@
     },
     "quick_connect": {
       "header": "Ligação rápida",
-      "code": "Código de Ligação Rápida",
-      "invalid": "Código de Ligação Rápida inválido",
-      "success": "Autorização de Ligação Rápida bem-sucedida. Continue no outro aparelho.",
-      "steps": "1.º Abra o Jellyfin na aplicação móvel ou no browser e inicie sessão na sua conta\n2.º Abra o menu do utilizador e aceda à página de ligação rápida\n3.º Introduza o seguinte código de verificação:",
-      "disabled": "Nota: a ligação rápida não está ativada."
+      "steps": "1.º Abra o Jellyfin na aplicação móvel ou no browser e inicie sessão na sua conta\n2.º Abra o menu do utilizador e aceda à página de ligação rápida\n3.º Introduza o seguinte código de verificação:"
     },
     "others": {
       "header": "Outros",

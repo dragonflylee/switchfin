@@ -33,13 +33,11 @@
     "session": "Session",
     "device": "장치",
     "activity": "활동",
-    "path": "선택",
     "restart": "재시작",
     "confirm_restart": "Jellyfin을 다시 시작 하시겠습니까?",
     "scan_all": "라이브러리 스캔",
     "within_minute": "1분도 안 걸려",
-    "minute_ago": "{}분 전",
-    "hour_ago": "{}시간 전"
+    "minute_ago": "{}분 전"
   },
   "player": {
     "subtitle": "자막",
@@ -109,7 +107,6 @@
     "mark_played": "재생한 것으로 표시",
     "mark_unplayed": "재생하지 않은 것으로 표시",
     "play": "재생",
-    "intro": "소개",
     "people": "인물",
     "crew": "제작진",
     "director": "감독",
@@ -141,7 +138,6 @@
     "hint": "키워드와 키워드의 첫 글자를 지원합니다.",
     "clear": "초기화",
     "delete": "삭제",
-    "paste": "붙여넣기",
     "history": "검색 기록",
     "suggest": "추천 검색",
     "clear_history": "검색 기록을 비우시겠습니까?",
@@ -176,7 +172,6 @@
     "quality": "다운로드 화질",
     "original": "원본",
     "start": "다운로드",
-    "cancel": "다운로드 취소",
     "remove": "다운로드 삭제",
     "resume": "이어받기",
     "downloading": "다운로드 중...",
@@ -188,7 +183,6 @@
     "confirm_remove": "이 다운로드를 삭제할까요?",
     "confirm_cancel": "이 다운로드를 취소할까요?",
     "confirm_season": "에피소드 {}개를 다운로드할까요?",
-    "play_offline": "오프라인 재생",
     "storage": "저장 공간",
     "storage_free": "{} 사용 가능 / 전체 {}",
     "section_active": "다운로드 중",
@@ -200,7 +194,6 @@
     "quit_hint": "앱을 종료합니다. 설정 내용은 다음 실행 시 적용됩니다.",
     "name": "이름",
     "version": "버전",
-    "os": "운영 체제",
     "url": "URL",
     "user": "사용자",
     "username": "사용자 이름",
@@ -213,8 +206,6 @@
       "invalid": "서버 주소가 유효하지 않습니다!",
       "connect": "연결",
       "delete": "삭제하시겠습니까?",
-      "local": "로컬 서버",
-      "users": "{}명의 사용자",
       "sigin_to": "{}에 로그인",
       "signin": "로그인"
     },
@@ -232,7 +223,6 @@
       "clip_point": "챕터 위치 표시",
       "transcodec": "트랜스코딩 포맷",
       "audio_channels": "오디오 채널",
-      "video_quality": "비디오 품질",
       "subsync": "자막 동기화"
     },
     "transcode": {
@@ -268,8 +258,7 @@
       "threads": "이미지 로딩 스레드 수",
       "timeout": "요청 타임아웃 (ms)",
       "proxy": "프록시 서버",
-      "host": "주소",
-      "port": "포트"
+      "host": "주소"
     },
     "ui": {
       "header": "사용자 인터페이스",
@@ -287,7 +276,6 @@
       "header": "튜토리얼",
       "open": "홈 화면에 아이콘 설치",
       "error": "소프트웨어 내 오류 또는 일부 기능 불가",
-      "hot_key": "단축키",
       "font": "커스텀 글꼴 설정",
       "error_q1": "네트워크에 접근할 수 없음",
       "error_a1": "1. Atmosphere 및 시스템 펌웨어가 최신 상태인지 확인\n2. 시스템 시간이 올바른지 확인\n3. IP, DNS 등을 포함한 기본 네트워크 설정 복원",
@@ -302,11 +290,7 @@
     },
     "quick_connect": {
       "header": "Quick Connect",
-      "code": "Quick Connect 인증 코드",
-      "invalid": "유효하지 않은 Quick Connect 인증 코드",
-      "success": "Quick Connect가 성공적으로 승인되었습니다. 다른 기기에서 계속 진행하십시오.",
-      "steps": "1. 모바일 앱 또는 브라우저에서 Jellyfin에 로그인\n2. 사용자 메뉴를 열고 Quick Connect 페이지로 이동\n3. 아래 인증 코드를 입력:",
-      "disabled": "주의: Quick Connect가 활성화되지 않았습니다."
+      "steps": "1. 모바일 앱 또는 브라우저에서 Jellyfin에 로그인\n2. 사용자 메뉴를 열고 Quick Connect 페이지로 이동\n3. 아래 인증 코드를 입력:"
     },
     "others": {
       "header": "기타",

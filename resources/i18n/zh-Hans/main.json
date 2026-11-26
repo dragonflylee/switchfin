@@ -33,13 +33,11 @@
     "session": "会话",
     "device": "设备",
     "activity": "活动",
-    "path": "路径",
     "restart": "重启",
     "confirm_restart": "你确定要重启 Jellyfin？",
     "scan_all": "扫描所有媒体库",
     "within_minute": "不到 1 分钟",
-    "minute_ago": "{} 分钟前",
-    "hour_ago": "{} 小时前"
+    "minute_ago": "{} 分钟前"
   },
   "player": {
     "subtitle": "字幕",
@@ -109,7 +107,6 @@
     "mark_played": "标为已播放",
     "mark_unplayed": "标为未播放",
     "play": "播放",
-    "intro": "简介",
     "people": "演职人员",
     "crew": "剧组",
     "director": "导演",
@@ -141,7 +138,6 @@
     "hint": "支持关键字及关键字首字母",
     "clear": "清空",
     "delete": "删除",
-    "paste": "粘贴",
     "history": "历史记录",
     "suggest": "猜你想搜",
     "clear_history": "确认清空搜索记录？",
@@ -176,7 +172,6 @@
     "quality": "清晰度",
     "original": "原始码率",
     "start": "开始下载",
-    "cancel": "取消下载",
     "remove": "移除下载",
     "resume": "续传",
     "downloading": "下载中...",
@@ -188,7 +183,6 @@
     "confirm_remove": "是否移除下载文件?",
     "confirm_cancel": "取消此下载任务？",
     "confirm_season": "下载 {} 集？",
-    "play_offline": "离线播放",
     "storage": "存储空间",
     "storage_free": "可用 {} / 共 {}",
     "section_active": "下载中",
@@ -200,7 +194,6 @@
     "quit_hint": "即将退出应用, 设置内容将在下次启动后生效",
     "name": "名称",
     "version": "版本",
-    "os": "操作系统",
     "url": "URL",
     "user": "用户",
     "username": "用户名",
@@ -213,8 +206,6 @@
       "invalid": "URL 必须以 http:// 或 https:// 开头",
       "connect": "连接",
       "delete": "是否删除？",
-      "local": "本地服务器",
-      "users": "{} 个用户",
       "sigin_to": "登录至 {}",
       "signin": "登录"
     },
@@ -232,7 +223,6 @@
       "clip_point": "进度条显示章节位置",
       "transcodec": "转码格式",
       "audio_channels": "声道",
-      "video_quality": "视频质量",
       "subsync": "字幕同步"
     },
     "transcode": {
@@ -268,8 +258,7 @@
       "threads": "图片加载线程数",
       "timeout": "请求超时时间 (毫秒)",
       "proxy": "代理服务器",
-      "host": "地址",
-      "port": "端口"
+      "host": "地址"
     },
     "ui": {
       "header": "界面设置",
@@ -287,7 +276,6 @@
       "header": "使用教程",
       "open": "安装桌面图标",
       "error": "软件内报错或部分功能不可用",
-      "hot_key": "隐藏的快捷键说明",
       "font": "设置自定义字体",
       "error_q1": "无法访问网络",
       "error_a1": "1. 确保大气层、系统固件最新\n2. 确认系统时间（包括日期）是正确的\n3. 恢复默认网络设置，包括IP、DNS等",
@@ -302,11 +290,7 @@
     },
     "quick_connect": {
       "header": "快速连接",
-      "code": "快速连接验证码",
-      "invalid": "无效的快速连接验证码",
-      "success": "成功授权快速连接。请在你的其他设备上继续。",
-      "steps": "1. 在手机APP或浏览器打开Jellyfin并登陆你的帐号\n2. 打开用户菜单并进入快速连接页面\n3. 输入下列验证码：",
-      "disabled": "注意：快速连接没有启用"
+      "steps": "1. 在手机APP或浏览器打开Jellyfin并登陆你的帐号\n2. 打开用户菜单并进入快速连接页面\n3. 输入下列验证码："
     },
     "others": {
       "header": "其他",

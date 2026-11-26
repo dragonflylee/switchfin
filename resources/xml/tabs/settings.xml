@@ -52,6 +52,7 @@
                 <brls:BooleanCell
                     id="setting/video/low_quality" />
                 <brls:BooleanCell
+                    visibility="gone"
                     id="setting/video/latency_hacks" />
                 <brls:SelectorCell
                     id="setting/video/inmemory" />

@@ -33,13 +33,11 @@
     "session": "Session",
     "device": "Geräte",
     "activity": "Aktivitäten",
-    "path": "Pfade",
     "restart": "Neustarten",
     "confirm_restart": "Willst du Jellyfin wirklich neu starten?",
     "scan_all": "Alle Bibliotheken scannen",
     "within_minute": "Innerhalb von 1 Minute",
-    "minute_ago": "vor {} Minuten",
-    "hour_ago": "vor {} Stunden"
+    "minute_ago": "vor {} Minuten"
   },
   "player": {
     "subtitle": "Untertitel",
@@ -109,7 +107,6 @@
     "mark_played": "Als gesehen markieren",
     "mark_unplayed": "Als ungesehen markieren",
     "play": "Abspielen",
-    "intro": "Vorschau",
     "people": "Mitwirkende",
     "crew": "Crew",
     "director": "Regie",
@@ -141,7 +138,6 @@
     "hint": "Support keywords and their initial letters",
     "clear": "klären",
     "delete": "löschen",
-    "paste": "Paste",
     "history": "Geschichte",
     "suggest": "Vorschläge",
     "clear_history": "Suchverlauf wirklich leeren?",
@@ -176,7 +172,6 @@
     "quality": "Download-Qualität",
     "original": "Original",
     "start": "Herunterladen",
-    "cancel": "Download abbrechen",
     "remove": "Download entfernen",
     "resume": "Fortsetzen",
     "downloading": "Wird heruntergeladen...",
@@ -188,7 +183,6 @@
     "confirm_remove": "Diesen Download entfernen?",
     "confirm_cancel": "Diesen Download abbrechen?",
     "confirm_season": "{} Episoden herunterladen?",
-    "play_offline": "Offline abspielen",
     "storage": "Speicher",
     "storage_free": "{} frei von {}",
     "section_active": "Aktiv",
@@ -200,7 +194,6 @@
     "quit_hint": "Diese Applikation wird beended und die Einstellung tritt bei dem nächsten Start in kraft.",
     "name": "Name",
     "version": "Version",
-    "os": "Betriebssystem",
     "url": "URL",
     "user": "Benutzer",
     "username": "Benutzername",
@@ -213,8 +206,6 @@
       "invalid": "Die URL muss mit http:// oder https:// beginnen",
       "connect": "Verbinden",
       "delete": "Bist du sicher, dass du diesen Server löschen willst?",
-      "local": "Locale Server",
-      "users": "{} Benutzer",
       "sigin_to": "In {} anmelden",
       "signin": "Anmelden"
     },
@@ -232,7 +223,6 @@
       "clip_point": "Kapitelmarken anzeigen",
       "transcodec": "Codec",
       "audio_channels": "Audiokanäle",
-      "video_quality": "Videoqualität",
       "subsync": "Untertitel-Synchronisierung"
     },
     "transcode": {
@@ -268,8 +258,7 @@
       "threads": "Anzahl an Bildladethreads",
       "timeout": "Maximale Anfragedauer (ms)",
       "proxy": "Proxy-Einstellung",
-      "host": "Host",
-      "port": "Port"
+      "host": "Host"
     },
     "ui": {
       "header": "Oberfläche",
@@ -287,7 +276,6 @@
       "header": "Anleitungen",
       "open": "Desktop-Icon installieren",
       "error": "Falls du einen Fehler findest",
-      "hot_key": "Tastenkürzel",
       "font": "Eigene Schriftart festlegen",
       "error_q1": "Netzwerk nicht erreichbar",
       "error_a1": "1. Stelle sicher, dass atmosphere und die Systemfirmware auf dem neusten Stand sind\n2. Bestätige, dass die Systemzeit richtig eingestellt ist\n3. Stelle die Standard-Netzwerkeinstellungen wieder her, mitsamt IP, DNS usw.\n4.In China verwenden",
@@ -302,11 +290,7 @@
     },
     "quick_connect": {
       "header": "Schnellverbindung",
-      "code": "Code für die Schnellverbindung",
-      "invalid": "Ungültiger Code für die Schnellverbindung",
-      "success": "Autorisierung für Schnellverbindung erfolgreich. Bitte fahre auf dem anderen Gerät fort.",
-      "steps": "1. Öffne die Jellyfin App auf deinem Smartphone oder Web Browser und logge dich mit deinem Account ein\n2. Öffne das Benutzer-Menü und gehe zur Seite für die Schnellverbindung\n3. Gib folgenden Code ein:",
-      "disabled": "Hinweis: Schnellverbindung nicht aktiviert"
+      "steps": "1. Öffne die Jellyfin App auf deinem Smartphone oder Web Browser und logge dich mit deinem Account ein\n2. Öffne das Benutzer-Menü und gehe zur Seite für die Schnellverbindung\n3. Gib folgenden Code ein:"
     },
     "others": {
       "header": "Diverses",

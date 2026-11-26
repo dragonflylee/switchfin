@@ -33,13 +33,11 @@
     "session": "工作階段",
     "device": "裝置",
     "activity": "活動",
-    "path": "路徑",
     "restart": "重新啟動",
     "confirm_restart": "您確定要重新啟動 Jellyfin 嗎？",
     "scan_all": "掃描所有媒體庫",
     "within_minute": "不到 1 分鐘",
-    "minute_ago": "{} 分鐘前",
-    "hour_ago": "{} 小時前"
+    "minute_ago": "{} 分鐘前"
   },
   "player": {
     "subtitle": "字幕",
@@ -109,7 +107,6 @@
     "mark_played": "標記為已播放",
     "mark_unplayed": "標記為未播放",
     "play": "播放",
-    "intro": "簡介",
     "people": "演員與工作人員",
     "crew": "劇組",
     "director": "導演",
@@ -141,7 +138,6 @@
     "hint": "支持關鍵字及關鍵字首字母",
     "clear": "清空",
     "delete": "删除",
-    "paste": "貼上",
     "history": "歷史記錄",
     "suggest": "猜你想搜",
     "clear_history": "確認清空搜尋記錄？",
@@ -176,7 +172,6 @@
     "quality": "畫質",
     "original": "原始畫質",
     "start": "開始下載",
-    "cancel": "取消下載",
     "remove": "移除下載",
     "resume": "續傳",
     "downloading": "下載中...",
@@ -188,7 +183,6 @@
     "confirm_remove": "是否移除下載文件?",
     "confirm_cancel": "是否取消此下載？",
     "confirm_season": "下載 {} 集？",
-    "play_offline": "離線播放",
     "storage": "儲存空間",
     "storage_free": "可用 {} / 共 {}",
     "section_active": "下載中",
@@ -200,7 +194,6 @@
     "quit_hint": "即將退出本程式, 變更的設定將在下次啟動時生效",
     "name": "名稱",
     "version": "版本",
-    "os": "作業系統",
     "url": "URL",
     "user": "使用者",
     "username": "使用者名稱",
@@ -213,8 +206,6 @@
       "invalid": "伺服器URL無效！",
       "connect": "連線",
       "delete": "是否刪除？",
-      "local": "本地伺服器",
-      "users": "{} 個使用者",
       "sigin_to": "登入到 {}",
       "signin": "登入"
     },
@@ -232,7 +223,6 @@
       "clip_point": "進度條顯示章節位置",
       "transcodec": "轉碼格式",
       "audio_channels": "音訊聲道數",
-      "video_quality": "視訊品質",
       "subsync": "字幕同步"
     },
     "transcode": {
@@ -268,8 +258,7 @@
       "threads": "載入圖片執行緒數量",
       "timeout": "請求逾時時長 (毫秒)",
       "proxy": "代理伺服器",
-      "host": "位址",
-      "port": "連接埠"
+      "host": "位址"
     },
     "ui": {
       "header": "介面設定",
@@ -287,7 +276,6 @@
       "header": "使用教學",
       "open": "安裝桌面圖示",
       "error": "程式內錯誤顯示或部份功能無法使用",
-      "hot_key": "隱藏的快捷鍵說明",
       "font": "設定自訂字型",
       "error_q1": "無法連線",
       "error_a1": "1. 確認大氣層及系統韌體版本為最新版\n2. 確認系統時間(包括日期)是正確的\n3. 把網路設定重設為預設值，包括IP、DNS等",
@@ -302,11 +290,7 @@
     },
     "quick_connect": {
       "header": "快速連接",
-      "code": "快速連接驗證碼",
-      "invalid": "不正確的快速連接驗證碼",
-      "success": "成功授權快速連接。請在其他裝置上繼續。",
-      "steps": "1. 從手機或網頁瀏覽器打開 Jellyfin 並登錄您的帳號\n2. 點選使用者選單並開啟快速連接頁面\n3. 輸入下列驗證碼：",
-      "disabled": "注意: 未啟用快速連接功能"
+      "steps": "1. 從手機或網頁瀏覽器打開 Jellyfin 並登錄您的帳號\n2. 點選使用者選單並開啟快速連接頁面\n3. 輸入下列驗證碼："
     },
     "others": {
       "header": "其他",
