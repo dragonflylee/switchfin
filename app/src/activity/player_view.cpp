@@ -58,6 +58,10 @@ PlayerView::PlayerView(const jellyfin::Item& item, const uint64_t seekTicks, con
             // 移除其他备用链接
             for (auto& s : this->stream.MediaStreams) {
                 if (s.Type == jellyfin::streamTypeSubtitle) {
+#if defined(__PSV__)
+                    // burned in by the server (see AlwaysBurnInSubtitleWhenTranscoding)
+                    if (this->playMethod == jellyfin::methodTranscode) continue;
+#endif
                     if (s.DeliveryUrl.size() > 0 && (s.IsExternal || this->playMethod == jellyfin::methodTranscode)) {
                         std::string url = svr + s.DeliveryUrl;
                         mpv.command("sub-add", url.c_str(), flag, s.DisplayTitle.c_str());
@@ -319,7 +323,10 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
         {"UserId", AppConfig::instance().getUserId()},
         {"MediaSourceId", this->sourceId},
 #if defined(__PSV__)
-        {"AlwaysBurnInSubtitleWhenTranscoding", PlayerSetting::selectedSubtitle > 0},
+        // Text subtitles drawn by mpv don't show on the Vita, and everything
+        // is transcoded anyway: let the server burn subtitles in, including
+        // the default/remembered track.
+        {"AlwaysBurnInSubtitleWhenTranscoding", true},
 #endif
         {"AllowAudioStreamCopy", true},
         {"DeviceProfile", profile},
@@ -327,6 +334,10 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
 
     if (PlayerSetting::selectedAudio > 0) param.push_back({"AudioStreamIndex", PlayerSetting::selectedAudio});
     if (PlayerSetting::selectedSubtitle > 0) param.push_back({"SubtitleStreamIndex", PlayerSetting::selectedSubtitle});
+#if defined(__PSV__)
+    // "None" picked: tell the server not to burn in its default track
+    if (PlayerSetting::selectedSubtitle == -1) param.push_back({"SubtitleStreamIndex", -1});
+#endif
 
     ASYNC_RETAIN
     jellyfin::postJSON(

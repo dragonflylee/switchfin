@@ -18,7 +18,8 @@ public:
 
     View* getDefaultFocus() override { return this->settings->getDefaultFocus(); }
 
-    inline static int selectedSubtitle = -1;
+    // 0: nothing picked (server default); on PSV, -1: "None" picked
+    inline static int selectedSubtitle = 0;
     inline static int selectedAudio = -1;
 
     enum class Equalizer {
