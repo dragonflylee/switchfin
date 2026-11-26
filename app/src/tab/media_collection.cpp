@@ -5,6 +5,7 @@
 #include "tab/media_collection.hpp"
 #include "api/jellyfin.hpp"
 #include "view/video_card.hpp"
+#include "view/svg_image.hpp"
 #include "view/video_source.hpp"
 #include "view/media_filter.hpp"
 #include "view/auto_tab_frame.hpp"
@@ -17,6 +18,7 @@
 using namespace brls::literals;  // for _i18n
 
 std::map<std::string, std::string> MediaCollection::customPrefs;
+bool MediaCollection::prefsLoaded = false;
 
 class GenresDataSource : public RecyclingGridDataSource {
 public:
@@ -34,6 +36,10 @@ public:
         auto& item = this->list.at(index);
         cell->labelTitle->setText(item.Name);
         cell->labelExt->setVisibility(brls::Visibility::GONE);
+        cell->labelRating->setVisibility(brls::Visibility::GONE);
+        cell->badgeTopRight->setVisibility(brls::Visibility::GONE);
+        cell->badgeFavorite->setVisibility(brls::Visibility::GONE);
+        cell->rectProgress->getParent()->setVisibility(brls::Visibility::GONE);
         auto it = item.ImageTags.find(jellyfin::imageTypePrimary);
         if (it != item.ImageTags.end()) {
             Image::load(cell->picture, 300, jellyfin::apiPrimaryImage, item.Id,
@@ -75,6 +81,10 @@ public:
         jellyfin::getJSON<jellyfin::Result<jellyfin::Genres>>(
             [ASYNC_TOKEN, itemId, itemType](const jellyfin::Result<jellyfin::Genres>& r) {
                 ASYNC_RELEASE
+                if (r.Items.empty()) {
+                    this->setEmpty();
+                    return;
+                }
                 this->setDataSource(new GenresDataSource(r.Items, itemId, itemType));
             },
             [ASYNC_TOKEN](const std::string& ex) {
@@ -187,19 +197,15 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
     this->prefKey = fmt::format("{}/web/index.html{}", serverUrl, itemType);
     std::transform(this->prefKey.begin(), this->prefKey.end(), this->prefKey.begin(), ::tolower);
 
-    this->recycler->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, [this](...) {
+    auto doRefresh = [this](...) {
         this->startIndex = 0;
         this->recycler->showSkeleton();
         this->doRequest();
         return true;
-    });
+    };
 
-    this->registerAction(KeyBind::getRefresh(), [this](...) {
-        this->startIndex = 0;
-        this->recycler->showSkeleton();
-        this->doRequest();
-        return true;
-    });
+    this->recycler->registerAction("hints/refresh"_i18n, brls::BUTTON_BACK, doRefresh);
+    this->registerAction(KeyBind::getRefresh(), doRefresh);
 
     this->recycler->registerCell("Cell", VideoCardCell::create);
     this->recycler->onNextPage([this]() { this->doRequest(); });
@@ -207,24 +213,14 @@ MediaCollection::MediaCollection(const std::string& itemId, const std::string& i
     if (this->itemType == jellyfin::mediaTypePlaylist) {
         this->doRequest();
     } else if (AppConfig::SYNC) {
-        if (MediaCollection::customPrefs.empty()) {
+        if (!MediaCollection::prefsLoaded) {
             this->doPreferences();
         } else {
             this->loadFilter();
             this->doRequest();
         }
     } else {
-        this->registerAction("main/media/sort"_i18n, brls::BUTTON_Y, [this](...) {
-            MediaFilter* filter = new MediaFilter();
-            filter->getEvent()->subscribe([this]() {
-                this->startIndex = 0;
-                this->recycler->showSkeleton();
-                this->doRequest();
-            });
-            brls::Application::pushActivity(new brls::Activity(filter));
-            return true;
-        });
-
+        this->openFilter(false);
         this->doRequest();
     }
 }
@@ -242,12 +238,16 @@ void MediaCollection::doPreferences() {
                     MediaCollection::customPrefs[item.key()] = item.value().get<std::string>();
                 }
             }
+            MediaCollection::prefsLoaded = true;
             this->loadFilter();
             this->doRequest();
         },
         [ASYNC_TOKEN](const std::string& ex) {
             ASYNC_RELEASE
-            this->recycler->setError(ex);
+            brls::Logger::warning("MediaCollection doPreferences: {}", ex);
+            MediaCollection::prefsLoaded = true;
+            this->openFilter(false);
+            this->doRequest();
         },
         jellyfin::apiUserSetting, AppConfig::instance().getUserId());
 }
@@ -258,16 +258,23 @@ struct DisplaySort {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(DisplaySort, SortBy, SortOrder);
 
+void MediaCollection::openFilter(bool save) {
+    MediaFilter* filter = new MediaFilter();
+    filter->getEvent()->subscribe([this, save]() {
+        this->startIndex = 0;
+        this->recycler->showSkeleton();
+        if (save) {
+            this->saveFilter();
+            return;
+        }
+        this->doRequest();
+    });
+    brls::Application::pushActivity(new brls::Activity(filter));
+}
+
 void MediaCollection::loadFilter() {
     this->recycler->registerAction("main/media/sort"_i18n, brls::BUTTON_Y, [this](...) {
-        MediaFilter* filter = new MediaFilter();
-        filter->getEvent()->subscribe([this]() {
-            this->startIndex = 0;
-            this->recycler->showSkeleton();
-            this->doRequest();
-            this->saveFilter();
-        });
-        brls::Application::pushActivity(new brls::Activity(filter));
+        this->openFilter(true);
         return true;
     });
 
@@ -301,10 +308,12 @@ void MediaCollection::saveFilter() {
             {"CustomPrefs", MediaCollection::customPrefs},
             {"Client", "emby"},
         },
-        [](...) {}, nullptr, jellyfin::apiUserSetting, AppConfig::instance().getUserId());
+        [this](...) { this->doRequest(); }, nullptr, jellyfin::apiUserSetting, AppConfig::instance().getUserId());
 }
 
 void MediaCollection::doRequest() {
+    const unsigned int id = ++this->requestId;
+
     std::vector<std::string> filters;
     if (MediaFilter::selectedPlayed) filters.push_back("IsPlayed");
     if (MediaFilter::selectedUnplayed) filters.push_back("IsUnplayed");
@@ -329,8 +338,9 @@ void MediaCollection::doRequest() {
 
     ASYNC_RETAIN
     jellyfin::getJSON<jellyfin::Result<jellyfin::Episode>>(
-        [ASYNC_TOKEN](const jellyfin::Result<jellyfin::Episode>& r) {
+        [ASYNC_TOKEN, id](const jellyfin::Result<jellyfin::Episode>& r) {
             ASYNC_RELEASE
+            if (id != this->requestId) return;
             this->startIndex = r.StartIndex + this->pageSize;
             if (r.TotalRecordCount == 0) {
                 this->recycler->setEmpty();
@@ -339,12 +349,15 @@ void MediaCollection::doRequest() {
                 brls::Application::giveFocus(this->recycler);
             } else if (r.Items.size() > 0) {
                 auto dataSrc = dynamic_cast<VideoDataSource*>(this->recycler->getDataSource());
-                dataSrc->appendData(r.Items);
-                this->recycler->notifyDataChanged();
+                if (dataSrc) {
+                    dataSrc->appendData(r.Items);
+                    this->recycler->notifyDataChanged();
+                }
             }
         },
-        [ASYNC_TOKEN](const std::string& ex) {
+        [ASYNC_TOKEN, id](const std::string& ex) {
             ASYNC_RELEASE
+            if (id != this->requestId) return;
             if (this->startIndex > 0) {
                 brls::Logger::warning("MediaCollection doRequest next: {}", ex);
                 brls::Application::notify(fmt::format("paging: {}", ex));
