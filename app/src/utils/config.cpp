@@ -880,14 +880,9 @@ void AppConfig::initThemes() {
     themeOptions.resize(3);  // auto, light, dark
     for (auto& theme : themes::all()) themeOptions.push_back(theme.id);
 
-    if (auto* theme = themes::find(resolveTheme(this->getItem(APP_THEME, std::string("auto"))))) {
-        auto& target =
-            theme->base == brls::ThemeVariant::LIGHT ? brls::Theme::getLightTheme() : brls::Theme::getDarkTheme();
-        for (auto& [name, color] : theme->colors) {
-            // single colors set in config.json still win
-            if (!setting.contains(name)) target.addColor(name, color);
-        }
-    }
+    // Through addColor, so single colors set in config.json still win
+    if (auto* theme = themes::find(resolveTheme(this->getItem(APP_THEME, std::string("auto")))))
+        for (auto& [name, color] : theme->colors) this->addColor(theme->base, name, color);
 
     if (brls::Application::ORIGINAL_WINDOW_HEIGHT == 544) {
         brls::getStyle().addMetric("app/album/height", 215);
