@@ -19,6 +19,10 @@ using namespace brls::literals;  // for _i18n
 #include <sys/un.h>
 #endif
 
+#ifdef __PSV__
+#include <psp2/appmgr.h>
+#endif
+
 #if defined(_WIN32) && !defined(_WINRT_)
 
 #define WIN32_LEAN_AND_MEAN
@@ -169,6 +173,24 @@ std::string misc::formatSize(uint64_t s) {
     if (s < (1 << 20)) return fmt::format("{}KB", s / 1024);
     if (s < (1 << 30)) return fmt::format("{:.2f}MB", (s >> 10) / 1024.0f);
     return fmt::format("{:.2f}GB", (s >> 20) / 1024.0f);
+}
+
+bool misc::getSpaceInfo(const std::string& path, uint64_t& capacity, uint64_t& available) {
+#ifdef __PSV__
+    // fs::space() is a stub on ux0:, use sceAppMgrGetDevInfo("ux0:", ...) instead
+    std::string dev = path.substr(0, path.find(':') + 1);
+    uint64_t max_size = 0, free_size = 0;
+    if (sceAppMgrGetDevInfo(dev.c_str(), &max_size, &free_size) < 0 || max_size == 0) return false;
+    capacity = max_size;
+    available = free_size;
+#else
+    std::error_code ec;
+    auto space = fs::space(path, ec);
+    if (ec || space.capacity == 0) return false;
+    capacity = space.capacity;
+    available = space.available;
+#endif
+    return true;
 }
 
 std::string misc::joinNames(const std::vector<std::string>& list) {

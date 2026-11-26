@@ -450,24 +450,15 @@ void DownloadView::updateStorage() {
     this->storageApp->setText(fmt::format("{}: {} · {} {}", AppVersion::getPackageName(),
         appBytes > 0 ? misc::formatSize(appBytes) : "0GB", count, "main/download/items"_i18n));
 
-    // capacity/available: std::filesystem::space and boost::filesystem::space
-    // expose the same fields (macOS/Linux/Windows/Switch)
-    bool spaceOk = false;
-    fs::space_info space{};
-    try {
-        space = fs::space(dir);
-        spaceOk = space.capacity > 0 && space.capacity != (uintmax_t)-1;
-    } catch (const std::exception&) {
-    }
-
-    if (!spaceOk) {
+    uint64_t capacity = 0, available = 0;
+    if (!misc::getSpaceInfo(dir, capacity, available) || capacity == 0) {
         this->storageFree->setText("");
         this->storageBar->setSegments({});
         return;
     }
 
-    double total = (double)space.capacity;
-    int64_t othersBytes = (int64_t)(space.capacity - space.available) - appBytes;
+    double total = (double)capacity;
+    int64_t othersBytes = (int64_t)(capacity - available) - appBytes;
     if (othersBytes < 0) othersBytes = 0;
 
     float appFrac = (float)(appBytes / total);
@@ -482,7 +473,7 @@ void DownloadView::updateStorage() {
     });
 
     this->storageFree->setText(fmt::format(fmt::runtime("main/download/storage_free"_i18n),
-        misc::formatSize((uint64_t)space.available), misc::formatSize((uint64_t)space.capacity)));
+        misc::formatSize(available), misc::formatSize(capacity)));
 }
 
 void DownloadView::dismiss(std::function<void(void)> cb) { AutoTabFrame::focus2Sidebar(this); }

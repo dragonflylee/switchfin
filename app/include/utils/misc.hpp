@@ -29,6 +29,8 @@ std::string formatMediaDuration(uint64_t seconds);
 
 std::string formatSize(uint64_t s);
 
+bool getSpaceInfo(const std::string& path, uint64_t& capacity, uint64_t& available);
+
 std::string formatTime(const std::string& str);
 
 std::string joinNames(const std::vector<std::string>& list);
