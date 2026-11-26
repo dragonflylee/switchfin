@@ -27,6 +27,8 @@
         "color/line": "#44475a",
         "font/grey": "#6272a4",
         "icon/default": "#6272a4",
-        "icon/active": "#ff79c6"
+        "icon/active": "#ff79c6",
+        "brls/bottom_bar/icon": "#bd93f9",
+        "brls/bottom_bar/text": "#f8f8f2"
     }
 }
