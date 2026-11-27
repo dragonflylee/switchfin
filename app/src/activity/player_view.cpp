@@ -8,8 +8,35 @@
 #include "view/video_view.hpp"
 #include "view/video_profile.hpp"
 #include <tinyxml2.h>
+#include <chrono>
 
 using namespace brls::literals;
+
+// Auto quality: like Jellyfin's own clients, measure the bandwidth to the
+// server and ask for 70% of it instead of an unlimited stream. Re-measured
+// after 10 minutes; 0 = not measured yet, -1 = the test failed (no limit).
+static int64_t autoBitrate = 0;
+static std::chrono::steady_clock::time_point autoBitrateTime;
+static constexpr int64_t AUTO_BITRATE_MAX = 120000000;
+
+static int64_t measureBitrate() {
+    auto& c = AppConfig::instance();
+    HTTP::Header header = {c.getAuth(c.getToken())};
+    size_t size = 1000000;
+    for (int i = 0; i < 2; i++) {
+        auto start = std::chrono::steady_clock::now();
+        std::string data = HTTP::get(fmt::format("{}/Playback/BitrateTest?size={}", c.getUrl(), size), header,
+            HTTP::Timeout{10000});
+        double seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+        if (data.size() < size / 2 || seconds <= 0) return 0;
+        int64_t bps = static_cast<int64_t>(data.size() * 8 / seconds);
+        brls::Logger::info("Bitrate test: {} bytes in {:.2f}s = {:.1f} Mbps", data.size(), seconds, bps / 1e6);
+        // a sample that arrives too quickly is dominated by latency: retry bigger
+        if (seconds >= 1.0 || i == 1) return bps;
+        size = 3000000;
+    }
+    return 0;
+}
 
 PlayerView::PlayerView(const jellyfin::Item& item, const uint64_t seekTicks, const std::string& sourceId)
     : itemId(item.Id) {
@@ -176,6 +203,26 @@ bool PlayerView::playIndex(int index) {
 }
 
 void PlayerView::playMedia(const uint64_t seekTicks) {
+    if (MPVCore::VIDEO_QUALITY <= 0 &&
+        (autoBitrate == 0 || std::chrono::steady_clock::now() - autoBitrateTime > std::chrono::minutes(10))) {
+        ASYNC_RETAIN
+        brls::async([ASYNC_TOKEN, seekTicks]() {
+            int64_t bps = 0;
+            try {
+                bps = measureBitrate();
+            } catch (const std::exception& ex) {
+                brls::Logger::warning("Bitrate test failed: {}", ex.what());
+            }
+            brls::sync([ASYNC_TOKEN, seekTicks, bps]() {
+                ASYNC_RELEASE
+                autoBitrate = bps > 0 ? std::min(bps * 7 / 10, AUTO_BITRATE_MAX) : -1;
+                autoBitrateTime = std::chrono::steady_clock::now();
+                this->playMedia(seekTicks);
+            });
+        });
+        return;
+    }
+
 #if defined(__PS4__)
     int maxAllowedHeight = 1080;
 #else
@@ -241,7 +288,9 @@ void PlayerView::playMedia(const uint64_t seekTicks) {
     };
 
     nlohmann::json profile = {
-        {"MaxStreamingBitrate", (MPVCore::VIDEO_QUALITY <= 0) ? 120000000 : MPVCore::VIDEO_QUALITY},
+        {"MaxStreamingBitrate", MPVCore::VIDEO_QUALITY > 0 ? MPVCore::VIDEO_QUALITY
+                                : autoBitrate > 0         ? autoBitrate
+                                                          : AUTO_BITRATE_MAX},
         {
             "DirectPlayProfiles",
             {
