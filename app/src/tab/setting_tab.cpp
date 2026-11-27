@@ -157,8 +157,8 @@ void SettingTab::onCreate() {
     btnHWDEC->init("main/setting/playback/hwdec"_i18n, MPVCore::HARDWARE_DEC, [&conf](bool value) {
         if (MPVCore::HARDWARE_DEC == value) return;
         MPVCore::HARDWARE_DEC = value;
-        MPVCore::instance().restart();
         conf.setItem(AppConfig::PLAYER_HWDEC, value);
+        MPVCore::instance().restart();
     });
 
 #if defined(ANDROID)
@@ -178,22 +178,22 @@ void SettingTab::onCreate() {
     btnQuality->init("main/setting/playback/low_quality"_i18n, MPVCore::LOW_QUALITY, [&conf](bool value) {
         if (MPVCore::LOW_QUALITY == value) return;
         MPVCore::LOW_QUALITY = value;
-        MPVCore::instance().restart();
         conf.setItem(AppConfig::PLAYER_LOW_QUALITY, value);
+        MPVCore::instance().restart();
     });
 
     btnLatencyHacks->init("main/setting/playback/latency_hacks"_i18n, MPVCore::LATENCY_HACKS, [&conf](bool value) {
         if (MPVCore::LATENCY_HACKS == value) return;
         MPVCore::LATENCY_HACKS = value;
-        MPVCore::instance().restart();
         conf.setItem(AppConfig::PLAYER_LATENCY_HACKS, value);
+        MPVCore::instance().restart();
     });
 
     btnSubFallback->init("main/setting/playback/subs_fallback"_i18n, MPVCore::SUBS_FALLBACK, [&conf](bool value) {
         if (MPVCore::SUBS_FALLBACK == value) return;
         MPVCore::SUBS_FALLBACK = value;
-        MPVCore::instance().restart();
         conf.setItem(AppConfig::PLAYER_SUBS_FALLBACK, value);
+        MPVCore::instance().restart();
     });
 
     btnDirectPlay->init("main/setting/playback/force_directplay"_i18n, MPVCore::FORCE_DIRECTPLAY, [&conf](bool value) {
